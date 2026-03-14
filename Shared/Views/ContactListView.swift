@@ -293,16 +293,31 @@ struct ContactListView: View {
 
     @ViewBuilder
     private func lastMessagePreview(for contact: Contact) -> some View {
-        let messages = viewModel.messages(for: contact)
-        if let last = messages.last {
-            Text(last.text)
-                .font(.caption)
-                .foregroundStyle(MeshTheme.textSecondary)
-                .lineLimit(1)
+        if (contact.type == .repeater || contact.type == .room),
+           case .loggedIn(let isAdmin) = viewModel.remoteSession(for: contact).loginState {
+            let session = viewModel.remoteSession(for: contact)
+            if let ver = session.settings["ver"], !ver.isEmpty {
+                Text("Connected \u{2014} \(isAdmin ? "Admin" : "Guest") \u{00B7} \(ver)")
+                    .font(.caption)
+                    .foregroundStyle(MeshTheme.connected)
+                    .lineLimit(1)
+            } else {
+                Text("Connected \u{2014} \(isAdmin ? "Admin" : "Guest")")
+                    .font(.caption)
+                    .foregroundStyle(MeshTheme.connected)
+            }
         } else {
-            Text(contact.lastSeen, style: .relative)
-                .font(.caption)
-                .foregroundStyle(MeshTheme.textSecondary)
+            let messages = viewModel.messages(for: contact)
+            if let last = messages.last {
+                Text(last.text)
+                    .font(.caption)
+                    .foregroundStyle(MeshTheme.textSecondary)
+                    .lineLimit(1)
+            } else {
+                Text(contact.lastSeen, style: .relative)
+                    .font(.caption)
+                    .foregroundStyle(MeshTheme.textSecondary)
+            }
         }
     }
 
