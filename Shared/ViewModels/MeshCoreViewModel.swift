@@ -482,6 +482,35 @@ final class MeshCoreViewModel: ObservableObject {
         sendCommand(frame, label: "STATUS_REQ")
     }
 
+    /// Fetch all settings from a remote device sequentially after login.
+    /// Sends CLI commands with a small delay between each to avoid overwhelming the radio.
+    func fetchRemoteSettings(for contact: Contact) {
+        let session = remoteSession(for: contact)
+        session.isFetchingSettings = true
+
+        let commands = [
+            "ver", "clock",
+            "get radio", "get tx", "get repeat",
+            "get af", "get rxdelay", "get txdelay", "get direct.txdelay",
+            "get flood.max", "get int.thresh", "get agc.reset.interval",
+            "get name", "get lat", "get lon", "get owner.info",
+            "get advert.interval", "get flood.advert.interval", "get multi.acks",
+            "get allow.read.only",
+            "powersaving",
+        ]
+
+        Task { [weak self] in
+            for command in commands {
+                guard let self else { return }
+                self.sendCLICommand(command, to: contact)
+                try? await Task.sleep(nanoseconds: 150_000_000) // 150ms between commands
+            }
+            // Mark fetching complete after a delay for the last response
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            session.isFetchingSettings = false
+        }
+    }
+
     // MARK: - Response Handling
 
     private func handleReceivedData(_ data: Data) {
@@ -700,9 +729,12 @@ final class MeshCoreViewModel: ObservableObject {
 
     /// Handle login success — find the session that was logging in and update it.
     private func handleLoginSuccess(isAdmin: Bool) {
-        for (_, session) in remoteSessions {
+        for (key, session) in remoteSessions {
             if case .loggingIn = session.loginState {
                 session.loginState = .loggedIn(isAdmin: isAdmin)
+                if let contact = contacts.first(where: { $0.publicKeyPrefix == key }) {
+                    fetchRemoteSettings(for: contact)
+                }
                 return
             }
         }
@@ -736,8 +768,12 @@ final class MeshCoreViewModel: ObservableObject {
 
         // Check if this is a CLI response from a managed device
         if let session = remoteSessions[contactKey], !message.isOutgoing {
+            Self.logger.info("Routing message to CLI session: '\(message.text)'")
             session.responseReceived(message.text)
-            // Still store the message in chat history
+            // Don't store CLI responses as chat messages or increment unread
+            if case .loggedIn = session.loginState {
+                return
+            }
         }
 
         let existing = messagesByContact[contactKey] ?? []
