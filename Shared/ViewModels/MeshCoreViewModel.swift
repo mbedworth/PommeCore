@@ -27,8 +27,12 @@ final class MeshCoreViewModel: ObservableObject {
     @Published var unreadCounts: [Data: Int] = [:]
 
     /// Active remote management sessions keyed by contact public key prefix.
-    /// Not @Published — sessions are ObservableObjects observed directly by views.
+    /// Not @Published — sessions are ObservableObjects whose changes are
+    /// forwarded to the ViewModel via objectWillChange so the contact list updates.
     private(set) var remoteSessions: [Data: RemoteDeviceSession] = [:]
+
+    /// Cancellables for forwarding session objectWillChange to ViewModel.
+    private var sessionCancellables: [Data: AnyCancellable] = [:]
 
     /// Last error message received from the device (shown as alert).
     @Published var lastErrorMessage: String?
@@ -436,6 +440,8 @@ final class MeshCoreViewModel: ObservableObject {
 
     /// Get or create a remote management session for a contact.
     /// Not @Published so this is safe to call during view body evaluation.
+    /// Changes to session @Published properties are forwarded to the ViewModel
+    /// so the contact list re-renders (badges, lock icons, etc.).
     func remoteSession(for contact: Contact) -> RemoteDeviceSession {
         let key = contact.publicKeyPrefix
         if let existing = remoteSessions[key] {
@@ -443,6 +449,12 @@ final class MeshCoreViewModel: ObservableObject {
         }
         let session = RemoteDeviceSession(contact: contact)
         remoteSessions[key] = session
+        // Forward session changes to ViewModel so contact list updates
+        sessionCancellables[key] = session.objectWillChange
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
         return session
     }
 
