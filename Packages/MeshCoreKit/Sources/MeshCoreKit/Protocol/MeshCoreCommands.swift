@@ -21,19 +21,24 @@ public enum MeshCoreCommand: UInt8, Sendable {
     case exportContact        = 0x11  // 17 — export contact as meshcore:// URL
     case importContact        = 0x12  // 18 — import contact from meshcore:// URL
     case reboot               = 0x13  // 19
-    case addChannel           = 0x20  // 32 — add or update a channel
     case getBattAndStorage    = 0x14  // 20
     case setTuningParams      = 0x15  // 21
     case deviceQuery          = 0x16  // 22
-    case setDevicePIN         = 0x25  // 37
-    case setOtherParams       = 0x26  // 38
-    case getCustomVars        = 0x28  // 40
-    case setCustomVar         = 0x29  // 41
-    case getTuningParams      = 0x2B  // 43
     case sendLogin            = 0x1A  // 26 — login to remote device (repeater/room)
     case sendStatusReq        = 0x1B  // 27 — request status from remote device
+    case setChannel           = 0x20  // 32 — add or update a channel
+    case setDevicePIN         = 0x25  // 37
+    case setOtherParams       = 0x26  // 38
+    case sendTracePath        = 0x24  // 36 — trace route to a contact
+    case sendTelemetryReq     = 0x27  // 39 — request telemetry from a sensor
+    case getCustomVars        = 0x28  // 40
+    case setCustomVar         = 0x29  // 41
+    case getAdvertPath        = 0x2A  // 42 — get last known path to a contact
+    case getTuningParams      = 0x2B  // 43
     case factoryReset         = 0x33  // 51
+    case sendControlData      = 0x37  // 55 — send control packet (discover, etc.)
     case getStats             = 0x38  // 56
+    case getAllowedRepeatFreq = 0x3C  // 60 — get allowed repeat frequency ranges
 }
 
 /// MeshCore Companion Radio Protocol — response codes received FROM the device.
@@ -59,6 +64,8 @@ public enum MeshCoreResponseCode: UInt8, Sendable {
     case customVars           = 0x15  // 21
     case tuningParams         = 0x17  // 23
     case stats                = 0x18  // 24
+    case advertPath           = 0x22  // 34 — RESP_CODE_ADVERT_PATH
+    case allowedRepeatFreq    = 0x26  // 38 — RESP_ALLOWED_REPEAT_FREQ
 }
 
 /// MeshCore error codes returned with RESP_CODE_ERR.
@@ -85,8 +92,14 @@ public enum MeshCoreErrorCode: UInt8, Sendable {
 /// MeshCore push codes — unsolicited notifications FROM the device.
 public enum MeshCorePushCode: UInt8, Sendable {
     case advert               = 0x80  // 128 — new advertisement received
+    case pathUpdated          = 0x81  // 129 — contact path changed
     case sendConfirmed        = 0x82  // 130 — sent message was ACKed
     case msgWaiting           = 0x83  // 131 — new message waiting to be synced
     case loginSuccess         = 0x85  // 133 — remote login succeeded (permissions byte)
     case loginFail            = 0x86  // 134 — remote login failed
+    case statusResponse       = 0x87  // 135 — status response from remote device
+    case traceData            = 0x89  // 137 — trace route data
+    case newAdvert            = 0x8A  // 138 — new contact discovered (manual_add mode)
+    case telemetryResponse    = 0x8B  // 139 — telemetry data from sensor
+    case controlData          = 0x8E  // 142 — control packet received (discover response, etc.)
 }

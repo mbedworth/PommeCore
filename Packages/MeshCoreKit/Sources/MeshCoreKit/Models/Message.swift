@@ -51,6 +51,9 @@ public struct Message: Identifiable, Codable, Sendable {
     /// Send attempt number (0 = first try, increments on retry, max 3).
     public var attempt: UInt8
 
+    /// Whether this message was cryptographically signed (txt_type=2).
+    public let isSigned: Bool
+
     public init(
         id: UUID = UUID(),
         senderKeyHash: Data = Data(),
@@ -65,7 +68,8 @@ public struct Message: Identifiable, Codable, Sendable {
         senderName: String? = nil,
         roundTripMs: UInt32? = nil,
         txtType: UInt8 = 0,
-        attempt: UInt8 = 0
+        attempt: UInt8 = 0,
+        isSigned: Bool = false
     ) {
         self.id = id
         self.senderKeyHash = senderKeyHash
@@ -81,5 +85,6 @@ public struct Message: Identifiable, Codable, Sendable {
         self.roundTripMs = roundTripMs
         self.txtType = txtType
         self.attempt = attempt
+        self.isSigned = isSigned
     }
 }
