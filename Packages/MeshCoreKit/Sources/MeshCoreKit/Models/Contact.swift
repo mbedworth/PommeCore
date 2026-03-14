@@ -42,6 +42,9 @@ public struct Contact: Identifiable, Codable, Sendable {
     /// Advertised longitude (degrees × 1,000,000).
     public let longitude: Double
 
+    /// Raw outbound path hashes (up to 64 bytes of routing data for trace route).
+    public let outPath: Data
+
     /// Last modification timestamp (for incremental sync).
     public let lastmod: UInt32
 
@@ -56,6 +59,7 @@ public struct Contact: Identifiable, Codable, Sendable {
         type: ContactType = .chat,
         flags: UInt8 = 0,
         outPathLen: Int8 = -1,
+        outPath: Data = Data(),
         lastAdvert: UInt32 = 0,
         latitude: Double = 0,
         longitude: Double = 0,
@@ -66,6 +70,7 @@ public struct Contact: Identifiable, Codable, Sendable {
         self.type = type
         self.flags = flags
         self.outPathLen = outPathLen
+        self.outPath = outPath
         self.lastAdvert = lastAdvert
         self.latitude = latitude
         self.longitude = longitude

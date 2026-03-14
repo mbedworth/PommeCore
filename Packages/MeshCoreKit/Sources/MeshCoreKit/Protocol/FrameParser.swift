@@ -443,9 +443,17 @@ public enum FrameParser {
         // out_path_len: 1 byte (signed)
         let outPathLen = Int8(bitPattern: readUInt8(data, offset: &offset))
 
-        // out_path: 64 bytes (skip — routing data, not needed by app)
-        let skipLen = min(64, data.count - offset)
-        offset += skipLen
+        // out_path: 64 bytes of routing hashes (needed for trace route)
+        let pathDataLen = min(64, data.count - offset)
+        let outPath: Data
+        if pathDataLen > 0 && outPathLen > 0 {
+            // Only store the meaningful portion: outPathLen * 6 bytes (each hop hash is 6 bytes)
+            let meaningfulLen = min(Int(outPathLen) * 6, pathDataLen)
+            outPath = Data(data[offset..<offset+meaningfulLen])
+        } else {
+            outPath = Data()
+        }
+        offset += pathDataLen
 
         // adv_name: 32 bytes null-terminated fixed field
         let name = readFixedString(data, offset: &offset, maxLen: 32)
@@ -474,6 +482,7 @@ public enum FrameParser {
             type: type,
             flags: flags,
             outPathLen: outPathLen,
+            outPath: outPath,
             lastAdvert: lastAdvert,
             latitude: latitude,
             longitude: longitude,

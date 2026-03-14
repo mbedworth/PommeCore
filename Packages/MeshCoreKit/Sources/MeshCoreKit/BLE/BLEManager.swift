@@ -48,6 +48,12 @@ public final class BLEManager: NSObject, ObservableObject {
     /// When true, auto-reconnect on disconnect. Set to false on user-initiated disconnect.
     private var shouldAutoReconnect = false
 
+    /// Number of auto-reconnect attempts remaining for unexpected disconnects.
+    private var reconnectAttemptsRemaining = 0
+
+    /// Maximum auto-reconnect attempts before giving up.
+    private static let maxReconnectAttempts = 3
+
     /// Publisher for incoming data frames from the device TX characteristic.
     public let receivedDataSubject = PassthroughSubject<Data, Never>()
 
@@ -67,6 +73,7 @@ public final class BLEManager: NSObject, ObservableObject {
     // MARK: - Public API
 
     /// Start scanning for MeshCore devices.
+    /// Safe to call while connected — will not change connection state.
     public func startScanning() {
         guard centralManager.state == .poweredOn else {
             Self.logger.warning("Cannot scan — Bluetooth not powered on (state: \(String(describing: self.centralManager.state.rawValue)))")
@@ -75,7 +82,11 @@ public final class BLEManager: NSObject, ObservableObject {
 
         DispatchQueue.main.async {
             self.discoveredPeripherals.removeAll()
-            self.connectionState = .scanning
+            // Only change to scanning state if not currently connected
+            // Scanning while connected is safe but must not overwrite the connection state
+            if self.connectionState != .ready && self.connectionState != .connected && self.connectionState != .connecting {
+                self.connectionState = .scanning
+            }
         }
 
         centralManager.scanForPeripherals(
@@ -86,10 +97,11 @@ public final class BLEManager: NSObject, ObservableObject {
         Self.logger.info("Started scanning for MeshCore devices")
     }
 
-    /// Stop scanning.
+    /// Stop scanning. Safe to call at any time — only changes state if currently scanning.
     public func stopScanning() {
         centralManager.stopScan()
         DispatchQueue.main.async {
+            // Only reset to disconnected if we were purely scanning (not connected)
             if self.connectionState == .scanning {
                 self.connectionState = .disconnected
             }
@@ -106,6 +118,7 @@ public final class BLEManager: NSObject, ObservableObject {
         }
 
         shouldAutoReconnect = true
+        reconnectAttemptsRemaining = Self.maxReconnectAttempts
         connectedPeripheral = peripheral
         peripheral.delegate = self
         centralManager.connect(peripheral, options: nil)
@@ -222,6 +235,8 @@ extension BLEManager: CBCentralManagerDelegate {
     public func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         Self.logger.info("Connected to \(peripheral.name ?? "unknown")")
 
+        reconnectAttemptsRemaining = Self.maxReconnectAttempts
+
         DispatchQueue.main.async {
             self.connectionState = .connected
             self.connectedDeviceName = peripheral.name
@@ -255,18 +270,38 @@ extension BLEManager: CBCentralManagerDelegate {
             self.txCharacteristic = nil
         }
 
-        if shouldAutoReconnect {
-            // Auto-reconnect — CoreBluetooth will queue this and execute even while suspended
+        let isUnexpected = error != nil && shouldAutoReconnect
+
+        if isUnexpected && reconnectAttemptsRemaining > 0 {
+            // Unexpected disconnect — retry up to 3 times with 2-second delays
+            reconnectAttemptsRemaining -= 1
+            let attempt = Self.maxReconnectAttempts - reconnectAttemptsRemaining
+            Self.logger.info("Auto-reconnect attempt \(attempt)/\(Self.maxReconnectAttempts) for \(peripheral.name ?? "unknown")")
+
             DispatchQueue.main.async {
                 self.connectionState = .connecting
             }
-            central.connect(peripheral, options: nil)
-            Self.logger.info("Queued auto-reconnect for \(peripheral.name ?? "unknown")")
+
+            self.bleQueue.asyncAfter(deadline: .now() + 2.0) {
+                central.connect(peripheral, options: nil)
+            }
         } else {
+            // User-initiated disconnect OR reconnect attempts exhausted
+            shouldAutoReconnect = false
+            reconnectAttemptsRemaining = 0
+
             DispatchQueue.main.async {
                 self.connectionState = .disconnected
                 self.connectedPeripheral = nil
                 self.connectedDeviceName = nil
+            }
+
+            // Auto-scan after 2 seconds so the device is re-discoverable
+            self.bleQueue.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+                guard let self, self.centralManager.state == .poweredOn,
+                      self.connectionState == .disconnected else { return }
+                Self.logger.info("Auto-scanning after disconnect")
+                self.startScanning()
             }
         }
     }

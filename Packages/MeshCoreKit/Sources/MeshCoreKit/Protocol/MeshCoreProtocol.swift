@@ -347,18 +347,15 @@ public enum MeshCoreProtocol {
     }
 
     /// CMD_SEND_TRACE_PATH (code 36) — trace route to a contact.
-    /// Frame: code(1) tag(uint32) auth_code(uint32) flags(1) dest_pub_key(32)
-    public static func buildSendTracePath(recipientPublicKey: Data, tag: UInt32? = nil) -> Data {
+    /// Frame: code(1) tag(uint32) auth_code(uint32) flags(1) path(hop hashes)
+    /// The path field contains the 6-byte hop hashes from the contact's out_path.
+    public static func buildSendTracePath(outPath: Data, tag: UInt32? = nil) -> Data {
         var frame = Data([MeshCoreCommand.sendTracePath.rawValue])
         let traceTag = tag ?? UInt32.random(in: 0..<UInt32.max)
         appendUInt32(&frame, traceTag)
         appendUInt32(&frame, 0) // auth_code
         frame.append(0x00) // flags
-        var key = recipientPublicKey.prefix(32)
-        if key.count < 32 {
-            key.append(Data(repeating: 0, count: 32 - key.count))
-        }
-        frame.append(key)
+        frame.append(outPath)
         return frame
     }
 

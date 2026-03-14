@@ -24,6 +24,7 @@ struct ContentView: View {
     @State private var showSettings = false
     @State private var showDiscover = false
     @State private var showConnectionFailed = false
+    @State private var showAdvertSent = false
     @State private var previousConnectionState: BLEConnectionState = .disconnected
     @State private var hasRequestedAutoScan = false
 
@@ -108,12 +109,19 @@ struct ContentView: View {
         .toolbar {
             ToolbarItemGroup {
                 Button {
-                    showScanner = true
+                    if viewModel.connectionState == .ready {
+                        viewModel.sendAdvertise(type: 0)
+                        showAdvertSent = true
+                    } else {
+                        showScanner = true
+                    }
                 } label: {
-                    Image(systemName: "antenna.radiowaves.left.and.right")
+                    Image(systemName: viewModel.connectionState == .ready
+                          ? "antenna.radiowaves.left.and.right"
+                          : "antenna.radiowaves.left.and.right.slash")
                         .foregroundStyle(MeshTheme.accentFallback)
                 }
-                .help("Scan for devices")
+                .help(viewModel.connectionState == .ready ? "Send advertisement" : "Scan for devices")
 
                 Button {
                     showDiscover = true
@@ -185,6 +193,11 @@ struct ContentView: View {
             Button("OK", role: .cancel) { viewModel.lastErrorMessage = nil }
         } message: {
             Text(viewModel.lastErrorMessage ?? "Unknown error")
+        }
+        .alert("Advertisement Sent", isPresented: $showAdvertSent) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Your device advertisement has been broadcast to the mesh network.")
         }
         .onOpenURL { url in
             let urlString = url.absoluteString
