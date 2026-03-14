@@ -164,11 +164,12 @@ final class MeshCoreViewModel: ObservableObject {
 
     /// Request notification permissions on first launch.
     private func requestNotificationPermissions() {
+        let log = Self.logger
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
             if let error {
-                Self.logger.warning("Notification permission error: \(error.localizedDescription)")
+                log.warning("Notification permission error: \(error.localizedDescription)")
             } else {
-                Self.logger.info("Notification permission granted: \(granted)")
+                log.info("Notification permission granted: \(granted)")
             }
         }
     }
@@ -202,9 +203,10 @@ final class MeshCoreViewModel: ObservableObject {
             content: content,
             trigger: nil
         )
+        let log = Self.logger
         UNUserNotificationCenter.current().add(request) { error in
             if let error {
-                Self.logger.warning("Failed to post notification: \(error.localizedDescription)")
+                log.warning("Failed to post notification: \(error.localizedDescription)")
             }
         }
     }
@@ -1145,7 +1147,7 @@ final class MeshCoreViewModel: ObservableObject {
             type: contact.type,
             snr: 0,
             rssi: 0,
-            pathLen: contact.outPathLen,
+            pathLen: UInt8(clamping: contact.outPathLen),
             latitude: contact.latitude,
             longitude: contact.longitude
         )
