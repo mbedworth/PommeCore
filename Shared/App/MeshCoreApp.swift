@@ -25,6 +25,7 @@ struct ContentView: View {
     @State private var showDiscover = false
     @State private var showConnectionFailed = false
     @State private var showAdvertSent = false
+    @State private var showRemoteManagement = false
     @State private var previousConnectionState: BLEConnectionState = .disconnected
     @State private var hasRequestedAutoScan = false
 
@@ -121,7 +122,7 @@ struct ContentView: View {
                           : "antenna.radiowaves.left.and.right.slash")
                         .foregroundStyle(MeshTheme.accentFallback)
                 }
-                .help(viewModel.connectionState == .ready ? "Send advertisement" : "Scan for devices")
+                .help(viewModel.connectionState == .ready ? "Send Advertisement" : "Scan for Devices")
 
                 Button {
                     showDiscover = true
@@ -129,15 +130,25 @@ struct ContentView: View {
                     Image(systemName: "sensor.tag.radiowaves.forward")
                         .foregroundStyle(MeshTheme.accentFallback)
                 }
-                .help("Discover nodes")
+                .help("Discover Nearby Nodes")
+
+                if viewModel.hasActiveManagementSession {
+                    Button {
+                        showRemoteManagement = true
+                    } label: {
+                        Image(systemName: "wrench.and.screwdriver")
+                            .foregroundStyle(MeshTheme.accentFallback)
+                    }
+                    .help("Remote Management")
+                }
 
                 Button {
                     showSettings = true
                 } label: {
-                    Image(systemName: "gear")
+                    Image(systemName: "gearshape")
                         .foregroundStyle(MeshTheme.accentFallback)
                 }
-                .help("Settings")
+                .help("Device Settings")
             }
         }
         .sheet(isPresented: $showScanner) {
@@ -178,6 +189,21 @@ struct ContentView: View {
             }
             .meshTheme()
             .frame(minWidth: 360, minHeight: 400)
+        }
+        .sheet(isPresented: $showRemoteManagement) {
+            if let (contact, session) = activeManagementTarget {
+                NavigationStack {
+                    RemoteManagementView(contact: contact, session: session)
+                        .environmentObject(viewModel)
+                        .toolbar {
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button("Done") { showRemoteManagement = false }
+                            }
+                        }
+                }
+                .meshTheme()
+                .frame(minWidth: 360, minHeight: 400)
+            }
         }
         .onAppear { requestAutoScanOnce() }
         .onChange(of: viewModel.connectionState) { newState in
@@ -225,6 +251,17 @@ struct ContentView: View {
 
         showScanner = true
         viewModel.requestAutoScan()
+    }
+
+    /// Find the first logged-in remote management target for the toolbar wrench button.
+    private var activeManagementTarget: (Contact, RemoteDeviceSession)? {
+        for contact in viewModel.contacts where contact.type == .repeater || contact.type == .room {
+            let session = viewModel.remoteSession(for: contact)
+            if case .loggedIn = session.loginState {
+                return (contact, session)
+            }
+        }
+        return nil
     }
 
     private var showErrorBinding: Binding<Bool> {
