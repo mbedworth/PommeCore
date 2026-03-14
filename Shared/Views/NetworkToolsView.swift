@@ -28,7 +28,24 @@ struct DiscoverView: View {
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+                .disabled(viewModel.isDiscovering)
                 .listRowBackground(MeshTheme.surface)
+
+                if viewModel.isDiscovering {
+                    ActivityOverlay(message: "Scanning for nearby nodes...", timeout: 30)
+                        .listRowBackground(MeshTheme.surface)
+                }
+
+                if let fallbackMsg = viewModel.discoverFallbackMessage {
+                    HStack(spacing: 6) {
+                        Image(systemName: "info.circle")
+                            .foregroundStyle(.orange)
+                        Text(fallbackMsg)
+                            .font(.caption)
+                            .foregroundStyle(MeshTheme.textSecondary)
+                    }
+                    .listRowBackground(MeshTheme.surface)
+                }
             }
 
             if viewModel.discoveredNodes.isEmpty {
@@ -412,28 +429,40 @@ struct ContactDetailSheet: View {
                 VStack(spacing: 16) {
                     // Trace Route
                     if isTracePending {
-                        pendingView("Tracing route to \(contact.name)...")
+                        ActivityOverlay(message: "Tracing route to \(contact.name)...", timeout: 15)
+                            .padding()
+                            .background(MeshTheme.surfaceLight)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
                     } else if let trace = viewModel.lastTraceResult {
                         TraceRouteResultView(result: trace, contactName: contact.name)
                     }
 
                     // Status
                     if isStatusPending {
-                        pendingView("Requesting status from \(contact.name)...")
+                        ActivityOverlay(message: "Requesting status from \(contact.name)...", timeout: 15)
+                            .padding()
+                            .background(MeshTheme.surfaceLight)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
                     } else if let status = viewModel.statusByContact[contact.publicKeyPrefix] {
                         StatusInfoView(status: status, contactName: contact.name)
                     }
 
                     // Telemetry
                     if isTelemetryPending {
-                        pendingView("Requesting telemetry from \(contact.name)...")
+                        ActivityOverlay(message: "Requesting telemetry from \(contact.name)...", timeout: 15)
+                            .padding()
+                            .background(MeshTheme.surfaceLight)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
                     } else if let readings = viewModel.telemetryByContact[contact.publicKeyPrefix], !readings.isEmpty {
                         TelemetryView(readings: readings, contactName: contact.name)
                     }
 
                     // Advert Path
                     if isPathPending {
-                        pendingView("Loading path info for \(contact.name)...")
+                        ActivityOverlay(message: "Loading path info for \(contact.name)...", timeout: 10)
+                            .padding()
+                            .background(MeshTheme.surfaceLight)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
                     } else if let path = viewModel.advertPathByContact[contact.publicKeyPrefix] {
                         AdvertPathView(pathInfo: path, contactName: contact.name)
                     }
@@ -466,20 +495,6 @@ struct ContactDetailSheet: View {
             }
         }
         .meshTheme()
-    }
-
-    private func pendingView(_ message: String) -> some View {
-        HStack(spacing: 12) {
-            ProgressView()
-                .controlSize(.small)
-            Text(message)
-                .font(.subheadline)
-                .foregroundStyle(MeshTheme.textSecondary)
-            Spacer()
-        }
-        .padding()
-        .background(MeshTheme.surfaceLight)
-        .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 
     private func actionButton(_ title: String, icon: String, pending: Bool, action: @escaping () -> Void) -> some View {
@@ -806,5 +821,32 @@ struct DeviceInfoPopover: View {
         if d > 0 { return "\(d)d \(h)h \(m)m" }
         if h > 0 { return "\(h)h \(m)m" }
         return "\(m)m"
+    }
+}
+
+// MARK: - Activity Overlay
+
+/// Reusable activity indicator with message and elapsed time counter.
+struct ActivityOverlay: View {
+    let message: String
+    let timeout: TimeInterval
+    @State private var elapsed: TimeInterval = 0
+    private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+
+    var body: some View {
+        HStack(spacing: 12) {
+            ProgressView()
+                .controlSize(.small)
+            Text(message)
+                .font(.subheadline)
+                .foregroundStyle(MeshTheme.textSecondary)
+            Spacer()
+            Text("\(Int(elapsed))s / \(Int(timeout))s")
+                .font(.caption)
+                .foregroundStyle(MeshTheme.textSecondary.opacity(0.7))
+        }
+        .onReceive(timer) { _ in
+            if elapsed < timeout { elapsed += 1 }
+        }
     }
 }
