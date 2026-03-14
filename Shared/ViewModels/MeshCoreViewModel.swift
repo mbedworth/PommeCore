@@ -1537,9 +1537,16 @@ final class MeshCoreViewModel: ObservableObject {
 
     /// Request status from a remote device (repeater/sensor).
     func requestStatus(for contact: Contact) {
-        // Contextual messaging: status requests are best supported by repeaters, room servers, and sensors
-        if contact.type == .chat {
+        // Log contextual info — status requests are best supported by repeaters, room servers, and sensors
+        switch contact.type {
+        case .chat:
             Self.logger.info("Status request to chat contact — may not respond")
+        case .repeater:
+            Self.logger.info("Requesting status from repeater \(contact.name)")
+        case .room:
+            Self.logger.info("Requesting status from room server \(contact.name)")
+        default:
+            Self.logger.info("Requesting status from \(contact.name)")
         }
 
         let key = contact.publicKeyPrefix
