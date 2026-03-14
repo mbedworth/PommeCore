@@ -533,6 +533,7 @@ struct RoomChatView: View {
 /// Message bubble for room chat — shows sender name for incoming messages.
 struct RoomMessageBubble: View {
     let message: Message
+    @EnvironmentObject var viewModel: MeshCoreViewModel
 
     /// Try to extract sender name from room server message prefix.
     /// Room servers often prefix messages with "SenderName: actual message"
@@ -583,9 +584,20 @@ struct RoomMessageBubble: View {
                         .foregroundStyle(MeshTheme.textSecondary)
 
                     if message.isOutgoing {
-                        Image(systemName: message.status == .sending ? "clock" : "checkmark")
-                            .font(.caption2)
-                            .foregroundStyle(MeshTheme.textSecondary)
+                        if message.status == .failed {
+                            HStack(spacing: 2) {
+                                Image(systemName: "exclamationmark.circle")
+                                    .font(.caption2)
+                                    .foregroundStyle(MeshTheme.disconnected)
+                                Text("Not delivered")
+                                    .font(.caption2)
+                                    .foregroundStyle(MeshTheme.disconnected)
+                            }
+                        } else {
+                            Image(systemName: message.status == .sending ? "clock" : "checkmark")
+                                .font(.caption2)
+                                .foregroundStyle(MeshTheme.textSecondary)
+                        }
                     }
 
                     if !message.isOutgoing, let snr = message.snr {
@@ -595,6 +607,24 @@ struct RoomMessageBubble: View {
                     }
                 }
                 .padding(.horizontal, 4)
+
+                if message.status == .failed, message.attempt < 3 {
+                    Button {
+                        viewModel.retryMessage(message)
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "arrow.clockwise")
+                            Text("Retry")
+                        }
+                        .font(.caption2.weight(.medium))
+                        .foregroundStyle(MeshTheme.accentFallback)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(MeshTheme.surfaceLight)
+                        .clipShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                }
             }
 
             if !message.isOutgoing { Spacer(minLength: 48) }
@@ -714,6 +744,7 @@ struct RepeaterLoginView: View {
 
 struct MessageBubble: View {
     let message: Message
+    @EnvironmentObject var viewModel: MeshCoreViewModel
 
     var body: some View {
         HStack {
@@ -743,6 +774,24 @@ struct MessageBubble: View {
                     }
                 }
                 .padding(.horizontal, 4)
+
+                if message.status == .failed, message.attempt < 3 {
+                    Button {
+                        viewModel.retryMessage(message)
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "arrow.clockwise")
+                            Text("Retry")
+                        }
+                        .font(.caption2.weight(.medium))
+                        .foregroundStyle(MeshTheme.accentFallback)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(MeshTheme.surfaceLight)
+                        .clipShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                }
             }
 
             if !message.isOutgoing { Spacer(minLength: 48) }
@@ -772,9 +821,14 @@ struct MessageBubble: View {
                 }
             }
         case .failed:
-            Image(systemName: "exclamationmark.circle")
-                .font(.caption2)
-                .foregroundStyle(MeshTheme.disconnected)
+            HStack(spacing: 2) {
+                Image(systemName: "exclamationmark.circle")
+                    .font(.caption2)
+                    .foregroundStyle(MeshTheme.disconnected)
+                Text("Not delivered")
+                    .font(.caption2)
+                    .foregroundStyle(MeshTheme.disconnected)
+            }
         }
     }
 }
