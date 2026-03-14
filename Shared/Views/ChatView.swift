@@ -811,6 +811,16 @@ struct MessageBubble: View {
                             .font(.caption2)
                             .foregroundStyle(MeshTheme.textSecondary)
                     }
+
+                    if message.isSigned {
+                        HStack(spacing: 2) {
+                            Image(systemName: "checkmark.seal.fill")
+                                .font(.caption2)
+                            Text("Verified")
+                                .font(.caption2)
+                        }
+                        .foregroundStyle(MeshTheme.connected)
+                    }
                 }
                 .padding(.horizontal, 4)
 
@@ -909,6 +919,16 @@ struct ChannelMessageBubble: View {
                         Text("SNR \(snr)")
                             .font(.caption2)
                             .foregroundStyle(MeshTheme.textSecondary)
+                    }
+
+                    if message.isSigned {
+                        HStack(spacing: 2) {
+                            Image(systemName: "checkmark.seal.fill")
+                                .font(.caption2)
+                            Text("Verified")
+                                .font(.caption2)
+                        }
+                        .foregroundStyle(MeshTheme.connected)
                     }
                 }
                 .padding(.horizontal, 4)

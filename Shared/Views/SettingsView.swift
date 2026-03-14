@@ -470,6 +470,41 @@ struct RadioSection: View {
                 viewModel.setRadioTXPower(UInt8(txPower))
                 showSaved($saveState)
             }
+
+            if !viewModel.allowedRepeatFreqRanges.isEmpty {
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Image(systemName: "waveform.badge.magnifyingglass")
+                            .foregroundStyle(MeshTheme.accentFallback)
+                            .frame(width: 24)
+                        Text("Allowed Repeat Frequencies")
+                            .foregroundStyle(MeshTheme.textPrimary)
+                    }
+                    ForEach(Array(viewModel.allowedRepeatFreqRanges.enumerated()), id: \.offset) { _, range in
+                        Text("\(String(format: "%.3f", Double(range.lowerHz) / 1_000_000)) \u{2013} \(String(format: "%.3f", Double(range.upperHz) / 1_000_000)) MHz")
+                            .font(.caption)
+                            .foregroundStyle(MeshTheme.textSecondary)
+                            .padding(.leading, 32)
+                    }
+                }
+                .listRowBackground(MeshTheme.surface)
+            }
+
+            Button {
+                viewModel.requestAllowedRepeatFreq()
+            } label: {
+                HStack {
+                    Image(systemName: "arrow.clockwise")
+                        .foregroundStyle(MeshTheme.accentFallback)
+                        .frame(width: 24)
+                    Text("Query Repeat Frequencies")
+                        .foregroundStyle(MeshTheme.accentFallback)
+                    Spacer()
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .listRowBackground(MeshTheme.surface)
         } header: {
             Text("Radio Configuration")
                 .foregroundStyle(MeshTheme.textSecondary)
