@@ -235,6 +235,9 @@ struct RoomChatView: View {
 
     private let maxMessageLength = 160
 
+    /// Teal accent for remote management icon.
+    private let remoteAccent = Color(red: 0.0, green: 0.7, blue: 0.8)
+
     private var messages: [Message] {
         viewModel.messages(for: contact)
     }
@@ -291,17 +294,17 @@ struct RoomChatView: View {
                         )
                         .environmentObject(viewModel)
                     } label: {
-                        Image(systemName: "gear")
-                            .foregroundStyle(MeshTheme.accentFallback)
+                        Image(systemName: "wrench.and.screwdriver")
+                            .foregroundStyle(remoteAccent)
                     }
                     #else
                     Button {
                         showManagement = true
                     } label: {
-                        Image(systemName: "gear")
-                            .foregroundStyle(MeshTheme.accentFallback)
+                        Image(systemName: "wrench.and.screwdriver")
+                            .foregroundStyle(remoteAccent)
                     }
-                    .help("Room management")
+                    .help("Remote Management — \(contact.name)")
                     #endif
                 }
             }
