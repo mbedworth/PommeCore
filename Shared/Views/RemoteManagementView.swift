@@ -16,8 +16,13 @@ struct RemoteManagementView: View {
                         HStack(spacing: 12) {
                             ProgressView()
                                 .tint(MeshTheme.accentFallback)
-                            Text("Fetching settings...")
-                                .foregroundStyle(MeshTheme.textSecondary)
+                            if session.fetchTotalCount > 0 {
+                                Text("Fetching settings... (\(session.fetchReceivedCount)/\(session.fetchTotalCount))")
+                                    .foregroundStyle(MeshTheme.textSecondary)
+                            } else {
+                                Text("Fetching settings...")
+                                    .foregroundStyle(MeshTheme.textSecondary)
+                            }
                         }
                         .listRowBackground(MeshTheme.surface)
                     }
