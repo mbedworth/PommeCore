@@ -14,7 +14,12 @@ public enum MeshCoreCommand: UInt8, Sendable {
     case syncNextMessage      = 0x0A  // 10
     case setRadioParams       = 0x0B  // 11
     case setRadioTXPower      = 0x0C  // 12
+    case resetPath            = 0x0D  // 13 — reset outbound path for a contact
     case setAdvertLatLon      = 0x0E  // 14
+    case removeContact        = 0x0F  // 15 — remove a contact by public key
+    case shareContact         = 0x10  // 16 — zero-hop share a contact's advert
+    case exportContact        = 0x11  // 17 — export contact as meshcore:// URL
+    case importContact        = 0x12  // 18 — import contact from meshcore:// URL
     case reboot               = 0x13  // 19
     case getBattAndStorage    = 0x14  // 20
     case setTuningParams      = 0x15  // 21
@@ -48,6 +53,7 @@ public enum MeshCoreResponseCode: UInt8, Sendable {
     case deviceInfo           = 0x0D  // 13
     case contactMsgRecvV3     = 0x10  // 16 — received direct message (v3)
     case channelMsgRecvV3     = 0x11  // 17 — received channel message (v3)
+    case exportedContact      = 0x14  // 20 — exported contact URL string
     case customVars           = 0x15  // 21
     case tuningParams         = 0x17  // 23
     case stats                = 0x18  // 24

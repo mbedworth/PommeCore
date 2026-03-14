@@ -118,6 +118,62 @@ public enum MeshCoreProtocol {
         buildSendTextMessage(text: command, recipientKeyHash: recipientKeyHash, txtType: 1)
     }
 
+    // MARK: - Contact Management
+
+    /// CMD_REMOVE_CONTACT (code 15) — remove a contact by 32-byte public key.
+    public static func buildRemoveContact(publicKey: Data) -> Data {
+        var frame = Data([MeshCoreCommand.removeContact.rawValue])
+        var key = publicKey.prefix(32)
+        if key.count < 32 {
+            key.append(Data(repeating: 0, count: 32 - key.count))
+        }
+        frame.append(key)
+        return frame
+    }
+
+    /// CMD_RESET_PATH (code 13) — reset outbound path for a contact.
+    public static func buildResetPath(publicKey: Data) -> Data {
+        var frame = Data([MeshCoreCommand.resetPath.rawValue])
+        var key = publicKey.prefix(32)
+        if key.count < 32 {
+            key.append(Data(repeating: 0, count: 32 - key.count))
+        }
+        frame.append(key)
+        return frame
+    }
+
+    /// CMD_SHARE_CONTACT (code 16) — zero-hop share a contact's advert on the mesh.
+    public static func buildShareContact(publicKey: Data) -> Data {
+        var frame = Data([MeshCoreCommand.shareContact.rawValue])
+        var key = publicKey.prefix(32)
+        if key.count < 32 {
+            key.append(Data(repeating: 0, count: 32 - key.count))
+        }
+        frame.append(key)
+        return frame
+    }
+
+    /// CMD_EXPORT_CONTACT (code 17) — export a contact as a meshcore:// URL.
+    public static func buildExportContact(publicKey: Data) -> Data {
+        var frame = Data([MeshCoreCommand.exportContact.rawValue])
+        var key = publicKey.prefix(32)
+        if key.count < 32 {
+            key.append(Data(repeating: 0, count: 32 - key.count))
+        }
+        frame.append(key)
+        return frame
+    }
+
+    /// CMD_IMPORT_CONTACT (code 18) — import a contact from a meshcore:// URL string.
+    public static func buildImportContact(url: String) -> Data {
+        var frame = Data([MeshCoreCommand.importContact.rawValue])
+        if let urlData = url.data(using: .utf8) {
+            frame.append(urlData)
+        }
+        frame.append(0x00) // null terminator
+        return frame
+    }
+
     // MARK: - Identity & Advertising
 
     /// CMD_SET_ADVERT_NAME (code 8).

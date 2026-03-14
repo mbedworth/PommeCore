@@ -31,6 +31,7 @@ public enum FrameParser {
         case advert(Contact)                           // PUSH_CODE_ADVERT (0x80)
         case loginSuccess(permissionLevel: Int)         // PUSH_CODE_LOGIN_SUCCESS (0x85)
         case loginFail                                 // PUSH_CODE_LOGIN_FAIL (0x86)
+        case exportedContact(url: String)             // RESP_CODE_EXPORTED_CONTACT (code 20)
         case unknown(type: UInt8, payload: Data)
     }
 
@@ -139,6 +140,12 @@ public enum FrameParser {
 
         case .tuningParams:
             return parseTuningParams(payload)
+
+        case .exportedContact:
+            let url = String(data: payload, encoding: .utf8)?
+                .trimmingCharacters(in: .controlCharacters) ?? ""
+            logger.info("ExportedContact: \(url)")
+            return .exportedContact(url: url)
 
         case .customVars:
             let str = String(data: payload, encoding: .utf8) ?? ""

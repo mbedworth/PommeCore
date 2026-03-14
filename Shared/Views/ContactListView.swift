@@ -5,6 +5,13 @@ struct ContactListView: View {
     @EnvironmentObject var viewModel: MeshCoreViewModel
     @Binding var showScanner: Bool
 
+    @State private var contactToDelete: Contact?
+    @State private var showDeleteConfirm = false
+    @State private var showImportSheet = false
+    @State private var importURLText = ""
+    @State private var showShareConfirmation = false
+    @State private var showResetConfirmation = false
+
     /// Public Channel virtual contact key (channel 0).
     private let publicChannelKey = Data([0x00 as UInt8])
 
@@ -28,6 +35,27 @@ struct ContactListView: View {
             }
         }
         #endif
+        .alert("Contact Shared", isPresented: $showShareConfirmation) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Contact shared on mesh.")
+        }
+        .alert("Path Reset", isPresented: $showResetConfirmation) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Outbound path has been reset. A new path will be discovered on next communication.")
+        }
+        .onChange(of: viewModel.lastExportedURL) { url in
+            if let url, !url.isEmpty {
+                #if os(iOS)
+                UIPasteboard.general.string = url
+                #elseif os(macOS)
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(url, forType: .string)
+                #endif
+                viewModel.lastExportedURL = nil
+            }
+        }
     }
 
     @ViewBuilder
@@ -146,8 +174,13 @@ struct ContactListView: View {
                 HStack {
                     Image(systemName: "person.2.slash")
                         .foregroundStyle(MeshTheme.textSecondary)
-                    Text("No contacts yet")
-                        .foregroundStyle(MeshTheme.textSecondary)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("No contacts yet")
+                            .foregroundStyle(MeshTheme.textSecondary)
+                        Text("Send an advertisement to discover nearby devices")
+                            .font(.caption2)
+                            .foregroundStyle(MeshTheme.textSecondary.opacity(0.7))
+                    }
                 }
                 .listRowBackground(MeshTheme.surface)
             } else {
@@ -169,6 +202,17 @@ struct ContactListView: View {
                         contactRow(contact)
                     }
                     .buttonStyle(.plain)
+                    .contextMenu {
+                        contactContextMenu(for: contact)
+                    }
+                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                        Button(role: .destructive) {
+                            contactToDelete = contact
+                            showDeleteConfirm = true
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    }
                     .listRowBackground(
                         viewModel.selectedContact?.publicKeyPrefix == contact.publicKeyPrefix
                             && !viewModel.showPublicChannel
@@ -178,9 +222,84 @@ struct ContactListView: View {
                     #endif
                 }
             }
+
+            #if !os(watchOS)
+            Button {
+                importURLText = ""
+                showImportSheet = true
+            } label: {
+                HStack {
+                    Image(systemName: "person.badge.plus")
+                        .foregroundStyle(MeshTheme.accentFallback)
+                    Text("Import Contact")
+                        .foregroundStyle(MeshTheme.accentFallback)
+                    Spacer()
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .listRowBackground(MeshTheme.surface)
+            #endif
         } header: {
             Text("Contacts")
                 .foregroundStyle(MeshTheme.textSecondary)
+        }
+        .alert("Remove Contact?", isPresented: $showDeleteConfirm) {
+            Button("Cancel", role: .cancel) { contactToDelete = nil }
+            Button("Remove", role: .destructive) {
+                if let contact = contactToDelete {
+                    viewModel.removeContact(contact)
+                }
+                contactToDelete = nil
+            }
+        } message: {
+            if let contact = contactToDelete {
+                Text("Are you sure you want to remove \(contact.name)? This will delete all messages with this contact.")
+            }
+        }
+        .alert("Import Contact", isPresented: $showImportSheet) {
+            TextField("meshcore:// URL", text: $importURLText)
+            Button("Cancel", role: .cancel) {}
+            Button("Import") {
+                let url = importURLText.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !url.isEmpty {
+                    viewModel.importContact(url: url)
+                }
+            }
+        } message: {
+            Text("Paste a meshcore:// link to add a contact.")
+        }
+    }
+
+    @ViewBuilder
+    private func contactContextMenu(for contact: Contact) -> some View {
+        Button {
+            viewModel.shareContact(contact)
+            showShareConfirmation = true
+        } label: {
+            Label("Share on Mesh", systemImage: "dot.radiowaves.left.and.right")
+        }
+
+        Button {
+            viewModel.exportContact(contact)
+        } label: {
+            Label("Export Link", systemImage: "square.and.arrow.up")
+        }
+
+        Button {
+            viewModel.resetPath(for: contact)
+            showResetConfirmation = true
+        } label: {
+            Label("Reset Path", systemImage: "arrow.triangle.2.circlepath")
+        }
+
+        Divider()
+
+        Button(role: .destructive) {
+            contactToDelete = contact
+            showDeleteConfirm = true
+        } label: {
+            Label("Remove Contact", systemImage: "trash")
         }
     }
 
