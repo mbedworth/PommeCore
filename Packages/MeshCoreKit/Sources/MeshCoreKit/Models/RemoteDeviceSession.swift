@@ -50,6 +50,11 @@ public final class RemoteDeviceSession: ObservableObject {
     /// Number of settings responses received during auto-fetch.
     @Published public var fetchReceivedCount = 0
 
+    /// Whether there are pending CLI commands awaiting responses.
+    public var hasPendingCLICommands: Bool {
+        cliHistory.contains(where: { !$0.isComplete })
+    }
+
     public init(contact: Contact) {
         self.contact = contact
     }

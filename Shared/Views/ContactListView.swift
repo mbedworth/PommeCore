@@ -192,6 +192,7 @@ struct ContactListView: View {
                     Text(contact.name)
                         .font(.body)
                         .foregroundStyle(MeshTheme.textPrimary)
+                    loginBadge(for: contact)
                     pathIndicator(for: contact)
                 }
                 lastMessagePreview(for: contact)
@@ -205,12 +206,18 @@ struct ContactListView: View {
     /// Returns the appropriate detail view for a contact based on its type.
     @ViewBuilder
     private func contactDestination(_ contact: Contact) -> some View {
-        if contact.type == .repeater || contact.type == .room {
-            RemoteManagementView(
+        switch contact.type {
+        case .room:
+            RoomChatView(
                 contact: contact,
                 session: viewModel.remoteSession(for: contact)
             )
-        } else {
+        case .repeater:
+            RepeaterLoginView(
+                contact: contact,
+                session: viewModel.remoteSession(for: contact)
+            )
+        default:
             ChatView(contact: contact)
                 .onAppear { viewModel.markAsRead(contact) }
         }
@@ -218,12 +225,28 @@ struct ContactListView: View {
 
     @ViewBuilder
     private func contactIcon(for contact: Contact) -> some View {
+        let isManaged = contact.type == .repeater || contact.type == .room
+        let session = isManaged ? viewModel.remoteSession(for: contact) : nil
+        let loggedIn: Bool = {
+            guard let s = session else { return false }
+            if case .loggedIn = s.loginState { return true }
+            return false
+        }()
+
         ZStack {
             Circle()
                 .fill(MeshTheme.accentFallback.opacity(0.15))
                 .frame(width: 40, height: 40)
             Image(systemName: contactIconName(for: contact.type))
                 .foregroundStyle(MeshTheme.accentFallback)
+
+            // Lock overlay for repeaters/room servers when not logged in
+            if isManaged && !loggedIn {
+                Image(systemName: "lock.fill")
+                    .font(.system(size: 10))
+                    .foregroundStyle(MeshTheme.textSecondary)
+                    .offset(x: 14, y: 14)
+            }
         }
     }
 
@@ -231,8 +254,27 @@ struct ContactListView: View {
         switch type {
         case .chat: return "person.fill"
         case .repeater: return "antenna.radiowaves.left.and.right"
-        case .room: return "building.2"
+        case .room: return "server.rack"
         case .unknown: return "questionmark"
+        }
+    }
+
+    @ViewBuilder
+    private func loginBadge(for contact: Contact) -> some View {
+        if contact.type == .repeater || contact.type == .room {
+            let session = viewModel.remoteSession(for: contact)
+            switch session.loginState {
+            case .loggedIn(let isAdmin):
+                Text(isAdmin ? "Admin" : "Guest")
+                    .font(.caption2.weight(.medium))
+                    .foregroundStyle(MeshTheme.textOnAccent)
+                    .padding(.horizontal, 5)
+                    .padding(.vertical, 1)
+                    .background(MeshTheme.connected.opacity(0.8))
+                    .clipShape(Capsule())
+            default:
+                EmptyView()
+            }
         }
     }
 

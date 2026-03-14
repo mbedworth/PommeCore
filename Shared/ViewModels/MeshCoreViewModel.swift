@@ -765,17 +765,53 @@ final class MeshCoreViewModel: ObservableObject {
         lastErrorMessage = description
     }
 
+    /// Send a plain text message to a room server (appears in room chat, not CLI).
+    func sendRoomMessage(_ text: String, to contact: Contact) {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+
+        // Send as TXT_TYPE_PLAIN (0) — regular room chat post
+        let frame = MeshCoreProtocol.buildSendTextMessage(
+            text: trimmed,
+            recipientKeyHash: contact.publicKeyPrefix,
+            txtType: 0
+        )
+        sendCommand(frame, label: "SEND_ROOM_TXT")
+
+        let outgoing = Message(
+            contactKeyHash: contact.publicKeyPrefix,
+            text: trimmed,
+            timestamp: Date(),
+            isOutgoing: true,
+            status: .sending
+        )
+        messagesByContact[contact.publicKeyPrefix, default: []].append(outgoing)
+        persistMessages(for: contact.publicKeyPrefix)
+    }
+
     /// Handle an incoming message (direct or channel).
     private func handleIncomingMessage(_ message: Message) {
         let contactKey = message.contactKeyHash
 
-        // Check if this is a CLI response from a managed device
+        // Check if this is from a managed device we're logged into
         if let session = remoteSessions[contactKey], !message.isOutgoing {
-            Self.logger.info("Routing message to CLI session: '\(message.text)'")
-            session.responseReceived(message.text)
-            // Don't store CLI responses as chat messages or increment unread
             if case .loggedIn = session.loginState {
-                return
+                // If there are pending CLI commands, route to CLI session
+                if session.hasPendingCLICommands || session.isFetchingSettings {
+                    Self.logger.info("Routing message to CLI session: '\(message.text)'")
+                    session.responseReceived(message.text)
+                    return
+                }
+                // For room servers with no pending CLI commands, this is a room chat message — fall through
+                if session.contact.type == .room {
+                    Self.logger.info("Room chat message from \(session.contact.name): '\(message.text)'")
+                    // Fall through to store as normal message
+                } else {
+                    // Repeater or other device — route to CLI as before
+                    Self.logger.info("Routing message to CLI session: '\(message.text)'")
+                    session.responseReceived(message.text)
+                    return
+                }
             }
         }
 
