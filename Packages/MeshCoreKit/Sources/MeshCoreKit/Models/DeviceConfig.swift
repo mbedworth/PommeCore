@@ -12,6 +12,8 @@ public final class DeviceConfig: ObservableObject {
     @Published public var semanticVersion: String = ""   // from DEVICE_INFO null-terminated version
     @Published public var publicKeyHex: String = ""      // from SELF_INFO 32-byte public key
     @Published public var maxTXPower: UInt8 = 22
+    @Published public var maxContacts: UInt16 = 0        // from DEVICE_INFO maxContactsDiv2 × 2
+    @Published public var maxChannels: UInt8 = 0         // from DEVICE_INFO (group channels)
 
     // MARK: - Battery (from RESP_CODE_BATT_AND_STORAGE code 12)
 

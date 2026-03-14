@@ -82,6 +82,12 @@ private extension SettingsView {
             infoRow(icon: "calendar", label: "Build Date", value: config.buildDate.isEmpty ? "\u{2014}" : config.buildDate)
             infoRow(icon: "building.2", label: "Model", value: config.manufacturer.isEmpty ? "\u{2014}" : config.manufacturer)
             infoRow(icon: "number", label: "Version", value: config.semanticVersion.isEmpty ? "\u{2014}" : config.semanticVersion)
+            if config.maxContacts > 0 {
+                infoRow(icon: "person.2", label: "Max Contacts", value: "\(config.maxContacts)")
+            }
+            if config.maxChannels > 0 {
+                infoRow(icon: "number.circle", label: "Max Channels", value: "\(config.maxChannels)")
+            }
             if !config.publicKeyHex.isEmpty {
                 publicKeyRow
             }
