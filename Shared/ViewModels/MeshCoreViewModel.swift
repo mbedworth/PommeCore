@@ -70,6 +70,13 @@ final class MeshCoreViewModel: ObservableObject {
     /// Login timeout task — cancelled when login succeeds or fails.
     private var loginTimeoutTask: Task<Void, Never>?
 
+    /// Timeout tasks for network tool requests — cancelled when response arrives.
+    private var traceTimeoutTask: Task<Void, Never>?
+    private var statusTimeoutTask: Task<Void, Never>?
+    private var telemetryTimeoutTask: Task<Void, Never>?
+    private var pathTimeoutTask: Task<Void, Never>?
+    private var discoverTimeoutTask: Task<Void, Never>?
+
     /// Last contacts sync lastmod — for incremental sync.
     private var lastContactsSync: UInt32 = 0
 
@@ -262,6 +269,11 @@ final class MeshCoreViewModel: ObservableObject {
                     }
                     self.loginTimeoutTask?.cancel()
                     self.loginTimeoutTask = nil
+                    self.traceTimeoutTask?.cancel()
+                    self.statusTimeoutTask?.cancel()
+                    self.telemetryTimeoutTask?.cancel()
+                    self.pathTimeoutTask?.cancel()
+                    self.discoverTimeoutTask?.cancel()
                     self.deviceConfig = DeviceConfig()
                     self.forwardDeviceConfigChanges()
                     self.isSyncingMessages = false
@@ -962,11 +974,13 @@ final class MeshCoreViewModel: ObservableObject {
 
         case .traceData(let result):
             Self.logger.info("PUSH TraceData: tag=\(result.tag) hops=\(result.hops.count)")
+            traceTimeoutTask?.cancel()
             lastTraceResult = result
             pendingTraceTag = nil
 
         case .telemetryResponse(let senderKey, let readings):
             Self.logger.info("PUSH Telemetry: \(readings.count) readings from \(senderKey.prefix(6).map { String(format: "%02x", $0) }.joined())")
+            telemetryTimeoutTask?.cancel()
             telemetryByContact[senderKey] = readings
             if pendingTelemetryKey == senderKey { pendingTelemetryKey = nil }
 
@@ -1028,7 +1042,7 @@ final class MeshCoreViewModel: ObservableObject {
         if hasLoginPending {
             let timeoutMs = UInt64(suggestedTimeoutMs) + 3000 // suggested + 3s buffer
             loginTimeoutTask?.cancel()
-            loginTimeoutTask = Task { [weak self] in
+            loginTimeoutTask = Task { @MainActor [weak self] in
                 try? await Task.sleep(nanoseconds: timeoutMs * 1_000_000)
                 guard !Task.isCancelled, let self else { return }
                 for (_, session) in self.remoteSessions {
@@ -1384,9 +1398,10 @@ final class MeshCoreViewModel: ObservableObject {
             sendCommand(frame, label: "DISCOVER_REQ")
 
             // Auto-stop after 30 seconds (longer to allow for fallback trigger)
-            Task { @MainActor [weak self] in
+            discoverTimeoutTask?.cancel()
+            discoverTimeoutTask = Task { @MainActor [weak self] in
                 try? await Task.sleep(nanoseconds: 30_000_000_000)
-                guard let self, self.isDiscovering else { return }
+                guard !Task.isCancelled, let self, self.isDiscovering else { return }
                 self.isDiscovering = false
             }
         }
@@ -1398,9 +1413,10 @@ final class MeshCoreViewModel: ObservableObject {
         sendCommand(MeshCoreProtocol.buildSendSelfAdvert(advertType: 1), label: "FLOOD_ADVERT_DISCOVER")
 
         // Listen for 30 seconds
-        Task { @MainActor [weak self] in
+        discoverTimeoutTask?.cancel()
+        discoverTimeoutTask = Task { @MainActor [weak self] in
             try? await Task.sleep(nanoseconds: 30_000_000_000)
-            guard let self, self.isDiscovering else { return }
+            guard !Task.isCancelled, let self, self.isDiscovering else { return }
             self.isDiscovering = false
         }
     }
@@ -1505,11 +1521,11 @@ final class MeshCoreViewModel: ObservableObject {
         let frame = MeshCoreProtocol.buildSendTracePath(outPath: Data(pathData), tag: tag)
         sendCommand(frame, label: "TRACE_PATH")
 
-        // Timeout after 15 seconds
-        let timeout: UInt64 = 15_000_000_000
-        Task { @MainActor [weak self] in
-            try? await Task.sleep(nanoseconds: timeout)
-            guard let self, self.pendingTraceTag == tag else { return }
+        // Timeout after 15 seconds — cancellable when response arrives
+        traceTimeoutTask?.cancel()
+        traceTimeoutTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 15_000_000_000)
+            guard !Task.isCancelled, let self, self.pendingTraceTag == tag else { return }
             self.pendingTraceTag = nil
             if self.lastTraceResult == nil {
                 self.lastErrorMessage = "Trace route timed out — the path may not be reachable."
@@ -1531,10 +1547,11 @@ final class MeshCoreViewModel: ObservableObject {
         let frame = MeshCoreProtocol.buildSendStatusReq(recipientPublicKey: contact.publicKey)
         sendCommand(frame, label: "STATUS_REQ")
 
-        // Timeout after 15 seconds
-        Task { @MainActor [weak self] in
+        // Timeout after 15 seconds — cancellable when response arrives
+        statusTimeoutTask?.cancel()
+        statusTimeoutTask = Task { @MainActor [weak self] in
             try? await Task.sleep(nanoseconds: 15_000_000_000)
-            guard let self, self.pendingStatusKey == key else { return }
+            guard !Task.isCancelled, let self, self.pendingStatusKey == key else { return }
             self.pendingStatusKey = nil
             if self.statusByContact[key] == nil {
                 self.lastErrorMessage = contact.type == .chat
@@ -1551,10 +1568,11 @@ final class MeshCoreViewModel: ObservableObject {
         let frame = MeshCoreProtocol.buildSendTelemetryReq(recipientPublicKey: contact.publicKey)
         sendCommand(frame, label: "TELEMETRY_REQ")
 
-        // Timeout after 15 seconds
-        Task { @MainActor [weak self] in
+        // Timeout after 15 seconds — cancellable when response arrives
+        telemetryTimeoutTask?.cancel()
+        telemetryTimeoutTask = Task { @MainActor [weak self] in
             try? await Task.sleep(nanoseconds: 15_000_000_000)
-            guard let self, self.pendingTelemetryKey == key else { return }
+            guard !Task.isCancelled, let self, self.pendingTelemetryKey == key else { return }
             self.pendingTelemetryKey = nil
             if self.telemetryByContact[key] == nil {
                 // Contextual timeout message based on node type
@@ -1572,6 +1590,7 @@ final class MeshCoreViewModel: ObservableObject {
 
     /// Handle status response — associate with the most recently requested contact.
     private func handleStatusResponse(_ info: RemoteStatusInfo) {
+        statusTimeoutTask?.cancel()
         if let key = pendingStatusKey {
             statusByContact[key] = info
             pendingStatusKey = nil
@@ -1587,11 +1606,12 @@ final class MeshCoreViewModel: ObservableObject {
         let frame = MeshCoreProtocol.buildGetAdvertPath(publicKey: contact.publicKey)
         sendCommand(frame, label: "GET_ADVERT_PATH")
 
-        // Timeout after 10 seconds — fall back to stored path info
+        // Timeout after 10 seconds — fall back to stored path info, cancellable when response arrives
         let key = contact.publicKeyPrefix
-        Task { @MainActor [weak self] in
+        pathTimeoutTask?.cancel()
+        pathTimeoutTask = Task { @MainActor [weak self] in
             try? await Task.sleep(nanoseconds: 10_000_000_000)
-            guard let self, self.pendingAdvertPathKey == key else { return }
+            guard !Task.isCancelled, let self, self.pendingAdvertPathKey == key else { return }
             self.pendingAdvertPathKey = nil
             // Fall back to locally-known path from contact data
             if self.advertPathByContact[key] == nil {
@@ -1628,6 +1648,7 @@ final class MeshCoreViewModel: ObservableObject {
 
     /// Handle advert path response — associate with the most recently queried contact.
     private func handleAdvertPathResponse(_ info: AdvertPathInfo) {
+        pathTimeoutTask?.cancel()
         if let key = pendingAdvertPathKey {
             advertPathByContact[key] = info
             pendingAdvertPathKey = nil
