@@ -106,10 +106,14 @@ public enum MeshCoreProtocol {
     }
 
     /// CMD_SEND_STATUS_REQ (code 27) — request status from a remote device.
-    /// Frame: code(1) pubkey_prefix(6)
-    public static func buildSendStatusReq(recipientKeyHash: Data) -> Data {
+    /// Frame: code(1) pub_key(32)
+    public static func buildSendStatusReq(recipientPublicKey: Data) -> Data {
         var frame = Data([MeshCoreCommand.sendStatusReq.rawValue])
-        frame.append(recipientKeyHash.prefix(6))
+        var key = recipientPublicKey.prefix(32)
+        if key.count < 32 {
+            key.append(Data(repeating: 0, count: 32 - key.count))
+        }
+        frame.append(key)
         return frame
     }
 
@@ -175,6 +179,12 @@ public enum MeshCoreProtocol {
     }
 
     // MARK: - Channels
+
+    /// CMD_GET_CHANNEL (code 31) — request channel info by index.
+    /// Frame: code(1) channel_idx(1)
+    public static func buildGetChannel(index: UInt8) -> Data {
+        Data([MeshCoreCommand.getChannel.rawValue, index])
+    }
 
     /// CMD_SET_CHANNEL (code 32) — add or update a channel.
     /// Frame: code(1) channel_idx(1) channel_name(32 null-padded) secret(32 null-padded)
@@ -330,14 +340,10 @@ public enum MeshCoreProtocol {
     // MARK: - Discovery & Diagnostics
 
     /// CMD_SEND_CONTROL_DATA (code 55) — send a control packet.
-    /// For discover: flags=0, sub_type=0x80 (DISCOVER_REQ), empty payload.
-    /// Frame: code(1) flags(1) sub_type(1) dest_key(6) payload(variable)
-    public static func buildSendDiscover(recipientKeyHash: Data = Data(repeating: 0xFF, count: 6)) -> Data {
-        var frame = Data([MeshCoreCommand.sendControlData.rawValue])
-        frame.append(0x00) // flags
-        frame.append(0x80) // sub_type: DISCOVER_REQ
-        frame.append(recipientKeyHash.prefix(6))
-        return frame
+    /// For discover: flags=0, sub_type=0x80 (DISCOVER_REQ), no payload.
+    /// Frame: code(1) flags(1) sub_type(1)
+    public static func buildSendDiscover() -> Data {
+        Data([MeshCoreCommand.sendControlData.rawValue, 0x00, 0x80])
     }
 
     /// CMD_SEND_TRACE_PATH (code 36) — trace route to a contact.
@@ -357,10 +363,15 @@ public enum MeshCoreProtocol {
     }
 
     /// CMD_SEND_TELEMETRY_REQ (code 39) — request telemetry from a sensor contact.
-    /// Frame: code(1) pubkey_prefix(6)
-    public static func buildSendTelemetryReq(recipientKeyHash: Data) -> Data {
+    /// Frame: code(1) reserved(3) pub_key(32)
+    public static func buildSendTelemetryReq(recipientPublicKey: Data) -> Data {
         var frame = Data([MeshCoreCommand.sendTelemetryReq.rawValue])
-        frame.append(recipientKeyHash.prefix(6))
+        frame.append(Data(repeating: 0, count: 3)) // reserved
+        var key = recipientPublicKey.prefix(32)
+        if key.count < 32 {
+            key.append(Data(repeating: 0, count: 32 - key.count))
+        }
+        frame.append(key)
         return frame
     }
 

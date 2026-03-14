@@ -684,7 +684,7 @@ final class MeshCoreViewModel: ObservableObject {
     /// Request status from a remote device.
     func requestRemoteStatus(_ contact: Contact) {
         let frame = MeshCoreProtocol.buildSendStatusReq(
-            recipientKeyHash: contact.publicKeyPrefix
+            recipientPublicKey: contact.publicKey
         )
         sendCommand(frame, label: "STATUS_REQ")
     }
@@ -865,6 +865,9 @@ final class MeshCoreViewModel: ObservableObject {
             isIncrementalContactSync = false
             isSyncingContacts = false
 
+            // Sync channels after contacts complete
+            syncChannels()
+
         case .sent(let type, let expectedACK, let suggestedTimeout):
             Self.logger.info("PARSED Sent: type=\(type) expectedACK=\(expectedACK) timeout=\(suggestedTimeout)ms")
             handleSentResponse(expectedACK: expectedACK, suggestedTimeoutMs: suggestedTimeout)
@@ -959,9 +962,20 @@ final class MeshCoreViewModel: ObservableObject {
         case .rawMeshPacket(let pktData):
             Self.logger.debug("Raw mesh packet: \(pktData.count) bytes")
 
+        case .contactDeleted(let publicKey):
+            let keyPrefix = publicKey.prefix(6)
+            let name = contacts.first(where: { $0.publicKeyPrefix == keyPrefix })?.name ?? "Unknown"
+            Self.logger.info("Contact deleted by device: \(name)")
+            contacts.removeAll { $0.publicKeyPrefix == keyPrefix }
+            lastErrorMessage = "Contact \"\(name)\" was removed from device to make room for new contacts."
+
+        case .contactsFull(let maxContacts):
+            Self.logger.warning("Contact storage full: \(maxContacts)")
+            lastErrorMessage = "Contact storage is full (\(maxContacts) contacts). New contacts cannot be added."
+
         case .unknown(let type, let payload):
-            // Push notifications (0x80-0x8F) are informational — log at debug level
-            if type >= 0x80 && type <= 0x8F {
+            // Push notifications are informational — log at debug level
+            if type >= 0x80 {
                 Self.logger.debug("Ignoring push notification 0x\(String(format: "%02x", type)), \(payload.count) bytes payload")
             } else {
                 Self.logger.warning("Unhandled response 0x\(String(format: "%02x", type)), \(payload.count) bytes payload")
@@ -1384,13 +1398,13 @@ final class MeshCoreViewModel: ObservableObject {
     /// Request status from a remote device (repeater/sensor).
     func requestStatus(for contact: Contact) {
         pendingStatusKey = contact.publicKeyPrefix
-        let frame = MeshCoreProtocol.buildSendStatusReq(recipientKeyHash: contact.publicKeyPrefix)
+        let frame = MeshCoreProtocol.buildSendStatusReq(recipientPublicKey: contact.publicKey)
         sendCommand(frame, label: "STATUS_REQ")
     }
 
     /// Request telemetry from a sensor contact.
     func requestTelemetry(for contact: Contact) {
-        let frame = MeshCoreProtocol.buildSendTelemetryReq(recipientKeyHash: contact.publicKeyPrefix)
+        let frame = MeshCoreProtocol.buildSendTelemetryReq(recipientPublicKey: contact.publicKey)
         sendCommand(frame, label: "TELEMETRY_REQ")
     }
 
@@ -1446,6 +1460,25 @@ final class MeshCoreViewModel: ObservableObject {
     }
 
     // MARK: - Channel Sync
+
+    /// Iterate through all channel slots and request info for each.
+    /// Called after contact sync completes.
+    private func syncChannels() {
+        let maxCh = Int(deviceConfig.maxChannels)
+        guard maxCh > 0 else { return }
+        isSyncingChannels = true
+        incomingChannels = []
+
+        // Send CMD_GET_CHANNEL for each slot with small delays to avoid flooding
+        for idx in 0..<maxCh {
+            let delay = UInt64(idx) * 50_000_000 // 50ms between requests
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: delay)
+                let frame = MeshCoreProtocol.buildGetChannel(index: UInt8(idx))
+                self.sendCommand(frame, label: "GET_CHANNEL(\(idx))")
+            }
+        }
+    }
 
     /// Handle RESP_CODE_CHANNEL_INFO — accumulate channel metadata.
     /// Channel info frames arrive after contacts. Once all maxChannels are received,
