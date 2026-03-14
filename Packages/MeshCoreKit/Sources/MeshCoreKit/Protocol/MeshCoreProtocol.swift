@@ -176,10 +176,10 @@ public enum MeshCoreProtocol {
 
     // MARK: - Channels
 
-    /// CMD_ADD_CHANNEL (code 32) — add or update a channel.
+    /// CMD_SET_CHANNEL (code 32) — add or update a channel.
     /// Frame: code(1) channel_idx(1) channel_name(32 null-padded) secret(32 null-padded)
-    public static func buildAddChannel(index: UInt8, name: String, secret: Data? = nil) -> Data {
-        var frame = Data([MeshCoreCommand.addChannel.rawValue])
+    public static func buildSetChannel(index: UInt8, name: String, secret: Data? = nil) -> Data {
+        var frame = Data([MeshCoreCommand.setChannel.rawValue])
         frame.append(index)
         // channel_name: 32 bytes null-padded
         var nameField = Data(repeating: 0, count: 32)
@@ -325,6 +325,60 @@ public enum MeshCoreProtocol {
     /// CMD_GET_STATS (code 56). subType: 0=core, 1=radio, 2=packets.
     public static func buildGetStats(subType: UInt8) -> Data {
         Data([MeshCoreCommand.getStats.rawValue, subType])
+    }
+
+    // MARK: - Discovery & Diagnostics
+
+    /// CMD_SEND_CONTROL_DATA (code 55) — send a control packet.
+    /// For discover: flags=0, sub_type=0x80 (DISCOVER_REQ), empty payload.
+    /// Frame: code(1) flags(1) sub_type(1) dest_key(6) payload(variable)
+    public static func buildSendDiscover(recipientKeyHash: Data = Data(repeating: 0xFF, count: 6)) -> Data {
+        var frame = Data([MeshCoreCommand.sendControlData.rawValue])
+        frame.append(0x00) // flags
+        frame.append(0x80) // sub_type: DISCOVER_REQ
+        frame.append(recipientKeyHash.prefix(6))
+        return frame
+    }
+
+    /// CMD_SEND_TRACE_PATH (code 36) — trace route to a contact.
+    /// Frame: code(1) tag(uint32) auth_code(uint32) flags(1) dest_pub_key(32)
+    public static func buildSendTracePath(recipientPublicKey: Data, tag: UInt32? = nil) -> Data {
+        var frame = Data([MeshCoreCommand.sendTracePath.rawValue])
+        let traceTag = tag ?? UInt32.random(in: 0..<UInt32.max)
+        appendUInt32(&frame, traceTag)
+        appendUInt32(&frame, 0) // auth_code
+        frame.append(0x00) // flags
+        var key = recipientPublicKey.prefix(32)
+        if key.count < 32 {
+            key.append(Data(repeating: 0, count: 32 - key.count))
+        }
+        frame.append(key)
+        return frame
+    }
+
+    /// CMD_SEND_TELEMETRY_REQ (code 39) — request telemetry from a sensor contact.
+    /// Frame: code(1) pubkey_prefix(6)
+    public static func buildSendTelemetryReq(recipientKeyHash: Data) -> Data {
+        var frame = Data([MeshCoreCommand.sendTelemetryReq.rawValue])
+        frame.append(recipientKeyHash.prefix(6))
+        return frame
+    }
+
+    /// CMD_GET_ADVERT_PATH (code 42) — get last known path to a contact.
+    /// Frame: code(1) pub_key(32)
+    public static func buildGetAdvertPath(publicKey: Data) -> Data {
+        var frame = Data([MeshCoreCommand.getAdvertPath.rawValue])
+        var key = publicKey.prefix(32)
+        if key.count < 32 {
+            key.append(Data(repeating: 0, count: 32 - key.count))
+        }
+        frame.append(key)
+        return frame
+    }
+
+    /// CMD_GET_ALLOWED_REPEAT_FREQ (code 60).
+    public static func buildGetAllowedRepeatFreq() -> Data {
+        Data([MeshCoreCommand.getAllowedRepeatFreq.rawValue])
     }
 
     // MARK: - Danger Zone

@@ -29,10 +29,18 @@ public enum FrameParser {
         case sendConfirmed(ackCode: UInt32, roundTripMs: UInt32)  // PUSH_CODE_SEND_CONFIRMED (0x82)
         case msgWaiting                                // PUSH_CODE_MSG_WAITING (0x83)
         case advert(Contact)                           // PUSH_CODE_ADVERT (0x80)
+        case pathUpdated(publicKey: Data)              // PUSH_CODE_PATH_UPDATED (0x81)
         case loginSuccess(permissionLevel: Int)         // PUSH_CODE_LOGIN_SUCCESS (0x85)
         case loginFail                                 // PUSH_CODE_LOGIN_FAIL (0x86)
+        case statusResponse(RemoteStatusInfo)           // PUSH_CODE_STATUS_RESPONSE (0x87)
+        case traceData(TraceResult)                    // PUSH_CODE_TRACE_DATA (0x89)
+        case newAdvert(Contact)                        // PUSH_CODE_NEW_ADVERT (0x8A)
+        case telemetryResponse(senderKey: Data, readings: [TelemetryReading]) // PUSH_CODE_TELEMETRY_RESPONSE (0x8B)
+        case controlData(snr: Int8, rssi: Int8, pathLen: UInt8, payload: Data) // PUSH_CODE_CONTROL_DATA (0x8E)
         case channelInfo(MeshChannel)                 // RESP_CODE_CHANNEL_INFO (code 18)
         case exportedContact(url: String)             // RESP_CODE_EXPORTED_CONTACT (code 20)
+        case advertPath(AdvertPathInfo)               // RESP_CODE_ADVERT_PATH (code 34)
+        case allowedRepeatFreq([FrequencyRange])      // RESP_ALLOWED_REPEAT_FREQ (code 38)
         case unknown(type: UInt8, payload: Data)
     }
 
@@ -89,34 +97,7 @@ public enum FrameParser {
         // Check push codes first (high bit set, 0x80-0x8F range)
         if firstByte >= 0x80 && firstByte <= 0x8F {
             if let pushCode = MeshCorePushCode(rawValue: firstByte) {
-                switch pushCode {
-                case .advert:
-                    return parseAdvertPush(payload)
-                case .sendConfirmed:
-                    return parseSendConfirmed(payload)
-                case .msgWaiting:
-                    return .msgWaiting
-                case .loginSuccess:
-                    // Frame layout (after code byte):
-                    //   [0]     old_permissions (1 byte, isAdmin flag in bit 0)
-                    //   [1-6]   pub_key_prefix (6 bytes)
-                    //   [7-10]  tag (int32)
-                    //   [11]    new_permissions (v7+: 0=Guest, 1=ReadOnly, 2=ReadWrite, 3=Admin)
-                    let permissionLevel: Int
-                    if payload.count >= 12 {
-                        // v7+ firmware: use new_permissions byte (byte 11 of payload)
-                        permissionLevel = Int(payload[11])
-                    } else {
-                        // Old firmware: derive from isAdmin flag
-                        let oldPerms = payload.first ?? 0
-                        permissionLevel = (oldPerms & 1) == 1 ? 3 : 0
-                    }
-                    logger.info("LoginSuccess: permissionLevel=\(permissionLevel) (payload \(payload.count) bytes)")
-                    return .loginSuccess(permissionLevel: permissionLevel)
-                case .loginFail:
-                    logger.info("LoginFail")
-                    return .loginFail
-                }
+                return parsePushCode(pushCode, payload: payload)
             }
             // Unknown push code in the notification range — log and ignore
             logger.debug("Received push notification 0x\(String(format: "%02x", firstByte)) (undocumented), \(payload.count) bytes payload")
@@ -200,6 +181,76 @@ public enum FrameParser {
 
         case .rawMeshPacket:
             return .rawMeshPacket(payload)
+
+        case .advertPath:
+            return parseAdvertPath(payload)
+
+        case .allowedRepeatFreq:
+            return parseAllowedRepeatFreq(payload)
+        }
+    }
+
+    // MARK: - Push Code Dispatch
+
+    private static func parsePushCode(_ pushCode: MeshCorePushCode, payload: Data) -> ParsedResponse {
+        switch pushCode {
+        case .advert:
+            return parseAdvertPush(payload)
+
+        case .pathUpdated:
+            // Contains 32-byte public key of the contact whose path changed
+            let key = payload.count >= 32 ? Data(payload.prefix(32)) : payload
+            logger.info("PathUpdated: key=\(key.prefix(6).map { String(format: "%02x", $0) }.joined())")
+            return .pathUpdated(publicKey: key)
+
+        case .sendConfirmed:
+            return parseSendConfirmed(payload)
+
+        case .msgWaiting:
+            return .msgWaiting
+
+        case .loginSuccess:
+            // Frame layout (after code byte):
+            //   [0]     old_permissions (1 byte, isAdmin flag in bit 0)
+            //   [1-6]   pub_key_prefix (6 bytes)
+            //   [7-10]  tag (int32)
+            //   [11]    new_permissions (v7+: 0=Guest, 1=ReadOnly, 2=ReadWrite, 3=Admin)
+            let permissionLevel: Int
+            if payload.count >= 12 {
+                // v7+ firmware: use new_permissions byte (byte 11 of payload)
+                permissionLevel = Int(payload[11])
+            } else {
+                // Old firmware: derive from isAdmin flag
+                let oldPerms = payload.first ?? 0
+                permissionLevel = (oldPerms & 1) == 1 ? 3 : 0
+            }
+            logger.info("LoginSuccess: permissionLevel=\(permissionLevel) (payload \(payload.count) bytes)")
+            return .loginSuccess(permissionLevel: permissionLevel)
+
+        case .loginFail:
+            logger.info("LoginFail")
+            return .loginFail
+
+        case .statusResponse:
+            return parseStatusResponse(payload)
+
+        case .traceData:
+            return parseTraceData(payload)
+
+        case .newAdvert:
+            // Same format as RESP_CODE_CONTACT — a new contact discovered in manual_add mode
+            let contactResponse = parseContactFull(payload)
+            if case .contact(let contact) = contactResponse {
+                logger.info("NewAdvert (manual_add): \(contact.name)")
+                return .newAdvert(contact)
+            }
+            return .unknown(type: MeshCorePushCode.newAdvert.rawValue, payload: payload)
+
+        case .telemetryResponse:
+            return parseTelemetryResponse(payload)
+
+        case .controlData:
+            return parseControlData(payload)
         }
     }
 
@@ -468,7 +519,7 @@ public enum FrameParser {
         _ = readUInt8(data, offset: &offset) // reserved
         let channelIdx = readUInt8(data, offset: &offset)
         _ = readUInt8(data, offset: &offset) // path_len
-        _ = readUInt8(data, offset: &offset) // txt_type
+        let txtType = readUInt8(data, offset: &offset)
         let senderTimestamp = readUInt32(data, offset: &offset)
 
         // sender_name is null-terminated, text is the remainder
@@ -485,7 +536,9 @@ public enum FrameParser {
             ? Date(timeIntervalSince1970: TimeInterval(senderTimestamp))
             : Date()
 
-        logger.info("ChannelMsgRecvV3: snr=\(snr) ch=\(channelIdx) sender='\(senderName)' text='\(text)'")
+        logger.info("ChannelMsgRecvV3: snr=\(snr) ch=\(channelIdx) sender='\(senderName)' txtType=\(txtType) text='\(text)'")
+
+        let isSigned = txtType == 2
 
         let message = Message(
             senderKeyHash: Data(),
@@ -496,7 +549,9 @@ public enum FrameParser {
             status: .delivered,
             snr: snr,
             channelIndex: channelIdx,
-            senderName: senderName.isEmpty ? nil : senderName
+            senderName: senderName.isEmpty ? nil : senderName,
+            txtType: txtType,
+            isSigned: isSigned
         )
         return .channelMsgRecv(message)
     }
@@ -534,7 +589,7 @@ public enum FrameParser {
         // path_len: 1 byte (0xFF = direct)
         _ = readUInt8(data, offset: &offset)
 
-        // txt_type: 1 byte (0 = plain, 1 = CLI_DATA)
+        // txt_type: 1 byte (0 = plain, 1 = CLI_DATA, 2 = signed)
         let txtType = readUInt8(data, offset: &offset)
 
         // sender_timestamp: uint32
@@ -553,6 +608,8 @@ public enum FrameParser {
             ? Date(timeIntervalSince1970: TimeInterval(senderTimestamp))
             : Date()
 
+        let isSigned = txtType == 2
+
         logger.info("ContactMsgRecv(v1): from=\(pubkeyPrefix.map { String(format: "%02x", $0) }.joined()) txtType=\(txtType) text='\(text)'")
 
         let message = Message(
@@ -562,7 +619,8 @@ public enum FrameParser {
             timestamp: timestamp,
             isOutgoing: false,
             status: .delivered,
-            txtType: txtType
+            txtType: txtType,
+            isSigned: isSigned
         )
         return .contactMsgRecv(message)
     }
@@ -581,6 +639,155 @@ public enum FrameParser {
 
         let channel = MeshChannel(index: channelIdx, name: name, flags: flags)
         return .channelInfo(channel)
+    }
+
+    // MARK: - Status Response (0x87)
+
+    /// PUSH_CODE_STATUS_RESPONSE (0x87) — status from a remote device.
+    /// Layout: battery_mv(uint16) uptime(uint32) contacts(uint16) ...
+    private static func parseStatusResponse(_ data: Data) -> ParsedResponse {
+        var offset = 0
+        let batteryMV = readUInt16(data, offset: &offset)
+        let uptime = readUInt32(data, offset: &offset)
+        let contacts = readUInt16(data, offset: &offset)
+
+        logger.info("StatusResponse: batt=\(batteryMV)mV uptime=\(uptime) contacts=\(contacts)")
+
+        let info = RemoteStatusInfo(
+            batteryMV: batteryMV,
+            uptime: uptime,
+            contacts: contacts,
+            rawData: data
+        )
+        return .statusResponse(info)
+    }
+
+    // MARK: - Trace Data (0x89)
+
+    /// PUSH_CODE_TRACE_DATA (0x89) — trace route result.
+    /// Layout: tag(uint32) hops: [node_hash(6) snr(int8)]*
+    private static func parseTraceData(_ data: Data) -> ParsedResponse {
+        var offset = 0
+        let tag = readUInt32(data, offset: &offset)
+        var hops: [TraceHop] = []
+
+        while offset + 7 <= data.count {
+            let nodeHash = Data(data[offset..<offset+6])
+            offset += 6
+            let snr = Int8(bitPattern: readUInt8(data, offset: &offset))
+            hops.append(TraceHop(nodeHash: nodeHash, snr: snr))
+        }
+
+        logger.info("TraceData: tag=\(tag) hops=\(hops.count)")
+
+        return .traceData(TraceResult(tag: tag, hops: hops))
+    }
+
+    // MARK: - Telemetry Response (0x8B)
+
+    /// PUSH_CODE_TELEMETRY_RESPONSE (0x8B) — LPP-encoded sensor data.
+    /// Layout: pubkey_prefix(6) lpp_data(remainder)
+    /// LPP format: channel(1) type(1) value(variable)
+    private static func parseTelemetryResponse(_ data: Data) -> ParsedResponse {
+        var offset = 0
+
+        let senderKey = data.count >= 6 ? Data(data[offset..<offset+6]) : Data()
+        offset += min(6, data.count - offset)
+
+        var readings: [TelemetryReading] = []
+
+        while offset + 2 < data.count {
+            _ = readUInt8(data, offset: &offset) // channel
+            let lppType = readUInt8(data, offset: &offset)
+
+            switch lppType {
+            case 0x67: // Temperature (int16, 0.1 C)
+                let raw = Int16(bitPattern: readUInt16(data, offset: &offset))
+                readings.append(TelemetryReading(name: "Temperature", value: Double(raw) / 10.0, unit: "\u{00B0}C"))
+            case 0x68: // Humidity (uint8, 0.5 %)
+                let raw = readUInt8(data, offset: &offset)
+                readings.append(TelemetryReading(name: "Humidity", value: Double(raw) / 2.0, unit: "%"))
+            case 0x73: // Barometric Pressure (uint16, 0.1 hPa)
+                let raw = readUInt16(data, offset: &offset)
+                readings.append(TelemetryReading(name: "Pressure", value: Double(raw) / 10.0, unit: "hPa"))
+            case 0x02: // Analog Input (uint16, 0.01 V) — often battery
+                let raw = readUInt16(data, offset: &offset)
+                readings.append(TelemetryReading(name: "Battery", value: Double(raw) / 100.0, unit: "V"))
+            case 0x65: // Illuminance (uint16, 1 lux)
+                let raw = readUInt16(data, offset: &offset)
+                readings.append(TelemetryReading(name: "Light", value: Double(raw), unit: "lux"))
+            default:
+                // Unknown LPP type — skip remaining data
+                logger.debug("Unknown LPP type 0x\(String(format: "%02x", lppType)) at offset \(offset)")
+                break
+            }
+        }
+
+        logger.info("TelemetryResponse: \(readings.count) readings from \(senderKey.map { String(format: "%02x", $0) }.joined())")
+
+        return .telemetryResponse(senderKey: senderKey, readings: readings)
+    }
+
+    // MARK: - Control Data (0x8E)
+
+    /// PUSH_CODE_CONTROL_DATA (0x8E) — control packet (discover responses, etc.).
+    /// Layout: SNR(int8) RSSI(int8) path_len(1) path(variable) payload(remainder)
+    private static func parseControlData(_ data: Data) -> ParsedResponse {
+        var offset = 0
+        let snr = Int8(bitPattern: readUInt8(data, offset: &offset))
+        let rssi = Int8(bitPattern: readUInt8(data, offset: &offset))
+        let pathLen = readUInt8(data, offset: &offset)
+
+        // Skip path bytes (6 bytes per hop)
+        let pathBytes = min(Int(pathLen) * 6, data.count - offset)
+        offset += pathBytes
+
+        let payload = offset < data.count ? Data(data[offset...]) : Data()
+
+        logger.info("ControlData: snr=\(snr) rssi=\(rssi) pathLen=\(pathLen) payload=\(payload.count) bytes")
+
+        return .controlData(snr: snr, rssi: rssi, pathLen: pathLen, payload: payload)
+    }
+
+    // MARK: - Advert Path (code 34)
+
+    /// RESP_CODE_ADVERT_PATH (0x22) — last known path to a contact.
+    /// Layout: recv_timestamp(uint32) path_len(1) path(6*path_len bytes)
+    private static func parseAdvertPath(_ data: Data) -> ParsedResponse {
+        var offset = 0
+        let recvTimestamp = readUInt32(data, offset: &offset)
+        let pathLen = readUInt8(data, offset: &offset)
+
+        var hashes: [Data] = []
+        for _ in 0..<pathLen {
+            if offset + 6 <= data.count {
+                hashes.append(Data(data[offset..<offset+6]))
+                offset += 6
+            }
+        }
+
+        logger.info("AdvertPath: timestamp=\(recvTimestamp) pathLen=\(pathLen) hops=\(hashes.count)")
+
+        return .advertPath(AdvertPathInfo(recvTimestamp: recvTimestamp, pathLen: pathLen, pathHashes: hashes))
+    }
+
+    // MARK: - Allowed Repeat Freq (code 38)
+
+    /// RESP_ALLOWED_REPEAT_FREQ (0x26) — allowed repeat frequency ranges.
+    /// Layout: pairs of {lower_freq(uint32), upper_freq(uint32)}
+    private static func parseAllowedRepeatFreq(_ data: Data) -> ParsedResponse {
+        var offset = 0
+        var ranges: [FrequencyRange] = []
+
+        while offset + 8 <= data.count {
+            let lower = readUInt32(data, offset: &offset)
+            let upper = readUInt32(data, offset: &offset)
+            ranges.append(FrequencyRange(lowerHz: lower, upperHz: upper))
+        }
+
+        logger.info("AllowedRepeatFreq: \(ranges.count) ranges")
+
+        return .allowedRepeatFreq(ranges)
     }
 
     // MARK: - Binary Read Helpers

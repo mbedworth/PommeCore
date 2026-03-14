@@ -86,6 +86,39 @@ final class MeshCoreViewModel: ObservableObject {
     /// Whether channel sync is in progress.
     @Published var isSyncingChannels = false
 
+    /// Pending contacts discovered via PUSH_CODE_NEW_ADVERT (manual_add_contacts mode).
+    @Published var pendingNewContacts: [Contact] = []
+
+    /// Discovered nodes from the discover feature.
+    @Published var discoveredNodes: [DiscoveredNode] = []
+
+    /// Whether a discover scan is in progress.
+    @Published var isDiscovering = false
+
+    /// Most recent trace route result.
+    @Published var lastTraceResult: TraceResult?
+
+    /// Most recent telemetry readings keyed by contact key prefix.
+    @Published var telemetryByContact: [Data: [TelemetryReading]] = [:]
+
+    /// Most recent status info keyed by contact key prefix.
+    @Published var statusByContact: [Data: RemoteStatusInfo] = [:]
+
+    /// Advert path info keyed by contact key prefix.
+    @Published var advertPathByContact: [Data: AdvertPathInfo] = [:]
+
+    /// Allowed repeat frequency ranges.
+    @Published var allowedRepeatFreqRanges: [FrequencyRange] = []
+
+    /// Active trace route tag for correlating responses.
+    private var pendingTraceTag: UInt32?
+
+    /// Contact key for which we're awaiting an advert path response.
+    private var pendingAdvertPathKey: Data?
+
+    /// Contact key for which we're awaiting a status response.
+    private var pendingStatusKey: Data?
+
     init() {
         setupSubscriptions()
         forwardDeviceConfigChanges()
@@ -215,6 +248,12 @@ final class MeshCoreViewModel: ObservableObject {
                     self.channels = []
                     self.incomingChannels = []
                     self.isSyncingChannels = false
+                    self.pendingNewContacts = []
+                    self.discoveredNodes = []
+                    self.isDiscovering = false
+                    self.lastTraceResult = nil
+                    self.pendingTraceTag = nil
+                    self.allowedRepeatFreqRanges = []
                     // Mark pending outgoing messages as failed
                     for (contactKey, messages) in self.messagesByContact {
                         var updated = messages
@@ -868,6 +907,35 @@ final class MeshCoreViewModel: ObservableObject {
             Self.logger.info("PUSH Advert from: \(contact.name)")
             handleAdvert(contact)
 
+        case .pathUpdated(let publicKey):
+            Self.logger.info("PUSH PathUpdated: key=\(publicKey.prefix(6).map { String(format: "%02x", $0) }.joined())")
+            // Trigger incremental contact sync to pick up the new path
+            requestContacts()
+
+        case .newAdvert(let contact):
+            Self.logger.info("PUSH NewAdvert (manual_add): \(contact.name)")
+            // Add to pending contacts list for user approval
+            if !pendingNewContacts.contains(where: { $0.publicKeyPrefix == contact.publicKeyPrefix }) {
+                pendingNewContacts.append(contact)
+            }
+
+        case .statusResponse(let info):
+            Self.logger.info("PUSH StatusResponse: batt=\(info.batteryMV)mV uptime=\(info.uptime)")
+            // Find which contact this status is for (most recent status request)
+            handleStatusResponse(info)
+
+        case .traceData(let result):
+            Self.logger.info("PUSH TraceData: tag=\(result.tag) hops=\(result.hops.count)")
+            lastTraceResult = result
+
+        case .telemetryResponse(let senderKey, let readings):
+            Self.logger.info("PUSH Telemetry: \(readings.count) readings from \(senderKey.prefix(6).map { String(format: "%02x", $0) }.joined())")
+            telemetryByContact[senderKey] = readings
+
+        case .controlData(let snr, let rssi, let pathLen, let payload):
+            Self.logger.info("PUSH ControlData: snr=\(snr) rssi=\(rssi) pathLen=\(pathLen)")
+            handleControlData(snr: snr, rssi: rssi, pathLen: pathLen, payload: payload)
+
         case .channelInfo(let channel):
             Self.logger.info("Channel info: idx=\(channel.index) name='\(channel.name)' flags=\(channel.flags)")
             handleChannelInfo(channel)
@@ -875,6 +943,15 @@ final class MeshCoreViewModel: ObservableObject {
         case .exportedContact(let url):
             Self.logger.info("Exported contact URL: \(url)")
             lastExportedURL = url
+
+        case .advertPath(let info):
+            Self.logger.info("AdvertPath: timestamp=\(info.recvTimestamp) pathLen=\(info.pathLen)")
+            // Store for the contact that was queried
+            handleAdvertPathResponse(info)
+
+        case .allowedRepeatFreq(let ranges):
+            Self.logger.info("AllowedRepeatFreq: \(ranges.count) ranges")
+            allowedRepeatFreqRanges = ranges
 
         case .currentAdvert(let adData):
             Self.logger.debug("Current advert: \(adData.count) bytes")
@@ -1195,6 +1272,179 @@ final class MeshCoreViewModel: ObservableObject {
         }
     }
 
+    // MARK: - Discover
+
+    /// Start a discover scan — sends DISCOVER_REQ control packet.
+    func startDiscover() {
+        discoveredNodes = []
+        isDiscovering = true
+        let frame = MeshCoreProtocol.buildSendDiscover()
+        sendCommand(frame, label: "DISCOVER_REQ")
+
+        // Auto-stop after 15 seconds
+        Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 15_000_000_000)
+            self?.isDiscovering = false
+        }
+    }
+
+    /// Handle PUSH_CODE_CONTROL_DATA — parse discover responses from the payload.
+    private func handleControlData(snr: Int8, rssi: Int8, pathLen: UInt8, payload: Data) {
+        // Discover response payload: sub_type(1) sender_pub_key(32) sender_type(1) sender_name(32 null-term) lat(int32) lon(int32)
+        guard payload.count >= 2 else { return }
+        let subType = payload[0]
+
+        // 0x81 = DISCOVER_RESP
+        guard subType == 0x81 else {
+            Self.logger.debug("Control data sub_type=0x\(String(format: "%02x", subType)) — not a discover response")
+            return
+        }
+
+        var offset = 1
+        let keyLen = min(32, payload.count - offset)
+        guard keyLen >= 6 else { return }
+        let publicKey = Data(payload[offset..<offset+keyLen])
+        offset += keyLen
+
+        let contactType: ContactType
+        if offset < payload.count {
+            contactType = ContactType(rawValue: payload[offset]) ?? .unknown
+            offset += 1
+        } else {
+            contactType = .unknown
+        }
+
+        let name: String
+        if offset + 32 <= payload.count {
+            let nameSlice = payload[offset..<offset+32]
+            if let nullIdx = nameSlice.firstIndex(of: 0x00) {
+                name = String(data: Data(payload[offset..<nullIdx]), encoding: .utf8) ?? ""
+            } else {
+                name = String(data: Data(nameSlice), encoding: .utf8) ?? ""
+            }
+            offset += 32
+        } else if offset < payload.count {
+            name = String(data: Data(payload[offset...]), encoding: .utf8)?
+                .trimmingCharacters(in: .controlCharacters) ?? ""
+            offset = payload.count
+        } else {
+            name = ""
+        }
+
+        var latitude: Double = 0
+        var longitude: Double = 0
+        if offset + 8 <= payload.count {
+            var latRaw: Int32 = 0
+            _ = withUnsafeMutableBytes(of: &latRaw) { dest in
+                payload.copyBytes(to: dest, from: offset..<offset+4)
+            }
+            latitude = Double(Int32(littleEndian: latRaw)) / 1_000_000.0
+            offset += 4
+            var lonRaw: Int32 = 0
+            _ = withUnsafeMutableBytes(of: &lonRaw) { dest in
+                payload.copyBytes(to: dest, from: offset..<offset+4)
+            }
+            longitude = Double(Int32(littleEndian: lonRaw)) / 1_000_000.0
+            offset += 4
+        }
+
+        let node = DiscoveredNode(
+            publicKey: publicKey,
+            name: name,
+            type: contactType,
+            snr: snr,
+            rssi: rssi,
+            pathLen: pathLen,
+            latitude: latitude,
+            longitude: longitude
+        )
+
+        if let idx = discoveredNodes.firstIndex(where: { $0.publicKey == publicKey }) {
+            discoveredNodes[idx] = node
+        } else {
+            discoveredNodes.append(node)
+        }
+
+        Self.logger.info("Discovered: '\(name)' type=\(contactType.rawValue) snr=\(snr) rssi=\(rssi)")
+    }
+
+    // MARK: - Trace Route
+
+    /// Send a trace route request to a contact.
+    func traceRoute(to contact: Contact) {
+        let tag = UInt32.random(in: 0..<UInt32.max)
+        pendingTraceTag = tag
+        lastTraceResult = nil
+        let frame = MeshCoreProtocol.buildSendTracePath(recipientPublicKey: contact.publicKey, tag: tag)
+        sendCommand(frame, label: "TRACE_PATH")
+    }
+
+    // MARK: - Status & Telemetry
+
+    /// Request status from a remote device (repeater/sensor).
+    func requestStatus(for contact: Contact) {
+        pendingStatusKey = contact.publicKeyPrefix
+        let frame = MeshCoreProtocol.buildSendStatusReq(recipientKeyHash: contact.publicKeyPrefix)
+        sendCommand(frame, label: "STATUS_REQ")
+    }
+
+    /// Request telemetry from a sensor contact.
+    func requestTelemetry(for contact: Contact) {
+        let frame = MeshCoreProtocol.buildSendTelemetryReq(recipientKeyHash: contact.publicKeyPrefix)
+        sendCommand(frame, label: "TELEMETRY_REQ")
+    }
+
+    /// Handle status response — associate with the most recently requested contact.
+    private func handleStatusResponse(_ info: RemoteStatusInfo) {
+        if let key = pendingStatusKey {
+            statusByContact[key] = info
+            pendingStatusKey = nil
+        }
+    }
+
+    // MARK: - Advert Path
+
+    /// Request the last known path to a contact.
+    func requestAdvertPath(for contact: Contact) {
+        pendingAdvertPathKey = contact.publicKeyPrefix
+        let frame = MeshCoreProtocol.buildGetAdvertPath(publicKey: contact.publicKey)
+        sendCommand(frame, label: "GET_ADVERT_PATH")
+    }
+
+    /// Handle advert path response — associate with the most recently queried contact.
+    private func handleAdvertPathResponse(_ info: AdvertPathInfo) {
+        if let key = pendingAdvertPathKey {
+            advertPathByContact[key] = info
+            pendingAdvertPathKey = nil
+        }
+    }
+
+    // MARK: - Allowed Repeat Frequencies
+
+    /// Fetch allowed repeat frequency ranges.
+    func requestAllowedRepeatFreq() {
+        sendCommand(MeshCoreProtocol.buildGetAllowedRepeatFreq(), label: "GET_ALLOWED_REPEAT_FREQ")
+    }
+
+    // MARK: - Pending Contact Management
+
+    /// Accept a pending new contact (from manual_add mode).
+    func acceptPendingContact(_ contact: Contact) {
+        pendingNewContacts.removeAll { $0.publicKeyPrefix == contact.publicKeyPrefix }
+        // The contact is already in the device's table, just add locally
+        if !contacts.contains(where: { $0.publicKeyPrefix == contact.publicKeyPrefix }) {
+            contacts.append(contact)
+        }
+    }
+
+    /// Reject a pending new contact (from manual_add mode).
+    func rejectPendingContact(_ contact: Contact) {
+        pendingNewContacts.removeAll { $0.publicKeyPrefix == contact.publicKeyPrefix }
+        // Remove from device
+        let frame = MeshCoreProtocol.buildRemoveContact(publicKey: contact.publicKey)
+        sendCommand(frame, label: "REJECT_PENDING_CONTACT")
+    }
+
     // MARK: - Channel Sync
 
     /// Handle RESP_CODE_CHANNEL_INFO — accumulate channel metadata.
@@ -1225,9 +1475,9 @@ final class MeshCoreViewModel: ObservableObject {
     }
 
     /// Add or update a channel on the device.
-    func addChannel(index: UInt8, name: String, secret: Data? = nil) {
-        let frame = MeshCoreProtocol.buildAddChannel(index: index, name: name, secret: secret)
-        sendCommand(frame, label: "ADD_CHANNEL(idx:\(index))")
+    func setChannel(index: UInt8, name: String, secret: Data? = nil) {
+        let frame = MeshCoreProtocol.buildSetChannel(index: index, name: name, secret: secret)
+        sendCommand(frame, label: "SET_CHANNEL(idx:\(index))")
 
         // Update locally
         let newChannel = MeshChannel(index: index, name: name, flags: secret != nil ? 0x01 : 0x00, secret: secret)
