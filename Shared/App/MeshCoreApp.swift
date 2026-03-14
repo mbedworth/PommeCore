@@ -73,12 +73,30 @@ struct ContentView: View {
                 default:
                     ChatView(contact: contact)
                 }
-            } else {
+            } else if viewModel.connectionState == .disconnected {
                 VStack(spacing: 12) {
-                    Image(systemName: "antenna.radiowaves.left.and.right")
+                    Image(systemName: "antenna.radiowaves.left.and.right.slash")
                         .font(.system(size: 48))
                         .foregroundStyle(MeshTheme.textSecondary)
-                    Text("Select a contact")
+                    Text("Connect to a MeshCore device")
+                        .foregroundStyle(MeshTheme.textSecondary)
+                    Button {
+                        showScanner = true
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "magnifyingglass")
+                            Text("Scan for Devices")
+                        }
+                        .foregroundStyle(MeshTheme.accentFallback)
+                    }
+                    .buttonStyle(.plain)
+                }
+            } else {
+                VStack(spacing: 12) {
+                    Image(systemName: "bubble.left.and.bubble.right")
+                        .font(.system(size: 48))
+                        .foregroundStyle(MeshTheme.textSecondary)
+                    Text("Select a contact to start messaging")
                         .foregroundStyle(MeshTheme.textSecondary)
                 }
             }

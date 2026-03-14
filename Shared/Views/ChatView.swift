@@ -29,6 +29,21 @@ struct ChatView: View {
     private var messageList: some View {
         ScrollViewReader { proxy in
             ScrollView {
+                if messages.isEmpty {
+                    VStack(spacing: 8) {
+                        Spacer(minLength: 60)
+                        Image(systemName: "bubble.left.and.bubble.right")
+                            .font(.system(size: 36))
+                            .foregroundStyle(MeshTheme.textSecondary.opacity(0.5))
+                        Text("No messages yet")
+                            .font(.subheadline)
+                            .foregroundStyle(MeshTheme.textSecondary)
+                        Text("Start a conversation")
+                            .font(.caption)
+                            .foregroundStyle(MeshTheme.textSecondary.opacity(0.7))
+                    }
+                    .frame(maxWidth: .infinity)
+                }
                 LazyVStack(spacing: 4) {
                     ForEach(messages) { message in
                         MessageBubble(message: message)

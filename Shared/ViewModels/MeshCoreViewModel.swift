@@ -176,9 +176,36 @@ final class MeshCoreViewModel: ObservableObject {
                 let previousState = self.connectionState
                 self.connectionState = state
                 if state == .disconnected {
+                    // Show error if disconnected while operations were in progress
+                    let wasActive = previousState == .ready || previousState == .connected
+                    if wasActive {
+                        self.lastErrorMessage = "Device disconnected. Reconnect to continue."
+                    }
+                    // Reset login sessions — clear pending logins
+                    for (_, session) in self.remoteSessions {
+                        if case .loggingIn = session.loginState {
+                            session.loginState = .loginFailed(message: "Device disconnected during login.")
+                        }
+                    }
+                    self.loginTimeoutTask?.cancel()
+                    self.loginTimeoutTask = nil
                     self.deviceConfig = DeviceConfig()
                     self.forwardDeviceConfigChanges()
                     self.isSyncingMessages = false
+                    // Mark pending outgoing messages as failed
+                    for (contactKey, messages) in self.messagesByContact {
+                        var updated = messages
+                        var changed = false
+                        for i in updated.indices where updated[i].isOutgoing && updated[i].status == .sending {
+                            updated[i].status = .failed
+                            changed = true
+                        }
+                        if changed {
+                            self.messagesByContact[contactKey] = updated
+                            self.persistMessages(for: contactKey)
+                        }
+                    }
+                    self.pendingACKs.removeAll()
                 }
                 if state == .ready && previousState != .ready {
                     self.onDeviceReady()
@@ -267,6 +294,10 @@ final class MeshCoreViewModel: ObservableObject {
     // MARK: - Protocol Commands
 
     private func sendCommand(_ data: Data, label: String) {
+        guard connectionState == .ready || connectionState == .connected else {
+            Self.logger.warning("Cannot send \(label) — not connected (state: \(String(describing: self.connectionState)))")
+            return
+        }
         let hex = data.map { String(format: "%02x", $0) }.joined(separator: " ")
         Self.logger.info("TX \(label) [\(data.count) bytes]: \(hex)")
         bleManager.send(data: data)
