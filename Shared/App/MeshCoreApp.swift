@@ -59,12 +59,18 @@ struct ContentView: View {
             if viewModel.showPublicChannel {
                 ChannelChatView(channelIndex: 0, channelName: "Public Channel")
             } else if let contact = viewModel.selectedContact {
-                if contact.type == .repeater || contact.type == .room {
-                    RemoteManagementView(
+                switch contact.type {
+                case .room:
+                    RoomChatView(
                         contact: contact,
                         session: viewModel.remoteSession(for: contact)
                     )
-                } else {
+                case .repeater:
+                    RepeaterLoginView(
+                        contact: contact,
+                        session: viewModel.remoteSession(for: contact)
+                    )
+                default:
                     ChatView(contact: contact)
                 }
             } else {
