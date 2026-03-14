@@ -119,7 +119,7 @@ struct RemoteManagementView: View {
                     Image(systemName: "rectangle.portrait.and.arrow.right")
                         .foregroundStyle(.red)
                         .frame(width: 24)
-                    Text("Disconnect")
+                    Text("Logout")
                         .foregroundStyle(.red)
                     Spacer()
                 }
