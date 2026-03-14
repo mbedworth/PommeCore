@@ -45,6 +45,9 @@ public struct Message: Identifiable, Codable, Sendable {
     /// Round-trip time in milliseconds (set on delivery confirmation).
     public var roundTripMs: UInt32?
 
+    /// Text type: 0 = plain text, 1 = CLI data. Used to route CLI responses to management.
+    public let txtType: UInt8
+
     public init(
         id: UUID = UUID(),
         senderKeyHash: Data = Data(),
@@ -57,7 +60,8 @@ public struct Message: Identifiable, Codable, Sendable {
         snr: Int8? = nil,
         channelIndex: UInt8? = nil,
         senderName: String? = nil,
-        roundTripMs: UInt32? = nil
+        roundTripMs: UInt32? = nil,
+        txtType: UInt8 = 0
     ) {
         self.id = id
         self.senderKeyHash = senderKeyHash
@@ -71,5 +75,6 @@ public struct Message: Identifiable, Codable, Sendable {
         self.channelIndex = channelIndex
         self.senderName = senderName
         self.roundTripMs = roundTripMs
+        self.txtType = txtType
     }
 }

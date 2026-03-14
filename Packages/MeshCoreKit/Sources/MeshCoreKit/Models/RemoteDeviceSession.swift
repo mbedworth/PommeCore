@@ -78,6 +78,9 @@ public final class RemoteDeviceSession: ObservableObject {
         guard index < cliHistory.count, !cliHistory[index].isComplete else { return }
         cliHistory[index].response = "(no response)"
         isWaitingForResponse = cliHistory.contains(where: { !$0.isComplete })
+        if isFetchingSettings {
+            fetchReceivedCount += 1
+        }
     }
 
     /// Record a CLI response received from the device.

@@ -86,7 +86,7 @@ struct RemoteManagementView: View {
                         .background(remoteAccent)
                         .clipShape(Capsule())
                 }
-                Text("You are remotely managing this device over LoRa. Changes take effect on the remote device.")
+                Text("Managing \(contact.name) via LoRa \u{2014} commands travel over the mesh and may take a few seconds.")
                     .font(.caption)
                     .foregroundStyle(MeshTheme.textSecondary)
             }
