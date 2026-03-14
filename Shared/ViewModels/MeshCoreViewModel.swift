@@ -704,9 +704,9 @@ final class MeshCoreViewModel: ObservableObject {
             Self.logger.info("PARSED MsgWaiting — syncing next message")
             syncNextMessage()
 
-        case .loginSuccess(let isAdmin):
-            Self.logger.info("PUSH LoginSuccess: isAdmin=\(isAdmin)")
-            handleLoginSuccess(isAdmin: isAdmin)
+        case .loginSuccess(let permissionLevel):
+            Self.logger.info("PUSH LoginSuccess: permissionLevel=\(permissionLevel)")
+            handleLoginSuccess(permissionLevel: permissionLevel)
 
         case .loginFail:
             Self.logger.info("PUSH LoginFail")
@@ -816,12 +816,13 @@ final class MeshCoreViewModel: ObservableObject {
     }
 
     /// Handle login success — find the session that was logging in and update it.
-    private func handleLoginSuccess(isAdmin: Bool) {
+    private func handleLoginSuccess(permissionLevel: Int) {
         loginTimeoutTask?.cancel()
         loginTimeoutTask = nil
+        let permission = RemotePermission(rawValue: permissionLevel) ?? .guest
         for (key, session) in remoteSessions {
             if case .loggingIn = session.loginState {
-                session.loginState = .loggedIn(isAdmin: isAdmin)
+                session.loginState = .loggedIn(permission: permission)
                 // Sync stored messages first (room server pushes last 32 messages)
                 syncNextMessage()
                 if let contact = contacts.first(where: { $0.publicKeyPrefix == key }) {

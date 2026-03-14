@@ -247,12 +247,26 @@ struct RoomChatView: View {
         return false
     }
 
+    private var permission: RemotePermission {
+        if case .loggedIn(let p) = session.loginState { return p }
+        return .guest
+    }
+
     private var loginStatusText: String {
         switch session.loginState {
-        case .loggedIn(let isAdmin): isAdmin ? "Admin" : "Guest"
+        case .loggedIn(let permission): permission.displayName
         case .loggingIn: "Logging in..."
         case .loginFailed: "Login failed"
         case .notLoggedIn: "Not logged in"
+        }
+    }
+
+    private var statusBarColor: Color {
+        switch permission {
+        case .guest: return MeshTheme.textSecondary
+        case .readOnly: return .yellow
+        case .readWrite: return .blue
+        case .admin: return MeshTheme.connected
         }
     }
 
@@ -263,7 +277,7 @@ struct RoomChatView: View {
                 HStack(spacing: 6) {
                     Image(systemName: "circle.fill")
                         .font(.system(size: 6))
-                        .foregroundStyle(MeshTheme.connected)
+                        .foregroundStyle(statusBarColor)
                     Text(loginStatusText)
                         .font(.caption)
                         .foregroundStyle(MeshTheme.textSecondary)
@@ -276,7 +290,11 @@ struct RoomChatView: View {
                 messageList
                 Divider()
                     .overlay(MeshTheme.surfaceLight)
-                roomMessageInput
+                if permission.canPost {
+                    roomMessageInput
+                } else {
+                    readOnlyInputBar
+                }
             } else {
                 roomLoginPrompt
             }
@@ -285,7 +303,7 @@ struct RoomChatView: View {
         .navigationTitle(contact.name)
         .toolbar {
             ToolbarItem(placement: .automatic) {
-                if isLoggedIn {
+                if isLoggedIn, permission.canRead {
                     #if os(watchOS)
                     NavigationLink {
                         RemoteManagementView(
@@ -405,6 +423,19 @@ struct RoomChatView: View {
             }
         }
         .padding(.vertical, 8)
+        .background(MeshTheme.surface)
+    }
+
+    private var readOnlyInputBar: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "lock.fill")
+                .foregroundStyle(MeshTheme.textSecondary)
+            Text("Read-only access \u{2014} posting not available")
+                .font(.subheadline)
+                .foregroundStyle(MeshTheme.textSecondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 12)
         .background(MeshTheme.surface)
     }
 
