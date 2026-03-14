@@ -268,14 +268,7 @@ private extension RemoteManagementView {
             .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
 
-            Button {
-                sendCLI("clock")
-            } label: {
-                cliSettingRow(icon: "clock", label: "Clock", value: getValue("clock"))
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .listRowBackground(MeshTheme.surface)
+            RemoteClockRow(session: session, sendCLI: sendCLI)
 
             Button {
                 sendCLI("neighbors")
@@ -897,6 +890,90 @@ struct CLITerminalSection: View {
     private func sendCommand() {
         viewModel.sendCLICommand(commandText, to: contact)
         commandText = ""
+    }
+}
+
+// MARK: - Remote Clock Row
+
+struct RemoteClockRow: View {
+    @ObservedObject var session: RemoteDeviceSession
+    let sendCLI: (String) -> Void
+
+    private var clockValue: String {
+        session.settings["clock"] ?? "\u{2014}"
+    }
+
+    /// Check if the clock text indicates a stale date (more than 24h from now).
+    private var isClockStale: Bool {
+        guard let clockStr = session.settings["clock"], !clockStr.isEmpty else { return false }
+        // Try to parse common date formats from the clock string
+        // Clock responses look like "03:42 - 19/5/2024" or similar
+        // Simple heuristic: if the string contains a year that's not the current year, flag it
+        let calendar = Calendar.current
+        let currentYear = calendar.component(.year, from: Date())
+        // Check if string contains a 4-digit year that doesn't match current year
+        let yearPattern = try? NSRegularExpression(pattern: "\\b(20\\d{2})\\b")
+        if let match = yearPattern?.firstMatch(in: clockStr, range: NSRange(clockStr.startIndex..., in: clockStr)),
+           let range = Range(match.range(at: 1), in: clockStr),
+           let year = Int(clockStr[range]) {
+            return abs(year - currentYear) >= 1
+        }
+        return false
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Button {
+                sendCLI("clock")
+            } label: {
+                HStack {
+                    Image(systemName: "clock")
+                        .foregroundStyle(MeshTheme.accentFallback)
+                        .frame(width: 24)
+                    Text("Clock")
+                        .foregroundStyle(MeshTheme.textPrimary)
+                    Spacer()
+                    Text(clockValue)
+                        .foregroundStyle(MeshTheme.textSecondary)
+                        .font(.caption)
+                    Image(systemName: "arrow.clockwise")
+                        .font(.caption2)
+                        .foregroundStyle(MeshTheme.textSecondary)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+
+            if isClockStale {
+                HStack(spacing: 6) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.orange)
+                        .font(.caption)
+                    Text("Clock out of sync")
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                    Spacer()
+                    Button {
+                        let epoch = Int(Date().timeIntervalSince1970)
+                        sendCLI("time \(epoch)")
+                        // Refresh clock after a delay
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                            sendCLI("clock")
+                        }
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "clock.arrow.2.circlepath")
+                                .font(.caption)
+                            Text("Sync Clock")
+                                .font(.caption)
+                        }
+                        .foregroundStyle(MeshTheme.accentFallback)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .listRowBackground(MeshTheme.surface)
     }
 }
 
