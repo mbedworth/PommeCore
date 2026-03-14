@@ -20,10 +20,7 @@ struct ContactListView: View {
     var body: some View {
         List {
             connectionSection
-            publicChannelSection
-            if !viewModel.channels.filter({ $0.index != 0 }).isEmpty {
-                channelsSection
-            }
+            channelsSection
             if !viewModel.pendingNewContacts.isEmpty {
                 pendingContactsSection
             }
@@ -116,34 +113,6 @@ struct ContactListView: View {
         }
     }
 
-    @ViewBuilder
-    private var publicChannelSection: some View {
-        Section {
-            #if os(watchOS)
-            NavigationLink {
-                ChannelChatView(channelIndex: 0, channelName: "Public Channel")
-            } label: {
-                publicChannelRow
-            }
-            .listRowBackground(MeshTheme.surface)
-            #else
-            Button {
-                viewModel.selectedContact = nil
-                viewModel.selectedChannelIndex = nil
-                viewModel.showPublicChannel = true
-            } label: {
-                publicChannelRow
-            }
-            .buttonStyle(.plain)
-            .listRowBackground(
-                viewModel.showPublicChannel
-                    ? MeshTheme.surfaceLight
-                    : MeshTheme.surface
-            )
-            #endif
-        }
-    }
-
     private var publicChannelRow: some View {
         HStack(spacing: 12) {
             ZStack {
@@ -197,6 +166,30 @@ struct ContactListView: View {
     @ViewBuilder
     private var channelsSection: some View {
         Section {
+            // Public channel is always the first item
+            #if os(watchOS)
+            NavigationLink {
+                ChannelChatView(channelIndex: 0, channelName: "Public Channel")
+            } label: {
+                publicChannelRow
+            }
+            .listRowBackground(MeshTheme.surface)
+            #else
+            Button {
+                viewModel.selectedContact = nil
+                viewModel.selectedChannelIndex = nil
+                viewModel.showPublicChannel = true
+            } label: {
+                publicChannelRow
+            }
+            .buttonStyle(.plain)
+            .listRowBackground(
+                viewModel.showPublicChannel
+                    ? MeshTheme.surfaceLight
+                    : MeshTheme.surface
+            )
+            #endif
+
             ForEach(viewModel.channels.filter { $0.index != 0 }) { channel in
                 #if os(watchOS)
                 NavigationLink {

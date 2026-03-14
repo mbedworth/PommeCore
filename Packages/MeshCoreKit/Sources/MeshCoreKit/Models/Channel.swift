@@ -15,11 +15,8 @@ public enum ChannelType: Sendable, Codable {
     }
 
     public var displayPrefix: String {
-        switch self {
-        case .publicChannel: return ""
-        case .hashChannel: return "#"
-        case .privateChannel: return ""
-        }
+        // Channel names already include "#" for hash channels — no extra prefix needed
+        return ""
     }
 }
 
@@ -39,14 +36,16 @@ public struct MeshChannel: Identifiable, Codable, Sendable {
     /// Locally stored channel secret (32 bytes). Never sent by the device.
     public var secret: Data?
 
-    /// Derived channel type based on flags and secret.
+    /// Derived channel type based on index and name.
+    /// Index 0 is always the public channel. Names starting with "#" are hashtag channels.
+    /// Everything else is a private channel.
     public var channelType: ChannelType {
-        if flags & 0x01 == 0 {
+        if index == 0 {
             return .publicChannel
-        } else if secret != nil && !secret!.isEmpty {
-            return .privateChannel
-        } else {
+        } else if name.hasPrefix("#") {
             return .hashChannel
+        } else {
+            return .privateChannel
         }
     }
 

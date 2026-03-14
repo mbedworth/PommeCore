@@ -9,7 +9,7 @@ import MeshCoreKit
 
 @MainActor
 final class MeshCoreViewModel: ObservableObject {
-    private static let logger = Logger(subsystem: "com.meshcore", category: "ViewModel")
+    nonisolated(unsafe) private static let logger = Logger(subsystem: "com.meshcore", category: "ViewModel")
 
     @Published var contacts: [Contact] = []
     @Published var selectedContact: Contact?
@@ -230,10 +230,15 @@ final class MeshCoreViewModel: ObservableObject {
                     if wasActive {
                         self.lastErrorMessage = "Device disconnected. Reconnect to continue."
                     }
-                    // Reset login sessions — clear pending logins
+                    // Reset all login sessions on disconnect
                     for (_, session) in self.remoteSessions {
-                        if case .loggingIn = session.loginState {
+                        switch session.loginState {
+                        case .loggingIn:
                             session.loginState = .loginFailed(message: "Device disconnected during login.")
+                        case .loggedIn:
+                            session.loginState = .notLoggedIn
+                        default:
+                            break
                         }
                     }
                     self.loginTimeoutTask?.cancel()
@@ -253,6 +258,8 @@ final class MeshCoreViewModel: ObservableObject {
                     self.isDiscovering = false
                     self.lastTraceResult = nil
                     self.pendingTraceTag = nil
+                    self.pendingStatusKey = nil
+                    self.pendingAdvertPathKey = nil
                     self.allowedRepeatFreqRanges = []
                     // Mark pending outgoing messages as failed
                     for (contactKey, messages) in self.messagesByContact {
@@ -1162,7 +1169,22 @@ final class MeshCoreViewModel: ObservableObject {
                 break
             }
         }
-        lastErrorMessage = description
+
+        // If a path request was pending and got "Unsupported command", provide fallback
+        if let key = pendingAdvertPathKey {
+            pendingAdvertPathKey = nil
+            if let contact = contacts.first(where: { $0.publicKeyPrefix == key }) {
+                buildFallbackPath(for: contact)
+                return // Don't show the raw error — we handled it gracefully
+            }
+        }
+
+        // Friendly message for unsupported commands
+        if code == 1 && description.lowercased().contains("unsupported") {
+            lastErrorMessage = "This command is not supported on the current firmware version."
+        } else {
+            lastErrorMessage = description
+        }
     }
 
     /// Send a plain text message to a room server (appears in room chat, not CLI).
@@ -1386,11 +1408,29 @@ final class MeshCoreViewModel: ObservableObject {
 
     /// Send a trace route request to a contact.
     func traceRoute(to contact: Contact) {
+        // Trace route only works for multi-hop paths
+        guard contact.outPathLen > 0, !contact.outPath.isEmpty else {
+            lastErrorMessage = contact.outPathLen == 0
+                ? "This contact is a direct neighbor — no route to trace."
+                : "No path known for this contact — cannot trace route."
+            return
+        }
         let tag = UInt32.random(in: 0..<UInt32.max)
         pendingTraceTag = tag
         lastTraceResult = nil
-        let frame = MeshCoreProtocol.buildSendTracePath(recipientPublicKey: contact.publicKey, tag: tag)
+        let frame = MeshCoreProtocol.buildSendTracePath(outPath: contact.outPath, tag: tag)
         sendCommand(frame, label: "TRACE_PATH")
+
+        // Timeout after 15 seconds
+        let timeout: UInt64 = 15_000_000_000
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: timeout)
+            guard let self, self.pendingTraceTag == tag else { return }
+            self.pendingTraceTag = nil
+            if self.lastTraceResult == nil {
+                self.lastErrorMessage = "Trace route timed out — the path may not be reachable."
+            }
+        }
     }
 
     // MARK: - Status & Telemetry
@@ -1404,8 +1444,18 @@ final class MeshCoreViewModel: ObservableObject {
 
     /// Request telemetry from a sensor contact.
     func requestTelemetry(for contact: Contact) {
+        let key = contact.publicKeyPrefix
         let frame = MeshCoreProtocol.buildSendTelemetryReq(recipientPublicKey: contact.publicKey)
         sendCommand(frame, label: "TELEMETRY_REQ")
+
+        // Timeout after 15 seconds
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 15_000_000_000)
+            guard let self else { return }
+            if self.telemetryByContact[key] == nil {
+                self.lastErrorMessage = "No telemetry response — the node may not support telemetry or is out of range."
+            }
+        }
     }
 
     /// Handle status response — associate with the most recently requested contact.
@@ -1419,10 +1469,49 @@ final class MeshCoreViewModel: ObservableObject {
     // MARK: - Advert Path
 
     /// Request the last known path to a contact.
+    /// Falls back to the contact's stored out_path if the firmware doesn't support the command.
     func requestAdvertPath(for contact: Contact) {
         pendingAdvertPathKey = contact.publicKeyPrefix
         let frame = MeshCoreProtocol.buildGetAdvertPath(publicKey: contact.publicKey)
         sendCommand(frame, label: "GET_ADVERT_PATH")
+
+        // Timeout after 10 seconds — fall back to stored path info
+        let key = contact.publicKeyPrefix
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 10_000_000_000)
+            guard let self, self.pendingAdvertPathKey == key else { return }
+            self.pendingAdvertPathKey = nil
+            // Fall back to locally-known path from contact data
+            if self.advertPathByContact[key] == nil {
+                self.buildFallbackPath(for: contact)
+            }
+        }
+    }
+
+    /// Build path info from the contact's stored out_path when the firmware doesn't support CMD_GET_ADVERT_PATH.
+    private func buildFallbackPath(for contact: Contact) {
+        let key = contact.publicKeyPrefix
+        if contact.outPathLen > 0, !contact.outPath.isEmpty {
+            // Parse out_path into 6-byte hop hashes
+            var hops: [Data] = []
+            var offset = 0
+            while offset + 6 <= contact.outPath.count {
+                hops.append(Data(contact.outPath[offset..<offset+6]))
+                offset += 6
+            }
+            let info = AdvertPathInfo(
+                recvTimestamp: contact.lastAdvert,
+                pathLen: UInt8(hops.count),
+                pathHashes: hops
+            )
+            advertPathByContact[key] = info
+        } else if contact.outPathLen == 0 {
+            // Direct contact — show as zero-hop path
+            let info = AdvertPathInfo(recvTimestamp: contact.lastAdvert, pathLen: 0, pathHashes: [])
+            advertPathByContact[key] = info
+        } else {
+            lastErrorMessage = "No path data available for this contact."
+        }
     }
 
     /// Handle advert path response — associate with the most recently queried contact.
