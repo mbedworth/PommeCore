@@ -447,6 +447,9 @@ public enum FrameParser {
         _ = readUInt8(data, offset: &offset) // path_len
         _ = readUInt8(data, offset: &offset) // txt_type
         let senderTimestamp = readUInt32(data, offset: &offset)
+
+        // sender_name is null-terminated, text is the remainder
+        let senderName = readNullTerminated(data, offset: &offset)
         let text: String
         if offset < data.count {
             text = String(data: Data(data[offset...]), encoding: .utf8)?
@@ -459,7 +462,7 @@ public enum FrameParser {
             ? Date(timeIntervalSince1970: TimeInterval(senderTimestamp))
             : Date()
 
-        logger.info("ChannelMsgRecvV3: snr=\(snr) ch=\(channelIdx) text='\(text)'")
+        logger.info("ChannelMsgRecvV3: snr=\(snr) ch=\(channelIdx) sender='\(senderName)' text='\(text)'")
 
         let message = Message(
             senderKeyHash: Data(),
@@ -469,7 +472,8 @@ public enum FrameParser {
             isOutgoing: false,
             status: .delivered,
             snr: snr,
-            channelIndex: channelIdx
+            channelIndex: channelIdx,
+            senderName: senderName.isEmpty ? nil : senderName
         )
         return .channelMsgRecv(message)
     }

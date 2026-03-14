@@ -494,8 +494,8 @@ final class MeshCoreViewModel: ObservableObject {
             guard let self else { return }
             self.syncNextMessage()
 
-            // Timeout: if no response after 5 seconds, mark as timed out
-            try? await Task.sleep(nanoseconds: 5_000_000_000)
+            // Timeout: if no response after 8 seconds, mark as timed out
+            try? await Task.sleep(nanoseconds: 8_000_000_000)
             session.timeoutCommand(at: cmdIndex)
         }
     }
