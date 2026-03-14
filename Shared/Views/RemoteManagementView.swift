@@ -665,10 +665,32 @@ struct RemoteMaintenanceSection: View {
     let isAdmin: Bool
 
     @State private var showRebootConfirm = false
+    @State private var adcMultiplier = ""
 
     var body: some View {
         Section {
             CLIToggleRow(icon: "leaf", label: "Power Saving", settingKey: "powersaving", onCommand: "powersaving on", offCommand: "powersaving off", session: session, sendCLI: sendCLI)
+
+            cliEditRow(icon: "bolt.batteryblock", label: "ADC Multiplier", text: $adcMultiplier, current: session.settings["adc.multiplier"])
+
+            if !adcMultiplier.isEmpty {
+                Button {
+                    sendCLI("set adc.multiplier \(adcMultiplier)")
+                    adcMultiplier = ""
+                } label: {
+                    HStack {
+                        Image(systemName: "checkmark.circle")
+                            .foregroundStyle(MeshTheme.accentFallback)
+                            .frame(width: 24)
+                        Text("Apply ADC Multiplier")
+                            .foregroundStyle(MeshTheme.accentFallback)
+                        Spacer()
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .listRowBackground(MeshTheme.surface)
+            }
 
             // Region management
             Button {

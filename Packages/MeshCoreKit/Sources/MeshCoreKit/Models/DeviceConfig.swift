@@ -90,15 +90,9 @@ public final class DeviceConfig: ObservableObject {
         Double(batteryMillivolts) / 1000.0
     }
 
-    /// Estimated battery percentage for LiPo/NMC cell (4.2V=100%, 3.0V=0%).
-    public var batteryPercent: Int {
-        let v = batteryVoltage
-        if v >= 4.2 { return 100 }
-        if v <= 3.0 { return 0 }
-        // Piecewise linear approximation
-        if v >= 3.7 { return 50 + Int((v - 3.7) / (4.2 - 3.7) * 50) }
-        if v >= 3.3 { return 10 + Int((v - 3.3) / (3.7 - 3.3) * 40) }
-        return Int((v - 3.0) / (3.3 - 3.0) * 10)
+    /// Battery percentage using the given chemistry profile.
+    public func batteryPercent(chemistry: BatteryChemistry = .lipo) -> Int {
+        chemistry.profile.percentage(forMillivolts: Int(batteryMillivolts))
     }
 
     public var frequencyMHz: Double {
