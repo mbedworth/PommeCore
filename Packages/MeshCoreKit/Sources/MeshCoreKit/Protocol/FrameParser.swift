@@ -160,8 +160,8 @@ public enum FrameParser {
         case .sent:
             return parseSentResponse(payload)
 
-        case .channelMsg:
-            return parseChannelMsg(payload)
+        case .contactMsgRecv:
+            return parseContactMsgRecv(payload)
 
         case .contactMsgRecvV3:
             return parseContactMsgRecvV3(payload)
@@ -407,7 +407,7 @@ public enum FrameParser {
         let pubkeyPrefix = data.count >= offset + 6 ? Data(data[offset..<offset+6]) : Data()
         offset += min(6, data.count - offset)
         _ = readUInt8(data, offset: &offset) // path_len
-        _ = readUInt8(data, offset: &offset) // txt_type
+        let txtType = readUInt8(data, offset: &offset)
         let senderTimestamp = readUInt32(data, offset: &offset)
         let text: String
         if offset < data.count {
@@ -421,7 +421,7 @@ public enum FrameParser {
             ? Date(timeIntervalSince1970: TimeInterval(senderTimestamp))
             : Date()
 
-        logger.info("ContactMsgRecvV3: snr=\(snr) from=\(pubkeyPrefix.map { String(format: "%02x", $0) }.joined()) text='\(text)'")
+        logger.info("ContactMsgRecvV3: snr=\(snr) txtType=\(txtType) from=\(pubkeyPrefix.map { String(format: "%02x", $0) }.joined()) text='\(text)'")
 
         let message = Message(
             senderKeyHash: pubkeyPrefix,
@@ -430,7 +430,8 @@ public enum FrameParser {
             timestamp: timestamp,
             isOutgoing: false,
             status: .delivered,
-            snr: snr
+            snr: snr,
+            txtType: txtType
         )
         return .contactMsgRecv(message)
     }
@@ -494,21 +495,49 @@ public enum FrameParser {
         return .unknown(type: MeshCorePushCode.advert.rawValue, payload: data)
     }
 
-    private static func parseChannelMsg(_ data: Data) -> ParsedResponse {
-        guard data.count >= 2 else {
-            return .unknown(type: MeshCoreResponseCode.channelMsg.rawValue, payload: data)
+    /// RESP_CODE_CONTACT_MSG_RECV (code 7) — received direct message (old/v1 format).
+    /// Layout: pubkey_prefix(6) path_len(1) txt_type(1) sender_timestamp(uint32) text(varchar)
+    private static func parseContactMsgRecv(_ data: Data) -> ParsedResponse {
+        var offset = 0
+
+        // pubkey_prefix: 6 bytes
+        let pubkeyPrefix = data.count >= offset + 6 ? Data(data[offset..<offset+6]) : Data()
+        offset += min(6, data.count - offset)
+
+        // path_len: 1 byte (0xFF = direct)
+        _ = readUInt8(data, offset: &offset)
+
+        // txt_type: 1 byte (0 = plain, 1 = CLI_DATA)
+        let txtType = readUInt8(data, offset: &offset)
+
+        // sender_timestamp: uint32
+        let senderTimestamp = readUInt32(data, offset: &offset)
+
+        // text: remainder of frame
+        let text: String
+        if offset < data.count {
+            text = String(data: Data(data[offset...]), encoding: .utf8)?
+                .trimmingCharacters(in: .controlCharacters) ?? ""
+        } else {
+            text = ""
         }
-        let ch = data[0]
-        let text = String(data: Data(data.dropFirst(1)), encoding: .utf8) ?? ""
+
+        let timestamp = senderTimestamp > 0
+            ? Date(timeIntervalSince1970: TimeInterval(senderTimestamp))
+            : Date()
+
+        logger.info("ContactMsgRecv(v1): from=\(pubkeyPrefix.map { String(format: "%02x", $0) }.joined()) txtType=\(txtType) text='\(text)'")
+
         let message = Message(
-            contactKeyHash: Data([ch]),
+            senderKeyHash: pubkeyPrefix,
+            contactKeyHash: pubkeyPrefix,
             text: text,
-            timestamp: Date(),
+            timestamp: timestamp,
             isOutgoing: false,
             status: .delivered,
-            channelIndex: ch
+            txtType: txtType
         )
-        return .channelMsgRecv(message)
+        return .contactMsgRecv(message)
     }
 
     // MARK: - Binary Read Helpers
