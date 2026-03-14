@@ -44,6 +44,12 @@ public final class RemoteDeviceSession: ObservableObject {
     /// Whether initial settings are being fetched after login.
     @Published public var isFetchingSettings = false
 
+    /// Total number of settings commands sent during auto-fetch.
+    @Published public var fetchTotalCount = 0
+
+    /// Number of settings responses received during auto-fetch.
+    @Published public var fetchReceivedCount = 0
+
     public init(contact: Contact) {
         self.contact = contact
     }
@@ -56,35 +62,64 @@ public final class RemoteDeviceSession: ObservableObject {
 
     /// Record a CLI response received from the device.
     public func responseReceived(_ text: String) {
+        let trimmedResponse = text.trimmingCharacters(in: .whitespacesAndNewlines)
+
         // FIFO match: find the first unanswered command (oldest pending)
         if let idx = cliHistory.firstIndex(where: { !$0.isComplete }) {
-            cliHistory[idx].response = text
+            cliHistory[idx].response = trimmedResponse
+            // Derive setting key from the command that triggered this response
+            let command = cliHistory[idx].command
+            parseSettingFromCommand(command, response: trimmedResponse)
         } else {
-            // Unsolicited response — add as standalone
+            // Unsolicited response — add as standalone, try "key = value" fallback
             var entry = CLIInteraction(command: "(unsolicited)")
-            entry.response = text
+            entry.response = trimmedResponse
             cliHistory.append(entry)
+            parseKeyValueFallback(trimmedResponse)
         }
         isWaitingForResponse = cliHistory.contains(where: { !$0.isComplete })
 
-        // Try to parse as a setting value (responses like "name = MyRepeater")
-        parseSetting(from: text)
+        if isFetchingSettings {
+            fetchReceivedCount += 1
+        }
     }
 
-    /// Parse a CLI response to extract a setting key/value pair.
-    private func parseSetting(from text: String) {
-        // Common response formats:
-        // "name = MyRepeater"
-        // "tx = 22"
-        // "radio = 906000,250,12,8"
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        if let eqRange = trimmed.range(of: " = ") {
-            let key = String(trimmed[trimmed.startIndex..<eqRange.lowerBound])
+    /// Derive the setting key from the CLI command and store the response as its value.
+    private func parseSettingFromCommand(_ command: String, response: String) {
+        let cmd = command.trimmingCharacters(in: .whitespaces).lowercased()
+
+        // "get X" → key is X
+        if cmd.hasPrefix("get ") {
+            let key = String(cmd.dropFirst(4)).trimmingCharacters(in: .whitespaces)
+            if !key.isEmpty {
+                settings[key] = response
+                return
+            }
+        }
+
+        // Bare commands like "ver", "clock", "powersaving", "gps", "neighbors"
+        // use the command itself as the key
+        let bareCommands = ["ver", "clock", "powersaving", "gps", "neighbors", "region", "log"]
+        if bareCommands.contains(cmd) {
+            settings[cmd] = response
+            return
+        }
+
+        // Fallback: try "key = value" format in the response
+        parseKeyValueFallback(response)
+    }
+
+    /// Fallback parser for responses in "key = value" format.
+    private func parseKeyValueFallback(_ text: String) {
+        if let eqRange = text.range(of: " = ") {
+            let key = String(text[text.startIndex..<eqRange.lowerBound])
                 .trimmingCharacters(in: .whitespaces)
                 .lowercased()
-            let value = String(trimmed[eqRange.upperBound...])
+            let value = String(text[eqRange.upperBound...])
                 .trimmingCharacters(in: .whitespaces)
-            settings[key] = value
+            if !key.isEmpty {
+                settings[key] = value
+            }
         }
     }
 }

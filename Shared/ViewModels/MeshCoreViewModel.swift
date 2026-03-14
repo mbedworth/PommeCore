@@ -487,6 +487,7 @@ final class MeshCoreViewModel: ObservableObject {
     func fetchRemoteSettings(for contact: Contact) {
         let session = remoteSession(for: contact)
         session.isFetchingSettings = true
+        session.fetchReceivedCount = 0
 
         let commands = [
             "ver", "clock",
@@ -496,8 +497,10 @@ final class MeshCoreViewModel: ObservableObject {
             "get name", "get lat", "get lon", "get owner.info",
             "get advert.interval", "get flood.advert.interval", "get multi.acks",
             "get allow.read.only",
-            "powersaving",
+            "powersaving", "gps",
         ]
+
+        session.fetchTotalCount = commands.count
 
         Task { [weak self] in
             for command in commands {
