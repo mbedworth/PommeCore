@@ -103,6 +103,12 @@ final class MeshCoreViewModel: ObservableObject {
     /// Whether a discover scan is in progress.
     @Published var isDiscovering = false
 
+    /// Whether CMD_SEND_CONTROL_DATA is unsupported on this firmware (remembered per session).
+    private var discoverUnsupported = false
+
+    /// Informational message shown in the Discover view (e.g. fallback notice).
+    @Published var discoverFallbackMessage: String?
+
     /// Most recent trace route result.
     @Published var lastTraceResult: TraceResult?
 
@@ -267,6 +273,8 @@ final class MeshCoreViewModel: ObservableObject {
                     self.pendingNewContacts = []
                     self.discoveredNodes = []
                     self.isDiscovering = false
+                    self.discoverUnsupported = false
+                    self.discoverFallbackMessage = nil
                     self.lastTraceResult = nil
                     self.pendingTraceTag = nil
                     self.pendingStatusKey = nil
@@ -940,6 +948,10 @@ final class MeshCoreViewModel: ObservableObject {
             if !pendingNewContacts.contains(where: { $0.publicKeyPrefix == contact.publicKeyPrefix }) {
                 pendingNewContacts.append(contact)
             }
+            // Also show as discovered node during discover scan
+            if isDiscovering {
+                addAdvertAsDiscoveredNode(contact)
+            }
 
         case .statusResponse(let info):
             Self.logger.info("PUSH StatusResponse: batt=\(info.batteryMV)mV uptime=\(info.uptime)")
@@ -1118,6 +1130,30 @@ final class MeshCoreViewModel: ObservableObject {
         } else {
             contacts.append(contact)
         }
+
+        // If discover is active (fallback mode), also show as discovered node
+        if isDiscovering {
+            addAdvertAsDiscoveredNode(contact)
+        }
+    }
+
+    /// Convert a Contact from an advert push into a DiscoveredNode for the discover list.
+    private func addAdvertAsDiscoveredNode(_ contact: Contact) {
+        let node = DiscoveredNode(
+            publicKey: Data(contact.publicKeyPrefix),
+            name: contact.name,
+            type: contact.type,
+            snr: 0,
+            rssi: 0,
+            pathLen: contact.outPathLen,
+            latitude: contact.latitude,
+            longitude: contact.longitude
+        )
+        if let idx = discoveredNodes.firstIndex(where: { $0.publicKey == node.publicKey }) {
+            discoveredNodes[idx] = node
+        } else {
+            discoveredNodes.append(node)
+        }
     }
 
     /// Handle login success — find the session that was logging in and update it.
@@ -1190,6 +1226,13 @@ final class MeshCoreViewModel: ObservableObject {
                 buildFallbackPath(for: contact)
                 return // Don't show the raw error — we handled it gracefully
             }
+        }
+
+        // If a discover scan was in progress and got unsupported, fall back to flood advert
+        if isDiscovering && code == 1 && description.lowercased().contains("unsupported") {
+            discoverUnsupported = true
+            startDiscoverFallback()
+            return
         }
 
         // Friendly message for unsupported commands
@@ -1323,17 +1366,39 @@ final class MeshCoreViewModel: ObservableObject {
 
     // MARK: - Discover
 
-    /// Start a discover scan — sends DISCOVER_REQ control packet.
+    /// Start a discover scan. Tries CMD_SEND_CONTROL_DATA first; if unsupported,
+    /// falls back to flood advertisement and listens for PUSH_CODE_ADVERT responses.
     func startDiscover() {
         discoveredNodes = []
         isDiscovering = true
-        let frame = MeshCoreProtocol.buildSendDiscover()
-        sendCommand(frame, label: "DISCOVER_REQ")
+        discoverFallbackMessage = nil
 
-        // Auto-stop after 15 seconds
-        Task { [weak self] in
-            try? await Task.sleep(nanoseconds: 15_000_000_000)
-            self?.isDiscovering = false
+        if discoverUnsupported {
+            // Already know this firmware doesn't support active discover — go straight to fallback
+            startDiscoverFallback()
+        } else {
+            let frame = MeshCoreProtocol.buildSendDiscover()
+            sendCommand(frame, label: "DISCOVER_REQ")
+
+            // Auto-stop after 30 seconds (longer to allow for fallback trigger)
+            Task { @MainActor [weak self] in
+                try? await Task.sleep(nanoseconds: 30_000_000_000)
+                guard let self, self.isDiscovering else { return }
+                self.isDiscovering = false
+            }
+        }
+    }
+
+    /// Fallback discover: send flood advertisement and listen for advert responses.
+    private func startDiscoverFallback() {
+        discoverFallbackMessage = "Using advertisement-based discovery (firmware does not support active discover scan)"
+        sendCommand(MeshCoreProtocol.buildSendSelfAdvert(advertType: 1), label: "FLOOD_ADVERT_DISCOVER")
+
+        // Listen for 30 seconds
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 30_000_000_000)
+            guard let self, self.isDiscovering else { return }
+            self.isDiscovering = false
         }
     }
 
