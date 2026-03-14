@@ -48,9 +48,30 @@ public struct Contact: Identifiable, Codable, Sendable {
     /// Last modification timestamp (for incremental sync).
     public let lastmod: UInt32
 
+    /// Whether this contact is marked as a favourite (bit 0 of flags).
+    public var isFavourite: Bool {
+        (flags & 0x01) != 0
+    }
+
     /// Last time this contact was seen on the mesh (derived from lastAdvert).
     public var lastSeen: Date {
         lastAdvert > 0 ? Date(timeIntervalSince1970: TimeInterval(lastAdvert)) : Date.distantPast
+    }
+
+    /// Return a copy with updated flags.
+    public func withFlags(_ newFlags: UInt8) -> Contact {
+        Contact(
+            publicKey: publicKey,
+            name: name,
+            type: type,
+            flags: newFlags,
+            outPathLen: outPathLen,
+            outPath: outPath,
+            lastAdvert: lastAdvert,
+            latitude: latitude,
+            longitude: longitude,
+            lastmod: lastmod
+        )
     }
 
     public init(

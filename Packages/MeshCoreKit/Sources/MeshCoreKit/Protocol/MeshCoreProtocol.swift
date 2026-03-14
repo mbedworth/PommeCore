@@ -43,10 +43,25 @@ public enum MeshCoreProtocol {
         return frame
     }
 
-    /// CMD_GET_MESSAGES (code 9) for a contact by public key hash.
-    public static func buildGetMessages(contactKeyHash: Data) -> Data {
-        var frame = Data([MeshCoreCommand.getMessages.rawValue])
-        frame.append(contactKeyHash)
+    /// CMD_ADD_UPDATE_CONTACT (code 9) — update contact flags (e.g. favourite).
+    /// Frame: code(1) pub_key(32) adv_name(32 null-padded) flags(1)
+    public static func buildAddUpdateContact(publicKey: Data, advName: String, flags: UInt8) -> Data {
+        var frame = Data([MeshCoreCommand.addUpdateContact.rawValue])
+        // Full 32-byte public key
+        var key = publicKey.prefix(32)
+        if key.count < 32 {
+            key.append(Data(repeating: 0, count: 32 - key.count))
+        }
+        frame.append(key)
+        // adv_name: 32 bytes null-padded
+        var nameField = Data(repeating: 0, count: 32)
+        if let nameData = advName.data(using: .utf8) {
+            let len = min(nameData.count, 31)
+            nameField.replaceSubrange(0..<len, with: nameData.prefix(len))
+        }
+        frame.append(nameField)
+        // flags byte
+        frame.append(flags)
         return frame
     }
 

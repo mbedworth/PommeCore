@@ -427,6 +427,41 @@ final class MeshCoreViewModel: ObservableObject {
         sendCommand(MeshCoreProtocol.buildSendSelfAdvert(advertType: type), label: "SELF_ADVERT")
     }
 
+    // MARK: - Favourites
+
+    /// Contacts sorted with favourites first, then alphabetical.
+    var sortedContacts: [Contact] {
+        contacts.sorted { a, b in
+            if a.isFavourite != b.isFavourite {
+                return a.isFavourite
+            }
+            return a.name.localizedCaseInsensitiveCompare(b.name) == .orderedAscending
+        }
+    }
+
+    /// Toggle favourite flag on a contact and sync to the radio.
+    func toggleFavourite(for contact: Contact) {
+        var newFlags = contact.flags
+        if contact.isFavourite {
+            newFlags &= ~0x01  // Clear bit 0
+        } else {
+            newFlags |= 0x01   // Set bit 0
+        }
+
+        // Send CMD_ADD_UPDATE_CONTACT to persist on device
+        let frame = MeshCoreProtocol.buildAddUpdateContact(
+            publicKey: contact.publicKey,
+            advName: contact.name,
+            flags: newFlags
+        )
+        sendCommand(frame, label: "UPDATE_CONTACT_FLAGS")
+
+        // Optimistic local update
+        if let index = contacts.firstIndex(where: { $0.publicKeyPrefix == contact.publicKeyPrefix }) {
+            contacts[index] = contact.withFlags(newFlags)
+        }
+    }
+
     func requestBattAndStorage() {
         sendCommand(MeshCoreProtocol.buildGetBattAndStorage(), label: "GET_BATT")
     }
