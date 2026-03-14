@@ -376,6 +376,53 @@ final class MeshCoreViewModel: ObservableObject {
         sendCommand(MeshCoreProtocol.buildFactoryReset(), label: "FACTORY_RESET")
     }
 
+    // MARK: - Contact Management
+
+    /// Remove a contact from the device. Sends CMD_REMOVE_CONTACT.
+    func removeContact(_ contact: Contact) {
+        let frame = MeshCoreProtocol.buildRemoveContact(publicKey: contact.publicKey)
+        sendCommand(frame, label: "REMOVE_CONTACT")
+        // Remove locally
+        contacts.removeAll { $0.publicKeyPrefix == contact.publicKeyPrefix }
+        messagesByContact.removeValue(forKey: contact.publicKeyPrefix)
+        unreadCounts.removeValue(forKey: contact.publicKeyPrefix)
+        if selectedContact?.publicKeyPrefix == contact.publicKeyPrefix {
+            selectedContact = nil
+        }
+    }
+
+    /// Reset the outbound path for a contact. Sends CMD_RESET_PATH.
+    func resetPath(for contact: Contact) {
+        let frame = MeshCoreProtocol.buildResetPath(publicKey: contact.publicKey)
+        sendCommand(frame, label: "RESET_PATH")
+    }
+
+    /// Share a contact's advert on the mesh (zero-hop). Sends CMD_SHARE_CONTACT.
+    func shareContact(_ contact: Contact) {
+        let frame = MeshCoreProtocol.buildShareContact(publicKey: contact.publicKey)
+        sendCommand(frame, label: "SHARE_CONTACT")
+    }
+
+    /// Export a contact as a meshcore:// URL. Result arrives as .exportedContact response.
+    func exportContact(_ contact: Contact) {
+        let frame = MeshCoreProtocol.buildExportContact(publicKey: contact.publicKey)
+        sendCommand(frame, label: "EXPORT_CONTACT")
+    }
+
+    /// Import a contact from a meshcore:// URL string. Sends CMD_IMPORT_CONTACT.
+    func importContact(url: String) {
+        let frame = MeshCoreProtocol.buildImportContact(url: url)
+        sendCommand(frame, label: "IMPORT_CONTACT")
+        // Refresh contacts after a short delay to pick up the new import
+        Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            self?.requestContacts()
+        }
+    }
+
+    /// Last exported contact URL (set when exportedContact response arrives).
+    @Published var lastExportedURL: String?
+
     // MARK: - Messaging
 
     func messages(for contact: Contact) -> [Message] {
@@ -715,6 +762,10 @@ final class MeshCoreViewModel: ObservableObject {
         case .advert(let contact):
             Self.logger.info("PUSH Advert from: \(contact.name)")
             handleAdvert(contact)
+
+        case .exportedContact(let url):
+            Self.logger.info("Exported contact URL: \(url)")
+            lastExportedURL = url
 
         case .currentAdvert(let adData):
             Self.logger.debug("Current advert: \(adData.count) bytes")

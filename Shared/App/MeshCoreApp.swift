@@ -143,6 +143,12 @@ struct ContentView: View {
         } message: {
             Text(viewModel.lastErrorMessage ?? "Unknown error")
         }
+        .onOpenURL { url in
+            let urlString = url.absoluteString
+            if urlString.hasPrefix("meshcore://") {
+                viewModel.importContact(url: urlString)
+            }
+        }
         #endif
     }
 
