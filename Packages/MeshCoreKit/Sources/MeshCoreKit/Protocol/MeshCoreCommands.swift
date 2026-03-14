@@ -10,7 +10,7 @@ public enum MeshCoreCommand: UInt8, Sendable {
     case setDeviceTime        = 0x06  // 6
     case sendSelfAdvert       = 0x07  // 7
     case setAdvertName        = 0x08  // 8
-    case getMessages          = 0x09  // 9
+    case addUpdateContact     = 0x09  // 9 — CMD_ADD_UPDATE_CONTACT
     case syncNextMessage      = 0x0A  // 10
     case setRadioParams       = 0x0B  // 11
     case setRadioTXPower      = 0x0C  // 12

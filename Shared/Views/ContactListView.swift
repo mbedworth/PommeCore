@@ -347,7 +347,7 @@ struct ContactListView: View {
     @ViewBuilder
     private var contactsSection: some View {
         Section {
-            if viewModel.contacts.isEmpty {
+            if viewModel.sortedContacts.isEmpty {
                 HStack {
                     Image(systemName: "person.2.slash")
                         .foregroundStyle(MeshTheme.textSecondary)
@@ -361,7 +361,7 @@ struct ContactListView: View {
                 }
                 .listRowBackground(MeshTheme.surface)
             } else {
-                ForEach(viewModel.contacts) { contact in
+                ForEach(viewModel.sortedContacts) { contact in
                     #if os(watchOS)
                     NavigationLink {
                         contactDestination(contact)
@@ -390,6 +390,17 @@ struct ContactListView: View {
                         } label: {
                             Label("Delete", systemImage: "trash")
                         }
+                    }
+                    .swipeActions(edge: .leading) {
+                        Button {
+                            viewModel.toggleFavourite(for: contact)
+                        } label: {
+                            Label(
+                                contact.isFavourite ? "Unfavourite" : "Favourite",
+                                systemImage: contact.isFavourite ? "star.slash" : "star.fill"
+                            )
+                        }
+                        .tint(.yellow)
                     }
                     .listRowBackground(
                         viewModel.selectedContact?.publicKeyPrefix == contact.publicKeyPrefix
@@ -452,6 +463,15 @@ struct ContactListView: View {
     @ViewBuilder
     private func contactContextMenu(for contact: Contact) -> some View {
         Button {
+            viewModel.toggleFavourite(for: contact)
+        } label: {
+            Label(
+                contact.isFavourite ? "Remove from Favourites" : "Add to Favourites",
+                systemImage: contact.isFavourite ? "star.slash" : "star"
+            )
+        }
+
+        Button {
             viewModel.shareContact(contact)
             showShareConfirmation = true
         } label: {
@@ -501,6 +521,11 @@ struct ContactListView: View {
                 lastMessagePreview(for: contact)
             }
             Spacer()
+            if contact.isFavourite {
+                Image(systemName: "star.fill")
+                    .foregroundStyle(.yellow)
+                    .font(.caption)
+            }
             unreadBadge(for: contact)
         }
         .contentShape(Rectangle())
