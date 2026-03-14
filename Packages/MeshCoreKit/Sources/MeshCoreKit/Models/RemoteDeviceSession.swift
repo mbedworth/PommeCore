@@ -41,6 +41,9 @@ public final class RemoteDeviceSession: ObservableObject {
     /// Whether we're waiting for a CLI response.
     @Published public var isWaitingForResponse = false
 
+    /// Whether initial settings are being fetched after login.
+    @Published public var isFetchingSettings = false
+
     public init(contact: Contact) {
         self.contact = contact
     }
@@ -53,8 +56,8 @@ public final class RemoteDeviceSession: ObservableObject {
 
     /// Record a CLI response received from the device.
     public func responseReceived(_ text: String) {
-        // Match to the most recent unanswered command
-        if let idx = cliHistory.lastIndex(where: { !$0.isComplete }) {
+        // FIFO match: find the first unanswered command (oldest pending)
+        if let idx = cliHistory.firstIndex(where: { !$0.isComplete }) {
             cliHistory[idx].response = text
         } else {
             // Unsolicited response — add as standalone
@@ -62,7 +65,7 @@ public final class RemoteDeviceSession: ObservableObject {
             entry.response = text
             cliHistory.append(entry)
         }
-        isWaitingForResponse = false
+        isWaitingForResponse = cliHistory.contains(where: { !$0.isComplete })
 
         // Try to parse as a setting value (responses like "name = MyRepeater")
         parseSetting(from: text)

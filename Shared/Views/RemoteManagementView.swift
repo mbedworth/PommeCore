@@ -11,6 +11,17 @@ struct RemoteManagementView: View {
         List {
             loginSection
             if isLoggedIn {
+                if session.isFetchingSettings {
+                    Section {
+                        HStack(spacing: 12) {
+                            ProgressView()
+                                .tint(MeshTheme.accentFallback)
+                            Text("Fetching settings...")
+                                .foregroundStyle(MeshTheme.textSecondary)
+                        }
+                        .listRowBackground(MeshTheme.surface)
+                    }
+                }
                 infoSection
                 radioSection
                 timingSection
@@ -26,6 +37,19 @@ struct RemoteManagementView: View {
         }
         .meshListStyle()
         .navigationTitle(contact.name)
+        .toolbar {
+            if isLoggedIn {
+                ToolbarItem(placement: .automatic) {
+                    Button {
+                        viewModel.fetchRemoteSettings(for: contact)
+                    } label: {
+                        Image(systemName: "arrow.clockwise")
+                            .foregroundStyle(MeshTheme.accentFallback)
+                    }
+                    .help("Refresh all settings")
+                }
+            }
+        }
     }
 
     private var isLoggedIn: Bool {
@@ -232,10 +256,6 @@ private extension RemoteManagementView {
             Text("Device Info")
                 .foregroundStyle(MeshTheme.textSecondary)
         }
-        .onAppear {
-            sendCLI("ver")
-            sendCLI("clock")
-        }
     }
 }
 
@@ -276,11 +296,6 @@ struct RemoteRadioSection: View {
             Text("Radio format: freq_kHz,bw_kHz,sf,cr (e.g. 906000,250,12,8)")
                 .foregroundStyle(MeshTheme.textSecondary)
                 .font(.caption2)
-        }
-        .onAppear {
-            sendCLI("get radio")
-            sendCLI("get tx")
-            sendCLI("get repeat")
         }
     }
 }
@@ -330,11 +345,6 @@ struct RemoteTimingSection: View {
         } header: {
             Text("Timing & Performance")
                 .foregroundStyle(MeshTheme.textSecondary)
-        }
-        .onAppear {
-            for key in ["af", "rxdelay", "txdelay", "direct.txdelay", "flood.max", "int.thresh", "agc.reset.interval"] {
-                sendCLI("get \(key)")
-            }
         }
     }
 }
@@ -397,11 +407,6 @@ struct RemoteAdvertSection: View {
         } header: {
             Text("Advertising")
                 .foregroundStyle(MeshTheme.textSecondary)
-        }
-        .onAppear {
-            for key in ["name", "lat", "lon", "owner.info", "advert.interval", "flood.advert.interval", "multi.acks"] {
-                sendCLI("get \(key)")
-            }
         }
     }
 }
@@ -613,9 +618,6 @@ struct RemoteRoomSection: View {
         } header: {
             Text("Room Server")
                 .foregroundStyle(MeshTheme.textSecondary)
-        }
-        .onAppear {
-            sendCLI("get allow.read.only")
         }
     }
 }
