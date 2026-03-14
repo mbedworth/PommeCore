@@ -12,6 +12,7 @@ struct ContactListView: View {
     @State private var showShareConfirmation = false
     @State private var showResetConfirmation = false
     @State private var detailContact: Contact?
+    @State private var showChannelSheet = false
 
     /// Public Channel virtual contact key (channel 0).
     private let publicChannelKey = Data([0x00 as UInt8])
@@ -56,6 +57,19 @@ struct ContactListView: View {
             ContactDetailSheet(contact: contact)
                 .environmentObject(viewModel)
                 .frame(minWidth: 360, minHeight: 400)
+        }
+        .sheet(isPresented: $showChannelSheet) {
+            NavigationStack {
+                ChannelManagementView()
+                    .environmentObject(viewModel)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Done") { showChannelSheet = false }
+                        }
+                    }
+            }
+            .meshTheme()
+            .frame(minWidth: 360, minHeight: 400)
         }
         .onChange(of: viewModel.lastExportedURL) { url in
             if let url, !url.isEmpty {
@@ -207,6 +221,22 @@ struct ContactListView: View {
                 )
                 #endif
             }
+            #if !os(watchOS)
+            Button {
+                showChannelSheet = true
+            } label: {
+                HStack {
+                    Image(systemName: "plus.bubble")
+                        .foregroundStyle(MeshTheme.accentFallback)
+                    Text("Join Channel")
+                        .foregroundStyle(MeshTheme.accentFallback)
+                    Spacer()
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .listRowBackground(MeshTheme.surface)
+            #endif
         } header: {
             HStack {
                 Text("Channels")

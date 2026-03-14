@@ -1,4 +1,5 @@
 import SwiftUI
+import CryptoKit
 import MeshCoreKit
 
 // MARK: - Discover View
@@ -483,5 +484,230 @@ struct ContactDetailSheet: View {
             }
         }
         .meshTheme()
+    }
+}
+
+// MARK: - Channel Management View
+
+struct ChannelManagementView: View {
+    @EnvironmentObject var viewModel: MeshCoreViewModel
+    @Environment(\.dismiss) private var dismiss
+
+    enum ChannelAction: String, CaseIterable, Identifiable {
+        case hashtag = "Join Hashtag Channel"
+        case createPrivate = "Create Private Channel"
+        case joinPrivate = "Join Private Channel"
+
+        var id: String { rawValue }
+    }
+
+    @State private var selectedAction: ChannelAction = .hashtag
+    @State private var channelName = ""
+    @State private var secretHex = ""
+    @State private var errorMessage: String?
+
+    /// Public channel secret (well-known PSK)
+    private static let publicChannelSecret = Data([
+        0x8b, 0x33, 0x87, 0xe9, 0xc5, 0xcd, 0xea, 0x6a,
+        0xc9, 0xe5, 0xed, 0xba, 0xa1, 0x15, 0xcd, 0x72
+    ])
+
+    var body: some View {
+        List {
+            Section {
+                Picker("Action", selection: $selectedAction) {
+                    ForEach(ChannelAction.allCases) { action in
+                        Text(action.rawValue).tag(action)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .listRowBackground(MeshTheme.surface)
+            }
+
+            Section {
+                HStack {
+                    Image(systemName: "number")
+                        .foregroundStyle(MeshTheme.accentFallback)
+                        .frame(width: 24)
+                    TextField(namePlaceholder, text: $channelName)
+                        .foregroundStyle(MeshTheme.textPrimary)
+                        #if !os(watchOS)
+                        .textFieldStyle(.roundedBorder)
+                        #endif
+                }
+                .listRowBackground(MeshTheme.surface)
+
+                if selectedAction == .joinPrivate {
+                    HStack {
+                        Image(systemName: "lock")
+                            .foregroundStyle(MeshTheme.accentFallback)
+                            .frame(width: 24)
+                        TextField("Secret (hex)", text: $secretHex)
+                            .foregroundStyle(MeshTheme.textPrimary)
+                            .font(.system(.body, design: .monospaced))
+                            #if !os(watchOS)
+                            .textFieldStyle(.roundedBorder)
+                            #endif
+                    }
+                    .listRowBackground(MeshTheme.surface)
+                }
+
+                if let error = errorMessage {
+                    HStack {
+                        Image(systemName: "exclamationmark.triangle")
+                            .foregroundStyle(.red)
+                        Text(error)
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                    }
+                    .listRowBackground(MeshTheme.surface)
+                }
+
+                Button {
+                    joinChannel()
+                } label: {
+                    HStack {
+                        Image(systemName: "plus.circle.fill")
+                            .foregroundStyle(MeshTheme.accentFallback)
+                        Text("Join Channel")
+                            .foregroundStyle(MeshTheme.accentFallback)
+                        Spacer()
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .disabled(channelName.trimmingCharacters(in: .whitespaces).isEmpty)
+                .listRowBackground(MeshTheme.surface)
+            } header: {
+                Text("New Channel")
+                    .foregroundStyle(MeshTheme.textSecondary)
+            } footer: {
+                Text(footerText)
+                    .foregroundStyle(MeshTheme.textSecondary)
+                    .font(.caption2)
+            }
+
+            if !viewModel.channels.filter({ $0.index != 0 }).isEmpty {
+                Section {
+                    ForEach(viewModel.channels.filter { $0.index != 0 }) { channel in
+                        HStack {
+                            Image(systemName: channel.channelType.iconName)
+                                .foregroundStyle(MeshTheme.accentFallback)
+                                .frame(width: 24)
+                            Text("\(channel.channelType.displayPrefix)\(channel.name)")
+                                .foregroundStyle(MeshTheme.textPrimary)
+                            Spacer()
+                            Text("Slot \(channel.index)")
+                                .font(.caption)
+                                .foregroundStyle(MeshTheme.textSecondary)
+                            Button {
+                                removeChannel(channel)
+                            } label: {
+                                Image(systemName: "trash")
+                                    .foregroundStyle(MeshTheme.disconnected)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        .listRowBackground(MeshTheme.surface)
+                    }
+                } header: {
+                    Text("Active Channels")
+                        .foregroundStyle(MeshTheme.textSecondary)
+                }
+            }
+        }
+        .meshListStyle()
+        .navigationTitle("Channels")
+    }
+
+    private var namePlaceholder: String {
+        switch selectedAction {
+        case .hashtag: return "#channel-name"
+        case .createPrivate: return "Channel name"
+        case .joinPrivate: return "Channel name"
+        }
+    }
+
+    private var footerText: String {
+        switch selectedAction {
+        case .hashtag:
+            return "Hashtag channels derive their encryption key from the channel name. Anyone who knows the name can join."
+        case .createPrivate:
+            return "Creates a channel with a random 32-byte encryption key. Share the key with others to let them join."
+        case .joinPrivate:
+            return "Enter the channel name and the shared hex secret to join an existing private channel."
+        }
+    }
+
+    private func joinChannel() {
+        let name = channelName.trimmingCharacters(in: .whitespaces)
+        guard !name.isEmpty else { return }
+        errorMessage = nil
+
+        // Find first empty slot (skip slot 0 = public channel)
+        let maxCh = Int(viewModel.deviceConfig.maxChannels)
+        let usedIndices = Set(viewModel.channels.map { $0.index })
+        guard let freeSlot = (1..<maxCh).first(where: { !usedIndices.contains(UInt8($0)) }) else {
+            errorMessage = "No free channel slots available."
+            return
+        }
+
+        let secret: Data
+        switch selectedAction {
+        case .hashtag:
+            // Derive secret from channel name by hashing
+            let hashName = name.hasPrefix("#") ? name : "#\(name)"
+            secret = deriveHashChannelSecret(hashName)
+            let displayName = hashName
+            viewModel.setChannel(index: UInt8(freeSlot), name: displayName, secret: secret)
+
+        case .createPrivate:
+            // Generate random 32-byte secret
+            var randomBytes = [UInt8](repeating: 0, count: 32)
+            _ = SecRandomCopyBytes(kSecRandomDefault, 32, &randomBytes)
+            secret = Data(randomBytes)
+            viewModel.setChannel(index: UInt8(freeSlot), name: name, secret: secret)
+
+        case .joinPrivate:
+            let hex = secretHex.trimmingCharacters(in: .whitespaces)
+            guard let parsed = Data(hexString: hex), parsed.count == 32 else {
+                errorMessage = "Secret must be exactly 32 bytes (64 hex characters)."
+                return
+            }
+            secret = parsed
+            viewModel.setChannel(index: UInt8(freeSlot), name: name, secret: secret)
+        }
+
+        channelName = ""
+        secretHex = ""
+    }
+
+    private func removeChannel(_ channel: MeshChannel) {
+        viewModel.setChannel(index: channel.index, name: "", secret: nil)
+    }
+
+    /// Derive a channel secret from a hashtag name by hashing (SHA-256).
+    private func deriveHashChannelSecret(_ name: String) -> Data {
+        guard let nameData = name.data(using: .utf8) else { return Data(repeating: 0, count: 32) }
+        let digest = SHA256.hash(data: nameData)
+        return Data(digest)
+    }
+}
+
+// MARK: - Hex String Data Extension
+
+private extension Data {
+    init?(hexString: String) {
+        let hex = hexString.replacingOccurrences(of: " ", with: "")
+        guard hex.count % 2 == 0 else { return nil }
+        var data = Data()
+        var index = hex.startIndex
+        while index < hex.endIndex {
+            let nextIndex = hex.index(index, offsetBy: 2)
+            guard let byte = UInt8(hex[index..<nextIndex], radix: 16) else { return nil }
+            data.append(byte)
+            index = nextIndex
+        }
+        self = data
     }
 }

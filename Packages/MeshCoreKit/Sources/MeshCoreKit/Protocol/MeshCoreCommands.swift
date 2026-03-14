@@ -26,6 +26,7 @@ public enum MeshCoreCommand: UInt8, Sendable {
     case deviceQuery          = 0x16  // 22
     case sendLogin            = 0x1A  // 26 — login to remote device (repeater/room)
     case sendStatusReq        = 0x1B  // 27 — request status from remote device
+    case getChannel           = 0x1F  // 31 — get channel info by index
     case setChannel           = 0x20  // 32 — add or update a channel
     case setDevicePIN         = 0x25  // 37
     case setOtherParams       = 0x26  // 38
@@ -62,10 +63,11 @@ public enum MeshCoreResponseCode: UInt8, Sendable {
     case channelInfo          = 0x12  // 18 — RESP_CODE_CHANNEL_INFO (channel metadata)
     case exportedContact      = 0x14  // 20 — exported contact URL string
     case customVars           = 0x15  // 21
+    case advertPath           = 0x16  // 22 — RESP_CODE_ADVERT_PATH
     case tuningParams         = 0x17  // 23
     case stats                = 0x18  // 24
-    case advertPath           = 0x22  // 34 — RESP_CODE_ADVERT_PATH
-    case allowedRepeatFreq    = 0x26  // 38 — RESP_ALLOWED_REPEAT_FREQ
+    case autoAddConfig        = 0x19  // 25 — RESP_CODE_AUTOADD_CONFIG
+    case allowedRepeatFreq    = 0x1A  // 26 — RESP_ALLOWED_REPEAT_FREQ
 }
 
 /// MeshCore error codes returned with RESP_CODE_ERR.
@@ -95,11 +97,17 @@ public enum MeshCorePushCode: UInt8, Sendable {
     case pathUpdated          = 0x81  // 129 — contact path changed
     case sendConfirmed        = 0x82  // 130 — sent message was ACKed
     case msgWaiting           = 0x83  // 131 — new message waiting to be synced
+    case rawData              = 0x84  // 132 — raw LoRa packet received
     case loginSuccess         = 0x85  // 133 — remote login succeeded (permissions byte)
     case loginFail            = 0x86  // 134 — remote login failed
     case statusResponse       = 0x87  // 135 — status response from remote device
+    case logRxData            = 0x88  // 136 — debug log of received LoRa packet
     case traceData            = 0x89  // 137 — trace route data
     case newAdvert            = 0x8A  // 138 — new contact discovered (manual_add mode)
     case telemetryResponse    = 0x8B  // 139 — telemetry data from sensor
+    case binaryResponse       = 0x8C  // 140 — binary request response
+    case pathDiscoveryResp    = 0x8D  // 141 — path discovery result
     case controlData          = 0x8E  // 142 — control packet received (discover response, etc.)
+    case contactDeleted       = 0x8F  // 143 — contact evicted from device
+    case contactsFull         = 0x90  // 144 — contact storage full
 }
