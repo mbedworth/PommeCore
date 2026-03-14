@@ -35,6 +35,14 @@ final class MeshCoreViewModel: ObservableObject {
     /// Cancellables for forwarding session objectWillChange to ViewModel.
     private var sessionCancellables: [Data: AnyCancellable] = [:]
 
+    /// Whether any remote management session is currently logged in.
+    var hasActiveManagementSession: Bool {
+        remoteSessions.values.contains { session in
+            if case .loggedIn = session.loginState { return true }
+            return false
+        }
+    }
+
     /// Last error message received from the device (shown as alert).
     @Published var lastErrorMessage: String?
 
