@@ -266,7 +266,13 @@ struct LoginSection: View {
 
     private var statusColor: Color {
         switch session.loginState {
-        case .loggedIn: permissionBadgeColor
+        case .loggedIn(let permission):
+            switch permission {
+            case .guest: MeshTheme.textSecondary
+            case .readOnly: .yellow
+            case .readWrite: .blue
+            case .admin: MeshTheme.connected
+            }
         case .loggingIn: MeshTheme.connecting
         case .loginFailed: MeshTheme.disconnected
         case .notLoggedIn: MeshTheme.textSecondary
