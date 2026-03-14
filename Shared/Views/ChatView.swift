@@ -443,6 +443,10 @@ struct RoomChatView: View {
                 }
                 .padding(.horizontal, 32)
 
+                Text("Passwords are case-sensitive, max 15 characters.")
+                    .font(.caption2)
+                    .foregroundStyle(MeshTheme.textSecondary)
+
                 Button(action: login) {
                     HStack {
                         if case .loggingIn = session.loginState {
@@ -463,11 +467,11 @@ struct RoomChatView: View {
                 }
                 .disabled(password.isEmpty || isLoggingIn)
 
-                if case .loginFailed = session.loginState {
+                if case .loginFailed(let msg) = session.loginState {
                     HStack {
                         Image(systemName: "exclamationmark.triangle")
                             .foregroundStyle(.red)
-                        Text("Login failed. Check password and try again.")
+                        Text(msg)
                             .font(.caption)
                             .foregroundStyle(.red)
                     }
@@ -627,6 +631,10 @@ struct RepeaterLoginView: View {
                     }
                     .padding(.horizontal, 32)
 
+                    Text("Passwords are case-sensitive, max 15 characters.")
+                        .font(.caption2)
+                        .foregroundStyle(MeshTheme.textSecondary)
+
                     Button(action: login) {
                         HStack {
                             if isLoggingIn {
@@ -647,11 +655,11 @@ struct RepeaterLoginView: View {
                     }
                     .disabled(password.isEmpty || isLoggingIn)
 
-                    if case .loginFailed = session.loginState {
+                    if case .loginFailed(let msg) = session.loginState {
                         HStack {
                             Image(systemName: "exclamationmark.triangle")
                                 .foregroundStyle(.red)
-                            Text("Login failed. Check password and try again.")
+                            Text(msg)
                                 .font(.caption)
                                 .foregroundStyle(.red)
                         }
