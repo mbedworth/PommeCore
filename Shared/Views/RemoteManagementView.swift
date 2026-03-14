@@ -1058,16 +1058,17 @@ struct CLIToggleRow: View {
                 .foregroundStyle(MeshTheme.textPrimary)
             Spacer()
             if canEdit {
+                let teal = Color(red: 0.0, green: 0.8, blue: 0.7)
                 HStack(spacing: 0) {
                     Button {
                         sendCLI(onCommand)
                     } label: {
                         Text("On")
                             .font(.caption.weight(.medium))
-                            .foregroundStyle(isOn == true ? MeshTheme.textOnAccent : MeshTheme.textSecondary)
+                            .foregroundStyle(isOn == true ? MeshTheme.textOnAccent : MeshTheme.textSecondary.opacity(0.6))
                             .padding(.horizontal, 12)
                             .padding(.vertical, 5)
-                            .background(isOn == true ? MeshTheme.connected : Color.clear)
+                            .background(isOn == true ? teal : Color.clear)
                     }
                     .buttonStyle(.plain)
 
@@ -1076,10 +1077,10 @@ struct CLIToggleRow: View {
                     } label: {
                         Text("Off")
                             .font(.caption.weight(.medium))
-                            .foregroundStyle(isOn == false ? MeshTheme.textOnAccent : MeshTheme.textSecondary)
+                            .foregroundStyle(isOn == false ? MeshTheme.textOnAccent : MeshTheme.textSecondary.opacity(0.6))
                             .padding(.horizontal, 12)
                             .padding(.vertical, 5)
-                            .background(isOn == false ? MeshTheme.disconnected : Color.clear)
+                            .background(isOn == false ? teal : Color.clear)
                     }
                     .buttonStyle(.plain)
                 }
