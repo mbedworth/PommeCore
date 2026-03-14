@@ -1,0 +1,637 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		038B76DA3EB2B884787888BE /* ContactListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21606E2B959E6496D3B0230D /* ContactListView.swift */; };
+		18B6F45B61F3581FB64D1DB0 /* DeviceScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2377BED4FF5A7170783BA649 /* DeviceScannerView.swift */; };
+		3749B94D818310AD5ACF3B87 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EFFE2BF3488F0C0647632CD /* ChatView.swift */; };
+		44472F77FC4CAC4A41BDD12F /* WatchChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FECE91529DA51E24B5EE93A /* WatchChatView.swift */; };
+		49709E93735B40512587904A /* MeshCoreKit in Frameworks */ = {isa = PBXBuildFile; productRef = 98C321AB3594D357C6B0816A /* MeshCoreKit */; };
+		57D771A61E08BB1991C80DE6 /* MeshCoreApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A259126AAB80661010C6A336 /* MeshCoreApp.swift */; };
+		5EA23B098C539C2A2191CA10 /* MeshCoreViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FBBD4DD1E3CAFDF4D56504 /* MeshCoreViewModel.swift */; };
+		65CD1325656C00EAA6EB6050 /* MeshCoreKit in Frameworks */ = {isa = PBXBuildFile; productRef = 635A77C284788242D78AE126 /* MeshCoreKit */; };
+		68CC8A44AD061C07535707EB /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D859AE9C98610F71C2FBAAF /* SettingsView.swift */; };
+		6A8D08F2CE9D321D55C02696 /* MeshCoreViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FBBD4DD1E3CAFDF4D56504 /* MeshCoreViewModel.swift */; };
+		894905739E99B7E425A27485 /* MeshCoreApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A259126AAB80661010C6A336 /* MeshCoreApp.swift */; };
+		8EF971496F064F1AD761B796 /* ContactListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21606E2B959E6496D3B0230D /* ContactListView.swift */; };
+		9144822AD9EB38340AF2317E /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EFFE2BF3488F0C0647632CD /* ChatView.swift */; };
+		96059FF0363E830C376C23ED /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6BA0593D517B1467DBC1C42 /* Theme.swift */; };
+		9A92FFC5BE2A781BEC80720C /* DeviceScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2377BED4FF5A7170783BA649 /* DeviceScannerView.swift */; };
+		A81875C1B0A1226A9333AFCF /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6BA0593D517B1467DBC1C42 /* Theme.swift */; };
+		C0FC54B3FE70C36D754DEEEC /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EFFE2BF3488F0C0647632CD /* ChatView.swift */; };
+		C2497AA6CDB94C882FC3C7CB /* DeviceScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2377BED4FF5A7170783BA649 /* DeviceScannerView.swift */; };
+		C9CEA8D3714859C1177D7704 /* ContactListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21606E2B959E6496D3B0230D /* ContactListView.swift */; };
+		D3633106D9031C89E0589468 /* MeshCoreViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FBBD4DD1E3CAFDF4D56504 /* MeshCoreViewModel.swift */; };
+		EC8655805E2DCD03D8C9C4F6 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D859AE9C98610F71C2FBAAF /* SettingsView.swift */; };
+		EE31FC870779BB9B07A11EEE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 43931BD12312D05F62A9E3B3 /* Assets.xcassets */; };
+		F35E721D0EDE9FB5A37362C6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 43931BD12312D05F62A9E3B3 /* Assets.xcassets */; };
+		F466BDEE333B5D296E925DA5 /* MeshCoreApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A259126AAB80661010C6A336 /* MeshCoreApp.swift */; };
+		F90000EB8EC8EB28EA724AC8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 43931BD12312D05F62A9E3B3 /* Assets.xcassets */; };
+		FAA4FA7E3E52FCF631D55675 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6BA0593D517B1467DBC1C42 /* Theme.swift */; };
+		FC6474A70CF5B233AB283928 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D859AE9C98610F71C2FBAAF /* SettingsView.swift */; };
+		FE123217A6AD32B385F9ACBC /* MeshCoreKit in Frameworks */ = {isa = PBXBuildFile; productRef = FBBB0BD5BAFCC905A8DC17D3 /* MeshCoreKit */; };
+		5WT22AMGOSQXJ90NFRN8O6TK /* RemoteManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */; };
+		XUOVAQ6Y1NIWH1G3OMK55ENV /* RemoteManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */; };
+		CATKUXG25PTVMENJWXQZY49X /* RemoteManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		21606E2B959E6496D3B0230D /* ContactListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactListView.swift; sourceTree = "<group>"; };
+		2377BED4FF5A7170783BA649 /* DeviceScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceScannerView.swift; sourceTree = "<group>"; };
+		43931BD12312D05F62A9E3B3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		4FECE91529DA51E24B5EE93A /* WatchChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchChatView.swift; sourceTree = "<group>"; };
+		5D859AE9C98610F71C2FBAAF /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		669B72A1B0246925F17F1F37 /* MeshCoreApple-macOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "MeshCoreApple-macOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		7EFFE2BF3488F0C0647632CD /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
+		A259126AAB80661010C6A336 /* MeshCoreApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshCoreApp.swift; sourceTree = "<group>"; };
+		AE9677D40F85F6D31BD8C43C /* MeshCoreApple.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = MeshCoreApple.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B1FBBD4DD1E3CAFDF4D56504 /* MeshCoreViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshCoreViewModel.swift; sourceTree = "<group>"; };
+		D2AEF5C51E98EC24A3CCA95F /* MeshCoreKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = MeshCoreKit; path = Packages/MeshCoreKit; sourceTree = SOURCE_ROOT; };
+		D4F0BB9B2578DD9861508E3D /* MeshCoreApple-watchOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "MeshCoreApple-watchOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		F6BA0593D517B1467DBC1C42 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteManagementView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		094FB2AC2198CCD921B82668 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FE123217A6AD32B385F9ACBC /* MeshCoreKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0C6A3482560C520BD85FB5DD /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				65CD1325656C00EAA6EB6050 /* MeshCoreKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7F7D1C124BBDD71A1688A5DC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				49709E93735B40512587904A /* MeshCoreKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		05CB0C5EB82027D64527E896 = {
+			isa = PBXGroup;
+			children = (
+				6DEB2AE5149CF01089457535 /* Packages */,
+				E0B34F245C5063D4BCB4E068 /* Shared */,
+				37FFAEFD4E59AD6A0C20CC49 /* Views */,
+				725951214897A58A06E32F73 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		0A6B0F647BA21A953CCB6490 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				7EFFE2BF3488F0C0647632CD /* ChatView.swift */,
+				21606E2B959E6496D3B0230D /* ContactListView.swift */,
+				2377BED4FF5A7170783BA649 /* DeviceScannerView.swift */,
+				5D859AE9C98610F71C2FBAAF /* SettingsView.swift */,
+			
+				LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */,);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		307D79903AB18CCBBF806BCE /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				B1FBBD4DD1E3CAFDF4D56504 /* MeshCoreViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		37FFAEFD4E59AD6A0C20CC49 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				4FECE91529DA51E24B5EE93A /* WatchChatView.swift */,
+			);
+			name = Views;
+			path = watchOS/Views;
+			sourceTree = "<group>";
+		};
+		6DEB2AE5149CF01089457535 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				D2AEF5C51E98EC24A3CCA95F /* MeshCoreKit */,
+			);
+			path = Packages;
+			sourceTree = "<group>";
+		};
+		725951214897A58A06E32F73 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				669B72A1B0246925F17F1F37 /* MeshCoreApple-macOS.app */,
+				D4F0BB9B2578DD9861508E3D /* MeshCoreApple-watchOS.app */,
+				AE9677D40F85F6D31BD8C43C /* MeshCoreApple.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E0B34F245C5063D4BCB4E068 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				F587E5EEE1FE6B2B210AEFE3 /* App */,
+				307D79903AB18CCBBF806BCE /* ViewModels */,
+				0A6B0F647BA21A953CCB6490 /* Views */,
+				43931BD12312D05F62A9E3B3 /* Assets.xcassets */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		F587E5EEE1FE6B2B210AEFE3 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				A259126AAB80661010C6A336 /* MeshCoreApp.swift */,
+				F6BA0593D517B1467DBC1C42 /* Theme.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		2F42371944647533B91A5720 /* MeshCoreApple-watchOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DA101B34C01BC4FB7D6A615C /* Build configuration list for PBXNativeTarget "MeshCoreApple-watchOS" */;
+			buildPhases = (
+				1A36517EFEF3C6F3C6906299 /* Sources */,
+				13C5BF9BB711189ADA35FA66 /* Resources */,
+				0C6A3482560C520BD85FB5DD /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "MeshCoreApple-watchOS";
+			packageProductDependencies = (
+				635A77C284788242D78AE126 /* MeshCoreKit */,
+			);
+			productName = "MeshCoreApple-watchOS";
+			productReference = D4F0BB9B2578DD9861508E3D /* MeshCoreApple-watchOS.app */;
+			productType = "com.apple.product-type.application";
+		};
+		7EF13F7D45DA717ECBD83014 /* MeshCoreApple */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5F9603017F6507D81AA63307 /* Build configuration list for PBXNativeTarget "MeshCoreApple" */;
+			buildPhases = (
+				F8CEA4EA53F48D1348D503A8 /* Sources */,
+				E4715DF347CD76CD02FF11DE /* Resources */,
+				7F7D1C124BBDD71A1688A5DC /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MeshCoreApple;
+			packageProductDependencies = (
+				98C321AB3594D357C6B0816A /* MeshCoreKit */,
+			);
+			productName = MeshCoreApple;
+			productReference = AE9677D40F85F6D31BD8C43C /* MeshCoreApple.app */;
+			productType = "com.apple.product-type.application";
+		};
+		AA195D714F62714D80CDB676 /* MeshCoreApple-macOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 786BA24BD0C30B92BC3C24FA /* Build configuration list for PBXNativeTarget "MeshCoreApple-macOS" */;
+			buildPhases = (
+				C8B6A3E0F224AADF97CEA7F1 /* Sources */,
+				88537C063875F8D24C6E0E49 /* Resources */,
+				094FB2AC2198CCD921B82668 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "MeshCoreApple-macOS";
+			packageProductDependencies = (
+				FBBB0BD5BAFCC905A8DC17D3 /* MeshCoreKit */,
+			);
+			productName = "MeshCoreApple-macOS";
+			productReference = 669B72A1B0246925F17F1F37 /* MeshCoreApple-macOS.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		39C1FC83BC1898F5DF01B1DF /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+				};
+			};
+			buildConfigurationList = 64FEBADFBAF641952A6C8634 /* Build configuration list for PBXProject "MeshCoreApple" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 05CB0C5EB82027D64527E896;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				477F4245CF05A9CAD0255ADA /* XCLocalSwiftPackageReference "Packages/MeshCoreKit" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 725951214897A58A06E32F73 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				7EF13F7D45DA717ECBD83014 /* MeshCoreApple */,
+				AA195D714F62714D80CDB676 /* MeshCoreApple-macOS */,
+				2F42371944647533B91A5720 /* MeshCoreApple-watchOS */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		13C5BF9BB711189ADA35FA66 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F35E721D0EDE9FB5A37362C6 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		88537C063875F8D24C6E0E49 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F90000EB8EC8EB28EA724AC8 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E4715DF347CD76CD02FF11DE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EE31FC870779BB9B07A11EEE /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		1A36517EFEF3C6F3C6906299 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C0FC54B3FE70C36D754DEEEC /* ChatView.swift in Sources */,
+				038B76DA3EB2B884787888BE /* ContactListView.swift in Sources */,
+				C2497AA6CDB94C882FC3C7CB /* DeviceScannerView.swift in Sources */,
+				894905739E99B7E425A27485 /* MeshCoreApp.swift in Sources */,
+				5EA23B098C539C2A2191CA10 /* MeshCoreViewModel.swift in Sources */,
+				68CC8A44AD061C07535707EB /* SettingsView.swift in Sources */,
+				A81875C1B0A1226A9333AFCF /* Theme.swift in Sources */,
+				44472F77FC4CAC4A41BDD12F /* WatchChatView.swift in Sources */,
+			
+				5WT22AMGOSQXJ90NFRN8O6TK /* RemoteManagementView.swift in Sources */,);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C8B6A3E0F224AADF97CEA7F1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3749B94D818310AD5ACF3B87 /* ChatView.swift in Sources */,
+				C9CEA8D3714859C1177D7704 /* ContactListView.swift in Sources */,
+				18B6F45B61F3581FB64D1DB0 /* DeviceScannerView.swift in Sources */,
+				F466BDEE333B5D296E925DA5 /* MeshCoreApp.swift in Sources */,
+				D3633106D9031C89E0589468 /* MeshCoreViewModel.swift in Sources */,
+				FC6474A70CF5B233AB283928 /* SettingsView.swift in Sources */,
+				96059FF0363E830C376C23ED /* Theme.swift in Sources */,
+			
+				XUOVAQ6Y1NIWH1G3OMK55ENV /* RemoteManagementView.swift in Sources */,);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F8CEA4EA53F48D1348D503A8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9144822AD9EB38340AF2317E /* ChatView.swift in Sources */,
+				8EF971496F064F1AD761B796 /* ContactListView.swift in Sources */,
+				9A92FFC5BE2A781BEC80720C /* DeviceScannerView.swift in Sources */,
+				57D771A61E08BB1991C80DE6 /* MeshCoreApp.swift in Sources */,
+				6A8D08F2CE9D321D55C02696 /* MeshCoreViewModel.swift in Sources */,
+				EC8655805E2DCD03D8C9C4F6 /* SettingsView.swift in Sources */,
+				FAA4FA7E3E52FCF631D55675 /* Theme.swift in Sources */,
+			
+				CATKUXG25PTVMENJWXQZY49X /* RemoteManagementView.swift in Sources */,);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		01BF1C82F9B21A40B63A77D9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = iOS/Info.plist;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.meshcore.app;
+				PRODUCT_NAME = MeshCore;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		0C28B7E8994B44B37534ED66 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				WATCHOS_DEPLOYMENT_TARGET = 9.0;
+			};
+			name = Release;
+		};
+		1934AB91AFFF3BD94DF88541 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = watchOS/Info.plist;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.meshcore.app.watchos;
+				PRODUCT_NAME = "MeshCore Watch";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = 4;
+			};
+			name = Debug;
+		};
+		2E0A41204304ED119E201EB9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = macOS/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.meshcore.app;
+				PRODUCT_NAME = MeshCore;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
+		4293458A182505862AF71670 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = macOS/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.meshcore.app;
+				PRODUCT_NAME = MeshCore;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
+		};
+		699FE868EA644914FEFCBDEA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = iOS/Info.plist;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.meshcore.app;
+				PRODUCT_NAME = MeshCore;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		8E819720A97516AEDFD36C84 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				WATCHOS_DEPLOYMENT_TARGET = 9.0;
+			};
+			name = Debug;
+		};
+		9BE07E83D054F7DFAA87A3D1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = watchOS/Info.plist;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.meshcore.app.watchos;
+				PRODUCT_NAME = "MeshCore Watch";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = 4;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		5F9603017F6507D81AA63307 /* Build configuration list for PBXNativeTarget "MeshCoreApple" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				01BF1C82F9B21A40B63A77D9 /* Debug */,
+				699FE868EA644914FEFCBDEA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		64FEBADFBAF641952A6C8634 /* Build configuration list for PBXProject "MeshCoreApple" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8E819720A97516AEDFD36C84 /* Debug */,
+				0C28B7E8994B44B37534ED66 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		786BA24BD0C30B92BC3C24FA /* Build configuration list for PBXNativeTarget "MeshCoreApple-macOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4293458A182505862AF71670 /* Debug */,
+				2E0A41204304ED119E201EB9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		DA101B34C01BC4FB7D6A615C /* Build configuration list for PBXNativeTarget "MeshCoreApple-watchOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1934AB91AFFF3BD94DF88541 /* Debug */,
+				9BE07E83D054F7DFAA87A3D1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		477F4245CF05A9CAD0255ADA /* XCLocalSwiftPackageReference "Packages/MeshCoreKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/MeshCoreKit;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		635A77C284788242D78AE126 /* MeshCoreKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MeshCoreKit;
+		};
+		98C321AB3594D357C6B0816A /* MeshCoreKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MeshCoreKit;
+		};
+		FBBB0BD5BAFCC905A8DC17D3 /* MeshCoreKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MeshCoreKit;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 39C1FC83BC1898F5DF01B1DF /* Project object */;
+}

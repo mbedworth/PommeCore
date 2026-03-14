@@ -1,0 +1,277 @@
+import Foundation
+
+/// Encodes MeshCore protocol command frames for transmission to the device.
+public enum MeshCoreProtocol {
+
+    // MARK: - Connection & Query
+
+    /// Supported companion protocol version sent with DeviceQuery.
+    public static let supportedProtocolVersion: UInt8 = 1
+
+    /// CMD_APP_START (code 1) — initialize connection, returns SELF_INFO.
+    /// Format: [cmd, appVer, 6×reserved, appName..., 0x00]
+    public static func buildAppStart(appName: String = "MeshCoreApple") -> Data {
+        var frame = Data([MeshCoreCommand.appStart.rawValue])
+        frame.append(supportedProtocolVersion)       // appVer
+        frame.append(Data(repeating: 0, count: 6))   // 6 reserved bytes
+        if let nameData = appName.data(using: .utf8) {
+            frame.append(nameData)
+        }
+        frame.append(0x00) // null terminator
+        return frame
+    }
+
+    /// CMD_DEVICE_QUERY (code 22) — request device info.
+    /// Format: [cmd, appTargetVer]
+    public static func buildDeviceQuery() -> Data {
+        Data([MeshCoreCommand.deviceQuery.rawValue, supportedProtocolVersion])
+    }
+
+    /// CMD_GET_BATT_AND_STORAGE (code 20).
+    public static func buildGetBattAndStorage() -> Data {
+        Data([MeshCoreCommand.getBattAndStorage.rawValue])
+    }
+
+    // MARK: - Contacts & Messages
+
+    /// CMD_GET_CONTACTS (code 4). Pass `since` for incremental sync (only contacts modified after).
+    public static func buildGetContacts(since: UInt32 = 0) -> Data {
+        var frame = Data([MeshCoreCommand.getContacts.rawValue])
+        if since > 0 {
+            appendUInt32(&frame, since)
+        }
+        return frame
+    }
+
+    /// CMD_GET_MESSAGES (code 9) for a contact by public key hash.
+    public static func buildGetMessages(contactKeyHash: Data) -> Data {
+        var frame = Data([MeshCoreCommand.getMessages.rawValue])
+        frame.append(contactKeyHash)
+        return frame
+    }
+
+    /// CMD_SYNC_NEXT_MESSAGE (code 10) — pull next queued message from device.
+    public static func buildSyncNextMessage() -> Data {
+        Data([MeshCoreCommand.syncNextMessage.rawValue])
+    }
+
+    /// CMD_SEND_TXT_MSG (code 2).
+    /// Frame: code(1) txt_type(1) attempt(1) sender_timestamp(uint32) pubkey_prefix(6) text(varchar)
+    /// txt_type: 0 = plain text, 1 = CLI data (for remote management)
+    public static func buildSendTextMessage(text: String, recipientKeyHash: Data, txtType: UInt8 = 0, attempt: UInt8 = 0) -> Data {
+        var frame = Data([MeshCoreCommand.sendTextMessage.rawValue])
+        frame.append(txtType)
+        frame.append(attempt)
+        let timestamp = UInt32(Date().timeIntervalSince1970)
+        appendUInt32(&frame, timestamp)
+        // pubkey_prefix: first 6 bytes of recipient's public key hash
+        frame.append(recipientKeyHash.prefix(6))
+        if let textData = text.data(using: .utf8) {
+            frame.append(textData.prefix(160)) // max 160 bytes
+        }
+        return frame
+    }
+
+    /// CMD_SEND_CHANNEL_TXT_MSG (code 3).
+    /// Frame: code(1) txt_type(1) channel_idx(1) sender_timestamp(uint32) text(varchar)
+    public static func buildSendChannelMessage(text: String, channelIndex: UInt8 = 0) -> Data {
+        var frame = Data([MeshCoreCommand.sendChannelMessage.rawValue])
+        frame.append(0x00) // txt_type: 0 = plain text
+        frame.append(channelIndex)
+        let timestamp = UInt32(Date().timeIntervalSince1970)
+        appendUInt32(&frame, timestamp)
+        if let textData = text.data(using: .utf8) {
+            frame.append(textData.prefix(160))
+        }
+        return frame
+    }
+
+    // MARK: - Remote Management
+
+    /// CMD_SEND_LOGIN (code 26) — login to a remote device (repeater/room server).
+    /// Frame: code(1) pub_key(32) password(varchar, null-terminated, max 15 bytes)
+    public static func buildSendLogin(recipientPublicKey: Data, password: String) -> Data {
+        var frame = Data([MeshCoreCommand.sendLogin.rawValue])
+        // Full 32-byte public key required (not the 6-byte prefix)
+        var key = recipientPublicKey.prefix(32)
+        if key.count < 32 {
+            key.append(Data(repeating: 0, count: 32 - key.count))
+        }
+        frame.append(key)
+        if let pwData = password.data(using: .utf8) {
+            frame.append(pwData.prefix(15)) // max 15 bytes
+        }
+        frame.append(0x00) // null terminator
+        return frame
+    }
+
+    /// CMD_SEND_STATUS_REQ (code 27) — request status from a remote device.
+    /// Frame: code(1) pubkey_prefix(6)
+    public static func buildSendStatusReq(recipientKeyHash: Data) -> Data {
+        var frame = Data([MeshCoreCommand.sendStatusReq.rawValue])
+        frame.append(recipientKeyHash.prefix(6))
+        return frame
+    }
+
+    /// Send a CLI command to a remote device as txt_type=1 (TXT_TYPE_CLI_DATA).
+    public static func buildSendCLICommand(command: String, recipientKeyHash: Data) -> Data {
+        buildSendTextMessage(text: command, recipientKeyHash: recipientKeyHash, txtType: 1)
+    }
+
+    // MARK: - Identity & Advertising
+
+    /// CMD_SET_ADVERT_NAME (code 8).
+    public static func buildSetAdvertName(_ name: String) -> Data {
+        var frame = Data([MeshCoreCommand.setAdvertName.rawValue])
+        if let nameData = name.data(using: .utf8) {
+            frame.append(nameData)
+        }
+        frame.append(0x00) // null terminator
+        return frame
+    }
+
+    /// CMD_SET_ADVERT_LATLON (code 14). Lat/lon encoded as int32 × 1,000,000.
+    public static func buildSetAdvertLatLon(latitude: Double, longitude: Double) -> Data {
+        var frame = Data([MeshCoreCommand.setAdvertLatLon.rawValue])
+        appendInt32(&frame, Int32(latitude * 1_000_000))
+        appendInt32(&frame, Int32(longitude * 1_000_000))
+        return frame
+    }
+
+    /// CMD_SEND_SELF_ADVERT (code 7). advertType: 0=zero-hop, 1=flood.
+    public static func buildSendSelfAdvert(advertType: UInt8 = 0) -> Data {
+        Data([MeshCoreCommand.sendSelfAdvert.rawValue, advertType])
+    }
+
+    // MARK: - Radio Configuration
+
+    /// CMD_SET_RADIO_PARAMS (code 11).
+    public static func buildSetRadioParams(
+        frequency: UInt32,
+        bandwidth: UInt32,
+        spreadingFactor: UInt8,
+        codingRate: UInt8,
+        repeatMode: Bool = false
+    ) -> Data {
+        var frame = Data([MeshCoreCommand.setRadioParams.rawValue])
+        appendUInt32(&frame, frequency)
+        appendUInt32(&frame, bandwidth)
+        frame.append(spreadingFactor)
+        frame.append(codingRate)
+        frame.append(repeatMode ? 1 : 0)
+        return frame
+    }
+
+    /// CMD_SET_RADIO_TX_POWER (code 12).
+    public static func buildSetRadioTXPower(_ power: UInt8) -> Data {
+        Data([MeshCoreCommand.setRadioTXPower.rawValue, power])
+    }
+
+    // MARK: - Tuning Parameters
+
+    /// CMD_SET_TUNING_PARAMS (code 21).
+    public static func buildSetTuningParams(rxDelayBase: UInt32, airtimeFactor: UInt32) -> Data {
+        var frame = Data([MeshCoreCommand.setTuningParams.rawValue])
+        appendUInt32(&frame, rxDelayBase)
+        appendUInt32(&frame, airtimeFactor)
+        return frame
+    }
+
+    /// CMD_GET_TUNING_PARAMS (code 43).
+    public static func buildGetTuningParams() -> Data {
+        Data([MeshCoreCommand.getTuningParams.rawValue])
+    }
+
+    // MARK: - Privacy & Security
+
+    /// CMD_SET_OTHER_PARAMS (code 38).
+    /// Packs: manualAddContacts, telemetryMode, advertLocPolicy, multiACK.
+    public static func buildSetOtherParams(
+        manualAddContacts: UInt8,
+        telemetryBase: UInt8,
+        telemetryLocation: UInt8,
+        advertLocPolicy: UInt8,
+        multiACK: UInt8
+    ) -> Data {
+        var frame = Data([MeshCoreCommand.setOtherParams.rawValue])
+        frame.append(manualAddContacts)
+        let telemetryByte = (telemetryBase & 0x03) | ((telemetryLocation & 0x03) << 2)
+        frame.append(telemetryByte)
+        frame.append(advertLocPolicy)
+        frame.append(multiACK)
+        return frame
+    }
+
+    /// CMD_SET_DEVICE_PIN (code 37).
+    public static func buildSetDevicePIN(_ pin: UInt32) -> Data {
+        var frame = Data([MeshCoreCommand.setDevicePIN.rawValue])
+        appendUInt32(&frame, pin)
+        return frame
+    }
+
+    // MARK: - Time
+
+    /// CMD_GET_DEVICE_TIME (code 5).
+    public static func buildGetDeviceTime() -> Data {
+        Data([MeshCoreCommand.getDeviceTime.rawValue])
+    }
+
+    /// CMD_SET_DEVICE_TIME (code 6).
+    public static func buildSetDeviceTime(epochSeconds: UInt32) -> Data {
+        var frame = Data([MeshCoreCommand.setDeviceTime.rawValue])
+        appendUInt32(&frame, epochSeconds)
+        return frame
+    }
+
+    // MARK: - Custom Variables
+
+    /// CMD_GET_CUSTOM_VARS (code 40).
+    public static func buildGetCustomVars() -> Data {
+        Data([MeshCoreCommand.getCustomVars.rawValue])
+    }
+
+    /// CMD_SET_CUSTOM_VAR (code 41). Format: "name:value\0"
+    public static func buildSetCustomVar(name: String, value: String) -> Data {
+        var frame = Data([MeshCoreCommand.setCustomVar.rawValue])
+        if let payload = "\(name):\(value)".data(using: .utf8) {
+            frame.append(payload)
+        }
+        frame.append(0x00)
+        return frame
+    }
+
+    // MARK: - Statistics
+
+    /// CMD_GET_STATS (code 56). subType: 0=core, 1=radio, 2=packets.
+    public static func buildGetStats(subType: UInt8) -> Data {
+        Data([MeshCoreCommand.getStats.rawValue, subType])
+    }
+
+    // MARK: - Danger Zone
+
+    /// CMD_REBOOT (code 19).
+    public static func buildReboot() -> Data {
+        var frame = Data([MeshCoreCommand.reboot.rawValue])
+        frame.append(contentsOf: "reboot".utf8)
+        return frame
+    }
+
+    /// CMD_FACTORY_RESET (code 51).
+    public static func buildFactoryReset() -> Data {
+        var frame = Data([MeshCoreCommand.factoryReset.rawValue])
+        frame.append(contentsOf: "reset".utf8)
+        return frame
+    }
+
+    // MARK: - Helpers
+
+    private static func appendUInt32(_ data: inout Data, _ value: UInt32) {
+        var le = value.littleEndian
+        data.append(Data(bytes: &le, count: 4))
+    }
+
+    private static func appendInt32(_ data: inout Data, _ value: Int32) {
+        var le = value.littleEndian
+        data.append(Data(bytes: &le, count: 4))
+    }
+}

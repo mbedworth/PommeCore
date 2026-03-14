@@ -1,0 +1,826 @@
+import SwiftUI
+import Combine
+import os.log
+import UserNotifications
+#if os(watchOS)
+import WatchKit
+#endif
+import MeshCoreKit
+
+@MainActor
+final class MeshCoreViewModel: ObservableObject {
+    private static let logger = Logger(subsystem: "com.meshcore", category: "ViewModel")
+
+    @Published var contacts: [Contact] = []
+    @Published var selectedContact: Contact?
+    @Published var showPublicChannel = false
+    @Published var isScanning = false
+    @Published var discoveredPeripherals: [DiscoveredPeripheral] = []
+    @Published var connectionState: BLEConnectionState = .disconnected
+    @Published var connectedDeviceName: String?
+    @Published var deviceConfig = DeviceConfig()
+
+    /// All messages keyed by contact public key prefix (6 bytes).
+    @Published var messagesByContact: [Data: [Message]] = [:]
+
+    /// Unread message counts per contact key prefix.
+    @Published var unreadCounts: [Data: Int] = [:]
+
+    /// Active remote management sessions keyed by contact public key prefix.
+    @Published var remoteSessions: [Data: RemoteDeviceSession] = [:]
+
+    /// Last error message received from the device (shown as alert).
+    @Published var lastErrorMessage: String?
+
+    let bleManager = BLEManager()
+    private var cancellables = Set<AnyCancellable>()
+    private let messageStore = MessageStore()
+
+    /// Maps expected ACK code → message ID for delivery tracking.
+    private var pendingACKs: [UInt32: (contactKeyHash: Data, messageID: UUID)] = [:]
+
+    /// Whether we're currently syncing queued messages.
+    private var isSyncingMessages = false
+
+    /// Whether an auto-scan has been requested (waiting for BLE poweredOn).
+    private var pendingAutoScan = false
+
+    /// Number of auto-scan retry attempts remaining.
+    @Published var scanRetryCount: Int = 0
+    private let maxScanRetries = 3
+    private var scanRetryTask: Task<Void, Never>?
+
+    /// Whether the app is currently in the background (for local notifications).
+    var isInBackground = false
+
+    /// Last contacts sync lastmod — for incremental sync.
+    private var lastContactsSync: UInt32 = 0
+
+    /// Expected contact count from CONTACTS_START (for logging).
+    private var expectedContactCount: UInt32 = 0
+
+    /// Accumulates contacts during a sync before replacing the list.
+    private var incomingContacts: [Contact] = []
+
+    init() {
+        setupSubscriptions()
+        forwardDeviceConfigChanges()
+        loadPersistedMessages()
+        requestNotificationPermissions()
+    }
+
+    private func forwardDeviceConfigChanges() {
+        deviceConfig.objectWillChange
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+    }
+
+    private func loadPersistedMessages() {
+        messagesByContact = messageStore.loadAllMessages()
+    }
+
+    private func persistMessages(for contactKeyHash: Data) {
+        if let messages = messagesByContact[contactKeyHash] {
+            messageStore.saveMessages(messages, for: contactKeyHash)
+        }
+    }
+
+    /// Request notification permissions on first launch.
+    private func requestNotificationPermissions() {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
+            if let error {
+                Self.logger.warning("Notification permission error: \(error.localizedDescription)")
+            } else {
+                Self.logger.info("Notification permission granted: \(granted)")
+            }
+        }
+    }
+
+    /// Post a local notification for an incoming message when the app is backgrounded.
+    private func postLocalNotification(for message: Message) {
+        guard isInBackground else { return }
+
+        let content = UNMutableNotificationContent()
+        content.sound = .default
+
+        // Find contact name for the notification title
+        let senderName = message.senderName
+            ?? contacts.first(where: { $0.publicKeyPrefix == message.contactKeyHash })?.name
+
+        if let channelIdx = message.channelIndex {
+            content.title = "Public Channel"
+            if let name = message.senderName, !name.isEmpty {
+                content.subtitle = name
+            }
+            _ = channelIdx // suppress unused warning
+        } else if let name = senderName {
+            content.title = name
+        } else {
+            content.title = "New Message"
+        }
+        content.body = message.text
+
+        let request = UNNotificationRequest(
+            identifier: message.id.uuidString,
+            content: content,
+            trigger: nil
+        )
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error {
+                Self.logger.warning("Failed to post notification: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    /// Trigger haptic feedback on message send.
+    func playHapticFeedback() {
+        #if os(iOS)
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
+        #elseif os(watchOS)
+        WKInterfaceDevice.current().play(.click)
+        #endif
+    }
+
+    private func setupSubscriptions() {
+        bleManager.receivedDataSubject
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] data in
+                self?.handleReceivedData(data)
+            }
+            .store(in: &cancellables)
+
+        bleManager.$discoveredPeripherals
+            .receive(on: DispatchQueue.main)
+            .assign(to: &$discoveredPeripherals)
+
+        bleManager.$connectedDeviceName
+            .receive(on: DispatchQueue.main)
+            .assign(to: &$connectedDeviceName)
+
+        bleManager.$connectionState
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] state in
+                guard let self else { return }
+                let previousState = self.connectionState
+                self.connectionState = state
+                if state == .disconnected {
+                    self.deviceConfig = DeviceConfig()
+                    self.forwardDeviceConfigChanges()
+                    self.isSyncingMessages = false
+                }
+                if state == .ready && previousState != .ready {
+                    self.onDeviceReady()
+                }
+            }
+            .store(in: &cancellables)
+
+        bleManager.$isPoweredOn
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] poweredOn in
+                guard let self, poweredOn, self.pendingAutoScan else { return }
+                self.pendingAutoScan = false
+                if self.connectionState == .disconnected {
+                    self.startScanning()
+                }
+            }
+            .store(in: &cancellables)
+    }
+
+    private func onDeviceReady() {
+        refreshAllSettings()
+        requestContacts()
+        syncNextMessage()
+    }
+
+    // MARK: - Scanning & Connection
+
+    func requestAutoScan() {
+        if bleManager.isPoweredOn {
+            if connectionState == .disconnected {
+                scanRetryCount = maxScanRetries
+                startScanning()
+            }
+        } else {
+            pendingAutoScan = true
+            scanRetryCount = maxScanRetries
+        }
+    }
+
+    func startScanning() {
+        guard bleManager.isPoweredOn else {
+            Self.logger.warning("Cannot scan — BLE not powered on, queuing for later")
+            pendingAutoScan = true
+            return
+        }
+        scanRetryTask?.cancel()
+        isScanning = true
+        bleManager.startScanning()
+    }
+
+    func stopScanning() {
+        scanRetryTask?.cancel()
+        scanRetryTask = nil
+        scanRetryCount = 0
+        isScanning = false
+        bleManager.stopScanning()
+    }
+
+    func handleScanTimeout() {
+        guard isScanning else { return }
+        if discoveredPeripherals.isEmpty && scanRetryCount > 0 {
+            scanRetryCount -= 1
+            Self.logger.info("Scan found nothing, retrying (\(self.scanRetryCount) retries left)")
+            bleManager.stopScanning()
+            scanRetryTask = Task { [weak self] in
+                try? await Task.sleep(nanoseconds: 3_000_000_000)
+                guard !Task.isCancelled else { return }
+                self?.bleManager.startScanning()
+            }
+        } else if discoveredPeripherals.isEmpty {
+            Self.logger.info("Scan retries exhausted, stopping")
+            isScanning = false
+            bleManager.stopScanning()
+        }
+    }
+
+    func connect(to peripheral: DiscoveredPeripheral) {
+        stopScanning()
+        bleManager.connect(to: peripheral.peripheral)
+    }
+
+    func disconnect() {
+        bleManager.disconnect()
+    }
+
+    // MARK: - Protocol Commands
+
+    private func sendCommand(_ data: Data, label: String) {
+        let hex = data.map { String(format: "%02x", $0) }.joined(separator: " ")
+        Self.logger.info("TX \(label) [\(data.count) bytes]: \(hex)")
+        bleManager.send(data: data)
+    }
+
+    func sendAppStart() {
+        sendCommand(MeshCoreProtocol.buildAppStart(), label: "APP_START")
+    }
+
+    func requestDeviceInfo() {
+        sendCommand(MeshCoreProtocol.buildDeviceQuery(), label: "DEVICE_QUERY")
+    }
+
+    func requestContacts() {
+        sendCommand(MeshCoreProtocol.buildGetContacts(since: lastContactsSync), label: "GET_CONTACTS")
+    }
+
+    func sendAdvertise(type: UInt8 = 0) {
+        sendCommand(MeshCoreProtocol.buildSendSelfAdvert(advertType: type), label: "SELF_ADVERT")
+    }
+
+    func requestBattAndStorage() {
+        sendCommand(MeshCoreProtocol.buildGetBattAndStorage(), label: "GET_BATT")
+    }
+
+    func requestDeviceTime() {
+        sendCommand(MeshCoreProtocol.buildGetDeviceTime(), label: "GET_TIME")
+    }
+
+    func requestTuningParams() {
+        sendCommand(MeshCoreProtocol.buildGetTuningParams(), label: "GET_TUNING")
+    }
+
+    func requestCustomVars() {
+        sendCommand(MeshCoreProtocol.buildGetCustomVars(), label: "GET_CUSTOM_VARS")
+    }
+
+    func requestStats(subType: UInt8) {
+        sendCommand(MeshCoreProtocol.buildGetStats(subType: subType), label: "GET_STATS(\(subType))")
+    }
+
+    func refreshAllSettings() {
+        deviceConfig.isLoading = true
+        deviceConfig.loadedSections = []
+        requestDeviceInfo()
+        sendAppStart()
+        requestBattAndStorage()
+        requestDeviceTime()
+        requestTuningParams()
+        requestCustomVars()
+        requestStats(subType: 0)
+        requestStats(subType: 1)
+        requestStats(subType: 2)
+    }
+
+    // MARK: - Settings Commands
+
+    func setAdvertName(_ name: String) {
+        sendCommand(MeshCoreProtocol.buildSetAdvertName(name), label: "SET_ADVERT_NAME")
+    }
+
+    func setAdvertLatLon(latitude: Double, longitude: Double) {
+        sendCommand(MeshCoreProtocol.buildSetAdvertLatLon(latitude: latitude, longitude: longitude), label: "SET_LATLON")
+    }
+
+    func setRadioParams(frequency: UInt32, bandwidth: UInt32, spreadingFactor: UInt8, codingRate: UInt8, repeatMode: Bool) {
+        sendCommand(MeshCoreProtocol.buildSetRadioParams(
+            frequency: frequency, bandwidth: bandwidth,
+            spreadingFactor: spreadingFactor, codingRate: codingRate,
+            repeatMode: repeatMode
+        ), label: "SET_RADIO")
+    }
+
+    func setRadioTXPower(_ power: UInt8) {
+        sendCommand(MeshCoreProtocol.buildSetRadioTXPower(power), label: "SET_TX_POWER")
+    }
+
+    func setTuningParams(rxDelayBase: UInt32, airtimeFactor: UInt32) {
+        sendCommand(MeshCoreProtocol.buildSetTuningParams(rxDelayBase: rxDelayBase, airtimeFactor: airtimeFactor), label: "SET_TUNING")
+    }
+
+    func setOtherParams(manualAddContacts: UInt8, telemetryBase: UInt8, telemetryLocation: UInt8, advertLocPolicy: UInt8, multiACK: UInt8) {
+        sendCommand(MeshCoreProtocol.buildSetOtherParams(
+            manualAddContacts: manualAddContacts, telemetryBase: telemetryBase,
+            telemetryLocation: telemetryLocation, advertLocPolicy: advertLocPolicy,
+            multiACK: multiACK
+        ), label: "SET_OTHER_PARAMS")
+    }
+
+    func setDevicePIN(_ pin: UInt32) {
+        sendCommand(MeshCoreProtocol.buildSetDevicePIN(pin), label: "SET_PIN")
+    }
+
+    func setDeviceTime(epochSeconds: UInt32) {
+        sendCommand(MeshCoreProtocol.buildSetDeviceTime(epochSeconds: epochSeconds), label: "SET_TIME")
+    }
+
+    func setCustomVar(name: String, value: String) {
+        sendCommand(MeshCoreProtocol.buildSetCustomVar(name: name, value: value), label: "SET_CUSTOM_VAR")
+    }
+
+    func rebootDevice() {
+        sendCommand(MeshCoreProtocol.buildReboot(), label: "REBOOT")
+    }
+
+    func factoryReset() {
+        sendCommand(MeshCoreProtocol.buildFactoryReset(), label: "FACTORY_RESET")
+    }
+
+    // MARK: - Messaging
+
+    func messages(for contact: Contact) -> [Message] {
+        messagesByContact[contact.publicKeyPrefix] ?? []
+    }
+
+    func unreadCount(for contact: Contact) -> Int {
+        unreadCounts[contact.publicKeyPrefix] ?? 0
+    }
+
+    func markAsRead(_ contact: Contact) {
+        unreadCounts[contact.publicKeyPrefix] = 0
+    }
+
+    func sendTextMessage(_ text: String, to contact: Contact) {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+
+        let frame = MeshCoreProtocol.buildSendTextMessage(
+            text: trimmed,
+            recipientKeyHash: contact.publicKeyPrefix
+        )
+        sendCommand(frame, label: "SEND_TXT")
+
+        let outgoing = Message(
+            contactKeyHash: contact.publicKeyPrefix,
+            text: trimmed,
+            timestamp: Date(),
+            isOutgoing: true,
+            status: .sending
+        )
+        messagesByContact[contact.publicKeyPrefix, default: []].append(outgoing)
+        persistMessages(for: contact.publicKeyPrefix)
+    }
+
+    func sendChannelMessage(_ text: String, channelIndex: UInt8 = 0) {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+
+        let frame = MeshCoreProtocol.buildSendChannelMessage(
+            text: trimmed,
+            channelIndex: channelIndex
+        )
+        sendCommand(frame, label: "SEND_CHANNEL_TXT")
+
+        let channelKey = Data([channelIndex])
+        let outgoing = Message(
+            contactKeyHash: channelKey,
+            text: trimmed,
+            timestamp: Date(),
+            isOutgoing: true,
+            status: .sending,
+            channelIndex: channelIndex
+        )
+        messagesByContact[channelKey, default: []].append(outgoing)
+        persistMessages(for: channelKey)
+    }
+
+    func syncNextMessage() {
+        isSyncingMessages = true
+        sendCommand(MeshCoreProtocol.buildSyncNextMessage(), label: "SYNC_NEXT_MSG")
+    }
+
+    // MARK: - Remote Management
+
+    /// Get or create a remote management session for a contact.
+    /// Defers storage to avoid "publishing changes from within view updates" when
+    /// called during SwiftUI view body evaluation.
+    func remoteSession(for contact: Contact) -> RemoteDeviceSession {
+        let key = contact.publicKeyPrefix
+        if let existing = remoteSessions[key] {
+            return existing
+        }
+        let session = RemoteDeviceSession(contact: contact)
+        // Defer @Published mutation to avoid triggering objectWillChange during view body
+        DispatchQueue.main.async { [weak self] in
+            self?.remoteSessions[key] = session
+        }
+        return session
+    }
+
+    /// Login to a remote device (repeater/room server).
+    func loginToRemoteDevice(_ contact: Contact, password: String) {
+        let session = remoteSession(for: contact)
+        session.loginState = .loggingIn
+        let frame = MeshCoreProtocol.buildSendLogin(
+            recipientPublicKey: contact.publicKey,
+            password: password
+        )
+        sendCommand(frame, label: "SEND_LOGIN")
+    }
+
+    /// Send a CLI command to a remote device.
+    func sendCLICommand(_ command: String, to contact: Contact) {
+        let trimmed = command.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+
+        let session = remoteSession(for: contact)
+        session.commandSent(trimmed)
+
+        let frame = MeshCoreProtocol.buildSendCLICommand(
+            command: trimmed,
+            recipientKeyHash: contact.publicKeyPrefix
+        )
+        sendCommand(frame, label: "CLI_CMD")
+    }
+
+    /// Request status from a remote device.
+    func requestRemoteStatus(_ contact: Contact) {
+        let frame = MeshCoreProtocol.buildSendStatusReq(
+            recipientKeyHash: contact.publicKeyPrefix
+        )
+        sendCommand(frame, label: "STATUS_REQ")
+    }
+
+    // MARK: - Response Handling
+
+    private func handleReceivedData(_ data: Data) {
+        let hex = data.map { String(format: "%02x", $0) }.joined(separator: " ")
+        Self.logger.info("RX [\(data.count)]: \(hex)")
+
+        let response = FrameParser.parse(data)
+
+        switch response {
+        case .ok:
+            Self.logger.debug("OK response")
+
+        case .error(let code, let description):
+            Self.logger.warning("Error response: code=\(code) \(description)")
+            handleErrorResponse(code: code, description: description)
+
+        case .selfInfo(let info):
+            Self.logger.info("PARSED SelfInfo: name='\(info.name)' txPwr=\(info.txPower)/\(info.maxTXPower) freq=\(info.radioFreq) bw=\(info.radioBW) sf=\(info.radioSF) cr=\(info.radioCR) lat=\(info.latitude) lon=\(info.longitude)")
+            deviceConfig.deviceName = info.name
+            deviceConfig.radioTXPower = info.txPower
+            deviceConfig.maxTXPower = info.maxTXPower
+            deviceConfig.publicKeyHex = info.publicKey.map { String(format: "%02x", $0) }.joined()
+            deviceConfig.latitude = info.latitude
+            deviceConfig.longitude = info.longitude
+            deviceConfig.radioFrequency = info.radioFreq
+            deviceConfig.radioBandwidth = info.radioBW
+            deviceConfig.radioSpreadingFactor = info.radioSF
+            deviceConfig.radioCodingRate = info.radioCR
+            deviceConfig.manualAddContacts = info.manualAddContacts
+            deviceConfig.telemetryBase = info.telemetryByte & 0x03
+            deviceConfig.telemetryLocation = (info.telemetryByte >> 2) & 0x03
+            deviceConfig.advertLocPolicy = info.advertLocPolicy
+            deviceConfig.multiACK = info.multiACK
+            deviceConfig.loadedSections.insert("selfInfo")
+            checkLoadingComplete()
+
+        case .deviceInfo(let info):
+            Self.logger.info("PARSED DeviceInfo: fwVer=\(info.firmwareVersion) buildDate='\(info.buildDate)' mfg='\(info.manufacturer)' semVer='\(info.semanticVersion)' blePIN=\(info.blePIN)")
+            deviceConfig.firmwareVersion = String(info.firmwareVersion)
+            deviceConfig.buildDate = info.buildDate
+            deviceConfig.manufacturer = info.manufacturer
+            deviceConfig.semanticVersion = info.semanticVersion
+            deviceConfig.blePIN = info.blePIN
+            deviceConfig.loadedSections.insert("deviceInfo")
+            checkLoadingComplete()
+
+        case .battAndStorage(let info):
+            Self.logger.info("PARSED BattAndStorage: \(info.batteryMV) mV")
+            deviceConfig.batteryMillivolts = info.batteryMV
+            deviceConfig.loadedSections.insert("battAndStorage")
+            checkLoadingComplete()
+
+        case .currentTime(let epoch):
+            Self.logger.info("PARSED Time: epoch=\(epoch)")
+            deviceConfig.deviceTimeEpoch = epoch
+            deviceConfig.loadedSections.insert("time")
+            checkLoadingComplete()
+
+        case .tuningParams(let rxDelay, let airtime):
+            Self.logger.info("PARSED Tuning: rxDelay=\(rxDelay) airtime=\(airtime)")
+            deviceConfig.rxDelayBase = rxDelay
+            deviceConfig.airtimeFactor = airtime
+            deviceConfig.loadedSections.insert("tuning")
+            checkLoadingComplete()
+
+        case .customVars(let str):
+            Self.logger.info("PARSED CustomVars: '\(str)'")
+            let pairs = str.split(separator: ",").compactMap { pair -> (String, String)? in
+                let parts = pair.split(separator: ":", maxSplits: 1)
+                guard parts.count == 2 else { return nil }
+                return (String(parts[0]), String(parts[1]))
+            }
+            deviceConfig.customVars = pairs
+            deviceConfig.loadedSections.insert("customVars")
+            checkLoadingComplete()
+
+        case .stats(let subType, let payload):
+            Self.logger.info("PARSED Stats subType=\(subType), \(payload.count) bytes")
+            parseStats(subType: subType, payload: payload)
+            deviceConfig.loadedSections.insert("stats")
+            checkLoadingComplete()
+
+        case .contactsStart(let count):
+            Self.logger.info("Contacts sync starting: \(count) contacts expected")
+            expectedContactCount = count
+            incomingContacts = []
+
+        case .contact(let contact):
+            Self.logger.info("Received contact: \(contact.name) type=\(contact.type.rawValue)")
+            incomingContacts.append(contact)
+
+        case .endOfContacts(let lastmod):
+            Self.logger.info("Contacts sync complete: \(self.incomingContacts.count) contacts, lastmod=\(lastmod)")
+            contacts = incomingContacts
+            incomingContacts = []
+            lastContactsSync = lastmod
+
+        case .sent(let type, let expectedACK, let suggestedTimeout):
+            Self.logger.info("PARSED Sent: type=\(type) expectedACK=\(expectedACK) timeout=\(suggestedTimeout)ms")
+            handleSentResponse(expectedACK: expectedACK, suggestedTimeoutMs: suggestedTimeout)
+
+        case .contactMsgRecv(let message):
+            Self.logger.info("Received direct message: \(message.text)")
+            handleIncomingMessage(message)
+            if isSyncingMessages {
+                syncNextMessage()
+            }
+
+        case .channelMsgRecv(let message):
+            Self.logger.info("Channel message: ch=\(message.channelIndex ?? 0) text=\(message.text)")
+            handleIncomingMessage(message)
+            if isSyncingMessages {
+                syncNextMessage()
+            }
+
+        case .noMoreMessages:
+            Self.logger.debug("No more messages")
+            isSyncingMessages = false
+
+        case .sendConfirmed(let ackCode, let roundTripMs):
+            Self.logger.info("PARSED SendConfirmed: ackCode=\(ackCode) roundTrip=\(roundTripMs)ms")
+            handleSendConfirmed(ackCode: ackCode, roundTripMs: roundTripMs)
+
+        case .msgWaiting:
+            Self.logger.info("PARSED MsgWaiting — syncing next message")
+            syncNextMessage()
+
+        case .loginSuccess(let isAdmin):
+            Self.logger.info("PUSH LoginSuccess: isAdmin=\(isAdmin)")
+            handleLoginSuccess(isAdmin: isAdmin)
+
+        case .loginFail:
+            Self.logger.info("PUSH LoginFail")
+            handleLoginFail()
+
+        case .advert(let contact):
+            Self.logger.info("PUSH Advert from: \(contact.name)")
+            handleAdvert(contact)
+
+        case .currentAdvert(let adData):
+            Self.logger.debug("Current advert: \(adData.count) bytes")
+
+        case .rawMeshPacket(let pktData):
+            Self.logger.debug("Raw mesh packet: \(pktData.count) bytes")
+
+        case .unknown(let type, let payload):
+            // Push notifications (0x80-0x8F) are informational — log at debug level
+            if type >= 0x80 && type <= 0x8F {
+                Self.logger.debug("Ignoring push notification 0x\(String(format: "%02x", type)), \(payload.count) bytes payload")
+            } else {
+                Self.logger.warning("Unhandled response 0x\(String(format: "%02x", type)), \(payload.count) bytes payload")
+            }
+        }
+    }
+
+    /// Handle RESP_CODE_SENT — device accepted our message. Mark as .sent and track ACK.
+    private func handleSentResponse(expectedACK: UInt32, suggestedTimeoutMs: UInt32) {
+        for (contactKey, messages) in messagesByContact {
+            if let idx = messages.lastIndex(where: { $0.isOutgoing && $0.status == .sending }) {
+                messagesByContact[contactKey]![idx].status = .sent
+                messagesByContact[contactKey]![idx].expectedACK = expectedACK
+                pendingACKs[expectedACK] = (contactKeyHash: contactKey, messageID: messages[idx].id)
+                persistMessages(for: contactKey)
+
+                let timeoutSec = max(UInt64(suggestedTimeoutMs / 1000), 30)
+                Task { [weak self] in
+                    try? await Task.sleep(nanoseconds: timeoutSec * 1_000_000_000)
+                    guard let self else { return }
+                    if self.pendingACKs[expectedACK] != nil {
+                        self.handleACKTimeout(ackCode: expectedACK)
+                    }
+                }
+                break
+            }
+        }
+    }
+
+    /// Handle PUSH_CODE_SEND_CONFIRMED — recipient ACKed our message.
+    private func handleSendConfirmed(ackCode: UInt32, roundTripMs: UInt32) {
+        guard let pending = pendingACKs.removeValue(forKey: ackCode) else {
+            Self.logger.warning("Received ACK for unknown code: \(ackCode)")
+            return
+        }
+
+        if var messages = messagesByContact[pending.contactKeyHash],
+           let idx = messages.firstIndex(where: { $0.id == pending.messageID }) {
+            messages[idx].status = .delivered
+            messages[idx].roundTripMs = roundTripMs
+            messagesByContact[pending.contactKeyHash] = messages
+            persistMessages(for: pending.contactKeyHash)
+        }
+    }
+
+    /// Handle ACK timeout — leave as .sent (mesh may still deliver).
+    private func handleACKTimeout(ackCode: UInt32) {
+        guard let pending = pendingACKs.removeValue(forKey: ackCode) else { return }
+
+        if let messages = messagesByContact[pending.contactKeyHash],
+           let idx = messages.firstIndex(where: { $0.id == pending.messageID }),
+           messages[idx].status == .sent {
+            Self.logger.debug("ACK timeout for message \(pending.messageID), leaving as sent")
+        }
+    }
+
+    /// Handle PUSH_CODE_ADVERT — a contact advertised on the mesh.
+    /// Update the existing contact or add a new one, then trigger a full contacts refresh.
+    private func handleAdvert(_ contact: Contact) {
+        if let idx = contacts.firstIndex(where: { $0.publicKeyPrefix == contact.publicKeyPrefix }) {
+            contacts[idx] = contact
+        } else {
+            contacts.append(contact)
+        }
+        // Trigger a full refresh to stay in sync with device's contact table
+        requestContacts()
+    }
+
+    /// Handle login success — find the session that was logging in and update it.
+    private func handleLoginSuccess(isAdmin: Bool) {
+        for (_, session) in remoteSessions {
+            if case .loggingIn = session.loginState {
+                session.loginState = .loggedIn(isAdmin: isAdmin)
+                return
+            }
+        }
+    }
+
+    /// Handle login failure.
+    private func handleLoginFail() {
+        for (_, session) in remoteSessions {
+            if case .loggingIn = session.loginState {
+                session.loginState = .loginFailed
+                return
+            }
+        }
+    }
+
+    /// Handle RESP_CODE_ERR — stop any pending operations and surface error to user.
+    private func handleErrorResponse(code: UInt8, description: String) {
+        // Stop login spinner if a login was in progress
+        for (_, session) in remoteSessions {
+            if case .loggingIn = session.loginState {
+                session.loginState = .loginFailed
+                break
+            }
+        }
+        lastErrorMessage = description
+    }
+
+    /// Handle an incoming message (direct or channel).
+    private func handleIncomingMessage(_ message: Message) {
+        let contactKey = message.contactKeyHash
+
+        // Check if this is a CLI response from a managed device
+        if let session = remoteSessions[contactKey], !message.isOutgoing {
+            session.responseReceived(message.text)
+            // Still store the message in chat history
+        }
+
+        let existing = messagesByContact[contactKey] ?? []
+        let isDuplicate = existing.contains { msg in
+            msg.text == message.text &&
+            abs(msg.timestamp.timeIntervalSince(message.timestamp)) < 2 &&
+            msg.isOutgoing == message.isOutgoing
+        }
+        guard !isDuplicate else {
+            Self.logger.debug("Skipping duplicate message")
+            return
+        }
+
+        messagesByContact[contactKey, default: []].append(message)
+        persistMessages(for: contactKey)
+
+        if selectedContact?.publicKeyPrefix != contactKey {
+            unreadCounts[contactKey, default: 0] += 1
+        }
+
+        postLocalNotification(for: message)
+    }
+
+    private func checkLoadingComplete() {
+        let required: Set<String> = ["selfInfo", "deviceInfo", "battAndStorage"]
+        if required.isSubset(of: deviceConfig.loadedSections) {
+            deviceConfig.isLoading = false
+        }
+    }
+
+    private func parseStats(subType: UInt8, payload: Data) {
+        var offset = 0
+
+        switch subType {
+        case 0:
+            deviceConfig.statsBatteryMV = Int16(bitPattern: readUInt16(payload, offset: &offset))
+            deviceConfig.statsUptime = readUInt32(payload, offset: &offset)
+            deviceConfig.statsErrorFlags = readUInt16(payload, offset: &offset)
+            deviceConfig.statsQueueLength = readUInt8(payload, offset: &offset)
+
+        case 1:
+            deviceConfig.statsNoiseFloor = Int16(bitPattern: readUInt16(payload, offset: &offset))
+            deviceConfig.statsLastRSSI = Int8(bitPattern: readUInt8(payload, offset: &offset))
+            deviceConfig.statsLastSNR = Int8(bitPattern: readUInt8(payload, offset: &offset))
+            deviceConfig.statsTXAirtime = readUInt32(payload, offset: &offset)
+            deviceConfig.statsRXAirtime = readUInt32(payload, offset: &offset)
+
+        case 2:
+            deviceConfig.statsPacketsReceived = readUInt32(payload, offset: &offset)
+            deviceConfig.statsPacketsSent = readUInt32(payload, offset: &offset)
+            deviceConfig.statsFloodCount = readUInt32(payload, offset: &offset)
+            deviceConfig.statsDirectCount = readUInt32(payload, offset: &offset)
+            deviceConfig.statsRecvFlood = readUInt32(payload, offset: &offset)
+            deviceConfig.statsRecvDirect = readUInt32(payload, offset: &offset)
+
+        default:
+            Self.logger.debug("Unknown stats subtype \(subType)")
+        }
+    }
+
+    // MARK: - Binary Helpers
+
+    private func readUInt8(_ data: Data, offset: inout Int) -> UInt8 {
+        guard offset < data.count else { return 0 }
+        let v = data[offset]; offset += 1; return v
+    }
+
+    private func readUInt16(_ data: Data, offset: inout Int) -> UInt16 {
+        guard offset + 2 <= data.count else { return 0 }
+        var v: UInt16 = 0
+        _ = withUnsafeMutableBytes(of: &v) { dest in
+            data.copyBytes(to: dest, from: offset..<offset+2)
+        }
+        offset += 2; return UInt16(littleEndian: v)
+    }
+
+    private func readUInt32(_ data: Data, offset: inout Int) -> UInt32 {
+        guard offset + 4 <= data.count else { return 0 }
+        var v: UInt32 = 0
+        _ = withUnsafeMutableBytes(of: &v) { dest in
+            data.copyBytes(to: dest, from: offset..<offset+4)
+        }
+        offset += 4; return UInt32(littleEndian: v)
+    }
+}

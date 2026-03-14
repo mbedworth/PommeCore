@@ -1,0 +1,87 @@
+name: MeshCoreApple
+options:
+  bundleIdPrefix: com.meshcore
+  deploymentTarget:
+    iOS: "16.0"
+    macOS: "13.0"
+    watchOS: "9.0"
+  xcodeVersion: "15.0"
+  groupSortPosition: top
+
+packages:
+  MeshCoreKit:
+    path: Packages/MeshCoreKit
+
+targets:
+  MeshCoreApple:
+    type: application
+    platform: iOS
+    sources:
+      - path: Shared
+    dependencies:
+      - package: MeshCoreKit
+    info:
+      path: iOS/Info.plist
+      properties:
+        UILaunchScreen: {}
+        CFBundleDisplayName: MeshCore
+        UIBackgroundModes:
+          - bluetooth-central
+        NSBluetoothAlwaysUsageDescription: "MeshCore needs Bluetooth to communicate with your LoRa radio device."
+        NSBluetoothPeripheralUsageDescription: "MeshCore needs Bluetooth to communicate with your LoRa radio device."
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.meshcore.app
+        PRODUCT_NAME: MeshCore
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: 1
+        SWIFT_VERSION: "5.9"
+        TARGETED_DEVICE_FAMILY: "1,2"
+        INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+
+  MeshCoreApple-macOS:
+    type: application
+    platform: macOS
+    sources:
+      - path: Shared
+    dependencies:
+      - package: MeshCoreKit
+    info:
+      path: macOS/Info.plist
+      properties:
+        CFBundleDisplayName: MeshCore
+        NSBluetoothAlwaysUsageDescription: "MeshCore needs Bluetooth to communicate with your LoRa radio device."
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.meshcore.app
+        PRODUCT_NAME: MeshCore
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: 1
+        SWIFT_VERSION: "5.9"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+
+  MeshCoreApple-watchOS:
+    type: application
+    platform: watchOS
+    sources:
+      - path: Shared
+      - path: watchOS/Views
+    dependencies:
+      - package: MeshCoreKit
+    info:
+      path: watchOS/Info.plist
+      properties:
+        CFBundleDisplayName: MeshCore
+        UIBackgroundModes:
+          - bluetooth-central
+        NSBluetoothAlwaysUsageDescription: "MeshCore needs Bluetooth to communicate with your LoRa radio device."
+        WKApplication: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.meshcore.app.watchos
+        PRODUCT_NAME: MeshCore Watch
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: 1
+        SWIFT_VERSION: "5.9"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
