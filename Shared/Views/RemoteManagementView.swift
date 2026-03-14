@@ -35,17 +35,26 @@ struct RemoteManagementView: View {
                         .listRowBackground(MeshTheme.surface)
                     }
                 }
+                // All permission levels: device info (read-only)
                 infoSection
-                radioSection
-                timingSection
-                advertisingSection
-                securitySection
-                gpsSection
-                if contact.type == .room {
-                    roomSection
+                // Read-only and above: settings sections
+                if canRead {
+                    radioSection
+                    timingSection
+                    advertisingSection
+                    gpsSection
+                    if contact.type == .room {
+                        roomSection
+                    }
+                }
+                // Admin only: security, maintenance, CLI
+                if isAdmin {
+                    securitySection
                 }
                 maintenanceSection
-                cliTerminalSection
+                if isAdmin {
+                    cliTerminalSection
+                }
             } else {
                 loginSection
             }
@@ -83,12 +92,12 @@ struct RemoteManagementView: View {
                         .font(.headline)
                         .foregroundStyle(MeshTheme.textPrimary)
                     Spacer()
-                    Text(isAdmin ? "Admin" : "Guest")
+                    Text(permission.displayName)
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(MeshTheme.textOnAccent)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 3)
-                        .background(remoteAccent)
+                        .background(permissionBadgeColor)
                         .clipShape(Capsule())
                 }
                 Text("Managing \(contact.name) via LoRa \u{2014} commands travel over the mesh and may take a few seconds.")
@@ -126,9 +135,22 @@ struct RemoteManagementView: View {
         return false
     }
 
-    private var isAdmin: Bool {
-        if case .loggedIn(let admin) = session.loginState { return admin }
-        return false
+    private var permission: RemotePermission {
+        if case .loggedIn(let p) = session.loginState { return p }
+        return .guest
+    }
+
+    private var isAdmin: Bool { permission.isAdmin }
+    private var canEdit: Bool { permission.canEdit }
+    private var canRead: Bool { permission.canRead }
+
+    private var permissionBadgeColor: Color {
+        switch permission {
+        case .guest: return MeshTheme.textSecondary
+        case .readOnly: return .yellow
+        case .readWrite: return .blue
+        case .admin: return MeshTheme.connected
+        }
     }
 
     private func sendCLI(_ command: String) {
@@ -244,7 +266,7 @@ struct LoginSection: View {
 
     private var statusColor: Color {
         switch session.loginState {
-        case .loggedIn: MeshTheme.connected
+        case .loggedIn: permissionBadgeColor
         case .loggingIn: MeshTheme.connecting
         case .loginFailed: MeshTheme.disconnected
         case .notLoggedIn: MeshTheme.textSecondary
@@ -253,7 +275,7 @@ struct LoginSection: View {
 
     private var statusLabel: String {
         switch session.loginState {
-        case .loggedIn(let isAdmin): isAdmin ? "Admin" : "Guest"
+        case .loggedIn(let permission): permission.displayName
         case .loggingIn: "Logging in..."
         case .loginFailed: "Failed"
         case .notLoggedIn: "Not logged in"
@@ -330,7 +352,7 @@ private extension RemoteManagementView {
 
 private extension RemoteManagementView {
     var radioSection: some View {
-        RemoteRadioSection(contact: contact, session: session, sendCLI: sendCLI)
+        RemoteRadioSection(contact: contact, session: session, sendCLI: sendCLI, canEdit: canEdit)
     }
 }
 
@@ -338,6 +360,7 @@ struct RemoteRadioSection: View {
     let contact: Contact
     @ObservedObject var session: RemoteDeviceSession
     let sendCLI: (String) -> Void
+    let canEdit: Bool
 
     @State private var radioParams = ""
     @State private var txPower = ""
@@ -345,14 +368,21 @@ struct RemoteRadioSection: View {
 
     var body: some View {
         Section {
-            cliEditRow(icon: "antenna.radiowaves.left.and.right", label: "Radio (freq,bw,sf,cr)", text: $radioParams, current: session.settings["radio"])
-            cliEditRow(icon: "bolt", label: "TX Power", text: $txPower, current: session.settings["tx"])
-            CLIToggleRow(icon: "repeat", label: "Repeat Mode", settingKey: "repeat", onCommand: "set repeat on", offCommand: "set repeat off", session: session, sendCLI: sendCLI)
+            if canEdit {
+                cliEditRow(icon: "antenna.radiowaves.left.and.right", label: "Radio (freq,bw,sf,cr)", text: $radioParams, current: session.settings["radio"])
+                cliEditRow(icon: "bolt", label: "TX Power", text: $txPower, current: session.settings["tx"])
+            } else {
+                cliInfoRow(icon: "antenna.radiowaves.left.and.right", label: "Radio", value: session.settings["radio"] ?? "\u{2014}")
+                cliInfoRow(icon: "bolt", label: "TX Power", value: session.settings["tx"] ?? "\u{2014}")
+            }
+            CLIToggleRow(icon: "repeat", label: "Repeat Mode", settingKey: "repeat", onCommand: "set repeat on", offCommand: "set repeat off", session: session, sendCLI: sendCLI, canEdit: canEdit)
 
-            SaveButton(state: saveState, label: "Apply Radio Settings") {
-                if !radioParams.isEmpty { sendCLI("set radio \(radioParams)") }
-                if !txPower.isEmpty { sendCLI("set tx \(txPower)") }
-                showSaved($saveState)
+            if canEdit {
+                SaveButton(state: saveState, label: "Apply Radio Settings") {
+                    if !radioParams.isEmpty { sendCLI("set radio \(radioParams)") }
+                    if !txPower.isEmpty { sendCLI("set tx \(txPower)") }
+                    showSaved($saveState)
+                }
             }
         } header: {
             Text("Radio Configuration")
@@ -369,7 +399,7 @@ struct RemoteRadioSection: View {
 
 private extension RemoteManagementView {
     var timingSection: some View {
-        RemoteTimingSection(contact: contact, session: session, sendCLI: sendCLI)
+        RemoteTimingSection(contact: contact, session: session, sendCLI: sendCLI, canEdit: canEdit)
     }
 }
 
@@ -377,6 +407,7 @@ struct RemoteTimingSection: View {
     let contact: Contact
     @ObservedObject var session: RemoteDeviceSession
     let sendCLI: (String) -> Void
+    let canEdit: Bool
 
     @State private var airtimeFactor = ""
     @State private var rxDelay = ""
@@ -397,20 +428,23 @@ struct RemoteTimingSection: View {
             cliEditRow(icon: "waveform.badge.exclamationmark", label: "Interference Thresh", text: $intThresh, current: session.settings["int.thresh"])
             cliEditRow(icon: "dial.low", label: "AGC Reset Interval", text: $agcReset, current: session.settings["agc.reset.interval"])
 
-            SaveButton(state: saveState, label: "Apply Timing") {
-                if !airtimeFactor.isEmpty { sendCLI("set af \(airtimeFactor)") }
-                if !rxDelay.isEmpty { sendCLI("set rxdelay \(rxDelay)") }
-                if !txDelay.isEmpty { sendCLI("set txdelay \(txDelay)") }
-                if !directTxDelay.isEmpty { sendCLI("set direct.txdelay \(directTxDelay)") }
-                if !floodMax.isEmpty { sendCLI("set flood.max \(floodMax)") }
-                if !intThresh.isEmpty { sendCLI("set int.thresh \(intThresh)") }
-                if !agcReset.isEmpty { sendCLI("set agc.reset.interval \(agcReset)") }
-                showSaved($saveState)
+            if canEdit {
+                SaveButton(state: saveState, label: "Apply Timing") {
+                    if !airtimeFactor.isEmpty { sendCLI("set af \(airtimeFactor)") }
+                    if !rxDelay.isEmpty { sendCLI("set rxdelay \(rxDelay)") }
+                    if !txDelay.isEmpty { sendCLI("set txdelay \(txDelay)") }
+                    if !directTxDelay.isEmpty { sendCLI("set direct.txdelay \(directTxDelay)") }
+                    if !floodMax.isEmpty { sendCLI("set flood.max \(floodMax)") }
+                    if !intThresh.isEmpty { sendCLI("set int.thresh \(intThresh)") }
+                    if !agcReset.isEmpty { sendCLI("set agc.reset.interval \(agcReset)") }
+                    showSaved($saveState)
+                }
             }
         } header: {
             Text("Timing & Performance")
                 .foregroundStyle(MeshTheme.textSecondary)
         }
+        .disabled(!canEdit)
     }
 }
 
@@ -418,7 +452,7 @@ struct RemoteTimingSection: View {
 
 private extension RemoteManagementView {
     var advertisingSection: some View {
-        RemoteAdvertSection(contact: contact, session: session, sendCLI: sendCLI)
+        RemoteAdvertSection(contact: contact, session: session, sendCLI: sendCLI, canEdit: canEdit)
     }
 }
 
@@ -426,6 +460,7 @@ struct RemoteAdvertSection: View {
     let contact: Contact
     @ObservedObject var session: RemoteDeviceSession
     let sendCLI: (String) -> Void
+    let canEdit: Bool
 
     @State private var name = ""
     @State private var lat = ""
@@ -443,34 +478,37 @@ struct RemoteAdvertSection: View {
             cliEditRow(icon: "person.crop.rectangle", label: "Owner Info", text: $ownerInfo, current: session.settings["owner.info"])
             cliEditRow(icon: "clock.arrow.circlepath", label: "Advert Interval (min)", text: $advertInterval, current: session.settings["advert.interval"])
             cliEditRow(icon: "dot.radiowaves.left.and.right", label: "Flood Advert (hrs)", text: $floodAdvertInterval, current: session.settings["flood.advert.interval"])
-            CLIToggleRow(icon: "checkmark.message", label: "Multi-ACKs", settingKey: "multi.acks", onCommand: "set multi.acks 1", offCommand: "set multi.acks 0", session: session, sendCLI: sendCLI)
+            CLIToggleRow(icon: "checkmark.message", label: "Multi-ACKs", settingKey: "multi.acks", onCommand: "set multi.acks 1", offCommand: "set multi.acks 0", session: session, sendCLI: sendCLI, canEdit: canEdit)
 
-            HStack(spacing: 12) {
-                SaveButton(state: saveState, label: "Save Advertising") {
-                    if !name.isEmpty { sendCLI("set name \(name)") }
-                    if !lat.isEmpty { sendCLI("set lat \(lat)") }
-                    if !lon.isEmpty { sendCLI("set lon \(lon)") }
-                    if !ownerInfo.isEmpty { sendCLI("set owner.info \(ownerInfo)") }
-                    if !advertInterval.isEmpty { sendCLI("set advert.interval \(advertInterval)") }
-                    if !floodAdvertInterval.isEmpty { sendCLI("set flood.advert.interval \(floodAdvertInterval)") }
-                    showSaved($saveState)
-                }
+            if canEdit {
+                HStack(spacing: 12) {
+                    SaveButton(state: saveState, label: "Save Advertising") {
+                        if !name.isEmpty { sendCLI("set name \(name)") }
+                        if !lat.isEmpty { sendCLI("set lat \(lat)") }
+                        if !lon.isEmpty { sendCLI("set lon \(lon)") }
+                        if !ownerInfo.isEmpty { sendCLI("set owner.info \(ownerInfo)") }
+                        if !advertInterval.isEmpty { sendCLI("set advert.interval \(advertInterval)") }
+                        if !floodAdvertInterval.isEmpty { sendCLI("set flood.advert.interval \(floodAdvertInterval)") }
+                        showSaved($saveState)
+                    }
 
-                Spacer()
+                    Spacer()
 
-                Button {
-                    sendCLI("advert")
-                } label: {
-                    Label("Advertise", systemImage: "dot.radiowaves.left.and.right")
-                        .foregroundStyle(MeshTheme.accentFallback)
-                }
+                    Button {
+                        sendCLI("advert")
+                    } label: {
+                        Label("Advertise", systemImage: "dot.radiowaves.left.and.right")
+                            .foregroundStyle(MeshTheme.accentFallback)
+                    }
                 .buttonStyle(.plain)
                 .contentShape(Rectangle())
+                }
             }
         } header: {
             Text("Advertising")
                 .foregroundStyle(MeshTheme.textSecondary)
         }
+        .disabled(!canEdit)
     }
 }
 
@@ -478,7 +516,7 @@ struct RemoteAdvertSection: View {
 
 private extension RemoteManagementView {
     var securitySection: some View {
-        RemoteSecuritySection(contact: contact, session: session, sendCLI: sendCLI, isAdmin: isAdmin)
+        RemoteSecuritySection(contact: contact, session: session, sendCLI: sendCLI, permission: permission)
     }
 }
 
@@ -486,14 +524,14 @@ struct RemoteSecuritySection: View {
     let contact: Contact
     @ObservedObject var session: RemoteDeviceSession
     let sendCLI: (String) -> Void
-    let isAdmin: Bool
+    let permission: RemotePermission
 
     @State private var adminPassword = ""
     @State private var guestPassword = ""
 
     var body: some View {
         Section {
-            if isAdmin {
+            if permission.isAdmin {
                 HStack {
                     Image(systemName: "lock.shield")
                         .foregroundStyle(MeshTheme.accentFallback)
@@ -581,8 +619,9 @@ struct RemoteSecuritySection: View {
 private extension RemoteManagementView {
     var gpsSection: some View {
         Section {
-            CLIToggleRow(icon: "location.circle", label: "GPS", settingKey: "gps", onCommand: "gps on", offCommand: "gps off", session: session, sendCLI: sendCLI)
+            CLIToggleRow(icon: "location.circle", label: "GPS", settingKey: "gps", onCommand: "gps on", offCommand: "gps off", session: session, sendCLI: sendCLI, canEdit: canEdit)
 
+            if canEdit {
             HStack(spacing: 12) {
                 Button {
                     sendCLI("gps sync")
@@ -622,6 +661,7 @@ private extension RemoteManagementView {
                 #endif
             }
             .listRowBackground(MeshTheme.surface)
+            }
         } header: {
             Text("GPS")
                 .foregroundStyle(MeshTheme.textSecondary)
@@ -633,17 +673,18 @@ private extension RemoteManagementView {
 
 private extension RemoteManagementView {
     var roomSection: some View {
-        RemoteRoomSection(session: session, sendCLI: sendCLI)
+        RemoteRoomSection(session: session, sendCLI: sendCLI, canEdit: canEdit)
     }
 }
 
 struct RemoteRoomSection: View {
     @ObservedObject var session: RemoteDeviceSession
     let sendCLI: (String) -> Void
+    let canEdit: Bool
 
     var body: some View {
         Section {
-            CLIToggleRow(icon: "eye", label: "Allow Read-Only", settingKey: "allow.read.only", onCommand: "set allow.read.only on", offCommand: "set allow.read.only off", session: session, sendCLI: sendCLI)
+            CLIToggleRow(icon: "eye", label: "Allow Read-Only", settingKey: "allow.read.only", onCommand: "set allow.read.only on", offCommand: "set allow.read.only off", session: session, sendCLI: sendCLI, canEdit: canEdit)
         } header: {
             Text("Room Server")
                 .foregroundStyle(MeshTheme.textSecondary)
@@ -655,35 +696,91 @@ struct RemoteRoomSection: View {
 
 private extension RemoteManagementView {
     var maintenanceSection: some View {
-        RemoteMaintenanceSection(session: session, sendCLI: sendCLI, isAdmin: isAdmin)
+        RemoteMaintenanceSection(session: session, sendCLI: sendCLI, permission: permission)
     }
 }
 
 struct RemoteMaintenanceSection: View {
     @ObservedObject var session: RemoteDeviceSession
     let sendCLI: (String) -> Void
-    let isAdmin: Bool
+    let permission: RemotePermission
 
     @State private var showRebootConfirm = false
     @State private var adcMultiplier = ""
 
     var body: some View {
         Section {
-            CLIToggleRow(icon: "leaf", label: "Power Saving", settingKey: "powersaving", onCommand: "powersaving on", offCommand: "powersaving off", session: session, sendCLI: sendCLI)
+            CLIToggleRow(icon: "leaf", label: "Power Saving", settingKey: "powersaving", onCommand: "powersaving on", offCommand: "powersaving off", session: session, sendCLI: sendCLI, canEdit: permission.canEdit)
 
-            cliEditRow(icon: "bolt.batteryblock", label: "ADC Multiplier", text: $adcMultiplier, current: session.settings["adc.multiplier"])
+            if permission.canEdit {
+                cliEditRow(icon: "bolt.batteryblock", label: "ADC Multiplier", text: $adcMultiplier, current: session.settings["adc.multiplier"])
 
-            if !adcMultiplier.isEmpty {
+                if !adcMultiplier.isEmpty {
+                    Button {
+                        sendCLI("set adc.multiplier \(adcMultiplier)")
+                        adcMultiplier = ""
+                    } label: {
+                        HStack {
+                            Image(systemName: "checkmark.circle")
+                                .foregroundStyle(MeshTheme.accentFallback)
+                                .frame(width: 24)
+                            Text("Apply ADC Multiplier")
+                                .foregroundStyle(MeshTheme.accentFallback)
+                            Spacer()
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .listRowBackground(MeshTheme.surface)
+                }
+            }
+
+            if permission.isAdmin {
+                // Region management
                 Button {
-                    sendCLI("set adc.multiplier \(adcMultiplier)")
-                    adcMultiplier = ""
+                    sendCLI("region")
                 } label: {
                     HStack {
-                        Image(systemName: "checkmark.circle")
+                        Image(systemName: "map")
                             .foregroundStyle(MeshTheme.accentFallback)
                             .frame(width: 24)
-                        Text("Apply ADC Multiplier")
+                        Text("List Regions")
                             .foregroundStyle(MeshTheme.accentFallback)
+                        Spacer()
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .listRowBackground(MeshTheme.surface)
+
+                // Logging
+                HStack(spacing: 12) {
+                    Button { sendCLI("log start") } label: {
+                        Text("Start Log").foregroundStyle(MeshTheme.accentFallback)
+                    }
+                    .buttonStyle(.plain)
+
+                    Button { sendCLI("log stop") } label: {
+                        Text("Stop Log").foregroundStyle(MeshTheme.textSecondary)
+                    }
+                    .buttonStyle(.plain)
+
+                    Button { sendCLI("log") } label: {
+                        Text("View Log").foregroundStyle(MeshTheme.accentFallback)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .listRowBackground(MeshTheme.surface)
+
+                Button {
+                    sendCLI("clear stats")
+                } label: {
+                    HStack {
+                        Image(systemName: "chart.bar.xaxis")
+                            .foregroundStyle(.orange)
+                            .frame(width: 24)
+                        Text("Clear Stats")
+                            .foregroundStyle(.orange)
                         Spacer()
                     }
                     .contentShape(Rectangle())
@@ -692,59 +789,7 @@ struct RemoteMaintenanceSection: View {
                 .listRowBackground(MeshTheme.surface)
             }
 
-            // Region management
-            Button {
-                sendCLI("region")
-            } label: {
-                HStack {
-                    Image(systemName: "map")
-                        .foregroundStyle(MeshTheme.accentFallback)
-                        .frame(width: 24)
-                    Text("List Regions")
-                        .foregroundStyle(MeshTheme.accentFallback)
-                    Spacer()
-                }
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .listRowBackground(MeshTheme.surface)
-
-            // Logging
-            HStack(spacing: 12) {
-                Button { sendCLI("log start") } label: {
-                    Text("Start Log").foregroundStyle(MeshTheme.accentFallback)
-                }
-                .buttonStyle(.plain)
-
-                Button { sendCLI("log stop") } label: {
-                    Text("Stop Log").foregroundStyle(MeshTheme.textSecondary)
-                }
-                .buttonStyle(.plain)
-
-                Button { sendCLI("log") } label: {
-                    Text("View Log").foregroundStyle(MeshTheme.accentFallback)
-                }
-                .buttonStyle(.plain)
-            }
-            .listRowBackground(MeshTheme.surface)
-
-            Button {
-                sendCLI("clear stats")
-            } label: {
-                HStack {
-                    Image(systemName: "chart.bar.xaxis")
-                        .foregroundStyle(.orange)
-                        .frame(width: 24)
-                    Text("Clear Stats")
-                        .foregroundStyle(.orange)
-                    Spacer()
-                }
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .listRowBackground(MeshTheme.surface)
-
-            if isAdmin {
+            if permission.isAdmin {
                 Button {
                     showRebootConfirm = true
                 } label: {
@@ -989,6 +1034,7 @@ struct CLIToggleRow: View {
     let offCommand: String
     @ObservedObject var session: RemoteDeviceSession
     let sendCLI: (String) -> Void
+    var canEdit: Bool = true
 
     private var isOn: Bool? {
         guard let value = session.settings[settingKey]?.lowercased() else { return nil }
@@ -1005,33 +1051,38 @@ struct CLIToggleRow: View {
             Text(label)
                 .foregroundStyle(MeshTheme.textPrimary)
             Spacer()
-            HStack(spacing: 0) {
-                Button {
-                    sendCLI(onCommand)
-                } label: {
-                    Text("On")
-                        .font(.caption.weight(.medium))
-                        .foregroundStyle(isOn == true ? MeshTheme.textOnAccent : MeshTheme.textSecondary)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 5)
-                        .background(isOn == true ? MeshTheme.connected : Color.clear)
-                }
-                .buttonStyle(.plain)
+            if canEdit {
+                HStack(spacing: 0) {
+                    Button {
+                        sendCLI(onCommand)
+                    } label: {
+                        Text("On")
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(isOn == true ? MeshTheme.textOnAccent : MeshTheme.textSecondary)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 5)
+                            .background(isOn == true ? MeshTheme.connected : Color.clear)
+                    }
+                    .buttonStyle(.plain)
 
-                Button {
-                    sendCLI(offCommand)
-                } label: {
-                    Text("Off")
-                        .font(.caption.weight(.medium))
-                        .foregroundStyle(isOn == false ? MeshTheme.textOnAccent : MeshTheme.textSecondary)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 5)
-                        .background(isOn == false ? MeshTheme.disconnected : Color.clear)
+                    Button {
+                        sendCLI(offCommand)
+                    } label: {
+                        Text("Off")
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(isOn == false ? MeshTheme.textOnAccent : MeshTheme.textSecondary)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 5)
+                            .background(isOn == false ? MeshTheme.disconnected : Color.clear)
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
+                .background(MeshTheme.background)
+                .clipShape(Capsule())
+            } else {
+                Text(isOn == true ? "On" : isOn == false ? "Off" : "\u{2014}")
+                    .foregroundStyle(MeshTheme.textSecondary)
             }
-            .background(MeshTheme.background)
-            .clipShape(Capsule())
         }
         .listRowBackground(MeshTheme.surface)
     }

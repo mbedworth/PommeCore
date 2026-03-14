@@ -1,10 +1,36 @@
 import Foundation
 
+/// Permission levels for remote device management.
+public enum RemotePermission: Int, Comparable, Sendable {
+    case guest = 0
+    case readOnly = 1
+    case readWrite = 2
+    case admin = 3
+
+    public var displayName: String {
+        switch self {
+        case .guest: return "Guest"
+        case .readOnly: return "Read Only"
+        case .readWrite: return "Editor"
+        case .admin: return "Admin"
+        }
+    }
+
+    public var isAdmin: Bool { self == .admin }
+    public var canEdit: Bool { self >= .readWrite }
+    public var canRead: Bool { self >= .readOnly }
+    public var canPost: Bool { self >= .readWrite }
+
+    public static func < (lhs: RemotePermission, rhs: RemotePermission) -> Bool {
+        lhs.rawValue < rhs.rawValue
+    }
+}
+
 /// Login state for a remote device management session.
 public enum RemoteLoginState: Sendable {
     case notLoggedIn
     case loggingIn
-    case loggedIn(isAdmin: Bool)
+    case loggedIn(permission: RemotePermission)
     case loginFailed(message: String)
 }
 

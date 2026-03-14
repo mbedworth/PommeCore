@@ -264,13 +264,13 @@ struct ContactListView: View {
         if contact.type == .repeater || contact.type == .room {
             let session = viewModel.remoteSession(for: contact)
             switch session.loginState {
-            case .loggedIn(let isAdmin):
-                Text(isAdmin ? "Admin" : "Guest")
+            case .loggedIn(let permission):
+                Text(permission.displayName)
                     .font(.caption2.weight(.medium))
                     .foregroundStyle(MeshTheme.textOnAccent)
                     .padding(.horizontal, 5)
                     .padding(.vertical, 1)
-                    .background(MeshTheme.connected.opacity(0.8))
+                    .background(permissionBadgeColor(permission).opacity(0.8))
                     .clipShape(Capsule())
             default:
                 EmptyView()
@@ -294,15 +294,15 @@ struct ContactListView: View {
     @ViewBuilder
     private func lastMessagePreview(for contact: Contact) -> some View {
         if (contact.type == .repeater || contact.type == .room),
-           case .loggedIn(let isAdmin) = viewModel.remoteSession(for: contact).loginState {
+           case .loggedIn(let permission) = viewModel.remoteSession(for: contact).loginState {
             let session = viewModel.remoteSession(for: contact)
             if let ver = session.settings["ver"], !ver.isEmpty {
-                Text("Connected \u{2014} \(isAdmin ? "Admin" : "Guest") \u{00B7} \(ver)")
+                Text("Connected \u{2014} \(permission.displayName) \u{00B7} \(ver)")
                     .font(.caption)
                     .foregroundStyle(MeshTheme.connected)
                     .lineLimit(1)
             } else {
-                Text("Connected \u{2014} \(isAdmin ? "Admin" : "Guest")")
+                Text("Connected \u{2014} \(permission.displayName)")
                     .font(.caption)
                     .foregroundStyle(MeshTheme.connected)
             }
@@ -351,6 +351,15 @@ struct ContactListView: View {
         case .connecting: "Connecting..."
         case .scanning: "Scanning..."
         case .disconnected: "Disconnected"
+        }
+    }
+
+    private func permissionBadgeColor(_ permission: RemotePermission) -> Color {
+        switch permission {
+        case .guest: return MeshTheme.textSecondary
+        case .readOnly: return .yellow
+        case .readWrite: return .blue
+        case .admin: return MeshTheme.connected
         }
     }
 }

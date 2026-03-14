@@ -29,7 +29,7 @@ public enum FrameParser {
         case sendConfirmed(ackCode: UInt32, roundTripMs: UInt32)  // PUSH_CODE_SEND_CONFIRMED (0x82)
         case msgWaiting                                // PUSH_CODE_MSG_WAITING (0x83)
         case advert(Contact)                           // PUSH_CODE_ADVERT (0x80)
-        case loginSuccess(isAdmin: Bool)               // PUSH_CODE_LOGIN_SUCCESS (0x85)
+        case loginSuccess(permissionLevel: Int)         // PUSH_CODE_LOGIN_SUCCESS (0x85)
         case loginFail                                 // PUSH_CODE_LOGIN_FAIL (0x86)
         case unknown(type: UInt8, payload: Data)
     }
@@ -96,9 +96,9 @@ public enum FrameParser {
                     return .msgWaiting
                 case .loginSuccess:
                     let permissions = payload.first ?? 0
-                    let isAdmin = (permissions & 0x01) != 0
-                    logger.info("LoginSuccess: isAdmin=\(isAdmin)")
-                    return .loginSuccess(isAdmin: isAdmin)
+                    let permissionLevel = Int(permissions & 0x03)
+                    logger.info("LoginSuccess: permissionLevel=\(permissionLevel)")
+                    return .loginSuccess(permissionLevel: permissionLevel)
                 case .loginFail:
                     logger.info("LoginFail")
                     return .loginFail
