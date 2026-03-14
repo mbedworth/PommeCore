@@ -963,6 +963,7 @@ final class MeshCoreViewModel: ObservableObject {
         case .traceData(let result):
             Self.logger.info("PUSH TraceData: tag=\(result.tag) hops=\(result.hops.count)")
             lastTraceResult = result
+            pendingTraceTag = nil
 
         case .telemetryResponse(let senderKey, let readings):
             Self.logger.info("PUSH Telemetry: \(readings.count) readings from \(senderKey.prefix(6).map { String(format: "%02x", $0) }.joined())")
@@ -1498,7 +1499,10 @@ final class MeshCoreViewModel: ObservableObject {
         let tag = UInt32.random(in: 0..<UInt32.max)
         pendingTraceTag = tag
         lastTraceResult = nil
-        let frame = MeshCoreProtocol.buildSendTracePath(outPath: contact.outPath, tag: tag)
+        // Only send the actual path bytes (outPathLen), not zero-padded data
+        let actualPathLen = Int(contact.outPathLen)
+        let pathData = contact.outPath.prefix(actualPathLen)
+        let frame = MeshCoreProtocol.buildSendTracePath(outPath: Data(pathData), tag: tag)
         sendCommand(frame, label: "TRACE_PATH")
 
         // Timeout after 15 seconds
@@ -1517,9 +1521,27 @@ final class MeshCoreViewModel: ObservableObject {
 
     /// Request status from a remote device (repeater/sensor).
     func requestStatus(for contact: Contact) {
-        pendingStatusKey = contact.publicKeyPrefix
+        // Contextual messaging: status requests are best supported by repeaters, room servers, and sensors
+        if contact.type == .chat {
+            Self.logger.info("Status request to chat contact — may not respond")
+        }
+
+        let key = contact.publicKeyPrefix
+        pendingStatusKey = key
         let frame = MeshCoreProtocol.buildSendStatusReq(recipientPublicKey: contact.publicKey)
         sendCommand(frame, label: "STATUS_REQ")
+
+        // Timeout after 15 seconds
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 15_000_000_000)
+            guard let self, self.pendingStatusKey == key else { return }
+            self.pendingStatusKey = nil
+            if self.statusByContact[key] == nil {
+                self.lastErrorMessage = contact.type == .chat
+                    ? "No status response — status requests are only supported by repeaters, room servers, and sensors."
+                    : "No status response — the device may be out of range or powered off."
+            }
+        }
     }
 
     /// Request telemetry from a sensor contact.
@@ -1535,7 +1557,15 @@ final class MeshCoreViewModel: ObservableObject {
             guard let self, self.pendingTelemetryKey == key else { return }
             self.pendingTelemetryKey = nil
             if self.telemetryByContact[key] == nil {
-                self.lastErrorMessage = "No telemetry response — the node may not support telemetry or is out of range."
+                // Contextual timeout message based on node type
+                switch contact.type {
+                case .chat:
+                    self.lastErrorMessage = "No telemetry response — telemetry is typically only available from sensor nodes."
+                case .room:
+                    self.lastErrorMessage = "No telemetry response — room servers don't typically support telemetry."
+                default:
+                    self.lastErrorMessage = "No telemetry response — the node may not support telemetry or is out of range."
+                }
             }
         }
     }

@@ -373,9 +373,10 @@ public enum MeshCoreProtocol {
     }
 
     /// CMD_GET_ADVERT_PATH (code 42) — get last known path to a contact.
-    /// Frame: code(1) pub_key(32)
+    /// Frame: code(1) reserved(1) pub_key(32) = 34 bytes total
     public static func buildGetAdvertPath(publicKey: Data) -> Data {
         var frame = Data([MeshCoreCommand.getAdvertPath.rawValue])
+        frame.append(0x00) // reserved byte
         var key = publicKey.prefix(32)
         if key.count < 32 {
             key.append(Data(repeating: 0, count: 32 - key.count))
