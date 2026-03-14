@@ -798,6 +798,20 @@ struct DeviceInfoPopover: View {
             } header: {
                 Text("Radio").foregroundStyle(MeshTheme.textSecondary)
             }
+
+            Section {
+                Button(role: .destructive) {
+                    viewModel.disconnect()
+                } label: {
+                    HStack {
+                        Image(systemName: "wifi.slash")
+                        Text("Disconnect")
+                        Spacer()
+                    }
+                    .foregroundStyle(.red)
+                }
+                .listRowBackground(MeshTheme.surface)
+            }
         }
         .meshListStyle()
         .navigationTitle("Device Info")
