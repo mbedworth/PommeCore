@@ -9,7 +9,7 @@ import MeshCoreKit
 
 @MainActor
 final class MeshCoreViewModel: ObservableObject {
-    nonisolated(unsafe) private static let logger = Logger(subsystem: "com.meshcore", category: "ViewModel")
+    private static let logger = Logger(subsystem: "com.meshcore", category: "ViewModel")
 
     @Published var contacts: [Contact] = []
     @Published var selectedContact: Contact?
@@ -111,13 +111,16 @@ final class MeshCoreViewModel: ObservableObject {
     @Published var allowedRepeatFreqRanges: [FrequencyRange] = []
 
     /// Active trace route tag for correlating responses.
-    private var pendingTraceTag: UInt32?
+    @Published private(set) var pendingTraceTag: UInt32?
 
     /// Contact key for which we're awaiting an advert path response.
-    private var pendingAdvertPathKey: Data?
+    @Published private(set) var pendingAdvertPathKey: Data?
 
     /// Contact key for which we're awaiting a status response.
-    private var pendingStatusKey: Data?
+    @Published private(set) var pendingStatusKey: Data?
+
+    /// Contact key for which we're awaiting a telemetry response.
+    @Published private(set) var pendingTelemetryKey: Data?
 
     init() {
         setupSubscriptions()
@@ -260,6 +263,7 @@ final class MeshCoreViewModel: ObservableObject {
                     self.pendingTraceTag = nil
                     self.pendingStatusKey = nil
                     self.pendingAdvertPathKey = nil
+                    self.pendingTelemetryKey = nil
                     self.allowedRepeatFreqRanges = []
                     // Mark pending outgoing messages as failed
                     for (contactKey, messages) in self.messagesByContact {
@@ -941,6 +945,7 @@ final class MeshCoreViewModel: ObservableObject {
         case .telemetryResponse(let senderKey, let readings):
             Self.logger.info("PUSH Telemetry: \(readings.count) readings from \(senderKey.prefix(6).map { String(format: "%02x", $0) }.joined())")
             telemetryByContact[senderKey] = readings
+            if pendingTelemetryKey == senderKey { pendingTelemetryKey = nil }
 
         case .controlData(let snr, let rssi, let pathLen, let payload):
             Self.logger.info("PUSH ControlData: snr=\(snr) rssi=\(rssi) pathLen=\(pathLen)")
@@ -1445,13 +1450,15 @@ final class MeshCoreViewModel: ObservableObject {
     /// Request telemetry from a sensor contact.
     func requestTelemetry(for contact: Contact) {
         let key = contact.publicKeyPrefix
+        pendingTelemetryKey = key
         let frame = MeshCoreProtocol.buildSendTelemetryReq(recipientPublicKey: contact.publicKey)
         sendCommand(frame, label: "TELEMETRY_REQ")
 
         // Timeout after 15 seconds
         Task { @MainActor [weak self] in
             try? await Task.sleep(nanoseconds: 15_000_000_000)
-            guard let self else { return }
+            guard let self, self.pendingTelemetryKey == key else { return }
+            self.pendingTelemetryKey = nil
             if self.telemetryByContact[key] == nil {
                 self.lastErrorMessage = "No telemetry response — the node may not support telemetry or is out of range."
             }
