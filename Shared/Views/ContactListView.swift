@@ -13,6 +13,7 @@ struct ContactListView: View {
     @State private var showResetConfirmation = false
     @State private var detailContact: Contact?
     @State private var showChannelSheet = false
+    @State private var showDeviceInfo = false
 
     /// Public Channel virtual contact key (channel 0).
     private let publicChannelKey = Data([0x00 as UInt8])
@@ -85,7 +86,11 @@ struct ContactListView: View {
     private var connectionSection: some View {
         Section {
             Button {
-                showScanner = true
+                if viewModel.connectionState == .ready || viewModel.connectionState == .connected {
+                    showDeviceInfo = true
+                } else {
+                    showScanner = true
+                }
             } label: {
                 HStack {
                     Circle()
@@ -110,6 +115,19 @@ struct ContactListView: View {
             }
             .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
+        }
+        .sheet(isPresented: $showDeviceInfo) {
+            NavigationStack {
+                DeviceInfoPopover()
+                    .environmentObject(viewModel)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Done") { showDeviceInfo = false }
+                        }
+                    }
+            }
+            .meshTheme()
+            .frame(minWidth: 360, minHeight: 300)
         }
     }
 

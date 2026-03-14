@@ -23,11 +23,6 @@
       "idiom" : "universal",
       "platform" : "watchos",
       "size" : "1024x1024"
-    },
-    {
-      "filename" : "AppIcon.png",
-      "idiom" : "universal",
-      "size" : "1024x1024"
     }
   ],
   "info" : {

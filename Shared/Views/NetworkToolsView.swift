@@ -401,75 +401,57 @@ struct ContactDetailSheet: View {
     @EnvironmentObject var viewModel: MeshCoreViewModel
     @Environment(\.dismiss) private var dismiss
 
+    private var isTracePending: Bool { viewModel.pendingTraceTag != nil }
+    private var isStatusPending: Bool { viewModel.pendingStatusKey == contact.publicKeyPrefix }
+    private var isTelemetryPending: Bool { viewModel.pendingTelemetryKey == contact.publicKeyPrefix }
+    private var isPathPending: Bool { viewModel.pendingAdvertPathKey == contact.publicKeyPrefix }
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 16) {
                     // Trace Route
-                    if let trace = viewModel.lastTraceResult {
+                    if isTracePending {
+                        pendingView("Tracing route to \(contact.name)...")
+                    } else if let trace = viewModel.lastTraceResult {
                         TraceRouteResultView(result: trace, contactName: contact.name)
                     }
 
                     // Status
-                    if let status = viewModel.statusByContact[contact.publicKeyPrefix] {
+                    if isStatusPending {
+                        pendingView("Requesting status from \(contact.name)...")
+                    } else if let status = viewModel.statusByContact[contact.publicKeyPrefix] {
                         StatusInfoView(status: status, contactName: contact.name)
                     }
 
                     // Telemetry
-                    if let readings = viewModel.telemetryByContact[contact.publicKeyPrefix], !readings.isEmpty {
+                    if isTelemetryPending {
+                        pendingView("Requesting telemetry from \(contact.name)...")
+                    } else if let readings = viewModel.telemetryByContact[contact.publicKeyPrefix], !readings.isEmpty {
                         TelemetryView(readings: readings, contactName: contact.name)
                     }
 
                     // Advert Path
-                    if let path = viewModel.advertPathByContact[contact.publicKeyPrefix] {
+                    if isPathPending {
+                        pendingView("Loading path info for \(contact.name)...")
+                    } else if let path = viewModel.advertPathByContact[contact.publicKeyPrefix] {
                         AdvertPathView(pathInfo: path, contactName: contact.name)
                     }
 
                     // Actions
                     VStack(spacing: 8) {
-                        Button {
+                        actionButton("Trace Route", icon: "point.topleft.down.to.point.bottomright.curvepath", pending: isTracePending) {
                             viewModel.traceRoute(to: contact)
-                        } label: {
-                            Label("Trace Route", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
-                                .frame(maxWidth: .infinity)
                         }
-                        .buttonStyle(.plain)
-                        .padding(.vertical, 8)
-                        .background(MeshTheme.surfaceLight)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-
-                        Button {
+                        actionButton("Request Status", icon: "info.circle", pending: isStatusPending) {
                             viewModel.requestStatus(for: contact)
-                        } label: {
-                            Label("Request Status", systemImage: "info.circle")
-                                .frame(maxWidth: .infinity)
                         }
-                        .buttonStyle(.plain)
-                        .padding(.vertical, 8)
-                        .background(MeshTheme.surfaceLight)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-
-                        Button {
+                        actionButton("Request Telemetry", icon: "chart.line.uptrend.xyaxis", pending: isTelemetryPending) {
                             viewModel.requestTelemetry(for: contact)
-                        } label: {
-                            Label("Request Telemetry", systemImage: "chart.line.uptrend.xyaxis")
-                                .frame(maxWidth: .infinity)
                         }
-                        .buttonStyle(.plain)
-                        .padding(.vertical, 8)
-                        .background(MeshTheme.surfaceLight)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-
-                        Button {
+                        actionButton("Show Path Info", icon: "map", pending: isPathPending) {
                             viewModel.requestAdvertPath(for: contact)
-                        } label: {
-                            Label("Show Path Info", systemImage: "map")
-                                .frame(maxWidth: .infinity)
                         }
-                        .buttonStyle(.plain)
-                        .padding(.vertical, 8)
-                        .background(MeshTheme.surfaceLight)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
                     }
                     .foregroundStyle(MeshTheme.accentFallback)
                 }
@@ -484,6 +466,42 @@ struct ContactDetailSheet: View {
             }
         }
         .meshTheme()
+    }
+
+    private func pendingView(_ message: String) -> some View {
+        HStack(spacing: 12) {
+            ProgressView()
+                .controlSize(.small)
+            Text(message)
+                .font(.subheadline)
+                .foregroundStyle(MeshTheme.textSecondary)
+            Spacer()
+        }
+        .padding()
+        .background(MeshTheme.surfaceLight)
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+
+    private func actionButton(_ title: String, icon: String, pending: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack {
+                if pending {
+                    ProgressView()
+                        .controlSize(.small)
+                } else {
+                    Image(systemName: icon)
+                }
+                Text(title)
+                Spacer()
+            }
+            .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.plain)
+        .disabled(pending)
+        .padding(.vertical, 8)
+        .padding(.horizontal, 12)
+        .background(MeshTheme.surfaceLight)
+        .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 }
 
@@ -709,5 +727,84 @@ private extension Data {
             index = nextIndex
         }
         self = data
+    }
+}
+
+// MARK: - Device Info Popover
+
+/// Shows basic info about the currently connected device.
+struct DeviceInfoPopover: View {
+    @EnvironmentObject var viewModel: MeshCoreViewModel
+
+    private var config: DeviceConfig { viewModel.deviceConfig }
+
+    var body: some View {
+        List {
+            Section {
+                infoRow("Device", value: viewModel.connectedDeviceName ?? "Unknown")
+                if !config.advertName.isEmpty {
+                    infoRow("Advert Name", value: config.advertName)
+                }
+                if !config.semanticVersion.isEmpty {
+                    infoRow("Firmware", value: config.semanticVersion)
+                } else if !config.firmwareVersion.isEmpty {
+                    infoRow("Firmware", value: config.firmwareVersion)
+                }
+                if !config.manufacturer.isEmpty {
+                    infoRow("Model", value: config.manufacturer)
+                }
+            } header: {
+                Text("Device").foregroundStyle(MeshTheme.textSecondary)
+            }
+
+            Section {
+                if config.batteryMillivolts > 0 {
+                    infoRow("Battery", value: String(format: "%.2fV (%d%%)", config.batteryVoltage, config.batteryPercent()))
+                }
+                if config.statsUptime > 0 {
+                    infoRow("Uptime", value: formatUptime(config.statsUptime))
+                }
+                if config.statsLastRSSI != 0 {
+                    infoRow("Last RSSI", value: "\(config.statsLastRSSI) dBm")
+                }
+                if config.statsLastSNR != 0 {
+                    infoRow("Last SNR", value: String(format: "%.1f dB", Double(config.statsLastSNR) / 4.0))
+                }
+            } header: {
+                Text("Status").foregroundStyle(MeshTheme.textSecondary)
+            }
+
+            Section {
+                infoRow("Frequency", value: String(format: "%.1f MHz", config.frequencyMHz))
+                infoRow("TX Power", value: "\(config.radioTXPower) dBm")
+                infoRow("SF/BW", value: "SF\(config.radioSpreadingFactor) / \(Int(config.bandwidthKHz)) kHz")
+                infoRow("Contacts", value: "\(viewModel.contacts.count) / \(config.maxContacts)")
+                infoRow("Channels", value: "\(viewModel.channels.count) / \(config.maxChannels)")
+            } header: {
+                Text("Radio").foregroundStyle(MeshTheme.textSecondary)
+            }
+        }
+        .meshListStyle()
+        .navigationTitle("Device Info")
+    }
+
+    private func infoRow(_ label: String, value: String) -> some View {
+        HStack {
+            Text(label)
+                .foregroundStyle(MeshTheme.textSecondary)
+            Spacer()
+            Text(value)
+                .foregroundStyle(MeshTheme.textPrimary)
+        }
+        .listRowBackground(MeshTheme.surface)
+    }
+
+    private func formatUptime(_ seconds: UInt32) -> String {
+        let d = seconds / 86400
+        let h = (seconds % 86400) / 3600
+        let m = (seconds % 3600) / 60
+        if d > 0 { return "\(d)d \(h)h \(m)m" }
+        if h > 0 { return "\(h)h \(m)m" }
+        return "\(m)m"
     }
 }
