@@ -7,15 +7,23 @@ struct RemoteManagementView: View {
     @EnvironmentObject var viewModel: MeshCoreViewModel
     @ObservedObject var session: RemoteDeviceSession
 
+    /// Accent color — teal for room servers, amber for repeaters.
+    private var remoteAccent: Color {
+        contact.type == .room
+            ? Color(red: 0.0, green: 0.7, blue: 0.8)  // teal
+            : Color(red: 1.0, green: 0.7, blue: 0.2)   // amber
+    }
+
     var body: some View {
         List {
-            loginSection
             if isLoggedIn {
+                remoteBanner
+                disconnectSection
                 if session.isFetchingSettings {
                     Section {
                         HStack(spacing: 12) {
                             ProgressView()
-                                .tint(MeshTheme.accentFallback)
+                                .tint(remoteAccent)
                             if session.fetchTotalCount > 0 {
                                 Text("Fetching settings... (\(session.fetchReceivedCount)/\(session.fetchTotalCount))")
                                     .foregroundStyle(MeshTheme.textSecondary)
@@ -38,10 +46,12 @@ struct RemoteManagementView: View {
                 }
                 maintenanceSection
                 cliTerminalSection
+            } else {
+                loginSection
             }
         }
         .meshListStyle()
-        .navigationTitle(contact.name)
+        .navigationTitle("Remote Management")
         .toolbar {
             if isLoggedIn {
                 ToolbarItem(placement: .automatic) {
@@ -49,11 +59,60 @@ struct RemoteManagementView: View {
                         viewModel.fetchRemoteSettings(for: contact)
                     } label: {
                         Image(systemName: "arrow.clockwise")
-                            .foregroundStyle(MeshTheme.accentFallback)
+                            .foregroundStyle(remoteAccent)
                     }
                     .help("Refresh all settings")
                 }
             }
+        }
+    }
+
+    @ViewBuilder
+    private var remoteBanner: some View {
+        Section {
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 8) {
+                    Image(systemName: contact.type == .room ? "server.rack" : "antenna.radiowaves.left.and.right")
+                        .foregroundStyle(remoteAccent)
+                    Text(contact.name)
+                        .font(.headline)
+                        .foregroundStyle(MeshTheme.textPrimary)
+                    Spacer()
+                    Text(isAdmin ? "Admin" : "Guest")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(MeshTheme.textOnAccent)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(remoteAccent)
+                        .clipShape(Capsule())
+                }
+                Text("You are remotely managing this device over LoRa. Changes take effect on the remote device.")
+                    .font(.caption)
+                    .foregroundStyle(MeshTheme.textSecondary)
+            }
+            .padding(.vertical, 4)
+            .listRowBackground(remoteAccent.opacity(0.1))
+        }
+    }
+
+    @ViewBuilder
+    private var disconnectSection: some View {
+        Section {
+            Button {
+                viewModel.logoutFromRemoteDevice(contact)
+            } label: {
+                HStack {
+                    Image(systemName: "rectangle.portrait.and.arrow.right")
+                        .foregroundStyle(.red)
+                        .frame(width: 24)
+                    Text("Disconnect")
+                        .foregroundStyle(.red)
+                    Spacer()
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .listRowBackground(MeshTheme.surface)
         }
     }
 

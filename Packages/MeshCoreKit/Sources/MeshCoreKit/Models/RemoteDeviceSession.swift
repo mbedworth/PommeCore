@@ -55,14 +55,29 @@ public final class RemoteDeviceSession: ObservableObject {
         cliHistory.contains(where: { !$0.isComplete })
     }
 
+    /// Number of pending (unanswered) CLI commands.
+    public var pendingCommandCount: Int {
+        cliHistory.filter({ !$0.isComplete }).count
+    }
+
     public init(contact: Contact) {
         self.contact = contact
     }
 
-    /// Record that a CLI command was sent.
-    public func commandSent(_ command: String) {
+    /// Record that a CLI command was sent. Returns the index for timeout tracking.
+    @discardableResult
+    public func commandSent(_ command: String) -> Int {
+        let idx = cliHistory.count
         cliHistory.append(CLIInteraction(command: command))
         isWaitingForResponse = true
+        return idx
+    }
+
+    /// Mark a pending command as timed out if it hasn't received a response.
+    public func timeoutCommand(at index: Int) {
+        guard index < cliHistory.count, !cliHistory[index].isComplete else { return }
+        cliHistory[index].response = "(no response)"
+        isWaitingForResponse = cliHistory.contains(where: { !$0.isComplete })
     }
 
     /// Record a CLI response received from the device.

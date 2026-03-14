@@ -459,19 +459,39 @@ final class MeshCoreViewModel: ObservableObject {
         sendCommand(frame, label: "SEND_LOGIN")
     }
 
-    /// Send a CLI command to a remote device.
+    /// Send a CLI command to a remote device. Polls for response after a delay.
     func sendCLICommand(_ command: String, to contact: Contact) {
         let trimmed = command.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
 
         let session = remoteSession(for: contact)
-        session.commandSent(trimmed)
+        let cmdIndex = session.commandSent(trimmed)
 
         let frame = MeshCoreProtocol.buildSendCLICommand(
             command: trimmed,
             recipientKeyHash: contact.publicKeyPrefix
         )
         sendCommand(frame, label: "CLI_CMD")
+
+        // Poll for response after a short delay — CLI responses go through the offline message queue
+        Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 500_000_000) // 500ms
+            guard let self else { return }
+            self.syncNextMessage()
+
+            // Timeout: if no response after 5 seconds, mark as timed out
+            try? await Task.sleep(nanoseconds: 5_000_000_000)
+            session.timeoutCommand(at: cmdIndex)
+        }
+    }
+
+    /// Log out from a remote device session.
+    func logoutFromRemoteDevice(_ contact: Contact) {
+        let session = remoteSession(for: contact)
+        session.loginState = .notLoggedIn
+        session.cliHistory = []
+        session.settings = [:]
+        session.isFetchingSettings = false
     }
 
     /// Request status from a remote device.
@@ -483,7 +503,7 @@ final class MeshCoreViewModel: ObservableObject {
     }
 
     /// Fetch all settings from a remote device sequentially after login.
-    /// Sends CLI commands with a small delay between each to avoid overwhelming the radio.
+    /// Sends each CLI command, polls for its response, and waits before sending the next.
     func fetchRemoteSettings(for contact: Contact) {
         let session = remoteSession(for: contact)
         session.isFetchingSettings = true
@@ -505,13 +525,36 @@ final class MeshCoreViewModel: ObservableObject {
         Task { [weak self] in
             for command in commands {
                 guard let self else { return }
-                self.sendCLICommand(command, to: contact)
-                try? await Task.sleep(nanoseconds: 150_000_000) // 150ms between commands
+                await self.fetchRemoteSetting(command: command, contact: contact, session: session)
             }
-            // Mark fetching complete after a delay for the last response
-            try? await Task.sleep(nanoseconds: 2_000_000_000)
             session.isFetchingSettings = false
         }
+    }
+
+    /// Send a single CLI command during settings fetch, poll for response, wait for it.
+    private func fetchRemoteSetting(command: String, contact: Contact, session: RemoteDeviceSession) async {
+        let cmdIndex = session.commandSent(command)
+
+        let frame = MeshCoreProtocol.buildSendCLICommand(
+            command: command,
+            recipientKeyHash: contact.publicKeyPrefix
+        )
+        sendCommand(frame, label: "CLI_FETCH")
+
+        // Wait for radio transmission, then poll
+        try? await Task.sleep(nanoseconds: 500_000_000) // 500ms
+        syncNextMessage()
+
+        // Wait up to 3 seconds for the response to arrive
+        for _ in 0..<6 {
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            if cmdIndex < session.cliHistory.count && session.cliHistory[cmdIndex].isComplete {
+                return
+            }
+        }
+
+        // Timeout
+        session.timeoutCommand(at: cmdIndex)
     }
 
     // MARK: - Response Handling
@@ -557,6 +600,8 @@ final class MeshCoreViewModel: ObservableObject {
             deviceConfig.manufacturer = info.manufacturer
             deviceConfig.semanticVersion = info.semanticVersion
             deviceConfig.blePIN = info.blePIN
+            deviceConfig.maxContacts = UInt16(info.maxContactsDiv2) * 2
+            deviceConfig.maxChannels = info.maxChannels
             deviceConfig.loadedSections.insert("deviceInfo")
             checkLoadingComplete()
 
@@ -735,8 +780,14 @@ final class MeshCoreViewModel: ObservableObject {
         for (key, session) in remoteSessions {
             if case .loggingIn = session.loginState {
                 session.loginState = .loggedIn(isAdmin: isAdmin)
+                // Sync stored messages first (room server pushes last 32 messages)
+                syncNextMessage()
                 if let contact = contacts.first(where: { $0.publicKeyPrefix == key }) {
-                    fetchRemoteSettings(for: contact)
+                    // Delay settings fetch to let message sync complete
+                    Task { [weak self] in
+                        try? await Task.sleep(nanoseconds: 2_000_000_000) // 2s
+                        self?.fetchRemoteSettings(for: contact)
+                    }
                 }
                 return
             }
