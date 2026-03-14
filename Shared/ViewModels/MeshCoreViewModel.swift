@@ -192,6 +192,8 @@ final class MeshCoreViewModel: ObservableObject {
                     self.deviceConfig = DeviceConfig()
                     self.forwardDeviceConfigChanges()
                     self.isSyncingMessages = false
+                    self.lastContactsSync = 0
+                    self.incomingContacts = []
                     // Mark pending outgoing messages as failed
                     for (contactKey, messages) in self.messagesByContact {
                         var updated = messages
@@ -227,7 +229,7 @@ final class MeshCoreViewModel: ObservableObject {
 
     private func onDeviceReady() {
         refreshAllSettings()
-        requestContacts()
+        requestContacts(fullSync: true)
         syncNextMessage()
     }
 
@@ -311,9 +313,14 @@ final class MeshCoreViewModel: ObservableObject {
         sendCommand(MeshCoreProtocol.buildDeviceQuery(), label: "DEVICE_QUERY")
     }
 
-    func requestContacts() {
-        sendCommand(MeshCoreProtocol.buildGetContacts(since: lastContactsSync), label: "GET_CONTACTS")
+    func requestContacts(fullSync: Bool = false) {
+        let since: UInt32 = fullSync ? 0 : lastContactsSync
+        isIncrementalContactSync = !fullSync && since > 0
+        sendCommand(MeshCoreProtocol.buildGetContacts(since: since), label: "GET_CONTACTS(since:\(since))")
     }
+
+    /// Whether the current contact sync is incremental (merge) or full (replace).
+    private var isIncrementalContactSync = false
 
     func sendAdvertise(type: UInt8 = 0) {
         sendCommand(MeshCoreProtocol.buildSendSelfAdvert(advertType: type), label: "SELF_ADVERT")
@@ -772,10 +779,24 @@ final class MeshCoreViewModel: ObservableObject {
             incomingContacts.append(contact)
 
         case .endOfContacts(let lastmod):
-            Self.logger.info("Contacts sync complete: \(self.incomingContacts.count) contacts, lastmod=\(lastmod)")
-            contacts = incomingContacts
+            Self.logger.info("Contacts sync complete: \(self.incomingContacts.count) contacts, lastmod=\(lastmod), incremental=\(self.isIncrementalContactSync)")
+            if isIncrementalContactSync && !incomingContacts.isEmpty {
+                // Incremental sync: merge updated contacts into existing list
+                for incoming in incomingContacts {
+                    if let idx = contacts.firstIndex(where: { $0.publicKeyPrefix == incoming.publicKeyPrefix }) {
+                        contacts[idx] = incoming
+                    } else {
+                        contacts.append(incoming)
+                    }
+                }
+            } else if !isIncrementalContactSync {
+                // Full sync: replace entire list
+                contacts = incomingContacts
+            }
+            // If incremental with 0 results, don't touch contacts — nothing changed
             incomingContacts = []
             lastContactsSync = lastmod
+            isIncrementalContactSync = false
 
         case .sent(let type, let expectedACK, let suggestedTimeout):
             Self.logger.info("PARSED Sent: type=\(type) expectedACK=\(expectedACK) timeout=\(suggestedTimeout)ms")
@@ -953,7 +974,8 @@ final class MeshCoreViewModel: ObservableObject {
         } else {
             contacts.append(contact)
         }
-        // Trigger a full refresh to stay in sync with device's contact table
+        // Incremental sync to pick up any other changes (e.g. path updates)
+        // This is safe because incremental sync merges, not replaces
         requestContacts()
     }
 
