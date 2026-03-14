@@ -19,6 +19,9 @@ struct ContactListView: View {
         List {
             connectionSection
             publicChannelSection
+            if !viewModel.channels.filter({ $0.index != 0 }).isEmpty {
+                channelsSection
+            }
             contactsSection
         }
         .meshListStyle()
@@ -103,6 +106,7 @@ struct ContactListView: View {
             #else
             Button {
                 viewModel.selectedContact = nil
+                viewModel.selectedChannelIndex = nil
                 viewModel.showPublicChannel = true
             } label: {
                 publicChannelRow
@@ -168,6 +172,85 @@ struct ContactListView: View {
     }
 
     @ViewBuilder
+    private var channelsSection: some View {
+        Section {
+            ForEach(viewModel.channels.filter { $0.index != 0 }) { channel in
+                #if os(watchOS)
+                NavigationLink {
+                    ChannelChatView(channelIndex: channel.index, channelName: channel.name)
+                } label: {
+                    channelRow(channel)
+                }
+                .listRowBackground(MeshTheme.surface)
+                #else
+                Button {
+                    viewModel.selectedContact = nil
+                    viewModel.showPublicChannel = false
+                    viewModel.selectedChannelIndex = channel.index
+                } label: {
+                    channelRow(channel)
+                }
+                .buttonStyle(.plain)
+                .listRowBackground(
+                    viewModel.selectedChannelIndex == channel.index
+                        ? MeshTheme.surfaceLight
+                        : MeshTheme.surface
+                )
+                #endif
+            }
+        } header: {
+            HStack {
+                Text("Channels")
+                    .foregroundStyle(MeshTheme.textSecondary)
+                if viewModel.isSyncingChannels {
+                    ProgressView()
+                        .controlSize(.mini)
+                }
+            }
+        }
+    }
+
+    private func channelRow(_ channel: MeshChannel) -> some View {
+        HStack(spacing: 12) {
+            ZStack {
+                Circle()
+                    .fill(MeshTheme.accentFallback.opacity(0.15))
+                    .frame(width: 40, height: 40)
+                Image(systemName: channel.channelType.iconName)
+                    .foregroundStyle(MeshTheme.accentFallback)
+            }
+            VStack(alignment: .leading, spacing: 2) {
+                Text("\(channel.channelType.displayPrefix)\(channel.name)")
+                    .font(.body)
+                    .foregroundStyle(MeshTheme.textPrimary)
+                let messages = viewModel.messagesByContact[Data([channel.index])] ?? []
+                if let last = messages.last {
+                    Text(last.text)
+                        .font(.caption)
+                        .foregroundStyle(MeshTheme.textSecondary)
+                        .lineLimit(1)
+                } else {
+                    Text(channel.channelType == .privateChannel ? "Private channel" : "Group channel")
+                        .font(.caption)
+                        .foregroundStyle(MeshTheme.textSecondary)
+                }
+            }
+            Spacer()
+            let count = viewModel.unreadCounts[Data([channel.index])] ?? 0
+            if count > 0 {
+                Text("\(count)")
+                    .font(.caption2.weight(.bold))
+                    .foregroundStyle(MeshTheme.textOnAccent)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(MeshTheme.accentFallback)
+                    .clipShape(Capsule())
+            }
+        }
+        .contentShape(Rectangle())
+    }
+
+    @ViewBuilder
     private var contactsSection: some View {
         Section {
             if viewModel.contacts.isEmpty {
@@ -196,6 +279,7 @@ struct ContactListView: View {
                     #else
                     Button {
                         viewModel.showPublicChannel = false
+                        viewModel.selectedChannelIndex = nil
                         viewModel.selectedContact = contact
                         viewModel.markAsRead(contact)
                     } label: {

@@ -14,6 +14,7 @@ final class MeshCoreViewModel: ObservableObject {
     @Published var contacts: [Contact] = []
     @Published var selectedContact: Contact?
     @Published var showPublicChannel = false
+    @Published var selectedChannelIndex: UInt8? = nil
     @Published var isScanning = false
     @Published var discoveredPeripherals: [DiscoveredPeripheral] = []
     @Published var connectionState: BLEConnectionState = .disconnected
@@ -69,6 +70,21 @@ final class MeshCoreViewModel: ObservableObject {
 
     /// Accumulates contacts during a sync before replacing the list.
     private var incomingContacts: [Contact] = []
+
+    /// Whether a contact sync is currently in progress (prevents clobbering displayed contacts).
+    private var isSyncingContacts = false
+
+    /// Whether the current contact sync is incremental (merge) or full (replace).
+    private var isIncrementalContactSync = false
+
+    /// Channels reported by the device.
+    @Published var channels: [MeshChannel] = []
+
+    /// Incoming channels buffer during sync.
+    private var incomingChannels: [MeshChannel] = []
+
+    /// Whether channel sync is in progress.
+    @Published var isSyncingChannels = false
 
     init() {
         setupSubscriptions()
@@ -192,8 +208,13 @@ final class MeshCoreViewModel: ObservableObject {
                     self.deviceConfig = DeviceConfig()
                     self.forwardDeviceConfigChanges()
                     self.isSyncingMessages = false
+                    self.isSyncingContacts = false
+                    self.isIncrementalContactSync = false
                     self.lastContactsSync = 0
                     self.incomingContacts = []
+                    self.channels = []
+                    self.incomingChannels = []
+                    self.isSyncingChannels = false
                     // Mark pending outgoing messages as failed
                     for (contactKey, messages) in self.messagesByContact {
                         var updated = messages
@@ -230,6 +251,8 @@ final class MeshCoreViewModel: ObservableObject {
     private func onDeviceReady() {
         refreshAllSettings()
         requestContacts(fullSync: true)
+        isSyncingChannels = true
+        incomingChannels = []
         syncNextMessage()
     }
 
@@ -316,11 +339,9 @@ final class MeshCoreViewModel: ObservableObject {
     func requestContacts(fullSync: Bool = false) {
         let since: UInt32 = fullSync ? 0 : lastContactsSync
         isIncrementalContactSync = !fullSync && since > 0
+        isSyncingContacts = true
         sendCommand(MeshCoreProtocol.buildGetContacts(since: since), label: "GET_CONTACTS(since:\(since))")
     }
-
-    /// Whether the current contact sync is incremental (merge) or full (replace).
-    private var isIncrementalContactSync = false
 
     func sendAdvertise(type: UInt8 = 0) {
         sendCommand(MeshCoreProtocol.buildSendSelfAdvert(advertType: type), label: "SELF_ADVERT")
@@ -448,13 +469,14 @@ final class MeshCoreViewModel: ObservableObject {
     }
 
     /// Import a contact from a meshcore:// URL string. Sends CMD_IMPORT_CONTACT.
+    /// The device will send contact data frames in response — no need to re-sync.
     func importContact(url: String) {
         let frame = MeshCoreProtocol.buildImportContact(url: url)
         sendCommand(frame, label: "IMPORT_CONTACT")
         // Refresh contacts after a short delay to pick up the new import
         Task { [weak self] in
             try? await Task.sleep(nanoseconds: 2_000_000_000)
-            self?.requestContacts()
+            self?.requestContacts(fullSync: true)
         }
     }
 
@@ -772,6 +794,7 @@ final class MeshCoreViewModel: ObservableObject {
         case .contactsStart(let count):
             Self.logger.info("Contacts sync starting: \(count) contacts expected")
             expectedContactCount = count
+            // Clear only the buffer, never the displayed contacts
             incomingContacts = []
 
         case .contact(let contact):
@@ -780,23 +803,28 @@ final class MeshCoreViewModel: ObservableObject {
 
         case .endOfContacts(let lastmod):
             Self.logger.info("Contacts sync complete: \(self.incomingContacts.count) contacts, lastmod=\(lastmod), incremental=\(self.isIncrementalContactSync)")
-            if isIncrementalContactSync && !incomingContacts.isEmpty {
-                // Incremental sync: merge updated contacts into existing list
-                for incoming in incomingContacts {
-                    if let idx = contacts.firstIndex(where: { $0.publicKeyPrefix == incoming.publicKeyPrefix }) {
-                        contacts[idx] = incoming
-                    } else {
-                        contacts.append(incoming)
+            if isIncrementalContactSync {
+                // Incremental sync: merge only modified contacts into existing list
+                if !incomingContacts.isEmpty {
+                    var merged = contacts
+                    for incoming in incomingContacts {
+                        if let idx = merged.firstIndex(where: { $0.publicKeyPrefix == incoming.publicKeyPrefix }) {
+                            merged[idx] = incoming
+                        } else {
+                            merged.append(incoming)
+                        }
                     }
+                    contacts = merged
                 }
-            } else if !isIncrementalContactSync {
-                // Full sync: replace entire list
+                // If 0 results, don't touch contacts — nothing changed
+            } else {
+                // Full sync: atomic swap — replace entire list at once
                 contacts = incomingContacts
             }
-            // If incremental with 0 results, don't touch contacts — nothing changed
             incomingContacts = []
             lastContactsSync = lastmod
             isIncrementalContactSync = false
+            isSyncingContacts = false
 
         case .sent(let type, let expectedACK, let suggestedTimeout):
             Self.logger.info("PARSED Sent: type=\(type) expectedACK=\(expectedACK) timeout=\(suggestedTimeout)ms")
@@ -839,6 +867,10 @@ final class MeshCoreViewModel: ObservableObject {
         case .advert(let contact):
             Self.logger.info("PUSH Advert from: \(contact.name)")
             handleAdvert(contact)
+
+        case .channelInfo(let channel):
+            Self.logger.info("Channel info: idx=\(channel.index) name='\(channel.name)' flags=\(channel.flags)")
+            handleChannelInfo(channel)
 
         case .exportedContact(let url):
             Self.logger.info("Exported contact URL: \(url)")
@@ -967,16 +999,14 @@ final class MeshCoreViewModel: ObservableObject {
     }
 
     /// Handle PUSH_CODE_ADVERT — a contact advertised on the mesh.
-    /// Update the existing contact or add a new one, then trigger a full contacts refresh.
+    /// Update the existing contact or add a new one. No need to trigger
+    /// CMD_GET_CONTACTS — the advert itself contains the full contact data.
     private func handleAdvert(_ contact: Contact) {
         if let idx = contacts.firstIndex(where: { $0.publicKeyPrefix == contact.publicKeyPrefix }) {
             contacts[idx] = contact
         } else {
             contacts.append(contact)
         }
-        // Incremental sync to pick up any other changes (e.g. path updates)
-        // This is safe because incremental sync merges, not replaces
-        requestContacts()
     }
 
     /// Handle login success — find the session that was logging in and update it.
@@ -1162,6 +1192,49 @@ final class MeshCoreViewModel: ObservableObject {
 
         default:
             Self.logger.debug("Unknown stats subtype \(subType)")
+        }
+    }
+
+    // MARK: - Channel Sync
+
+    /// Handle RESP_CODE_CHANNEL_INFO — accumulate channel metadata.
+    /// Channel info frames arrive after contacts. Once all maxChannels are received,
+    /// we finalize the channel list.
+    private func handleChannelInfo(_ channel: MeshChannel) {
+        // Preserve locally-stored secrets
+        var ch = channel
+        if let existing = channels.first(where: { $0.index == channel.index }) {
+            ch.secret = existing.secret
+        }
+        incomingChannels.append(ch)
+
+        // Check if we've received all channels (maxChannels from DeviceInfo)
+        let maxCh = deviceConfig.maxChannels
+        if maxCh > 0 && incomingChannels.count >= Int(maxCh) {
+            finalizeChannelSync()
+        }
+    }
+
+    /// Finalize channel sync — atomic swap of channel list, keeping only active channels.
+    private func finalizeChannelSync() {
+        let active = incomingChannels.filter { $0.isActive }
+        Self.logger.info("Channel sync complete: \(active.count) active channels out of \(self.incomingChannels.count) total")
+        channels = active
+        incomingChannels = []
+        isSyncingChannels = false
+    }
+
+    /// Add or update a channel on the device.
+    func addChannel(index: UInt8, name: String, secret: Data? = nil) {
+        let frame = MeshCoreProtocol.buildAddChannel(index: index, name: name, secret: secret)
+        sendCommand(frame, label: "ADD_CHANNEL(idx:\(index))")
+
+        // Update locally
+        let newChannel = MeshChannel(index: index, name: name, flags: secret != nil ? 0x01 : 0x00, secret: secret)
+        if let idx = channels.firstIndex(where: { $0.index == index }) {
+            channels[idx] = newChannel
+        } else {
+            channels.append(newChannel)
         }
     }
 
