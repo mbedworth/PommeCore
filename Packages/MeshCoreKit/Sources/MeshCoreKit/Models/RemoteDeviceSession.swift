@@ -5,7 +5,7 @@ public enum RemoteLoginState: Sendable {
     case notLoggedIn
     case loggingIn
     case loggedIn(isAdmin: Bool)
-    case loginFailed
+    case loginFailed(message: String)
 }
 
 /// A single CLI command/response interaction.
@@ -43,6 +43,9 @@ public final class RemoteDeviceSession: ObservableObject {
 
     /// Whether initial settings are being fetched after login.
     @Published public var isFetchingSettings = false
+
+    /// Whether full settings have been fetched at least once this session.
+    public var hasLoadedFullSettings = false
 
     /// Total number of settings commands sent during auto-fetch.
     @Published public var fetchTotalCount = 0

@@ -58,6 +58,9 @@ final class MeshCoreViewModel: ObservableObject {
     /// Whether the app is currently in the background (for local notifications).
     var isInBackground = false
 
+    /// Login timeout task — cancelled when login succeeds or fails.
+    private var loginTimeoutTask: Task<Void, Never>?
+
     /// Last contacts sync lastmod — for incremental sync.
     private var lastContactsSync: UInt32 = 0
 
@@ -504,6 +507,7 @@ final class MeshCoreViewModel: ObservableObject {
         session.cliHistory = []
         session.settings = [:]
         session.isFetchingSettings = false
+        session.hasLoadedFullSettings = false
     }
 
     /// Request status from a remote device.
@@ -514,8 +518,8 @@ final class MeshCoreViewModel: ObservableObject {
         sendCommand(frame, label: "STATUS_REQ")
     }
 
-    /// Fetch all settings from a remote device sequentially after login.
-    /// Sends each CLI command, polls for its response, and waits before sending the next.
+    /// Fetch all settings from a remote device sequentially.
+    /// Called when the management screen opens (not on login).
     func fetchRemoteSettings(for contact: Contact) {
         let session = remoteSession(for: contact)
         session.isFetchingSettings = true
@@ -540,6 +544,7 @@ final class MeshCoreViewModel: ObservableObject {
                 await self.fetchRemoteSetting(command: command, contact: contact, session: session)
             }
             session.isFetchingSettings = false
+            session.hasLoadedFullSettings = true
         }
     }
 
@@ -728,6 +733,28 @@ final class MeshCoreViewModel: ObservableObject {
 
     /// Handle RESP_CODE_SENT — device accepted our message. Mark as .sent and track ACK.
     private func handleSentResponse(expectedACK: UInt32, suggestedTimeoutMs: UInt32) {
+        // Check if this SENT is for a pending login attempt
+        let hasLoginPending = remoteSessions.values.contains(where: {
+            if case .loggingIn = $0.loginState { return true }
+            return false
+        })
+        if hasLoginPending {
+            let timeoutMs = UInt64(suggestedTimeoutMs) + 3000 // suggested + 3s buffer
+            loginTimeoutTask?.cancel()
+            loginTimeoutTask = Task { [weak self] in
+                try? await Task.sleep(nanoseconds: timeoutMs * 1_000_000)
+                guard !Task.isCancelled, let self else { return }
+                for (_, session) in self.remoteSessions {
+                    if case .loggingIn = session.loginState {
+                        session.loginState = .loginFailed(
+                            message: "Login timed out \u{2014} the device did not respond. Check your password and make sure the device is in range."
+                        )
+                        break
+                    }
+                }
+            }
+        }
+
         for (contactKey, messages) in messagesByContact {
             if let idx = messages.lastIndex(where: { $0.isOutgoing && $0.status == .sending }) {
                 messagesByContact[contactKey]![idx].status = .sent
@@ -789,16 +816,18 @@ final class MeshCoreViewModel: ObservableObject {
 
     /// Handle login success — find the session that was logging in and update it.
     private func handleLoginSuccess(isAdmin: Bool) {
+        loginTimeoutTask?.cancel()
+        loginTimeoutTask = nil
         for (key, session) in remoteSessions {
             if case .loggingIn = session.loginState {
                 session.loginState = .loggedIn(isAdmin: isAdmin)
                 // Sync stored messages first (room server pushes last 32 messages)
                 syncNextMessage()
                 if let contact = contacts.first(where: { $0.publicKeyPrefix == key }) {
-                    // Delay settings fetch to let message sync complete
+                    // Only fetch basic info (ver + clock) on login — full settings deferred to management screen
                     Task { [weak self] in
                         try? await Task.sleep(nanoseconds: 2_000_000_000) // 2s
-                        self?.fetchRemoteSettings(for: contact)
+                        self?.fetchBasicRemoteInfo(for: contact)
                     }
                 }
                 return
@@ -806,11 +835,30 @@ final class MeshCoreViewModel: ObservableObject {
         }
     }
 
+    /// Fetch only ver + clock from a remote device (fast, called on login).
+    func fetchBasicRemoteInfo(for contact: Contact) {
+        let session = remoteSession(for: contact)
+        let commands = ["ver", "clock"]
+        session.isFetchingSettings = true
+        session.fetchTotalCount = commands.count
+        session.fetchReceivedCount = 0
+
+        Task { [weak self] in
+            for command in commands {
+                guard let self else { return }
+                await self.fetchRemoteSetting(command: command, contact: contact, session: session)
+            }
+            session.isFetchingSettings = false
+        }
+    }
+
     /// Handle login failure.
     private func handleLoginFail() {
+        loginTimeoutTask?.cancel()
+        loginTimeoutTask = nil
         for (_, session) in remoteSessions {
             if case .loggingIn = session.loginState {
-                session.loginState = .loginFailed
+                session.loginState = .loginFailed(message: "Login failed \u{2014} incorrect password.")
                 return
             }
         }
@@ -821,7 +869,9 @@ final class MeshCoreViewModel: ObservableObject {
         // Stop login spinner if a login was in progress
         for (_, session) in remoteSessions {
             if case .loggingIn = session.loginState {
-                session.loginState = .loginFailed
+                loginTimeoutTask?.cancel()
+                loginTimeoutTask = nil
+                session.loginState = .loginFailed(message: description)
                 break
             }
         }
