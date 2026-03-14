@@ -3,6 +3,11 @@ import MeshCoreKit
 
 struct SettingsView: View {
     @EnvironmentObject var viewModel: MeshCoreViewModel
+    @AppStorage("batteryChemistry") private var batteryChemistryRaw: String = BatteryChemistry.lipo.rawValue
+
+    private var batteryChemistry: BatteryChemistry {
+        BatteryChemistry(rawValue: batteryChemistryRaw) ?? .lipo
+    }
 
     var body: some View {
         Group {
@@ -92,9 +97,34 @@ private extension SettingsView {
                 publicKeyRow
             }
             batteryRow
+            batteryChemistryPicker
         } header: {
             sectionHeader("Device Info")
         }
+    }
+
+    var batteryChemistryPicker: some View {
+        HStack {
+            Image(systemName: "bolt.batteryblock")
+                .foregroundStyle(MeshTheme.accentFallback)
+                .frame(width: 24)
+            Picker("Battery Type", selection: $batteryChemistryRaw) {
+                ForEach(BatteryChemistry.allCases) { chem in
+                    Text(chem.displayName).tag(chem.rawValue)
+                }
+            }
+            .foregroundStyle(MeshTheme.textPrimary)
+            .tint(MeshTheme.accentFallback)
+        }
+        .listRowBackground(MeshTheme.surface)
+    }
+
+    var statsBatteryDisplay: String {
+        guard config.statsBatteryMV != 0 else { return "\u{2014}" }
+        let mv = Int(config.statsBatteryMV)
+        let v = Double(mv) / 1000.0
+        let pct = batteryChemistry.profile.percentage(forMillivolts: mv)
+        return "\(String(format: "%.2fV", v)) (\(pct)%)"
     }
 
     // Fix #11: Public key with Copy button
@@ -127,7 +157,6 @@ private extension SettingsView {
         .listRowBackground(MeshTheme.surface)
     }
 
-    // Fix #9: Battery with percentage, icon, and color
     var batteryRow: some View {
         HStack {
             Image(systemName: batteryIconName)
@@ -137,7 +166,7 @@ private extension SettingsView {
                 .foregroundStyle(MeshTheme.textPrimary)
             Spacer()
             if config.batteryMillivolts > 0 {
-                Text("\(String(format: "%.2fV", config.batteryVoltage))  \(config.batteryPercent)%")
+                Text("\(String(format: "%.2fV", config.batteryVoltage)) (\(config.batteryPercent(chemistry: batteryChemistry))%)")
                     .foregroundStyle(MeshTheme.textSecondary)
             } else {
                 Text("\u{2014}")
@@ -148,7 +177,7 @@ private extension SettingsView {
     }
 
     var batteryIconName: String {
-        let pct = config.batteryPercent
+        let pct = config.batteryPercent(chemistry: batteryChemistry)
         if pct > 75 { return "battery.100" }
         if pct > 50 { return "battery.75" }
         if pct > 25 { return "battery.50" }
@@ -157,7 +186,7 @@ private extension SettingsView {
     }
 
     var batteryColor: Color {
-        let pct = config.batteryPercent
+        let pct = config.batteryPercent(chemistry: batteryChemistry)
         if pct > 50 { return .green }
         if pct > 20 { return .yellow }
         return .red
@@ -834,7 +863,7 @@ private extension SettingsView {
     var statsSection: some View {
         Section {
             // Core
-            infoRow(icon: "battery.75", label: "Battery (stats)", value: config.statsBatteryMV != 0 ? "\(config.statsBatteryMV) mV" : "\u{2014}")
+            infoRow(icon: "battery.75", label: "Battery (stats)", value: statsBatteryDisplay)
             infoRow(icon: "clock.arrow.circlepath", label: "Uptime", value: config.statsUptime > 0 ? formatUptime(config.statsUptime) : "\u{2014}")
             infoRow(icon: "exclamationmark.triangle", label: "Error Flags", value: config.statsErrorFlags > 0 ? "0x\(String(format: "%04x", config.statsErrorFlags))" : "None")
             infoRow(icon: "tray", label: "Queue Length", value: "\(config.statsQueueLength)")

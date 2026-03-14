@@ -533,6 +533,7 @@ final class MeshCoreViewModel: ObservableObject {
             "get name", "get lat", "get lon", "get owner.info",
             "get advert.interval", "get flood.advert.interval", "get multi.acks",
             "get allow.read.only",
+            "get adc.multiplier",
             "powersaving", "gps",
         ]
 
