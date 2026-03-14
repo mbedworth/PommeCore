@@ -11,6 +11,7 @@ struct ContactListView: View {
     @State private var importURLText = ""
     @State private var showShareConfirmation = false
     @State private var showResetConfirmation = false
+    @State private var detailContact: Contact?
 
     /// Public Channel virtual contact key (channel 0).
     private let publicChannelKey = Data([0x00 as UInt8])
@@ -21,6 +22,9 @@ struct ContactListView: View {
             publicChannelSection
             if !viewModel.channels.filter({ $0.index != 0 }).isEmpty {
                 channelsSection
+            }
+            if !viewModel.pendingNewContacts.isEmpty {
+                pendingContactsSection
             }
             contactsSection
         }
@@ -47,6 +51,11 @@ struct ContactListView: View {
             Button("OK", role: .cancel) {}
         } message: {
             Text("Outbound path has been reset. A new path will be discovered on next communication.")
+        }
+        .sheet(item: $detailContact) { contact in
+            ContactDetailSheet(contact: contact)
+                .environmentObject(viewModel)
+                .frame(minWidth: 360, minHeight: 400)
         }
         .onChange(of: viewModel.lastExportedURL) { url in
             if let url, !url.isEmpty {
@@ -251,6 +260,50 @@ struct ContactListView: View {
     }
 
     @ViewBuilder
+    private var pendingContactsSection: some View {
+        Section {
+            ForEach(viewModel.pendingNewContacts) { contact in
+                HStack(spacing: 12) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.orange.opacity(0.15))
+                            .frame(width: 40, height: 40)
+                        Image(systemName: contactIconName(for: contact.type))
+                            .foregroundStyle(.orange)
+                    }
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(contact.name)
+                            .font(.body)
+                            .foregroundStyle(MeshTheme.textPrimary)
+                        Text("New contact discovered")
+                            .font(.caption)
+                            .foregroundStyle(.orange)
+                    }
+                    Spacer()
+                    Button {
+                        viewModel.acceptPendingContact(contact)
+                    } label: {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(MeshTheme.connected)
+                    }
+                    .buttonStyle(.plain)
+                    Button {
+                        viewModel.rejectPendingContact(contact)
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(MeshTheme.disconnected)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .listRowBackground(MeshTheme.surface)
+            }
+        } header: {
+            Text("Pending Contacts")
+                .foregroundStyle(.orange)
+        }
+    }
+
+    @ViewBuilder
     private var contactsSection: some View {
         Section {
             if viewModel.contacts.isEmpty {
@@ -375,6 +428,12 @@ struct ContactListView: View {
             showResetConfirmation = true
         } label: {
             Label("Reset Path", systemImage: "arrow.triangle.2.circlepath")
+        }
+
+        Button {
+            detailContact = contact
+        } label: {
+            Label("Network Details", systemImage: "info.circle")
         }
 
         Divider()

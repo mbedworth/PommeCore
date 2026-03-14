@@ -22,6 +22,7 @@ struct ContentView: View {
     @EnvironmentObject var viewModel: MeshCoreViewModel
     @State private var showScanner = false
     @State private var showSettings = false
+    @State private var showDiscover = false
     @State private var showConnectionFailed = false
     @State private var previousConnectionState: BLEConnectionState = .disconnected
     @State private var hasRequestedAutoScan = false
@@ -115,6 +116,14 @@ struct ContentView: View {
                 .help("Scan for devices")
 
                 Button {
+                    showDiscover = true
+                } label: {
+                    Image(systemName: "sensor.tag.radiowaves.forward")
+                        .foregroundStyle(MeshTheme.accentFallback)
+                }
+                .help("Discover nodes")
+
+                Button {
                     showSettings = true
                 } label: {
                     Image(systemName: "gear")
@@ -143,6 +152,19 @@ struct ContentView: View {
                     .toolbar {
                         ToolbarItem(placement: .cancellationAction) {
                             Button("Done") { showSettings = false }
+                        }
+                    }
+            }
+            .meshTheme()
+            .frame(minWidth: 360, minHeight: 400)
+        }
+        .sheet(isPresented: $showDiscover) {
+            NavigationStack {
+                DiscoverView()
+                    .environmentObject(viewModel)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Done") { showDiscover = false }
                         }
                     }
             }
