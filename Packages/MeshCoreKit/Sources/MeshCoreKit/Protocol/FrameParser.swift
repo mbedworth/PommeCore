@@ -96,9 +96,21 @@ public enum FrameParser {
                 case .msgWaiting:
                     return .msgWaiting
                 case .loginSuccess:
-                    let permissions = payload.first ?? 0
-                    let permissionLevel = Int(permissions & 0x03)
-                    logger.info("LoginSuccess: permissionLevel=\(permissionLevel)")
+                    // Frame layout (after code byte):
+                    //   [0]     old_permissions (1 byte, isAdmin flag in bit 0)
+                    //   [1-6]   pub_key_prefix (6 bytes)
+                    //   [7-10]  tag (int32)
+                    //   [11]    new_permissions (v7+: 0=Guest, 1=ReadOnly, 2=ReadWrite, 3=Admin)
+                    let permissionLevel: Int
+                    if payload.count >= 12 {
+                        // v7+ firmware: use new_permissions byte (byte 11 of payload)
+                        permissionLevel = Int(payload[11])
+                    } else {
+                        // Old firmware: derive from isAdmin flag
+                        let oldPerms = payload.first ?? 0
+                        permissionLevel = (oldPerms & 1) == 1 ? 3 : 0
+                    }
+                    logger.info("LoginSuccess: permissionLevel=\(permissionLevel) (payload \(payload.count) bytes)")
                     return .loginSuccess(permissionLevel: permissionLevel)
                 case .loginFail:
                     logger.info("LoginFail")
