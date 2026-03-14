@@ -21,6 +21,7 @@ public enum MeshCoreCommand: UInt8, Sendable {
     case exportContact        = 0x11  // 17 — export contact as meshcore:// URL
     case importContact        = 0x12  // 18 — import contact from meshcore:// URL
     case reboot               = 0x13  // 19
+    case addChannel           = 0x20  // 32 — add or update a channel
     case getBattAndStorage    = 0x14  // 20
     case setTuningParams      = 0x15  // 21
     case deviceQuery          = 0x16  // 22
@@ -53,6 +54,7 @@ public enum MeshCoreResponseCode: UInt8, Sendable {
     case deviceInfo           = 0x0D  // 13
     case contactMsgRecvV3     = 0x10  // 16 — received direct message (v3)
     case channelMsgRecvV3     = 0x11  // 17 — received channel message (v3)
+    case channelInfo          = 0x12  // 18 — RESP_CODE_CHANNEL_INFO (channel metadata)
     case exportedContact      = 0x14  // 20 — exported contact URL string
     case customVars           = 0x15  // 21
     case tuningParams         = 0x17  // 23

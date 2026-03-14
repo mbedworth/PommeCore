@@ -31,6 +31,7 @@ public enum FrameParser {
         case advert(Contact)                           // PUSH_CODE_ADVERT (0x80)
         case loginSuccess(permissionLevel: Int)         // PUSH_CODE_LOGIN_SUCCESS (0x85)
         case loginFail                                 // PUSH_CODE_LOGIN_FAIL (0x86)
+        case channelInfo(MeshChannel)                 // RESP_CODE_CHANNEL_INFO (code 18)
         case exportedContact(url: String)             // RESP_CODE_EXPORTED_CONTACT (code 20)
         case unknown(type: UInt8, payload: Data)
     }
@@ -187,6 +188,9 @@ public enum FrameParser {
 
         case .channelMsgRecvV3:
             return parseChannelMsgRecvV3(payload)
+
+        case .channelInfo:
+            return parseChannelInfo(payload)
 
         case .noMoreMessages:
             return .noMoreMessages
@@ -561,6 +565,22 @@ public enum FrameParser {
             txtType: txtType
         )
         return .contactMsgRecv(message)
+    }
+
+    // MARK: - Channel Info (code 18)
+
+    /// RESP_CODE_CHANNEL_INFO (code 0x12/18) — channel metadata.
+    /// Layout: channel_idx(1) channel_name(32 null-terminated) flags(1)
+    private static func parseChannelInfo(_ data: Data) -> ParsedResponse {
+        var offset = 0
+        let channelIdx = readUInt8(data, offset: &offset)
+        let name = readFixedString(data, offset: &offset, maxLen: 32)
+        let flags = readUInt8(data, offset: &offset)
+
+        logger.info("ChannelInfo: idx=\(channelIdx) name='\(name)' flags=\(flags)")
+
+        let channel = MeshChannel(index: channelIdx, name: name, flags: flags)
+        return .channelInfo(channel)
     }
 
     // MARK: - Binary Read Helpers

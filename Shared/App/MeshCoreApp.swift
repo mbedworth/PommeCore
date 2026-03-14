@@ -58,6 +58,9 @@ struct ContentView: View {
         } detail: {
             if viewModel.showPublicChannel {
                 ChannelChatView(channelIndex: 0, channelName: "Public Channel")
+            } else if let chIdx = viewModel.selectedChannelIndex,
+                      let channel = viewModel.channels.first(where: { $0.index == chIdx }) {
+                ChannelChatView(channelIndex: channel.index, channelName: channel.name)
             } else if let contact = viewModel.selectedContact {
                 switch contact.type {
                 case .room:

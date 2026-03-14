@@ -174,6 +174,30 @@ public enum MeshCoreProtocol {
         return frame
     }
 
+    // MARK: - Channels
+
+    /// CMD_ADD_CHANNEL (code 32) — add or update a channel.
+    /// Frame: code(1) channel_idx(1) channel_name(32 null-padded) secret(32 null-padded)
+    public static func buildAddChannel(index: UInt8, name: String, secret: Data? = nil) -> Data {
+        var frame = Data([MeshCoreCommand.addChannel.rawValue])
+        frame.append(index)
+        // channel_name: 32 bytes null-padded
+        var nameField = Data(repeating: 0, count: 32)
+        if let nameData = name.data(using: .utf8) {
+            let len = min(nameData.count, 31)
+            nameField.replaceSubrange(0..<len, with: nameData.prefix(len))
+        }
+        frame.append(nameField)
+        // secret: 32 bytes null-padded
+        var secretField = Data(repeating: 0, count: 32)
+        if let secret, !secret.isEmpty {
+            let len = min(secret.count, 32)
+            secretField.replaceSubrange(0..<len, with: secret.prefix(len))
+        }
+        frame.append(secretField)
+        return frame
+    }
+
     // MARK: - Identity & Advertising
 
     /// CMD_SET_ADVERT_NAME (code 8).
