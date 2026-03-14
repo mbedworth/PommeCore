@@ -792,14 +792,49 @@ final class MeshCoreViewModel: ObservableObject {
         }
     }
 
-    /// Handle ACK timeout — leave as .sent (mesh may still deliver).
+    /// Handle ACK timeout — mark as .failed so user can retry.
     private func handleACKTimeout(ackCode: UInt32) {
         guard let pending = pendingACKs.removeValue(forKey: ackCode) else { return }
 
-        if let messages = messagesByContact[pending.contactKeyHash],
+        if var messages = messagesByContact[pending.contactKeyHash],
            let idx = messages.firstIndex(where: { $0.id == pending.messageID }),
            messages[idx].status == .sent {
-            Self.logger.debug("ACK timeout for message \(pending.messageID), leaving as sent")
+            Self.logger.info("ACK timeout for message \(pending.messageID), marking as failed")
+            messages[idx].status = .failed
+            messagesByContact[pending.contactKeyHash] = messages
+            persistMessages(for: pending.contactKeyHash)
+        }
+    }
+
+    /// Retry sending a failed message. Increments attempt count (max 3).
+    func retryMessage(_ message: Message) {
+        guard message.isOutgoing, message.status == .failed, message.attempt < 3 else { return }
+        let contactKey = message.contactKeyHash
+
+        // Update existing message to sending with incremented attempt
+        if var messages = messagesByContact[contactKey],
+           let idx = messages.firstIndex(where: { $0.id == message.id }) {
+            messages[idx].status = .sending
+            messages[idx].attempt += 1
+            let attempt = messages[idx].attempt
+            messagesByContact[contactKey] = messages
+
+            // Re-send the frame with incremented attempt
+            if let channelIdx = message.channelIndex {
+                let frame = MeshCoreProtocol.buildSendChannelMessage(
+                    text: message.text,
+                    channelIndex: channelIdx
+                )
+                sendCommand(frame, label: "RETRY_CHANNEL_TXT(\(attempt))")
+            } else {
+                let frame = MeshCoreProtocol.buildSendTextMessage(
+                    text: message.text,
+                    recipientKeyHash: contactKey,
+                    attempt: attempt
+                )
+                sendCommand(frame, label: "RETRY_TXT(\(attempt))")
+            }
+            persistMessages(for: contactKey)
         }
     }
 

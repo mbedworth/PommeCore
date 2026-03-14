@@ -48,6 +48,9 @@ public struct Message: Identifiable, Codable, Sendable {
     /// Text type: 0 = plain text, 1 = CLI data. Used to route CLI responses to management.
     public let txtType: UInt8
 
+    /// Send attempt number (0 = first try, increments on retry, max 3).
+    public var attempt: UInt8
+
     public init(
         id: UUID = UUID(),
         senderKeyHash: Data = Data(),
@@ -61,7 +64,8 @@ public struct Message: Identifiable, Codable, Sendable {
         channelIndex: UInt8? = nil,
         senderName: String? = nil,
         roundTripMs: UInt32? = nil,
-        txtType: UInt8 = 0
+        txtType: UInt8 = 0,
+        attempt: UInt8 = 0
     ) {
         self.id = id
         self.senderKeyHash = senderKeyHash
@@ -76,5 +80,6 @@ public struct Message: Identifiable, Codable, Sendable {
         self.senderName = senderName
         self.roundTripMs = roundTripMs
         self.txtType = txtType
+        self.attempt = attempt
     }
 }
