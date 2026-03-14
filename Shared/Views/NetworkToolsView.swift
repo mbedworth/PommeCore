@@ -439,7 +439,7 @@ struct ContactDetailSheet: View {
 
                     // Status
                     if isStatusPending {
-                        ActivityOverlay(message: "Requesting status from \(contact.name)...", timeout: 15)
+                        ActivityOverlay(message: statusActivityMessage, timeout: 15)
                             .padding()
                             .background(MeshTheme.surfaceLight)
                             .clipShape(RoundedRectangle(cornerRadius: 8))
@@ -449,7 +449,7 @@ struct ContactDetailSheet: View {
 
                     // Telemetry
                     if isTelemetryPending {
-                        ActivityOverlay(message: "Requesting telemetry from \(contact.name)...", timeout: 15)
+                        ActivityOverlay(message: telemetryActivityMessage, timeout: 15)
                             .padding()
                             .background(MeshTheme.surfaceLight)
                             .clipShape(RoundedRectangle(cornerRadius: 8))
@@ -495,6 +495,26 @@ struct ContactDetailSheet: View {
             }
         }
         .meshTheme()
+    }
+
+    /// Contextual status request message based on contact type.
+    private var statusActivityMessage: String {
+        switch contact.type {
+        case .chat: return "Chat nodes don't typically support status requests. Waiting..."
+        case .repeater: return "Requesting status from repeater..."
+        case .room: return "Requesting status from room server..."
+        default: return "Requesting status..."
+        }
+    }
+
+    /// Contextual telemetry request message based on contact type.
+    private var telemetryActivityMessage: String {
+        switch contact.type {
+        case .chat: return "Telemetry is typically only available from sensor nodes. Waiting..."
+        case .repeater: return "Some repeaters support basic telemetry. Waiting..."
+        case .room: return "Room servers don't typically support telemetry. Waiting..."
+        default: return "Requesting telemetry from sensor..."
+        }
     }
 
     private func actionButton(_ title: String, icon: String, pending: Bool, action: @escaping () -> Void) -> some View {
