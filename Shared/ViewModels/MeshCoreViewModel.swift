@@ -574,18 +574,43 @@ final class MeshCoreViewModel: ObservableObject {
 
             // Timeout: if no response after 8 seconds, mark as timed out
             try? await Task.sleep(nanoseconds: 8_000_000_000)
+            guard !Task.isCancelled else { return }
             session.timeoutCommand(at: cmdIndex)
+
+            // Session expiry detection: if 3+ consecutive commands timed out,
+            // the remote session has likely expired on the server side
+            let recentHistory = session.cliHistory.suffix(3)
+            if recentHistory.count >= 3,
+               recentHistory.allSatisfy({ $0.response == "(no response)" }),
+               case .loggedIn = session.loginState {
+                session.loginState = .loginFailed(
+                    message: "Session may have expired \u{2014} please login again."
+                )
+                session.cliHistory = []
+                session.settings = [:]
+                session.hasLoadedFullSettings = false
+                session.isFetchingSettings = false
+                session.isWaitingForResponse = false
+            }
         }
     }
 
     /// Log out from a remote device session.
+    /// Clears all cached state so re-login starts fresh with a new password.
     func logoutFromRemoteDevice(_ contact: Contact) {
         let session = remoteSession(for: contact)
+        // Mark all pending CLI commands as timed out
+        for i in session.cliHistory.indices where !session.cliHistory[i].isComplete {
+            session.cliHistory[i].response = "(session ended)"
+        }
         session.loginState = .notLoggedIn
         session.cliHistory = []
         session.settings = [:]
         session.isFetchingSettings = false
         session.hasLoadedFullSettings = false
+        session.isWaitingForResponse = false
+        session.fetchReceivedCount = 0
+        session.fetchTotalCount = 0
     }
 
     /// Request status from a remote device.
