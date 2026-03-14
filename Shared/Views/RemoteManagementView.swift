@@ -5,12 +5,7 @@ import MeshCoreKit
 struct RemoteManagementView: View {
     let contact: Contact
     @EnvironmentObject var viewModel: MeshCoreViewModel
-    @StateObject private var session: RemoteDeviceSession
-
-    init(contact: Contact, session: RemoteDeviceSession) {
-        self.contact = contact
-        _session = StateObject(wrappedValue: session)
-    }
+    @ObservedObject var session: RemoteDeviceSession
 
     var body: some View {
         List {

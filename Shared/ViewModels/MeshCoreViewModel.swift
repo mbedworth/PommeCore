@@ -27,7 +27,8 @@ final class MeshCoreViewModel: ObservableObject {
     @Published var unreadCounts: [Data: Int] = [:]
 
     /// Active remote management sessions keyed by contact public key prefix.
-    @Published var remoteSessions: [Data: RemoteDeviceSession] = [:]
+    /// Not @Published — sessions are ObservableObjects observed directly by views.
+    private(set) var remoteSessions: [Data: RemoteDeviceSession] = [:]
 
     /// Last error message received from the device (shown as alert).
     @Published var lastErrorMessage: String?
@@ -434,24 +435,22 @@ final class MeshCoreViewModel: ObservableObject {
     // MARK: - Remote Management
 
     /// Get or create a remote management session for a contact.
-    /// Defers storage to avoid "publishing changes from within view updates" when
-    /// called during SwiftUI view body evaluation.
+    /// Not @Published so this is safe to call during view body evaluation.
     func remoteSession(for contact: Contact) -> RemoteDeviceSession {
         let key = contact.publicKeyPrefix
         if let existing = remoteSessions[key] {
             return existing
         }
         let session = RemoteDeviceSession(contact: contact)
-        // Defer @Published mutation to avoid triggering objectWillChange during view body
-        DispatchQueue.main.async { [weak self] in
-            self?.remoteSessions[key] = session
-        }
+        remoteSessions[key] = session
         return session
     }
 
     /// Login to a remote device (repeater/room server).
     func loginToRemoteDevice(_ contact: Contact, password: String) {
         let session = remoteSession(for: contact)
+        // Guard against double-sends if already logging in
+        if case .loggingIn = session.loginState { return }
         session.loginState = .loggingIn
         let frame = MeshCoreProtocol.buildSendLogin(
             recipientPublicKey: contact.publicKey,
