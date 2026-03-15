@@ -541,7 +541,7 @@ struct RoomChatView: View {
                     #else
                     SecureField("Password", text: $password)
                         .foregroundStyle(MeshTheme.textPrimary)
-                        .textFieldStyle(.roundedBorder)
+                        .textFieldStyle(MeshTextFieldStyle())
                         .onSubmit { login() }
                     #endif
                 }
@@ -797,7 +797,7 @@ struct RepeaterLoginView: View {
                         #else
                         SecureField("Password", text: $password)
                             .foregroundStyle(MeshTheme.textPrimary)
-                            .textFieldStyle(.roundedBorder)
+                            .textFieldStyle(MeshTextFieldStyle())
                             .onSubmit { login() }
                         #endif
                     }

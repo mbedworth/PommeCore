@@ -9,41 +9,41 @@
 /* Begin PBXBuildFile section */
 		038B76DA3EB2B884787888BE /* ContactListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21606E2B959E6496D3B0230D /* ContactListView.swift */; };
 		18B6F45B61F3581FB64D1DB0 /* DeviceScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2377BED4FF5A7170783BA649 /* DeviceScannerView.swift */; };
+		309F59A4C45F0C74C7632AAF /* NetworkToolsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB24E21D8CDBE0500C92E469 /* NetworkToolsView.swift */; };
 		3749B94D818310AD5ACF3B87 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EFFE2BF3488F0C0647632CD /* ChatView.swift */; };
-		9D7EAB7850F077EF373AC84F /* NetworkToolsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB24E21D8CDBE0500C92E469 /* NetworkToolsView.swift */; };
 		44472F77FC4CAC4A41BDD12F /* WatchChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FECE91529DA51E24B5EE93A /* WatchChatView.swift */; };
 		49709E93735B40512587904A /* MeshCoreKit in Frameworks */ = {isa = PBXBuildFile; productRef = 98C321AB3594D357C6B0816A /* MeshCoreKit */; };
 		57D771A61E08BB1991C80DE6 /* MeshCoreApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A259126AAB80661010C6A336 /* MeshCoreApp.swift */; };
 		5EA23B098C539C2A2191CA10 /* MeshCoreViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FBBD4DD1E3CAFDF4D56504 /* MeshCoreViewModel.swift */; };
+		5WT22AMGOSQXJ90NFRN8O6TK /* RemoteManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */; };
 		65CD1325656C00EAA6EB6050 /* MeshCoreKit in Frameworks */ = {isa = PBXBuildFile; productRef = 635A77C284788242D78AE126 /* MeshCoreKit */; };
 		68CC8A44AD061C07535707EB /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D859AE9C98610F71C2FBAAF /* SettingsView.swift */; };
 		6A8D08F2CE9D321D55C02696 /* MeshCoreViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FBBD4DD1E3CAFDF4D56504 /* MeshCoreViewModel.swift */; };
 		894905739E99B7E425A27485 /* MeshCoreApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A259126AAB80661010C6A336 /* MeshCoreApp.swift */; };
 		8EF971496F064F1AD761B796 /* ContactListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21606E2B959E6496D3B0230D /* ContactListView.swift */; };
 		9144822AD9EB38340AF2317E /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EFFE2BF3488F0C0647632CD /* ChatView.swift */; };
-		F01FFE8B0B7AB2F62D296F88 /* NetworkToolsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB24E21D8CDBE0500C92E469 /* NetworkToolsView.swift */; };
 		96059FF0363E830C376C23ED /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6BA0593D517B1467DBC1C42 /* Theme.swift */; };
 		9A92FFC5BE2A781BEC80720C /* DeviceScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2377BED4FF5A7170783BA649 /* DeviceScannerView.swift */; };
+		9D7EAB7850F077EF373AC84F /* NetworkToolsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB24E21D8CDBE0500C92E469 /* NetworkToolsView.swift */; };
 		A81875C1B0A1226A9333AFCF /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6BA0593D517B1467DBC1C42 /* Theme.swift */; };
 		C0FC54B3FE70C36D754DEEEC /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EFFE2BF3488F0C0647632CD /* ChatView.swift */; };
-		309F59A4C45F0C74C7632AAF /* NetworkToolsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB24E21D8CDBE0500C92E469 /* NetworkToolsView.swift */; };
 		C2497AA6CDB94C882FC3C7CB /* DeviceScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2377BED4FF5A7170783BA649 /* DeviceScannerView.swift */; };
 		C9CEA8D3714859C1177D7704 /* ContactListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21606E2B959E6496D3B0230D /* ContactListView.swift */; };
+		CATKUXG25PTVMENJWXQZY49X /* RemoteManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */; };
 		D3633106D9031C89E0589468 /* MeshCoreViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FBBD4DD1E3CAFDF4D56504 /* MeshCoreViewModel.swift */; };
 		EC8655805E2DCD03D8C9C4F6 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D859AE9C98610F71C2FBAAF /* SettingsView.swift */; };
 		EE31FC870779BB9B07A11EEE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 43931BD12312D05F62A9E3B3 /* Assets.xcassets */; };
+		F01FFE8B0B7AB2F62D296F88 /* NetworkToolsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB24E21D8CDBE0500C92E469 /* NetworkToolsView.swift */; };
 		F35E721D0EDE9FB5A37362C6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 43931BD12312D05F62A9E3B3 /* Assets.xcassets */; };
 		F466BDEE333B5D296E925DA5 /* MeshCoreApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A259126AAB80661010C6A336 /* MeshCoreApp.swift */; };
 		F90000EB8EC8EB28EA724AC8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 43931BD12312D05F62A9E3B3 /* Assets.xcassets */; };
 		FAA4FA7E3E52FCF631D55675 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6BA0593D517B1467DBC1C42 /* Theme.swift */; };
 		FC6474A70CF5B233AB283928 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D859AE9C98610F71C2FBAAF /* SettingsView.swift */; };
 		FE123217A6AD32B385F9ACBC /* MeshCoreKit in Frameworks */ = {isa = PBXBuildFile; productRef = FBBB0BD5BAFCC905A8DC17D3 /* MeshCoreKit */; };
-		5WT22AMGOSQXJ90NFRN8O6TK /* RemoteManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */; };
-		XUOVAQ6Y1NIWH1G3OMK55ENV /* RemoteManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */; };
-		CATKUXG25PTVMENJWXQZY49X /* RemoteManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */; };
 		KCM1ABCD0001000000000001 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = KCM1ABCD0000000000000001 /* KeychainManager.swift */; };
 		KCM1ABCD0002000000000001 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = KCM1ABCD0000000000000001 /* KeychainManager.swift */; };
 		KCM1ABCD0003000000000001 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = KCM1ABCD0000000000000001 /* KeychainManager.swift */; };
+		XUOVAQ6Y1NIWH1G3OMK55ENV /* RemoteManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -52,17 +52,17 @@
 		43931BD12312D05F62A9E3B3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		4FECE91529DA51E24B5EE93A /* WatchChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchChatView.swift; sourceTree = "<group>"; };
 		5D859AE9C98610F71C2FBAAF /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-		669B72A1B0246925F17F1F37 /* MeshCoreApple-macOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "MeshCoreApple-macOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		669B72A1B0246925F17F1F37 /* MeshCoreApple-macOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = "MeshCoreApple-macOS.app"; path = MeshCore.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7EFFE2BF3488F0C0647632CD /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
-		DB24E21D8CDBE0500C92E469 /* NetworkToolsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkToolsView.swift; sourceTree = "<group>"; };
 		A259126AAB80661010C6A336 /* MeshCoreApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshCoreApp.swift; sourceTree = "<group>"; };
-		AE9677D40F85F6D31BD8C43C /* MeshCoreApple.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = MeshCoreApple.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AE9677D40F85F6D31BD8C43C /* MeshCore.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MeshCore.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B1FBBD4DD1E3CAFDF4D56504 /* MeshCoreViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshCoreViewModel.swift; sourceTree = "<group>"; };
 		D2AEF5C51E98EC24A3CCA95F /* MeshCoreKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = MeshCoreKit; path = Packages/MeshCoreKit; sourceTree = SOURCE_ROOT; };
-		D4F0BB9B2578DD9861508E3D /* MeshCoreApple-watchOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "MeshCoreApple-watchOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		D4F0BB9B2578DD9861508E3D /* MeshCoreApple-watchOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = "MeshCoreApple-watchOS.app"; path = "MeshCore Watch.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		DB24E21D8CDBE0500C92E469 /* NetworkToolsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkToolsView.swift; sourceTree = "<group>"; };
 		F6BA0593D517B1467DBC1C42 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
-		LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteManagementView.swift; sourceTree = "<group>"; };
 		KCM1ABCD0000000000000001 /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
+		LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteManagementView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -111,8 +111,8 @@
 				21606E2B959E6496D3B0230D /* ContactListView.swift */,
 				2377BED4FF5A7170783BA649 /* DeviceScannerView.swift */,
 				5D859AE9C98610F71C2FBAAF /* SettingsView.swift */,
-			
-				LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */,);
+				LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */,
+			);
 			path = Views;
 			sourceTree = "<group>";
 		};
@@ -147,7 +147,7 @@
 			children = (
 				669B72A1B0246925F17F1F37 /* MeshCoreApple-macOS.app */,
 				D4F0BB9B2578DD9861508E3D /* MeshCoreApple-watchOS.app */,
-				AE9677D40F85F6D31BD8C43C /* MeshCoreApple.app */,
+				AE9677D40F85F6D31BD8C43C /* MeshCore.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -212,7 +212,7 @@
 				98C321AB3594D357C6B0816A /* MeshCoreKit */,
 			);
 			productName = MeshCoreApple;
-			productReference = AE9677D40F85F6D31BD8C43C /* MeshCoreApple.app */;
+			productReference = AE9677D40F85F6D31BD8C43C /* MeshCore.app */;
 			productType = "com.apple.product-type.application";
 		};
 		AA195D714F62714D80CDB676 /* MeshCoreApple-macOS */ = {
@@ -243,8 +243,6 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1500;
-				TargetAttributes = {
-				};
 			};
 			buildConfigurationList = 64FEBADFBAF641952A6C8634 /* Build configuration list for PBXProject "MeshCoreApple" */;
 			developmentRegion = en;
@@ -311,9 +309,9 @@
 				68CC8A44AD061C07535707EB /* SettingsView.swift in Sources */,
 				A81875C1B0A1226A9333AFCF /* Theme.swift in Sources */,
 				44472F77FC4CAC4A41BDD12F /* WatchChatView.swift in Sources */,
-			
 				5WT22AMGOSQXJ90NFRN8O6TK /* RemoteManagementView.swift in Sources */,
-				KCM1ABCD0001000000000001 /* KeychainManager.swift in Sources */,);
+				KCM1ABCD0001000000000001 /* KeychainManager.swift in Sources */,
+			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		C8B6A3E0F224AADF97CEA7F1 /* Sources */ = {
@@ -328,9 +326,9 @@
 				D3633106D9031C89E0589468 /* MeshCoreViewModel.swift in Sources */,
 				FC6474A70CF5B233AB283928 /* SettingsView.swift in Sources */,
 				96059FF0363E830C376C23ED /* Theme.swift in Sources */,
-			
 				XUOVAQ6Y1NIWH1G3OMK55ENV /* RemoteManagementView.swift in Sources */,
-				KCM1ABCD0002000000000001 /* KeychainManager.swift in Sources */,);
+				KCM1ABCD0002000000000001 /* KeychainManager.swift in Sources */,
+			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		F8CEA4EA53F48D1348D503A8 /* Sources */ = {
@@ -345,9 +343,9 @@
 				6A8D08F2CE9D321D55C02696 /* MeshCoreViewModel.swift in Sources */,
 				EC8655805E2DCD03D8C9C4F6 /* SettingsView.swift in Sources */,
 				FAA4FA7E3E52FCF631D55675 /* Theme.swift in Sources */,
-			
 				CATKUXG25PTVMENJWXQZY49X /* RemoteManagementView.swift in Sources */,
-				KCM1ABCD0003000000000001 /* KeychainManager.swift in Sources */,);
+				KCM1ABCD0003000000000001 /* KeychainManager.swift in Sources */,
+			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
@@ -359,6 +357,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 7R925EW7AT;
 				INFOPLIST_FILE = iOS/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -491,6 +490,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 7R925EW7AT;
 				INFOPLIST_FILE = iOS/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				LD_RUNPATH_SEARCH_PATHS = (

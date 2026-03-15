@@ -19,7 +19,7 @@ struct ContactListView: View {
     private let publicChannelKey = Data([0x00 as UInt8])
 
     var body: some View {
-        List {
+        List(selection: $viewModel.sidebarSelection) {
             connectionSection
             channelsSection
             if !viewModel.pendingNewContacts.isEmpty {
@@ -29,6 +29,18 @@ struct ContactListView: View {
         }
         .meshListStyle()
         .navigationTitle("MeshCore")
+        #if !os(watchOS)
+        .navigationDestination(for: SidebarSelection.self) { selection in
+            sidebarDestinationView(for: selection)
+        }
+        .onChange(of: viewModel.sidebarSelection) { selection in
+            // Mark contact as read when selected
+            if case .contact(let key) = selection,
+               let contact = viewModel.contacts.first(where: { $0.publicKeyPrefix == key }) {
+                viewModel.markAsRead(contact)
+            }
+        }
+        #endif
         #if os(watchOS)
         .toolbar {
             ToolbarItem(placement: .automatic) {
@@ -193,14 +205,9 @@ struct ContactListView: View {
             }
             .listRowBackground(MeshTheme.surface)
             #else
-            Button {
-                viewModel.selectedContact = nil
-                viewModel.selectedChannelIndex = nil
-                viewModel.showPublicChannel = true
-            } label: {
+            NavigationLink(value: SidebarSelection.publicChannel) {
                 publicChannelRow
             }
-            .buttonStyle(.plain)
             .listRowBackground(
                 viewModel.showPublicChannel
                     ? MeshTheme.surfaceLight
@@ -217,14 +224,9 @@ struct ContactListView: View {
                 }
                 .listRowBackground(MeshTheme.surface)
                 #else
-                Button {
-                    viewModel.selectedContact = nil
-                    viewModel.showPublicChannel = false
-                    viewModel.selectedChannelIndex = channel.index
-                } label: {
+                NavigationLink(value: SidebarSelection.channel(channel.index)) {
                     channelRow(channel)
                 }
-                .buttonStyle(.plain)
                 .listRowBackground(
                     viewModel.selectedChannelIndex == channel.index
                         ? MeshTheme.surfaceLight
@@ -379,15 +381,9 @@ struct ContactListView: View {
                     }
                     .listRowBackground(MeshTheme.surface)
                     #else
-                    Button {
-                        viewModel.showPublicChannel = false
-                        viewModel.selectedChannelIndex = nil
-                        viewModel.selectedContact = contact
-                        viewModel.markAsRead(contact)
-                    } label: {
+                    NavigationLink(value: SidebarSelection.contact(contact.publicKeyPrefix)) {
                         contactRow(contact)
                     }
-                    .buttonStyle(.plain)
                     .contextMenu {
                         contactContextMenu(for: contact)
                     }
@@ -562,6 +558,30 @@ struct ContactListView: View {
                 .onAppear { viewModel.markAsRead(contact) }
         }
     }
+
+    #if !os(watchOS)
+    /// Resolves a SidebarSelection to the appropriate detail view (used by navigationDestination on compact).
+    @ViewBuilder
+    private func sidebarDestinationView(for selection: SidebarSelection) -> some View {
+        switch selection {
+        case .publicChannel:
+            ChannelChatView(channelIndex: 0, channelName: "Public Channel")
+        case .channel(let index):
+            if let channel = viewModel.channels.first(where: { $0.index == index }) {
+                ChannelChatView(channelIndex: channel.index, channelName: channel.name)
+            } else {
+                ChannelChatView(channelIndex: index, channelName: "Channel \(index)")
+            }
+        case .contact(let key):
+            if let contact = viewModel.contacts.first(where: { $0.publicKeyPrefix == key }) {
+                contactDestination(contact)
+                    .environmentObject(viewModel)
+            } else {
+                Text("Contact not found")
+            }
+        }
+    }
+    #endif
 
     @ViewBuilder
     private func contactIcon(for contact: Contact) -> some View {

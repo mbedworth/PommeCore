@@ -82,6 +82,32 @@ enum MeshTheme {
     static let remoteRepeater = Color.orange
 }
 
+// MARK: - TextField Style
+//
+// .roundedBorder uses systemBackground which is pure black on OLED in dark mode,
+// making it invisible on secondarySystemGroupedBackground list rows.
+// This style uses the correct elevated surface color for grouped lists.
+
+#if !os(watchOS)
+struct MeshTextFieldStyle: TextFieldStyle {
+    func _body(configuration: TextField<Self._Label>) -> some View {
+        configuration
+            .foregroundColor(.primary)
+            .padding(7)
+            #if os(macOS)
+            .background(Color(nsColor: .controlBackgroundColor))
+            #else
+            .background(Color(uiColor: .tertiarySystemGroupedBackground))
+            #endif
+            .cornerRadius(7)
+            .overlay(
+                RoundedRectangle(cornerRadius: 7)
+                    .stroke(Color.primary.opacity(0.15), lineWidth: 0.5)
+            )
+    }
+}
+#endif
+
 // MARK: - Theme Modifier
 
 struct MeshThemeModifier: ViewModifier {

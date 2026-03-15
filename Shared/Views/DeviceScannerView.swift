@@ -160,7 +160,7 @@ struct DeviceScannerView: View {
         case 4, 3:  return MeshTheme.connected
         case 2:     return .orange
         case 1:     return .red
-        default:    return .gray
+        default:    return MeshTheme.textSecondary
         }
     }
 }
