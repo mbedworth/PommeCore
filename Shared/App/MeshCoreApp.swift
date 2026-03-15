@@ -136,7 +136,7 @@ struct ContentView: View {
             }
         }
         .toolbar {
-            ToolbarItemGroup {
+            ToolbarItem(placement: .primaryAction) {
                 Button {
                     if viewModel.connectionState == .ready {
                         viewModel.sendAdvertise(type: 0)
@@ -153,7 +153,9 @@ struct ContentView: View {
                 .help("Send Advertisement — announce your presence on the mesh")
                 .accessibilityLabel("Send Advertisement")
                 .accessibilityHint("Announce your presence on the mesh network")
+            }
 
+            ToolbarItem(placement: .primaryAction) {
                 Button {
                     showDiscover = true
                 } label: {
@@ -164,7 +166,9 @@ struct ContentView: View {
                 .accessibilityLabel("Discover Nearby Nodes")
                 .accessibilityHint("Scan the mesh for nearby devices")
                 .disabled(viewModel.connectionState != .ready)
+            }
 
+            ToolbarItem(placement: .primaryAction) {
                 Button {
                     viewModel.refreshAll()
                 } label: {
@@ -175,7 +179,9 @@ struct ContentView: View {
                 .accessibilityLabel("Refresh")
                 .accessibilityHint("Re-sync contacts, channels, and settings from device")
                 .disabled(viewModel.connectionState != .ready)
+            }
 
+            ToolbarItem(placement: .primaryAction) {
                 if viewModel.hasActiveManagementSession {
                     Button {
                         showRemoteManagement = true
@@ -187,7 +193,9 @@ struct ContentView: View {
                     .accessibilityLabel("Remote Management")
                     .accessibilityHint("Open remote device management")
                 }
+            }
 
+            ToolbarItem(placement: .primaryAction) {
                 Button {
                     showSettings = true
                 } label: {
