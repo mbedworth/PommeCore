@@ -199,6 +199,12 @@ struct ContentView: View {
         .onChange(of: viewModel.connectionState) { newState in
             handleConnectionStateChange(newState)
         }
+        .onChange(of: viewModel.requestShowScanner) { shouldShow in
+            if shouldShow {
+                showScanner = true
+                viewModel.requestShowScanner = false
+            }
+        }
         .alert("Connection Failed", isPresented: $showConnectionFailed) {
             Button("Retry") { showScanner = true }
             Button("OK", role: .cancel) { }

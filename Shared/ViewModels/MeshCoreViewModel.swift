@@ -500,8 +500,18 @@ final class MeshCoreViewModel: ObservableObject {
         bleManager.connect(to: peripheral.peripheral)
     }
 
+    /// Whether the UI should present the scanner sheet (set by auto-scan after disconnect).
+    @Published var requestShowScanner = false
+
     func disconnect() {
         bleManager.disconnect()
+        // Auto-scan after user-initiated disconnect
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            guard connectionState == .disconnected else { return }
+            requestShowScanner = true
+            startScanning()
+        }
     }
 
     // MARK: - Protocol Commands
