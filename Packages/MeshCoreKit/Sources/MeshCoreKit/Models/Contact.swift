@@ -9,7 +9,14 @@ public enum ContactType: UInt8, Codable, Sendable {
 }
 
 /// A MeshCore contact discovered on the mesh network.
-public struct Contact: Identifiable, Codable, Sendable {
+public struct Contact: Identifiable, Codable, Sendable, Hashable {
+    public static func == (lhs: Contact, rhs: Contact) -> Bool {
+        lhs.publicKey == rhs.publicKey
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(publicKey)
+    }
     /// Use first 6 bytes of publicKey as stable ID.
     public var id: Data { publicKeyPrefix }
 

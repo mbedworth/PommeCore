@@ -185,7 +185,7 @@ struct LoginSection: View {
                     .foregroundStyle(MeshTheme.textPrimary)
                 Spacer()
                 Text(statusLabel)
-                    .foregroundStyle(MeshTheme.textSecondary)
+                    .foregroundStyle(MeshTheme.textPrimary)
             }
             .listRowBackground(MeshTheme.surface)
 
@@ -200,7 +200,7 @@ struct LoginSection: View {
                     #else
                     SecureField("Password", text: $password)
                         .foregroundStyle(MeshTheme.textPrimary)
-                        .textFieldStyle(.roundedBorder)
+                        .textFieldStyle(MeshTextFieldStyle())
                     #endif
                 }
                 .listRowBackground(MeshTheme.surface)
@@ -325,7 +325,7 @@ private extension RemoteManagementView {
             if let neighborsText = session.settings["neighbors"], !neighborsText.isEmpty {
                 Text(neighborsText)
                     .font(.system(.caption, design: .monospaced))
-                    .foregroundStyle(MeshTheme.textSecondary)
+                    .foregroundStyle(MeshTheme.textPrimary)
                     .listRowBackground(MeshTheme.surface)
             }
 
@@ -546,7 +546,7 @@ struct RemoteSecuritySection: View {
                     #else
                     SecureField("New Admin Password", text: $adminPassword)
                         .foregroundStyle(MeshTheme.textPrimary)
-                        .textFieldStyle(.roundedBorder)
+                        .textFieldStyle(MeshTextFieldStyle())
                     #endif
                     Button {
                         guard !adminPassword.isEmpty else { return }
@@ -571,7 +571,7 @@ struct RemoteSecuritySection: View {
                 #else
                 SecureField("Guest Password", text: $guestPassword)
                     .foregroundStyle(MeshTheme.textPrimary)
-                    .textFieldStyle(.roundedBorder)
+                    .textFieldStyle(MeshTextFieldStyle())
                 #endif
                 Button {
                     guard !guestPassword.isEmpty else { return }
@@ -604,7 +604,7 @@ struct RemoteSecuritySection: View {
             if let aclText = session.settings["acl"], !aclText.isEmpty {
                 Text(aclText)
                     .font(.system(.caption, design: .monospaced))
-                    .foregroundStyle(MeshTheme.textSecondary)
+                    .foregroundStyle(MeshTheme.textPrimary)
                     .listRowBackground(MeshTheme.surface)
             }
         } header: {
@@ -881,7 +881,7 @@ struct CLITerminalSection: View {
                 TextField("CLI command", text: $commandText)
                     .font(.system(.body, design: .monospaced))
                     .foregroundStyle(MeshTheme.textPrimary)
-                    .textFieldStyle(.roundedBorder)
+                    .textFieldStyle(MeshTextFieldStyle())
                     .onSubmit { sendCommand() }
                 #endif
                 Button(action: sendCommand) {
@@ -951,7 +951,7 @@ struct RemoteClockRow: View {
                         .foregroundStyle(MeshTheme.textPrimary)
                     Spacer()
                     Text(clockValue)
-                        .foregroundStyle(MeshTheme.textSecondary)
+                        .foregroundStyle(MeshTheme.textPrimary)
                         .font(.caption)
                     Image(systemName: "arrow.clockwise")
                         .font(.caption2)
@@ -1005,7 +1005,7 @@ func cliInfoRow(icon: String, label: String, value: String) -> some View {
             .foregroundStyle(MeshTheme.textPrimary)
         Spacer()
         Text(value)
-            .foregroundStyle(MeshTheme.textSecondary)
+            .foregroundStyle(MeshTheme.textPrimary)
     }
     .listRowBackground(MeshTheme.surface)
 }
@@ -1019,7 +1019,7 @@ func cliSettingRow(icon: String, label: String, value: String) -> some View {
             .foregroundStyle(MeshTheme.textPrimary)
         Spacer()
         Text(value)
-            .foregroundStyle(MeshTheme.textSecondary)
+            .foregroundStyle(MeshTheme.textPrimary)
             .font(.caption)
         Image(systemName: "arrow.clockwise")
             .font(.caption2)
@@ -1063,7 +1063,7 @@ struct CLIToggleRow: View {
                     } label: {
                         Text("On")
                             .font(.caption.weight(.medium))
-                            .foregroundStyle(isOn == true ? MeshTheme.textOnAccent : MeshTheme.textSecondary.opacity(0.6))
+                            .foregroundStyle(isOn == true ? MeshTheme.textOnAccent : MeshTheme.textPrimary)
                             .padding(.horizontal, 12)
                             .padding(.vertical, 5)
                             .background(isOn == true ? toggleActive : Color.clear)
@@ -1075,7 +1075,7 @@ struct CLIToggleRow: View {
                     } label: {
                         Text("Off")
                             .font(.caption.weight(.medium))
-                            .foregroundStyle(isOn == false ? MeshTheme.textOnAccent : MeshTheme.textSecondary.opacity(0.6))
+                            .foregroundStyle(isOn == false ? MeshTheme.textOnAccent : MeshTheme.textPrimary)
                             .padding(.horizontal, 12)
                             .padding(.vertical, 5)
                             .background(isOn == false ? toggleActive : Color.clear)
@@ -1086,7 +1086,7 @@ struct CLIToggleRow: View {
                 .clipShape(Capsule())
             } else {
                 Text(isOn == true ? "On" : isOn == false ? "Off" : "\u{2014}")
-                    .foregroundStyle(MeshTheme.textSecondary)
+                    .foregroundStyle(MeshTheme.textPrimary)
             }
         }
         .listRowBackground(MeshTheme.surface)
@@ -1094,23 +1094,44 @@ struct CLIToggleRow: View {
 }
 
 func cliEditRow(icon: String, label: String, text: Binding<String>, current: String?) -> some View {
-    HStack {
-        Image(systemName: icon)
-            .foregroundStyle(MeshTheme.accent)
-            .frame(width: 24)
-        VStack(alignment: .leading, spacing: 2) {
-            Text(label)
-                .font(.caption)
-                .foregroundStyle(MeshTheme.textSecondary)
-            #if os(watchOS)
-            TextField(current ?? "value", text: text)
-                .foregroundStyle(MeshTheme.textPrimary)
-            #else
-            TextField(current ?? "value", text: text)
-                .foregroundStyle(MeshTheme.textPrimary)
-                .textFieldStyle(.roundedBorder)
-            #endif
+    CLIEditRowView(icon: icon, label: label, text: text, current: current)
+}
+
+/// Wraps cliEditRow as a View so we can use @State / onAppear to pre-fill the
+/// text binding with the current device value.  This ensures the value renders
+/// as primary-colored text instead of a faint placeholder.
+private struct CLIEditRowView: View {
+    let icon: String
+    let label: String
+    @Binding var text: String
+    let current: String?
+    @State private var didPrefill = false
+
+    var body: some View {
+        HStack {
+            Image(systemName: icon)
+                .foregroundStyle(MeshTheme.accent)
+                .frame(width: 24)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(label)
+                    .font(.caption)
+                    .foregroundStyle(MeshTheme.textSecondary)
+                #if os(watchOS)
+                TextField("Enter value", text: $text)
+                    .foregroundStyle(MeshTheme.textPrimary)
+                #else
+                TextField("Enter value", text: $text)
+                    .foregroundStyle(MeshTheme.textPrimary)
+                    .textFieldStyle(MeshTextFieldStyle())
+                #endif
+            }
+        }
+        .listRowBackground(MeshTheme.surface)
+        .onAppear {
+            if !didPrefill, text.isEmpty, let current, !current.isEmpty {
+                text = current
+                didPrefill = true
+            }
         }
     }
-    .listRowBackground(MeshTheme.surface)
 }

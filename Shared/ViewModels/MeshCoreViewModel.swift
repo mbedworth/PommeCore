@@ -7,14 +7,39 @@ import WatchKit
 #endif
 import MeshCoreKit
 
+/// Unified sidebar selection for NavigationSplitView.
+/// On compact (iPhone), this drives the push navigation.
+/// On regular width (iPad/Mac), this drives the detail pane.
+enum SidebarSelection: Hashable {
+    case publicChannel
+    case channel(UInt8)
+    case contact(Data) // publicKeyPrefix
+}
+
 @MainActor
 final class MeshCoreViewModel: ObservableObject {
     private static let logger = Logger(subsystem: "com.meshcore", category: "ViewModel")
 
     @Published var contacts: [Contact] = []
-    @Published var selectedContact: Contact?
-    @Published var showPublicChannel = false
-    @Published var selectedChannelIndex: UInt8? = nil
+    @Published var sidebarSelection: SidebarSelection? = nil
+
+    /// Convenience: the currently selected contact, derived from sidebarSelection.
+    var selectedContact: Contact? {
+        guard case .contact(let key) = sidebarSelection else { return nil }
+        return contacts.first { $0.publicKeyPrefix == key }
+    }
+
+    /// Convenience: whether the public channel is selected.
+    var showPublicChannel: Bool {
+        if case .publicChannel = sidebarSelection { return true }
+        return false
+    }
+
+    /// Convenience: the currently selected channel index (non-public).
+    var selectedChannelIndex: UInt8? {
+        if case .channel(let idx) = sidebarSelection { return idx }
+        return nil
+    }
     @Published var isScanning = false
     @Published var discoveredPeripherals: [DiscoveredPeripheral] = []
     @Published var connectionState: BLEConnectionState = .disconnected
@@ -586,8 +611,8 @@ final class MeshCoreViewModel: ObservableObject {
         contacts.removeAll { $0.publicKeyPrefix == contact.publicKeyPrefix }
         messagesByContact.removeValue(forKey: contact.publicKeyPrefix)
         unreadCounts.removeValue(forKey: contact.publicKeyPrefix)
-        if selectedContact?.publicKeyPrefix == contact.publicKeyPrefix {
-            selectedContact = nil
+        if case .contact(let key) = sidebarSelection, key == contact.publicKeyPrefix {
+            sidebarSelection = nil
         }
     }
 

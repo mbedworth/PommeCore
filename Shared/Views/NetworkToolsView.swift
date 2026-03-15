@@ -55,13 +55,13 @@ struct DiscoverView: View {
                         VStack(spacing: 8) {
                             Image(systemName: "sensor.tag.radiowaves.forward")
                                 .font(.system(size: 36))
-                                .foregroundStyle(MeshTheme.textSecondary.opacity(0.5))
+                                .foregroundStyle(MeshTheme.textSecondary)
                             Text("No nodes discovered")
                                 .font(.subheadline)
                                 .foregroundStyle(MeshTheme.textSecondary)
                             Text("Tap Start Discover to scan the mesh")
                                 .font(.caption)
-                                .foregroundStyle(MeshTheme.textSecondary.opacity(0.7))
+                                .foregroundStyle(MeshTheme.textSecondary)
                         }
                         Spacer()
                     }
@@ -210,7 +210,7 @@ struct TraceRouteResultView: View {
     private func traceLine(snr: Int8) -> some View {
         HStack(spacing: 8) {
             Rectangle()
-                .fill(MeshTheme.textSecondary.opacity(0.4))
+                .fill(MeshTheme.textSecondary.opacity(0.6))
                 .frame(width: 2, height: 20)
                 .padding(.leading, 4)
             Text("SNR \(snr)")
@@ -365,7 +365,7 @@ struct AdvertPathView: View {
                         .foregroundStyle(MeshTheme.textPrimary)
                     Spacer()
                     Text("\(pathInfo.pathLen)")
-                        .foregroundStyle(MeshTheme.textSecondary)
+                        .foregroundStyle(MeshTheme.textPrimary)
                 }
 
                 if pathInfo.recvTimestamp > 0 {
@@ -374,9 +374,9 @@ struct AdvertPathView: View {
                             .foregroundStyle(MeshTheme.textPrimary)
                         Spacer()
                         Text(Date(timeIntervalSince1970: TimeInterval(pathInfo.recvTimestamp)), style: .relative)
-                            .foregroundStyle(MeshTheme.textSecondary)
+                            .foregroundStyle(MeshTheme.textPrimary)
                         Text("ago")
-                            .foregroundStyle(MeshTheme.textSecondary)
+                            .foregroundStyle(MeshTheme.textPrimary)
                     }
                 }
 
@@ -585,7 +585,7 @@ struct ChannelManagementView: View {
                     TextField(namePlaceholder, text: $channelName)
                         .foregroundStyle(MeshTheme.textPrimary)
                         #if !os(watchOS)
-                        .textFieldStyle(.roundedBorder)
+                        .textFieldStyle(MeshTextFieldStyle())
                         #endif
                 }
                 .listRowBackground(MeshTheme.surface)
@@ -599,7 +599,7 @@ struct ChannelManagementView: View {
                             .foregroundStyle(MeshTheme.textPrimary)
                             .font(.system(.body, design: .monospaced))
                             #if !os(watchOS)
-                            .textFieldStyle(.roundedBorder)
+                            .textFieldStyle(MeshTextFieldStyle())
                             #endif
                     }
                     .listRowBackground(MeshTheme.surface)
@@ -877,7 +877,7 @@ struct ActivityOverlay: View {
             Spacer()
             Text("\(Int(elapsed))s / \(Int(timeout))s")
                 .font(.caption)
-                .foregroundStyle(MeshTheme.textSecondary.opacity(0.7))
+                .foregroundStyle(MeshTheme.textSecondary)
         }
         .onReceive(timer) { _ in
             if elapsed < timeout { elapsed += 1 }

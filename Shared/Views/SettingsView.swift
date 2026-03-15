@@ -163,7 +163,7 @@ private extension SettingsView {
                 .foregroundStyle(MeshTheme.textPrimary)
             Spacer()
             Text(String(config.publicKeyHex.prefix(16)) + "...")
-                .foregroundStyle(MeshTheme.textSecondary)
+                .foregroundStyle(MeshTheme.textPrimary)
                 .font(.caption)
             Button {
                 #if os(iOS)
@@ -193,7 +193,7 @@ private extension SettingsView {
             Spacer()
             if config.batteryMillivolts > 0 {
                 Text("\(String(format: "%.2fV", config.batteryVoltage)) (\(config.batteryPercent(chemistry: batteryChemistry))%)")
-                    .foregroundStyle(MeshTheme.textSecondary)
+                    .foregroundStyle(MeshTheme.textPrimary)
             } else {
                 Text("\u{2014}")
                     .foregroundStyle(MeshTheme.textSecondary)
@@ -233,7 +233,7 @@ private extension SettingsView {
                     .foregroundStyle(MeshTheme.textPrimary)
                 Spacer()
                 Text(connectionLabel)
-                    .foregroundStyle(MeshTheme.textSecondary)
+                    .foregroundStyle(MeshTheme.textPrimary)
             }
             .listRowBackground(MeshTheme.surface)
 
@@ -303,7 +303,7 @@ struct IdentitySection: View {
                 #else
                 TextField("Advert Name", text: $advertName)
                     .foregroundStyle(MeshTheme.textPrimary)
-                    .textFieldStyle(.roundedBorder)
+                    .textFieldStyle(MeshTextFieldStyle())
                 #endif
             }
             .listRowBackground(MeshTheme.surface)
@@ -320,10 +320,10 @@ struct IdentitySection: View {
                 #else
                 TextField("Latitude", text: $latitude)
                     .foregroundStyle(MeshTheme.textPrimary)
-                    .textFieldStyle(.roundedBorder)
+                    .textFieldStyle(MeshTextFieldStyle())
                 TextField("Longitude", text: $longitude)
                     .foregroundStyle(MeshTheme.textPrimary)
-                    .textFieldStyle(.roundedBorder)
+                    .textFieldStyle(MeshTextFieldStyle())
                 #endif
             }
             .listRowBackground(MeshTheme.surface)
@@ -408,7 +408,7 @@ struct RadioSection: View {
                 #else
                 TextField("MHz", text: $freqMHz)
                     .foregroundStyle(MeshTheme.textPrimary)
-                    .textFieldStyle(.roundedBorder)
+                    .textFieldStyle(MeshTextFieldStyle())
                     .frame(width: 110)
                 #endif
             }
@@ -509,7 +509,7 @@ struct RadioSection: View {
                     ForEach(Array(viewModel.allowedRepeatFreqRanges.enumerated()), id: \.offset) { _, range in
                         Text("\(String(format: "%.3f", Double(range.lowerHz) / 1_000_000)) \u{2013} \(String(format: "%.3f", Double(range.upperHz) / 1_000_000)) MHz")
                             .font(.caption)
-                            .foregroundStyle(MeshTheme.textSecondary)
+                            .foregroundStyle(MeshTheme.textPrimary)
                             .padding(.leading, 32)
                     }
                 }
@@ -592,7 +592,7 @@ struct TuningSection: View {
                 #else
                 TextField("seconds", text: $rxDelay)
                     .foregroundStyle(MeshTheme.textPrimary)
-                    .textFieldStyle(.roundedBorder)
+                    .textFieldStyle(MeshTextFieldStyle())
                     .frame(width: 100)
                 #endif
             }
@@ -612,7 +612,7 @@ struct TuningSection: View {
                 #else
                 TextField("multiplier", text: $airtime)
                     .foregroundStyle(MeshTheme.textPrimary)
-                    .textFieldStyle(.roundedBorder)
+                    .textFieldStyle(MeshTextFieldStyle())
                     .frame(width: 100)
                 #endif
             }
@@ -747,7 +747,7 @@ struct PrivacySection: View {
                 #else
                 TextField("PIN", text: $pinText)
                     .foregroundStyle(MeshTheme.textPrimary)
-                    .textFieldStyle(.roundedBorder)
+                    .textFieldStyle(MeshTextFieldStyle())
                     .frame(width: 100)
                 #endif
                 Button {
@@ -810,7 +810,7 @@ private extension SettingsView {
                     .foregroundStyle(MeshTheme.textPrimary)
                 Spacer()
                 Text(deviceTimeString)
-                    .foregroundStyle(MeshTheme.textSecondary)
+                    .foregroundStyle(MeshTheme.textPrimary)
                     .font(.caption)
             }
             .listRowBackground(MeshTheme.surface)
@@ -872,7 +872,7 @@ struct CustomVarsSection: View {
                             .font(.system(.body, design: .monospaced))
                         Spacer()
                         Text(pair.value)
-                            .foregroundStyle(MeshTheme.textSecondary)
+                            .foregroundStyle(MeshTheme.textPrimary)
                             .font(.system(.body, design: .monospaced))
                     }
                     .listRowBackground(MeshTheme.surface)
@@ -888,10 +888,10 @@ struct CustomVarsSection: View {
                 #else
                 TextField("Name", text: $newName)
                     .foregroundStyle(MeshTheme.textPrimary)
-                    .textFieldStyle(.roundedBorder)
+                    .textFieldStyle(MeshTextFieldStyle())
                 TextField("Value", text: $newValue)
                     .foregroundStyle(MeshTheme.textPrimary)
-                    .textFieldStyle(.roundedBorder)
+                    .textFieldStyle(MeshTextFieldStyle())
                 #endif
                 Button {
                     guard !newName.isEmpty else { return }
@@ -1111,7 +1111,7 @@ private extension SettingsView {
                 .foregroundStyle(MeshTheme.textPrimary)
             Spacer()
             Text(value)
-                .foregroundStyle(MeshTheme.textSecondary)
+                .foregroundStyle(MeshTheme.textPrimary)
         }
         .listRowBackground(MeshTheme.surface)
     }

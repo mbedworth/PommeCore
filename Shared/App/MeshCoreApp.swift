@@ -59,62 +59,72 @@ struct ContentView: View {
         NavigationSplitView {
             ContactListView(showScanner: $showScanner)
         } detail: {
-            if viewModel.showPublicChannel {
+            switch viewModel.sidebarSelection {
+            case .publicChannel:
                 ChannelChatView(channelIndex: 0, channelName: "Public Channel")
-            } else if let chIdx = viewModel.selectedChannelIndex,
-                      let channel = viewModel.channels.first(where: { $0.index == chIdx }) {
-                ChannelChatView(channelIndex: channel.index, channelName: channel.name)
-            } else if let contact = viewModel.selectedContact {
-                switch contact.type {
-                case .room:
-                    RoomChatView(
-                        contact: contact,
-                        session: viewModel.remoteSession(for: contact)
-                    )
-                case .repeater:
-                    RepeaterLoginView(
-                        contact: contact,
-                        session: viewModel.remoteSession(for: contact)
-                    )
-                default:
-                    ChatView(contact: contact)
+            case .channel(let chIdx):
+                if let channel = viewModel.channels.first(where: { $0.index == chIdx }) {
+                    ChannelChatView(channelIndex: channel.index, channelName: channel.name)
+                } else {
+                    ChannelChatView(channelIndex: chIdx, channelName: "Channel \(chIdx)")
                 }
-            } else if viewModel.connectionState == .disconnected {
-                VStack(spacing: 16) {
-                    Image(systemName: "antenna.radiowaves.left.and.right.slash")
-                        .font(.system(size: 48))
-                        .foregroundStyle(MeshTheme.textSecondary)
-                    Text("No Radio Connected")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                    Text("Turn on your MeshCore radio and tap the button below to scan for nearby devices.")
-                        .font(.subheadline)
-                        .foregroundStyle(MeshTheme.textSecondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 32)
-                    Button {
-                        showScanner = true
-                    } label: {
-                        Label("Scan for Devices", systemImage: "magnifyingglass")
+            case .contact(let key):
+                if let contact = viewModel.contacts.first(where: { $0.publicKeyPrefix == key }) {
+                    switch contact.type {
+                    case .room:
+                        RoomChatView(
+                            contact: contact,
+                            session: viewModel.remoteSession(for: contact)
+                        )
+                    case .repeater:
+                        RepeaterLoginView(
+                            contact: contact,
+                            session: viewModel.remoteSession(for: contact)
+                        )
+                    default:
+                        ChatView(contact: contact)
                     }
-                    .buttonStyle(.borderedProminent)
+                } else {
+                    Text("Contact not found")
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-                VStack(spacing: 16) {
-                    Image(systemName: "bubble.left.and.bubble.right")
-                        .font(.system(size: 48))
-                        .foregroundStyle(MeshTheme.textSecondary)
-                    Text("Select a Contact")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                    Text("Choose a contact or channel from the sidebar to start messaging.")
-                        .font(.subheadline)
-                        .foregroundStyle(MeshTheme.textSecondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 32)
+            case nil:
+                if viewModel.connectionState == .disconnected {
+                    VStack(spacing: 16) {
+                        Image(systemName: "antenna.radiowaves.left.and.right.slash")
+                            .font(.system(size: 48))
+                            .foregroundStyle(MeshTheme.textSecondary)
+                        Text("No Radio Connected")
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                        Text("Turn on your MeshCore radio and tap the button below to scan for nearby devices.")
+                            .font(.subheadline)
+                            .foregroundStyle(MeshTheme.textSecondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 32)
+                        Button {
+                            showScanner = true
+                        } label: {
+                            Label("Scan for Devices", systemImage: "magnifyingglass")
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    VStack(spacing: 16) {
+                        Image(systemName: "bubble.left.and.bubble.right")
+                            .font(.system(size: 48))
+                            .foregroundStyle(MeshTheme.textSecondary)
+                        Text("Select a Contact")
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                        Text("Choose a contact or channel from the sidebar to start messaging.")
+                            .font(.subheadline)
+                            .foregroundStyle(MeshTheme.textSecondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 32)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .toolbar {
