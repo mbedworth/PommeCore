@@ -272,6 +272,27 @@ extension BLEManager: CBCentralManagerDelegate {
 
         let isUnexpected = error != nil && shouldAutoReconnect
 
+        #if os(iOS)
+        // On iOS, always request reconnection for unexpected disconnects.
+        // CoreBluetooth queues the request and handles it even in the background.
+        if isUnexpected {
+            Self.logger.info("iOS auto-reconnect: requesting reconnection for \(peripheral.name ?? "unknown")")
+            DispatchQueue.main.async {
+                self.connectionState = .connecting
+            }
+            central.connect(peripheral, options: nil)
+        } else {
+            // User-initiated disconnect
+            shouldAutoReconnect = false
+            reconnectAttemptsRemaining = 0
+
+            DispatchQueue.main.async {
+                self.connectionState = .disconnected
+                self.connectedPeripheral = nil
+                self.connectedDeviceName = nil
+            }
+        }
+        #else
         if isUnexpected && reconnectAttemptsRemaining > 0 {
             // Unexpected disconnect — retry up to 3 times with 2-second delays
             reconnectAttemptsRemaining -= 1
@@ -304,6 +325,7 @@ extension BLEManager: CBCentralManagerDelegate {
                 self.startScanning()
             }
         }
+        #endif
     }
 }
 
