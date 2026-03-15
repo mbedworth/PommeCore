@@ -73,6 +73,10 @@ final class MeshCoreViewModel: ObservableObject {
     /// Debounce task for incremental contact sync (coalesces rapid advert/path pushes).
     private var contactSyncDebounceTask: Task<Void, Never>?
 
+    /// Pending login credentials (stored between login request and success/failure response).
+    private var pendingLoginPassword: String?
+    private var pendingLoginRememberPassword: Bool = false
+
     /// Timeout tasks for network tool requests — cancelled when response arrives.
     private var traceTimeoutTask: Task<Void, Never>?
     private var statusTimeoutTask: Task<Void, Never>?
@@ -706,11 +710,13 @@ final class MeshCoreViewModel: ObservableObject {
     }
 
     /// Login to a remote device (repeater/room server).
-    func loginToRemoteDevice(_ contact: Contact, password: String) {
+    func loginToRemoteDevice(_ contact: Contact, password: String, remember: Bool = true) {
         let session = remoteSession(for: contact)
         // Guard against double-sends if already logging in
         if case .loggingIn = session.loginState { return }
         session.loginState = .loggingIn
+        pendingLoginPassword = password
+        pendingLoginRememberPassword = remember
         let frame = MeshCoreProtocol.buildSendLogin(
             recipientPublicKey: contact.publicKey,
             password: password
@@ -1240,6 +1246,16 @@ final class MeshCoreViewModel: ObservableObject {
         for (key, session) in remoteSessions {
             if case .loggingIn = session.loginState {
                 session.loginState = .loggedIn(permission: permission)
+
+                // Save password to Keychain if user opted in
+                if pendingLoginRememberPassword, let password = pendingLoginPassword,
+                   let contact = contacts.first(where: { $0.publicKeyPrefix == key }) {
+                    let type = permission.isAdmin ? "admin" : "guest"
+                    KeychainManager.savePassword(password, forDevice: contact.publicKey, type: type)
+                }
+                pendingLoginPassword = nil
+                pendingLoginRememberPassword = false
+
                 // Sync stored messages first (room server pushes last 32 messages)
                 syncNextMessage()
                 if let contact = contacts.first(where: { $0.publicKeyPrefix == key }) {
@@ -1275,9 +1291,15 @@ final class MeshCoreViewModel: ObservableObject {
     private func handleLoginFail() {
         loginTimeoutTask?.cancel()
         loginTimeoutTask = nil
-        for (_, session) in remoteSessions {
+        for (key, session) in remoteSessions {
             if case .loggingIn = session.loginState {
                 session.loginState = .loginFailed(message: "Login failed \u{2014} incorrect password.")
+                // Delete stale credential from Keychain
+                if let contact = contacts.first(where: { $0.publicKeyPrefix == key }) {
+                    KeychainManager.deleteAllPasswords(forDevice: contact.publicKey)
+                }
+                pendingLoginPassword = nil
+                pendingLoginRememberPassword = false
                 return
             }
         }
