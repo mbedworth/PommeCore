@@ -64,7 +64,7 @@ struct ContactListView: View {
         }
         #else
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(placement: .automatic) {
                 Button {
                     if viewModel.connectionState == .ready {
                         viewModel.sendAdvertise(type: 0)
@@ -81,7 +81,7 @@ struct ContactListView: View {
                 .accessibilityLabel("Send Advertisement")
             }
 
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(placement: .automatic) {
                 Button {
                     showDiscover?.wrappedValue = true
                 } label: {
@@ -92,7 +92,7 @@ struct ContactListView: View {
                 .disabled(viewModel.connectionState != .ready)
             }
 
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(placement: .automatic) {
                 Button {
                     viewModel.refreshAll()
                 } label: {

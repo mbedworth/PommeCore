@@ -54,6 +54,9 @@ public final class BLEManager: NSObject, ObservableObject {
     /// Maximum auto-reconnect attempts before giving up.
     private static let maxReconnectAttempts = 3
 
+    /// Work item for the reconnect timeout (cancelled on successful reconnect).
+    private var reconnectTimeoutWork: DispatchWorkItem?
+
     /// Publisher for incoming data frames from the device TX characteristic.
     public let receivedDataSubject = PassthroughSubject<Data, Never>()
 
@@ -236,6 +239,8 @@ extension BLEManager: CBCentralManagerDelegate {
         Self.logger.info("Connected to \(peripheral.name ?? "unknown")")
 
         reconnectAttemptsRemaining = Self.maxReconnectAttempts
+        reconnectTimeoutWork?.cancel()
+        reconnectTimeoutWork = nil
 
         DispatchQueue.main.async {
             self.connectionState = .connected
@@ -273,23 +278,48 @@ extension BLEManager: CBCentralManagerDelegate {
         let isUnexpected = error != nil && shouldAutoReconnect
 
         #if os(iOS)
-        // On iOS, always request reconnection for unexpected disconnects.
-        // CoreBluetooth queues the request and handles it even in the background.
-        if isUnexpected {
-            Self.logger.info("iOS auto-reconnect: requesting reconnection for \(peripheral.name ?? "unknown")")
+        if isUnexpected && reconnectAttemptsRemaining > 0 {
+            reconnectAttemptsRemaining -= 1
+            let attempt = Self.maxReconnectAttempts - reconnectAttemptsRemaining
+            Self.logger.info("iOS auto-reconnect attempt \(attempt)/\(Self.maxReconnectAttempts) for \(peripheral.name ?? "unknown")")
+
             DispatchQueue.main.async {
                 self.connectionState = .connecting
             }
             central.connect(peripheral, options: nil)
+
+            // Timeout: if not reconnected within 5 seconds, trigger another didDisconnect
+            let timeoutWork = DispatchWorkItem { [weak self] in
+                guard let self else { return }
+                // Still not connected — cancel and let didDisconnect fire again
+                if self.connectionState == .connecting {
+                    Self.logger.info("Reconnect attempt timed out, cancelling...")
+                    central.cancelPeripheralConnection(peripheral)
+                }
+            }
+            reconnectTimeoutWork = timeoutWork
+            bleQueue.asyncAfter(deadline: .now() + 5.0, execute: timeoutWork)
         } else {
-            // User-initiated disconnect
+            // User-initiated disconnect OR reconnect attempts exhausted
             shouldAutoReconnect = false
             reconnectAttemptsRemaining = 0
+            reconnectTimeoutWork?.cancel()
+            reconnectTimeoutWork = nil
 
             DispatchQueue.main.async {
                 self.connectionState = .disconnected
                 self.connectedPeripheral = nil
                 self.connectedDeviceName = nil
+            }
+
+            // If attempts exhausted (not user-initiated), auto-scan after 2 seconds
+            if isUnexpected {
+                self.bleQueue.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+                    guard let self, self.centralManager.state == .poweredOn,
+                          self.connectionState == .disconnected else { return }
+                    Self.logger.info("Auto-scanning after failed reconnect attempts")
+                    self.startScanning()
+                }
             }
         }
         #else
