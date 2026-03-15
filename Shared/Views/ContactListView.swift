@@ -471,6 +471,14 @@ struct ContactListView: View {
     @ViewBuilder
     private func contactContextMenu(for contact: Contact) -> some View {
         Button {
+            detailContact = contact
+        } label: {
+            Label("Network Details", systemImage: "info.circle")
+        }
+
+        Divider()
+
+        Button {
             viewModel.toggleFavourite(for: contact)
         } label: {
             Label(
@@ -492,17 +500,13 @@ struct ContactListView: View {
             Label("Export Link", systemImage: "square.and.arrow.up")
         }
 
+        Divider()
+
         Button {
             viewModel.resetPath(for: contact)
             showResetConfirmation = true
         } label: {
             Label("Reset Path", systemImage: "arrow.triangle.2.circlepath")
-        }
-
-        Button {
-            detailContact = contact
-        } label: {
-            Label("Network Details", systemImage: "info.circle")
         }
 
         Divider()
