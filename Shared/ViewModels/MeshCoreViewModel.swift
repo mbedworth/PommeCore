@@ -53,6 +53,42 @@ final class MeshCoreViewModel: ObservableObject {
     /// Unread message counts per contact key prefix.
     @Published var unreadCounts: [Data: Int] = [:]
 
+    // MARK: - Contact Nicknames (app-local, stored by public key hex)
+
+    @AppStorage("contactNicknames") private var nicknamesJSON: String = "{}"
+
+    private var nicknames: [String: String] {
+        get {
+            (try? JSONDecoder().decode([String: String].self, from: Data(nicknamesJSON.utf8))) ?? [:]
+        }
+        set {
+            if let data = try? JSONEncoder().encode(newValue) {
+                nicknamesJSON = String(data: data, encoding: .utf8) ?? "{}"
+            }
+        }
+    }
+
+    func setNickname(_ nickname: String, for contact: Contact) {
+        let key = contact.publicKey.map { String(format: "%02x", $0) }.joined()
+        var current = nicknames
+        if nickname.isEmpty {
+            current.removeValue(forKey: key)
+        } else {
+            current[key] = nickname
+        }
+        nicknames = current
+        objectWillChange.send()
+    }
+
+    func nickname(for contact: Contact) -> String? {
+        let key = contact.publicKey.map { String(format: "%02x", $0) }.joined()
+        return nicknames[key]
+    }
+
+    func displayName(for contact: Contact) -> String {
+        nickname(for: contact) ?? contact.name
+    }
+
     /// Active remote management sessions keyed by contact public key prefix.
     /// Not @Published — sessions are ObservableObjects whose changes are
     /// forwarded to the ViewModel via objectWillChange so the contact list updates.
@@ -235,9 +271,10 @@ final class MeshCoreViewModel: ObservableObject {
         let content = UNMutableNotificationContent()
         content.sound = .default
 
-        // Find contact name for the notification title
+        // Find contact name for the notification title (use nickname if set)
+        let contact = contacts.first(where: { $0.publicKeyPrefix == message.contactKeyHash })
         let senderName = message.senderName
-            ?? contacts.first(where: { $0.publicKeyPrefix == message.contactKeyHash })?.name
+            ?? contact.map { displayName(for: $0) }
 
         if let channelIdx = message.channelIndex {
             content.title = "Public Channel"
