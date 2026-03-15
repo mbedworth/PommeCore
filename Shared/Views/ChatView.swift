@@ -611,11 +611,24 @@ struct RoomMessageBubble: View {
                 }
 
                 Text(parsed.text)
+                    .textSelection(.enabled)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 9)
                     .background(message.isOutgoing ? MeshTheme.outgoingBubble : MeshTheme.incomingBubble)
                     .foregroundStyle(message.isOutgoing ? MeshTheme.textOnAccent : MeshTheme.textPrimary)
                     .clipShape(RoundedRectangle(cornerRadius: 18))
+                    .contextMenu {
+                        Button {
+                            #if os(macOS)
+                            NSPasteboard.general.clearContents()
+                            NSPasteboard.general.setString(parsed.text, forType: .string)
+                            #elseif !os(watchOS)
+                            UIPasteboard.general.string = parsed.text
+                            #endif
+                        } label: {
+                            Label("Copy", systemImage: "doc.on.doc")
+                        }
+                    }
 
                 HStack(spacing: 4) {
                     Text(message.timestamp, style: .time)
@@ -791,11 +804,24 @@ struct MessageBubble: View {
 
             VStack(alignment: message.isOutgoing ? .trailing : .leading, spacing: 2) {
                 Text(message.text)
+                    .textSelection(.enabled)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 9)
                     .background(message.isOutgoing ? MeshTheme.outgoingBubble : MeshTheme.incomingBubble)
                     .foregroundStyle(message.isOutgoing ? MeshTheme.textOnAccent : MeshTheme.textPrimary)
                     .clipShape(RoundedRectangle(cornerRadius: 18))
+                    .contextMenu {
+                        Button {
+                            #if os(macOS)
+                            NSPasteboard.general.clearContents()
+                            NSPasteboard.general.setString(message.text, forType: .string)
+                            #elseif !os(watchOS)
+                            UIPasteboard.general.string = message.text
+                            #endif
+                        } label: {
+                            Label("Copy", systemImage: "doc.on.doc")
+                        }
+                    }
 
                 HStack(spacing: 4) {
                     Text(message.timestamp, style: .time)
@@ -898,11 +924,24 @@ struct ChannelMessageBubble: View {
                 }
 
                 Text(message.text)
+                    .textSelection(.enabled)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 9)
                     .background(message.isOutgoing ? MeshTheme.outgoingBubble : MeshTheme.incomingBubble)
                     .foregroundStyle(message.isOutgoing ? MeshTheme.textOnAccent : MeshTheme.textPrimary)
                     .clipShape(RoundedRectangle(cornerRadius: 18))
+                    .contextMenu {
+                        Button {
+                            #if os(macOS)
+                            NSPasteboard.general.clearContents()
+                            NSPasteboard.general.setString(message.text, forType: .string)
+                            #elseif !os(watchOS)
+                            UIPasteboard.general.string = message.text
+                            #endif
+                        } label: {
+                            Label("Copy", systemImage: "doc.on.doc")
+                        }
+                    }
 
                 HStack(spacing: 4) {
                     Text(message.timestamp, style: .time)
