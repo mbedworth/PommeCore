@@ -336,6 +336,13 @@ final class MeshCoreViewModel: ObservableObject {
         syncNextMessage()
     }
 
+    /// Manually refresh contacts, channels, and settings from the device.
+    func refreshAll() {
+        guard connectionState == .ready else { return }
+        refreshAllSettings()
+        requestContacts(fullSync: true)
+    }
+
     // MARK: - Scanning & Connection
 
     func requestAutoScan() {

@@ -122,7 +122,9 @@ struct ContentView: View {
                           : "antenna.radiowaves.left.and.right.slash")
                         .foregroundStyle(MeshTheme.accentFallback)
                 }
-                .help(viewModel.connectionState == .ready ? "Send Advertisement" : "Scan for Devices")
+                .help("Send Advertisement — announce your presence on the mesh")
+                .accessibilityLabel("Send Advertisement")
+                .accessibilityHint("Announce your presence on the mesh network")
 
                 Button {
                     showDiscover = true
@@ -130,7 +132,21 @@ struct ContentView: View {
                     Image(systemName: "sensor.tag.radiowaves.forward")
                         .foregroundStyle(MeshTheme.accentFallback)
                 }
-                .help("Discover Nearby Nodes")
+                .help("Discover — scan for nearby mesh nodes")
+                .accessibilityLabel("Discover Nearby Nodes")
+                .accessibilityHint("Scan the mesh for nearby devices")
+                .disabled(viewModel.connectionState != .ready)
+
+                Button {
+                    viewModel.refreshAll()
+                } label: {
+                    Image(systemName: "arrow.clockwise")
+                        .foregroundStyle(MeshTheme.accentFallback)
+                }
+                .help("Refresh — re-sync contacts, channels, and settings from device")
+                .accessibilityLabel("Refresh")
+                .accessibilityHint("Re-sync contacts, channels, and settings from device")
+                .disabled(viewModel.connectionState != .ready)
 
                 if viewModel.hasActiveManagementSession {
                     Button {
@@ -139,7 +155,9 @@ struct ContentView: View {
                         Image(systemName: "wrench.and.screwdriver")
                             .foregroundStyle(MeshTheme.accentFallback)
                     }
-                    .help("Remote Management")
+                    .help("Remote Management — configure remote device")
+                    .accessibilityLabel("Remote Management")
+                    .accessibilityHint("Open remote device management")
                 }
 
                 Button {
@@ -148,7 +166,9 @@ struct ContentView: View {
                     Image(systemName: "gearshape")
                         .foregroundStyle(MeshTheme.accentFallback)
                 }
-                .help("Device Settings")
+                .help("Device Settings — configure your local radio")
+                .accessibilityLabel("Device Settings")
+                .accessibilityHint("Configure your local radio settings")
             }
         }
         .sheet(isPresented: $showScanner) {
