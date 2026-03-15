@@ -348,17 +348,25 @@ struct ContactListView: View {
     private var contactsSection: some View {
         Section {
             if viewModel.sortedContacts.isEmpty {
-                HStack {
+                VStack(spacing: 12) {
                     Image(systemName: "person.2.slash")
+                        .font(.system(size: 32))
                         .foregroundStyle(MeshTheme.textSecondary)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("No contacts yet")
-                            .foregroundStyle(MeshTheme.textSecondary)
-                        Text("Send an advertisement to discover nearby devices")
-                            .font(.caption2)
-                            .foregroundStyle(MeshTheme.textSecondary.opacity(0.7))
+                    Text("No Contacts Yet")
+                        .font(.headline)
+                    Text("Send an advertisement to announce your presence on the mesh. Other nodes will appear here as they respond.")
+                        .font(.caption)
+                        .foregroundStyle(MeshTheme.textSecondary)
+                        .multilineTextAlignment(.center)
+                    Button {
+                        viewModel.sendAdvertise(type: 0)
+                    } label: {
+                        Label("Send Advertisement", systemImage: "antenna.radiowaves.left.and.right")
                     }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.small)
                 }
+                .padding(.vertical, 8)
                 .listRowBackground(MeshTheme.surface)
             } else {
                 ForEach(viewModel.sortedContacts) { contact in
