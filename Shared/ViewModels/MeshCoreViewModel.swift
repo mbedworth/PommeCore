@@ -70,6 +70,9 @@ final class MeshCoreViewModel: ObservableObject {
     /// Login timeout task — cancelled when login succeeds or fails.
     private var loginTimeoutTask: Task<Void, Never>?
 
+    /// Debounce task for incremental contact sync (coalesces rapid advert/path pushes).
+    private var contactSyncDebounceTask: Task<Void, Never>?
+
     /// Timeout tasks for network tool requests — cancelled when response arrives.
     private var traceTimeoutTask: Task<Void, Never>?
     private var statusTimeoutTask: Task<Void, Never>?
@@ -274,6 +277,7 @@ final class MeshCoreViewModel: ObservableObject {
                     self.telemetryTimeoutTask?.cancel()
                     self.pathTimeoutTask?.cancel()
                     self.discoverTimeoutTask?.cancel()
+                    self.contactSyncDebounceTask?.cancel()
                     self.deviceConfig = DeviceConfig()
                     self.forwardDeviceConfigChanges()
                     self.isSyncingMessages = false
@@ -421,6 +425,17 @@ final class MeshCoreViewModel: ObservableObject {
 
     func requestDeviceInfo() {
         sendCommand(MeshCoreProtocol.buildDeviceQuery(), label: "DEVICE_QUERY")
+    }
+
+    /// Request an incremental contact sync with debouncing.
+    /// Coalesces rapid-fire advert/path pushes into a single CMD_GET_CONTACTS.
+    private func requestDebouncedIncrementalSync() {
+        contactSyncDebounceTask?.cancel()
+        contactSyncDebounceTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second debounce
+            guard !Task.isCancelled, let self else { return }
+            self.requestContacts()
+        }
     }
 
     func requestContacts(fullSync: Bool = false) {
@@ -992,11 +1007,13 @@ final class MeshCoreViewModel: ObservableObject {
         case .advert(let contact):
             Self.logger.info("PUSH Advert from: \(contact.name)")
             handleAdvert(contact)
+            // Also trigger debounced incremental sync for full data refresh
+            requestDebouncedIncrementalSync()
 
         case .pathUpdated(let publicKey):
             Self.logger.info("PUSH PathUpdated: key=\(publicKey.prefix(6).map { String(format: "%02x", $0) }.joined())")
-            // Trigger incremental contact sync to pick up the new path
-            requestContacts()
+            // Trigger debounced incremental contact sync to pick up the new path
+            requestDebouncedIncrementalSync()
 
         case .newAdvert(let contact):
             Self.logger.info("PUSH NewAdvert (manual_add): \(contact.name)")
