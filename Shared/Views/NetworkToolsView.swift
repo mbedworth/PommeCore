@@ -222,9 +222,9 @@ struct TraceRouteResultView: View {
     }
 
     private func nodeName(for hash: Data) -> String {
-        // Try to match hash to a known contact
+        // Try to match hash to a known contact (use nickname if set)
         if let contact = viewModel.contacts.first(where: { $0.publicKeyPrefix == hash }) {
-            return contact.name
+            return viewModel.displayName(for: contact)
         }
         return hash.prefix(4).map { String(format: "%02X", $0) }.joined(separator: ":")
     }
@@ -404,7 +404,7 @@ struct AdvertPathView: View {
 
     private func nodeName(for hash: Data) -> String {
         if let contact = viewModel.contacts.first(where: { $0.publicKeyPrefix == hash }) {
-            return contact.name
+            return viewModel.displayName(for: contact)
         }
         return hash.prefix(4).map { String(format: "%02X", $0) }.joined(separator: ":")
     }
@@ -429,12 +429,12 @@ struct ContactDetailSheet: View {
                 VStack(spacing: 16) {
                     // Trace Route
                     if isTracePending {
-                        ActivityOverlay(message: "Tracing route to \(contact.name)...", timeout: 15)
+                        ActivityOverlay(message: "Tracing route to \(viewModel.displayName(for: contact))...", timeout: 15)
                             .padding()
                             .background(MeshTheme.surfaceLight)
                             .clipShape(RoundedRectangle(cornerRadius: 8))
                     } else if let trace = viewModel.lastTraceResult {
-                        TraceRouteResultView(result: trace, contactName: contact.name)
+                        TraceRouteResultView(result: trace, contactName: viewModel.displayName(for: contact))
                     }
 
                     // Status
@@ -444,7 +444,7 @@ struct ContactDetailSheet: View {
                             .background(MeshTheme.surfaceLight)
                             .clipShape(RoundedRectangle(cornerRadius: 8))
                     } else if let status = viewModel.statusByContact[contact.publicKeyPrefix] {
-                        StatusInfoView(status: status, contactName: contact.name)
+                        StatusInfoView(status: status, contactName: viewModel.displayName(for: contact))
                     }
 
                     // Telemetry
@@ -454,17 +454,17 @@ struct ContactDetailSheet: View {
                             .background(MeshTheme.surfaceLight)
                             .clipShape(RoundedRectangle(cornerRadius: 8))
                     } else if let readings = viewModel.telemetryByContact[contact.publicKeyPrefix], !readings.isEmpty {
-                        TelemetryView(readings: readings, contactName: contact.name)
+                        TelemetryView(readings: readings, contactName: viewModel.displayName(for: contact))
                     }
 
                     // Advert Path
                     if isPathPending {
-                        ActivityOverlay(message: "Loading path info for \(contact.name)...", timeout: 10)
+                        ActivityOverlay(message: "Loading path info for \(viewModel.displayName(for: contact))...", timeout: 10)
                             .padding()
                             .background(MeshTheme.surfaceLight)
                             .clipShape(RoundedRectangle(cornerRadius: 8))
                     } else if let path = viewModel.advertPathByContact[contact.publicKeyPrefix] {
-                        AdvertPathView(pathInfo: path, contactName: contact.name)
+                        AdvertPathView(pathInfo: path, contactName: viewModel.displayName(for: contact))
                     }
 
                     // Actions
@@ -487,7 +487,7 @@ struct ContactDetailSheet: View {
                 .padding()
             }
             .background(MeshTheme.background)
-            .navigationTitle(contact.name)
+            .navigationTitle(viewModel.displayName(for: contact))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Done") { dismiss() }

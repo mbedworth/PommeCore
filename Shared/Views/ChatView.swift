@@ -20,7 +20,7 @@ struct ChatView: View {
             messageInput
         }
         .background(MeshTheme.background)
-        .navigationTitle(contact.name)
+        .navigationTitle(viewModel.displayName(for: contact))
         .onAppear {
             viewModel.markAsRead(contact)
         }
@@ -361,7 +361,7 @@ struct RoomChatView: View {
             }
         }
         .background(MeshTheme.background)
-        .navigationTitle(contact.name)
+        .navigationTitle(viewModel.displayName(for: contact))
         .toolbar {
             ToolbarItem(placement: .automatic) {
                 if isLoggedIn, permission.canRead {
@@ -383,7 +383,7 @@ struct RoomChatView: View {
                         Image(systemName: "wrench.and.screwdriver")
                             .foregroundStyle(remoteAccent)
                     }
-                    .help("Remote Management — \(contact.name)")
+                    .help("Remote Management — \(viewModel.displayName(for: contact))")
                     #endif
                 }
             }
@@ -859,7 +859,7 @@ struct RepeaterLoginView: View {
                 Spacer()
             }
             .background(MeshTheme.background)
-            .navigationTitle(contact.name)
+            .navigationTitle(viewModel.displayName(for: contact))
             .onAppear {
                 if let saved = KeychainManager.getSavedPassword(forDevice: contact.publicKey) {
                     password = saved

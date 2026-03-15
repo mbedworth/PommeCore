@@ -86,7 +86,7 @@ struct RemoteManagementView: View {
                 HStack(spacing: 8) {
                     Image(systemName: contact.type == .room ? "server.rack" : "antenna.radiowaves.left.and.right")
                         .foregroundStyle(remoteAccent)
-                    Text(contact.name)
+                    Text(viewModel.displayName(for: contact))
                         .font(.headline)
                         .foregroundStyle(MeshTheme.textPrimary)
                     Spacer()
@@ -98,7 +98,7 @@ struct RemoteManagementView: View {
                         .background(permissionBadgeColor)
                         .clipShape(Capsule())
                 }
-                Text("Managing \(contact.name) via LoRa \u{2014} commands travel over the mesh and may take a few seconds.")
+                Text("Managing \(viewModel.displayName(for: contact)) via LoRa \u{2014} commands travel over the mesh and may take a few seconds.")
                     .font(.caption)
                     .foregroundStyle(MeshTheme.textSecondary)
             }

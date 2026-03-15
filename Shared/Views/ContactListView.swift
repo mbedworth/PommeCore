@@ -14,6 +14,9 @@ struct ContactListView: View {
     @State private var detailContact: Contact?
     @State private var showChannelSheet = false
     @State private var showDeviceInfo = false
+    @State private var showNicknameSheet = false
+    @State private var nicknameContact: Contact?
+    @State private var nicknameText = ""
 
     /// Public Channel virtual contact key (channel 0).
     private let publicChannelKey = Data([0x00 as UInt8])
@@ -83,6 +86,70 @@ struct ContactListView: View {
             }
             .meshTheme()
             .frame(minWidth: 360, minHeight: 400)
+        }
+        .sheet(isPresented: $showNicknameSheet) {
+            NavigationStack {
+                Form {
+                    Section {
+                        #if os(watchOS)
+                        TextField("Nickname", text: $nicknameText)
+                            .foregroundStyle(MeshTheme.textPrimary)
+                        #else
+                        TextField("Nickname", text: $nicknameText)
+                            .foregroundStyle(MeshTheme.textPrimary)
+                            .textFieldStyle(MeshTextFieldStyle())
+                        #endif
+                    } header: {
+                        Text("Custom Nickname")
+                            .foregroundStyle(MeshTheme.textSecondary)
+                    } footer: {
+                        Text("This nickname is stored locally on your device. It doesn't change anything on the radio or the mesh network.")
+                            .font(.caption2)
+                    }
+
+                    if let contact = nicknameContact {
+                        Section {
+                            HStack {
+                                Text("Original Name")
+                                    .foregroundStyle(MeshTheme.accent)
+                                Spacer()
+                                Text(contact.name)
+                                    .foregroundStyle(MeshTheme.textPrimary)
+                            }
+                            HStack {
+                                Text("Public Key")
+                                    .foregroundStyle(MeshTheme.accent)
+                                Spacer()
+                                Text(contact.publicKey.prefix(8).map { String(format: "%02x", $0) }.joined())
+                                    .foregroundStyle(MeshTheme.textPrimary)
+                                    .font(.caption)
+                            }
+                        } header: {
+                            Text("Contact Info")
+                                .foregroundStyle(MeshTheme.textSecondary)
+                        }
+                    }
+                }
+                .navigationTitle("Set Nickname")
+                #if os(iOS)
+                .navigationBarTitleDisplayMode(.inline)
+                #endif
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") { showNicknameSheet = false }
+                    }
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Save") {
+                            if let contact = nicknameContact {
+                                viewModel.setNickname(nicknameText.trimmingCharacters(in: .whitespaces), for: contact)
+                            }
+                            showNicknameSheet = false
+                        }
+                    }
+                }
+            }
+            .meshTheme()
+            .frame(minWidth: 360, minHeight: 300)
         }
         .onChange(of: viewModel.lastExportedURL) { url in
             if let url, !url.isEmpty {
@@ -505,6 +572,23 @@ struct ContactListView: View {
             Label("Network Details", systemImage: "info.circle")
         }
 
+        Button {
+            nicknameContact = contact
+            nicknameText = viewModel.nickname(for: contact) ?? ""
+            showNicknameSheet = true
+        } label: {
+            Label(viewModel.nickname(for: contact) != nil ? "Edit Nickname" : "Set Nickname",
+                  systemImage: "pencil")
+        }
+
+        if viewModel.nickname(for: contact) != nil {
+            Button {
+                viewModel.setNickname("", for: contact)
+            } label: {
+                Label("Remove Nickname", systemImage: "pencil.slash")
+            }
+        }
+
         Divider()
 
         Button {
@@ -553,11 +637,16 @@ struct ContactListView: View {
             contactIcon(for: contact)
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
-                    Text(contact.name)
+                    Text(viewModel.displayName(for: contact))
                         .font(.body)
                         .foregroundStyle(MeshTheme.textPrimary)
                     loginBadge(for: contact)
                     pathIndicator(for: contact)
+                }
+                if viewModel.nickname(for: contact) != nil {
+                    Text(contact.name)
+                        .font(.caption2)
+                        .foregroundStyle(MeshTheme.textSecondary)
                 }
                 lastMessagePreview(for: contact)
             }
