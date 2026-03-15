@@ -185,7 +185,7 @@ struct ContactListView: View {
         if count > 0 {
             Text("\(count)")
                 .font(.caption2.weight(.bold))
-                .foregroundStyle(MeshTheme.textOnAccent)
+                .foregroundStyle(.black)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
                 .background(MeshTheme.accent)
@@ -292,7 +292,7 @@ struct ContactListView: View {
             if count > 0 {
                 Text("\(count)")
                     .font(.caption2.weight(.bold))
-                    .foregroundStyle(MeshTheme.textOnAccent)
+                    .foregroundStyle(.black)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
                     .background(MeshTheme.accent)
@@ -366,6 +366,7 @@ struct ContactListView: View {
                         Label("Send Advertisement", systemImage: "antenna.radiowaves.left.and.right")
                     }
                     .buttonStyle(.borderedProminent)
+                    .foregroundStyle(.black)
                     .controlSize(.small)
                 }
                 .padding(.vertical, 8)
@@ -639,7 +640,7 @@ struct ContactListView: View {
             case .loggedIn(let permission):
                 Text(permission.displayName)
                     .font(.caption2.weight(.medium))
-                    .foregroundStyle(MeshTheme.textOnAccent)
+                    .foregroundStyle(.black)
                     .padding(.horizontal, 5)
                     .padding(.vertical, 1)
                     .background(permissionBadgeColor(permission).opacity(0.8))
@@ -699,7 +700,7 @@ struct ContactListView: View {
         if count > 0 {
             Text("\(count)")
                 .font(.caption2.weight(.bold))
-                .foregroundStyle(MeshTheme.textOnAccent)
+                .foregroundStyle(.black)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
                 .background(MeshTheme.accent)

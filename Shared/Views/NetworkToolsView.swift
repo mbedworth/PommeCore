@@ -840,7 +840,7 @@ struct DeviceInfoPopover: View {
     private func infoRow(_ label: String, value: String) -> some View {
         HStack {
             Text(label)
-                .foregroundStyle(MeshTheme.textSecondary)
+                .foregroundStyle(MeshTheme.accent)
             Spacer()
             Text(value)
                 .foregroundStyle(MeshTheme.textPrimary)
