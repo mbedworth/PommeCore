@@ -673,7 +673,7 @@ struct RoomMessageBubble: View {
                     .padding(.horizontal, 14)
                     .padding(.vertical, 9)
                     .background(message.isOutgoing ? MeshTheme.outgoingBubble : MeshTheme.incomingBubble)
-                    .foregroundStyle(message.isOutgoing ? MeshTheme.textOnAccent : MeshTheme.textPrimary)
+                    .foregroundStyle(MeshTheme.textOnAccent)
                     .clipShape(RoundedRectangle(cornerRadius: 18))
                     .contextMenu {
                         Button {
@@ -890,7 +890,7 @@ struct MessageBubble: View {
                     .padding(.horizontal, 14)
                     .padding(.vertical, 9)
                     .background(message.isOutgoing ? MeshTheme.outgoingBubble : MeshTheme.incomingBubble)
-                    .foregroundStyle(message.isOutgoing ? MeshTheme.textOnAccent : MeshTheme.textPrimary)
+                    .foregroundStyle(MeshTheme.textOnAccent)
                     .clipShape(RoundedRectangle(cornerRadius: 18))
                     .contextMenu {
                         Button {
@@ -1010,7 +1010,7 @@ struct ChannelMessageBubble: View {
                     .padding(.horizontal, 14)
                     .padding(.vertical, 9)
                     .background(message.isOutgoing ? MeshTheme.outgoingBubble : MeshTheme.incomingBubble)
-                    .foregroundStyle(message.isOutgoing ? MeshTheme.textOnAccent : MeshTheme.textPrimary)
+                    .foregroundStyle(MeshTheme.textOnAccent)
                     .clipShape(RoundedRectangle(cornerRadius: 18))
                     .contextMenu {
                         Button {

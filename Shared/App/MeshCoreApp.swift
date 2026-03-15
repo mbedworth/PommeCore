@@ -14,6 +14,9 @@ struct MeshCoreApp: App {
         }
         .onChange(of: scenePhase) { newPhase in
             viewModel.isInBackground = (newPhase != .active)
+            if newPhase == .active {
+                viewModel.updateAppBadge()
+            }
         }
     }
 }
@@ -87,6 +90,9 @@ struct ContentView: View {
                 } else {
                     Text("Contact not found")
                 }
+            case .settings:
+                SettingsView()
+                    .environmentObject(viewModel)
             case nil:
                 if viewModel.connectionState == .disconnected {
                     VStack(spacing: 16) {

@@ -60,6 +60,7 @@ struct SettingsView: View {
     private var settingsForm: some View {
         List {
             appearanceSection
+            notificationsSection
             deviceInfoSection
             connectionSection
             identitySection
@@ -99,6 +100,67 @@ private extension SettingsView {
             .pickerStyle(.segmented)
         } header: {
             sectionHeader("Appearance")
+        }
+    }
+}
+
+// MARK: - Notifications
+
+private extension SettingsView {
+    var notificationsSection: some View {
+        NotificationsSection()
+    }
+}
+
+struct NotificationsSection: View {
+    @AppStorage("notifyDirectMessages") private var notifyDirect = true
+    @AppStorage("notifyChannelMessages") private var notifyChannel = true
+    @AppStorage("notifyRoomServerMessages") private var notifyRoom = true
+    @AppStorage("notifyNewContacts") private var notifyNewContacts = false
+    @AppStorage("notifyConnectionChanges") private var notifyConnection = true
+
+    var body: some View {
+        Section {
+            Toggle(isOn: $notifyDirect) {
+                Label("Direct Messages", systemImage: "bubble.left.fill")
+                    .foregroundStyle(MeshTheme.accent)
+            }
+            .tint(MeshTheme.accent)
+            .listRowBackground(MeshTheme.surface)
+
+            Toggle(isOn: $notifyChannel) {
+                Label("Channel Messages", systemImage: "number")
+                    .foregroundStyle(MeshTheme.accent)
+            }
+            .tint(MeshTheme.accent)
+            .listRowBackground(MeshTheme.surface)
+
+            Toggle(isOn: $notifyRoom) {
+                Label("Room Server Messages", systemImage: "server.rack")
+                    .foregroundStyle(MeshTheme.accent)
+            }
+            .tint(MeshTheme.accent)
+            .listRowBackground(MeshTheme.surface)
+
+            Toggle(isOn: $notifyNewContacts) {
+                Label("New Contacts Discovered", systemImage: "person.badge.plus")
+                    .foregroundStyle(MeshTheme.accent)
+            }
+            .tint(MeshTheme.accent)
+            .listRowBackground(MeshTheme.surface)
+
+            Toggle(isOn: $notifyConnection) {
+                Label("Connection Status", systemImage: "antenna.radiowaves.left.and.right")
+                    .foregroundStyle(MeshTheme.accent)
+            }
+            .tint(MeshTheme.accent)
+            .listRowBackground(MeshTheme.surface)
+        } header: {
+            Text("Notifications")
+                .foregroundStyle(MeshTheme.textSecondary)
+        } footer: {
+            Text("Choose which events trigger notifications when the app is in the background.")
+                .font(.caption2)
         }
     }
 }
@@ -381,6 +443,123 @@ private extension SettingsView {
 /// Standard LoRa bandwidths in kHz
 private let loraBandwidths: [Double] = [7.8, 10.4, 15.6, 20.8, 31.25, 41.7, 62.5, 125, 250, 500]
 
+struct RadioPreset: Identifiable {
+    let id = UUID()
+    let name: String
+    let region: String
+    let frequencyKHz: Double
+    let bandwidth: Double
+    let spreadingFactor: UInt8
+    let codingRate: UInt8
+}
+
+/// Reusable radio preset picker section. Calls `onApply` with the selected preset.
+struct RadioPresetPicker: View {
+    let onApply: (RadioPreset) -> Void
+    @State private var selectedPresetIndex: Int = -1
+
+    var body: some View {
+        Section {
+            HStack {
+                Image(systemName: "globe")
+                    .foregroundStyle(MeshTheme.accent)
+                    .frame(width: 24)
+                Picker("Radio Preset", selection: $selectedPresetIndex) {
+                    Text("Custom").tag(-1)
+                    ForEach(Array(radioPresets.enumerated()), id: \.offset) { index, preset in
+                        Text(preset.name).tag(index)
+                    }
+                }
+                .foregroundStyle(MeshTheme.accent)
+                .tint(MeshTheme.accent)
+            }
+            .listRowBackground(MeshTheme.surface)
+
+            if selectedPresetIndex >= 0, selectedPresetIndex < radioPresets.count {
+                let preset = radioPresets[selectedPresetIndex]
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Frequency: \(String(format: "%.3f", preset.frequencyKHz / 1000)) MHz")
+                    Text("Bandwidth: \(preset.bandwidth == preset.bandwidth.rounded() ? "\(Int(preset.bandwidth)) kHz" : "\(preset.bandwidth) kHz")")
+                    Text("Spreading Factor: SF\(preset.spreadingFactor)")
+                    Text("Coding Rate: 4/\(preset.codingRate)")
+                }
+                .font(.caption)
+                .foregroundStyle(MeshTheme.textPrimary)
+                .listRowBackground(MeshTheme.surface)
+
+                Button {
+                    onApply(preset)
+                    selectedPresetIndex = -1
+                } label: {
+                    HStack {
+                        Image(systemName: "checkmark.circle")
+                            .foregroundStyle(MeshTheme.accent)
+                            .frame(width: 24)
+                        Text("Apply Preset")
+                            .foregroundStyle(MeshTheme.accent)
+                        Spacer()
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .listRowBackground(MeshTheme.surface)
+            }
+        } header: {
+            Text("Radio Presets")
+                .foregroundStyle(MeshTheme.textSecondary)
+        } footer: {
+            Text("Select a preset for your region. All nodes on your mesh must use the same settings.")
+                .font(.caption2)
+        }
+    }
+}
+
+let radioPresets: [RadioPreset] = [
+    // USA / Canada
+    RadioPreset(name: "USA/Canada (Recommended)", region: "North America",
+                frequencyKHz: 910525.244, bandwidth: 62.5, spreadingFactor: 7, codingRate: 5),
+    RadioPreset(name: "USA/Canada (Legacy Wide)", region: "North America",
+                frequencyKHz: 915800.0, bandwidth: 250, spreadingFactor: 11, codingRate: 5),
+    RadioPreset(name: "USA: Texas", region: "North America",
+                frequencyKHz: 903500.0, bandwidth: 62.5, spreadingFactor: 7, codingRate: 5),
+    RadioPreset(name: "USA: Southern California", region: "North America",
+                frequencyKHz: 927875.0, bandwidth: 62.5, spreadingFactor: 7, codingRate: 8),
+
+    // Australia
+    RadioPreset(name: "Australia", region: "Australia/NZ",
+                frequencyKHz: 915800.0, bandwidth: 250, spreadingFactor: 10, codingRate: 5),
+    RadioPreset(name: "Australia: Victoria", region: "Australia/NZ",
+                frequencyKHz: 916575.0, bandwidth: 62.5, spreadingFactor: 7, codingRate: 5),
+    RadioPreset(name: "Australia: Brisbane", region: "Australia/NZ",
+                frequencyKHz: 917800.0, bandwidth: 62.5, spreadingFactor: 8, codingRate: 5),
+    RadioPreset(name: "Australia: Western Australia", region: "Australia/NZ",
+                frequencyKHz: 921500.0, bandwidth: 62.5, spreadingFactor: 7, codingRate: 5),
+
+    // New Zealand
+    RadioPreset(name: "New Zealand", region: "Australia/NZ",
+                frequencyKHz: 915800.0, bandwidth: 250, spreadingFactor: 10, codingRate: 5),
+    RadioPreset(name: "New Zealand (Narrow)", region: "Australia/NZ",
+                frequencyKHz: 916800.0, bandwidth: 62.5, spreadingFactor: 8, codingRate: 5),
+
+    // Europe / UK
+    RadioPreset(name: "Europe (Recommended)", region: "Europe",
+                frequencyKHz: 869525.0, bandwidth: 62.5, spreadingFactor: 9, codingRate: 5),
+    RadioPreset(name: "Europe (Legacy Wide)", region: "Europe",
+                frequencyKHz: 869525.0, bandwidth: 250, spreadingFactor: 11, codingRate: 5),
+    RadioPreset(name: "UK", region: "Europe",
+                frequencyKHz: 869525.0, bandwidth: 62.5, spreadingFactor: 9, codingRate: 5),
+    RadioPreset(name: "Netherlands", region: "Europe",
+                frequencyKHz: 869525.0, bandwidth: 62.5, spreadingFactor: 9, codingRate: 5),
+
+    // Asia
+    RadioPreset(name: "Thailand", region: "Asia",
+                frequencyKHz: 920000.0, bandwidth: 62.5, spreadingFactor: 7, codingRate: 5),
+    RadioPreset(name: "Japan", region: "Asia",
+                frequencyKHz: 923000.0, bandwidth: 62.5, spreadingFactor: 7, codingRate: 5),
+    RadioPreset(name: "India", region: "Asia",
+                frequencyKHz: 866000.0, bandwidth: 62.5, spreadingFactor: 7, codingRate: 5),
+]
+
 struct RadioSection: View {
     @ObservedObject var viewModel: MeshCoreViewModel
     @State private var freqMHz: String = ""
@@ -392,8 +571,11 @@ struct RadioSection: View {
     @State private var saveState: SaveButtonState = .idle
 
     var body: some View {
+        RadioPresetPicker { preset in
+            applyPreset(preset)
+        }
+
         Section {
-            // Fix #6: Frequency with 3 decimal places
             HStack {
                 Image(systemName: "antenna.radiowaves.left.and.right")
                     .foregroundStyle(MeshTheme.accent)
@@ -559,6 +741,13 @@ struct RadioSection: View {
     private func formatBW(_ bw: Double) -> String {
         if bw == bw.rounded() { return "\(Int(bw)) kHz" }
         return "\(bw) kHz"
+    }
+
+    private func applyPreset(_ preset: RadioPreset) {
+        freqMHz = String(format: "%.3f", preset.frequencyKHz / 1000)
+        selectedBW = nearestBW(preset.bandwidth)
+        selectedSF = preset.spreadingFactor
+        selectedCR = preset.codingRate
     }
 }
 
@@ -751,14 +940,19 @@ struct PrivacySection: View {
                     .frame(width: 100)
                 #endif
                 Button {
-                    pinText = String(Int.random(in: 100000...999999))
+                    viewModel.setDevicePIN(1)
+                    // Refresh device info after a short delay to read back the new random PIN
+                    Task { @MainActor in
+                        try? await Task.sleep(nanoseconds: 1_000_000_000)
+                        viewModel.refreshAllSettings()
+                    }
                 } label: {
                     Image(systemName: "dice")
                         .foregroundStyle(MeshTheme.accent)
                 }
                 .buttonStyle(.plain)
                 .contentShape(Rectangle())
-                .help("Randomize PIN")
+                .help("Generate random PIN on device")
             }
             .listRowBackground(MeshTheme.surface)
 
@@ -784,6 +978,7 @@ struct PrivacySection: View {
         }
         .onAppear { loadFromConfig() }
         .onChange(of: viewModel.deviceConfig.manualAddContacts) { _ in loadFromConfig() }
+        .onChange(of: viewModel.deviceConfig.blePIN) { _ in pinText = String(viewModel.deviceConfig.blePIN) }
     }
 
     private func loadFromConfig() {

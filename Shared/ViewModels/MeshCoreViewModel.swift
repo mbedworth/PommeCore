@@ -14,6 +14,7 @@ enum SidebarSelection: Hashable {
     case publicChannel
     case channel(UInt8)
     case contact(Data) // publicKeyPrefix
+    case settings
 }
 
 @MainActor
@@ -214,8 +215,22 @@ final class MeshCoreViewModel: ObservableObject {
     }
 
     /// Post a local notification for an incoming message when the app is backgrounded.
+    /// Checks user notification preferences before sending.
     private func postLocalNotification(for message: Message) {
         guard isInBackground else { return }
+
+        // Check notification preferences
+        let defaults = UserDefaults.standard
+        let isChannel = message.channelIndex != nil
+        let isRoom = contacts.first(where: { $0.publicKeyPrefix == message.contactKeyHash })?.type == .room
+
+        if isChannel {
+            guard defaults.object(forKey: "notifyChannelMessages") == nil || defaults.bool(forKey: "notifyChannelMessages") else { return }
+        } else if isRoom {
+            guard defaults.object(forKey: "notifyRoomServerMessages") == nil || defaults.bool(forKey: "notifyRoomServerMessages") else { return }
+        } else {
+            guard defaults.object(forKey: "notifyDirectMessages") == nil || defaults.bool(forKey: "notifyDirectMessages") else { return }
+        }
 
         let content = UNMutableNotificationContent()
         content.sound = .default
@@ -237,6 +252,10 @@ final class MeshCoreViewModel: ObservableObject {
         }
         content.body = message.text
 
+        // Include badge count
+        let totalUnread = unreadCounts.values.reduce(0, +)
+        content.badge = NSNumber(value: totalUnread)
+
         let request = UNNotificationRequest(
             identifier: message.id.uuidString,
             content: content,
@@ -248,6 +267,18 @@ final class MeshCoreViewModel: ObservableObject {
                 log.warning("Failed to post notification: \(error.localizedDescription)")
             }
         }
+    }
+
+    /// Update the app icon badge to reflect total unread messages.
+    func updateAppBadge() {
+        let totalUnread = unreadCounts.values.reduce(0, +)
+        #if os(iOS)
+        Task { @MainActor in
+            try? await UNUserNotificationCenter.current().setBadgeCount(totalUnread)
+        }
+        #elseif os(macOS)
+        NSApplication.shared.dockTile.badgeLabel = totalUnread > 0 ? "\(totalUnread)" : nil
+        #endif
     }
 
     /// Trigger haptic feedback on message send.
@@ -661,6 +692,7 @@ final class MeshCoreViewModel: ObservableObject {
 
     func markAsRead(_ contact: Contact) {
         unreadCounts[contact.publicKeyPrefix] = 0
+        updateAppBadge()
     }
 
     func sendTextMessage(_ text: String, to contact: Contact) {
@@ -1445,6 +1477,7 @@ final class MeshCoreViewModel: ObservableObject {
 
         if selectedContact?.publicKeyPrefix != contactKey {
             unreadCounts[contactKey, default: 0] += 1
+            updateAppBadge()
         }
 
         postLocalNotification(for: message)

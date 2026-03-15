@@ -26,6 +26,9 @@ struct ContactListView: View {
                 pendingContactsSection
             }
             contactsSection
+            #if !os(watchOS)
+            settingsSection
+            #endif
         }
         .meshListStyle()
         .navigationTitle("MeshCore")
@@ -466,6 +469,34 @@ struct ContactListView: View {
         }
     }
 
+    #if !os(watchOS)
+    @ViewBuilder
+    private var settingsSection: some View {
+        Section {
+            NavigationLink(value: SidebarSelection.settings) {
+                HStack(spacing: 12) {
+                    ZStack {
+                        Circle()
+                            .fill(MeshTheme.accent.opacity(0.15))
+                            .frame(width: 40, height: 40)
+                        Image(systemName: "gearshape.fill")
+                            .foregroundStyle(MeshTheme.accent)
+                    }
+                    Text("Device Settings")
+                        .font(.body)
+                        .foregroundStyle(MeshTheme.accent)
+                }
+                .contentShape(Rectangle())
+            }
+            .listRowBackground(
+                viewModel.sidebarSelection == .settings
+                    ? MeshTheme.surfaceLight
+                    : MeshTheme.surface
+            )
+        }
+    }
+    #endif
+
     @ViewBuilder
     private func contactContextMenu(for contact: Contact) -> some View {
         Button {
@@ -581,6 +612,9 @@ struct ContactListView: View {
             } else {
                 Text("Contact not found")
             }
+        case .settings:
+            SettingsView()
+                .environmentObject(viewModel)
         }
     }
     #endif
