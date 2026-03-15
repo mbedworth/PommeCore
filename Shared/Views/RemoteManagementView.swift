@@ -92,7 +92,7 @@ struct RemoteManagementView: View {
                     Spacer()
                     Text(permission.displayName)
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(MeshTheme.textOnAccent)
+                        .foregroundStyle(.black)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 3)
                         .background(permissionBadgeColor)
@@ -182,7 +182,7 @@ struct LoginSection: View {
                     .foregroundStyle(statusColor)
                     .shadow(color: statusColor.opacity(0.5), radius: 3)
                 Text("Login Status")
-                    .foregroundStyle(MeshTheme.textPrimary)
+                    .foregroundStyle(MeshTheme.accent)
                 Spacer()
                 Text(statusLabel)
                     .foregroundStyle(MeshTheme.textPrimary)
@@ -948,7 +948,7 @@ struct RemoteClockRow: View {
                         .foregroundStyle(MeshTheme.accent)
                         .frame(width: 24)
                     Text("Clock")
-                        .foregroundStyle(MeshTheme.textPrimary)
+                        .foregroundStyle(MeshTheme.accent)
                     Spacer()
                     Text(clockValue)
                         .foregroundStyle(MeshTheme.textPrimary)
@@ -1002,7 +1002,7 @@ func cliInfoRow(icon: String, label: String, value: String) -> some View {
             .foregroundStyle(MeshTheme.accent)
             .frame(width: 24)
         Text(label)
-            .foregroundStyle(MeshTheme.textPrimary)
+            .foregroundStyle(MeshTheme.accent)
         Spacer()
         Text(value)
             .foregroundStyle(MeshTheme.textPrimary)
@@ -1016,7 +1016,7 @@ func cliSettingRow(icon: String, label: String, value: String) -> some View {
             .foregroundStyle(MeshTheme.accent)
             .frame(width: 24)
         Text(label)
-            .foregroundStyle(MeshTheme.textPrimary)
+            .foregroundStyle(MeshTheme.accent)
         Spacer()
         Text(value)
             .foregroundStyle(MeshTheme.textPrimary)
@@ -1053,7 +1053,7 @@ struct CLIToggleRow: View {
                 .foregroundStyle(MeshTheme.accent)
                 .frame(width: 24)
             Text(label)
-                .foregroundStyle(MeshTheme.textPrimary)
+                .foregroundStyle(MeshTheme.accent)
             Spacer()
             if canEdit {
                 let toggleActive = MeshTheme.accent
@@ -1063,7 +1063,7 @@ struct CLIToggleRow: View {
                     } label: {
                         Text("On")
                             .font(.caption.weight(.medium))
-                            .foregroundStyle(isOn == true ? MeshTheme.textOnAccent : MeshTheme.textPrimary)
+                            .foregroundStyle(isOn == true ? .black : MeshTheme.textPrimary)
                             .padding(.horizontal, 12)
                             .padding(.vertical, 5)
                             .background(isOn == true ? toggleActive : Color.clear)
@@ -1075,7 +1075,7 @@ struct CLIToggleRow: View {
                     } label: {
                         Text("Off")
                             .font(.caption.weight(.medium))
-                            .foregroundStyle(isOn == false ? MeshTheme.textOnAccent : MeshTheme.textPrimary)
+                            .foregroundStyle(isOn == false ? .black : MeshTheme.textPrimary)
                             .padding(.horizontal, 12)
                             .padding(.vertical, 5)
                             .background(isOn == false ? toggleActive : Color.clear)
@@ -1094,44 +1094,31 @@ struct CLIToggleRow: View {
 }
 
 func cliEditRow(icon: String, label: String, text: Binding<String>, current: String?) -> some View {
-    CLIEditRowView(icon: icon, label: label, text: text, current: current)
-}
-
-/// Wraps cliEditRow as a View so we can use @State / onAppear to pre-fill the
-/// text binding with the current device value.  This ensures the value renders
-/// as primary-colored text instead of a faint placeholder.
-private struct CLIEditRowView: View {
-    let icon: String
-    let label: String
-    @Binding var text: String
-    let current: String?
-    @State private var didPrefill = false
-
-    var body: some View {
-        HStack {
-            Image(systemName: icon)
+    HStack {
+        Image(systemName: icon)
+            .foregroundStyle(MeshTheme.accent)
+            .frame(width: 24)
+        VStack(alignment: .leading, spacing: 2) {
+            Text(label)
+                .font(.caption)
                 .foregroundStyle(MeshTheme.accent)
-                .frame(width: 24)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(label)
-                    .font(.caption)
-                    .foregroundStyle(MeshTheme.textSecondary)
-                #if os(watchOS)
-                TextField("Enter value", text: $text)
-                    .foregroundStyle(MeshTheme.textPrimary)
-                #else
-                TextField("Enter value", text: $text)
-                    .foregroundStyle(MeshTheme.textPrimary)
-                    .textFieldStyle(MeshTextFieldStyle())
-                #endif
-            }
-        }
-        .listRowBackground(MeshTheme.surface)
-        .onAppear {
-            if !didPrefill, text.isEmpty, let current, !current.isEmpty {
-                text = current
-                didPrefill = true
-            }
+            #if os(watchOS)
+            TextField(
+                "Enter value",
+                text: text,
+                prompt: Text(current ?? "value").foregroundColor(.primary)
+            )
+            .foregroundStyle(MeshTheme.textPrimary)
+            #else
+            TextField(
+                "Enter value",
+                text: text,
+                prompt: Text(current ?? "value").foregroundColor(.primary)
+            )
+            .foregroundStyle(MeshTheme.textPrimary)
+            .textFieldStyle(MeshTextFieldStyle())
+            #endif
         }
     }
+    .listRowBackground(MeshTheme.surface)
 }

@@ -139,7 +139,7 @@ private extension SettingsView {
                     Text(chem.displayName).tag(chem.rawValue)
                 }
             }
-            .foregroundStyle(MeshTheme.textPrimary)
+            .foregroundStyle(MeshTheme.accent)
             .tint(MeshTheme.accent)
         }
         .listRowBackground(MeshTheme.surface)
@@ -160,7 +160,7 @@ private extension SettingsView {
                 .foregroundStyle(MeshTheme.accent)
                 .frame(width: 24)
             Text("Public Key")
-                .foregroundStyle(MeshTheme.textPrimary)
+                .foregroundStyle(MeshTheme.accent)
             Spacer()
             Text(String(config.publicKeyHex.prefix(16)) + "...")
                 .foregroundStyle(MeshTheme.textPrimary)
@@ -189,7 +189,7 @@ private extension SettingsView {
                 .foregroundStyle(batteryColor)
                 .frame(width: 24)
             Text("Battery")
-                .foregroundStyle(MeshTheme.textPrimary)
+                .foregroundStyle(MeshTheme.accent)
             Spacer()
             if config.batteryMillivolts > 0 {
                 Text("\(String(format: "%.2fV", config.batteryVoltage)) (\(config.batteryPercent(chemistry: batteryChemistry))%)")
@@ -230,7 +230,7 @@ private extension SettingsView {
                     .foregroundStyle(statusColor)
                     .shadow(color: statusColor.opacity(0.5), radius: 3)
                 Text("Status")
-                    .foregroundStyle(MeshTheme.textPrimary)
+                    .foregroundStyle(MeshTheme.accent)
                 Spacer()
                 Text(connectionLabel)
                     .foregroundStyle(MeshTheme.textPrimary)
@@ -399,7 +399,7 @@ struct RadioSection: View {
                     .foregroundStyle(MeshTheme.accent)
                     .frame(width: 24)
                 Text("Frequency (MHz)")
-                    .foregroundStyle(MeshTheme.textPrimary)
+                    .foregroundStyle(MeshTheme.accent)
                 Spacer()
                 #if os(watchOS)
                 TextField("MHz", text: $freqMHz)
@@ -424,7 +424,7 @@ struct RadioSection: View {
                         Text(formatBW(bw)).tag(bw)
                     }
                 }
-                .foregroundStyle(MeshTheme.textPrimary)
+                .foregroundStyle(MeshTheme.accent)
                 .tint(MeshTheme.accent)
             }
             .listRowBackground(MeshTheme.surface)
@@ -439,7 +439,7 @@ struct RadioSection: View {
                         Text("SF\(val)").tag(val)
                     }
                 }
-                .foregroundStyle(MeshTheme.textPrimary)
+                .foregroundStyle(MeshTheme.accent)
                 .tint(MeshTheme.accent)
             }
             .listRowBackground(MeshTheme.surface)
@@ -455,7 +455,7 @@ struct RadioSection: View {
                     Text("4/7").tag(UInt8(7))
                     Text("4/8").tag(UInt8(8))
                 }
-                .foregroundStyle(MeshTheme.textPrimary)
+                .foregroundStyle(MeshTheme.accent)
                 .tint(MeshTheme.accent)
             }
             .listRowBackground(MeshTheme.surface)
@@ -466,7 +466,7 @@ struct RadioSection: View {
                         .foregroundStyle(MeshTheme.accent)
                         .frame(width: 24)
                     Text("TX Power: \(Int(txPower)) dBm")
-                        .foregroundStyle(MeshTheme.textPrimary)
+                        .foregroundStyle(MeshTheme.accent)
                 }
                 Slider(value: $txPower, in: 2...Double(max(viewModel.deviceConfig.maxTXPower, 2)), step: 1)
                     .tint(MeshTheme.accent)
@@ -479,7 +479,7 @@ struct RadioSection: View {
                         .foregroundStyle(MeshTheme.accent)
                         .frame(width: 24)
                     Text("Repeat Mode")
-                        .foregroundStyle(MeshTheme.textPrimary)
+                        .foregroundStyle(MeshTheme.accent)
                 }
             }
             .tint(MeshTheme.accent)
@@ -504,7 +504,7 @@ struct RadioSection: View {
                             .foregroundStyle(MeshTheme.accent)
                             .frame(width: 24)
                         Text("Allowed Repeat Frequencies")
-                            .foregroundStyle(MeshTheme.textPrimary)
+                            .foregroundStyle(MeshTheme.accent)
                     }
                     ForEach(Array(viewModel.allowedRepeatFreqRanges.enumerated()), id: \.offset) { _, range in
                         Text("\(String(format: "%.3f", Double(range.lowerHz) / 1_000_000)) \u{2013} \(String(format: "%.3f", Double(range.upperHz) / 1_000_000)) MHz")
@@ -583,7 +583,7 @@ struct TuningSection: View {
                     .foregroundStyle(MeshTheme.accent)
                     .frame(width: 24)
                 Text("RX Delay Base (s)")
-                    .foregroundStyle(MeshTheme.textPrimary)
+                    .foregroundStyle(MeshTheme.accent)
                 Spacer()
                 #if os(watchOS)
                 TextField("seconds", text: $rxDelay)
@@ -603,7 +603,7 @@ struct TuningSection: View {
                     .foregroundStyle(MeshTheme.accent)
                     .frame(width: 24)
                 Text("Airtime Factor")
-                    .foregroundStyle(MeshTheme.textPrimary)
+                    .foregroundStyle(MeshTheme.accent)
                 Spacer()
                 #if os(watchOS)
                 TextField("multiplier", text: $airtime)
@@ -674,7 +674,7 @@ struct PrivacySection: View {
                         .foregroundStyle(MeshTheme.accent)
                         .frame(width: 24)
                     Text("Manual Add Contacts")
-                        .foregroundStyle(MeshTheme.textPrimary)
+                        .foregroundStyle(MeshTheme.accent)
                 }
             }
             .tint(MeshTheme.accent)
@@ -690,7 +690,7 @@ struct PrivacySection: View {
                         Text(label).tag(val)
                     }
                 }
-                .foregroundStyle(MeshTheme.textPrimary)
+                .foregroundStyle(MeshTheme.accent)
                 .tint(MeshTheme.accent)
             }
             .listRowBackground(MeshTheme.surface)
@@ -704,7 +704,7 @@ struct PrivacySection: View {
                         Text(label).tag(val)
                     }
                 }
-                .foregroundStyle(MeshTheme.textPrimary)
+                .foregroundStyle(MeshTheme.accent)
                 .tint(MeshTheme.accent)
             }
             .listRowBackground(MeshTheme.surface)
@@ -715,7 +715,7 @@ struct PrivacySection: View {
                         .foregroundStyle(MeshTheme.accent)
                         .frame(width: 24)
                     Text("Share Location in Advert")
-                        .foregroundStyle(MeshTheme.textPrimary)
+                        .foregroundStyle(MeshTheme.accent)
                 }
             }
             .tint(MeshTheme.accent)
@@ -727,7 +727,7 @@ struct PrivacySection: View {
                         .foregroundStyle(MeshTheme.accent)
                         .frame(width: 24)
                     Text("Multi-ACK")
-                        .foregroundStyle(MeshTheme.textPrimary)
+                        .foregroundStyle(MeshTheme.accent)
                 }
             }
             .tint(MeshTheme.accent)
@@ -738,7 +738,7 @@ struct PrivacySection: View {
                     .foregroundStyle(MeshTheme.accent)
                     .frame(width: 24)
                 Text("BLE PIN")
-                    .foregroundStyle(MeshTheme.textPrimary)
+                    .foregroundStyle(MeshTheme.accent)
                 Spacer()
                 #if os(watchOS)
                 TextField("PIN", text: $pinText)
@@ -807,7 +807,7 @@ private extension SettingsView {
                     .foregroundStyle(MeshTheme.accent)
                     .frame(width: 24)
                 Text("Device Time")
-                    .foregroundStyle(MeshTheme.textPrimary)
+                    .foregroundStyle(MeshTheme.accent)
                 Spacer()
                 Text(deviceTimeString)
                     .foregroundStyle(MeshTheme.textPrimary)
@@ -1108,7 +1108,7 @@ private extension SettingsView {
                 .foregroundStyle(MeshTheme.accent)
                 .frame(width: 24)
             Text(label)
-                .foregroundStyle(MeshTheme.textPrimary)
+                .foregroundStyle(MeshTheme.accent)
             Spacer()
             Text(value)
                 .foregroundStyle(MeshTheme.textPrimary)

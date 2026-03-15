@@ -19,8 +19,28 @@ enum AppTheme: String, CaseIterable {
 // MARK: - Theme Colors
 
 enum MeshTheme {
-    // Primary accent — vibrant green that evokes radio/mesh connectivity
-    static let accent = Color(red: 0.0, green: 0.75, blue: 0.42)
+    // Primary accent — adaptive green: darker/richer in light mode, bright in dark mode
+    static var accent: Color {
+        #if os(macOS)
+        Color(nsColor: NSColor(name: nil) { appearance in
+            if appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua {
+                return NSColor(red: 0.0, green: 0.85, blue: 0.35, alpha: 1.0)
+            } else {
+                return NSColor(red: 0.0, green: 0.60, blue: 0.25, alpha: 1.0)
+            }
+        })
+        #elseif os(watchOS)
+        Color(red: 0.0, green: 0.85, blue: 0.35) // always bright on watch
+        #else
+        Color(uiColor: UIColor { traitCollection in
+            if traitCollection.userInterfaceStyle == .dark {
+                return UIColor(red: 0.0, green: 0.85, blue: 0.35, alpha: 1.0)
+            } else {
+                return UIColor(red: 0.0, green: 0.60, blue: 0.25, alpha: 1.0)
+            }
+        })
+        #endif
+    }
 
     // Surface colors — adaptive to light/dark mode
     static var surface: Color {
@@ -53,8 +73,8 @@ enum MeshTheme {
         #endif
     }
 
-    // Message bubbles — adaptive
-    static let outgoingBubble = Color(red: 0.0, green: 0.75, blue: 0.42)
+    // Message bubbles — uses the adaptive accent for outgoing
+    static var outgoingBubble: Color { accent }
 
     static var incomingBubble: Color {
         #if os(macOS)
@@ -75,7 +95,7 @@ enum MeshTheme {
     // Text — adaptive
     static let textPrimary = Color.primary
     static let textSecondary = Color.secondary
-    static let textOnAccent = Color.white
+    static let textOnAccent = Color.black
 
     // Remote management accent colors
     static let remoteRoom = Color.teal
