@@ -33,19 +33,26 @@ struct SettingsView: View {
     // MARK: - Disconnected State
 
     private var disconnectedView: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "antenna.radiowaves.left.and.right.slash")
-                .font(.system(size: 48))
-                .foregroundStyle(MeshTheme.textSecondary)
-            Text("No device connected")
-                .foregroundStyle(MeshTheme.textSecondary)
-            Text("Connect to a MeshCore device to view settings.")
-                .font(.caption)
-                .foregroundStyle(MeshTheme.textSecondary)
-                .multilineTextAlignment(.center)
+        List {
+            appearanceSection
+
+            Section {
+                VStack(spacing: 16) {
+                    Image(systemName: "antenna.radiowaves.left.and.right.slash")
+                        .font(.system(size: 48))
+                        .foregroundStyle(MeshTheme.textSecondary)
+                    Text("No Device Connected")
+                        .font(.headline)
+                    Text("Connect to a MeshCore radio to view and change device settings.")
+                        .font(.subheadline)
+                        .foregroundStyle(MeshTheme.textSecondary)
+                        .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 24)
+            }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(MeshTheme.background)
+        .meshListStyle()
     }
 
     // MARK: - Settings Form

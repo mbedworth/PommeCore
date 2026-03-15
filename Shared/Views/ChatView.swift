@@ -30,19 +30,19 @@ struct ChatView: View {
         ScrollViewReader { proxy in
             ScrollView {
                 if messages.isEmpty {
-                    VStack(spacing: 8) {
+                    VStack(spacing: 12) {
                         Spacer(minLength: 60)
                         Image(systemName: "bubble.left.and.bubble.right")
                             .font(.system(size: 36))
-                            .foregroundStyle(MeshTheme.textSecondary.opacity(0.5))
+                            .foregroundStyle(MeshTheme.textSecondary)
                         Text("No messages yet")
                             .font(.subheadline)
                             .foregroundStyle(MeshTheme.textSecondary)
-                        Text("Start a conversation")
+                        Text("Send a message to start the conversation.")
                             .font(.caption)
-                            .foregroundStyle(MeshTheme.textSecondary.opacity(0.7))
+                            .foregroundStyle(MeshTheme.textSecondary)
                     }
-                    .frame(maxWidth: .infinity)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
                 LazyVStack(spacing: 4) {
                     ForEach(messages) { message in
@@ -157,6 +157,21 @@ struct ChannelChatView: View {
     private var messageList: some View {
         ScrollViewReader { proxy in
             ScrollView {
+                if messages.isEmpty {
+                    VStack(spacing: 12) {
+                        Spacer(minLength: 60)
+                        Image(systemName: "number.square")
+                            .font(.system(size: 36))
+                            .foregroundStyle(MeshTheme.textSecondary)
+                        Text("No messages yet")
+                            .font(.subheadline)
+                            .foregroundStyle(MeshTheme.textSecondary)
+                        Text("Messages sent to this channel will appear here.")
+                            .font(.caption)
+                            .foregroundStyle(MeshTheme.textSecondary)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
                 LazyVStack(spacing: 4) {
                     ForEach(messages) { message in
                         ChannelMessageBubble(message: message)

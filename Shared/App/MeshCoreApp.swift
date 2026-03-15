@@ -80,31 +80,41 @@ struct ContentView: View {
                     ChatView(contact: contact)
                 }
             } else if viewModel.connectionState == .disconnected {
-                VStack(spacing: 12) {
+                VStack(spacing: 16) {
                     Image(systemName: "antenna.radiowaves.left.and.right.slash")
                         .font(.system(size: 48))
                         .foregroundStyle(MeshTheme.textSecondary)
-                    Text("Connect to a MeshCore device")
+                    Text("No Radio Connected")
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                    Text("Turn on your MeshCore radio and tap the button below to scan for nearby devices.")
+                        .font(.subheadline)
                         .foregroundStyle(MeshTheme.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 32)
                     Button {
                         showScanner = true
                     } label: {
-                        HStack(spacing: 6) {
-                            Image(systemName: "magnifyingglass")
-                            Text("Scan for Devices")
-                        }
-                        .foregroundStyle(MeshTheme.accent)
+                        Label("Scan for Devices", systemImage: "magnifyingglass")
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.borderedProminent)
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                VStack(spacing: 12) {
+                VStack(spacing: 16) {
                     Image(systemName: "bubble.left.and.bubble.right")
                         .font(.system(size: 48))
                         .foregroundStyle(MeshTheme.textSecondary)
-                    Text("Select a contact to start messaging")
+                    Text("Select a Contact")
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                    Text("Choose a contact or channel from the sidebar to start messaging.")
+                        .font(.subheadline)
                         .foregroundStyle(MeshTheme.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 32)
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .toolbar {
