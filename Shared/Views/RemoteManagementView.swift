@@ -147,7 +147,7 @@ struct RemoteManagementView: View {
         case .guest: return MeshTheme.textSecondary
         case .readOnly: return .yellow
         case .readWrite: return .blue
-        case .admin: return MeshTheme.connected
+        case .admin: return MeshTheme.interactiveGreen
         }
     }
 
@@ -1056,7 +1056,7 @@ struct CLIToggleRow: View {
                 .foregroundStyle(MeshTheme.accent)
             Spacer()
             if canEdit {
-                let toggleActive = MeshTheme.accent
+                let toggleActive = MeshTheme.interactiveGreen
                 HStack(spacing: 0) {
                     Button {
                         sendCLI(onCommand)

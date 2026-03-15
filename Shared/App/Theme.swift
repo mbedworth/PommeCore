@@ -73,8 +73,33 @@ enum MeshTheme {
         #endif
     }
 
-    // Message bubbles — uses the adaptive accent for outgoing
-    static var outgoingBubble: Color { accent }
+    // Interactive green — for any element where green is the BACKGROUND with black text on top.
+    // Lighter than accent in light mode so black text is readable; medium green in dark mode.
+    // Used for: buttons, badges, toggles, pills, login buttons, chat bubbles.
+    static var interactiveGreen: Color { outgoingBubble }
+
+    // Message bubbles — independent from accent; light enough for black text
+    static var outgoingBubble: Color {
+        #if os(macOS)
+        Color(nsColor: NSColor(name: nil) { appearance in
+            if appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua {
+                return NSColor(red: 0.0, green: 0.65, blue: 0.3, alpha: 1.0)
+            } else {
+                return NSColor(red: 0.75, green: 0.93, blue: 0.78, alpha: 1.0)
+            }
+        })
+        #elseif os(watchOS)
+        Color(red: 0.0, green: 0.65, blue: 0.3)
+        #else
+        Color(uiColor: UIColor { traitCollection in
+            if traitCollection.userInterfaceStyle == .dark {
+                return UIColor(red: 0.0, green: 0.65, blue: 0.3, alpha: 1.0)
+            } else {
+                return UIColor(red: 0.75, green: 0.93, blue: 0.78, alpha: 1.0)
+            }
+        })
+        #endif
+    }
 
     static var incomingBubble: Color {
         #if os(macOS)

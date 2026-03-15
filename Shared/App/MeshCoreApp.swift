@@ -107,6 +107,7 @@ struct ContentView: View {
                             Label("Scan for Devices", systemImage: "magnifyingglass")
                         }
                         .buttonStyle(.borderedProminent)
+                        .tint(MeshTheme.interactiveGreen)
                         .foregroundStyle(.black)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)

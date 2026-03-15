@@ -188,7 +188,7 @@ struct ContactListView: View {
                 .foregroundStyle(.black)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
-                .background(MeshTheme.accent)
+                .background(MeshTheme.interactiveGreen)
                 .clipShape(Capsule())
         }
     }
@@ -295,7 +295,7 @@ struct ContactListView: View {
                     .foregroundStyle(.black)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
-                    .background(MeshTheme.accent)
+                    .background(MeshTheme.interactiveGreen)
                     .clipShape(Capsule())
             }
         }
@@ -366,6 +366,7 @@ struct ContactListView: View {
                         Label("Send Advertisement", systemImage: "antenna.radiowaves.left.and.right")
                     }
                     .buttonStyle(.borderedProminent)
+                    .tint(MeshTheme.interactiveGreen)
                     .foregroundStyle(.black)
                     .controlSize(.small)
                 }
@@ -703,7 +704,7 @@ struct ContactListView: View {
                 .foregroundStyle(.black)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
-                .background(MeshTheme.accent)
+                .background(MeshTheme.interactiveGreen)
                 .clipShape(Capsule())
         }
     }
@@ -732,7 +733,7 @@ struct ContactListView: View {
         case .guest: return MeshTheme.textSecondary
         case .readOnly: return .yellow
         case .readWrite: return .blue
-        case .admin: return MeshTheme.connected
+        case .admin: return MeshTheme.interactiveGreen
         }
     }
 }
