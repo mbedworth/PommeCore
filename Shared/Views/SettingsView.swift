@@ -4,6 +4,7 @@ import MeshCoreKit
 struct SettingsView: View {
     @EnvironmentObject var viewModel: MeshCoreViewModel
     @AppStorage("batteryChemistry") private var batteryChemistryRaw: String = BatteryChemistry.lipo.rawValue
+    @AppStorage("appTheme") private var appTheme: String = AppTheme.system.rawValue
 
     private var batteryChemistry: BatteryChemistry {
         BatteryChemistry(rawValue: batteryChemistryRaw) ?? .lipo
@@ -51,6 +52,7 @@ struct SettingsView: View {
 
     private var settingsForm: some View {
         List {
+            appearanceSection
             deviceInfoSection
             connectionSection
             identitySection
@@ -69,10 +71,27 @@ struct SettingsView: View {
                     viewModel.refreshAllSettings()
                 } label: {
                     Image(systemName: "arrow.clockwise")
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                 }
                 .help("Refresh all settings")
             }
+        }
+    }
+}
+
+// MARK: - Section 0: Appearance
+
+private extension SettingsView {
+    var appearanceSection: some View {
+        Section {
+            Picker("Theme", selection: $appTheme) {
+                ForEach(AppTheme.allCases, id: \.rawValue) { theme in
+                    Text(theme.rawValue).tag(theme.rawValue)
+                }
+            }
+            .pickerStyle(.segmented)
+        } header: {
+            sectionHeader("Appearance")
         }
     }
 }
@@ -106,7 +125,7 @@ private extension SettingsView {
     var batteryChemistryPicker: some View {
         HStack {
             Image(systemName: "bolt.batteryblock")
-                .foregroundStyle(MeshTheme.accentFallback)
+                .foregroundStyle(MeshTheme.accent)
                 .frame(width: 24)
             Picker("Battery Type", selection: $batteryChemistryRaw) {
                 ForEach(BatteryChemistry.allCases) { chem in
@@ -114,7 +133,7 @@ private extension SettingsView {
                 }
             }
             .foregroundStyle(MeshTheme.textPrimary)
-            .tint(MeshTheme.accentFallback)
+            .tint(MeshTheme.accent)
         }
         .listRowBackground(MeshTheme.surface)
     }
@@ -131,7 +150,7 @@ private extension SettingsView {
     var publicKeyRow: some View {
         HStack {
             Image(systemName: "key")
-                .foregroundStyle(MeshTheme.accentFallback)
+                .foregroundStyle(MeshTheme.accent)
                 .frame(width: 24)
             Text("Public Key")
                 .foregroundStyle(MeshTheme.textPrimary)
@@ -149,7 +168,7 @@ private extension SettingsView {
             } label: {
                 Image(systemName: "doc.on.doc")
                     .font(.caption)
-                    .foregroundStyle(MeshTheme.accentFallback)
+                    .foregroundStyle(MeshTheme.accent)
             }
             .buttonStyle(.plain)
             .contentShape(Rectangle())
@@ -269,7 +288,7 @@ struct IdentitySection: View {
         Section {
             HStack {
                 Image(systemName: "person.text.rectangle")
-                    .foregroundStyle(MeshTheme.accentFallback)
+                    .foregroundStyle(MeshTheme.accent)
                     .frame(width: 24)
                 #if os(watchOS)
                 TextField("Advert Name", text: $advertName)
@@ -284,7 +303,7 @@ struct IdentitySection: View {
 
             HStack {
                 Image(systemName: "location")
-                    .foregroundStyle(MeshTheme.accentFallback)
+                    .foregroundStyle(MeshTheme.accent)
                     .frame(width: 24)
                 #if os(watchOS)
                 TextField("Latitude", text: $latitude)
@@ -317,7 +336,7 @@ struct IdentitySection: View {
                     viewModel.sendAdvertise(type: 0)
                 } label: {
                     Label("Advertise", systemImage: "dot.radiowaves.left.and.right")
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                 }
                 .buttonStyle(.plain)
                 .contentShape(Rectangle())
@@ -370,7 +389,7 @@ struct RadioSection: View {
             // Fix #6: Frequency with 3 decimal places
             HStack {
                 Image(systemName: "antenna.radiowaves.left.and.right")
-                    .foregroundStyle(MeshTheme.accentFallback)
+                    .foregroundStyle(MeshTheme.accent)
                     .frame(width: 24)
                 Text("Frequency (MHz)")
                     .foregroundStyle(MeshTheme.textPrimary)
@@ -391,7 +410,7 @@ struct RadioSection: View {
             // Fix #5: Bandwidth picker with standard LoRa values
             HStack {
                 Image(systemName: "waveform")
-                    .foregroundStyle(MeshTheme.accentFallback)
+                    .foregroundStyle(MeshTheme.accent)
                     .frame(width: 24)
                 Picker("Bandwidth", selection: $selectedBW) {
                     ForEach(loraBandwidths, id: \.self) { bw in
@@ -399,14 +418,14 @@ struct RadioSection: View {
                     }
                 }
                 .foregroundStyle(MeshTheme.textPrimary)
-                .tint(MeshTheme.accentFallback)
+                .tint(MeshTheme.accent)
             }
             .listRowBackground(MeshTheme.surface)
 
             // Fix #4: Spreading Factor picker
             HStack {
                 Image(systemName: "chart.bar")
-                    .foregroundStyle(MeshTheme.accentFallback)
+                    .foregroundStyle(MeshTheme.accent)
                     .frame(width: 24)
                 Picker("Spreading Factor", selection: $selectedSF) {
                     ForEach(Array(UInt8(7)...UInt8(12)), id: \.self) { val in
@@ -414,14 +433,14 @@ struct RadioSection: View {
                     }
                 }
                 .foregroundStyle(MeshTheme.textPrimary)
-                .tint(MeshTheme.accentFallback)
+                .tint(MeshTheme.accent)
             }
             .listRowBackground(MeshTheme.surface)
 
             // Fix #3: Coding Rate picker
             HStack {
                 Image(systemName: "shield")
-                    .foregroundStyle(MeshTheme.accentFallback)
+                    .foregroundStyle(MeshTheme.accent)
                     .frame(width: 24)
                 Picker("Coding Rate", selection: $selectedCR) {
                     Text("4/5").tag(UInt8(5))
@@ -430,33 +449,33 @@ struct RadioSection: View {
                     Text("4/8").tag(UInt8(8))
                 }
                 .foregroundStyle(MeshTheme.textPrimary)
-                .tint(MeshTheme.accentFallback)
+                .tint(MeshTheme.accent)
             }
             .listRowBackground(MeshTheme.surface)
 
             VStack(alignment: .leading) {
                 HStack {
                     Image(systemName: "bolt")
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                         .frame(width: 24)
                     Text("TX Power: \(Int(txPower)) dBm")
                         .foregroundStyle(MeshTheme.textPrimary)
                 }
                 Slider(value: $txPower, in: 2...Double(max(viewModel.deviceConfig.maxTXPower, 2)), step: 1)
-                    .tint(MeshTheme.accentFallback)
+                    .tint(MeshTheme.accent)
             }
             .listRowBackground(MeshTheme.surface)
 
             Toggle(isOn: $repeatMode) {
                 HStack {
                     Image(systemName: "repeat")
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                         .frame(width: 24)
                     Text("Repeat Mode")
                         .foregroundStyle(MeshTheme.textPrimary)
                 }
             }
-            .tint(MeshTheme.accentFallback)
+            .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
 
             SaveButton(state: saveState, label: "Apply Radio Settings") {
@@ -475,7 +494,7 @@ struct RadioSection: View {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
                         Image(systemName: "waveform.badge.magnifyingglass")
-                            .foregroundStyle(MeshTheme.accentFallback)
+                            .foregroundStyle(MeshTheme.accent)
                             .frame(width: 24)
                         Text("Allowed Repeat Frequencies")
                             .foregroundStyle(MeshTheme.textPrimary)
@@ -495,10 +514,10 @@ struct RadioSection: View {
             } label: {
                 HStack {
                     Image(systemName: "arrow.clockwise")
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                         .frame(width: 24)
                     Text("Query Repeat Frequencies")
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                     Spacer()
                 }
                 .contentShape(Rectangle())
@@ -556,7 +575,7 @@ struct TuningSection: View {
         Section {
             HStack {
                 Image(systemName: "timer")
-                    .foregroundStyle(MeshTheme.accentFallback)
+                    .foregroundStyle(MeshTheme.accent)
                     .frame(width: 24)
                 Text("RX Delay Base (s)")
                     .foregroundStyle(MeshTheme.textPrimary)
@@ -576,7 +595,7 @@ struct TuningSection: View {
 
             HStack {
                 Image(systemName: "clock.arrow.2.circlepath")
-                    .foregroundStyle(MeshTheme.accentFallback)
+                    .foregroundStyle(MeshTheme.accent)
                     .frame(width: 24)
                 Text("Airtime Factor")
                     .foregroundStyle(MeshTheme.textPrimary)
@@ -644,19 +663,19 @@ struct PrivacySection: View {
             Toggle(isOn: $manualAdd) {
                 HStack {
                     Image(systemName: "person.badge.plus")
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                         .frame(width: 24)
                     Text("Manual Add Contacts")
                         .foregroundStyle(MeshTheme.textPrimary)
                 }
             }
-            .tint(MeshTheme.accentFallback)
+            .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
 
             // Fix #8: Telemetry pickers
             HStack {
                 Image(systemName: "chart.line.uptrend.xyaxis")
-                    .foregroundStyle(MeshTheme.accentFallback)
+                    .foregroundStyle(MeshTheme.accent)
                     .frame(width: 24)
                 Picker("Telemetry Base", selection: $telBase) {
                     ForEach(telemetryOptions, id: \.0) { val, label in
@@ -664,13 +683,13 @@ struct PrivacySection: View {
                     }
                 }
                 .foregroundStyle(MeshTheme.textPrimary)
-                .tint(MeshTheme.accentFallback)
+                .tint(MeshTheme.accent)
             }
             .listRowBackground(MeshTheme.surface)
 
             HStack {
                 Image(systemName: "mappin.and.ellipse")
-                    .foregroundStyle(MeshTheme.accentFallback)
+                    .foregroundStyle(MeshTheme.accent)
                     .frame(width: 24)
                 Picker("Telemetry Location", selection: $telLoc) {
                     ForEach(telemetryOptions, id: \.0) { val, label in
@@ -678,37 +697,37 @@ struct PrivacySection: View {
                     }
                 }
                 .foregroundStyle(MeshTheme.textPrimary)
-                .tint(MeshTheme.accentFallback)
+                .tint(MeshTheme.accent)
             }
             .listRowBackground(MeshTheme.surface)
 
             Toggle(isOn: $advertLoc) {
                 HStack {
                     Image(systemName: "location.slash")
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                         .frame(width: 24)
                     Text("Share Location in Advert")
                         .foregroundStyle(MeshTheme.textPrimary)
                 }
             }
-            .tint(MeshTheme.accentFallback)
+            .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
 
             Toggle(isOn: $multiACK) {
                 HStack {
                     Image(systemName: "checkmark.message")
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                         .frame(width: 24)
                     Text("Multi-ACK")
                         .foregroundStyle(MeshTheme.textPrimary)
                 }
             }
-            .tint(MeshTheme.accentFallback)
+            .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
 
             HStack {
                 Image(systemName: "lock")
-                    .foregroundStyle(MeshTheme.accentFallback)
+                    .foregroundStyle(MeshTheme.accent)
                     .frame(width: 24)
                 Text("BLE PIN")
                     .foregroundStyle(MeshTheme.textPrimary)
@@ -727,7 +746,7 @@ struct PrivacySection: View {
                     pinText = String(Int.random(in: 100000...999999))
                 } label: {
                     Image(systemName: "dice")
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                 }
                 .buttonStyle(.plain)
                 .contentShape(Rectangle())
@@ -779,7 +798,7 @@ private extension SettingsView {
         Section {
             HStack {
                 Image(systemName: "clock")
-                    .foregroundStyle(MeshTheme.accentFallback)
+                    .foregroundStyle(MeshTheme.accent)
                     .frame(width: 24)
                 Text("Device Time")
                     .foregroundStyle(MeshTheme.textPrimary)
@@ -796,10 +815,10 @@ private extension SettingsView {
             } label: {
                 HStack {
                     Image(systemName: "arrow.triangle.2.circlepath")
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                         .frame(width: 24)
                     Text("Sync to Phone Time")
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                     Spacer()
                 }
                 .contentShape(Rectangle())
@@ -879,7 +898,7 @@ struct CustomVarsSection: View {
                     }
                 } label: {
                     Image(systemName: "plus.circle.fill")
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                 }
                 .buttonStyle(.plain)
                 .contentShape(Rectangle())
@@ -925,10 +944,10 @@ private extension SettingsView {
             } label: {
                 HStack {
                     Image(systemName: "arrow.clockwise")
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                         .frame(width: 24)
                     Text("Refresh Stats")
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                     Spacer()
                 }
                 .contentShape(Rectangle())
@@ -1054,7 +1073,7 @@ struct SaveButton: View {
                         .foregroundStyle(.green)
                 } else {
                     Text(label)
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                 }
             }
         }
@@ -1082,7 +1101,7 @@ private extension SettingsView {
     func infoRow(icon: String, label: String, value: String) -> some View {
         HStack {
             Image(systemName: icon)
-                .foregroundStyle(MeshTheme.accentFallback)
+                .foregroundStyle(MeshTheme.accent)
                 .frame(width: 24)
             Text(label)
                 .foregroundStyle(MeshTheme.textPrimary)

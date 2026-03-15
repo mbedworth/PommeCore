@@ -93,7 +93,7 @@ struct ContentView: View {
                             Image(systemName: "magnifyingglass")
                             Text("Scan for Devices")
                         }
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                     }
                     .buttonStyle(.plain)
                 }
@@ -120,7 +120,7 @@ struct ContentView: View {
                     Image(systemName: viewModel.connectionState == .ready
                           ? "antenna.radiowaves.left.and.right"
                           : "antenna.radiowaves.left.and.right.slash")
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                 }
                 .help("Send Advertisement — announce your presence on the mesh")
                 .accessibilityLabel("Send Advertisement")
@@ -130,7 +130,7 @@ struct ContentView: View {
                     showDiscover = true
                 } label: {
                     Image(systemName: "sensor.tag.radiowaves.forward")
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                 }
                 .help("Discover — scan for nearby mesh nodes")
                 .accessibilityLabel("Discover Nearby Nodes")
@@ -141,7 +141,7 @@ struct ContentView: View {
                     viewModel.refreshAll()
                 } label: {
                     Image(systemName: "arrow.clockwise")
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                 }
                 .help("Refresh — re-sync contacts, channels, and settings from device")
                 .accessibilityLabel("Refresh")
@@ -153,7 +153,7 @@ struct ContentView: View {
                         showRemoteManagement = true
                     } label: {
                         Image(systemName: "wrench.and.screwdriver")
-                            .foregroundStyle(MeshTheme.accentFallback)
+                            .foregroundStyle(MeshTheme.accent)
                     }
                     .help("Remote Management — configure remote device")
                     .accessibilityLabel("Remote Management")
@@ -164,7 +164,7 @@ struct ContentView: View {
                     showSettings = true
                 } label: {
                     Image(systemName: "gearshape")
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                 }
                 .help("Device Settings — configure your local radio")
                 .accessibilityLabel("Device Settings")

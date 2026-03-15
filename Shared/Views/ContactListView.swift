@@ -36,7 +36,7 @@ struct ContactListView: View {
                     showScanner = true
                 } label: {
                     Image(systemName: "antenna.radiowaves.left.and.right")
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                 }
             }
         }
@@ -135,10 +135,10 @@ struct ContactListView: View {
         HStack(spacing: 12) {
             ZStack {
                 Circle()
-                    .fill(MeshTheme.accentFallback.opacity(0.15))
+                    .fill(MeshTheme.accent.opacity(0.15))
                     .frame(width: 40, height: 40)
                 Image(systemName: "megaphone.fill")
-                    .foregroundStyle(MeshTheme.accentFallback)
+                    .foregroundStyle(MeshTheme.accent)
             }
             VStack(alignment: .leading, spacing: 2) {
                 Text("Public Channel")
@@ -176,7 +176,7 @@ struct ContactListView: View {
                 .foregroundStyle(MeshTheme.textOnAccent)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
-                .background(MeshTheme.accentFallback)
+                .background(MeshTheme.accent)
                 .clipShape(Capsule())
         }
     }
@@ -238,9 +238,9 @@ struct ContactListView: View {
             } label: {
                 HStack {
                     Image(systemName: "plus.bubble")
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                     Text("Join Channel")
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                     Spacer()
                 }
                 .contentShape(Rectangle())
@@ -264,10 +264,10 @@ struct ContactListView: View {
         HStack(spacing: 12) {
             ZStack {
                 Circle()
-                    .fill(MeshTheme.accentFallback.opacity(0.15))
+                    .fill(MeshTheme.accent.opacity(0.15))
                     .frame(width: 40, height: 40)
                 Image(systemName: channel.channelType.iconName)
-                    .foregroundStyle(MeshTheme.accentFallback)
+                    .foregroundStyle(MeshTheme.accent)
             }
             VStack(alignment: .leading, spacing: 2) {
                 Text("\(channel.channelType.displayPrefix)\(channel.name)")
@@ -293,7 +293,7 @@ struct ContactListView: View {
                     .foregroundStyle(MeshTheme.textOnAccent)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
-                    .background(MeshTheme.accentFallback)
+                    .background(MeshTheme.accent)
                     .clipShape(Capsule())
             }
         }
@@ -419,9 +419,9 @@ struct ContactListView: View {
             } label: {
                 HStack {
                     Image(systemName: "person.badge.plus")
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                     Text("Import Contact")
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                     Spacer()
                 }
                 .contentShape(Rectangle())
@@ -563,10 +563,10 @@ struct ContactListView: View {
 
         ZStack {
             Circle()
-                .fill(MeshTheme.accentFallback.opacity(0.15))
+                .fill(MeshTheme.accent.opacity(0.15))
                 .frame(width: 40, height: 40)
             Image(systemName: contactIconName(for: contact.type))
-                .foregroundStyle(MeshTheme.accentFallback)
+                .foregroundStyle(MeshTheme.accent)
 
             // Status overlay for repeaters/room servers
             if isManaged {
@@ -670,7 +670,7 @@ struct ContactListView: View {
                 .foregroundStyle(MeshTheme.textOnAccent)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
-                .background(MeshTheme.accentFallback)
+                .background(MeshTheme.accent)
                 .clipShape(Capsule())
         }
     }

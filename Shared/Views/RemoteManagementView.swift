@@ -9,9 +9,7 @@ struct RemoteManagementView: View {
 
     /// Accent color — teal for room servers, amber for repeaters.
     private var remoteAccent: Color {
-        contact.type == .room
-            ? Color(red: 0.0, green: 0.7, blue: 0.8)  // teal
-            : Color(red: 1.0, green: 0.7, blue: 0.2)   // amber
+        contact.type == .room ? MeshTheme.remoteRoom : MeshTheme.remoteRepeater
     }
 
     var body: some View {
@@ -194,7 +192,7 @@ struct LoginSection: View {
             if !isLoggedIn {
                 HStack {
                     Image(systemName: "lock")
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                         .frame(width: 24)
                     #if os(watchOS)
                     SecureField("Password", text: $password)
@@ -219,15 +217,15 @@ struct LoginSection: View {
                         if case .loggingIn = session.loginState {
                             ProgressView()
                                 .scaleEffect(0.8)
-                                .tint(MeshTheme.accentFallback)
+                                .tint(MeshTheme.accent)
                             Text("Logging in...")
                                 .foregroundStyle(MeshTheme.textSecondary)
                         } else {
                             Image(systemName: "arrow.right.circle")
-                                .foregroundStyle(MeshTheme.accentFallback)
+                                .foregroundStyle(MeshTheme.accent)
                                 .frame(width: 24)
                             Text("Login")
-                                .foregroundStyle(MeshTheme.accentFallback)
+                                .foregroundStyle(MeshTheme.accent)
                         }
                         Spacer()
                     }
@@ -313,10 +311,10 @@ private extension RemoteManagementView {
             } label: {
                 HStack {
                     Image(systemName: "person.3")
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                         .frame(width: 24)
                     Text("Neighbors")
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                     Spacer()
                 }
                 .contentShape(Rectangle())
@@ -337,10 +335,10 @@ private extension RemoteManagementView {
             } label: {
                 HStack {
                     Image(systemName: "arrow.clockwise")
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                         .frame(width: 24)
                     Text("Refresh Info")
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                     Spacer()
                 }
                 .contentShape(Rectangle())
@@ -504,7 +502,7 @@ struct RemoteAdvertSection: View {
                         sendCLI("advert")
                     } label: {
                         Label("Advertise", systemImage: "dot.radiowaves.left.and.right")
-                            .foregroundStyle(MeshTheme.accentFallback)
+                            .foregroundStyle(MeshTheme.accent)
                     }
                 .buttonStyle(.plain)
                 .contentShape(Rectangle())
@@ -540,7 +538,7 @@ struct RemoteSecuritySection: View {
             if permission.isAdmin {
                 HStack {
                     Image(systemName: "lock.shield")
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                         .frame(width: 24)
                     #if os(watchOS)
                     SecureField("New Admin Password", text: $adminPassword)
@@ -556,7 +554,7 @@ struct RemoteSecuritySection: View {
                         adminPassword = ""
                     } label: {
                         Text("Set")
-                            .foregroundStyle(MeshTheme.accentFallback)
+                            .foregroundStyle(MeshTheme.accent)
                     }
                     .buttonStyle(.plain)
                 }
@@ -565,7 +563,7 @@ struct RemoteSecuritySection: View {
 
             HStack {
                 Image(systemName: "lock")
-                    .foregroundStyle(MeshTheme.accentFallback)
+                    .foregroundStyle(MeshTheme.accent)
                     .frame(width: 24)
                 #if os(watchOS)
                 SecureField("Guest Password", text: $guestPassword)
@@ -581,7 +579,7 @@ struct RemoteSecuritySection: View {
                     guestPassword = ""
                 } label: {
                     Text("Set")
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                 }
                 .buttonStyle(.plain)
             }
@@ -592,10 +590,10 @@ struct RemoteSecuritySection: View {
             } label: {
                 HStack {
                     Image(systemName: "list.bullet.rectangle")
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                         .frame(width: 24)
                     Text("View ACL")
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                     Spacer()
                 }
                 .contentShape(Rectangle())
@@ -633,7 +631,7 @@ private extension RemoteManagementView {
                     sendCLI("gps sync")
                 } label: {
                     Label("Sync Time", systemImage: "clock.arrow.2.circlepath")
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                 }
                 .buttonStyle(.plain)
 
@@ -643,7 +641,7 @@ private extension RemoteManagementView {
                     sendCLI("gps setloc")
                 } label: {
                     Label("Set Location", systemImage: "mappin")
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                 }
                 .buttonStyle(.plain)
 
@@ -652,7 +650,7 @@ private extension RemoteManagementView {
                 #if os(watchOS)
                 Button { sendCLI("gps advert share") } label: {
                     Label("Advert", systemImage: "location.north.line")
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                 }
                 .buttonStyle(.plain)
                 #else
@@ -662,7 +660,7 @@ private extension RemoteManagementView {
                     Button("Prefs") { sendCLI("gps advert prefs") }
                 } label: {
                     Label("Advert Mode", systemImage: "location.north.line")
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                 }
                 #endif
             }
@@ -728,10 +726,10 @@ struct RemoteMaintenanceSection: View {
                     } label: {
                         HStack {
                             Image(systemName: "checkmark.circle")
-                                .foregroundStyle(MeshTheme.accentFallback)
+                                .foregroundStyle(MeshTheme.accent)
                                 .frame(width: 24)
                             Text("Apply ADC Multiplier")
-                                .foregroundStyle(MeshTheme.accentFallback)
+                                .foregroundStyle(MeshTheme.accent)
                             Spacer()
                         }
                         .contentShape(Rectangle())
@@ -748,10 +746,10 @@ struct RemoteMaintenanceSection: View {
                 } label: {
                     HStack {
                         Image(systemName: "map")
-                            .foregroundStyle(MeshTheme.accentFallback)
+                            .foregroundStyle(MeshTheme.accent)
                             .frame(width: 24)
                         Text("List Regions")
-                            .foregroundStyle(MeshTheme.accentFallback)
+                            .foregroundStyle(MeshTheme.accent)
                         Spacer()
                     }
                     .contentShape(Rectangle())
@@ -762,7 +760,7 @@ struct RemoteMaintenanceSection: View {
                 // Logging
                 HStack(spacing: 12) {
                     Button { sendCLI("log start") } label: {
-                        Text("Start Log").foregroundStyle(MeshTheme.accentFallback)
+                        Text("Start Log").foregroundStyle(MeshTheme.accent)
                     }
                     .buttonStyle(.plain)
 
@@ -772,7 +770,7 @@ struct RemoteMaintenanceSection: View {
                     .buttonStyle(.plain)
 
                     Button { sendCLI("log") } label: {
-                        Text("View Log").foregroundStyle(MeshTheme.accentFallback)
+                        Text("View Log").foregroundStyle(MeshTheme.accent)
                     }
                     .buttonStyle(.plain)
                 }
@@ -851,7 +849,7 @@ struct CLITerminalSection: View {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("> \(entry.command)")
                                     .font(.system(.caption, design: .monospaced))
-                                    .foregroundStyle(MeshTheme.accentFallback)
+                                    .foregroundStyle(MeshTheme.accent)
                                 if let response = entry.response {
                                     Text(response)
                                         .font(.system(.caption, design: .monospaced))
@@ -874,7 +872,7 @@ struct CLITerminalSection: View {
             HStack(spacing: 8) {
                 Text(">")
                     .font(.system(.body, design: .monospaced))
-                    .foregroundStyle(MeshTheme.accentFallback)
+                    .foregroundStyle(MeshTheme.accent)
                 #if os(watchOS)
                 TextField("CLI command", text: $commandText)
                     .font(.system(.body, design: .monospaced))
@@ -889,7 +887,7 @@ struct CLITerminalSection: View {
                 Button(action: sendCommand) {
                     Image(systemName: "return")
                         .foregroundStyle(
-                            commandText.isEmpty ? MeshTheme.textSecondary : MeshTheme.accentFallback
+                            commandText.isEmpty ? MeshTheme.textSecondary : MeshTheme.accent
                         )
                 }
                 .buttonStyle(.plain)
@@ -947,7 +945,7 @@ struct RemoteClockRow: View {
             } label: {
                 HStack {
                     Image(systemName: "clock")
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                         .frame(width: 24)
                     Text("Clock")
                         .foregroundStyle(MeshTheme.textPrimary)
@@ -986,7 +984,7 @@ struct RemoteClockRow: View {
                             Text("Sync Clock")
                                 .font(.caption)
                         }
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                     }
                     .buttonStyle(.plain)
                 }
@@ -1001,7 +999,7 @@ struct RemoteClockRow: View {
 func cliInfoRow(icon: String, label: String, value: String) -> some View {
     HStack {
         Image(systemName: icon)
-            .foregroundStyle(MeshTheme.accentFallback)
+            .foregroundStyle(MeshTheme.accent)
             .frame(width: 24)
         Text(label)
             .foregroundStyle(MeshTheme.textPrimary)
@@ -1015,7 +1013,7 @@ func cliInfoRow(icon: String, label: String, value: String) -> some View {
 func cliSettingRow(icon: String, label: String, value: String) -> some View {
     HStack {
         Image(systemName: icon)
-            .foregroundStyle(MeshTheme.accentFallback)
+            .foregroundStyle(MeshTheme.accent)
             .frame(width: 24)
         Text(label)
             .foregroundStyle(MeshTheme.textPrimary)
@@ -1052,13 +1050,13 @@ struct CLIToggleRow: View {
     var body: some View {
         HStack {
             Image(systemName: icon)
-                .foregroundStyle(MeshTheme.accentFallback)
+                .foregroundStyle(MeshTheme.accent)
                 .frame(width: 24)
             Text(label)
                 .foregroundStyle(MeshTheme.textPrimary)
             Spacer()
             if canEdit {
-                let teal = Color(red: 0.0, green: 0.8, blue: 0.7)
+                let toggleActive = MeshTheme.accent
                 HStack(spacing: 0) {
                     Button {
                         sendCLI(onCommand)
@@ -1068,7 +1066,7 @@ struct CLIToggleRow: View {
                             .foregroundStyle(isOn == true ? MeshTheme.textOnAccent : MeshTheme.textSecondary.opacity(0.6))
                             .padding(.horizontal, 12)
                             .padding(.vertical, 5)
-                            .background(isOn == true ? teal : Color.clear)
+                            .background(isOn == true ? toggleActive : Color.clear)
                     }
                     .buttonStyle(.plain)
 
@@ -1080,7 +1078,7 @@ struct CLIToggleRow: View {
                             .foregroundStyle(isOn == false ? MeshTheme.textOnAccent : MeshTheme.textSecondary.opacity(0.6))
                             .padding(.horizontal, 12)
                             .padding(.vertical, 5)
-                            .background(isOn == false ? teal : Color.clear)
+                            .background(isOn == false ? toggleActive : Color.clear)
                     }
                     .buttonStyle(.plain)
                 }
@@ -1098,7 +1096,7 @@ struct CLIToggleRow: View {
 func cliEditRow(icon: String, label: String, text: Binding<String>, current: String?) -> some View {
     HStack {
         Image(systemName: icon)
-            .foregroundStyle(MeshTheme.accentFallback)
+            .foregroundStyle(MeshTheme.accent)
             .frame(width: 24)
         VStack(alignment: .leading, spacing: 2) {
             Text(label)

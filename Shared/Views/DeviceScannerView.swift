@@ -15,7 +15,7 @@ struct DeviceScannerView: View {
                     if viewModel.isScanning {
                         HStack(spacing: 12) {
                             ProgressView()
-                                .tint(MeshTheme.accentFallback)
+                                .tint(MeshTheme.accent)
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("Searching for MeshCore devices...")
                                     .foregroundStyle(MeshTheme.textPrimary)
@@ -41,7 +41,7 @@ struct DeviceScannerView: View {
                                         .foregroundStyle(MeshTheme.textPrimary)
                                     Text("Tap to scan again")
                                         .font(.caption)
-                                        .foregroundStyle(MeshTheme.accentFallback)
+                                        .foregroundStyle(MeshTheme.accent)
                                 }
                                 Spacer()
                             }
@@ -56,7 +56,7 @@ struct DeviceScannerView: View {
                         HStack(spacing: 8) {
                             ProgressView()
                                 .scaleEffect(0.7)
-                                .tint(MeshTheme.accentFallback)
+                                .tint(MeshTheme.accent)
                             Text("Scanning...")
                                 .font(.caption)
                                 .foregroundStyle(MeshTheme.textSecondary)
@@ -72,10 +72,10 @@ struct DeviceScannerView: View {
                             HStack(spacing: 12) {
                                 ZStack {
                                     RoundedRectangle(cornerRadius: 8)
-                                        .fill(MeshTheme.accentFallback.opacity(0.12))
+                                        .fill(MeshTheme.accent.opacity(0.12))
                                         .frame(width: 40, height: 40)
                                     Image(systemName: "radio")
-                                        .foregroundStyle(MeshTheme.accentFallback)
+                                        .foregroundStyle(MeshTheme.accent)
                                 }
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(peripheral.name)
@@ -157,10 +157,10 @@ struct DeviceScannerView: View {
 
     private func signalColor(strength: Int) -> Color {
         switch strength {
-        case 4, 3:  return Color(red: 0.0, green: 0.90, blue: 0.63)  // #00E5A0 green
-        case 2:     return Color.orange
-        case 1:     return Color.red
-        default:    return Color.gray
+        case 4, 3:  return MeshTheme.connected
+        case 2:     return .orange
+        case 1:     return .red
+        default:    return .gray
         }
     }
 }
