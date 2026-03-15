@@ -535,9 +535,7 @@ struct RadioSection: View {
             Text("Radio Configuration")
                 .foregroundStyle(MeshTheme.textSecondary)
         } footer: {
-            // Fix #12: Section footer
-            Text("Warning: Changing radio parameters will disconnect you from other nodes using different settings.")
-                .foregroundStyle(MeshTheme.textSecondary)
+            Text("Changing radio parameters will disconnect you from nodes using different settings. All nodes on your mesh must use the same frequency, bandwidth, spreading factor, and coding rate.")
                 .font(.caption2)
         }
         .onAppear { loadFromConfig() }
@@ -629,6 +627,9 @@ struct TuningSection: View {
         } header: {
             Text("Tuning Parameters")
                 .foregroundStyle(MeshTheme.textSecondary)
+        } footer: {
+            Text("Advanced — adjust timing parameters for mesh performance. Default values work well for most setups. Changes take effect immediately.")
+                .font(.caption2)
         }
         .onAppear { loadFromConfig() }
         .onChange(of: viewModel.deviceConfig.rxDelayBase) { _ in loadFromConfig() }
@@ -778,9 +779,7 @@ struct PrivacySection: View {
             Text("Privacy & Security")
                 .foregroundStyle(MeshTheme.textSecondary)
         } footer: {
-            // Fix #12
-            Text("Controls what information your device shares with the mesh network.")
-                .foregroundStyle(MeshTheme.textSecondary)
+            Text("Controls what information your device shares on the mesh network and how contacts are managed.")
                 .font(.caption2)
         }
         .onAppear { loadFromConfig() }
@@ -1016,7 +1015,7 @@ struct DangerZoneSection: View {
                     viewModel.rebootDevice()
                 }
             } message: {
-                Text("Are you sure? The device will restart and you will need to reconnect.")
+                Text("The radio will disconnect and restart. You'll need to reconnect via Bluetooth.")
             }
 
             Button {
@@ -1051,9 +1050,7 @@ struct DangerZoneSection: View {
             Text("Danger Zone")
                 .foregroundStyle(.red)
         } footer: {
-            // Fix #12
-            Text("These actions cannot be undone.")
-                .foregroundStyle(MeshTheme.textSecondary)
+            Text("Factory reset erases all contacts, channels, settings, and encryption keys from the device. This cannot be undone.")
                 .font(.caption2)
         }
     }
