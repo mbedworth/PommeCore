@@ -45,7 +45,10 @@ struct ChatView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
                 LazyVStack(spacing: 4) {
-                    ForEach(messages) { message in
+                    ForEach(Array(messages.enumerated()), id: \.element.id) { index, message in
+                        if index == 0 || isDifferentDay(messages[index - 1].timestamp, message.timestamp) {
+                            DateSeparator(date: message.timestamp)
+                        }
                         MessageBubble(message: message)
                             .id(message.id)
                     }
@@ -53,6 +56,9 @@ struct ChatView: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
             }
+            #if !os(watchOS)
+            .scrollDismissesKeyboard(.interactively)
+            #endif
             .onChange(of: messages.count) { _ in
                 if let last = messages.last {
                     withAnimation(.easeOut(duration: 0.2)) {
@@ -173,7 +179,10 @@ struct ChannelChatView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
                 LazyVStack(spacing: 4) {
-                    ForEach(messages) { message in
+                    ForEach(Array(messages.enumerated()), id: \.element.id) { index, message in
+                        if index == 0 || isDifferentDay(messages[index - 1].timestamp, message.timestamp) {
+                            DateSeparator(date: message.timestamp)
+                        }
                         ChannelMessageBubble(message: message)
                             .id(message.id)
                     }
@@ -181,6 +190,9 @@ struct ChannelChatView: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
             }
+            #if !os(watchOS)
+            .scrollDismissesKeyboard(.interactively)
+            #endif
             .onChange(of: messages.count) { _ in
                 if let last = messages.last {
                     withAnimation(.easeOut(duration: 0.2)) {
@@ -409,7 +421,10 @@ struct RoomChatView: View {
         ScrollViewReader { proxy in
             ScrollView {
                 LazyVStack(spacing: 4) {
-                    ForEach(messages) { message in
+                    ForEach(Array(messages.enumerated()), id: \.element.id) { index, message in
+                        if index == 0 || isDifferentDay(messages[index - 1].timestamp, message.timestamp) {
+                            DateSeparator(date: message.timestamp)
+                        }
                         RoomMessageBubble(message: message)
                             .id(message.id)
                     }
@@ -417,6 +432,9 @@ struct RoomChatView: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
             }
+            #if !os(watchOS)
+            .scrollDismissesKeyboard(.interactively)
+            #endif
             .onChange(of: messages.count) { _ in
                 if let last = messages.last {
                     withAnimation(.easeOut(duration: 0.2)) {
@@ -1040,4 +1058,35 @@ struct ChannelMessageBubble: View {
             if !message.isOutgoing { Spacer(minLength: 48) }
         }
     }
+}
+
+// MARK: - Date Separator
+
+struct DateSeparator: View {
+    let date: Date
+
+    var body: some View {
+        HStack {
+            VStack { Divider() }
+            Text(formattedDate(date))
+                .font(.caption2)
+                .foregroundStyle(MeshTheme.textSecondary)
+                .padding(.horizontal, 8)
+            VStack { Divider() }
+        }
+        .padding(.vertical, 4)
+    }
+
+    private func formattedDate(_ date: Date) -> String {
+        if Calendar.current.isDateInToday(date) { return "Today" }
+        if Calendar.current.isDateInYesterday(date) { return "Yesterday" }
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        return formatter.string(from: date)
+    }
+}
+
+/// Returns true if two dates fall on different calendar days.
+private func isDifferentDay(_ a: Date, _ b: Date) -> Bool {
+    !Calendar.current.isDate(a, inSameDayAs: b)
 }
