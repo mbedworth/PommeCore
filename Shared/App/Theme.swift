@@ -103,11 +103,23 @@ enum MeshTheme {
 
     static var incomingBubble: Color {
         #if os(macOS)
-        Color(nsColor: .controlBackgroundColor)
+        Color(nsColor: NSColor(name: nil) { appearance in
+            if appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua {
+                return NSColor(red: 0.80, green: 0.45, blue: 0.10, alpha: 1.0)
+            } else {
+                return NSColor(red: 1.0, green: 0.88, blue: 0.75, alpha: 1.0)
+            }
+        })
         #elseif os(watchOS)
-        Color(white: 0.22)
+        Color(red: 0.80, green: 0.45, blue: 0.10)
         #else
-        Color(uiColor: .secondarySystemBackground)
+        Color(uiColor: UIColor { traitCollection in
+            if traitCollection.userInterfaceStyle == .dark {
+                return UIColor(red: 0.80, green: 0.45, blue: 0.10, alpha: 1.0)
+            } else {
+                return UIColor(red: 1.0, green: 0.88, blue: 0.75, alpha: 1.0)
+            }
+        })
         #endif
     }
 

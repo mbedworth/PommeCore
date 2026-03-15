@@ -371,6 +371,12 @@ struct RemoteRadioSection: View {
     @State private var saveState: SaveButtonState = .idle
 
     var body: some View {
+        if canEdit {
+            RadioPresetPicker { preset in
+                radioParams = "\(Int(preset.frequencyKHz)),\(preset.bandwidth == preset.bandwidth.rounded() ? "\(Int(preset.bandwidth))" : "\(preset.bandwidth)"),\(preset.spreadingFactor),\(preset.codingRate)"
+            }
+        }
+
         Section {
             if canEdit {
                 cliEditRow(icon: "antenna.radiowaves.left.and.right", label: "Radio (freq,bw,sf,cr)", text: $radioParams, current: session.settings["radio"])
