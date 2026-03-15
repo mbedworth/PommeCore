@@ -246,6 +246,7 @@ struct RoomChatView: View {
     @ObservedObject var session: RemoteDeviceSession
     @State private var messageText = ""
     @State private var password = ""
+    @State private var rememberPassword = true
     @State private var showManagement = false
 
     private let maxMessageLength = 160
@@ -517,6 +518,13 @@ struct RoomChatView: View {
                     .font(.caption2)
                     .foregroundStyle(MeshTheme.textSecondary)
 
+                #if !os(watchOS)
+                Toggle("Remember Password", isOn: $rememberPassword)
+                    .font(.subheadline)
+                    .foregroundStyle(MeshTheme.textSecondary)
+                    .padding(.horizontal, 32)
+                #endif
+
                 Button(action: login) {
                     HStack {
                         if case .loggingIn = session.loginState {
@@ -546,9 +554,26 @@ struct RoomChatView: View {
                             .foregroundStyle(.red)
                     }
                 }
+
+                if KeychainManager.hasPassword(forDevice: contact.publicKey) {
+                    Button(role: .destructive) {
+                        KeychainManager.deleteAllPasswords(forDevice: contact.publicKey)
+                        password = ""
+                    } label: {
+                        Label("Forget Saved Password", systemImage: "trash")
+                            .font(.caption)
+                    }
+                    .buttonStyle(.plain)
+                }
             }
 
             Spacer()
+        }
+        .onAppear {
+            // Auto-fill saved password
+            if let saved = KeychainManager.getSavedPassword(forDevice: contact.publicKey) {
+                password = saved
+            }
         }
     }
 
@@ -559,7 +584,7 @@ struct RoomChatView: View {
 
     private func login() {
         guard !password.isEmpty else { return }
-        viewModel.loginToRemoteDevice(contact, password: password)
+        viewModel.loginToRemoteDevice(contact, password: password, remember: rememberPassword)
     }
 
     private func sendRoomMessage() {
@@ -692,6 +717,7 @@ struct RepeaterLoginView: View {
     @EnvironmentObject var viewModel: MeshCoreViewModel
     @ObservedObject var session: RemoteDeviceSession
     @State private var password = ""
+    @State private var rememberPassword = true
 
     private var isLoggedIn: Bool {
         if case .loggedIn = session.loginState { return true }
@@ -748,6 +774,13 @@ struct RepeaterLoginView: View {
                         .font(.caption2)
                         .foregroundStyle(MeshTheme.textSecondary)
 
+                    #if !os(watchOS)
+                    Toggle("Remember Password", isOn: $rememberPassword)
+                        .font(.subheadline)
+                        .foregroundStyle(MeshTheme.textSecondary)
+                        .padding(.horizontal, 32)
+                    #endif
+
                     Button(action: login) {
                         HStack {
                             if isLoggingIn {
@@ -777,18 +810,34 @@ struct RepeaterLoginView: View {
                                 .foregroundStyle(.red)
                         }
                     }
+
+                    if KeychainManager.hasPassword(forDevice: contact.publicKey) {
+                        Button(role: .destructive) {
+                            KeychainManager.deleteAllPasswords(forDevice: contact.publicKey)
+                            password = ""
+                        } label: {
+                            Label("Forget Saved Password", systemImage: "trash")
+                                .font(.caption)
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
 
                 Spacer()
             }
             .background(MeshTheme.background)
             .navigationTitle(contact.name)
+            .onAppear {
+                if let saved = KeychainManager.getSavedPassword(forDevice: contact.publicKey) {
+                    password = saved
+                }
+            }
         }
     }
 
     private func login() {
         guard !password.isEmpty else { return }
-        viewModel.loginToRemoteDevice(contact, password: password)
+        viewModel.loginToRemoteDevice(contact, password: password, remember: rememberPassword)
     }
 }
 

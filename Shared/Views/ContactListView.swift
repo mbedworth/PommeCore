@@ -568,12 +568,24 @@ struct ContactListView: View {
             Image(systemName: contactIconName(for: contact.type))
                 .foregroundStyle(MeshTheme.accentFallback)
 
-            // Lock overlay for repeaters/room servers when not logged in
-            if isManaged && !loggedIn {
-                Image(systemName: "lock.fill")
-                    .font(.system(size: 10))
-                    .foregroundStyle(MeshTheme.textSecondary)
-                    .offset(x: 14, y: 14)
+            // Status overlay for repeaters/room servers
+            if isManaged {
+                if loggedIn {
+                    Image(systemName: "lock.open.fill")
+                        .font(.system(size: 10))
+                        .foregroundStyle(MeshTheme.connected)
+                        .offset(x: 14, y: 14)
+                } else if KeychainManager.hasPassword(forDevice: contact.publicKey) {
+                    Image(systemName: "key.fill")
+                        .font(.system(size: 10))
+                        .foregroundStyle(MeshTheme.textSecondary)
+                        .offset(x: 14, y: 14)
+                } else {
+                    Image(systemName: "lock.fill")
+                        .font(.system(size: 10))
+                        .foregroundStyle(MeshTheme.textSecondary)
+                        .offset(x: 14, y: 14)
+                }
             }
         }
     }

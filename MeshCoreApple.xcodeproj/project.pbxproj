@@ -41,6 +41,9 @@
 		5WT22AMGOSQXJ90NFRN8O6TK /* RemoteManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */; };
 		XUOVAQ6Y1NIWH1G3OMK55ENV /* RemoteManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */; };
 		CATKUXG25PTVMENJWXQZY49X /* RemoteManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */; };
+		KCM1ABCD0001000000000001 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = KCM1ABCD0000000000000001 /* KeychainManager.swift */; };
+		KCM1ABCD0002000000000001 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = KCM1ABCD0000000000000001 /* KeychainManager.swift */; };
+		KCM1ABCD0003000000000001 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = KCM1ABCD0000000000000001 /* KeychainManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -59,6 +62,7 @@
 		D4F0BB9B2578DD9861508E3D /* MeshCoreApple-watchOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "MeshCoreApple-watchOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F6BA0593D517B1467DBC1C42 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteManagementView.swift; sourceTree = "<group>"; };
+		KCM1ABCD0000000000000001 /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -116,6 +120,7 @@
 			isa = PBXGroup;
 			children = (
 				B1FBBD4DD1E3CAFDF4D56504 /* MeshCoreViewModel.swift */,
+				KCM1ABCD0000000000000001 /* KeychainManager.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -307,7 +312,8 @@
 				A81875C1B0A1226A9333AFCF /* Theme.swift in Sources */,
 				44472F77FC4CAC4A41BDD12F /* WatchChatView.swift in Sources */,
 			
-				5WT22AMGOSQXJ90NFRN8O6TK /* RemoteManagementView.swift in Sources */,);
+				5WT22AMGOSQXJ90NFRN8O6TK /* RemoteManagementView.swift in Sources */,
+				KCM1ABCD0001000000000001 /* KeychainManager.swift in Sources */,);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		C8B6A3E0F224AADF97CEA7F1 /* Sources */ = {
@@ -323,7 +329,8 @@
 				FC6474A70CF5B233AB283928 /* SettingsView.swift in Sources */,
 				96059FF0363E830C376C23ED /* Theme.swift in Sources */,
 			
-				XUOVAQ6Y1NIWH1G3OMK55ENV /* RemoteManagementView.swift in Sources */,);
+				XUOVAQ6Y1NIWH1G3OMK55ENV /* RemoteManagementView.swift in Sources */,
+				KCM1ABCD0002000000000001 /* KeychainManager.swift in Sources */,);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		F8CEA4EA53F48D1348D503A8 /* Sources */ = {
@@ -339,7 +346,8 @@
 				EC8655805E2DCD03D8C9C4F6 /* SettingsView.swift in Sources */,
 				FAA4FA7E3E52FCF631D55675 /* Theme.swift in Sources */,
 			
-				CATKUXG25PTVMENJWXQZY49X /* RemoteManagementView.swift in Sources */,);
+				CATKUXG25PTVMENJWXQZY49X /* RemoteManagementView.swift in Sources */,
+				KCM1ABCD0003000000000001 /* KeychainManager.swift in Sources */,);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
