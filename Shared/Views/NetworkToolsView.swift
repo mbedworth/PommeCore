@@ -15,10 +15,10 @@ struct DiscoverView: View {
                 } label: {
                     HStack {
                         Image(systemName: "magnifyingglass.circle")
-                            .foregroundStyle(MeshTheme.accentFallback)
+                            .foregroundStyle(MeshTheme.accent)
                             .frame(width: 24)
                         Text(viewModel.isDiscovering ? "Scanning..." : "Start Discover")
-                            .foregroundStyle(MeshTheme.accentFallback)
+                            .foregroundStyle(MeshTheme.accent)
                         Spacer()
                         if viewModel.isDiscovering {
                             ProgressView()
@@ -86,10 +86,10 @@ struct DiscoverView: View {
         HStack(spacing: 12) {
             ZStack {
                 Circle()
-                    .fill(MeshTheme.accentFallback.opacity(0.15))
+                    .fill(MeshTheme.accent.opacity(0.15))
                     .frame(width: 40, height: 40)
                 Image(systemName: iconName(for: node.type))
-                    .foregroundStyle(MeshTheme.accentFallback)
+                    .foregroundStyle(MeshTheme.accent)
             }
             VStack(alignment: .leading, spacing: 2) {
                 Text(node.name.isEmpty ? "Unknown" : node.name)
@@ -159,7 +159,7 @@ struct TraceRouteResultView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Image(systemName: "point.topleft.down.to.point.bottomright.curvepath")
-                    .foregroundStyle(MeshTheme.accentFallback)
+                    .foregroundStyle(MeshTheme.accent)
                 Text("Trace Route to \(contactName)")
                     .font(.headline)
                     .foregroundStyle(MeshTheme.textPrimary)
@@ -197,7 +197,7 @@ struct TraceRouteResultView: View {
     private func traceNode(name: String, isFirst: Bool, isLast: Bool, snr: Int8?) -> some View {
         HStack(spacing: 8) {
             Circle()
-                .fill(isFirst ? MeshTheme.accentFallback : (isLast ? MeshTheme.connected : MeshTheme.textSecondary))
+                .fill(isFirst ? MeshTheme.accent : (isLast ? MeshTheme.connected : MeshTheme.textSecondary))
                 .frame(width: 10, height: 10)
             Text(name)
                 .font(.subheadline)
@@ -240,7 +240,7 @@ struct StatusInfoView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Image(systemName: "info.circle")
-                    .foregroundStyle(MeshTheme.accentFallback)
+                    .foregroundStyle(MeshTheme.accent)
                 Text("Status: \(contactName)")
                     .font(.headline)
                     .foregroundStyle(MeshTheme.textPrimary)
@@ -266,7 +266,7 @@ struct StatusInfoView: View {
     private func statusRow(icon: String, label: String, value: String) -> some View {
         HStack {
             Image(systemName: icon)
-                .foregroundStyle(MeshTheme.accentFallback)
+                .foregroundStyle(MeshTheme.accent)
                 .frame(width: 20)
             Text(label)
                 .foregroundStyle(MeshTheme.textPrimary)
@@ -298,7 +298,7 @@ struct TelemetryView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Image(systemName: "chart.line.uptrend.xyaxis")
-                    .foregroundStyle(MeshTheme.accentFallback)
+                    .foregroundStyle(MeshTheme.accent)
                 Text("Telemetry: \(contactName)")
                     .font(.headline)
                     .foregroundStyle(MeshTheme.textPrimary)
@@ -312,7 +312,7 @@ struct TelemetryView: View {
                     ForEach(readings) { reading in
                         HStack {
                             Image(systemName: telemetryIcon(for: reading.name))
-                                .foregroundStyle(MeshTheme.accentFallback)
+                                .foregroundStyle(MeshTheme.accent)
                                 .frame(width: 20)
                             Text(reading.name)
                                 .foregroundStyle(MeshTheme.textPrimary)
@@ -353,7 +353,7 @@ struct AdvertPathView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Image(systemName: "map")
-                    .foregroundStyle(MeshTheme.accentFallback)
+                    .foregroundStyle(MeshTheme.accent)
                 Text("Path: \(contactName)")
                     .font(.headline)
                     .foregroundStyle(MeshTheme.textPrimary)
@@ -482,7 +482,7 @@ struct ContactDetailSheet: View {
                             viewModel.requestAdvertPath(for: contact)
                         }
                     }
-                    .foregroundStyle(MeshTheme.accentFallback)
+                    .foregroundStyle(MeshTheme.accent)
                 }
                 .padding()
             }
@@ -580,7 +580,7 @@ struct ChannelManagementView: View {
             Section {
                 HStack {
                     Image(systemName: "number")
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                         .frame(width: 24)
                     TextField(namePlaceholder, text: $channelName)
                         .foregroundStyle(MeshTheme.textPrimary)
@@ -593,7 +593,7 @@ struct ChannelManagementView: View {
                 if selectedAction == .joinPrivate {
                     HStack {
                         Image(systemName: "lock")
-                            .foregroundStyle(MeshTheme.accentFallback)
+                            .foregroundStyle(MeshTheme.accent)
                             .frame(width: 24)
                         TextField("Secret (hex)", text: $secretHex)
                             .foregroundStyle(MeshTheme.textPrimary)
@@ -621,9 +621,9 @@ struct ChannelManagementView: View {
                 } label: {
                     HStack {
                         Image(systemName: "plus.circle.fill")
-                            .foregroundStyle(MeshTheme.accentFallback)
+                            .foregroundStyle(MeshTheme.accent)
                         Text("Join Channel")
-                            .foregroundStyle(MeshTheme.accentFallback)
+                            .foregroundStyle(MeshTheme.accent)
                         Spacer()
                     }
                     .contentShape(Rectangle())
@@ -645,7 +645,7 @@ struct ChannelManagementView: View {
                     ForEach(viewModel.channels.filter { $0.index != 0 }) { channel in
                         HStack {
                             Image(systemName: channel.channelType.iconName)
-                                .foregroundStyle(MeshTheme.accentFallback)
+                                .foregroundStyle(MeshTheme.accent)
                                 .frame(width: 24)
                             Text("\(channel.channelType.displayPrefix)\(channel.name)")
                                 .foregroundStyle(MeshTheme.textPrimary)

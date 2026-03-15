@@ -92,7 +92,7 @@ struct ChatView: View {
                         .foregroundStyle(
                             messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                                 ? MeshTheme.textSecondary
-                                : MeshTheme.accentFallback
+                                : MeshTheme.accent
                         )
                 }
                 .disabled(messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
@@ -205,7 +205,7 @@ struct ChannelChatView: View {
                         .foregroundStyle(
                             messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                                 ? MeshTheme.textSecondary
-                                : MeshTheme.accentFallback
+                                : MeshTheme.accent
                         )
                 }
                 .disabled(messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
@@ -251,8 +251,8 @@ struct RoomChatView: View {
 
     private let maxMessageLength = 160
 
-    /// Teal accent for remote management icon.
-    private let remoteAccent = Color(red: 0.0, green: 0.7, blue: 0.8)
+    /// Accent for remote management icon.
+    private var remoteAccent: Color { MeshTheme.remoteRoom }
 
     private var messages: [Message] {
         viewModel.messages(for: contact)
@@ -441,7 +441,7 @@ struct RoomChatView: View {
                         .foregroundStyle(
                             messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                                 ? MeshTheme.textSecondary
-                                : MeshTheme.accentFallback
+                                : MeshTheme.accent
                         )
                 }
                 .disabled(messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
@@ -500,7 +500,7 @@ struct RoomChatView: View {
             VStack(spacing: 12) {
                 HStack {
                     Image(systemName: "lock")
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                         .frame(width: 24)
                     #if os(watchOS)
                     SecureField("Password", text: $password)
@@ -539,7 +539,7 @@ struct RoomChatView: View {
                     }
                     .frame(maxWidth: 200)
                     .padding(.vertical, 10)
-                    .background(password.isEmpty ? MeshTheme.surfaceLight : MeshTheme.accentFallback)
+                    .background(password.isEmpty ? MeshTheme.surfaceLight : MeshTheme.accent)
                     .foregroundStyle(password.isEmpty ? MeshTheme.textSecondary : MeshTheme.textOnAccent)
                     .clipShape(RoundedRectangle(cornerRadius: 10))
                 }
@@ -631,7 +631,7 @@ struct RoomMessageBubble: View {
                 if !message.isOutgoing, let sender = parsed.sender {
                     Text(sender)
                         .font(.caption2.weight(.semibold))
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                         .padding(.horizontal, 4)
                 }
 
@@ -694,7 +694,7 @@ struct RoomMessageBubble: View {
                             Text("Retry")
                         }
                         .font(.caption2.weight(.medium))
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 4)
                         .background(MeshTheme.surfaceLight)
@@ -756,7 +756,7 @@ struct RepeaterLoginView: View {
                 VStack(spacing: 12) {
                     HStack {
                         Image(systemName: "lock")
-                            .foregroundStyle(MeshTheme.accentFallback)
+                            .foregroundStyle(MeshTheme.accent)
                             .frame(width: 24)
                         #if os(watchOS)
                         SecureField("Password", text: $password)
@@ -795,7 +795,7 @@ struct RepeaterLoginView: View {
                         }
                         .frame(maxWidth: 200)
                         .padding(.vertical, 10)
-                        .background(password.isEmpty ? MeshTheme.surfaceLight : MeshTheme.accentFallback)
+                        .background(password.isEmpty ? MeshTheme.surfaceLight : MeshTheme.accent)
                         .foregroundStyle(password.isEmpty ? MeshTheme.textSecondary : MeshTheme.textOnAccent)
                         .clipShape(RoundedRectangle(cornerRadius: 10))
                     }
@@ -908,7 +908,7 @@ struct MessageBubble: View {
                             Text("Retry")
                         }
                         .font(.caption2.weight(.medium))
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 4)
                         .background(MeshTheme.surfaceLight)
@@ -937,11 +937,11 @@ struct MessageBubble: View {
             HStack(spacing: 2) {
                 Image(systemName: "checkmark.circle.fill")
                     .font(.caption2)
-                    .foregroundStyle(MeshTheme.accentFallback)
+                    .foregroundStyle(MeshTheme.accent)
                 if let rtt = message.roundTripMs, rtt > 0 {
                     Text("\(rtt)ms")
                         .font(.caption2)
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                 }
             }
         case .failed:
@@ -968,7 +968,7 @@ struct ChannelMessageBubble: View {
                 if !message.isOutgoing, let sender = message.senderName, !sender.isEmpty {
                     Text(sender)
                         .font(.caption2.weight(.semibold))
-                        .foregroundStyle(MeshTheme.accentFallback)
+                        .foregroundStyle(MeshTheme.accent)
                         .padding(.horizontal, 4)
                 }
 
