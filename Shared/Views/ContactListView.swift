@@ -4,6 +4,10 @@ import MeshCoreKit
 struct ContactListView: View {
     @EnvironmentObject var viewModel: MeshCoreViewModel
     @Binding var showScanner: Bool
+    var showDiscover: Binding<Bool>? = nil
+    var showSettings: Binding<Bool>? = nil
+    var showRemoteManagement: Binding<Bool>? = nil
+    var showAdvertSent: Binding<Bool>? = nil
 
     @State private var contactToDelete: Contact?
     @State private var showDeleteConfirm = false
@@ -56,6 +60,47 @@ struct ContactListView: View {
                     Image(systemName: "antenna.radiowaves.left.and.right")
                         .foregroundStyle(MeshTheme.accent)
                 }
+            }
+        }
+        #else
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    if viewModel.connectionState == .ready {
+                        viewModel.sendAdvertise(type: 0)
+                        showAdvertSent?.wrappedValue = true
+                    } else {
+                        showScanner = true
+                    }
+                } label: {
+                    Image(systemName: viewModel.connectionState == .ready
+                          ? "antenna.radiowaves.left.and.right"
+                          : "antenna.radiowaves.left.and.right.slash")
+                        .foregroundStyle(MeshTheme.accent)
+                }
+                .accessibilityLabel("Send Advertisement")
+            }
+
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    showDiscover?.wrappedValue = true
+                } label: {
+                    Image(systemName: "sensor.tag.radiowaves.forward")
+                        .foregroundStyle(MeshTheme.accent)
+                }
+                .accessibilityLabel("Discover Nearby Nodes")
+                .disabled(viewModel.connectionState != .ready)
+            }
+
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    viewModel.refreshAll()
+                } label: {
+                    Image(systemName: "arrow.clockwise")
+                        .foregroundStyle(MeshTheme.accent)
+                }
+                .accessibilityLabel("Refresh")
+                .disabled(viewModel.connectionState != .ready)
             }
         }
         #endif

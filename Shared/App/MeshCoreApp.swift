@@ -60,7 +60,13 @@ struct ContentView: View {
         }
         #else
         NavigationSplitView {
-            ContactListView(showScanner: $showScanner)
+            ContactListView(
+                showScanner: $showScanner,
+                showDiscover: $showDiscover,
+                showSettings: $showSettings,
+                showRemoteManagement: $showRemoteManagement,
+                showAdvertSent: $showAdvertSent
+            )
         } detail: {
             switch viewModel.sidebarSelection {
             case .publicChannel:
@@ -133,78 +139,6 @@ struct ContentView: View {
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
-            }
-        }
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    if viewModel.connectionState == .ready {
-                        viewModel.sendAdvertise(type: 0)
-                        showAdvertSent = true
-                    } else {
-                        showScanner = true
-                    }
-                } label: {
-                    Image(systemName: viewModel.connectionState == .ready
-                          ? "antenna.radiowaves.left.and.right"
-                          : "antenna.radiowaves.left.and.right.slash")
-                        .foregroundStyle(MeshTheme.accent)
-                }
-                .help("Send Advertisement — announce your presence on the mesh")
-                .accessibilityLabel("Send Advertisement")
-                .accessibilityHint("Announce your presence on the mesh network")
-            }
-
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    showDiscover = true
-                } label: {
-                    Image(systemName: "sensor.tag.radiowaves.forward")
-                        .foregroundStyle(MeshTheme.accent)
-                }
-                .help("Discover — scan for nearby mesh nodes")
-                .accessibilityLabel("Discover Nearby Nodes")
-                .accessibilityHint("Scan the mesh for nearby devices")
-                .disabled(viewModel.connectionState != .ready)
-            }
-
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    viewModel.refreshAll()
-                } label: {
-                    Image(systemName: "arrow.clockwise")
-                        .foregroundStyle(MeshTheme.accent)
-                }
-                .help("Refresh — re-sync contacts, channels, and settings from device")
-                .accessibilityLabel("Refresh")
-                .accessibilityHint("Re-sync contacts, channels, and settings from device")
-                .disabled(viewModel.connectionState != .ready)
-            }
-
-            ToolbarItem(placement: .primaryAction) {
-                if viewModel.hasActiveManagementSession {
-                    Button {
-                        showRemoteManagement = true
-                    } label: {
-                        Image(systemName: "wrench.and.screwdriver")
-                            .foregroundStyle(MeshTheme.accent)
-                    }
-                    .help("Remote Management — configure remote device")
-                    .accessibilityLabel("Remote Management")
-                    .accessibilityHint("Open remote device management")
-                }
-            }
-
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    showSettings = true
-                } label: {
-                    Image(systemName: "gearshape")
-                        .foregroundStyle(MeshTheme.accent)
-                }
-                .help("Device Settings — configure your local radio")
-                .accessibilityLabel("Device Settings")
-                .accessibilityHint("Configure your local radio settings")
             }
         }
         .sheet(isPresented: $showScanner) {
