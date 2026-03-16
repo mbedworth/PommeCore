@@ -136,12 +136,17 @@ struct KeychainManager {
 
     private static let channelService = "com.mbedworth.meshcore.channels"
 
+    /// Channel secret account key — keyed by name only (lowercased), not index,
+    /// so the same channel works across different radios with different slot assignments.
+    private static func channelAccount(_ name: String) -> String {
+        "channel.secret.\(name.lowercased())"
+    }
+
     /// Save a channel secret to iCloud Keychain (syncs across Apple devices).
     @discardableResult
-    static func saveChannelSecret(_ secret: Data, name: String, index: UInt8) -> Bool {
-        let account = "channel.\(index).\(name)"
+    static func saveChannelSecret(_ secret: Data, forChannelName name: String) -> Bool {
+        let account = channelAccount(name)
 
-        // Delete existing first
         var deleteQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: channelService,
@@ -169,11 +174,11 @@ struct KeychainManager {
     }
 
     /// Retrieve a channel secret from iCloud Keychain.
-    static func getChannelSecret(name: String, index: UInt8) -> Data? {
+    static func getChannelSecret(forChannelName name: String) -> Data? {
         var query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: channelService,
-            kSecAttrAccount as String: "channel.\(index).\(name)",
+            kSecAttrAccount as String: channelAccount(name),
             kSecAttrSynchronizable as String: true,
             kSecReturnData as String: true,
             kSecMatchLimit as String: kSecMatchLimitOne
@@ -190,11 +195,11 @@ struct KeychainManager {
 
     /// Delete a channel secret from iCloud Keychain.
     @discardableResult
-    static func deleteChannelSecret(name: String, index: UInt8) -> Bool {
+    static func deleteChannelSecret(forChannelName name: String) -> Bool {
         var query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: channelService,
-            kSecAttrAccount as String: "channel.\(index).\(name)",
+            kSecAttrAccount as String: channelAccount(name),
             kSecAttrSynchronizable as String: true
         ]
         #if os(macOS)
