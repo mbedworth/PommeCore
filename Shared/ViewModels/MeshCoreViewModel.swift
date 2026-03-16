@@ -351,11 +351,6 @@ final class MeshCoreViewModel: ObservableObject {
                 let previousState = self.connectionState
                 self.connectionState = state
                 if state == .disconnected {
-                    // Show error if disconnected while operations were in progress
-                    let wasActive = previousState == .ready || previousState == .connected
-                    if wasActive {
-                        self.lastErrorMessage = "Device disconnected. Reconnect to continue."
-                    }
                     // Reset all login sessions on disconnect
                     for (_, session) in self.remoteSessions {
                         switch session.loginState {
@@ -410,6 +405,16 @@ final class MeshCoreViewModel: ObservableObject {
                         }
                     }
                     self.pendingACKs.removeAll()
+
+                    // If transitioning from connecting (reconnect attempts) to disconnected,
+                    // show scanner after BLE layer starts auto-scanning
+                    if previousState == .connecting {
+                        Task { @MainActor in
+                            try? await Task.sleep(nanoseconds: 3_000_000_000)
+                            guard self.connectionState == .disconnected else { return }
+                            self.requestShowScanner = true
+                        }
+                    }
                 }
                 if state == .ready && previousState != .ready {
                     self.onDeviceReady()

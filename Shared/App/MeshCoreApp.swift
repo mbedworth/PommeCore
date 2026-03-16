@@ -272,10 +272,8 @@ struct ContentView: View {
         if newState == .ready || newState == .connected {
             showScanner = false
         }
-        // Show failure alert if connection drops during connecting
-        if newState == .disconnected && previousConnectionState == .connecting {
-            showConnectionFailed = true
-        }
+        // No alert on connecting → disconnected — the auto-reconnect and
+        // auto-scan flow handles this silently via status bar updates.
         previousConnectionState = newState
     }
 }
