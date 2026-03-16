@@ -1035,8 +1035,13 @@ struct ContactListView: View {
                     .font(.caption)
                     .foregroundStyle(MeshTheme.textSecondary)
                     .lineLimit(1)
-            } else {
+            } else if contact.lastAdvert > 1_000_000_000 {
+                // Only show relative time for valid timestamps (after ~2001)
                 Text(contact.lastSeen, style: .relative)
+                    .font(.caption)
+                    .foregroundStyle(MeshTheme.textSecondary)
+            } else {
+                Text("Never seen")
                     .font(.caption)
                     .foregroundStyle(MeshTheme.textSecondary)
             }
