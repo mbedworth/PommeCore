@@ -978,6 +978,7 @@ final class MeshCoreViewModel: ObservableObject {
         case .selfInfo(let info):
             Self.logger.info("PARSED SelfInfo: name='\(info.name)' txPwr=\(info.txPower)/\(info.maxTXPower) freq=\(info.radioFreq) bw=\(info.radioBW) sf=\(info.radioSF) cr=\(info.radioCR) lat=\(info.latitude) lon=\(info.longitude)")
             deviceConfig.deviceName = info.name
+            deviceConfig.selfType = info.type
             deviceConfig.radioTXPower = info.txPower
             deviceConfig.maxTXPower = info.maxTXPower
             deviceConfig.publicKeyHex = info.publicKey.map { String(format: "%02x", $0) }.joined()
