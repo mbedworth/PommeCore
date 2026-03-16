@@ -213,10 +213,10 @@ public enum MeshCoreProtocol {
             nameField.replaceSubrange(0..<len, with: nameData.prefix(len))
         }
         frame.append(nameField)
-        // secret: 32 bytes null-padded
-        var secretField = Data(repeating: 0, count: 32)
+        // secret/PSK: 16 bytes (128-bit key, matching meshcore.js format)
+        var secretField = Data(repeating: 0, count: 16)
         if let secret, !secret.isEmpty {
-            let len = min(secret.count, 32)
+            let len = min(secret.count, 16)
             secretField.replaceSubrange(0..<len, with: secret.prefix(len))
         }
         frame.append(secretField)
