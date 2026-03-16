@@ -881,17 +881,12 @@ private extension SettingsView {
 struct PrivacySection: View {
     @ObservedObject var viewModel: MeshCoreViewModel
     @State private var manualAdd: Bool = false
-    @State private var telBase: UInt8 = 0
-    @State private var telLoc: UInt8 = 0
+    @State private var telBaseEnabled: Bool = false
+    @State private var telLocEnabled: Bool = false
     @State private var advertLoc: Bool = false
     @State private var multiACK: Bool = false
     @State private var pinText: String = ""
     @State private var saveState: SaveButtonState = .idle
-
-    private let telemetryOptions: [(UInt8, String)] = [
-        (0, "Deny"),
-        (2, "Allow All"),
-    ]
 
     var body: some View {
         Section {
@@ -907,33 +902,18 @@ struct PrivacySection: View {
             .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
 
-            // Fix #8: Telemetry pickers
-            HStack {
-                Image(systemName: "chart.line.uptrend.xyaxis")
+            Toggle(isOn: $telBaseEnabled) {
+                Label("Share Battery & Status", systemImage: "battery.100")
                     .foregroundStyle(MeshTheme.accent)
-                    .frame(width: 24)
-                Picker("Telemetry Base", selection: $telBase) {
-                    ForEach(telemetryOptions, id: \.0) { val, label in
-                        Text(label).tag(val)
-                    }
-                }
-                .foregroundStyle(MeshTheme.accent)
-                .tint(MeshTheme.accent)
             }
+            .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
 
-            HStack {
-                Image(systemName: "mappin.and.ellipse")
+            Toggle(isOn: $telLocEnabled) {
+                Label("Share Location", systemImage: "location")
                     .foregroundStyle(MeshTheme.accent)
-                    .frame(width: 24)
-                Picker("Telemetry Location", selection: $telLoc) {
-                    ForEach(telemetryOptions, id: \.0) { val, label in
-                        Text(label).tag(val)
-                    }
-                }
-                .foregroundStyle(MeshTheme.accent)
-                .tint(MeshTheme.accent)
             }
+            .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
 
             Toggle(isOn: $advertLoc) {
@@ -963,8 +943,8 @@ struct PrivacySection: View {
             SaveButton(state: saveState, label: "Save Privacy Settings") {
                 viewModel.setOtherParams(
                     manualAddContacts: manualAdd ? 1 : 0,
-                    telemetryBase: telBase,
-                    telemetryLocation: telLoc,
+                    telemetryBase: telBaseEnabled ? 2 : 0,
+                    telemetryLocation: telLocEnabled ? 2 : 0,
                     advertLocPolicy: advertLoc ? 1 : 0,
                     multiACK: multiACK ? 1 : 0
                 )
@@ -974,7 +954,7 @@ struct PrivacySection: View {
             Text("Privacy & Security")
                 .foregroundStyle(MeshTheme.textSecondary)
         } footer: {
-            Text("Controls what information your device shares on the mesh network and how contacts are managed.")
+            Text("When telemetry sharing is enabled, other nodes that request it will receive your battery status or location data.")
                 .font(.caption2)
         }
 
@@ -1064,10 +1044,9 @@ struct PrivacySection: View {
     private func loadFromConfig() {
         let c = viewModel.deviceConfig
         manualAdd = c.manualAddContacts != 0
-        // Map per-contact (1) to Allow All (2) since per-contact selection
-        // isn't manageable via the companion BLE protocol
-        telBase = c.telemetryBase == 1 ? 2 : c.telemetryBase
-        telLoc = c.telemetryLocation == 1 ? 2 : c.telemetryLocation
+        // 0=deny, 1=per-contact (treat as enabled), 2=allow all
+        telBaseEnabled = c.telemetryBase != 0
+        telLocEnabled = c.telemetryLocation != 0
         advertLoc = c.advertLocPolicy != 0
         multiACK = c.multiACK != 0
         pinText = String(c.blePIN)
