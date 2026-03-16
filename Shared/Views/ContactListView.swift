@@ -18,6 +18,13 @@ struct ContactListView: View {
     @State private var detailContact: Contact?
     @State private var showChannelSheet = false
     @State private var showDeviceInfo = false
+    #if !os(watchOS)
+    @State private var channelToShareSidebar: MeshChannel?
+    @State private var channelToRenameSidebar: MeshChannel?
+    @State private var channelRenameText = ""
+    @State private var showChannelRemoveConfirm = false
+    @State private var channelToRemove: MeshChannel?
+    #endif
     @State private var showNicknameSheet = false
     #if os(iOS)
     @State private var showQRScanner = false
@@ -146,6 +153,38 @@ struct ContactListView: View {
             .frame(minWidth: 360, minHeight: 400)
         }
         #if !os(watchOS)
+        .sheet(item: $channelToShareSidebar) { channel in
+            ShareChannelSheet(channel: channel)
+                .frame(minWidth: 360, minHeight: 400)
+        }
+        .alert("Rename Channel", isPresented: Binding(
+            get: { channelToRenameSidebar != nil },
+            set: { if !$0 { channelToRenameSidebar = nil } }
+        )) {
+            TextField("Channel name", text: $channelRenameText)
+            Button("Cancel", role: .cancel) { channelToRenameSidebar = nil }
+            Button("Rename") {
+                if let ch = channelToRenameSidebar, !channelRenameText.isEmpty {
+                    viewModel.setChannel(index: ch.index, name: channelRenameText, secret: ch.secret)
+                }
+                channelToRenameSidebar = nil
+            }
+        } message: {
+            Text("Enter a new name for this channel.")
+        }
+        .alert("Remove Channel?", isPresented: $showChannelRemoveConfirm) {
+            Button("Cancel", role: .cancel) { channelToRemove = nil }
+            Button("Remove", role: .destructive) {
+                if let ch = channelToRemove {
+                    viewModel.setChannel(index: ch.index, name: "", secret: nil)
+                }
+                channelToRemove = nil
+            }
+        } message: {
+            if let ch = channelToRemove {
+                Text("Remove \"\(ch.name)\" from your channels?")
+            }
+        }
         .sheet(isPresented: $showMyContactCode) {
             MyContactCodeSheet()
                 .environmentObject(viewModel)
@@ -377,6 +416,29 @@ struct ContactListView: View {
                 #else
                 NavigationLink(value: SidebarSelection.channel(channel.index)) {
                     channelRow(channel)
+                }
+                .contextMenu {
+                    Button {
+                        channelToShareSidebar = channel
+                    } label: {
+                        Label("Share", systemImage: "square.and.arrow.up")
+                    }
+
+                    Button {
+                        channelToRenameSidebar = channel
+                        channelRenameText = channel.name
+                    } label: {
+                        Label("Rename", systemImage: "pencil")
+                    }
+
+                    Divider()
+
+                    Button(role: .destructive) {
+                        channelToRemove = channel
+                        showChannelRemoveConfirm = true
+                    } label: {
+                        Label("Remove Channel", systemImage: "trash")
+                    }
                 }
                 .listRowBackground(
                     viewModel.selectedChannelIndex == channel.index
