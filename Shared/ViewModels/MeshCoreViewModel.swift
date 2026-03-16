@@ -53,17 +53,19 @@ final class MeshCoreViewModel: ObservableObject {
     /// Unread message counts per contact key prefix.
     @Published var unreadCounts: [Data: Int] = [:]
 
-    // MARK: - Contact Nicknames (app-local, stored by public key hex)
+    // MARK: - Contact Nicknames (iCloud sync via NSUbiquitousKeyValueStore)
 
-    @AppStorage("contactNicknames") private var nicknamesJSON: String = "{}"
+    private let iCloudStore = NSUbiquitousKeyValueStore.default
 
     private var nicknames: [String: String] {
         get {
-            (try? JSONDecoder().decode([String: String].self, from: Data(nicknamesJSON.utf8))) ?? [:]
+            guard let data = iCloudStore.data(forKey: "contactNicknames") else { return [:] }
+            return (try? JSONDecoder().decode([String: String].self, from: data)) ?? [:]
         }
         set {
             if let data = try? JSONEncoder().encode(newValue) {
-                nicknamesJSON = String(data: data, encoding: .utf8) ?? "{}"
+                iCloudStore.set(data, forKey: "contactNicknames")
+                iCloudStore.synchronize()
             }
         }
     }
