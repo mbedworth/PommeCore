@@ -317,18 +317,61 @@ struct ShareChannelSheet: View {
         return url
     }
 
+    private var secretHex: String? {
+        channel.secret?.map { String(format: "%02x", $0) }.joined()
+    }
+
     var body: some View {
         NavigationStack {
-            VStack(spacing: 20) {
+            VStack(spacing: 16) {
                 QRCodeView(
                     content: channelURL,
                     label: "Share \(channel.name)"
                 )
-                Text("Scan this QR code or share the link to join this channel.")
-                    .font(.caption)
-                    .foregroundStyle(MeshTheme.textSecondary)
-                    .multilineTextAlignment(.center)
+
+                if channel.secret == nil {
+                    HStack(spacing: 6) {
+                        Image(systemName: "exclamationmark.triangle")
+                            .foregroundStyle(.orange)
+                        Text("Channel secret not available locally. Recipients will need the secret separately to join.")
+                            .font(.caption)
+                            .foregroundStyle(MeshTheme.textSecondary)
+                    }
                     .padding(.horizontal)
+                }
+
+                // Action buttons
+                VStack(spacing: 10) {
+                    if let hex = secretHex {
+                        Button {
+                            #if os(iOS)
+                            UIPasteboard.general.string = hex
+                            #elseif os(macOS)
+                            NSPasteboard.general.clearContents()
+                            NSPasteboard.general.setString(hex, forType: .string)
+                            #endif
+                        } label: {
+                            Label("Copy Secret", systemImage: "key")
+                                .foregroundStyle(MeshTheme.accent)
+                        }
+                        .buttonStyle(.plain)
+                    }
+
+                    #if os(iOS)
+                    Button {
+                        let av = UIActivityViewController(activityItems: [channelURL], applicationActivities: nil)
+                        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                           let root = scene.windows.first?.rootViewController {
+                            root.present(av, animated: true)
+                        }
+                    } label: {
+                        Label("Share via AirDrop / Messages", systemImage: "square.and.arrow.up")
+                            .foregroundStyle(MeshTheme.accent)
+                    }
+                    .buttonStyle(.plain)
+                    #endif
+                }
+
                 Spacer()
             }
             .padding(.top, 20)
