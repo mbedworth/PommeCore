@@ -890,7 +890,6 @@ struct PrivacySection: View {
 
     private let telemetryOptions: [(UInt8, String)] = [
         (0, "Deny"),
-        (1, "Per-Contact"),
         (2, "Allow All"),
     ]
 
@@ -1023,8 +1022,10 @@ struct PrivacySection: View {
     private func loadFromConfig() {
         let c = viewModel.deviceConfig
         manualAdd = c.manualAddContacts != 0
-        telBase = c.telemetryBase
-        telLoc = c.telemetryLocation
+        // Map per-contact (1) to Allow All (2) since per-contact selection
+        // isn't manageable via the companion BLE protocol
+        telBase = c.telemetryBase == 1 ? 2 : c.telemetryBase
+        telLoc = c.telemetryLocation == 1 ? 2 : c.telemetryLocation
         advertLoc = c.advertLocPolicy != 0
         multiACK = c.multiACK != 0
         pinText = String(c.blePIN)
