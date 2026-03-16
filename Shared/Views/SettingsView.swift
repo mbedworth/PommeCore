@@ -5,6 +5,7 @@ struct SettingsView: View {
     @EnvironmentObject var viewModel: MeshCoreViewModel
     @AppStorage("batteryChemistry") private var batteryChemistryRaw: String = BatteryChemistry.lipo.rawValue
     @AppStorage("appTheme") private var appTheme: String = AppTheme.system.rawValue
+    @State private var statsExpanded = false
 
     private var batteryChemistry: BatteryChemistry {
         BatteryChemistry(rawValue: batteryChemistryRaw) ?? .lipo
@@ -806,59 +807,62 @@ struct TuningSection: View {
     @State private var airtime: String = ""
     @State private var saveState: SaveButtonState = .idle
 
+    @State private var isExpanded = false
+
     var body: some View {
         Section {
-            HStack {
-                Image(systemName: "timer")
+            DisclosureGroup(isExpanded: $isExpanded) {
+                HStack {
+                    Image(systemName: "timer")
+                        .foregroundStyle(MeshTheme.accent)
+                        .frame(width: 24)
+                    Text("RX Delay Base (s)")
+                        .foregroundStyle(MeshTheme.accent)
+                    Spacer()
+                    #if os(watchOS)
+                    TextField("seconds", text: $rxDelay)
+                        .foregroundStyle(MeshTheme.textPrimary)
+                        .frame(width: 80)
+                    #else
+                    TextField("seconds", text: $rxDelay)
+                        .foregroundStyle(MeshTheme.textPrimary)
+                        .textFieldStyle(MeshTextFieldStyle())
+                        .frame(width: 100)
+                    #endif
+                }
+
+                HStack {
+                    Image(systemName: "clock.arrow.2.circlepath")
+                        .foregroundStyle(MeshTheme.accent)
+                        .frame(width: 24)
+                    Text("Airtime Factor")
+                        .foregroundStyle(MeshTheme.accent)
+                    Spacer()
+                    #if os(watchOS)
+                    TextField("multiplier", text: $airtime)
+                        .foregroundStyle(MeshTheme.textPrimary)
+                        .frame(width: 80)
+                    #else
+                    TextField("multiplier", text: $airtime)
+                        .foregroundStyle(MeshTheme.textPrimary)
+                        .textFieldStyle(MeshTextFieldStyle())
+                        .frame(width: 100)
+                    #endif
+                }
+
+                SaveButton(state: saveState, label: "Apply Tuning") {
+                    let rx = UInt32((Double(rxDelay) ?? 0) * 1000)
+                    let at = UInt32((Double(airtime) ?? 0) * 1000)
+                    viewModel.setTuningParams(rxDelayBase: rx, airtimeFactor: at)
+                    showSaved($saveState)
+                }
+            } label: {
+                Label("Tuning Parameters", systemImage: "slider.horizontal.3")
                     .foregroundStyle(MeshTheme.accent)
-                    .frame(width: 24)
-                Text("RX Delay Base (s)")
-                    .foregroundStyle(MeshTheme.accent)
-                Spacer()
-                #if os(watchOS)
-                TextField("seconds", text: $rxDelay)
-                    .foregroundStyle(MeshTheme.textPrimary)
-                    .frame(width: 80)
-                #else
-                TextField("seconds", text: $rxDelay)
-                    .foregroundStyle(MeshTheme.textPrimary)
-                    .textFieldStyle(MeshTextFieldStyle())
-                    .frame(width: 100)
-                #endif
             }
             .listRowBackground(MeshTheme.surface)
-
-            HStack {
-                Image(systemName: "clock.arrow.2.circlepath")
-                    .foregroundStyle(MeshTheme.accent)
-                    .frame(width: 24)
-                Text("Airtime Factor")
-                    .foregroundStyle(MeshTheme.accent)
-                Spacer()
-                #if os(watchOS)
-                TextField("multiplier", text: $airtime)
-                    .foregroundStyle(MeshTheme.textPrimary)
-                    .frame(width: 80)
-                #else
-                TextField("multiplier", text: $airtime)
-                    .foregroundStyle(MeshTheme.textPrimary)
-                    .textFieldStyle(MeshTextFieldStyle())
-                    .frame(width: 100)
-                #endif
-            }
-            .listRowBackground(MeshTheme.surface)
-
-            SaveButton(state: saveState, label: "Apply Tuning") {
-                let rx = UInt32((Double(rxDelay) ?? 0) * 1000)
-                let at = UInt32((Double(airtime) ?? 0) * 1000)
-                viewModel.setTuningParams(rxDelayBase: rx, airtimeFactor: at)
-                showSaved($saveState)
-            }
-        } header: {
-            Text("Tuning Parameters")
-                .foregroundStyle(MeshTheme.textSecondary)
         } footer: {
-            Text("Advanced — adjust timing parameters for mesh performance. Default values work well for most setups. Changes take effect immediately.")
+            Text("Advanced — adjust timing parameters for mesh performance. Default values work well for most setups.")
                 .font(.caption2)
         }
         .onAppear { loadFromConfig() }
@@ -1174,46 +1178,49 @@ struct CustomVarsSection: View {
 private extension SettingsView {
     var statsSection: some View {
         Section {
-            // Core
-            infoRow(icon: "battery.75", label: "Battery (stats)", value: statsBatteryDisplay)
-            infoRow(icon: "clock.arrow.circlepath", label: "Uptime", value: config.statsUptime > 0 ? formatUptime(config.statsUptime) : "\u{2014}")
-            infoRow(icon: "exclamationmark.triangle", label: "Error Flags", value: config.statsErrorFlags > 0 ? "0x\(String(format: "%04x", config.statsErrorFlags))" : "None")
-            infoRow(icon: "tray", label: "Queue Length", value: "\(config.statsQueueLength)")
+            DisclosureGroup(isExpanded: $statsExpanded) {
+                // Core
+                infoRow(icon: "battery.75", label: "Battery (stats)", value: statsBatteryDisplay)
+                infoRow(icon: "clock.arrow.circlepath", label: "Uptime", value: config.statsUptime > 0 ? formatUptime(config.statsUptime) : "\u{2014}")
+                infoRow(icon: "exclamationmark.triangle", label: "Error Flags", value: config.statsErrorFlags > 0 ? "0x\(String(format: "%04x", config.statsErrorFlags))" : "None")
+                infoRow(icon: "tray", label: "Queue Length", value: "\(config.statsQueueLength)")
 
-            // Radio
-            infoRow(icon: "waveform.badge.minus", label: "Noise Floor", value: "\(config.statsNoiseFloor) dBm")
-            infoRow(icon: "cellularbars", label: "Last RSSI", value: "\(config.statsLastRSSI) dBm")
-            infoRow(icon: "antenna.radiowaves.left.and.right", label: "Last SNR", value: String(format: "%.1f dB", Double(config.statsLastSNR) / 4.0))
-            infoRow(icon: "arrow.up.circle", label: "TX Airtime", value: "\(config.statsTXAirtime) s")
-            infoRow(icon: "arrow.down.circle", label: "RX Airtime", value: "\(config.statsRXAirtime) s")
+                // Radio
+                infoRow(icon: "waveform.badge.minus", label: "Noise Floor", value: "\(config.statsNoiseFloor) dBm")
+                infoRow(icon: "cellularbars", label: "Last RSSI", value: "\(config.statsLastRSSI) dBm")
+                infoRow(icon: "antenna.radiowaves.left.and.right", label: "Last SNR", value: String(format: "%.1f dB", Double(config.statsLastSNR) / 4.0))
+                infoRow(icon: "arrow.up.circle", label: "TX Airtime", value: "\(config.statsTXAirtime) s")
+                infoRow(icon: "arrow.down.circle", label: "RX Airtime", value: "\(config.statsRXAirtime) s")
 
-            // Packets
-            infoRow(icon: "arrow.down.doc", label: "Packets RX", value: "\(config.statsPacketsReceived)")
-            infoRow(icon: "arrow.up.doc", label: "Packets TX", value: "\(config.statsPacketsSent)")
-            infoRow(icon: "arrow.triangle.branch", label: "Sent Flood", value: "\(config.statsFloodCount)")
-            infoRow(icon: "arrow.right", label: "Sent Direct", value: "\(config.statsDirectCount)")
-            infoRow(icon: "arrow.down.left", label: "Recv Flood", value: "\(config.statsRecvFlood)")
-            infoRow(icon: "arrow.down.right", label: "Recv Direct", value: "\(config.statsRecvDirect)")
+                // Packets
+                infoRow(icon: "arrow.down.doc", label: "Packets RX", value: "\(config.statsPacketsReceived)")
+                infoRow(icon: "arrow.up.doc", label: "Packets TX", value: "\(config.statsPacketsSent)")
+                infoRow(icon: "arrow.triangle.branch", label: "Sent Flood", value: "\(config.statsFloodCount)")
+                infoRow(icon: "arrow.right", label: "Sent Direct", value: "\(config.statsDirectCount)")
+                infoRow(icon: "arrow.down.left", label: "Recv Flood", value: "\(config.statsRecvFlood)")
+                infoRow(icon: "arrow.down.right", label: "Recv Direct", value: "\(config.statsRecvDirect)")
 
-            Button {
-                viewModel.requestStats(subType: 0)
-                viewModel.requestStats(subType: 1)
-                viewModel.requestStats(subType: 2)
-            } label: {
-                HStack {
-                    Image(systemName: "arrow.clockwise")
-                        .foregroundStyle(MeshTheme.accent)
-                        .frame(width: 24)
-                    Text("Refresh Stats")
-                        .foregroundStyle(MeshTheme.accent)
-                    Spacer()
+                Button {
+                    viewModel.requestStats(subType: 0)
+                    viewModel.requestStats(subType: 1)
+                    viewModel.requestStats(subType: 2)
+                } label: {
+                    HStack {
+                        Image(systemName: "arrow.clockwise")
+                            .foregroundStyle(MeshTheme.accent)
+                            .frame(width: 24)
+                        Text("Refresh Stats")
+                            .foregroundStyle(MeshTheme.accent)
+                        Spacer()
+                    }
+                    .contentShape(Rectangle())
                 }
-                .contentShape(Rectangle())
+                .buttonStyle(.plain)
+            } label: {
+                Label("Statistics", systemImage: "chart.bar")
+                    .foregroundStyle(MeshTheme.accent)
             }
-            .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
-        } header: {
-            sectionHeader("Statistics")
         }
     }
 
