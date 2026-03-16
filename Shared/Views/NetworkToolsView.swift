@@ -128,7 +128,7 @@ struct DiscoverView: View {
         case .chat: return "person.fill"
         case .repeater: return "antenna.radiowaves.left.and.right"
         case .room: return "server.rack"
-        case .unknown: return "questionmark"
+        case .unknown: return "person.fill"
         }
     }
 
