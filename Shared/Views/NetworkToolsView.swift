@@ -545,6 +545,9 @@ struct ContactDetailSheet: View {
 struct ChannelManagementView: View {
     @EnvironmentObject var viewModel: MeshCoreViewModel
     @Environment(\.dismiss) private var dismiss
+    #if !os(watchOS)
+    @State private var channelToShare: MeshChannel?
+    #endif
 
     enum ChannelAction: String, CaseIterable, Identifiable {
         case hashtag = "Join Hashtag Channel"
@@ -653,6 +656,15 @@ struct ChannelManagementView: View {
                             Text("Slot \(channel.index)")
                                 .font(.caption)
                                 .foregroundStyle(MeshTheme.textSecondary)
+                            #if !os(watchOS)
+                            Button {
+                                channelToShare = channel
+                            } label: {
+                                Image(systemName: "qrcode")
+                                    .foregroundStyle(MeshTheme.accent)
+                            }
+                            .buttonStyle(.plain)
+                            #endif
                             Button {
                                 removeChannel(channel)
                             } label: {
@@ -671,6 +683,12 @@ struct ChannelManagementView: View {
         }
         .meshListStyle()
         .navigationTitle("Channels")
+        #if !os(watchOS)
+        .sheet(item: $channelToShare) { channel in
+            ShareChannelSheet(channel: channel)
+                .frame(minWidth: 360, minHeight: 400)
+        }
+        #endif
     }
 
     private var namePlaceholder: String {

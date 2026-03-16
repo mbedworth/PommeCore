@@ -44,6 +44,9 @@
 		KCM1ABCD0002000000000001 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = KCM1ABCD0000000000000001 /* KeychainManager.swift */; };
 		KCM1ABCD0003000000000001 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = KCM1ABCD0000000000000001 /* KeychainManager.swift */; };
 		XUOVAQ6Y1NIWH1G3OMK55ENV /* RemoteManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */; };
+		B2C3D4E5F6071829A3B4C5D6 /* ShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* ShareView.swift */; };
+		C3D4E5F60718293AB4C5D6E7 /* ShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* ShareView.swift */; };
+		D4E5F60718293A4BC5D6E7F8 /* ShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* ShareView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -63,6 +66,7 @@
 		F6BA0593D517B1467DBC1C42 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		KCM1ABCD0000000000000001 /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
 		LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteManagementView.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718293A4B5C /* ShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -112,6 +116,7 @@
 				2377BED4FF5A7170783BA649 /* DeviceScannerView.swift */,
 				5D859AE9C98610F71C2FBAAF /* SettingsView.swift */,
 				LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */,
+				A1B2C3D4E5F60718293A4B5C /* ShareView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -311,6 +316,7 @@
 				44472F77FC4CAC4A41BDD12F /* WatchChatView.swift in Sources */,
 				5WT22AMGOSQXJ90NFRN8O6TK /* RemoteManagementView.swift in Sources */,
 				KCM1ABCD0001000000000001 /* KeychainManager.swift in Sources */,
+				D4E5F60718293A4BC5D6E7F8 /* ShareView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -328,6 +334,7 @@
 				96059FF0363E830C376C23ED /* Theme.swift in Sources */,
 				XUOVAQ6Y1NIWH1G3OMK55ENV /* RemoteManagementView.swift in Sources */,
 				KCM1ABCD0002000000000001 /* KeychainManager.swift in Sources */,
+				C3D4E5F60718293AB4C5D6E7 /* ShareView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -345,6 +352,7 @@
 				FAA4FA7E3E52FCF631D55675 /* Theme.swift in Sources */,
 				CATKUXG25PTVMENJWXQZY49X /* RemoteManagementView.swift in Sources */,
 				KCM1ABCD0003000000000001 /* KeychainManager.swift in Sources */,
+				B2C3D4E5F6071829A3B4C5D6 /* ShareView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
