@@ -306,9 +306,10 @@ struct MyContactCodeSheet: View {
 struct ShareChannelSheet: View {
     let channel: MeshChannel
     @Environment(\.dismiss) private var dismiss
+    @State private var copiedLink = false
+    @State private var copiedSecret = false
 
     /// Build a meshcore:// channel URL.
-    /// Format: meshcore://channel?name=NAME&secret=HEX (secret optional)
     private var channelURL: String {
         var url = "meshcore://channel?name=\(channel.name.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? channel.name)"
         if let secret = channel.secret {
@@ -323,58 +324,131 @@ struct ShareChannelSheet: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 16) {
-                QRCodeView(
-                    content: channelURL,
-                    label: "Share \(channel.name)"
-                )
+            ScrollView {
+                VStack(spacing: 20) {
+                    // QR Code (large, prominent)
+                    if let image = generateQRCode(from: channelURL) {
+                        #if os(macOS)
+                        Image(nsImage: image)
+                            .interpolation(.none)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 220, height: 220)
+                        #else
+                        Image(uiImage: image)
+                            .interpolation(.none)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 220, height: 220)
+                        #endif
+                    }
 
-                if channel.secret == nil {
-                    HStack(spacing: 6) {
-                        Image(systemName: "exclamationmark.triangle")
-                            .foregroundStyle(.orange)
-                        Text("Channel secret not available locally. Recipients will need the secret separately to join.")
-                            .font(.caption)
+                    // Channel name and instruction
+                    VStack(spacing: 6) {
+                        Text(channel.name)
+                            .font(.title3.weight(.semibold))
+                            .foregroundStyle(MeshTheme.textPrimary)
+                        Text("Scan QR code to add channel")
+                            .font(.subheadline)
                             .foregroundStyle(MeshTheme.textSecondary)
+                    }
+
+                    if channel.secret == nil {
+                        HStack(spacing: 6) {
+                            Image(systemName: "exclamationmark.triangle")
+                                .foregroundStyle(.orange)
+                            Text("Channel secret not available locally. Recipients will need the secret separately to join.")
+                                .font(.caption)
+                                .foregroundStyle(MeshTheme.textSecondary)
+                        }
+                        .padding(.horizontal)
+                    }
+
+                    // Action buttons
+                    VStack(spacing: 12) {
+                        // Copy Link
+                        Button {
+                            #if os(iOS)
+                            UIPasteboard.general.string = channelURL
+                            #elseif os(macOS)
+                            NSPasteboard.general.clearContents()
+                            NSPasteboard.general.setString(channelURL, forType: .string)
+                            #endif
+                            copiedLink = true
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) { copiedLink = false }
+                        } label: {
+                            HStack {
+                                Label(copiedLink ? "Copied!" : "Copy Link", systemImage: copiedLink ? "checkmark" : "doc.on.doc")
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .padding(.vertical, 10)
+                            .background(MeshTheme.accent.opacity(0.1))
+                            .foregroundStyle(MeshTheme.accent)
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                        }
+                        .buttonStyle(.plain)
+
+                        // Copy Secret
+                        if let hex = secretHex {
+                            Button {
+                                #if os(iOS)
+                                UIPasteboard.general.string = hex
+                                #elseif os(macOS)
+                                NSPasteboard.general.clearContents()
+                                NSPasteboard.general.setString(hex, forType: .string)
+                                #endif
+                                copiedSecret = true
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 2) { copiedSecret = false }
+                            } label: {
+                                HStack {
+                                    Label(copiedSecret ? "Copied!" : "Copy Secret", systemImage: copiedSecret ? "checkmark" : "key")
+                                        .frame(maxWidth: .infinity)
+                                }
+                                .padding(.vertical, 10)
+                                .background(MeshTheme.accent.opacity(0.1))
+                                .foregroundStyle(MeshTheme.accent)
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                            }
+                            .buttonStyle(.plain)
+                        }
+
+                        // Share button (AirDrop / Messages / etc.)
+                        #if os(iOS)
+                        ShareLink(item: channelURL) {
+                            HStack {
+                                Label("Share", systemImage: "square.and.arrow.up")
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .padding(.vertical, 10)
+                            .background(MeshTheme.accent)
+                            .foregroundStyle(.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                        }
+                        .buttonStyle(.plain)
+                        #elseif os(macOS)
+                        Button {
+                            let picker = NSSharingServicePicker(items: [channelURL])
+                            if let window = NSApp.keyWindow, let contentView = window.contentView {
+                                picker.show(relativeTo: .zero, of: contentView, preferredEdge: .minY)
+                            }
+                        } label: {
+                            HStack {
+                                Label("Share", systemImage: "square.and.arrow.up")
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .padding(.vertical, 10)
+                            .background(MeshTheme.accent)
+                            .foregroundStyle(.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                        }
+                        .buttonStyle(.plain)
+                        #endif
                     }
                     .padding(.horizontal)
                 }
-
-                // Action buttons
-                VStack(spacing: 10) {
-                    if let hex = secretHex {
-                        Button {
-                            #if os(iOS)
-                            UIPasteboard.general.string = hex
-                            #elseif os(macOS)
-                            NSPasteboard.general.clearContents()
-                            NSPasteboard.general.setString(hex, forType: .string)
-                            #endif
-                        } label: {
-                            Label("Copy Secret", systemImage: "key")
-                                .foregroundStyle(MeshTheme.accent)
-                        }
-                        .buttonStyle(.plain)
-                    }
-
-                    #if os(iOS)
-                    Button {
-                        let av = UIActivityViewController(activityItems: [channelURL], applicationActivities: nil)
-                        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                           let root = scene.windows.first?.rootViewController {
-                            root.present(av, animated: true)
-                        }
-                    } label: {
-                        Label("Share via AirDrop / Messages", systemImage: "square.and.arrow.up")
-                            .foregroundStyle(MeshTheme.accent)
-                    }
-                    .buttonStyle(.plain)
-                    #endif
-                }
-
-                Spacer()
+                .padding(.top, 20)
+                .padding(.bottom, 30)
             }
-            .padding(.top, 20)
             .navigationTitle("Share Channel")
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
@@ -387,5 +461,32 @@ struct ShareChannelSheet: View {
         }
         .meshTheme()
     }
+
+    #if os(macOS)
+    private func generateQRCode(from string: String) -> NSImage? {
+        guard let data = string.data(using: .ascii) else { return nil }
+        let filter = CIFilter.qrCodeGenerator()
+        filter.message = data
+        filter.correctionLevel = "M"
+        guard let ciImage = filter.outputImage else { return nil }
+        let transform = CGAffineTransform(scaleX: 10, y: 10)
+        let scaled = ciImage.transformed(by: transform)
+        let rep = NSCIImageRep(ciImage: scaled)
+        let nsImage = NSImage(size: rep.size)
+        nsImage.addRepresentation(rep)
+        return nsImage
+    }
+    #else
+    private func generateQRCode(from string: String) -> UIImage? {
+        guard let data = string.data(using: .ascii) else { return nil }
+        let filter = CIFilter.qrCodeGenerator()
+        filter.message = data
+        filter.correctionLevel = "M"
+        guard let ciImage = filter.outputImage else { return nil }
+        let transform = CGAffineTransform(scaleX: 10, y: 10)
+        let scaled = ciImage.transformed(by: transform)
+        return UIImage(ciImage: scaled)
+    }
+    #endif
 }
 #endif
