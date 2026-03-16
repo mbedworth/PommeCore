@@ -37,6 +37,9 @@ public final class BLEManager: NSObject, ObservableObject {
     @Published public private(set) var connectedDeviceName: String?
     @Published public private(set) var isPoweredOn: Bool = false
 
+    /// User-facing BLE status message for error states (nil when no issue).
+    @Published public private(set) var bleStatusMessage: String?
+
     // MARK: - Private Properties
 
     private var centralManager: CBCentralManager!
@@ -164,6 +167,7 @@ extension BLEManager: CBCentralManagerDelegate {
         case .poweredOn:
             DispatchQueue.main.async {
                 self.isPoweredOn = true
+                self.bleStatusMessage = nil
             }
             // If we had a connected peripheral from restoration, re-discover services
             if let peripheral = connectedPeripheral {
@@ -174,9 +178,31 @@ extension BLEManager: CBCentralManagerDelegate {
                     central.connect(peripheral, options: nil)
                 }
             }
-        case .poweredOff, .unauthorized, .unsupported:
+        case .poweredOff:
+            Self.logger.warning("Bluetooth is powered off")
             DispatchQueue.main.async {
                 self.isPoweredOn = false
+                self.bleStatusMessage = "Bluetooth is turned off. Enable Bluetooth in Settings to connect to your radio."
+                self.connectionState = .disconnected
+                self.connectedPeripheral = nil
+                self.rxCharacteristic = nil
+                self.txCharacteristic = nil
+            }
+        case .unauthorized:
+            Self.logger.warning("Bluetooth permission denied")
+            DispatchQueue.main.async {
+                self.isPoweredOn = false
+                self.bleStatusMessage = "Bluetooth access denied. Enable Bluetooth for MeshCore in Settings \u{2192} Privacy \u{2192} Bluetooth."
+                self.connectionState = .disconnected
+                self.connectedPeripheral = nil
+                self.rxCharacteristic = nil
+                self.txCharacteristic = nil
+            }
+        case .unsupported:
+            Self.logger.warning("Bluetooth not supported on this device")
+            DispatchQueue.main.async {
+                self.isPoweredOn = false
+                self.bleStatusMessage = "This device does not support Bluetooth Low Energy."
                 self.connectionState = .disconnected
                 self.connectedPeripheral = nil
                 self.rxCharacteristic = nil

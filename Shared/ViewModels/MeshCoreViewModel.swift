@@ -108,6 +108,9 @@ final class MeshCoreViewModel: ObservableObject {
     /// Last error message received from the device (shown as alert).
     @Published var lastErrorMessage: String?
 
+    /// BLE status message for error states (Bluetooth off, permission denied, etc.)
+    @Published var bleStatusMessage: String?
+
     let bleManager = BLEManager()
     private var cancellables = Set<AnyCancellable>()
     private let messageStore = MessageStore()
@@ -430,6 +433,13 @@ final class MeshCoreViewModel: ObservableObject {
                 if self.connectionState == .disconnected {
                     self.startScanning()
                 }
+            }
+            .store(in: &cancellables)
+
+        bleManager.$bleStatusMessage
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] message in
+                self?.bleStatusMessage = message
             }
             .store(in: &cancellables)
     }
