@@ -960,40 +960,6 @@ struct PrivacySection: View {
             .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
 
-            HStack {
-                Image(systemName: "lock")
-                    .foregroundStyle(MeshTheme.accent)
-                    .frame(width: 24)
-                Text("BLE PIN")
-                    .foregroundStyle(MeshTheme.accent)
-                Spacer()
-                #if os(watchOS)
-                TextField("PIN", text: $pinText)
-                    .foregroundStyle(MeshTheme.textPrimary)
-                    .frame(width: 80)
-                #else
-                TextField("PIN", text: $pinText)
-                    .foregroundStyle(MeshTheme.textPrimary)
-                    .textFieldStyle(MeshTextFieldStyle())
-                    .frame(width: 100)
-                #endif
-                Button {
-                    viewModel.setDevicePIN(1)
-                    // Refresh device info after a short delay to read back the new random PIN
-                    Task { @MainActor in
-                        try? await Task.sleep(nanoseconds: 1_000_000_000)
-                        viewModel.refreshAllSettings()
-                    }
-                } label: {
-                    Image(systemName: "dice")
-                        .foregroundStyle(MeshTheme.accent)
-                }
-                .buttonStyle(.plain)
-                .contentShape(Rectangle())
-                .help("Generate random PIN on device")
-            }
-            .listRowBackground(MeshTheme.surface)
-
             SaveButton(state: saveState, label: "Save Privacy Settings") {
                 viewModel.setOtherParams(
                     manualAddContacts: manualAdd ? 1 : 0,
@@ -1002,9 +968,6 @@ struct PrivacySection: View {
                     advertLocPolicy: advertLoc ? 1 : 0,
                     multiACK: multiACK ? 1 : 0
                 )
-                if let pin = UInt32(pinText) {
-                    viewModel.setDevicePIN(pin)
-                }
                 showSaved($saveState)
             }
         } header: {
@@ -1013,6 +976,85 @@ struct PrivacySection: View {
         } footer: {
             Text("Controls what information your device shares on the mesh network and how contacts are managed.")
                 .font(.caption2)
+        }
+
+        // BLE PIN — adaptive based on whether device has a screen
+        Section {
+            if viewModel.deviceConfig.blePIN == 0 {
+                HStack {
+                    Image(systemName: "lock.shield")
+                        .foregroundStyle(MeshTheme.accent)
+                        .frame(width: 24)
+                    Text("BLE PIN")
+                        .foregroundStyle(MeshTheme.accent)
+                    Spacer()
+                    Text("Shown on device screen")
+                        .foregroundStyle(MeshTheme.textPrimary)
+                }
+                .listRowBackground(MeshTheme.surface)
+            } else {
+                HStack {
+                    Image(systemName: "lock.shield")
+                        .foregroundStyle(MeshTheme.accent)
+                        .frame(width: 24)
+                    Text("BLE PIN")
+                        .foregroundStyle(MeshTheme.accent)
+                    Spacer()
+                    #if os(watchOS)
+                    TextField("PIN", text: $pinText)
+                        .foregroundStyle(MeshTheme.textPrimary)
+                        .frame(width: 80)
+                    #else
+                    TextField("PIN", text: $pinText)
+                        .foregroundStyle(MeshTheme.textPrimary)
+                        .textFieldStyle(MeshTextFieldStyle())
+                        .frame(width: 100)
+                        #if os(iOS)
+                        .keyboardType(.numberPad)
+                        #endif
+                    #endif
+                }
+                .listRowBackground(MeshTheme.surface)
+
+                HStack {
+                    Button {
+                        viewModel.setDevicePIN(1)
+                        Task { @MainActor in
+                            try? await Task.sleep(nanoseconds: 1_000_000_000)
+                            viewModel.refreshAllSettings()
+                        }
+                    } label: {
+                        Label("Randomize", systemImage: "dice")
+                            .foregroundStyle(MeshTheme.accent)
+                    }
+                    .buttonStyle(.plain)
+
+                    Spacer()
+
+                    Button {
+                        if let pin = UInt32(pinText) {
+                            viewModel.setDevicePIN(pin)
+                        }
+                    } label: {
+                        Text("Apply")
+                            .foregroundStyle(MeshTheme.accent)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(pinText.isEmpty || UInt32(pinText) == nil)
+                }
+                .listRowBackground(MeshTheme.surface)
+            }
+        } header: {
+            Text("Bluetooth Security")
+                .foregroundStyle(MeshTheme.textSecondary)
+        } footer: {
+            if viewModel.deviceConfig.blePIN == 0 {
+                Text("This device generates a random PIN each time it starts. Check the device screen for the current PIN when pairing.")
+                    .font(.caption2)
+            } else {
+                Text("Change the BLE PIN from the default (123456) for security. After changing, forget this device in Bluetooth settings and re-pair with the new PIN.")
+                    .font(.caption2)
+            }
         }
         .onAppear { loadFromConfig() }
         .onChange(of: viewModel.deviceConfig.manualAddContacts) { _ in loadFromConfig() }
