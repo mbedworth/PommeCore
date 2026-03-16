@@ -70,7 +70,9 @@ struct SettingsView: View {
             tuningSection
             privacySection
             timeSection
-            customVarsSection
+            if !viewModel.deviceConfig.customVars.isEmpty {
+                customVarsSection
+            }
             statsSection
             aboutSection
             dangerZoneSection
@@ -1116,23 +1118,17 @@ struct CustomVarsSection: View {
 
     var body: some View {
         Section {
-            if viewModel.deviceConfig.customVars.isEmpty {
-                Text("No custom variables")
-                    .foregroundStyle(MeshTheme.textSecondary)
-                    .listRowBackground(MeshTheme.surface)
-            } else {
-                ForEach(Array(viewModel.deviceConfig.customVars.enumerated()), id: \.offset) { _, pair in
-                    HStack {
-                        Text(pair.name)
-                            .foregroundStyle(MeshTheme.textPrimary)
-                            .font(.system(.body, design: .monospaced))
-                        Spacer()
-                        Text(pair.value)
-                            .foregroundStyle(MeshTheme.textPrimary)
-                            .font(.system(.body, design: .monospaced))
-                    }
-                    .listRowBackground(MeshTheme.surface)
+            ForEach(Array(viewModel.deviceConfig.customVars.enumerated()), id: \.offset) { _, pair in
+                HStack {
+                    Text(pair.name)
+                        .foregroundStyle(MeshTheme.textPrimary)
+                        .font(.system(.body, design: .monospaced))
+                    Spacer()
+                    Text(pair.value)
+                        .foregroundStyle(MeshTheme.textPrimary)
+                        .font(.system(.body, design: .monospaced))
                 }
+                .listRowBackground(MeshTheme.surface)
             }
 
             HStack {
