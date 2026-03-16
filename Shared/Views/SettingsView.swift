@@ -36,6 +36,7 @@ struct SettingsView: View {
     private var disconnectedView: some View {
         List {
             appearanceSection
+            iCloudSection
 
             Section {
                 VStack(spacing: 16) {
@@ -63,6 +64,7 @@ struct SettingsView: View {
     private var settingsForm: some View {
         List {
             appearanceSection
+            iCloudSection
             notificationsSection
             deviceInfoSection
             connectionSection
@@ -90,6 +92,33 @@ struct SettingsView: View {
                 .help("Refresh all settings")
             }
         }
+    }
+}
+
+// MARK: - iCloud Sync
+
+private extension SettingsView {
+    var iCloudSection: some View {
+        Section {
+            Toggle(isOn: iCloudSyncBinding) {
+                Label("Sync to iCloud", systemImage: "icloud")
+                    .foregroundStyle(MeshTheme.accent)
+            }
+            .tint(MeshTheme.accent)
+            .listRowBackground(MeshTheme.surface)
+        } header: {
+            sectionHeader("iCloud")
+        } footer: {
+            Text("When enabled, nicknames, channel secrets, saved passwords, and notification preferences sync across your Apple devices via iCloud.")
+                .font(.caption2)
+        }
+    }
+
+    private var iCloudSyncBinding: Binding<Bool> {
+        Binding(
+            get: { UserDefaults.standard.object(forKey: "iCloudSyncEnabled") == nil ? true : UserDefaults.standard.bool(forKey: "iCloudSyncEnabled") },
+            set: { UserDefaults.standard.set($0, forKey: "iCloudSyncEnabled") }
+        )
     }
 }
 

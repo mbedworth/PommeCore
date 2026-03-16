@@ -7,7 +7,12 @@ import WatchKit
 #endif
 import MeshCoreKit
 
-/// Notification preferences synced via iCloud key-value store.
+/// Whether iCloud sync is enabled (stored locally per device, defaults to true).
+var iCloudSyncEnabled: Bool {
+    UserDefaults.standard.object(forKey: "iCloudSyncEnabled") == nil ? true : UserDefaults.standard.bool(forKey: "iCloudSyncEnabled")
+}
+
+/// Notification preferences synced via iCloud key-value store (when enabled).
 @MainActor
 final class NotificationPreferences: ObservableObject {
     static let shared = NotificationPreferences()

@@ -11,6 +11,11 @@ import Foundation
 /// access — at most one keychain read per app session.
 struct KeychainManager {
 
+    /// Whether iCloud Keychain sync is enabled (per-device setting).
+    static var iCloudSyncEnabled: Bool {
+        UserDefaults.standard.object(forKey: "iCloudSyncEnabled") == nil ? true : UserDefaults.standard.bool(forKey: "iCloudSyncEnabled")
+    }
+
     private static let service = "com.mbedworth.meshcore.logins"
 
     /// In-memory cache: account key → password.
@@ -23,13 +28,12 @@ struct KeychainManager {
         publicKey.map { String(format: "%02x", $0) }.joined() + "." + type
     }
 
-    /// Base query attributes shared by all operations.
-    /// Includes iCloud sync so credentials are available across Apple devices.
+    /// Base query attributes for searching/deleting — finds items regardless of sync state.
     private static var baseAttributes: [String: Any] {
         var attrs: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
-            kSecAttrSynchronizable as String: true
+            kSecAttrSynchronizable as String: kSecAttrSynchronizableAny
         ]
         #if os(macOS)
         attrs[kSecUseDataProtectionKeychain as String] = true
@@ -77,6 +81,7 @@ struct KeychainManager {
         addQuery[kSecAttrAccount as String] = account
         addQuery[kSecValueData as String] = passwordData
         addQuery[kSecAttrAccessible as String] = kSecAttrAccessibleWhenUnlocked
+        addQuery[kSecAttrSynchronizable as String] = Self.iCloudSyncEnabled
 
         let status = SecItemAdd(addQuery as CFDictionary, nil)
         if status == errSecSuccess {
@@ -143,16 +148,17 @@ struct KeychainManager {
         "channel.secret.\(name.lowercased())"
     }
 
-    /// Save a channel secret to iCloud Keychain (syncs across Apple devices).
+    /// Save a channel secret to Keychain (syncs via iCloud when enabled).
     @discardableResult
     static func saveChannelSecret(_ secret: Data, forChannelName name: String) -> Bool {
         let account = channelAccount(name)
 
+        // Delete any existing (search with Any to find regardless of sync state)
         var deleteQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: channelService,
             kSecAttrAccount as String: account,
-            kSecAttrSynchronizable as String: true
+            kSecAttrSynchronizable as String: kSecAttrSynchronizableAny
         ]
         #if os(macOS)
         deleteQuery[kSecUseDataProtectionKeychain as String] = true
@@ -164,7 +170,7 @@ struct KeychainManager {
             kSecAttrService as String: channelService,
             kSecAttrAccount as String: account,
             kSecValueData as String: secret,
-            kSecAttrSynchronizable as String: true,
+            kSecAttrSynchronizable as String: Self.iCloudSyncEnabled,
             kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlocked
         ]
         #if os(macOS)
@@ -174,13 +180,13 @@ struct KeychainManager {
         return SecItemAdd(addQuery as CFDictionary, nil) == errSecSuccess
     }
 
-    /// Retrieve a channel secret from iCloud Keychain.
+    /// Retrieve a channel secret from Keychain.
     static func getChannelSecret(forChannelName name: String) -> Data? {
         var query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: channelService,
             kSecAttrAccount as String: channelAccount(name),
-            kSecAttrSynchronizable as String: true,
+            kSecAttrSynchronizable as String: kSecAttrSynchronizableAny,
             kSecReturnData as String: true,
             kSecMatchLimit as String: kSecMatchLimitOne
         ]
@@ -194,14 +200,14 @@ struct KeychainManager {
         return data
     }
 
-    /// Delete a channel secret from iCloud Keychain.
+    /// Delete a channel secret from Keychain.
     @discardableResult
     static func deleteChannelSecret(forChannelName name: String) -> Bool {
         var query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: channelService,
             kSecAttrAccount as String: channelAccount(name),
-            kSecAttrSynchronizable as String: true
+            kSecAttrSynchronizable as String: kSecAttrSynchronizableAny
         ]
         #if os(macOS)
         query[kSecUseDataProtectionKeychain as String] = true
