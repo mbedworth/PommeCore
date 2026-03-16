@@ -1983,7 +1983,12 @@ final class MeshCoreViewModel: ObservableObject {
         if let existing = channels.first(where: { $0.index == channel.index }) {
             ch.secret = existing.secret
         }
-        incomingChannels.append(ch)
+        // Deduplicate by index — replace if already received (handles overlapping syncs)
+        if let existingIdx = incomingChannels.firstIndex(where: { $0.index == ch.index }) {
+            incomingChannels[existingIdx] = ch
+        } else {
+            incomingChannels.append(ch)
+        }
 
         // Check if we've received all channels (maxChannels from DeviceInfo)
         let maxCh = deviceConfig.maxChannels
