@@ -456,7 +456,7 @@ struct ContactListView: View {
                 HStack {
                     Image(systemName: "plus.bubble")
                         .foregroundStyle(MeshTheme.accent)
-                    Text("Join Channel")
+                    Text("Add Channel")
                         .foregroundStyle(MeshTheme.accent)
                     Spacer()
                 }
