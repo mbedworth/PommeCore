@@ -22,6 +22,9 @@ struct ContactListView: View {
     #if os(iOS)
     @State private var showQRScanner = false
     #endif
+    #if !os(watchOS)
+    @State private var showMyContactCode = false
+    #endif
     @State private var nicknameContact: Contact?
     @State private var nicknameText = ""
     #if !os(watchOS)
@@ -143,6 +146,11 @@ struct ContactListView: View {
             .frame(minWidth: 360, minHeight: 400)
         }
         #if !os(watchOS)
+        .sheet(isPresented: $showMyContactCode) {
+            MyContactCodeSheet()
+                .environmentObject(viewModel)
+                .frame(minWidth: 360, minHeight: 400)
+        }
         .sheet(item: $shareContact) { contact in
             ShareContactSheet(contact: contact)
                 .environmentObject(viewModel)
@@ -562,6 +570,22 @@ struct ContactListView: View {
             }
 
             #if !os(watchOS)
+            Button {
+                showMyContactCode = true
+            } label: {
+                HStack {
+                    Image(systemName: "qrcode")
+                        .foregroundStyle(MeshTheme.accent)
+                    Text("My Contact Code")
+                        .foregroundStyle(MeshTheme.accent)
+                    Spacer()
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .listRowBackground(MeshTheme.surface)
+            .disabled(viewModel.connectionState != .ready)
+
             Button {
                 importURLText = ""
                 showImportSheet = true

@@ -246,6 +246,60 @@ struct ShareContactSheet: View {
 }
 #endif
 
+// MARK: - My Contact Code Sheet
+
+#if !os(watchOS)
+struct MyContactCodeSheet: View {
+    @EnvironmentObject var viewModel: MeshCoreViewModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var exportedURL: String?
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 20) {
+                if let url = exportedURL {
+                    QRCodeView(
+                        content: url,
+                        label: viewModel.deviceConfig.deviceName.isEmpty ? "My Contact Code" : viewModel.deviceConfig.deviceName
+                    )
+                    Text("Others can scan this QR code to add you as a contact.")
+                        .font(.caption)
+                        .foregroundStyle(MeshTheme.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+                } else {
+                    ProgressView()
+                        .tint(MeshTheme.accent)
+                    Text("Generating contact code...")
+                        .foregroundStyle(MeshTheme.textSecondary)
+                }
+                Spacer()
+            }
+            .padding(.top, 20)
+            .navigationTitle("My Contact Code")
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") { dismiss() }
+                }
+            }
+            .onAppear {
+                viewModel.exportSelfContact()
+            }
+            .onReceive(viewModel.$lastExportedURL) { url in
+                if let url, !url.isEmpty {
+                    exportedURL = url
+                    viewModel.lastExportedURL = nil
+                }
+            }
+        }
+        .meshTheme()
+    }
+}
+#endif
+
 // MARK: - Share Channel Sheet
 
 #if !os(watchOS)

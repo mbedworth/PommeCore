@@ -727,6 +727,12 @@ final class MeshCoreViewModel: ObservableObject {
         sendCommand(frame, label: "EXPORT_CONTACT")
     }
 
+    /// Export self as a meshcore:// URL (send all-zeros public key).
+    func exportSelfContact() {
+        let frame = MeshCoreProtocol.buildExportContact(publicKey: Data(repeating: 0, count: 32))
+        sendCommand(frame, label: "EXPORT_SELF")
+    }
+
     /// Import a contact from a meshcore:// URL string. Sends CMD_IMPORT_CONTACT.
     /// The device will send contact data frames in response — no need to re-sync.
     func importContact(url: String) {
