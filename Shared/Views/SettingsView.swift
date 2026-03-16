@@ -51,6 +51,8 @@ struct SettingsView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 24)
             }
+
+            aboutSection
         }
         .meshListStyle()
     }
@@ -70,6 +72,7 @@ struct SettingsView: View {
             timeSection
             customVarsSection
             statsSection
+            aboutSection
             dangerZoneSection
         }
         .meshListStyle()
@@ -1206,6 +1209,58 @@ private extension SettingsView {
         if h > 0 { return "\(h)h \(m)m \(s)s" }
         if m > 0 { return "\(m)m \(s)s" }
         return "\(s)s"
+    }
+}
+
+// MARK: - About
+
+private extension SettingsView {
+    var aboutSection: some View {
+        Section {
+            HStack {
+                Text("App Version")
+                    .foregroundStyle(MeshTheme.accent)
+                Spacer()
+                Text("\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?") (\(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"))")
+                    .foregroundStyle(MeshTheme.textPrimary)
+            }
+            .listRowBackground(MeshTheme.surface)
+
+            if isConnected, !config.semanticVersion.isEmpty {
+                HStack {
+                    Text("Firmware")
+                        .foregroundStyle(MeshTheme.accent)
+                    Spacer()
+                    Text(config.semanticVersion)
+                        .foregroundStyle(MeshTheme.textPrimary)
+                }
+                .listRowBackground(MeshTheme.surface)
+            }
+
+            Link(destination: URL(string: "https://meshcore.co")!) {
+                HStack {
+                    Text("MeshCore Project")
+                        .foregroundStyle(MeshTheme.accent)
+                    Spacer()
+                    Image(systemName: "arrow.up.right.square")
+                        .foregroundStyle(MeshTheme.textSecondary)
+                }
+            }
+            .listRowBackground(MeshTheme.surface)
+
+            Link(destination: URL(string: "https://gist.github.com/mbedworth/7cccc52eec16626a5ad7f5328b456fb3")!) {
+                HStack {
+                    Text("Privacy Policy")
+                        .foregroundStyle(MeshTheme.accent)
+                    Spacer()
+                    Image(systemName: "arrow.up.right.square")
+                        .foregroundStyle(MeshTheme.textSecondary)
+                }
+            }
+            .listRowBackground(MeshTheme.surface)
+        } header: {
+            sectionHeader("About")
+        }
     }
 }
 
