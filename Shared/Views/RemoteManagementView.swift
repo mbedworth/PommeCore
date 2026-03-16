@@ -432,31 +432,39 @@ struct RemoteTimingSection: View {
     @State private var intThresh = ""
     @State private var agcReset = ""
     @State private var saveState: SaveButtonState = .idle
+    @State private var isExpanded = false
 
     var body: some View {
         Section {
-            cliEditRow(icon: "clock.arrow.2.circlepath", label: "Airtime Factor", text: $airtimeFactor, current: session.settings["af"])
-            cliEditRow(icon: "timer", label: "RX Delay", text: $rxDelay, current: session.settings["rxdelay"])
-            cliEditRow(icon: "arrow.up.circle", label: "TX Delay", text: $txDelay, current: session.settings["txdelay"])
-            cliEditRow(icon: "arrow.right.circle", label: "Direct TX Delay", text: $directTxDelay, current: session.settings["direct.txdelay"])
-            cliEditRow(icon: "arrow.triangle.branch", label: "Flood Max Hops", text: $floodMax, current: session.settings["flood.max"])
-            cliEditRow(icon: "waveform.badge.exclamationmark", label: "Interference Thresh", text: $intThresh, current: session.settings["int.thresh"])
-            cliEditRow(icon: "dial.low", label: "AGC Reset Interval", text: $agcReset, current: session.settings["agc.reset.interval"])
+            DisclosureGroup(isExpanded: $isExpanded) {
+                cliEditRow(icon: "clock.arrow.2.circlepath", label: "Airtime Factor", text: $airtimeFactor, current: session.settings["af"])
+                cliEditRow(icon: "timer", label: "RX Delay", text: $rxDelay, current: session.settings["rxdelay"])
+                cliEditRow(icon: "arrow.up.circle", label: "TX Delay", text: $txDelay, current: session.settings["txdelay"])
+                cliEditRow(icon: "arrow.right.circle", label: "Direct TX Delay", text: $directTxDelay, current: session.settings["direct.txdelay"])
+                cliEditRow(icon: "arrow.triangle.branch", label: "Flood Max Hops", text: $floodMax, current: session.settings["flood.max"])
+                cliEditRow(icon: "waveform.badge.exclamationmark", label: "Interference Thresh", text: $intThresh, current: session.settings["int.thresh"])
+                cliEditRow(icon: "dial.low", label: "AGC Reset Interval", text: $agcReset, current: session.settings["agc.reset.interval"])
 
-            if canEdit {
-                SaveButton(state: saveState, label: "Apply Timing") {
-                    if !airtimeFactor.isEmpty { sendCLI("set af \(airtimeFactor)") }
-                    if !rxDelay.isEmpty { sendCLI("set rxdelay \(rxDelay)") }
-                    if !txDelay.isEmpty { sendCLI("set txdelay \(txDelay)") }
-                    if !directTxDelay.isEmpty { sendCLI("set direct.txdelay \(directTxDelay)") }
-                    if !floodMax.isEmpty { sendCLI("set flood.max \(floodMax)") }
-                    if !intThresh.isEmpty { sendCLI("set int.thresh \(intThresh)") }
-                    if !agcReset.isEmpty { sendCLI("set agc.reset.interval \(agcReset)") }
-                    showSaved($saveState)
+                if canEdit {
+                    SaveButton(state: saveState, label: "Apply Timing") {
+                        if !airtimeFactor.isEmpty { sendCLI("set af \(airtimeFactor)") }
+                        if !rxDelay.isEmpty { sendCLI("set rxdelay \(rxDelay)") }
+                        if !txDelay.isEmpty { sendCLI("set txdelay \(txDelay)") }
+                        if !directTxDelay.isEmpty { sendCLI("set direct.txdelay \(directTxDelay)") }
+                        if !floodMax.isEmpty { sendCLI("set flood.max \(floodMax)") }
+                        if !intThresh.isEmpty { sendCLI("set int.thresh \(intThresh)") }
+                        if !agcReset.isEmpty { sendCLI("set agc.reset.interval \(agcReset)") }
+                        showSaved($saveState)
+                    }
                 }
+            } label: {
+                Label("Timing & Performance", systemImage: "slider.horizontal.3")
+                    .foregroundStyle(MeshTheme.accent)
             }
-        } header: {
-            Text("Timing & Performance")
+            .listRowBackground(MeshTheme.surface)
+        } footer: {
+            Text("Advanced — adjust timing parameters for mesh performance. Default values work well for most setups.")
+                .font(.caption2)
                 .foregroundStyle(MeshTheme.textSecondary)
         }
         .disabled(!canEdit)
