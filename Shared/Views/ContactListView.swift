@@ -41,6 +41,10 @@ struct ContactListView: View {
             #endif
         }
         .meshListStyle()
+        .refreshable {
+            guard viewModel.connectionState == .ready else { return }
+            viewModel.refreshAll()
+        }
         .navigationTitle("MeshCore")
         #if !os(watchOS)
         .navigationDestination(for: SidebarSelection.self) { selection in
