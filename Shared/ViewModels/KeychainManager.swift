@@ -24,12 +24,13 @@ struct KeychainManager {
     }
 
     /// Base query attributes shared by all operations.
+    /// Includes iCloud sync so credentials are available across Apple devices.
     private static var baseAttributes: [String: Any] {
         var attrs: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service
+            kSecAttrService as String: service,
+            kSecAttrSynchronizable as String: true
         ]
-        // Use data protection keychain on macOS to avoid login keychain ACL prompts.
         #if os(macOS)
         attrs[kSecUseDataProtectionKeychain as String] = true
         #endif
@@ -75,7 +76,7 @@ struct KeychainManager {
         var addQuery = baseAttributes
         addQuery[kSecAttrAccount as String] = account
         addQuery[kSecValueData as String] = passwordData
-        addQuery[kSecAttrAccessible as String] = kSecAttrAccessibleWhenUnlockedThisDeviceOnly
+        addQuery[kSecAttrAccessible as String] = kSecAttrAccessibleWhenUnlocked
 
         let status = SecItemAdd(addQuery as CFDictionary, nil)
         if status == errSecSuccess {

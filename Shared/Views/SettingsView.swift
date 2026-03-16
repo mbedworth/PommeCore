@@ -119,43 +119,39 @@ private extension SettingsView {
 }
 
 struct NotificationsSection: View {
-    @AppStorage("notifyDirectMessages") private var notifyDirect = true
-    @AppStorage("notifyChannelMessages") private var notifyChannel = true
-    @AppStorage("notifyRoomServerMessages") private var notifyRoom = true
-    @AppStorage("notifyNewContacts") private var notifyNewContacts = false
-    @AppStorage("notifyConnectionChanges") private var notifyConnection = true
+    @ObservedObject private var prefs = NotificationPreferences.shared
 
     var body: some View {
         Section {
-            Toggle(isOn: $notifyDirect) {
+            Toggle(isOn: $prefs.notifyDirect) {
                 Label("Direct Messages", systemImage: "bubble.left.fill")
                     .foregroundStyle(MeshTheme.accent)
             }
             .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
 
-            Toggle(isOn: $notifyChannel) {
+            Toggle(isOn: $prefs.notifyChannel) {
                 Label("Channel Messages", systemImage: "number")
                     .foregroundStyle(MeshTheme.accent)
             }
             .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
 
-            Toggle(isOn: $notifyRoom) {
+            Toggle(isOn: $prefs.notifyRoom) {
                 Label("Room Server Messages", systemImage: "server.rack")
                     .foregroundStyle(MeshTheme.accent)
             }
             .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
 
-            Toggle(isOn: $notifyNewContacts) {
+            Toggle(isOn: $prefs.notifyNewContacts) {
                 Label("New Contacts Discovered", systemImage: "person.badge.plus")
                     .foregroundStyle(MeshTheme.accent)
             }
             .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
 
-            Toggle(isOn: $notifyConnection) {
+            Toggle(isOn: $prefs.notifyConnection) {
                 Label("Connection Status", systemImage: "antenna.radiowaves.left.and.right")
                     .foregroundStyle(MeshTheme.accent)
             }

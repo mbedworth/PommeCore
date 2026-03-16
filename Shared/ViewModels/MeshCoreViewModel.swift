@@ -7,6 +7,53 @@ import WatchKit
 #endif
 import MeshCoreKit
 
+/// Notification preferences synced via iCloud key-value store.
+@MainActor
+final class NotificationPreferences: ObservableObject {
+    static let shared = NotificationPreferences()
+    private let store = NSUbiquitousKeyValueStore.default
+
+    @Published var notifyDirect: Bool {
+        didSet { store.set(notifyDirect, forKey: "notify.direct"); store.synchronize() }
+    }
+    @Published var notifyChannel: Bool {
+        didSet { store.set(notifyChannel, forKey: "notify.channel"); store.synchronize() }
+    }
+    @Published var notifyRoom: Bool {
+        didSet { store.set(notifyRoom, forKey: "notify.room"); store.synchronize() }
+    }
+    @Published var notifyNewContacts: Bool {
+        didSet { store.set(notifyNewContacts, forKey: "notify.newContacts"); store.synchronize() }
+    }
+    @Published var notifyConnection: Bool {
+        didSet { store.set(notifyConnection, forKey: "notify.connection"); store.synchronize() }
+    }
+
+    private init() {
+        // Load with defaults (true for messages, false for new contacts)
+        notifyDirect = store.object(forKey: "notify.direct") == nil ? true : store.bool(forKey: "notify.direct")
+        notifyChannel = store.object(forKey: "notify.channel") == nil ? true : store.bool(forKey: "notify.channel")
+        notifyRoom = store.object(forKey: "notify.room") == nil ? true : store.bool(forKey: "notify.room")
+        notifyNewContacts = store.bool(forKey: "notify.newContacts")
+        notifyConnection = store.object(forKey: "notify.connection") == nil ? true : store.bool(forKey: "notify.connection")
+
+        NotificationCenter.default.addObserver(
+            forName: NSUbiquitousKeyValueStore.didChangeExternallyNotification,
+            object: store, queue: .main
+        ) { [weak self] _ in
+            self?.loadAll()
+        }
+    }
+
+    private func loadAll() {
+        notifyDirect = store.object(forKey: "notify.direct") == nil ? true : store.bool(forKey: "notify.direct")
+        notifyChannel = store.object(forKey: "notify.channel") == nil ? true : store.bool(forKey: "notify.channel")
+        notifyRoom = store.object(forKey: "notify.room") == nil ? true : store.bool(forKey: "notify.room")
+        notifyNewContacts = store.bool(forKey: "notify.newContacts")
+        notifyConnection = store.object(forKey: "notify.connection") == nil ? true : store.bool(forKey: "notify.connection")
+    }
+}
+
 /// Unified sidebar selection for NavigationSplitView.
 /// On compact (iPhone), this drives the push navigation.
 /// On regular width (iPad/Mac), this drives the detail pane.
@@ -271,17 +318,17 @@ final class MeshCoreViewModel: ObservableObject {
     private func postLocalNotification(for message: Message) {
         guard isInBackground else { return }
 
-        // Check notification preferences
-        let defaults = UserDefaults.standard
+        // Check notification preferences (synced via iCloud)
+        let prefs = NotificationPreferences.shared
         let isChannel = message.channelIndex != nil
         let isRoom = contacts.first(where: { $0.publicKeyPrefix == message.contactKeyHash })?.type == .room
 
         if isChannel {
-            guard defaults.object(forKey: "notifyChannelMessages") == nil || defaults.bool(forKey: "notifyChannelMessages") else { return }
+            guard prefs.notifyChannel else { return }
         } else if isRoom {
-            guard defaults.object(forKey: "notifyRoomServerMessages") == nil || defaults.bool(forKey: "notifyRoomServerMessages") else { return }
+            guard prefs.notifyRoom else { return }
         } else {
-            guard defaults.object(forKey: "notifyDirectMessages") == nil || defaults.bool(forKey: "notifyDirectMessages") else { return }
+            guard prefs.notifyDirect else { return }
         }
 
         let content = UNMutableNotificationContent()
