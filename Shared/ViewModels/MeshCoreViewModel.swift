@@ -56,30 +56,39 @@ final class MeshCoreViewModel: ObservableObject {
     // MARK: - Contact Nicknames (iCloud sync via NSUbiquitousKeyValueStore)
 
     private let iCloudStore = NSUbiquitousKeyValueStore.default
+    @Published private var nicknames: [String: String] = [:]
 
-    private var nicknames: [String: String] {
-        get {
-            guard let data = iCloudStore.data(forKey: "contactNicknames") else { return [:] }
-            return (try? JSONDecoder().decode([String: String].self, from: data)) ?? [:]
+    private func loadNicknamesFromiCloud() {
+        guard let data = iCloudStore.data(forKey: "contactNicknames"),
+              let decoded = try? JSONDecoder().decode([String: String].self, from: data) else { return }
+        nicknames = decoded
+    }
+
+    private func saveNicknamesToiCloud() {
+        if let data = try? JSONEncoder().encode(nicknames) {
+            iCloudStore.set(data, forKey: "contactNicknames")
+            iCloudStore.synchronize()
         }
-        set {
-            if let data = try? JSONEncoder().encode(newValue) {
-                iCloudStore.set(data, forKey: "contactNicknames")
-                iCloudStore.synchronize()
-            }
+    }
+
+    private func observeiCloudChanges() {
+        NotificationCenter.default.addObserver(
+            forName: NSUbiquitousKeyValueStore.didChangeExternallyNotification,
+            object: iCloudStore,
+            queue: .main
+        ) { [weak self] _ in
+            self?.loadNicknamesFromiCloud()
         }
     }
 
     func setNickname(_ nickname: String, for contact: Contact) {
         let key = contact.publicKey.map { String(format: "%02x", $0) }.joined()
-        var current = nicknames
         if nickname.isEmpty {
-            current.removeValue(forKey: key)
+            nicknames.removeValue(forKey: key)
         } else {
-            current[key] = nickname
+            nicknames[key] = nickname
         }
-        nicknames = current
-        objectWillChange.send()
+        saveNicknamesToiCloud()
     }
 
     func nickname(for contact: Contact) -> String? {
@@ -222,6 +231,8 @@ final class MeshCoreViewModel: ObservableObject {
         forwardDeviceConfigChanges()
         loadPersistedMessages()
         requestNotificationPermissions()
+        loadNicknamesFromiCloud()
+        observeiCloudChanges()
     }
 
     private func forwardDeviceConfigChanges() {
@@ -2029,6 +2040,14 @@ final class MeshCoreViewModel: ObservableObject {
             // Save secret to iCloud Keychain for cross-device sync
             if let secret, !secret.isEmpty {
                 KeychainManager.saveChannelSecret(secret, forChannelName: name)
+            }
+            // Clear old messages — new secret means old messages are from a different channel
+            let channelKey = Data([index])
+            if let existing = channels.first(where: { $0.index == index }),
+               existing.name != name || existing.secret != secret {
+                messagesByContact.removeValue(forKey: channelKey)
+                persistMessages(for: channelKey)
+                unreadCounts.removeValue(forKey: channelKey)
             }
             let newChannel = MeshChannel(index: index, name: name, flags: secret != nil ? 0x01 : 0x00, secret: secret)
             if let idx = channels.firstIndex(where: { $0.index == index }) {

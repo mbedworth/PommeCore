@@ -141,6 +141,9 @@ struct ContentView: View {
                 }
             }
         }
+        #if os(macOS)
+        .navigationSplitViewColumnWidth(min: 280, ideal: 320, max: 420)
+        #endif
         .sheet(isPresented: $showScanner) {
             NavigationStack {
                 DeviceScannerView()
