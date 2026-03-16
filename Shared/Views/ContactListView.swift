@@ -256,6 +256,17 @@ struct ContactListView: View {
             }
             .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
+
+            if let bleMsg = viewModel.bleStatusMessage {
+                HStack(alignment: .top, spacing: 8) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.orange)
+                    Text(bleMsg)
+                        .font(.caption)
+                        .foregroundStyle(MeshTheme.textPrimary)
+                }
+                .listRowBackground(MeshTheme.surface)
+            }
         }
         .sheet(isPresented: $showDeviceInfo) {
             NavigationStack {
