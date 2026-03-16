@@ -673,12 +673,12 @@ public enum FrameParser {
     // MARK: - Channel Info (code 18)
 
     /// RESP_CODE_CHANNEL_INFO (code 0x12/18) — channel metadata.
-    /// Layout: channel_idx(1) channel_name(32 null-terminated) flags(1)
+    /// Layout: channel_idx(1) flags(1) channel_name(32 null-terminated)
     private static func parseChannelInfo(_ data: Data) -> ParsedResponse {
         var offset = 0
         let channelIdx = readUInt8(data, offset: &offset)
-        let name = readFixedString(data, offset: &offset, maxLen: 32)
         let flags = readUInt8(data, offset: &offset)
+        let name = readFixedString(data, offset: &offset, maxLen: 32)
 
         logger.info("ChannelInfo: idx=\(channelIdx) name='\(name)' flags=\(flags)")
 

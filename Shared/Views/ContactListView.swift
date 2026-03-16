@@ -64,10 +64,12 @@ struct ContactListView: View {
             sidebarDestinationView(for: selection)
         }
         .onChange(of: viewModel.sidebarSelection) { selection in
-            // Mark contact as read when selected
+            // Mark contact as read when selected (dispatch to avoid publishing during view update)
             if case .contact(let key) = selection,
                let contact = viewModel.contacts.first(where: { $0.publicKeyPrefix == key }) {
-                viewModel.markAsRead(contact)
+                DispatchQueue.main.async {
+                    viewModel.markAsRead(contact)
+                }
             }
         }
         #endif
