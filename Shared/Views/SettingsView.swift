@@ -1103,7 +1103,7 @@ private extension SettingsView {
                     Image(systemName: "arrow.triangle.2.circlepath")
                         .foregroundStyle(MeshTheme.accent)
                         .frame(width: 24)
-                    Text("Sync to Phone Time")
+                    Text("Sync Device Clock")
                         .foregroundStyle(MeshTheme.accent)
                     Spacer()
                 }
