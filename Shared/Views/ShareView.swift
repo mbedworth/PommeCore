@@ -2,30 +2,72 @@ import SwiftUI
 import CoreImage.CIFilterBuiltins
 import MeshCoreKit
 
-// MARK: - QR Code Generator
+// MARK: - QR Code Helpers
 
 #if !os(watchOS)
+
+#if os(macOS)
+private func generateQRCodeImage(from string: String) -> NSImage? {
+    guard let data = string.data(using: .utf8) else { return nil }
+    let filter = CIFilter.qrCodeGenerator()
+    filter.message = data
+    filter.correctionLevel = "M"
+    guard let ciImage = filter.outputImage else { return nil }
+    let transform = CGAffineTransform(scaleX: 10, y: 10)
+    let scaled = ciImage.transformed(by: transform)
+    let rep = NSCIImageRep(ciImage: scaled)
+    let nsImage = NSImage(size: rep.size)
+    nsImage.addRepresentation(rep)
+    return nsImage
+}
+#else
+private func generateQRCodeImage(from string: String) -> UIImage? {
+    guard let data = string.data(using: .utf8) else { return nil }
+    let filter = CIFilter.qrCodeGenerator()
+    filter.message = data
+    filter.correctionLevel = "M"
+    guard let ciImage = filter.outputImage else { return nil }
+    let transform = CGAffineTransform(scaleX: 10, y: 10)
+    let scaled = ciImage.transformed(by: transform)
+    let context = CIContext()
+    guard let cgImage = context.createCGImage(scaled, from: scaled.extent) else { return nil }
+    return UIImage(cgImage: cgImage)
+}
+#endif
+
+/// Reusable QR code image view — renders a large, centered QR code.
+private struct QRImage: View {
+    let content: String
+    let size: CGFloat
+
+    var body: some View {
+        if let image = generateQRCodeImage(from: content) {
+            #if os(macOS)
+            Image(nsImage: image)
+                .interpolation(.none)
+                .resizable()
+                .scaledToFit()
+                .frame(width: size, height: size)
+            #else
+            Image(uiImage: image)
+                .interpolation(.none)
+                .resizable()
+                .scaledToFit()
+                .frame(width: size, height: size)
+            #endif
+        }
+    }
+}
+
+// MARK: - QR Code View (legacy, used by ShareContactSheet / MyContactCodeSheet)
+
 struct QRCodeView: View {
     let content: String
     let label: String
 
     var body: some View {
         VStack(spacing: 16) {
-            if let image = generateQRCode(from: content) {
-                #if os(macOS)
-                Image(nsImage: image)
-                    .interpolation(.none)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 200, height: 200)
-                #else
-                Image(uiImage: image)
-                    .interpolation(.none)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 200, height: 200)
-                #endif
-            }
+            QRImage(content: content, size: 250)
 
             Text(label)
                 .font(.headline)
@@ -53,33 +95,6 @@ struct QRCodeView: View {
         }
         .padding()
     }
-
-    #if os(macOS)
-    private func generateQRCode(from string: String) -> NSImage? {
-        guard let data = string.data(using: .ascii) else { return nil }
-        let filter = CIFilter.qrCodeGenerator()
-        filter.message = data
-        filter.correctionLevel = "M"
-        guard let ciImage = filter.outputImage else { return nil }
-        let transform = CGAffineTransform(scaleX: 10, y: 10)
-        let scaled = ciImage.transformed(by: transform)
-        let rep = NSCIImageRep(ciImage: scaled)
-        let nsImage = NSImage(size: rep.size)
-        nsImage.addRepresentation(rep)
-        return nsImage
-    }
-    #else
-    private func generateQRCode(from string: String) -> UIImage? {
-        guard let data = string.data(using: .ascii) else { return nil }
-        let filter = CIFilter.qrCodeGenerator()
-        filter.message = data
-        filter.correctionLevel = "M"
-        guard let ciImage = filter.outputImage else { return nil }
-        let transform = CGAffineTransform(scaleX: 10, y: 10)
-        let scaled = ciImage.transformed(by: transform)
-        return UIImage(ciImage: scaled)
-    }
-    #endif
 }
 #endif
 
@@ -309,7 +324,6 @@ struct ShareChannelSheet: View {
     @State private var copiedLink = false
     @State private var copiedSecret = false
 
-    /// Build a meshcore:// channel URL.
     private var channelURL: String {
         var url = "meshcore://channel?name=\(channel.name.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? channel.name)"
         if let secret = channel.secret {
@@ -326,22 +340,8 @@ struct ShareChannelSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
-                    // QR Code (large, prominent)
-                    if let image = generateQRCode(from: channelURL) {
-                        #if os(macOS)
-                        Image(nsImage: image)
-                            .interpolation(.none)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 220, height: 220)
-                        #else
-                        Image(uiImage: image)
-                            .interpolation(.none)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 220, height: 220)
-                        #endif
-                    }
+                    // QR Code — large and prominent
+                    QRImage(content: channelURL, size: 250)
 
                     // Channel name and instruction
                     VStack(spacing: 6) {
@@ -412,26 +412,9 @@ struct ShareChannelSheet: View {
                             .buttonStyle(.plain)
                         }
 
-                        // Share button (AirDrop / Messages / etc.)
+                        // Share button
                         #if os(iOS)
                         ShareLink(item: channelURL) {
-                            HStack {
-                                Label("Share", systemImage: "square.and.arrow.up")
-                                    .frame(maxWidth: .infinity)
-                            }
-                            .padding(.vertical, 10)
-                            .background(MeshTheme.accent)
-                            .foregroundStyle(.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                        }
-                        .buttonStyle(.plain)
-                        #elseif os(macOS)
-                        Button {
-                            let picker = NSSharingServicePicker(items: [channelURL])
-                            if let window = NSApp.keyWindow, let contentView = window.contentView {
-                                picker.show(relativeTo: .zero, of: contentView, preferredEdge: .minY)
-                            }
-                        } label: {
                             HStack {
                                 Label("Share", systemImage: "square.and.arrow.up")
                                     .frame(maxWidth: .infinity)
@@ -461,33 +444,6 @@ struct ShareChannelSheet: View {
         }
         .meshTheme()
     }
-
-    #if os(macOS)
-    private func generateQRCode(from string: String) -> NSImage? {
-        guard let data = string.data(using: .ascii) else { return nil }
-        let filter = CIFilter.qrCodeGenerator()
-        filter.message = data
-        filter.correctionLevel = "M"
-        guard let ciImage = filter.outputImage else { return nil }
-        let transform = CGAffineTransform(scaleX: 10, y: 10)
-        let scaled = ciImage.transformed(by: transform)
-        let rep = NSCIImageRep(ciImage: scaled)
-        let nsImage = NSImage(size: rep.size)
-        nsImage.addRepresentation(rep)
-        return nsImage
-    }
-    #else
-    private func generateQRCode(from string: String) -> UIImage? {
-        guard let data = string.data(using: .ascii) else { return nil }
-        let filter = CIFilter.qrCodeGenerator()
-        filter.message = data
-        filter.correctionLevel = "M"
-        guard let ciImage = filter.outputImage else { return nil }
-        let transform = CGAffineTransform(scaleX: 10, y: 10)
-        let scaled = ciImage.transformed(by: transform)
-        return UIImage(ciImage: scaled)
-    }
-    #endif
 }
 
 // MARK: - Share All Channels Sheet
@@ -523,21 +479,8 @@ struct ShareAllChannelsSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
-                    if let image = generateQRCode(from: channelsURL) {
-                        #if os(macOS)
-                        Image(nsImage: image)
-                            .interpolation(.none)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 220, height: 220)
-                        #else
-                        Image(uiImage: image)
-                            .interpolation(.none)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 220, height: 220)
-                        #endif
-                    }
+                    // QR Code — large and prominent
+                    QRImage(content: channelsURL, size: 250)
 
                     VStack(spacing: 6) {
                         Text("\(nonPublicChannels.count) Channels")
@@ -587,23 +530,6 @@ struct ShareAllChannelsSheet: View {
                             .clipShape(RoundedRectangle(cornerRadius: 10))
                         }
                         .buttonStyle(.plain)
-                        #elseif os(macOS)
-                        Button {
-                            let picker = NSSharingServicePicker(items: [channelsURL])
-                            if let window = NSApp.keyWindow, let contentView = window.contentView {
-                                picker.show(relativeTo: .zero, of: contentView, preferredEdge: .minY)
-                            }
-                        } label: {
-                            HStack {
-                                Label("Share", systemImage: "square.and.arrow.up")
-                                    .frame(maxWidth: .infinity)
-                            }
-                            .padding(.vertical, 10)
-                            .background(MeshTheme.accent)
-                            .foregroundStyle(.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                        }
-                        .buttonStyle(.plain)
                         #endif
                     }
                     .padding(.horizontal)
@@ -623,32 +549,5 @@ struct ShareAllChannelsSheet: View {
         }
         .meshTheme()
     }
-
-    #if os(macOS)
-    private func generateQRCode(from string: String) -> NSImage? {
-        guard let data = string.data(using: .utf8) else { return nil }
-        let filter = CIFilter.qrCodeGenerator()
-        filter.message = data
-        filter.correctionLevel = "M"
-        guard let ciImage = filter.outputImage else { return nil }
-        let transform = CGAffineTransform(scaleX: 10, y: 10)
-        let scaled = ciImage.transformed(by: transform)
-        let rep = NSCIImageRep(ciImage: scaled)
-        let nsImage = NSImage(size: rep.size)
-        nsImage.addRepresentation(rep)
-        return nsImage
-    }
-    #else
-    private func generateQRCode(from string: String) -> UIImage? {
-        guard let data = string.data(using: .utf8) else { return nil }
-        let filter = CIFilter.qrCodeGenerator()
-        filter.message = data
-        filter.correctionLevel = "M"
-        guard let ciImage = filter.outputImage else { return nil }
-        let transform = CGAffineTransform(scaleX: 10, y: 10)
-        let scaled = ciImage.transformed(by: transform)
-        return UIImage(ciImage: scaled)
-    }
-    #endif
 }
 #endif
