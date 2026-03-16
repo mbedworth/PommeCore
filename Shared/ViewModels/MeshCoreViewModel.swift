@@ -1984,7 +1984,7 @@ final class MeshCoreViewModel: ObservableObject {
             ch.secret = existing.secret
         }
         if ch.secret == nil, !ch.name.isEmpty {
-            ch.secret = KeychainManager.getChannelSecret(name: ch.name, index: ch.index)
+            ch.secret = KeychainManager.getChannelSecret(forChannelName: ch.name)
         }
         // Deduplicate by index — replace if already received (handles overlapping syncs)
         if let existingIdx = incomingChannels.firstIndex(where: { $0.index == ch.index }) {
@@ -2018,7 +2018,7 @@ final class MeshCoreViewModel: ObservableObject {
         if name.isEmpty {
             // Removal — remove from display and clear stored data
             if let existing = channels.first(where: { $0.index == index }) {
-                KeychainManager.deleteChannelSecret(name: existing.name, index: index)
+                KeychainManager.deleteChannelSecret(forChannelName: existing.name)
             }
             channels.removeAll { $0.index == index }
             messagesByContact.removeValue(forKey: Data([index]))
@@ -2026,7 +2026,7 @@ final class MeshCoreViewModel: ObservableObject {
         } else {
             // Save secret to iCloud Keychain for cross-device sync
             if let secret, !secret.isEmpty {
-                KeychainManager.saveChannelSecret(secret, name: name, index: index)
+                KeychainManager.saveChannelSecret(secret, forChannelName: name)
             }
             let newChannel = MeshChannel(index: index, name: name, flags: secret != nil ? 0x01 : 0x00, secret: secret)
             if let idx = channels.firstIndex(where: { $0.index == index }) {
