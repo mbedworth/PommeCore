@@ -548,6 +548,8 @@ struct ChannelManagementView: View {
     #if !os(watchOS)
     @State private var channelToShare: MeshChannel?
     #endif
+    @State private var channelToRename: MeshChannel?
+    @State private var renameText = ""
 
     enum ChannelAction: String, CaseIterable, Identifiable {
         case hashtag = "Join Hashtag Channel"
@@ -674,6 +676,27 @@ struct ChannelManagementView: View {
                             .buttonStyle(.plain)
                         }
                         .listRowBackground(MeshTheme.surface)
+                        .contextMenu {
+                            Button {
+                                channelToRename = channel
+                                renameText = channel.name
+                            } label: {
+                                Label("Rename", systemImage: "pencil")
+                            }
+                            #if !os(watchOS)
+                            Button {
+                                channelToShare = channel
+                            } label: {
+                                Label("Share QR Code", systemImage: "qrcode")
+                            }
+                            #endif
+                            Divider()
+                            Button(role: .destructive) {
+                                removeChannel(channel)
+                            } label: {
+                                Label("Remove", systemImage: "trash")
+                            }
+                        }
                     }
                 } header: {
                     Text("Active Channels")
@@ -689,6 +712,21 @@ struct ChannelManagementView: View {
                 .frame(minWidth: 360, minHeight: 400)
         }
         #endif
+        .alert("Rename Channel", isPresented: Binding(
+            get: { channelToRename != nil },
+            set: { if !$0 { channelToRename = nil } }
+        )) {
+            TextField("Channel name", text: $renameText)
+            Button("Cancel", role: .cancel) { channelToRename = nil }
+            Button("Rename") {
+                if let ch = channelToRename, !renameText.isEmpty {
+                    viewModel.setChannel(index: ch.index, name: renameText, secret: ch.secret)
+                }
+                channelToRename = nil
+            }
+        } message: {
+            Text("Enter a new name for this channel.")
+        }
     }
 
     private var namePlaceholder: String {
