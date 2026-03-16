@@ -892,8 +892,8 @@ private extension SettingsView {
 struct PrivacySection: View {
     @ObservedObject var viewModel: MeshCoreViewModel
     @State private var manualAdd: Bool = false
-    @State private var telBaseEnabled: Bool = false
-    @State private var telLocEnabled: Bool = false
+    @State private var telBase: UInt8 = 0
+    @State private var telLoc: UInt8 = 0
     @State private var advertLoc: Bool = false
     @State private var multiACK: Bool = false
     @State private var pinText: String = ""
@@ -913,18 +913,32 @@ struct PrivacySection: View {
             .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
 
-            Toggle(isOn: $telBaseEnabled) {
-                Label("Share Battery & Status", systemImage: "battery.100")
+            HStack {
+                Image(systemName: "battery.100")
                     .foregroundStyle(MeshTheme.accent)
+                    .frame(width: 24)
+                Picker("Telemetry Requests", selection: $telBase) {
+                    Text("Deny").tag(UInt8(0))
+                    Text("Per-Contact").tag(UInt8(1))
+                    Text("Allow All").tag(UInt8(2))
+                }
+                .foregroundStyle(MeshTheme.accent)
+                .tint(MeshTheme.accent)
             }
-            .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
 
-            Toggle(isOn: $telLocEnabled) {
-                Label("Share Location", systemImage: "location")
+            HStack {
+                Image(systemName: "location")
                     .foregroundStyle(MeshTheme.accent)
+                    .frame(width: 24)
+                Picker("Include Location", selection: $telLoc) {
+                    Text("Deny").tag(UInt8(0))
+                    Text("Per-Contact").tag(UInt8(1))
+                    Text("Allow All").tag(UInt8(2))
+                }
+                .foregroundStyle(MeshTheme.accent)
+                .tint(MeshTheme.accent)
             }
-            .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
 
             Toggle(isOn: $advertLoc) {
@@ -954,8 +968,8 @@ struct PrivacySection: View {
             SaveButton(state: saveState, label: "Save Privacy Settings") {
                 viewModel.setOtherParams(
                     manualAddContacts: manualAdd ? 1 : 0,
-                    telemetryBase: telBaseEnabled ? 2 : 0,
-                    telemetryLocation: telLocEnabled ? 2 : 0,
+                    telemetryBase: telBase,
+                    telemetryLocation: telLoc,
                     advertLocPolicy: advertLoc ? 1 : 0,
                     multiACK: multiACK ? 1 : 0
                 )
@@ -965,7 +979,7 @@ struct PrivacySection: View {
             Text("Privacy & Security")
                 .foregroundStyle(MeshTheme.textSecondary)
         } footer: {
-            Text("When telemetry sharing is enabled, other nodes that request it will receive your battery status or location data.")
+            Text("Controls what telemetry data is shared when requested. Per-Contact mode only shares with contacts that have telemetry permission set.")
                 .font(.caption2)
         }
 
@@ -1055,9 +1069,8 @@ struct PrivacySection: View {
     private func loadFromConfig() {
         let c = viewModel.deviceConfig
         manualAdd = c.manualAddContacts != 0
-        // 0=deny, 1=per-contact (treat as enabled), 2=allow all
-        telBaseEnabled = c.telemetryBase != 0
-        telLocEnabled = c.telemetryLocation != 0
+        telBase = c.telemetryBase
+        telLoc = c.telemetryLocation
         advertLoc = c.advertLocPolicy != 0
         multiACK = c.multiACK != 0
         pinText = String(c.blePIN)
