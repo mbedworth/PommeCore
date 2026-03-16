@@ -21,6 +21,9 @@ struct ContactListView: View {
     @State private var showNicknameSheet = false
     @State private var nicknameContact: Contact?
     @State private var nicknameText = ""
+    #if !os(watchOS)
+    @State private var shareContact: Contact?
+    #endif
 
     /// Public Channel virtual contact key (channel 0).
     private let publicChannelKey = Data([0x00 as UInt8])
@@ -132,6 +135,13 @@ struct ContactListView: View {
             .meshTheme()
             .frame(minWidth: 360, minHeight: 400)
         }
+        #if !os(watchOS)
+        .sheet(item: $shareContact) { contact in
+            ShareContactSheet(contact: contact)
+                .environmentObject(viewModel)
+                .frame(minWidth: 360, minHeight: 400)
+        }
+        #endif
         .sheet(isPresented: $showNicknameSheet) {
             NavigationStack {
                 Form {
@@ -657,6 +667,14 @@ struct ContactListView: View {
         } label: {
             Label("Export Link", systemImage: "square.and.arrow.up")
         }
+
+        #if !os(watchOS)
+        Button {
+            shareContact = contact
+        } label: {
+            Label("Share QR Code", systemImage: "qrcode")
+        }
+        #endif
 
         Divider()
 
