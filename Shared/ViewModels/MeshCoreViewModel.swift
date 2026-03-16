@@ -830,9 +830,27 @@ final class MeshCoreViewModel: ObservableObject {
     @Published var pendingChannelImport: PendingChannelImport?
     @Published var showChannelImportOptions = false
 
+    /// Multi-channel import state.
+    struct PendingMultiChannelImport {
+        let channels: [PendingChannelImport]
+        var names: String {
+            channels.map(\.name).joined(separator: ", ")
+        }
+    }
+
+    @Published var pendingMultiChannelImport: PendingMultiChannelImport?
+    @Published var showMultiChannelImportOptions = false
+
     /// Handle a meshcore:// URL — routes to contact or channel import.
     func handleMeshCoreURL(_ urlString: String) {
-        if urlString.contains("meshcore://channel") {
+        if urlString.hasPrefix("meshcore://channels?") {
+            // Multi-channel URL (plural)
+            if let parsed = parseMultiChannelURL(urlString) {
+                pendingMultiChannelImport = parsed
+                showMultiChannelImportOptions = true
+            }
+        } else if urlString.hasPrefix("meshcore://channel?") {
+            // Single channel URL
             if let parsed = parseChannelURL(urlString) {
                 pendingChannelImport = parsed
                 showChannelImportOptions = true
@@ -856,6 +874,27 @@ final class MeshCoreViewModel: ObservableObject {
         return PendingChannelImport(name: name, secret: secret)
     }
 
+    /// Parse a meshcore://channels?data=BASE64_JSON URL containing multiple channels.
+    private func parseMultiChannelURL(_ urlString: String) -> PendingMultiChannelImport? {
+        guard let components = URLComponents(string: urlString),
+              let dataItem = components.queryItems?.first(where: { $0.name == "data" }),
+              let base64 = dataItem.value,
+              let jsonData = Data(base64Encoded: base64),
+              let array = try? JSONSerialization.jsonObject(with: jsonData) as? [[String: String]] else {
+            return nil
+        }
+
+        var parsed: [PendingChannelImport] = []
+        for item in array {
+            guard let name = item["name"], !name.isEmpty else { continue }
+            let secretHex = item["secret"] ?? ""
+            let secret: Data? = secretHex.isEmpty ? nil : Data(hexString: secretHex)
+            parsed.append(PendingChannelImport(name: name, secret: secret))
+        }
+        guard !parsed.isEmpty else { return nil }
+        return PendingMultiChannelImport(channels: parsed)
+    }
+
     /// Add a channel to the next available slot.
     func importChannelAdd(_ data: PendingChannelImport) {
         let usedIndices = Set(channels.map(\.index))
@@ -874,6 +913,34 @@ final class MeshCoreViewModel: ObservableObject {
         }
         // Add the new channel at slot 1
         setChannel(index: 1, name: data.name, secret: data.secret)
+    }
+
+    /// Add multiple channels to the next available slots.
+    func importMultiChannelsAdd(_ data: PendingMultiChannelImport) {
+        var usedIndices = Set(channels.map(\.index))
+        for channel in data.channels {
+            var nextSlot: UInt8 = 1
+            while usedIndices.contains(nextSlot) && nextSlot < deviceConfig.maxChannels {
+                nextSlot += 1
+            }
+            guard nextSlot < deviceConfig.maxChannels else { break }
+            setChannel(index: nextSlot, name: channel.name, secret: channel.secret)
+            usedIndices.insert(nextSlot)
+        }
+    }
+
+    /// Replace all non-public channels, then add the imported channels.
+    func importMultiChannelsReplace(_ data: PendingMultiChannelImport) {
+        // Clear all non-public channels
+        for channel in channels where channel.index != 0 {
+            setChannel(index: channel.index, name: "", secret: nil)
+        }
+        // Add each imported channel starting at slot 1
+        for (i, channel) in data.channels.enumerated() {
+            let slot = UInt8(i + 1)
+            guard slot < deviceConfig.maxChannels else { break }
+            setChannel(index: slot, name: channel.name, secret: channel.secret)
+        }
     }
 
     // MARK: - Messaging
