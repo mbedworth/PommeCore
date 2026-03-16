@@ -43,9 +43,20 @@ public enum MeshCoreProtocol {
         return frame
     }
 
-    /// CMD_ADD_UPDATE_CONTACT (code 9) — update contact flags (e.g. favourite).
-    /// Frame: code(1) pub_key(32) adv_name(32 null-padded) flags(1)
-    public static func buildAddUpdateContact(publicKey: Data, advName: String, flags: UInt8) -> Data {
+    /// CMD_ADD_UPDATE_CONTACT (code 9) — update a contact on the device.
+    /// Frame: code(1) pub_key(32) type(1) flags(1) out_path_len(1) out_path(64) adv_name(32) last_advert(4) adv_lat(4) adv_lon(4)
+    /// ALL fields must be populated from the existing contact to avoid zeroing data on the device.
+    public static func buildAddUpdateContact(
+        publicKey: Data,
+        type: UInt8,
+        flags: UInt8,
+        outPathLen: Int8,
+        outPath: Data,
+        advName: String,
+        lastAdvert: UInt32,
+        latitude: Int32,
+        longitude: Int32
+    ) -> Data {
         var frame = Data([MeshCoreCommand.addUpdateContact.rawValue])
         // Full 32-byte public key
         var key = publicKey.prefix(32)
@@ -53,6 +64,19 @@ public enum MeshCoreProtocol {
             key.append(Data(repeating: 0, count: 32 - key.count))
         }
         frame.append(key)
+        // type byte
+        frame.append(type)
+        // flags byte
+        frame.append(flags)
+        // out_path_len (signed byte)
+        frame.append(UInt8(bitPattern: outPathLen))
+        // out_path: 64 bytes
+        var pathField = Data(repeating: 0, count: 64)
+        let pathLen = min(outPath.count, 64)
+        if pathLen > 0 {
+            pathField.replaceSubrange(0..<pathLen, with: outPath.prefix(pathLen))
+        }
+        frame.append(pathField)
         // adv_name: 32 bytes null-padded
         var nameField = Data(repeating: 0, count: 32)
         if let nameData = advName.data(using: .utf8) {
@@ -60,8 +84,14 @@ public enum MeshCoreProtocol {
             nameField.replaceSubrange(0..<len, with: nameData.prefix(len))
         }
         frame.append(nameField)
-        // flags byte
-        frame.append(flags)
+        // last_advert: uint32 LE
+        appendUInt32(&frame, lastAdvert)
+        // adv_lat: int32 LE
+        var lat = latitude
+        frame.append(Data(bytes: &lat, count: 4))
+        // adv_lon: int32 LE
+        var lon = longitude
+        frame.append(Data(bytes: &lon, count: 4))
         return frame
     }
 

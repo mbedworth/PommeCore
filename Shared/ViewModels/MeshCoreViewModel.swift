@@ -657,11 +657,17 @@ final class MeshCoreViewModel: ObservableObject {
             newFlags |= 0x01   // Set bit 0
         }
 
-        // Send CMD_ADD_UPDATE_CONTACT to persist on device
+        // Send CMD_ADD_UPDATE_CONTACT with ALL existing contact data — only flags changed
         let frame = MeshCoreProtocol.buildAddUpdateContact(
             publicKey: contact.publicKey,
+            type: contact.type.rawValue,
+            flags: newFlags,
+            outPathLen: contact.outPathLen,
+            outPath: contact.outPath,
             advName: contact.name,
-            flags: newFlags
+            lastAdvert: contact.lastAdvert,
+            latitude: Int32(contact.latitude * 1_000_000),
+            longitude: Int32(contact.longitude * 1_000_000)
         )
         sendCommand(frame, label: "UPDATE_CONTACT_FLAGS")
 
