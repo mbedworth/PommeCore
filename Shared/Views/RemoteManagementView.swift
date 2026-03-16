@@ -306,27 +306,29 @@ private extension RemoteManagementView {
 
             RemoteClockRow(session: session, sendCLI: sendCLI)
 
-            Button {
-                sendCLI("neighbors")
-            } label: {
-                HStack {
-                    Image(systemName: "person.3")
-                        .foregroundStyle(MeshTheme.accent)
-                        .frame(width: 24)
-                    Text("Neighbors")
-                        .foregroundStyle(MeshTheme.accent)
-                    Spacer()
+            if DeviceCapabilities.forContactType(contact.type).hasNeighbors {
+                Button {
+                    sendCLI("neighbors")
+                } label: {
+                    HStack {
+                        Image(systemName: "person.3")
+                            .foregroundStyle(MeshTheme.accent)
+                            .frame(width: 24)
+                        Text("Neighbors")
+                            .foregroundStyle(MeshTheme.accent)
+                        Spacer()
+                    }
+                    .contentShape(Rectangle())
                 }
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .listRowBackground(MeshTheme.surface)
+                .buttonStyle(.plain)
+                .listRowBackground(MeshTheme.surface)
 
-            if let neighborsText = session.settings["neighbors"], !neighborsText.isEmpty {
-                Text(neighborsText)
-                    .font(.system(.caption, design: .monospaced))
+                if let neighborsText = session.settings["neighbors"], !neighborsText.isEmpty {
+                    Text(neighborsText)
+                        .font(.system(.caption, design: .monospaced))
                     .foregroundStyle(MeshTheme.textPrimary)
                     .listRowBackground(MeshTheme.surface)
+                }
             }
 
             Button {

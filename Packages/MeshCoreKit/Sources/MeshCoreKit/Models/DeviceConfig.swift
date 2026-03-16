@@ -1,5 +1,55 @@
 import Foundation
 
+/// Determines which settings/features are available based on device type.
+/// Companion radios (BLE-connected local device) have limited features.
+/// Repeaters and room servers expose more configuration options.
+public struct DeviceCapabilities {
+    public let canRepeat: Bool
+    public let hasChat: Bool
+    public let hasACL: Bool
+    public let hasGuestPassword: Bool
+    public let hasAdminPassword: Bool
+    public let hasNeighbors: Bool
+    public let hasReadOnlyMode: Bool
+    public let hasPowerSaving: Bool
+    public let hasOwnerInfo: Bool
+    public let hasAdvertIntervals: Bool
+    public let hasRegionManagement: Bool
+
+    /// Companion radio — the locally BLE-connected device. Limited feature set.
+    public static let companion = DeviceCapabilities(
+        canRepeat: false, hasChat: true, hasACL: false,
+        hasGuestPassword: false, hasAdminPassword: false, hasNeighbors: false,
+        hasReadOnlyMode: false, hasPowerSaving: false, hasOwnerInfo: false,
+        hasAdvertIntervals: false, hasRegionManagement: false
+    )
+
+    /// Repeater node — relay-only device with full admin features.
+    public static let repeater = DeviceCapabilities(
+        canRepeat: true, hasChat: false, hasACL: true,
+        hasGuestPassword: true, hasAdminPassword: true, hasNeighbors: true,
+        hasReadOnlyMode: false, hasPowerSaving: true, hasOwnerInfo: true,
+        hasAdvertIntervals: true, hasRegionManagement: true
+    )
+
+    /// Room server — chat-capable managed device with full admin features.
+    public static let roomServer = DeviceCapabilities(
+        canRepeat: true, hasChat: true, hasACL: true,
+        hasGuestPassword: true, hasAdminPassword: true, hasNeighbors: false,
+        hasReadOnlyMode: true, hasPowerSaving: true, hasOwnerInfo: true,
+        hasAdvertIntervals: true, hasRegionManagement: true
+    )
+
+    /// Determine capabilities from contact type.
+    public static func forContactType(_ type: ContactType) -> DeviceCapabilities {
+        switch type {
+        case .repeater: return .repeater
+        case .room: return .roomServer
+        default: return .companion
+        }
+    }
+}
+
 /// Complete device configuration populated from various response codes.
 public final class DeviceConfig: ObservableObject {
 

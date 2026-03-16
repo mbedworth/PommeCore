@@ -680,8 +680,11 @@ struct RadioSection: View {
             }
             .listRowBackground(MeshTheme.surface)
 
-            // Repeat mode only available on repeater/room server firmware, not companion
-            if viewModel.deviceConfig.selfType != 1 {
+            // Repeat mode only available on repeater/room server firmware, not companion.
+            // Local BLE device is always a companion — use DeviceCapabilities.
+            if DeviceCapabilities.forContactType(
+                ContactType(rawValue: viewModel.deviceConfig.selfType) ?? .chat
+            ).canRepeat {
                 Toggle(isOn: $repeatMode) {
                     HStack {
                         Image(systemName: "repeat")
@@ -707,40 +710,45 @@ struct RadioSection: View {
                 showSaved($saveState)
             }
 
-            if !viewModel.allowedRepeatFreqRanges.isEmpty {
-                VStack(alignment: .leading, spacing: 4) {
+            // Repeat frequency features only for repeater/room server
+            if DeviceCapabilities.forContactType(
+                ContactType(rawValue: viewModel.deviceConfig.selfType) ?? .chat
+            ).canRepeat {
+                if !viewModel.allowedRepeatFreqRanges.isEmpty {
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack {
+                            Image(systemName: "waveform.badge.magnifyingglass")
+                                .foregroundStyle(MeshTheme.accent)
+                                .frame(width: 24)
+                            Text("Allowed Repeat Frequencies")
+                                .foregroundStyle(MeshTheme.accent)
+                        }
+                        ForEach(Array(viewModel.allowedRepeatFreqRanges.enumerated()), id: \.offset) { _, range in
+                            Text("\(String(format: "%.3f", Double(range.lowerHz) / 1_000_000)) \u{2013} \(String(format: "%.3f", Double(range.upperHz) / 1_000_000)) MHz")
+                                .font(.caption)
+                                .foregroundStyle(MeshTheme.textPrimary)
+                                .padding(.leading, 32)
+                        }
+                    }
+                    .listRowBackground(MeshTheme.surface)
+                }
+
+                Button {
+                    viewModel.requestAllowedRepeatFreq()
+                } label: {
                     HStack {
-                        Image(systemName: "waveform.badge.magnifyingglass")
+                        Image(systemName: "arrow.clockwise")
                             .foregroundStyle(MeshTheme.accent)
                             .frame(width: 24)
-                        Text("Allowed Repeat Frequencies")
+                        Text("Query Repeat Frequencies")
                             .foregroundStyle(MeshTheme.accent)
+                        Spacer()
                     }
-                    ForEach(Array(viewModel.allowedRepeatFreqRanges.enumerated()), id: \.offset) { _, range in
-                        Text("\(String(format: "%.3f", Double(range.lowerHz) / 1_000_000)) \u{2013} \(String(format: "%.3f", Double(range.upperHz) / 1_000_000)) MHz")
-                            .font(.caption)
-                            .foregroundStyle(MeshTheme.textPrimary)
-                            .padding(.leading, 32)
-                    }
+                    .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
                 .listRowBackground(MeshTheme.surface)
             }
-
-            Button {
-                viewModel.requestAllowedRepeatFreq()
-            } label: {
-                HStack {
-                    Image(systemName: "arrow.clockwise")
-                        .foregroundStyle(MeshTheme.accent)
-                        .frame(width: 24)
-                    Text("Query Repeat Frequencies")
-                        .foregroundStyle(MeshTheme.accent)
-                    Spacer()
-                }
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .listRowBackground(MeshTheme.surface)
         } header: {
             Text("Radio Configuration")
                 .foregroundStyle(MeshTheme.textSecondary)
