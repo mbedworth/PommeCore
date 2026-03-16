@@ -590,6 +590,7 @@ struct RadioSection: View {
     @State private var selectedSF: UInt8 = 12
     @State private var selectedCR: UInt8 = 5
     @State private var txPower: Double = 22
+    @State private var showRepeatConfirm = false
     @State private var repeatMode = false
     @State private var saveState: SaveButtonState = .idle
 
@@ -686,22 +687,31 @@ struct RadioSection: View {
             }
             .listRowBackground(MeshTheme.surface)
 
-            // Repeat mode only available on repeater/room server firmware, not companion.
-            // Local BLE device is always a companion — use DeviceCapabilities.
-            if DeviceCapabilities.forContactType(
-                ContactType(rawValue: viewModel.deviceConfig.selfType) ?? .chat
-            ).canRepeat {
-                Toggle(isOn: $repeatMode) {
-                    HStack {
-                        Image(systemName: "repeat")
-                            .foregroundStyle(MeshTheme.accent)
-                            .frame(width: 24)
-                        Text("Repeat Mode")
-                            .foregroundStyle(MeshTheme.accent)
+            Toggle(isOn: Binding(
+                get: { repeatMode },
+                set: { newValue in
+                    if newValue && viewModel.deviceConfig.selfType == 1 {
+                        showRepeatConfirm = true
+                    } else {
+                        repeatMode = newValue
                     }
                 }
-                .tint(MeshTheme.accent)
-                .listRowBackground(MeshTheme.surface)
+            )) {
+                HStack {
+                    Image(systemName: "repeat")
+                        .foregroundStyle(MeshTheme.accent)
+                        .frame(width: 24)
+                    Text("Repeat Mode")
+                        .foregroundStyle(MeshTheme.accent)
+                }
+            }
+            .tint(MeshTheme.accent)
+            .listRowBackground(MeshTheme.surface)
+            .alert("Enable Repeat Mode?", isPresented: $showRepeatConfirm) {
+                Button("Enable") { repeatMode = true }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("Your companion radio will act as a portable repeater.\n\nThis is useful for camping, hiking, and search & rescue where repeater infrastructure doesn't exist.\n\nRepeat mode is restricted to allowed frequency ranges configured on the device.")
             }
 
             SaveButton(state: saveState, label: "Apply Radio Settings") {
@@ -716,11 +726,7 @@ struct RadioSection: View {
                 showSaved($saveState)
             }
 
-            // Repeat frequency features only for repeater/room server
-            if DeviceCapabilities.forContactType(
-                ContactType(rawValue: viewModel.deviceConfig.selfType) ?? .chat
-            ).canRepeat {
-                if !viewModel.allowedRepeatFreqRanges.isEmpty {
+            if !viewModel.allowedRepeatFreqRanges.isEmpty {
                     VStack(alignment: .leading, spacing: 4) {
                         HStack {
                             Image(systemName: "waveform.badge.magnifyingglass")
@@ -754,7 +760,6 @@ struct RadioSection: View {
                 }
                 .buttonStyle(.plain)
                 .listRowBackground(MeshTheme.surface)
-            }
         } header: {
             Text("Radio Configuration")
                 .foregroundStyle(MeshTheme.textSecondary)
