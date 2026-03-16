@@ -727,9 +727,9 @@ final class MeshCoreViewModel: ObservableObject {
         sendCommand(frame, label: "EXPORT_CONTACT")
     }
 
-    /// Export self as a meshcore:// URL (send all-zeros public key).
+    /// Export self as a meshcore:// URL (send code byte only, no public key).
     func exportSelfContact() {
-        let frame = MeshCoreProtocol.buildExportContact(publicKey: Data(repeating: 0, count: 32))
+        let frame = Data([0x11])  // CMD_EXPORT_CONTACT with no payload = export self
         sendCommand(frame, label: "EXPORT_SELF")
     }
 
