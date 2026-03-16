@@ -12,7 +12,7 @@ public enum BatteryChemistry: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .lipo: return "LiPo / NMC"
         case .lifepo4: return "LiFePO4"
-        case .li18650: return "Li-Ion 18650"
+        case .li18650: return "Li-Ion"
         }
     }
 

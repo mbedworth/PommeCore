@@ -680,17 +680,20 @@ struct RadioSection: View {
             }
             .listRowBackground(MeshTheme.surface)
 
-            Toggle(isOn: $repeatMode) {
-                HStack {
-                    Image(systemName: "repeat")
-                        .foregroundStyle(MeshTheme.accent)
-                        .frame(width: 24)
-                    Text("Repeat Mode")
-                        .foregroundStyle(MeshTheme.accent)
+            // Repeat mode only available on repeater/room server firmware, not companion
+            if viewModel.deviceConfig.selfType != 1 {
+                Toggle(isOn: $repeatMode) {
+                    HStack {
+                        Image(systemName: "repeat")
+                            .foregroundStyle(MeshTheme.accent)
+                            .frame(width: 24)
+                        Text("Repeat Mode")
+                            .foregroundStyle(MeshTheme.accent)
+                    }
                 }
+                .tint(MeshTheme.accent)
+                .listRowBackground(MeshTheme.surface)
             }
-            .tint(MeshTheme.accent)
-            .listRowBackground(MeshTheme.surface)
 
             SaveButton(state: saveState, label: "Apply Radio Settings") {
                 let freq = UInt32((Double(freqMHz) ?? 0) * 1000)

@@ -6,6 +6,8 @@ public final class DeviceConfig: ObservableObject {
     // MARK: - Device Info (from RESP_CODE_DEVICE_INFO code 13 + SELF_INFO code 5)
 
     @Published public var deviceName: String = ""
+    /// Device self type from SELF_INFO: 1=companion, 2=repeater, 3=room server
+    @Published public var selfType: UInt8 = 1
     @Published public var firmwareVersion: String = ""  // from DEVICE_INFO firmwareVer byte
     @Published public var buildDate: String = ""         // from DEVICE_INFO 12-char cstring
     @Published public var manufacturer: String = ""      // from DEVICE_INFO null-terminated model
