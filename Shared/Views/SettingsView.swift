@@ -457,6 +457,7 @@ struct RadioPreset: Identifiable {
 struct RadioPresetPicker: View {
     let onApply: (RadioPreset) -> Void
     @State private var selectedPresetIndex: Int = -1
+    @State private var presetToConfirm: RadioPreset?
 
     var body: some View {
         Section {
@@ -488,8 +489,7 @@ struct RadioPresetPicker: View {
                 .listRowBackground(MeshTheme.surface)
 
                 Button {
-                    onApply(preset)
-                    selectedPresetIndex = -1
+                    presetToConfirm = preset
                 } label: {
                     HStack {
                         Image(systemName: "checkmark.circle")
@@ -503,6 +503,23 @@ struct RadioPresetPicker: View {
                 }
                 .buttonStyle(.plain)
                 .listRowBackground(MeshTheme.surface)
+                .alert("Apply Radio Preset?", isPresented: Binding(
+                    get: { presetToConfirm != nil },
+                    set: { if !$0 { presetToConfirm = nil } }
+                )) {
+                    Button("Cancel", role: .cancel) { presetToConfirm = nil }
+                    Button("Apply") {
+                        if let p = presetToConfirm {
+                            onApply(p)
+                            selectedPresetIndex = -1
+                        }
+                        presetToConfirm = nil
+                    }
+                } message: {
+                    if let p = presetToConfirm {
+                        Text("This will change your radio to \(String(format: "%.3f", p.frequencyKHz / 1000)) MHz, BW \(p.bandwidth == p.bandwidth.rounded() ? "\(Int(p.bandwidth))" : "\(p.bandwidth)") kHz, SF\(p.spreadingFactor), CR 4/\(p.codingRate).\n\nAll nodes on your mesh must use the same settings.")
+                    }
+                }
             }
         } header: {
             Text("Radio Presets")
@@ -573,6 +590,14 @@ struct RadioSection: View {
     var body: some View {
         RadioPresetPicker { preset in
             applyPreset(preset)
+            // Send directly to device
+            let freq = UInt32(preset.frequencyKHz)
+            let bw = UInt32(preset.bandwidth * 1000)
+            viewModel.setRadioParams(
+                frequency: freq, bandwidth: bw,
+                spreadingFactor: preset.spreadingFactor, codingRate: preset.codingRate,
+                repeatMode: repeatMode
+            )
         }
 
         Section {

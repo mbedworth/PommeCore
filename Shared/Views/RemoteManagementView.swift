@@ -373,7 +373,10 @@ struct RemoteRadioSection: View {
     var body: some View {
         if canEdit {
             RadioPresetPicker { preset in
-                radioParams = "\(Int(preset.frequencyKHz)),\(preset.bandwidth == preset.bandwidth.rounded() ? "\(Int(preset.bandwidth))" : "\(preset.bandwidth)"),\(preset.spreadingFactor),\(preset.codingRate)"
+                let bwStr = preset.bandwidth == preset.bandwidth.rounded() ? "\(Int(preset.bandwidth))" : "\(preset.bandwidth)"
+                let params = "\(Int(preset.frequencyKHz)),\(bwStr),\(preset.spreadingFactor),\(preset.codingRate)"
+                radioParams = params
+                sendCLI("set radio \(params)")
             }
         }
 
