@@ -24,6 +24,7 @@ struct ContactListView: View {
     @State private var channelRenameText = ""
     @State private var showChannelRemoveConfirm = false
     @State private var channelToRemove: MeshChannel?
+    @State private var showShareAllChannels = false
     #endif
     @State private var showNicknameSheet = false
     #if os(iOS)
@@ -157,6 +158,10 @@ struct ContactListView: View {
         #if !os(watchOS)
         .sheet(item: $channelToShareSidebar) { channel in
             ShareChannelSheet(channel: channel)
+                .frame(minWidth: 360, minHeight: 400)
+        }
+        .sheet(isPresented: $showShareAllChannels) {
+            ShareAllChannelsSheet(channels: viewModel.channels)
                 .frame(minWidth: 360, minHeight: 400)
         }
         .alert("Rename Channel", isPresented: Binding(
@@ -450,6 +455,22 @@ struct ContactListView: View {
                 #endif
             }
             #if !os(watchOS)
+            if viewModel.channels.contains(where: { $0.index != 0 }) {
+                Button {
+                    showShareAllChannels = true
+                } label: {
+                    HStack {
+                        Image(systemName: "square.and.arrow.up")
+                            .foregroundStyle(MeshTheme.accent)
+                        Text("Share All Channels")
+                            .foregroundStyle(MeshTheme.accent)
+                        Spacer()
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .listRowBackground(MeshTheme.surface)
+            }
             Button {
                 showChannelSheet = true
             } label: {
@@ -750,6 +771,25 @@ struct ContactListView: View {
             }
         } message: { data in
             Text("Add \"\(data.name)\" to your channels, or replace all existing channels?")
+        }
+        .confirmationDialog(
+            "Import \(viewModel.pendingMultiChannelImport?.channels.count ?? 0) Channels",
+            isPresented: $viewModel.showMultiChannelImportOptions,
+            presenting: viewModel.pendingMultiChannelImport
+        ) { data in
+            Button("Add to Existing Channels") {
+                viewModel.importMultiChannelsAdd(data)
+                viewModel.pendingMultiChannelImport = nil
+            }
+            Button("Replace All Channels", role: .destructive) {
+                viewModel.importMultiChannelsReplace(data)
+                viewModel.pendingMultiChannelImport = nil
+            }
+            Button("Cancel", role: .cancel) {
+                viewModel.pendingMultiChannelImport = nil
+            }
+        } message: { data in
+            Text("Import \(data.names)?\n\nAdd will keep your existing channels. Replace will remove all current channels first.")
         }
     }
 

@@ -489,4 +489,166 @@ struct ShareChannelSheet: View {
     }
     #endif
 }
+
+// MARK: - Share All Channels Sheet
+
+struct ShareAllChannelsSheet: View {
+    let channels: [MeshChannel]
+    @Environment(\.dismiss) private var dismiss
+    @State private var copiedLink = false
+
+    private var nonPublicChannels: [MeshChannel] {
+        channels.filter { $0.index != 0 }
+    }
+
+    private var channelsURL: String {
+        var list: [[String: String]] = []
+        for channel in nonPublicChannels {
+            let hex = channel.secret?.map { String(format: "%02x", $0) }.joined() ?? ""
+            list.append(["name": channel.name, "secret": hex])
+        }
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: list),
+              let base64 = jsonData.base64EncodedString()
+                .addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
+            return "meshcore://channels?data="
+        }
+        return "meshcore://channels?data=\(base64)"
+    }
+
+    private var channelNames: String {
+        nonPublicChannels.map(\.name).joined(separator: ", ")
+    }
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 20) {
+                    if let image = generateQRCode(from: channelsURL) {
+                        #if os(macOS)
+                        Image(nsImage: image)
+                            .interpolation(.none)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 220, height: 220)
+                        #else
+                        Image(uiImage: image)
+                            .interpolation(.none)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 220, height: 220)
+                        #endif
+                    }
+
+                    VStack(spacing: 6) {
+                        Text("\(nonPublicChannels.count) Channels")
+                            .font(.title3.weight(.semibold))
+                            .foregroundStyle(MeshTheme.textPrimary)
+                        Text(channelNames)
+                            .font(.subheadline)
+                            .foregroundStyle(MeshTheme.textSecondary)
+                            .multilineTextAlignment(.center)
+                        Text("Scan QR code to import all channels")
+                            .font(.caption)
+                            .foregroundStyle(MeshTheme.textSecondary)
+                    }
+                    .padding(.horizontal)
+
+                    VStack(spacing: 12) {
+                        Button {
+                            #if os(iOS)
+                            UIPasteboard.general.string = channelsURL
+                            #elseif os(macOS)
+                            NSPasteboard.general.clearContents()
+                            NSPasteboard.general.setString(channelsURL, forType: .string)
+                            #endif
+                            copiedLink = true
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) { copiedLink = false }
+                        } label: {
+                            HStack {
+                                Label(copiedLink ? "Copied!" : "Copy Link", systemImage: copiedLink ? "checkmark" : "doc.on.doc")
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .padding(.vertical, 10)
+                            .background(MeshTheme.accent.opacity(0.1))
+                            .foregroundStyle(MeshTheme.accent)
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                        }
+                        .buttonStyle(.plain)
+
+                        #if os(iOS)
+                        ShareLink(item: channelsURL) {
+                            HStack {
+                                Label("Share", systemImage: "square.and.arrow.up")
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .padding(.vertical, 10)
+                            .background(MeshTheme.accent)
+                            .foregroundStyle(.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                        }
+                        .buttonStyle(.plain)
+                        #elseif os(macOS)
+                        Button {
+                            let picker = NSSharingServicePicker(items: [channelsURL])
+                            if let window = NSApp.keyWindow, let contentView = window.contentView {
+                                picker.show(relativeTo: .zero, of: contentView, preferredEdge: .minY)
+                            }
+                        } label: {
+                            HStack {
+                                Label("Share", systemImage: "square.and.arrow.up")
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .padding(.vertical, 10)
+                            .background(MeshTheme.accent)
+                            .foregroundStyle(.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                        }
+                        .buttonStyle(.plain)
+                        #endif
+                    }
+                    .padding(.horizontal)
+                }
+                .padding(.top, 20)
+                .padding(.bottom, 30)
+            }
+            .navigationTitle("Share All Channels")
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") { dismiss() }
+                }
+            }
+        }
+        .meshTheme()
+    }
+
+    #if os(macOS)
+    private func generateQRCode(from string: String) -> NSImage? {
+        guard let data = string.data(using: .utf8) else { return nil }
+        let filter = CIFilter.qrCodeGenerator()
+        filter.message = data
+        filter.correctionLevel = "M"
+        guard let ciImage = filter.outputImage else { return nil }
+        let transform = CGAffineTransform(scaleX: 10, y: 10)
+        let scaled = ciImage.transformed(by: transform)
+        let rep = NSCIImageRep(ciImage: scaled)
+        let nsImage = NSImage(size: rep.size)
+        nsImage.addRepresentation(rep)
+        return nsImage
+    }
+    #else
+    private func generateQRCode(from string: String) -> UIImage? {
+        guard let data = string.data(using: .utf8) else { return nil }
+        let filter = CIFilter.qrCodeGenerator()
+        filter.message = data
+        filter.correctionLevel = "M"
+        guard let ciImage = filter.outputImage else { return nil }
+        let transform = CGAffineTransform(scaleX: 10, y: 10)
+        let scaled = ciImage.transformed(by: transform)
+        return UIImage(ciImage: scaled)
+    }
+    #endif
+}
 #endif
