@@ -742,7 +742,7 @@ struct ChannelManagementView: View {
         case .hashtag:
             return "Hashtag channels derive their encryption key from the channel name. Anyone who knows the name can join."
         case .createPrivate:
-            return "Creates a channel with a random 32-byte encryption key. Share the key with others to let them join."
+            return "Creates a channel with a random 128-bit encryption key. Share the key with others to let them join."
         case .joinPrivate:
             return "Enter the channel name and the shared hex secret to join an existing private channel."
         }
@@ -784,16 +784,16 @@ struct ChannelManagementView: View {
             viewModel.setChannel(index: UInt8(freeSlot), name: displayName, secret: secret)
 
         case .createPrivate:
-            // Generate random 32-byte secret
-            var randomBytes = [UInt8](repeating: 0, count: 32)
-            _ = SecRandomCopyBytes(kSecRandomDefault, 32, &randomBytes)
+            // Generate random 16-byte (128-bit) secret
+            var randomBytes = [UInt8](repeating: 0, count: 16)
+            _ = SecRandomCopyBytes(kSecRandomDefault, 16, &randomBytes)
             secret = Data(randomBytes)
             viewModel.setChannel(index: UInt8(freeSlot), name: name, secret: secret)
 
         case .joinPrivate:
             let hex = secretHex.trimmingCharacters(in: .whitespaces)
-            guard let parsed = Data(hexString: hex), parsed.count == 32 else {
-                errorMessage = "Secret must be exactly 32 bytes (64 hex characters)."
+            guard let parsed = Data(hexString: hex), parsed.count == 16 else {
+                errorMessage = "Secret must be exactly 16 bytes (32 hex characters)."
                 return
             }
             secret = parsed
@@ -810,9 +810,9 @@ struct ChannelManagementView: View {
 
     /// Derive a channel secret from a hashtag name by hashing (SHA-256).
     private func deriveHashChannelSecret(_ name: String) -> Data {
-        guard let nameData = name.data(using: .utf8) else { return Data(repeating: 0, count: 32) }
+        guard let nameData = name.data(using: .utf8) else { return Data(repeating: 0, count: 16) }
         let digest = SHA256.hash(data: nameData)
-        return Data(digest)
+        return Data(digest.prefix(16))  // 128-bit PSK from first 16 bytes of SHA-256
     }
 }
 
