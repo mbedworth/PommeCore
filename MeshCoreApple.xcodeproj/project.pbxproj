@@ -365,7 +365,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.meshcore.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mbedworth.meshcore;
 				PRODUCT_NAME = MeshCore;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.9;
@@ -437,7 +437,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				INFOPLIST_FILE = watchOS/Info.plist;
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.meshcore.app.watchos;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mbedworth.meshcore.watchos;
 				PRODUCT_NAME = "MeshCore Watch";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
@@ -458,7 +458,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.meshcore.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mbedworth.meshcore;
 				PRODUCT_NAME = MeshCore;
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.9;
@@ -477,7 +477,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.meshcore.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mbedworth.meshcore;
 				PRODUCT_NAME = MeshCore;
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.9;
@@ -498,7 +498,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.meshcore.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mbedworth.meshcore;
 				PRODUCT_NAME = MeshCore;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.9;
@@ -577,7 +577,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				INFOPLIST_FILE = watchOS/Info.plist;
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.meshcore.app.watchos;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mbedworth.meshcore.watchos;
 				PRODUCT_NAME = "MeshCore Watch";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
