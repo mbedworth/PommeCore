@@ -2012,11 +2012,18 @@ final class MeshCoreViewModel: ObservableObject {
         sendCommand(frame, label: "SET_CHANNEL(idx:\(index))")
 
         // Update locally
-        let newChannel = MeshChannel(index: index, name: name, flags: secret != nil ? 0x01 : 0x00, secret: secret)
-        if let idx = channels.firstIndex(where: { $0.index == index }) {
-            channels[idx] = newChannel
+        if name.isEmpty {
+            // Removal — remove from display and clear stored data
+            channels.removeAll { $0.index == index }
+            messagesByContact.removeValue(forKey: Data([index]))
+            unreadCounts.removeValue(forKey: Data([index]))
         } else {
-            channels.append(newChannel)
+            let newChannel = MeshChannel(index: index, name: name, flags: secret != nil ? 0x01 : 0x00, secret: secret)
+            if let idx = channels.firstIndex(where: { $0.index == index }) {
+                channels[idx] = newChannel
+            } else {
+                channels.append(newChannel)
+            }
         }
     }
 
