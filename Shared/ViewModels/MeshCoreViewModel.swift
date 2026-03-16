@@ -46,7 +46,9 @@ final class NotificationPreferences: ObservableObject {
             forName: NSUbiquitousKeyValueStore.didChangeExternallyNotification,
             object: store, queue: .main
         ) { [weak self] _ in
-            self?.loadAll()
+            Task { @MainActor in
+                self?.loadAll()
+            }
         }
     }
 
@@ -129,7 +131,9 @@ final class MeshCoreViewModel: ObservableObject {
             object: iCloudStore,
             queue: .main
         ) { [weak self] _ in
-            self?.loadNicknamesFromiCloud()
+            Task { @MainActor in
+                self?.loadNicknamesFromiCloud()
+            }
         }
     }
 
@@ -283,7 +287,9 @@ final class MeshCoreViewModel: ObservableObject {
         forwardDeviceConfigChanges()
         loadPersistedMessages()
         requestNotificationPermissions()
-        loadNicknamesFromiCloud()
+        Task { @MainActor in
+            self.loadNicknamesFromiCloud()
+        }
         observeiCloudChanges()
     }
 
