@@ -131,4 +131,76 @@ struct KeychainManager {
         deletePassword(forDevice: publicKey, type: "admin")
         deletePassword(forDevice: publicKey, type: "guest")
     }
+
+    // MARK: - Channel Secrets (iCloud Keychain sync)
+
+    private static let channelService = "com.mbedworth.meshcore.channels"
+
+    /// Save a channel secret to iCloud Keychain (syncs across Apple devices).
+    @discardableResult
+    static func saveChannelSecret(_ secret: Data, name: String, index: UInt8) -> Bool {
+        let account = "channel.\(index).\(name)"
+
+        // Delete existing first
+        var deleteQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: channelService,
+            kSecAttrAccount as String: account,
+            kSecAttrSynchronizable as String: true
+        ]
+        #if os(macOS)
+        deleteQuery[kSecUseDataProtectionKeychain as String] = true
+        #endif
+        SecItemDelete(deleteQuery as CFDictionary)
+
+        var addQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: channelService,
+            kSecAttrAccount as String: account,
+            kSecValueData as String: secret,
+            kSecAttrSynchronizable as String: true,
+            kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlocked
+        ]
+        #if os(macOS)
+        addQuery[kSecUseDataProtectionKeychain as String] = true
+        #endif
+
+        return SecItemAdd(addQuery as CFDictionary, nil) == errSecSuccess
+    }
+
+    /// Retrieve a channel secret from iCloud Keychain.
+    static func getChannelSecret(name: String, index: UInt8) -> Data? {
+        var query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: channelService,
+            kSecAttrAccount as String: "channel.\(index).\(name)",
+            kSecAttrSynchronizable as String: true,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+        #if os(macOS)
+        query[kSecUseDataProtectionKeychain as String] = true
+        #endif
+
+        var result: AnyObject?
+        guard SecItemCopyMatching(query as CFDictionary, &result) == errSecSuccess,
+              let data = result as? Data else { return nil }
+        return data
+    }
+
+    /// Delete a channel secret from iCloud Keychain.
+    @discardableResult
+    static func deleteChannelSecret(name: String, index: UInt8) -> Bool {
+        var query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: channelService,
+            kSecAttrAccount as String: "channel.\(index).\(name)",
+            kSecAttrSynchronizable as String: true
+        ]
+        #if os(macOS)
+        query[kSecUseDataProtectionKeychain as String] = true
+        #endif
+        let status = SecItemDelete(query as CFDictionary)
+        return status == errSecSuccess || status == errSecItemNotFound
+    }
 }

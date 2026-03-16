@@ -1978,10 +1978,13 @@ final class MeshCoreViewModel: ObservableObject {
     /// Channel info frames arrive after contacts. Once all maxChannels are received,
     /// we finalize the channel list.
     private func handleChannelInfo(_ channel: MeshChannel) {
-        // Preserve locally-stored secrets
+        // Restore secret: first from in-memory channels, then from iCloud Keychain
         var ch = channel
         if let existing = channels.first(where: { $0.index == channel.index }) {
             ch.secret = existing.secret
+        }
+        if ch.secret == nil, !ch.name.isEmpty {
+            ch.secret = KeychainManager.getChannelSecret(name: ch.name, index: ch.index)
         }
         // Deduplicate by index — replace if already received (handles overlapping syncs)
         if let existingIdx = incomingChannels.firstIndex(where: { $0.index == ch.index }) {
@@ -2014,10 +2017,17 @@ final class MeshCoreViewModel: ObservableObject {
         // Update locally
         if name.isEmpty {
             // Removal — remove from display and clear stored data
+            if let existing = channels.first(where: { $0.index == index }) {
+                KeychainManager.deleteChannelSecret(name: existing.name, index: index)
+            }
             channels.removeAll { $0.index == index }
             messagesByContact.removeValue(forKey: Data([index]))
             unreadCounts.removeValue(forKey: Data([index]))
         } else {
+            // Save secret to iCloud Keychain for cross-device sync
+            if let secret, !secret.isEmpty {
+                KeychainManager.saveChannelSecret(secret, name: name, index: index)
+            }
             let newChannel = MeshChannel(index: index, name: name, flags: secret != nil ? 0x01 : 0x00, secret: secret)
             if let idx = channels.firstIndex(where: { $0.index == index }) {
                 channels[idx] = newChannel
