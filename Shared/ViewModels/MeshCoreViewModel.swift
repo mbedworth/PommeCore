@@ -742,6 +742,63 @@ final class MeshCoreViewModel: ObservableObject {
     /// Last exported contact URL (set when exportedContact response arrives).
     @Published var lastExportedURL: String?
 
+    // MARK: - Channel Import
+
+    /// Parsed channel data pending user confirmation (add vs replace).
+    struct PendingChannelImport {
+        let name: String
+        let secret: Data?
+    }
+
+    @Published var pendingChannelImport: PendingChannelImport?
+    @Published var showChannelImportOptions = false
+
+    /// Handle a meshcore:// URL — routes to contact or channel import.
+    func handleMeshCoreURL(_ urlString: String) {
+        if urlString.contains("meshcore://channel") {
+            if let parsed = parseChannelURL(urlString) {
+                pendingChannelImport = parsed
+                showChannelImportOptions = true
+            }
+        } else if urlString.hasPrefix("meshcore://") {
+            importContact(url: urlString)
+        }
+    }
+
+    /// Parse a meshcore://channel?name=NAME&secret=HEX URL.
+    private func parseChannelURL(_ urlString: String) -> PendingChannelImport? {
+        guard let components = URLComponents(string: urlString),
+              let nameItem = components.queryItems?.first(where: { $0.name == "name" }),
+              let name = nameItem.value, !name.isEmpty else { return nil }
+
+        var secret: Data?
+        if let secretHex = components.queryItems?.first(where: { $0.name == "secret" })?.value,
+           !secretHex.isEmpty {
+            secret = Data(hexString: secretHex)
+        }
+        return PendingChannelImport(name: name, secret: secret)
+    }
+
+    /// Add a channel to the next available slot.
+    func importChannelAdd(_ data: PendingChannelImport) {
+        let usedIndices = Set(channels.map(\.index))
+        var nextSlot: UInt8 = 1
+        while usedIndices.contains(nextSlot) && nextSlot < deviceConfig.maxChannels {
+            nextSlot += 1
+        }
+        setChannel(index: nextSlot, name: data.name, secret: data.secret)
+    }
+
+    /// Replace all non-public channels, then add this one at slot 1.
+    func importChannelReplaceAll(_ data: PendingChannelImport) {
+        // Clear all non-public channels
+        for channel in channels where channel.index != 0 {
+            setChannel(index: channel.index, name: "", secret: nil)
+        }
+        // Add the new channel at slot 1
+        setChannel(index: 1, name: data.name, secret: data.secret)
+    }
+
     // MARK: - Messaging
 
     func messages(for contact: Contact) -> [Message] {

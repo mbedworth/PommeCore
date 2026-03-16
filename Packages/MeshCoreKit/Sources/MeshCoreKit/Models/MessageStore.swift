@@ -62,7 +62,7 @@ public final class MessageStore {
 }
 
 extension Data {
-    init?(hexString: String) {
+    public init?(hexString: String) {
         let hex = hexString.replacingOccurrences(of: " ", with: "")
         guard hex.count % 2 == 0 else { return nil }
         var data = Data(capacity: hex.count / 2)

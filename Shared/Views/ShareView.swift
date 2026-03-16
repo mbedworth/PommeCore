@@ -83,6 +83,114 @@ struct QRCodeView: View {
 }
 #endif
 
+// MARK: - QR Code Camera Scanner (iOS only)
+
+#if os(iOS)
+import AVFoundation
+
+struct QRScannerView: UIViewControllerRepresentable {
+    let onCodeScanned: (String) -> Void
+
+    func makeUIViewController(context: Context) -> QRScannerViewController {
+        let vc = QRScannerViewController()
+        vc.onCodeScanned = onCodeScanned
+        return vc
+    }
+
+    func updateUIViewController(_ vc: QRScannerViewController, context: Context) {}
+}
+
+class QRScannerViewController: UIViewController, AVCaptureMetadataOutputObjectsDelegate {
+    var onCodeScanned: ((String) -> Void)?
+    private let captureSession = AVCaptureSession()
+    private var hasScanned = false
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .black
+
+        guard let device = AVCaptureDevice.default(for: .video),
+              let input = try? AVCaptureDeviceInput(device: device),
+              captureSession.canAddInput(input) else {
+            showError("Camera not available")
+            return
+        }
+
+        captureSession.addInput(input)
+
+        let output = AVCaptureMetadataOutput()
+        guard captureSession.canAddOutput(output) else { return }
+        captureSession.addOutput(output)
+        output.setMetadataObjectsDelegate(self, queue: .main)
+        output.metadataObjectTypes = [.qr]
+
+        let previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
+        previewLayer.frame = view.bounds
+        previewLayer.videoGravity = .resizeAspectFill
+        view.layer.addSublayer(previewLayer)
+
+        // Scan target overlay
+        let guide = UIView()
+        guide.layer.borderColor = UIColor.white.cgColor
+        guide.layer.borderWidth = 2
+        guide.layer.cornerRadius = 12
+        guide.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(guide)
+        NSLayoutConstraint.activate([
+            guide.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            guide.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            guide.widthAnchor.constraint(equalToConstant: 250),
+            guide.heightAnchor.constraint(equalToConstant: 250),
+        ])
+
+        let hint = UILabel()
+        hint.text = "Point camera at a meshcore:// QR code"
+        hint.textColor = .white
+        hint.font = .systemFont(ofSize: 14)
+        hint.textAlignment = .center
+        hint.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(hint)
+        NSLayoutConstraint.activate([
+            hint.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            hint.topAnchor.constraint(equalTo: guide.bottomAnchor, constant: 20),
+        ])
+
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            self?.captureSession.startRunning()
+        }
+    }
+
+    func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
+        guard !hasScanned,
+              let object = metadataObjects.first as? AVMetadataMachineReadableCodeObject,
+              let string = object.stringValue,
+              string.hasPrefix("meshcore://") else { return }
+        hasScanned = true
+        captureSession.stopRunning()
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        onCodeScanned?(string)
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        captureSession.stopRunning()
+    }
+
+    private func showError(_ message: String) {
+        let label = UILabel()
+        label.text = message
+        label.textColor = .white
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(label)
+        NSLayoutConstraint.activate([
+            label.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            label.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+        ])
+    }
+}
+#endif
+
 // MARK: - Share Contact Sheet
 
 #if !os(watchOS)

@@ -19,6 +19,9 @@ struct ContactListView: View {
     @State private var showChannelSheet = false
     @State private var showDeviceInfo = false
     @State private var showNicknameSheet = false
+    #if os(iOS)
+    @State private var showQRScanner = false
+    #endif
     @State private var nicknameContact: Contact?
     @State private var nicknameText = ""
     #if !os(watchOS)
@@ -564,9 +567,9 @@ struct ContactListView: View {
                 showImportSheet = true
             } label: {
                 HStack {
-                    Image(systemName: "person.badge.plus")
+                    Image(systemName: "link")
                         .foregroundStyle(MeshTheme.accent)
-                    Text("Import Contact")
+                    Text("Paste Link")
                         .foregroundStyle(MeshTheme.accent)
                     Spacer()
                 }
@@ -574,6 +577,23 @@ struct ContactListView: View {
             }
             .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
+
+            #if os(iOS)
+            Button {
+                showQRScanner = true
+            } label: {
+                HStack {
+                    Image(systemName: "qrcode.viewfinder")
+                        .foregroundStyle(MeshTheme.accent)
+                    Text("Scan QR Code")
+                        .foregroundStyle(MeshTheme.accent)
+                    Spacer()
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .listRowBackground(MeshTheme.surface)
+            #endif
             #endif
         } header: {
             Text("Contacts")
@@ -592,17 +612,56 @@ struct ContactListView: View {
                 Text("Are you sure you want to remove \(contact.name)? This will delete all messages with this contact.")
             }
         }
-        .alert("Import Contact", isPresented: $showImportSheet) {
+        .alert("Import from Link", isPresented: $showImportSheet) {
             TextField("meshcore:// URL", text: $importURLText)
             Button("Cancel", role: .cancel) {}
             Button("Import") {
                 let url = importURLText.trimmingCharacters(in: .whitespacesAndNewlines)
                 if !url.isEmpty {
-                    viewModel.importContact(url: url)
+                    viewModel.handleMeshCoreURL(url)
                 }
             }
         } message: {
-            Text("Paste a meshcore:// link to add a contact.")
+            Text("Paste a meshcore:// link to import a contact or channel.")
+        }
+        #if os(iOS)
+        .sheet(isPresented: $showQRScanner) {
+            NavigationStack {
+                QRScannerView { scannedURL in
+                    showQRScanner = false
+                    viewModel.handleMeshCoreURL(scannedURL)
+                }
+                .navigationTitle("Scan QR Code")
+                #if os(iOS)
+                .navigationBarTitleDisplayMode(.inline)
+                #endif
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") { showQRScanner = false }
+                    }
+                }
+            }
+            .meshTheme()
+        }
+        #endif
+        .confirmationDialog(
+            "Import Channel",
+            isPresented: $viewModel.showChannelImportOptions,
+            presenting: viewModel.pendingChannelImport
+        ) { data in
+            Button("Add Channel") {
+                viewModel.importChannelAdd(data)
+                viewModel.pendingChannelImport = nil
+            }
+            Button("Replace All Channels", role: .destructive) {
+                viewModel.importChannelReplaceAll(data)
+                viewModel.pendingChannelImport = nil
+            }
+            Button("Cancel", role: .cancel) {
+                viewModel.pendingChannelImport = nil
+            }
+        } message: { data in
+            Text("Add \"\(data.name)\" to your channels, or replace all existing channels?")
         }
     }
 
