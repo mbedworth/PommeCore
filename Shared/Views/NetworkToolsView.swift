@@ -627,7 +627,7 @@ struct ChannelManagementView: View {
                     HStack {
                         Image(systemName: "plus.circle.fill")
                             .foregroundStyle(MeshTheme.accent)
-                        Text("Join Channel")
+                        Text(actionButtonLabel)
                             .foregroundStyle(MeshTheme.accent)
                         Spacer()
                     }
@@ -745,6 +745,19 @@ struct ChannelManagementView: View {
             return "Creates a channel with a random 32-byte encryption key. Share the key with others to let them join."
         case .joinPrivate:
             return "Enter the channel name and the shared hex secret to join an existing private channel."
+        }
+    }
+
+    private var actionButtonLabel: String {
+        switch selectedAction {
+        case .hashtag:
+            let name = channelName.trimmingCharacters(in: .whitespaces)
+            let display = name.hasPrefix("#") ? name : "#\(name)"
+            return name.isEmpty ? "Join" : "Join \(display)"
+        case .createPrivate:
+            return "Create Channel"
+        case .joinPrivate:
+            return "Join Channel"
         }
     }
 
