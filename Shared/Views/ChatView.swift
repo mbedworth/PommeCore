@@ -186,9 +186,10 @@ struct ChannelChatView: View {
         .background(MeshTheme.background)
         .navigationTitle(channelName)
         .onAppear {
-            // Store last-read timestamp for unread divider before clearing count
+            // Store last-read timestamp for unread divider (iCloud synced)
             let lastReadKey = "lastRead.\(channelKey.map { String(format: "%02x", $0) }.joined())"
-            UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: lastReadKey)
+            NSUbiquitousKeyValueStore.default.set(Date().timeIntervalSince1970, forKey: lastReadKey)
+            NSUbiquitousKeyValueStore.default.synchronize()
             viewModel.unreadCounts[channelKey] = 0
             if messageText.isEmpty {
                 messageText = viewModel.loadDraft(for: channelKey)

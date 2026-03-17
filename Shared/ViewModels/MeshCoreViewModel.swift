@@ -206,28 +206,49 @@ final class MeshCoreViewModel: ObservableObject {
         return contactNotes[key] != nil && !contactNotes[key]!.isEmpty
     }
 
-    // MARK: - Message Drafts
+    // MARK: - Message Drafts (iCloud synced)
 
     func saveDraft(_ text: String, for contactKey: Data) {
         let key = "draft.\(contactKey.map { String(format: "%02x", $0) }.joined())"
         if text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            UserDefaults.standard.removeObject(forKey: key)
+            iCloudStore.removeObject(forKey: key)
         } else {
-            UserDefaults.standard.set(text, forKey: key)
+            iCloudStore.set(text, forKey: key)
         }
+        iCloudStore.synchronize()
     }
 
     func loadDraft(for contactKey: Data) -> String {
         let key = "draft.\(contactKey.map { String(format: "%02x", $0) }.joined())"
-        return UserDefaults.standard.string(forKey: key) ?? ""
+        return iCloudStore.string(forKey: key) ?? ""
     }
 
     func hasDraft(for contactKey: Data) -> Bool {
         let key = "draft.\(contactKey.map { String(format: "%02x", $0) }.joined())"
-        if let draft = UserDefaults.standard.string(forKey: key), !draft.isEmpty {
+        if let draft = iCloudStore.string(forKey: key), !draft.isEmpty {
             return true
         }
         return false
+    }
+
+    // MARK: - Channel Notification Modes (iCloud synced)
+
+    enum ChannelNotifyMode: String {
+        case all = "all"
+        case mentionsOnly = "mentions"
+        case muted = "muted"
+    }
+
+    func channelNotifyMode(for channelName: String) -> ChannelNotifyMode {
+        let key = "channel.notify.\(channelName)"
+        let raw = iCloudStore.string(forKey: key) ?? "all"
+        return ChannelNotifyMode(rawValue: raw) ?? .all
+    }
+
+    func setChannelNotifyMode(_ mode: ChannelNotifyMode, for channelName: String) {
+        let key = "channel.notify.\(channelName)"
+        iCloudStore.set(mode.rawValue, forKey: key)
+        iCloudStore.synchronize()
     }
 
     // MARK: - Battery Calibration (per-device, iCloud synced)
@@ -1184,24 +1205,25 @@ final class MeshCoreViewModel: ObservableObject {
     func markAsRead(_ contact: Contact) {
         unreadCounts[contact.publicKeyPrefix] = 0
         updateAppBadge()
-        // Store the last-read timestamp for unread divider
+        // Store the last-read timestamp for unread divider (iCloud synced)
         let key = "lastRead.\(contact.publicKeyPrefix.map { String(format: "%02x", $0) }.joined())"
-        UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: key)
+        iCloudStore.set(Date().timeIntervalSince1970, forKey: key)
+        iCloudStore.synchronize()
     }
 
     /// Returns the index of the first unread incoming message for a contact.
     func firstUnreadIndex(in messages: [Message], for contactKey: Data) -> Int? {
         let key = "lastRead.\(contactKey.map { String(format: "%02x", $0) }.joined())"
-        let lastRead = UserDefaults.standard.double(forKey: key)
+        let lastRead = iCloudStore.double(forKey: key)
         guard lastRead > 0 else { return nil }
         let lastReadDate = Date(timeIntervalSince1970: lastRead)
         return messages.firstIndex { $0.timestamp > lastReadDate && !$0.isOutgoing }
     }
 
-    /// Returns the last-read timestamp for a contact, used to capture before markAsRead clears it.
+    /// Returns the last-read timestamp for a contact.
     func lastReadTimestamp(for contactKey: Data) -> Date? {
         let key = "lastRead.\(contactKey.map { String(format: "%02x", $0) }.joined())"
-        let ts = UserDefaults.standard.double(forKey: key)
+        let ts = iCloudStore.double(forKey: key)
         guard ts > 0 else { return nil }
         return Date(timeIntervalSince1970: ts)
     }
