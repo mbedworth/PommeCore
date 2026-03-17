@@ -3,22 +3,46 @@ import SwiftUI
 struct OnboardingView: View {
     @Binding var hasCompletedOnboarding: Bool
     @State private var currentPage = 0
+    private let lastPage = 3
 
     var body: some View {
-        TabView(selection: $currentPage) {
-            welcomePage.tag(0)
-            connectPage.tag(1)
-            communicatePage.tag(2)
-            getStartedPage.tag(3)
+        ZStack(alignment: .top) {
+            TabView(selection: $currentPage) {
+                welcomePage.tag(0)
+                connectPage.tag(1)
+                communicatePage.tag(2)
+                getStartedPage.tag(3)
+            }
+            #if os(watchOS)
+            .tabViewStyle(.carousel)
+            #elseif os(iOS)
+            .tabViewStyle(.page(indexDisplayMode: .never))
+            #endif
+            .background(MeshTheme.background)
+            .animation(.easeInOut, value: currentPage)
+
+            // Skip button (top-right, all pages except last)
+            if currentPage < lastPage {
+                HStack {
+                    Spacer()
+                    Button {
+                        withAnimation { hasCompletedOnboarding = true }
+                    } label: {
+                        Text("Skip")
+                            .font(.subheadline)
+                            .foregroundStyle(MeshTheme.textSecondary)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(.top, 8)
+                .padding(.trailing, 8)
+            }
         }
-        #if os(watchOS)
-        .tabViewStyle(.carousel)
-        #elseif os(iOS)
-        .tabViewStyle(.page(indexDisplayMode: .always))
-        .indexViewStyle(.page(backgroundDisplayMode: .always))
-        #endif
-        .background(MeshTheme.background)
     }
+
+    // MARK: - Pages
 
     private var welcomePage: some View {
         VStack(spacing: 24) {
@@ -38,7 +62,7 @@ struct OnboardingView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
             Spacer()
-            swipeHint
+            navigationControls
         }
         .padding()
     }
@@ -78,7 +102,7 @@ struct OnboardingView: View {
                 #endif
             }
             Spacer()
-            swipeHint
+            navigationControls
         }
         .padding()
     }
@@ -124,7 +148,7 @@ struct OnboardingView: View {
                 }
             }
             Spacer()
-            swipeHint
+            navigationControls
         }
         .padding()
     }
@@ -145,9 +169,7 @@ struct OnboardingView: View {
                 .padding(.horizontal, 32)
             Spacer()
             Button {
-                withAnimation {
-                    hasCompletedOnboarding = true
-                }
+                withAnimation { hasCompletedOnboarding = true }
             } label: {
                 Text("Get Started")
                     .font(.headline)
@@ -159,15 +181,50 @@ struct OnboardingView: View {
             }
             .buttonStyle(.plain)
             .padding(.horizontal, 40)
-            .padding(.bottom, 20)
+
+            navigationControls
         }
         .padding()
     }
 
-    private var swipeHint: some View {
-        Text("Swipe to continue")
-            .font(.caption)
-            .foregroundStyle(MeshTheme.textSecondary)
-            .padding(.bottom, 20)
+    // MARK: - Navigation Controls
+
+    private var navigationControls: some View {
+        HStack(spacing: 20) {
+            // Back arrow
+            Button {
+                withAnimation { currentPage = max(0, currentPage - 1) }
+            } label: {
+                Image(systemName: "chevron.left.circle.fill")
+                    .font(.title2)
+                    .foregroundStyle(currentPage > 0 ? MeshTheme.accent : MeshTheme.textSecondary.opacity(0.3))
+            }
+            .buttonStyle(.plain)
+            .disabled(currentPage == 0)
+
+            // Page dots
+            HStack(spacing: 8) {
+                ForEach(0...lastPage, id: \.self) { page in
+                    Circle()
+                        .fill(page == currentPage ? MeshTheme.accent : MeshTheme.textSecondary.opacity(0.3))
+                        .frame(width: 8, height: 8)
+                }
+            }
+
+            // Forward arrow
+            Button {
+                if currentPage < lastPage {
+                    withAnimation { currentPage += 1 }
+                } else {
+                    withAnimation { hasCompletedOnboarding = true }
+                }
+            } label: {
+                Image(systemName: "chevron.right.circle.fill")
+                    .font(.title2)
+                    .foregroundStyle(MeshTheme.accent)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.bottom, 20)
     }
 }
