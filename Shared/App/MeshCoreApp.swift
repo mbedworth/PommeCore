@@ -106,6 +106,10 @@ struct ContentView: View {
             case .settings:
                 SettingsView()
                     .environmentObject(viewModel)
+            #if os(macOS)
+            case .usbTerminal:
+                USBTerminalView()
+            #endif
             case nil:
                 if viewModel.connectionState == .disconnected {
                     VStack(spacing: 16) {

@@ -55,6 +55,28 @@ struct ContactListView: View {
             #if !os(watchOS)
             settingsSection
             #endif
+            #if os(macOS)
+            if viewModel.usbManager.isConnected && viewModel.usbManager.detectedMode == .cli {
+                Section {
+                    NavigationLink(value: SidebarSelection.usbTerminal) {
+                        HStack(spacing: 12) {
+                            ZStack {
+                                Circle()
+                                    .fill(MeshTheme.accent.opacity(0.15))
+                                    .frame(width: 40, height: 40)
+                                Image(systemName: "terminal")
+                                    .foregroundStyle(MeshTheme.accent)
+                            }
+                            Text("USB Terminal")
+                                .font(.body)
+                                .foregroundStyle(MeshTheme.accent)
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .listRowBackground(MeshTheme.surface)
+                }
+            }
+            #endif
         }
         .meshListStyle()
         .refreshable {
@@ -995,6 +1017,10 @@ struct ContactListView: View {
         case .settings:
             SettingsView()
                 .environmentObject(viewModel)
+        #if os(macOS)
+        case .usbTerminal:
+            USBTerminalView()
+        #endif
         }
     }
     #endif
