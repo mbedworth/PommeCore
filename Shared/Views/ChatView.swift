@@ -710,10 +710,29 @@ struct RoomMessageBubble: View {
                         }
                     }
 
-                    if !message.isOutgoing, let snr = message.snr {
-                        Text("SNR \(snr)")
-                            .font(.caption2)
-                            .foregroundStyle(MeshTheme.textSecondary)
+                    if !message.isOutgoing {
+                        if let hops = message.hops {
+                            Text("\u{2022}")
+                                .font(.caption2)
+                                .foregroundStyle(MeshTheme.textSecondary)
+                            if hops == 0 || hops == 0xFF {
+                                Text("direct")
+                                    .font(.caption2)
+                                    .foregroundStyle(MeshTheme.textSecondary)
+                            } else {
+                                Text("\(hops) hop\(hops == 1 ? "" : "s")")
+                                    .font(.caption2)
+                                    .foregroundStyle(MeshTheme.textSecondary)
+                            }
+                        }
+                        if let snr = message.snr {
+                            Text("\u{2022}")
+                                .font(.caption2)
+                                .foregroundStyle(MeshTheme.textSecondary)
+                            Text(String(format: "%.1f dB", Double(snr) / 4.0))
+                                .font(.caption2)
+                                .foregroundStyle(MeshTheme.textSecondary)
+                        }
                     }
                 }
                 .padding(.horizontal, 4)
@@ -914,10 +933,29 @@ struct MessageBubble: View {
                         deliveryIndicator
                     }
 
-                    if !message.isOutgoing, let snr = message.snr {
-                        Text("SNR \(snr)")
-                            .font(.caption2)
-                            .foregroundStyle(MeshTheme.textSecondary)
+                    if !message.isOutgoing {
+                        if let hops = message.hops {
+                            Text("\u{2022}")
+                                .font(.caption2)
+                                .foregroundStyle(MeshTheme.textSecondary)
+                            if hops == 0 || hops == 0xFF {
+                                Text("direct")
+                                    .font(.caption2)
+                                    .foregroundStyle(MeshTheme.textSecondary)
+                            } else {
+                                Text("\(hops) hop\(hops == 1 ? "" : "s")")
+                                    .font(.caption2)
+                                    .foregroundStyle(MeshTheme.textSecondary)
+                            }
+                        }
+                        if let snr = message.snr {
+                            Text("\u{2022}")
+                                .font(.caption2)
+                                .foregroundStyle(MeshTheme.textSecondary)
+                            Text(String(format: "%.1f dB", Double(snr) / 4.0))
+                                .font(.caption2)
+                                .foregroundStyle(MeshTheme.textSecondary)
+                        }
                     }
 
                     if message.isSigned {
@@ -972,7 +1010,10 @@ struct MessageBubble: View {
                     .font(.caption2)
                     .foregroundStyle(MeshTheme.accent)
                 if let rtt = message.roundTripMs, rtt > 0 {
-                    Text("\(rtt)ms")
+                    Text("\u{2022}")
+                        .font(.caption2)
+                        .foregroundStyle(MeshTheme.accent)
+                    Text(String(format: "%.1fs", Double(rtt) / 1000.0))
                         .font(.caption2)
                         .foregroundStyle(MeshTheme.accent)
                 }
@@ -1036,10 +1077,29 @@ struct ChannelMessageBubble: View {
                             .foregroundStyle(MeshTheme.textSecondary)
                     }
 
-                    if !message.isOutgoing, let snr = message.snr {
-                        Text("SNR \(snr)")
-                            .font(.caption2)
-                            .foregroundStyle(MeshTheme.textSecondary)
+                    if !message.isOutgoing {
+                        if let hops = message.hops {
+                            Text("\u{2022}")
+                                .font(.caption2)
+                                .foregroundStyle(MeshTheme.textSecondary)
+                            if hops == 0 || hops == 0xFF {
+                                Text("direct")
+                                    .font(.caption2)
+                                    .foregroundStyle(MeshTheme.textSecondary)
+                            } else {
+                                Text("\(hops) hop\(hops == 1 ? "" : "s")")
+                                    .font(.caption2)
+                                    .foregroundStyle(MeshTheme.textSecondary)
+                            }
+                        }
+                        if let snr = message.snr {
+                            Text("\u{2022}")
+                                .font(.caption2)
+                                .foregroundStyle(MeshTheme.textSecondary)
+                            Text(String(format: "%.1f dB", Double(snr) / 4.0))
+                                .font(.caption2)
+                                .foregroundStyle(MeshTheme.textSecondary)
+                        }
                     }
 
                     if message.isSigned {

@@ -33,8 +33,11 @@ public struct Message: Identifiable, Codable, Sendable {
     /// Expected ACK code from the device (for tracking delivery confirmation).
     public var expectedACK: UInt32?
 
-    /// SNR of the received message (for incoming messages).
+    /// SNR of the received message (raw value from protocol, divide by 4.0 for dB).
     public let snr: Int8?
+
+    /// Hop count from the received message (0 = direct, 0xFF = routed/unknown, >0 = number of hops).
+    public let hops: UInt8?
 
     /// Channel index (for channel messages, nil for direct).
     public let channelIndex: UInt8?
@@ -64,6 +67,7 @@ public struct Message: Identifiable, Codable, Sendable {
         status: DeliveryStatus = .sending,
         expectedACK: UInt32? = nil,
         snr: Int8? = nil,
+        hops: UInt8? = nil,
         channelIndex: UInt8? = nil,
         senderName: String? = nil,
         roundTripMs: UInt32? = nil,
@@ -80,6 +84,7 @@ public struct Message: Identifiable, Codable, Sendable {
         self.status = status
         self.expectedACK = expectedACK
         self.snr = snr
+        self.hops = hops
         self.channelIndex = channelIndex
         self.senderName = senderName
         self.roundTripMs = roundTripMs
