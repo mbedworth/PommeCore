@@ -668,6 +668,7 @@ struct RemoteGPSSection: View {
     let canEdit: Bool
     @State private var gpsSyncFeedback = false
     @State private var gpsLocFeedback = false
+    @State private var gpsAdvertMode = ""
 
     var body: some View {
         Section {
@@ -704,29 +705,43 @@ struct RemoteGPSSection: View {
 
                 Spacer()
 
-                #if os(watchOS)
-                Button { sendCLI("gps advert share") } label: {
-                    Label("Advert", systemImage: "location.north.line")
-                        .foregroundStyle(MeshTheme.accent)
+            }
+            .listRowBackground(MeshTheme.surface)
+
+            HStack {
+                Image(systemName: "location.north.line")
+                    .foregroundStyle(MeshTheme.accent)
+                    .frame(width: 24)
+                Picker("Location in Advertisements", selection: gpsAdvertBinding) {
+                    Text("None \u{2014} don't include location").tag("none")
+                    Text("GPS \u{2014} use live GPS coordinates").tag("share")
+                    Text("Manual \u{2014} use saved lat/lon settings").tag("prefs")
                 }
-                .buttonStyle(.plain)
-                #else
-                Menu {
-                    Button("None") { sendCLI("gps advert none") }
-                    Button("Share") { sendCLI("gps advert share") }
-                    Button("Prefs") { sendCLI("gps advert prefs") }
-                } label: {
-                    Label("Advert Mode", systemImage: "location.north.line")
-                        .foregroundStyle(MeshTheme.accent)
-                }
-                #endif
+                .foregroundStyle(MeshTheme.accent)
+                .tint(MeshTheme.accent)
             }
             .listRowBackground(MeshTheme.surface)
             }
         } header: {
             Text("GPS")
                 .foregroundStyle(MeshTheme.textSecondary)
+        } footer: {
+            Text("Controls whether this device includes its location in mesh advertisements. \u{2018}GPS\u{2019} uses the hardware GPS module. \u{2018}Manual\u{2019} uses the latitude and longitude values configured in the advertising section.")
+                .font(.caption2)
         }
+    }
+
+    private var gpsAdvertBinding: Binding<String> {
+        Binding(
+            get: {
+                if !gpsAdvertMode.isEmpty { return gpsAdvertMode }
+                return session.settings["gps.advert"] ?? "none"
+            },
+            set: { newValue in
+                gpsAdvertMode = newValue
+                sendCLI("gps advert \(newValue)")
+            }
+        )
     }
 }
 
