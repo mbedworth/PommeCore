@@ -10,10 +10,12 @@ struct MeshMapView: View {
     @StateObject private var locationManager = LocationManager()
 
     private var mappableContacts: [Contact] {
-        viewModel.contacts.filter { $0.latitude != 0 || $0.longitude != 0 }
+        let mapped = viewModel.contacts.filter { $0.latitude != 0 || $0.longitude != 0 }
+        return mapped
     }
 
     var body: some View {
+
         ZStack {
             Map {
                 ForEach(mappableContacts) { contact in
@@ -57,13 +59,18 @@ struct MeshMapView: View {
                         .padding()
                 }
                 if mappableContacts.isEmpty {
-                    Text("No contacts with location data")
-                        .font(.caption)
-                        .foregroundStyle(MeshTheme.textSecondary)
-                        .padding(8)
-                        .background(.thinMaterial)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                        .padding(.bottom)
+                    VStack(spacing: 4) {
+                        Text("No contacts with location data")
+                            .font(.caption)
+                            .foregroundStyle(MeshTheme.textSecondary)
+                        Text("\(viewModel.contacts.count) contacts total, \(mappableContacts.count) with coordinates")
+                            .font(.caption2)
+                            .foregroundStyle(MeshTheme.textSecondary)
+                    }
+                    .padding(8)
+                    .background(.thinMaterial)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .padding(.bottom)
                 }
             }
         }
