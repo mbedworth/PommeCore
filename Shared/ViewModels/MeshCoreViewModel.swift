@@ -683,6 +683,27 @@ final class MeshCoreViewModel: ObservableObject {
         }
     }
 
+    /// Update a contact's flags byte and sync to the radio (preserves all other contact data).
+    func updateContactFlags(_ contact: Contact, newFlags: UInt8) {
+        let frame = MeshCoreProtocol.buildAddUpdateContact(
+            publicKey: contact.publicKey,
+            type: contact.type.rawValue,
+            flags: newFlags,
+            outPathLen: contact.outPathLen,
+            outPath: contact.outPath,
+            advName: contact.name,
+            lastAdvert: contact.lastAdvert,
+            latitude: Int32(contact.latitude * 1_000_000),
+            longitude: Int32(contact.longitude * 1_000_000)
+        )
+        sendCommand(frame, label: "UPDATE_CONTACT_FLAGS")
+
+        // Optimistic local update
+        if let index = contacts.firstIndex(where: { $0.publicKeyPrefix == contact.publicKeyPrefix }) {
+            contacts[index] = contact.withFlags(newFlags)
+        }
+    }
+
     func requestBattAndStorage() {
         sendCommand(MeshCoreProtocol.buildGetBattAndStorage(), label: "GET_BATT")
     }

@@ -60,6 +60,16 @@ public struct Contact: Identifiable, Codable, Sendable, Hashable {
         (flags & 0x01) != 0
     }
 
+    /// Whether this contact is allowed to request telemetry (bit 1 of flags).
+    public var allowTelemetry: Bool {
+        (flags & 0x02) != 0
+    }
+
+    /// Whether to share location in telemetry with this contact (bit 2 of flags).
+    public var shareTelemetryLocation: Bool {
+        (flags & 0x04) != 0
+    }
+
     /// Last time this contact was seen on the mesh (derived from lastAdvert).
     public var lastSeen: Date {
         lastAdvert > 0 ? Date(timeIntervalSince1970: TimeInterval(lastAdvert)) : Date.distantPast
