@@ -461,6 +461,37 @@ final class MeshCoreViewModel: ObservableObject {
                 log.info("Notification permission granted: \(granted)")
             }
         }
+        setupNotificationCategories()
+    }
+
+    private func setupNotificationCategories() {
+        #if os(iOS)
+        let replyAction = UNTextInputNotificationAction(
+            identifier: "REPLY_ACTION",
+            title: "Reply",
+            options: [],
+            textInputButtonTitle: "Send",
+            textInputPlaceholder: "Type a message..."
+        )
+        let messageCategory = UNNotificationCategory(
+            identifier: "MESSAGE_CATEGORY",
+            actions: [replyAction],
+            intentIdentifiers: [],
+            options: []
+        )
+        UNUserNotificationCenter.current().setNotificationCategories([messageCategory])
+        #endif
+    }
+
+    /// Handle a quick reply from a notification action.
+    func handleNotificationReply(text: String, contactPubkeyHex: String) {
+        guard let contact = contacts.first(where: {
+            $0.publicKey.map { String(format: "%02x", $0) }.joined() == contactPubkeyHex
+        }) else {
+            Self.logger.warning("Quick reply: contact not found for \(contactPubkeyHex)")
+            return
+        }
+        sendTextMessage(text, to: contact)
     }
 
     /// Post a local notification for an incoming message when the app is backgrounded.
@@ -501,6 +532,16 @@ final class MeshCoreViewModel: ObservableObject {
             content.title = "New Message"
         }
         content.body = message.text
+
+        // Include contact pubkey for quick reply
+        if let contact {
+            content.userInfo["contactPubkey"] = contact.publicKey.map { String(format: "%02x", $0) }.joined()
+            #if os(iOS)
+            if !isChannel {
+                content.categoryIdentifier = "MESSAGE_CATEGORY"
+            }
+            #endif
+        }
 
         // Include badge count
         let totalUnread = unreadCounts.values.reduce(0, +)
