@@ -37,6 +37,9 @@ struct ContactListView: View {
     #endif
     @State private var nicknameContact: Contact?
     @State private var nicknameText = ""
+    @State private var isSelecting = false
+    @State private var selectedContacts: Set<Data> = [] // publicKeyPrefix
+    @State private var showBulkDeleteConfirm = false
     #if !os(watchOS)
     @State private var shareContact: Contact?
     #endif
@@ -642,6 +645,18 @@ struct ContactListView: View {
                     }
                     .listRowBackground(MeshTheme.surface)
                     #else
+                    if isSelecting {
+                        Button {
+                            toggleSelection(contact)
+                        } label: {
+                            HStack(spacing: 10) {
+                                Image(systemName: selectedContacts.contains(contact.publicKeyPrefix) ? "checkmark.circle.fill" : "circle")
+                                    .foregroundStyle(selectedContacts.contains(contact.publicKeyPrefix) ? MeshTheme.accent : MeshTheme.textSecondary)
+                                contactRow(contact)
+                            }
+                        }
+                        .buttonStyle(.plain)
+                    } else {
                     NavigationLink(value: SidebarSelection.contact(contact.publicKeyPrefix)) {
                         contactRow(contact)
                     }
@@ -673,6 +688,7 @@ struct ContactListView: View {
                             ? MeshTheme.surfaceLight
                             : MeshTheme.surface
                     )
+                    } // end else (not selecting)
                     #endif
                 }
             }
@@ -727,9 +743,64 @@ struct ContactListView: View {
             .listRowBackground(MeshTheme.surface)
             #endif
             #endif
+            if isSelecting {
+                HStack {
+                    Button(selectedContacts.count == viewModel.sortedContacts.count ? "Deselect All" : "Select All") {
+                        if selectedContacts.count == viewModel.sortedContacts.count {
+                            selectedContacts.removeAll()
+                        } else {
+                            selectedContacts = Set(viewModel.sortedContacts.map(\.publicKeyPrefix))
+                        }
+                    }
+                    .font(.caption)
+                    Spacer()
+                    if !selectedContacts.isEmpty {
+                        Button {
+                            for key in selectedContacts {
+                                if let contact = viewModel.contacts.first(where: { $0.publicKeyPrefix == key }) {
+                                    viewModel.exportContact(contact)
+                                }
+                            }
+                        } label: {
+                            Text("Export (\(selectedContacts.count))")
+                                .font(.caption.weight(.medium))
+                        }
+                        Button(role: .destructive) {
+                            showBulkDeleteConfirm = true
+                        } label: {
+                            Text("Delete (\(selectedContacts.count))")
+                                .font(.caption.weight(.medium))
+                        }
+                    }
+                }
+                .listRowBackground(MeshTheme.surface)
+            }
         } header: {
-            Text("Contacts")
-                .foregroundStyle(MeshTheme.textSecondary)
+            HStack {
+                Text("Contacts")
+                    .foregroundStyle(MeshTheme.textSecondary)
+                Spacer()
+                Button(isSelecting ? "Done" : "Edit") {
+                    isSelecting.toggle()
+                    if !isSelecting { selectedContacts.removeAll() }
+                }
+                .font(.caption)
+                .foregroundStyle(MeshTheme.accent)
+            }
+        }
+        .confirmationDialog("Delete \(selectedContacts.count) Contact\(selectedContacts.count == 1 ? "" : "s")?", isPresented: $showBulkDeleteConfirm) {
+            Button("Delete", role: .destructive) {
+                for key in selectedContacts {
+                    if let contact = viewModel.contacts.first(where: { $0.publicKeyPrefix == key }) {
+                        viewModel.removeContact(contact)
+                    }
+                }
+                selectedContacts.removeAll()
+                isSelecting = false
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This will remove the selected contacts from the device. This cannot be undone.")
         }
         .alert("Remove Contact?", isPresented: $showDeleteConfirm) {
             Button("Cancel", role: .cancel) { contactToDelete = nil }
@@ -932,6 +1003,14 @@ struct ContactListView: View {
             showDeleteConfirm = true
         } label: {
             Label("Remove Contact", systemImage: "trash")
+        }
+    }
+
+    private func toggleSelection(_ contact: Contact) {
+        if selectedContacts.contains(contact.publicKeyPrefix) {
+            selectedContacts.remove(contact.publicKeyPrefix)
+        } else {
+            selectedContacts.insert(contact.publicKeyPrefix)
         }
     }
 
