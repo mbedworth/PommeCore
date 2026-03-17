@@ -6,6 +6,9 @@ import UserNotifications
 import WatchKit
 #endif
 import MeshCoreKit
+#if canImport(CoreSpotlight)
+import CoreSpotlight
+#endif
 
 #if os(macOS)
 /// A line of output in the USB serial terminal.
@@ -353,6 +356,36 @@ final class MeshCoreViewModel: ObservableObject {
         batteryCalibration = cal
         saveBatteryCalibration(cal)
     }
+
+    // MARK: - Spotlight Indexing
+
+    #if canImport(CoreSpotlight)
+    func indexContactsForSpotlight() {
+        var items: [CSSearchableItem] = []
+        for contact in contacts {
+            let attrs = CSSearchableItemAttributeSet(contentType: .contact)
+            attrs.displayName = displayName(for: contact)
+            attrs.contentDescription = "MeshCore \(contact.type == .repeater ? "repeater" : contact.type == .room ? "room server" : "contact")"
+            let pubkeyHex = contact.publicKey.map { String(format: "%02x", $0) }.joined()
+            let item = CSSearchableItem(
+                uniqueIdentifier: "meshcore.contact.\(pubkeyHex)",
+                domainIdentifier: "com.mbedworth.meshcore.contacts",
+                attributeSet: attrs
+            )
+            item.expirationDate = .distantFuture
+            items.append(item)
+        }
+        CSSearchableIndex.default().indexSearchableItems(items)
+    }
+
+    func navigateToContact(pubkeyHex: String) {
+        if let contact = contacts.first(where: {
+            $0.publicKey.map { String(format: "%02x", $0) }.joined() == pubkeyHex
+        }) {
+            sidebarSelection = .contact(contact.publicKeyPrefix)
+        }
+    }
+    #endif
 
     // MARK: - Path Hash Resolution
 
@@ -1886,6 +1919,10 @@ final class MeshCoreViewModel: ObservableObject {
             lastContactsSync = lastmod
             isIncrementalContactSync = false
             isSyncingContacts = false
+
+            #if canImport(CoreSpotlight)
+            indexContactsForSpotlight()
+            #endif
 
             // Sync channels after contacts complete
             syncChannels()
