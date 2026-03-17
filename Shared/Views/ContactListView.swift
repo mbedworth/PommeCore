@@ -9,6 +9,8 @@ struct ContactListView: View {
     var showRemoteManagement: Binding<Bool>? = nil
     var showAdvertSent: Binding<Bool>? = nil
 
+    @State private var showAdvertOptions = false
+    @State private var lastAdvertFlood = false
     @State private var contactToDelete: Contact?
     @State private var showDeleteConfirm = false
     @State private var showImportSheet = false
@@ -90,8 +92,7 @@ struct ContactListView: View {
             ToolbarItem(placement: .automatic) {
                 Button {
                     if viewModel.connectionState == .ready {
-                        viewModel.sendAdvertise(type: 0)
-                        showAdvertSent?.wrappedValue = true
+                        showAdvertOptions = true
                     } else {
                         showScanner = true
                     }
@@ -790,6 +791,21 @@ struct ContactListView: View {
             }
         } message: { data in
             Text("Import \(data.names)?\n\nAdd will keep your existing channels. Replace will remove all current channels first.")
+        }
+        .confirmationDialog("Send Advertisement", isPresented: $showAdvertOptions) {
+            Button("Zero-Hop (nearby only)") {
+                lastAdvertFlood = false
+                viewModel.sendAdvertise(type: 0)
+                showAdvertSent?.wrappedValue = true
+            }
+            Button("Flood (entire mesh)") {
+                lastAdvertFlood = true
+                viewModel.sendAdvertise(type: 1)
+                showAdvertSent?.wrappedValue = true
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Zero-hop reaches nearby nodes only. Flood is relayed by repeaters across the entire mesh network.")
         }
     }
 
