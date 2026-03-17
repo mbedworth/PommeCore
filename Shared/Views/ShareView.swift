@@ -323,6 +323,7 @@ struct ShareChannelSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var copiedLink = false
     @State private var copiedSecret = false
+    @State private var copiedQR = false
 
     private var channelURL: String {
         var url = "meshcore://channel?name=\(channel.name.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? channel.name)"
@@ -412,7 +413,7 @@ struct ShareChannelSheet: View {
                             .buttonStyle(.plain)
                         }
 
-                        // Share button
+                        // Platform-specific share
                         #if os(iOS)
                         ShareLink(item: channelURL) {
                             HStack {
@@ -422,6 +423,26 @@ struct ShareChannelSheet: View {
                             .padding(.vertical, 10)
                             .background(MeshTheme.accent)
                             .foregroundStyle(.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                        }
+                        .buttonStyle(.plain)
+                        #elseif os(macOS)
+                        Button {
+                            if let image = generateQRCodeImage(from: channelURL) {
+                                let pasteboard = NSPasteboard.general
+                                pasteboard.clearContents()
+                                pasteboard.writeObjects([image])
+                                copiedQR = true
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 2) { copiedQR = false }
+                            }
+                        } label: {
+                            HStack {
+                                Label(copiedQR ? "Copied!" : "Copy QR Code", systemImage: copiedQR ? "checkmark" : "photo.on.rectangle")
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .padding(.vertical, 10)
+                            .background(MeshTheme.accent.opacity(0.1))
+                            .foregroundStyle(MeshTheme.accent)
                             .clipShape(RoundedRectangle(cornerRadius: 10))
                         }
                         .buttonStyle(.plain)
@@ -452,6 +473,7 @@ struct ShareAllChannelsSheet: View {
     let channels: [MeshChannel]
     @Environment(\.dismiss) private var dismiss
     @State private var copiedLink = false
+    @State private var copiedQR = false
 
     private var nonPublicChannels: [MeshChannel] {
         channels.filter { $0.index != 0 }
@@ -527,6 +549,26 @@ struct ShareAllChannelsSheet: View {
                             .padding(.vertical, 10)
                             .background(MeshTheme.accent)
                             .foregroundStyle(.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                        }
+                        .buttonStyle(.plain)
+                        #elseif os(macOS)
+                        Button {
+                            if let image = generateQRCodeImage(from: channelsURL) {
+                                let pasteboard = NSPasteboard.general
+                                pasteboard.clearContents()
+                                pasteboard.writeObjects([image])
+                                copiedQR = true
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 2) { copiedQR = false }
+                            }
+                        } label: {
+                            HStack {
+                                Label(copiedQR ? "Copied!" : "Copy QR Code", systemImage: copiedQR ? "checkmark" : "photo.on.rectangle")
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .padding(.vertical, 10)
+                            .background(MeshTheme.accent.opacity(0.1))
+                            .foregroundStyle(MeshTheme.accent)
                             .clipShape(RoundedRectangle(cornerRadius: 10))
                         }
                         .buttonStyle(.plain)
