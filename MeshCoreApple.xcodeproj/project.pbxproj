@@ -47,6 +47,9 @@
 		B2C3D4E5F6071829A3B4C5D6 /* ShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* ShareView.swift */; };
 		C3D4E5F60718293AB4C5D6E7 /* ShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* ShareView.swift */; };
 		D4E5F60718293A4BC5D6E7F8 /* ShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* ShareView.swift */; };
+		OBV10000000000000000001 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBV10000000000000000000 /* OnboardingView.swift */; };
+		OBV10000000000000000002 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBV10000000000000000000 /* OnboardingView.swift */; };
+		OBV10000000000000000003 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBV10000000000000000000 /* OnboardingView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -67,6 +70,7 @@
 		KCM1ABCD0000000000000001 /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
 		LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteManagementView.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F60718293A4B5C /* ShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareView.swift; sourceTree = "<group>"; };
+		OBV10000000000000000000 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -117,6 +121,7 @@
 				5D859AE9C98610F71C2FBAAF /* SettingsView.swift */,
 				LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */,
 				A1B2C3D4E5F60718293A4B5C /* ShareView.swift */,
+				OBV10000000000000000000 /* OnboardingView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -317,6 +322,7 @@
 				5WT22AMGOSQXJ90NFRN8O6TK /* RemoteManagementView.swift in Sources */,
 				KCM1ABCD0001000000000001 /* KeychainManager.swift in Sources */,
 				D4E5F60718293A4BC5D6E7F8 /* ShareView.swift in Sources */,
+				OBV10000000000000000001 /* OnboardingView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -335,6 +341,7 @@
 				XUOVAQ6Y1NIWH1G3OMK55ENV /* RemoteManagementView.swift in Sources */,
 				KCM1ABCD0002000000000001 /* KeychainManager.swift in Sources */,
 				C3D4E5F60718293AB4C5D6E7 /* ShareView.swift in Sources */,
+				OBV10000000000000000002 /* OnboardingView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -353,6 +360,7 @@
 				CATKUXG25PTVMENJWXQZY49X /* RemoteManagementView.swift in Sources */,
 				KCM1ABCD0003000000000001 /* KeychainManager.swift in Sources */,
 				B2C3D4E5F6071829A3B4C5D6 /* ShareView.swift in Sources */,
+				OBV10000000000000000003 /* OnboardingView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

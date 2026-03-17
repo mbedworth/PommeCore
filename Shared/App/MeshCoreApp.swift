@@ -6,11 +6,18 @@ struct MeshCoreApp: App {
     @StateObject private var viewModel = MeshCoreViewModel()
     @Environment(\.scenePhase) private var scenePhase
 
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environmentObject(viewModel)
-                .meshTheme()
+            if hasCompletedOnboarding {
+                ContentView()
+                    .environmentObject(viewModel)
+                    .meshTheme()
+            } else {
+                OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
+                    .meshTheme()
+            }
         }
         .onChange(of: scenePhase) { newPhase in
             viewModel.isInBackground = (newPhase != .active)
