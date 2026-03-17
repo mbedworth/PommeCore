@@ -492,6 +492,8 @@ struct RemoteAdvertSection: View {
     @State private var advertInterval = ""
     @State private var floodAdvertInterval = ""
     @State private var saveState: SaveButtonState = .idle
+    @State private var showAdvertOptions = false
+    @State private var showAdvertSent = false
 
     var body: some View {
         Section {
@@ -518,18 +520,33 @@ struct RemoteAdvertSection: View {
                     Spacer()
 
                     Button {
-                        sendCLI("advert")
+                        showAdvertOptions = true
                     } label: {
-                        Label("Advertise", systemImage: "dot.radiowaves.left.and.right")
-                            .foregroundStyle(MeshTheme.accent)
+                        Label(showAdvertSent ? "Sent!" : "Advertise", systemImage: "dot.radiowaves.left.and.right")
+                            .foregroundStyle(showAdvertSent ? .green : MeshTheme.accent)
                     }
-                .buttonStyle(.plain)
-                .contentShape(Rectangle())
+                    .buttonStyle(.plain)
+                    .contentShape(Rectangle())
                 }
             }
         } header: {
             Text("Advertising")
                 .foregroundStyle(MeshTheme.textSecondary)
+        }
+        .confirmationDialog("Send Advertisement", isPresented: $showAdvertOptions) {
+            Button("Zero-Hop (nearby only)") {
+                sendCLI("advert")
+                showAdvertSent = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2) { showAdvertSent = false }
+            }
+            Button("Flood (entire mesh)") {
+                sendCLI("advert flood")
+                showAdvertSent = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2) { showAdvertSent = false }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Zero-hop reaches nearby nodes only. Flood is relayed by repeaters across the entire mesh network.")
         }
         .disabled(!canEdit)
     }
