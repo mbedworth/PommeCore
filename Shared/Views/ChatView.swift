@@ -9,6 +9,8 @@ struct ChatView: View {
     @State private var unreadDividerIndex: Int?
     @State private var isSearching = false
     @State private var searchText = ""
+    @State private var exportURL: URL?
+    @State private var showExportSheet = false
 
     private let maxMessageLength = 160
 
@@ -67,6 +69,13 @@ struct ChatView: View {
                             .foregroundStyle(isSearching ? MeshTheme.accent : MeshTheme.textSecondary)
                     }
                     Button {
+                        exportURL = exportChatHistory()
+                        showExportSheet = exportURL != nil
+                    } label: {
+                        Image(systemName: "square.and.arrow.up")
+                            .foregroundStyle(MeshTheme.accent)
+                    }
+                    Button {
                         showNotes = true
                     } label: {
                         Image(systemName: viewModel.hasNote(for: contact) ? "note.text" : "note.text.badge.plus")
@@ -78,6 +87,28 @@ struct ChatView: View {
         .sheet(isPresented: $showNotes) {
             ContactNotesSheet(contact: contact)
         }
+        .sheet(isPresented: $showExportSheet) {
+            if let url = exportURL {
+                #if os(iOS)
+                ShareSheetView(activityItems: [url])
+                #elseif os(macOS)
+                VStack(spacing: 16) {
+                    Text("Chat exported to file")
+                        .font(.headline)
+                    Text(url.lastPathComponent)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Button("Copy Path") {
+                        NSPasteboard.general.clearContents()
+                        NSPasteboard.general.setString(url.path, forType: .string)
+                        showExportSheet = false
+                    }
+                    Button("Done") { showExportSheet = false }
+                }
+                .padding(24)
+                #endif
+            }
+        }
         .onAppear {
             viewModel.markAsRead(contact)
             if messageText.isEmpty {
@@ -86,6 +117,32 @@ struct ChatView: View {
         }
         .onDisappear {
             viewModel.saveDraft(messageText, for: contact.publicKeyPrefix)
+        }
+    }
+
+    private func exportChatHistory() -> URL? {
+        let name = viewModel.displayName(for: contact)
+        var text = "Chat with \(name)\n"
+        text += "Exported: \(Date().formatted())\n"
+        text += String(repeating: "\u{2500}", count: 40) + "\n\n"
+
+        let fmt = DateFormatter()
+        fmt.dateStyle = .short
+        fmt.timeStyle = .medium
+
+        for message in messages {
+            let sender = message.isOutgoing ? "You" : name
+            let time = fmt.string(from: message.timestamp)
+            text += "[\(time)] \(sender): \(message.text)\n"
+        }
+
+        let safeName = name.replacingOccurrences(of: "/", with: "-")
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("MeshCore-Chat-\(safeName).txt")
+        do {
+            try text.write(to: url, atomically: true, encoding: .utf8)
+            return url
+        } catch {
+            return nil
         }
     }
 
@@ -1424,6 +1481,16 @@ private func highlightMentions(in text: String, myName: String) -> Text {
     }
     return result
 }
+
+#if os(iOS)
+struct ShareSheetView: UIViewControllerRepresentable {
+    let activityItems: [Any]
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+    }
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+}
+#endif
 
 struct UnreadDivider: View {
     var body: some View {
