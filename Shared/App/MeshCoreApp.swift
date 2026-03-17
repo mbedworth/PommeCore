@@ -1,6 +1,9 @@
 import SwiftUI
 import UserNotifications
 import LocalAuthentication
+#if canImport(CoreSpotlight)
+import CoreSpotlight
+#endif
 import MeshCoreKit
 
 @main
@@ -28,6 +31,14 @@ struct MeshCoreApp: App {
                     .meshTheme()
                     #if os(iOS)
                     .onAppear { appDelegate.viewModel = viewModel }
+                    #endif
+                    #if canImport(CoreSpotlight)
+                    .onContinueUserActivity(CSSearchableItemActionType) { activity in
+                        if let id = activity.userInfo?[CSSearchableItemActivityIdentifier] as? String {
+                            let hex = id.replacingOccurrences(of: "meshcore.contact.", with: "")
+                            viewModel.navigateToContact(pubkeyHex: hex)
+                        }
+                    }
                     #endif
             }
         }
