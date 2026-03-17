@@ -1092,6 +1092,15 @@ final class MeshCoreViewModel: ObservableObject {
         sendCommand(MeshCoreProtocol.buildGetStats(subType: subType), label: "GET_STATS(\(subType))")
     }
 
+    func requestAutoAddConfig() {
+        sendCommand(MeshCoreProtocol.buildGetAutoAddConfig(), label: "GET_AUTOADD")
+    }
+
+    func setAutoAddConfig(bitmask: UInt8) {
+        sendCommand(MeshCoreProtocol.buildSetAutoAddConfig(bitmask: bitmask), label: "SET_AUTOADD(0x\(String(format: "%02x", bitmask)))")
+        deviceConfig.autoAddBitmask = bitmask
+    }
+
     func refreshAllSettings() {
         deviceConfig.isLoading = true
         deviceConfig.loadedSections = []
@@ -1104,6 +1113,7 @@ final class MeshCoreViewModel: ObservableObject {
         requestStats(subType: 0)
         requestStats(subType: 1)
         requestStats(subType: 2)
+        requestAutoAddConfig()
     }
 
     // MARK: - Settings Commands
@@ -1744,6 +1754,10 @@ final class MeshCoreViewModel: ObservableObject {
             parseStats(subType: subType, payload: payload)
             deviceConfig.loadedSections.insert("stats")
             checkLoadingComplete()
+
+        case .autoAddConfig(let bitmask):
+            Self.logger.info("PARSED AutoAddConfig: bitmask=0x\(String(format: "%02x", bitmask))")
+            deviceConfig.autoAddBitmask = bitmask
 
         case .contactsStart(let count):
             Self.logger.info("Contacts sync starting: \(count) contacts expected")

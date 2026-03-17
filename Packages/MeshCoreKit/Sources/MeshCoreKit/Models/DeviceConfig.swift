@@ -103,6 +103,9 @@ public final class DeviceConfig: ObservableObject {
     @Published public var multiACK: UInt8 = 0
     @Published public var blePIN: UInt32 = 0
 
+    /// Auto-add bitmask: bit 0 = chat, bit 1 = repeater, bit 2 = room, bit 3 = sensor.
+    @Published public var autoAddBitmask: UInt8 = 0x0F  // default: all types
+
     // MARK: - Time
 
     @Published public var deviceTimeEpoch: UInt32 = 0
