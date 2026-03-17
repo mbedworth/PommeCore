@@ -1849,6 +1849,20 @@ private extension SettingsView {
                 }
             }
             .listRowBackground(MeshTheme.surface)
+
+            Button {
+                UserDefaults.standard.set(false, forKey: "hasCompletedOnboarding")
+            } label: {
+                HStack {
+                    Text("Show Welcome Guide")
+                        .foregroundStyle(MeshTheme.accent)
+                    Spacer()
+                    Image(systemName: "book.pages")
+                        .foregroundStyle(MeshTheme.textSecondary)
+                }
+            }
+            .buttonStyle(.plain)
+            .listRowBackground(MeshTheme.surface)
         } header: {
             sectionHeader("About")
         }
