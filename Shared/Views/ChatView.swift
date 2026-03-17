@@ -214,6 +214,12 @@ struct ChatView: View {
                 } else if let last = messages.last {
                     proxy.scrollTo(last.id, anchor: .bottom)
                 }
+                // Clear the divider after user has had time to see it
+                if unreadDividerIndex != nil {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                        withAnimation { unreadDividerIndex = nil }
+                    }
+                }
             }
         }
     }
