@@ -384,6 +384,8 @@ struct IdentitySection: View {
     @State private var latitude: String = ""
     @State private var longitude: String = ""
     @State private var saveState: SaveButtonState = .idle
+    @State private var showAdvertOptions = false
+    @State private var showAdvertSent = false
 
     var body: some View {
         Section {
@@ -434,10 +436,10 @@ struct IdentitySection: View {
                 Spacer()
 
                 Button {
-                    viewModel.sendAdvertise(type: 0)
+                    showAdvertOptions = true
                 } label: {
-                    Label("Advertise", systemImage: "dot.radiowaves.left.and.right")
-                        .foregroundStyle(MeshTheme.accent)
+                    Label(showAdvertSent ? "Sent!" : "Advertise", systemImage: "dot.radiowaves.left.and.right")
+                        .foregroundStyle(showAdvertSent ? .green : MeshTheme.accent)
                 }
                 .buttonStyle(.plain)
                 .contentShape(Rectangle())
@@ -446,6 +448,21 @@ struct IdentitySection: View {
         } header: {
             Text("Identity & Advertising")
                 .foregroundStyle(MeshTheme.textSecondary)
+        }
+        .confirmationDialog("Send Advertisement", isPresented: $showAdvertOptions) {
+            Button("Zero-Hop (nearby only)") {
+                viewModel.sendAdvertise(type: 0)
+                showAdvertSent = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2) { showAdvertSent = false }
+            }
+            Button("Flood (entire mesh)") {
+                viewModel.sendAdvertise(type: 1)
+                showAdvertSent = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2) { showAdvertSent = false }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Zero-hop reaches nearby nodes only. Flood is relayed by repeaters across the entire mesh network.")
         }
         .onAppear { loadFromConfig() }
         .onChange(of: viewModel.deviceConfig.deviceName) { _ in loadFromConfig() }
