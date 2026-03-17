@@ -93,20 +93,32 @@ struct ChatView: View {
                 ShareSheetView(activityItems: [url])
                 #elseif os(macOS)
                 VStack(spacing: 16) {
-                    Text("Chat exported to file")
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 36))
+                        .foregroundStyle(MeshTheme.connected)
+                    Text("Chat exported")
                         .font(.headline)
                     Text(url.lastPathComponent)
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                    Button("Copy Path") {
+                    Button("Copy File Path") {
                         NSPasteboard.general.clearContents()
                         NSPasteboard.general.setString(url.path, forType: .string)
                         showExportSheet = false
                     }
+                    .buttonStyle(.borderedProminent)
+                    Button("Done") { showExportSheet = false }
+                }
+                .padding(32)
+                .frame(minWidth: 300)
+                #endif
+            } else {
+                VStack(spacing: 12) {
+                    Text("Export failed")
+                        .font(.headline)
                     Button("Done") { showExportSheet = false }
                 }
                 .padding(24)
-                #endif
             }
         }
         .onAppear {
