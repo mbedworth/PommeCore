@@ -658,6 +658,18 @@ struct RemoteSecuritySection: View {
 
 private extension RemoteManagementView {
     var gpsSection: some View {
+        RemoteGPSSection(session: session, sendCLI: sendCLI, canEdit: canEdit)
+    }
+}
+
+struct RemoteGPSSection: View {
+    @ObservedObject var session: RemoteDeviceSession
+    let sendCLI: (String) -> Void
+    let canEdit: Bool
+    @State private var gpsSyncFeedback = false
+    @State private var gpsLocFeedback = false
+
+    var body: some View {
         Section {
             CLIToggleRow(icon: "location.circle", label: "GPS", settingKey: "gps", onCommand: "gps on", offCommand: "gps off", session: session, sendCLI: sendCLI, canEdit: canEdit)
 
@@ -665,9 +677,12 @@ private extension RemoteManagementView {
             HStack(spacing: 12) {
                 Button {
                     sendCLI("gps sync")
+                    gpsSyncFeedback = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1) { sendCLI("clock") }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) { gpsSyncFeedback = false }
                 } label: {
-                    Label("Sync Time", systemImage: "clock.arrow.2.circlepath")
-                        .foregroundStyle(MeshTheme.accent)
+                    Label(gpsSyncFeedback ? "Clock Synced" : "Sync Time", systemImage: gpsSyncFeedback ? "checkmark.circle.fill" : "clock.arrow.2.circlepath")
+                        .foregroundStyle(gpsSyncFeedback ? .green : MeshTheme.accent)
                 }
                 .buttonStyle(.plain)
 
@@ -675,9 +690,15 @@ private extension RemoteManagementView {
 
                 Button {
                     sendCLI("gps setloc")
+                    gpsLocFeedback = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                        sendCLI("get lat")
+                        sendCLI("get lon")
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) { gpsLocFeedback = false }
                 } label: {
-                    Label("Set Location", systemImage: "mappin")
-                        .foregroundStyle(MeshTheme.accent)
+                    Label(gpsLocFeedback ? "Location Set" : "Set Location", systemImage: gpsLocFeedback ? "checkmark.circle.fill" : "mappin")
+                        .foregroundStyle(gpsLocFeedback ? .green : MeshTheme.accent)
                 }
                 .buttonStyle(.plain)
 
