@@ -1052,6 +1052,38 @@ final class MeshCoreViewModel: ObservableObject {
     }
 
     /// Update a contact's flags byte and sync to the radio (preserves all other contact data).
+    /// Update a contact's routing path via CMD_ADD_UPDATE_CONTACT.
+    func setContactPath(_ contact: Contact, pathLen: Int8, pathData: Data) {
+        let frame = MeshCoreProtocol.buildAddUpdateContact(
+            publicKey: contact.publicKey,
+            type: contact.type.rawValue,
+            flags: contact.flags,
+            outPathLen: pathLen,
+            outPath: pathData,
+            advName: contact.name,
+            lastAdvert: contact.lastAdvert,
+            latitude: Int32(contact.latitude * 1_000_000),
+            longitude: Int32(contact.longitude * 1_000_000)
+        )
+        sendCommand(frame, label: "SET_CONTACT_PATH(len=\(pathLen))")
+
+        // Optimistic local update
+        if let index = contacts.firstIndex(where: { $0.publicKeyPrefix == contact.publicKeyPrefix }) {
+            contacts[index] = Contact(
+                publicKey: contact.publicKey,
+                name: contact.name,
+                type: contact.type,
+                flags: contact.flags,
+                outPathLen: pathLen,
+                outPath: pathData,
+                lastAdvert: contact.lastAdvert,
+                latitude: contact.latitude,
+                longitude: contact.longitude,
+                lastmod: contact.lastmod
+            )
+        }
+    }
+
     func updateContactFlags(_ contact: Contact, newFlags: UInt8) {
         let frame = MeshCoreProtocol.buildAddUpdateContact(
             publicKey: contact.publicKey,
