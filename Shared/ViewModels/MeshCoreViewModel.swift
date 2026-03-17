@@ -439,9 +439,6 @@ final class MeshCoreViewModel: ObservableObject {
     /// Maps expected ACK code → message ID for delivery tracking.
     private var pendingACKs: [UInt32: (contactKeyHash: Data, messageID: UUID)] = [:]
 
-    /// Tracks outgoing channel messages awaiting a repeater echo. Key = message UUID.
-    private var pendingChannelEchoes: Set<UUID> = []
-
     /// Whether we're currently syncing queued messages.
     private var isSyncingMessages = false
 
@@ -1558,67 +1555,7 @@ final class MeshCoreViewModel: ObservableObject {
         )
         messagesByContact[channelKey, default: []].append(outgoing)
         persistMessages(for: channelKey)
-
-        // Start echo detection timer (opt-in via settings)
-        let echoDetection = UserDefaults.standard.bool(forKey: "channelEchoDetection")
-        if echoDetection {
-            let msgID = outgoing.id
-            pendingChannelEchoes.insert(msgID)
-            Task { [weak self] in
-                try? await Task.sleep(nanoseconds: 30_000_000_000) // 30 seconds — repeaters add TX delay
-                guard let self else { return }
-                if self.pendingChannelEchoes.remove(msgID) != nil {
-                    if var msgs = self.messagesByContact[channelKey],
-                       let idx = msgs.firstIndex(where: { $0.id == msgID }) {
-                        Self.logger.info("No channel echo heard for \(msgID) after 30s")
-                        msgs[idx].status = .noRepeats
-                        self.messagesByContact[channelKey] = msgs
-                        self.persistMessages(for: channelKey)
-                    }
-                }
-            }
-        }
-    }
-
-    /// Called when a channel message is received that matches our own sent message (echo from repeater).
-    func markChannelEchoReceived(messageID: UUID) {
-        pendingChannelEchoes.remove(messageID)
-    }
-
-    /// Resend a channel message that had no repeats.
-    func resendChannelMessage(_ message: Message) {
-        guard let channelIdx = message.channelIndex else { return }
-        let channelKey = Data([channelIdx])
-
-        // Reset status to sending
-        if var msgs = messagesByContact[channelKey],
-           let idx = msgs.firstIndex(where: { $0.id == message.id }) {
-            msgs[idx].status = .sending
-            messagesByContact[channelKey] = msgs
-
-            let frame = MeshCoreProtocol.buildSendChannelMessage(
-                text: message.text,
-                channelIndex: channelIdx
-            )
-            sendCommand(frame, label: "RESEND_CHANNEL_TXT")
-            persistMessages(for: channelKey)
-
-            // Restart echo timer
-            let msgID = message.id
-            pendingChannelEchoes.insert(msgID)
-            Task { [weak self] in
-                try? await Task.sleep(nanoseconds: 30_000_000_000)
-                guard let self else { return }
-                if self.pendingChannelEchoes.remove(msgID) != nil {
-                    if var msgs2 = self.messagesByContact[channelKey],
-                       let idx2 = msgs2.firstIndex(where: { $0.id == msgID }) {
-                        msgs2[idx2].status = .noRepeats
-                        self.messagesByContact[channelKey] = msgs2
-                        self.persistMessages(for: channelKey)
-                    }
-                }
-            }
-        }
+        // Channel messages are fire-and-forget broadcasts — no echo detection or delivery confirmation
     }
 
     func syncNextMessage() {
@@ -1939,30 +1876,7 @@ final class MeshCoreViewModel: ObservableObject {
             }
 
         case .channelMsgRecv(let message):
-            Self.logger.info("Channel message: ch=\(message.channelIndex ?? 0) sender=\(message.senderKeyHash.map { String(format: "%02x", $0) }.joined()) text=\(message.text)")
-            // Check if this is an echo of our own channel message from a repeater
-            if let chIdx = message.channelIndex, !pendingChannelEchoes.isEmpty {
-                let channelKey = Data([chIdx])
-                // Echo = same channel, same text, sender matches our own pubkey prefix
-                let selfKeyPrefix = Data(deviceConfig.publicKeyHex.prefix(12).compactMap { UInt8(String($0), radix: 16) })
-                let isSelfSender = !message.senderKeyHash.isEmpty && message.senderKeyHash == selfKeyPrefix
-                Self.logger.debug("Echo check: selfKey=\(selfKeyPrefix.map { String(format: "%02x", $0) }.joined()) senderKey=\(message.senderKeyHash.map { String(format: "%02x", $0) }.joined()) isSelf=\(isSelfSender)")
-                if isSelfSender, let msgs = messagesByContact[channelKey] {
-                    for sent in msgs where sent.isOutgoing && pendingChannelEchoes.contains(sent.id) {
-                        if sent.text == message.text && sent.channelIndex == chIdx {
-                            Self.logger.info("Channel echo confirmed for message \(sent.id)")
-                            markChannelEchoReceived(messageID: sent.id)
-                            if var mutableMsgs = messagesByContact[channelKey],
-                               let idx = mutableMsgs.firstIndex(where: { $0.id == sent.id }) {
-                                mutableMsgs[idx].status = .delivered
-                                messagesByContact[channelKey] = mutableMsgs
-                                persistMessages(for: channelKey)
-                            }
-                            break
-                        }
-                    }
-                }
-            }
+            Self.logger.info("Channel message: ch=\(message.channelIndex ?? 0) text=\(message.text)")
             handleIncomingMessage(message)
             if isSyncingMessages {
                 syncNextMessage()

@@ -1269,15 +1269,6 @@ struct MessageBubble: View {
                         .foregroundStyle(MeshTheme.accent)
                 }
             }
-        case .noRepeats:
-            HStack(spacing: 2) {
-                Image(systemName: "exclamationmark.triangle")
-                    .font(.caption2)
-                    .foregroundStyle(.orange)
-                Text("No repeats")
-                    .font(.caption2)
-                    .foregroundStyle(.orange)
-            }
         case .failed:
             HStack(spacing: 2) {
                 Image(systemName: "exclamationmark.circle")
@@ -1338,19 +1329,6 @@ struct ChannelMessageBubble: View {
 
                     if message.isOutgoing {
                         switch message.status {
-                        case .noRepeats:
-                            HStack(spacing: 2) {
-                                Image(systemName: "exclamationmark.triangle")
-                                    .font(.caption2)
-                                    .foregroundStyle(.orange)
-                                Text("No repeats")
-                                    .font(.caption2)
-                                    .foregroundStyle(.orange)
-                            }
-                        case .delivered:
-                            Image(systemName: "checkmark.circle.fill")
-                                .font(.caption2)
-                                .foregroundStyle(MeshTheme.accent)
                         case .sending:
                             Image(systemName: "clock")
                                 .font(.caption2)
@@ -1398,24 +1376,6 @@ struct ChannelMessageBubble: View {
                     }
                 }
                 .padding(.horizontal, 4)
-
-                if message.isOutgoing && message.status == .noRepeats {
-                    Button {
-                        viewModel.resendChannelMessage(message)
-                    } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: "arrow.clockwise")
-                            Text("Resend")
-                        }
-                        .font(.caption2.weight(.medium))
-                        .foregroundStyle(MeshTheme.accent)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 4)
-                        .background(MeshTheme.surfaceLight)
-                        .clipShape(Capsule())
-                    }
-                    .buttonStyle(.plain)
-                }
             }
 
             if !message.isOutgoing { Spacer(minLength: 48) }
