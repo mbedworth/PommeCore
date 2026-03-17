@@ -54,6 +54,9 @@ struct ContactListView: View {
             if !viewModel.pendingNewContacts.isEmpty {
                 pendingContactsSection
             }
+            if !viewModel.contactGroups.isEmpty {
+                groupsSection
+            }
             contactsSection
             #if !os(watchOS)
             Section {
@@ -631,6 +634,55 @@ struct ContactListView: View {
     }
 
     @ViewBuilder
+    private var groupsSection: some View {
+        Section {
+            ForEach(viewModel.contactGroups) { group in
+                DisclosureGroup {
+                    let members = viewModel.contactsInGroup(group)
+                    if members.isEmpty {
+                        Text("No contacts in this group")
+                            .font(.caption)
+                            .foregroundStyle(MeshTheme.textSecondary)
+                            .listRowBackground(MeshTheme.surface)
+                    } else {
+                        ForEach(members) { contact in
+                            #if os(watchOS)
+                            NavigationLink {
+                                contactDestination(contact)
+                                    .environmentObject(viewModel)
+                            } label: {
+                                contactRow(contact)
+                            }
+                            .listRowBackground(MeshTheme.surface)
+                            #else
+                            NavigationLink(value: SidebarSelection.contact(contact.publicKeyPrefix)) {
+                                contactRow(contact)
+                            }
+                            .listRowBackground(MeshTheme.surface)
+                            #endif
+                        }
+                    }
+                } label: {
+                    HStack {
+                        if !group.emoji.isEmpty {
+                            Text(group.emoji)
+                        }
+                        Text(group.name)
+                            .foregroundStyle(MeshTheme.textPrimary)
+                        Spacer()
+                        Text("\(group.memberPubkeys.count)")
+                            .font(.caption)
+                            .foregroundStyle(MeshTheme.textSecondary)
+                    }
+                }
+                .listRowBackground(MeshTheme.surface)
+            }
+        } header: {
+            Text("Groups")
+                .foregroundStyle(MeshTheme.textSecondary)
+        }
+    }
+
     private var contactsSection: some View {
         Section {
             if viewModel.sortedContacts.isEmpty {
@@ -974,6 +1026,20 @@ struct ContactListView: View {
                 viewModel.setNickname("", for: contact)
             } label: {
                 Label("Remove Nickname", systemImage: "pencil.slash")
+            }
+        }
+
+        if !viewModel.contactGroups.isEmpty {
+            Menu {
+                ForEach(viewModel.contactGroups) { group in
+                    Button {
+                        viewModel.addContactToGroup(contact, group: group)
+                    } label: {
+                        Label("\(group.emoji) \(group.name)", systemImage: "plus.circle")
+                    }
+                }
+            } label: {
+                Label("Add to Group", systemImage: "folder.badge.plus")
             }
         }
 
