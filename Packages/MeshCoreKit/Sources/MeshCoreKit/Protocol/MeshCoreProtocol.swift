@@ -386,6 +386,17 @@ public enum MeshCoreProtocol {
         Data([MeshCoreCommand.getStats.rawValue, subType])
     }
 
+    /// CMD_SET_AUTOADD_CONFIG (code 58).
+    /// Bitmask: bit 0 = chat users, bit 1 = repeaters, bit 2 = room servers, bit 3 = sensors.
+    public static func buildSetAutoAddConfig(bitmask: UInt8) -> Data {
+        Data([MeshCoreCommand.setAutoAddConfig.rawValue, bitmask])
+    }
+
+    /// CMD_SET_AUTOADD_CONFIG — read current config (send with no payload to query).
+    public static func buildGetAutoAddConfig() -> Data {
+        Data([MeshCoreCommand.setAutoAddConfig.rawValue])
+    }
+
     // MARK: - Discovery & Diagnostics
 
     /// CMD_SEND_CONTROL_DATA (code 55) — send a control packet.

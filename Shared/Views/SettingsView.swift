@@ -1100,6 +1100,10 @@ struct PrivacySection: View {
     @State private var multiACK: Bool = false
     @State private var pinText: String = ""
     @State private var saveState: SaveButtonState = .idle
+    @State private var autoAddChat: Bool = true
+    @State private var autoAddRepeater: Bool = true
+    @State private var autoAddRoom: Bool = true
+    @State private var autoAddSensor: Bool = true
 
     var body: some View {
         Section {
@@ -1114,6 +1118,27 @@ struct PrivacySection: View {
             }
             .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
+
+            if !manualAdd {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Auto-Add Contact Types")
+                        .font(.caption)
+                        .foregroundStyle(MeshTheme.textSecondary)
+                    Toggle("Chat Users", isOn: $autoAddChat)
+                        .tint(MeshTheme.accent)
+                        .onChange(of: autoAddChat) { _ in saveAutoAddConfig() }
+                    Toggle("Repeaters", isOn: $autoAddRepeater)
+                        .tint(MeshTheme.accent)
+                        .onChange(of: autoAddRepeater) { _ in saveAutoAddConfig() }
+                    Toggle("Room Servers", isOn: $autoAddRoom)
+                        .tint(MeshTheme.accent)
+                        .onChange(of: autoAddRoom) { _ in saveAutoAddConfig() }
+                    Toggle("Sensors", isOn: $autoAddSensor)
+                        .tint(MeshTheme.accent)
+                        .onChange(of: autoAddSensor) { _ in saveAutoAddConfig() }
+                }
+                .listRowBackground(MeshTheme.surface)
+            }
 
             HStack {
                 Image(systemName: "battery.100")
@@ -1346,6 +1371,20 @@ struct PrivacySection: View {
         advertLoc = c.advertLocPolicy != 0
         multiACK = c.multiACK != 0
         pinText = String(c.blePIN)
+        let bm = c.autoAddBitmask
+        autoAddChat = bm & 0x01 != 0
+        autoAddRepeater = bm & 0x02 != 0
+        autoAddRoom = bm & 0x04 != 0
+        autoAddSensor = bm & 0x08 != 0
+    }
+
+    private func saveAutoAddConfig() {
+        var bitmask: UInt8 = 0
+        if autoAddChat { bitmask |= 0x01 }
+        if autoAddRepeater { bitmask |= 0x02 }
+        if autoAddRoom { bitmask |= 0x04 }
+        if autoAddSensor { bitmask |= 0x08 }
+        viewModel.setAutoAddConfig(bitmask: bitmask)
     }
 }
 

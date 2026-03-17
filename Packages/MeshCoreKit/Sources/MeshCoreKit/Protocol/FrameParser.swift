@@ -43,6 +43,7 @@ public enum FrameParser {
         case allowedRepeatFreq([FrequencyRange])      // RESP_ALLOWED_REPEAT_FREQ (code 26)
         case contactDeleted(publicKey: Data)          // PUSH_CODE_CONTACT_DELETED (0x8F)
         case contactsFull(maxContacts: UInt16)        // PUSH_CODE_CONTACTS_FULL (0x90)
+        case autoAddConfig(bitmask: UInt8)            // RESP_CODE_AUTOADD_CONFIG (0x19)
         case unknown(type: UInt8, payload: Data)
     }
 
@@ -188,8 +189,9 @@ public enum FrameParser {
             return parseAdvertPath(payload)
 
         case .autoAddConfig:
-            logger.info("AutoAddConfig: \(payload.count) bytes")
-            return .unknown(type: code.rawValue, payload: payload)
+            let bitmask: UInt8 = payload.isEmpty ? 0 : payload[0]
+            logger.info("AutoAddConfig: bitmask=0x\(String(format: "%02x", bitmask)) (chat=\(bitmask & 0x01 != 0), repeater=\(bitmask & 0x02 != 0), room=\(bitmask & 0x04 != 0), sensor=\(bitmask & 0x08 != 0))")
+            return .autoAddConfig(bitmask: bitmask)
 
         case .allowedRepeatFreq:
             return parseAllowedRepeatFreq(payload)
