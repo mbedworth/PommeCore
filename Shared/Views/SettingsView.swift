@@ -1663,27 +1663,32 @@ class TipJarManager: ObservableObject {
         "com.mbedworth.meshcore.tip.help"
     ]
 
-    func loadProducts() async {
-        do {
-            products = try await Product.products(for: productIDs)
-                .sorted { $0.price < $1.price }
-        } catch {
-            products = []
+    func loadProducts() {
+        Task { @MainActor in
+            do {
+                let loaded = try await Product.products(for: productIDs)
+                    .sorted { $0.price < $1.price }
+                self.products = loaded
+            } catch {
+                self.products = []
+            }
+            self.didAttemptLoad = true
         }
-        didAttemptLoad = true
     }
 
-    func purchase(_ product: Product) async {
-        do {
-            let result = try await product.purchase()
-            if case .success(let verification) = result {
-                if case .verified(let transaction) = verification {
-                    await transaction.finish()
-                    purchaseSuccess = true
+    func purchase(_ product: Product) {
+        Task { @MainActor in
+            do {
+                let result = try await product.purchase()
+                if case .success(let verification) = result {
+                    if case .verified(let transaction) = verification {
+                        await transaction.finish()
+                        self.purchaseSuccess = true
+                    }
                 }
+            } catch {
+                // Purchase failed
             }
-        } catch {
-            // Purchase failed
         }
     }
 }
@@ -1703,7 +1708,7 @@ private extension SettingsView {
                 if !tipJar.products.isEmpty {
                     ForEach(tipJar.products) { product in
                         Button {
-                            Task { await tipJar.purchase(product) }
+                            tipJar.purchase(product)
                         } label: {
                             HStack {
                                 Text(tipEmoji(for: product))
@@ -1763,8 +1768,8 @@ private extension SettingsView {
         } header: {
             sectionHeader("Tip Jar")
         }
-        .task {
-            await tipJar.loadProducts()
+        .onAppear {
+            tipJar.loadProducts()
         }
     }
 
