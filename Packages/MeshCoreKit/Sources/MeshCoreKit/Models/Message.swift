@@ -8,6 +8,7 @@ public enum DeliveryStatus: String, Codable, Sendable {
     case failed     // send timed out or errored
     case retrying   // automatic retry in progress (direct path)
     case flooding   // retrying via flood after path reset
+    case repeated   // channel message confirmed repeated by nearby repeater
 }
 
 /// A text message sent or received via the MeshCore mesh network.

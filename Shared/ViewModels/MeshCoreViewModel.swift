@@ -439,6 +439,9 @@ final class MeshCoreViewModel: ObservableObject {
     /// Maps expected ACK code → message ID for delivery tracking.
     private var pendingACKs: [UInt32: (contactKeyHash: Data, messageID: UUID)] = [:]
 
+    /// Tracks recent outgoing channel messages for positive echo detection (opt-in).
+    private var recentChannelMessages: [(id: UUID, channelKey: Data, text: String, sent: Date)] = []
+
     /// Whether we're currently syncing queued messages.
     private var isSyncingMessages = false
 
@@ -1555,7 +1558,13 @@ final class MeshCoreViewModel: ObservableObject {
         )
         messagesByContact[channelKey, default: []].append(outgoing)
         persistMessages(for: channelKey)
-        // Channel messages are fire-and-forget broadcasts — no echo detection or delivery confirmation
+
+        // Track for positive echo detection (opt-in) — no timeout, no failure state
+        if UserDefaults.standard.bool(forKey: "channelEchoDetection") {
+            recentChannelMessages.append((id: outgoing.id, channelKey: channelKey, text: trimmed, sent: Date()))
+            // Prune entries older than 60 seconds
+            recentChannelMessages.removeAll { Date().timeIntervalSince($0.sent) > 60 }
+        }
     }
 
     func syncNextMessage() {
@@ -1877,6 +1886,20 @@ final class MeshCoreViewModel: ObservableObject {
 
         case .channelMsgRecv(let message):
             Self.logger.info("Channel message: ch=\(message.channelIndex ?? 0) text=\(message.text)")
+            // Positive echo detection: if this matches a recent outgoing message, mark as repeated
+            if let chIdx = message.channelIndex, !recentChannelMessages.isEmpty {
+                let channelKey = Data([chIdx])
+                if let echoIdx = recentChannelMessages.firstIndex(where: { $0.channelKey == channelKey && $0.text == message.text }) {
+                    let echoInfo = recentChannelMessages.remove(at: echoIdx)
+                    if var msgs = messagesByContact[channelKey],
+                       let msgIdx = msgs.firstIndex(where: { $0.id == echoInfo.id }) {
+                        Self.logger.info("Channel echo detected — marking as repeated")
+                        msgs[msgIdx].status = .repeated
+                        messagesByContact[channelKey] = msgs
+                        persistMessages(for: channelKey)
+                    }
+                }
+            }
             handleIncomingMessage(message)
             if isSyncingMessages {
                 syncNextMessage()
