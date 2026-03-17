@@ -261,6 +261,9 @@ private extension SettingsView {
             }
             batteryRow
             batteryChemistryPicker
+            if viewModel.batteryCalibration != nil {
+                batteryCalibrationsRows
+            }
         } header: {
             sectionHeader("Device Info")
         }
@@ -278,6 +281,9 @@ private extension SettingsView {
             }
             .foregroundStyle(MeshTheme.accent)
             .tint(MeshTheme.accent)
+            .onChange(of: batteryChemistryRaw) { _ in
+                viewModel.resetBatteryCalibration()
+            }
         }
         .listRowBackground(MeshTheme.surface)
     }
@@ -285,6 +291,12 @@ private extension SettingsView {
     var statsBatteryDisplay: String {
         guard config.statsBatteryMV != 0 else { return "\u{2014}" }
         let mv = Int(config.statsBatteryMV)
+        if let cal = viewModel.batteryCalibration {
+            let correctedMV = Int(Double(mv) * cal.correctionFactor)
+            let v = Double(correctedMV) / 1000.0
+            let pct = batteryChemistry.profile.percentage(forMillivolts: correctedMV)
+            return "\(String(format: "%.2fV", v)) (\(pct)%)"
+        }
         let v = Double(mv) / 1000.0
         let pct = batteryChemistry.profile.percentage(forMillivolts: mv)
         return "\(String(format: "%.2fV", v)) (\(pct)%)"
@@ -320,6 +332,21 @@ private extension SettingsView {
         .listRowBackground(MeshTheme.surface)
     }
 
+    var correctedBatteryPercent: Int {
+        if let cal = viewModel.batteryCalibration {
+            let correctedMV = cal.correctedMillivolts(config.batteryMillivolts)
+            return batteryChemistry.profile.percentage(forMillivolts: correctedMV)
+        }
+        return config.batteryPercent(chemistry: batteryChemistry)
+    }
+
+    var correctedBatteryVoltage: Double {
+        if let cal = viewModel.batteryCalibration {
+            return cal.correctedVoltage(config.batteryVoltage)
+        }
+        return config.batteryVoltage
+    }
+
     var batteryRow: some View {
         HStack {
             Image(systemName: batteryIconName)
@@ -329,7 +356,7 @@ private extension SettingsView {
                 .foregroundStyle(MeshTheme.accent)
             Spacer()
             if config.batteryMillivolts > 0 {
-                Text("\(String(format: "%.2fV", config.batteryVoltage)) (\(config.batteryPercent(chemistry: batteryChemistry))%)")
+                Text("\(String(format: "%.2fV", correctedBatteryVoltage)) (\(correctedBatteryPercent)%)")
                     .foregroundStyle(MeshTheme.textPrimary)
             } else {
                 Text("\u{2014}")
@@ -339,8 +366,43 @@ private extension SettingsView {
         .listRowBackground(MeshTheme.surface)
     }
 
+    var batteryCalibrationsRows: some View {
+        Group {
+            if let cal = viewModel.batteryCalibration, config.batteryMillivolts > 0 {
+                HStack {
+                    Image(systemName: "tuningfork")
+                        .foregroundStyle(MeshTheme.accent)
+                        .frame(width: 24)
+                    Text("Raw Voltage")
+                        .foregroundStyle(MeshTheme.accent)
+                    Spacer()
+                    Text(String(format: "%.2fV", config.batteryVoltage))
+                        .foregroundStyle(MeshTheme.textSecondary)
+                    Text(String(format: "(\u{00D7}%.3f)", cal.correctionFactor))
+                        .font(.caption)
+                        .foregroundStyle(MeshTheme.textSecondary)
+                }
+                .listRowBackground(MeshTheme.surface)
+
+                Button {
+                    viewModel.resetBatteryCalibration()
+                } label: {
+                    HStack {
+                        Image(systemName: "arrow.counterclockwise")
+                            .foregroundStyle(MeshTheme.accent)
+                            .frame(width: 24)
+                        Text("Reset Calibration")
+                            .foregroundStyle(MeshTheme.accent)
+                    }
+                }
+                .buttonStyle(.plain)
+                .listRowBackground(MeshTheme.surface)
+            }
+        }
+    }
+
     var batteryIconName: String {
-        let pct = config.batteryPercent(chemistry: batteryChemistry)
+        let pct = correctedBatteryPercent
         if pct > 75 { return "battery.100" }
         if pct > 50 { return "battery.75" }
         if pct > 25 { return "battery.50" }
@@ -349,7 +411,7 @@ private extension SettingsView {
     }
 
     var batteryColor: Color {
-        let pct = config.batteryPercent(chemistry: batteryChemistry)
+        let pct = correctedBatteryPercent
         if pct > 50 { return .green }
         if pct > 20 { return .yellow }
         return .red

@@ -31,6 +31,46 @@ public enum BatteryChemistry: String, CaseIterable, Identifiable, Sendable {
         case .li18650: return .li18650
         }
     }
+
+    /// Theoretical maximum voltage for this chemistry.
+    public var theoreticalMax: Double {
+        switch self {
+        case .lipo: return 4.20
+        case .lifepo4: return 3.65
+        case .li18650: return 4.20
+        }
+    }
+}
+
+/// Per-device battery calibration that auto-corrects ADC measurement error.
+public struct BatteryCalibration: Codable, Sendable {
+    public var chemistry: String
+    public var measuredMaxVoltage: Double
+    public var correctionFactor: Double
+
+    public init(chemistry: String, measuredMaxVoltage: Double = 0, correctionFactor: Double = 1.0) {
+        self.chemistry = chemistry
+        self.measuredMaxVoltage = measuredMaxVoltage
+        self.correctionFactor = correctionFactor
+    }
+
+    public mutating func updateWithReading(_ rawVoltage: Double, theoreticalMax: Double) {
+        guard rawVoltage > 0 else { return }
+        if rawVoltage > measuredMaxVoltage {
+            measuredMaxVoltage = rawVoltage
+            if measuredMaxVoltage > 0 {
+                correctionFactor = theoreticalMax / measuredMaxVoltage
+            }
+        }
+    }
+
+    public func correctedVoltage(_ rawVoltage: Double) -> Double {
+        rawVoltage * correctionFactor
+    }
+
+    public func correctedMillivolts(_ rawMV: UInt16) -> Int {
+        Int(Double(rawMV) * correctionFactor)
+    }
 }
 
 /// Voltage-to-percentage lookup table for a specific battery chemistry.

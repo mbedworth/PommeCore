@@ -156,6 +156,41 @@ final class MeshCoreViewModel: ObservableObject {
         nickname(for: contact) ?? contact.name
     }
 
+    // MARK: - Battery Calibration (per-device, iCloud synced)
+
+    @Published var batteryCalibration: BatteryCalibration?
+
+    func loadBatteryCalibration() {
+        let key = "battery.cal.\(deviceConfig.publicKeyHex)"
+        guard let data = iCloudStore.data(forKey: key),
+              let cal = try? JSONDecoder().decode(BatteryCalibration.self, from: data) else { return }
+        batteryCalibration = cal
+    }
+
+    func saveBatteryCalibration(_ cal: BatteryCalibration) {
+        let key = "battery.cal.\(deviceConfig.publicKeyHex)"
+        if let data = try? JSONEncoder().encode(cal) {
+            iCloudStore.set(data, forKey: key)
+            iCloudStore.synchronize()
+        }
+    }
+
+    func resetBatteryCalibration() {
+        let key = "battery.cal.\(deviceConfig.publicKeyHex)"
+        iCloudStore.removeObject(forKey: key)
+        iCloudStore.synchronize()
+        batteryCalibration = nil
+    }
+
+    func updateBatteryCalibration(rawMillivolts: UInt16, chemistry: BatteryChemistry) {
+        let rawVoltage = Double(rawMillivolts) / 1000.0
+        var cal = batteryCalibration ?? BatteryCalibration(chemistry: chemistry.rawValue)
+        cal.chemistry = chemistry.rawValue
+        cal.updateWithReading(rawVoltage, theoreticalMax: chemistry.theoreticalMax)
+        batteryCalibration = cal
+        saveBatteryCalibration(cal)
+    }
+
     /// Active remote management sessions keyed by contact public key prefix.
     /// Not @Published — sessions are ObservableObjects whose changes are
     /// forwarded to the ViewModel via objectWillChange so the contact list updates.
@@ -1226,6 +1261,7 @@ final class MeshCoreViewModel: ObservableObject {
             deviceConfig.radioTXPower = info.txPower
             deviceConfig.maxTXPower = info.maxTXPower
             deviceConfig.publicKeyHex = info.publicKey.map { String(format: "%02x", $0) }.joined()
+            loadBatteryCalibration()
             deviceConfig.latitude = info.latitude
             deviceConfig.longitude = info.longitude
             deviceConfig.radioFrequency = info.radioFreq
@@ -1255,6 +1291,9 @@ final class MeshCoreViewModel: ObservableObject {
         case .battAndStorage(let info):
             Self.logger.info("PARSED BattAndStorage: \(info.batteryMV) mV")
             deviceConfig.batteryMillivolts = info.batteryMV
+            let chemRaw = UserDefaults.standard.string(forKey: "batteryChemistry") ?? BatteryChemistry.lipo.rawValue
+            let chem = BatteryChemistry(rawValue: chemRaw) ?? .lipo
+            updateBatteryCalibration(rawMillivolts: info.batteryMV, chemistry: chem)
             deviceConfig.loadedSections.insert("battAndStorage")
             checkLoadingComplete()
 
