@@ -721,6 +721,8 @@ final class MeshCoreViewModel: ObservableObject {
 
     func setAdvertName(_ name: String) {
         sendCommand(MeshCoreProtocol.buildSetAdvertName(name), label: "SET_ADVERT_NAME")
+        // Update local config so UI reflects the change immediately
+        deviceConfig.deviceName = name
     }
 
     func setAdvertLatLon(latitude: Double, longitude: Double) {
@@ -757,6 +759,10 @@ final class MeshCoreViewModel: ObservableObject {
 
     func setDeviceTime(epochSeconds: UInt32) {
         sendCommand(MeshCoreProtocol.buildSetDeviceTime(epochSeconds: epochSeconds), label: "SET_TIME")
+        // Read back the device time to confirm and update display
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            self?.requestDeviceTime()
+        }
     }
 
     func setCustomVar(name: String, value: String) {
