@@ -1,4 +1,5 @@
 import SwiftUI
+import LocalAuthentication
 import MeshCoreKit
 
 struct SettingsView: View {
@@ -79,6 +80,7 @@ struct SettingsView: View {
                 customVarsSection
             }
             statsSection
+            securitySection
             aboutSection
             dangerZoneSection
         }
@@ -1576,6 +1578,47 @@ private extension SettingsView {
         if h > 0 { return "\(h)h \(m)m \(s)s" }
         if m > 0 { return "\(m)m \(s)s" }
         return "\(s)s"
+    }
+}
+
+// MARK: - App Security
+
+private extension SettingsView {
+    var securitySection: some View {
+        Section {
+            Toggle(isOn: appLockBinding) {
+                Label("App Lock", systemImage: biometricIcon)
+                    .foregroundStyle(MeshTheme.accent)
+            }
+            .tint(MeshTheme.accent)
+            .listRowBackground(MeshTheme.surface)
+        } header: {
+            sectionHeader("Security")
+        } footer: {
+            Text("When enabled, Face ID, Touch ID, or your device passcode is required to open MeshCore.")
+                .font(.caption2)
+        }
+    }
+
+    private var appLockBinding: Binding<Bool> {
+        Binding(
+            get: { UserDefaults.standard.bool(forKey: "appLockEnabled") },
+            set: { UserDefaults.standard.set($0, forKey: "appLockEnabled") }
+        )
+    }
+
+    private var biometricIcon: String {
+        #if os(iOS)
+        let context = LAContext()
+        _ = context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil)
+        switch context.biometryType {
+        case .faceID: return "faceid"
+        case .touchID: return "touchid"
+        default: return "lock"
+        }
+        #else
+        return "lock"
+        #endif
     }
 }
 

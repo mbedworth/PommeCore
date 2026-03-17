@@ -1,10 +1,12 @@
 import SwiftUI
 import UserNotifications
+import LocalAuthentication
 import MeshCoreKit
 
 @main
 struct MeshCoreApp: App {
     @StateObject private var viewModel = MeshCoreViewModel()
+    @StateObject private var appLock = AppLockManager()
     @Environment(\.scenePhase) private var scenePhase
     #if os(iOS)
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
@@ -14,22 +16,31 @@ struct MeshCoreApp: App {
 
     var body: some Scene {
         WindowGroup {
-            if hasCompletedOnboarding {
+            if !hasCompletedOnboarding {
+                OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
+                    .meshTheme()
+            } else if appLock.appLockEnabled && !appLock.isUnlocked {
+                AppLockView(appLock: appLock)
+                    .meshTheme()
+            } else {
                 ContentView()
                     .environmentObject(viewModel)
                     .meshTheme()
                     #if os(iOS)
                     .onAppear { appDelegate.viewModel = viewModel }
                     #endif
-            } else {
-                OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
-                    .meshTheme()
             }
         }
         .onChange(of: scenePhase) { newPhase in
             viewModel.isInBackground = (newPhase != .active)
             if newPhase == .active {
                 viewModel.updateAppBadge()
+                if appLock.appLockEnabled && !appLock.isUnlocked {
+                    appLock.authenticate()
+                }
+            }
+            if newPhase == .background && appLock.appLockEnabled {
+                appLock.isUnlocked = false
             }
         }
     }
@@ -326,5 +337,91 @@ struct ContentView: View {
         // No alert on connecting → disconnected — the auto-reconnect and
         // auto-scan flow handles this silently via status bar updates.
         previousConnectionState = newState
+    }
+}
+
+// MARK: - App Lock
+
+class AppLockManager: ObservableObject {
+    @Published var isUnlocked = false
+    @AppStorage("appLockEnabled") var appLockEnabled = false
+
+    func authenticate() {
+        guard appLockEnabled else {
+            isUnlocked = true
+            return
+        }
+        let context = LAContext()
+        var error: NSError?
+        if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
+            context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics,
+                                   localizedReason: "Unlock MeshCore to access your messages") { success, _ in
+                Task { @MainActor in
+                    if success {
+                        self.isUnlocked = true
+                    } else {
+                        self.authenticateWithPasscode()
+                    }
+                }
+            }
+        } else {
+            authenticateWithPasscode()
+        }
+    }
+
+    func authenticateWithPasscode() {
+        let context = LAContext()
+        context.evaluatePolicy(.deviceOwnerAuthentication,
+                               localizedReason: "Unlock MeshCore") { success, _ in
+            Task { @MainActor in
+                self.isUnlocked = success
+            }
+        }
+    }
+}
+
+struct AppLockView: View {
+    @ObservedObject var appLock: AppLockManager
+
+    var body: some View {
+        VStack(spacing: 24) {
+            Spacer()
+            Image(systemName: "lock.shield.fill")
+                .font(.system(size: 72))
+                .foregroundStyle(MeshTheme.accent)
+            Text("MeshCore is Locked")
+                .font(.title2.bold())
+                .foregroundStyle(MeshTheme.textPrimary)
+            Text("Authenticate to access your messages")
+                .font(.subheadline)
+                .foregroundStyle(MeshTheme.textSecondary)
+            Spacer()
+            Button {
+                appLock.authenticate()
+            } label: {
+                Label("Unlock", systemImage: biometricIcon)
+                    .font(.headline)
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(MeshTheme.accent)
+                    .clipShape(RoundedRectangle(cornerRadius: 14))
+            }
+            .buttonStyle(.plain)
+            .padding(.horizontal, 40)
+            .padding(.bottom, 40)
+        }
+        .background(MeshTheme.background)
+        .onAppear { appLock.authenticate() }
+    }
+
+    private var biometricIcon: String {
+        let context = LAContext()
+        _ = context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil)
+        switch context.biometryType {
+        case .faceID: return "faceid"
+        case .touchID: return "touchid"
+        default: return "lock.open"
+        }
     }
 }
