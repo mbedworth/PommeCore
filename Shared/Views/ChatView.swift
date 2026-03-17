@@ -166,6 +166,7 @@ struct ChannelChatView: View {
     @EnvironmentObject var viewModel: MeshCoreViewModel
     @State private var messageText = ""
     @State private var unreadDividerIndex: Int?
+    @State private var mentionQuery: String?
 
     private let maxMessageLength = 160
 
@@ -252,59 +253,115 @@ struct ChannelChatView: View {
         }
     }
 
+    private var mentionCandidates: [Contact] {
+        let chatContacts = viewModel.contacts.filter { $0.type == .chat }
+        guard let query = mentionQuery, !query.isEmpty else { return chatContacts }
+        return chatContacts.filter {
+            viewModel.displayName(for: $0).localizedCaseInsensitiveContains(query)
+        }
+    }
+
     private var messageInput: some View {
-        VStack(spacing: 4) {
-            HStack(spacing: 10) {
-                TextField("Type a message...", text: $messageText)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 10)
-                    .background(MeshTheme.surfaceLight)
-                    .clipShape(RoundedRectangle(cornerRadius: 20))
-                    .foregroundStyle(MeshTheme.textPrimary)
-                    .onChange(of: messageText) { newValue in
-                        if newValue.count > maxMessageLength {
-                            messageText = String(newValue.prefix(maxMessageLength))
+        VStack(spacing: 0) {
+            if mentionQuery != nil && !mentionCandidates.isEmpty {
+                ScrollView {
+                    VStack(spacing: 0) {
+                        ForEach(mentionCandidates.prefix(5)) { contact in
+                            Button {
+                                insertMention(contact)
+                            } label: {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "person.fill")
+                                        .foregroundStyle(MeshTheme.accent)
+                                        .font(.caption)
+                                    Text(viewModel.displayName(for: contact))
+                                        .foregroundStyle(MeshTheme.textPrimary)
+                                    Spacer()
+                                }
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                            }
+                            .buttonStyle(.plain)
+                            Divider()
                         }
                     }
-                    #if !os(watchOS)
-                    .onSubmit { send() }
-                    #endif
-
-                Button(action: send) {
-                    Image(systemName: "arrow.up.circle.fill")
-                        .font(.system(size: 32))
-                        .foregroundStyle(
-                            messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                                ? MeshTheme.textSecondary
-                                : MeshTheme.accent
-                        )
                 }
-                .disabled(messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                .frame(maxHeight: 200)
+                .background(MeshTheme.surface)
             }
-            .padding(.horizontal, 12)
 
-            if !messageText.isEmpty {
-                HStack {
-                    Spacer()
-                    Text("\(messageText.count)/\(maxMessageLength)")
-                        .font(.caption2)
-                        .foregroundStyle(
-                            messageText.count > maxMessageLength - 10
-                                ? Color.orange
-                                : MeshTheme.textSecondary
-                        )
+            VStack(spacing: 4) {
+                HStack(spacing: 10) {
+                    TextField("Type a message...", text: $messageText)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 10)
+                        .background(MeshTheme.surfaceLight)
+                        .clipShape(RoundedRectangle(cornerRadius: 20))
+                        .foregroundStyle(MeshTheme.textPrimary)
+                        .onChange(of: messageText) { newValue in
+                            if newValue.count > maxMessageLength {
+                                messageText = String(newValue.prefix(maxMessageLength))
+                            }
+                            mentionQuery = detectMentionQuery(in: newValue)
+                        }
+                        #if !os(watchOS)
+                        .onSubmit { send() }
+                        #endif
+
+                    Button(action: send) {
+                        Image(systemName: "arrow.up.circle.fill")
+                            .font(.system(size: 32))
+                            .foregroundStyle(
+                                messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                                    ? MeshTheme.textSecondary
+                                    : MeshTheme.accent
+                            )
+                    }
+                    .disabled(messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
-                .padding(.horizontal, 16)
+                .padding(.horizontal, 12)
+
+                if !messageText.isEmpty {
+                    HStack {
+                        Spacer()
+                        Text("\(messageText.count)/\(maxMessageLength)")
+                            .font(.caption2)
+                            .foregroundStyle(
+                                messageText.count > maxMessageLength - 10
+                                    ? Color.orange
+                                    : MeshTheme.textSecondary
+                            )
+                    }
+                    .padding(.horizontal, 16)
+                }
             }
+            .padding(.vertical, 8)
+            .background(MeshTheme.surface)
         }
-        .padding(.vertical, 8)
-        .background(MeshTheme.surface)
+    }
+
+    /// Detect an in-progress @mention at end of text.
+    private func detectMentionQuery(in text: String) -> String? {
+        guard let atIndex = text.lastIndex(of: "@") else { return nil }
+        let query = String(text[text.index(after: atIndex)...])
+        // Don't trigger if there's a space after @ (completed mention)
+        if query.contains(" ") { return nil }
+        return query
+    }
+
+    /// Insert the selected contact's name at the current @ position.
+    private func insertMention(_ contact: Contact) {
+        guard let atIndex = messageText.lastIndex(of: "@") else { return }
+        let name = viewModel.displayName(for: contact)
+        messageText = String(messageText[messageText.startIndex...atIndex]) + name + " "
+        mentionQuery = nil
     }
 
     private func send() {
         viewModel.sendChannelMessage(messageText, channelIndex: channelIndex)
         viewModel.playHapticFeedback()
         messageText = ""
+        mentionQuery = nil
         viewModel.saveDraft("", for: channelKey)
     }
 }
@@ -1121,6 +1178,11 @@ struct MessageBubble: View {
 
 struct ChannelMessageBubble: View {
     let message: Message
+    @EnvironmentObject var viewModel: MeshCoreViewModel
+
+    private var highlightedText: Text {
+        highlightMentions(in: message.text, myName: viewModel.deviceConfig.deviceName)
+    }
 
     var body: some View {
         HStack {
@@ -1134,7 +1196,7 @@ struct ChannelMessageBubble: View {
                         .padding(.horizontal, 4)
                 }
 
-                Text(message.text)
+                highlightedText
                     .textSelection(.enabled)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 9)
@@ -1232,6 +1294,39 @@ struct DateSeparator: View {
         formatter.dateStyle = .medium
         return formatter.string(from: date)
     }
+}
+
+/// Highlight @mentions in message text. Own name gets a stronger highlight.
+private func highlightMentions(in text: String, myName: String) -> Text {
+    let pattern = "@(\\w+)"
+    guard let regex = try? NSRegularExpression(pattern: pattern) else {
+        return Text(text)
+    }
+    let nsText = text as NSString
+    let matches = regex.matches(in: text, range: NSRange(location: 0, length: nsText.length))
+    guard !matches.isEmpty else { return Text(text) }
+
+    var result = Text("")
+    var lastEnd = 0
+    for match in matches {
+        let range = match.range
+        // Text before the match
+        if range.location > lastEnd {
+            let prefix = nsText.substring(with: NSRange(location: lastEnd, length: range.location - lastEnd))
+            result = result + Text(prefix)
+        }
+        let mention = nsText.substring(with: range)
+        let mentionName = nsText.substring(with: match.range(at: 1))
+        let isMe = mentionName.localizedCaseInsensitiveCompare(myName) == .orderedSame
+        result = result + Text(mention)
+            .foregroundColor(isMe ? .orange : MeshTheme.accent)
+            .bold()
+        lastEnd = range.location + range.length
+    }
+    if lastEnd < nsText.length {
+        result = result + Text(nsText.substring(from: lastEnd))
+    }
+    return result
 }
 
 struct UnreadDivider: View {
