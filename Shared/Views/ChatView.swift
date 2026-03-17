@@ -5,6 +5,7 @@ struct ChatView: View {
     let contact: Contact
     @EnvironmentObject var viewModel: MeshCoreViewModel
     @State private var messageText = ""
+    @State private var showNotes = false
 
     private let maxMessageLength = 160
 
@@ -21,6 +22,19 @@ struct ChatView: View {
         }
         .background(MeshTheme.background)
         .navigationTitle(viewModel.displayName(for: contact))
+        .toolbar {
+            ToolbarItem(placement: .automatic) {
+                Button {
+                    showNotes = true
+                } label: {
+                    Image(systemName: viewModel.hasNote(for: contact) ? "note.text" : "note.text.badge.plus")
+                        .foregroundStyle(MeshTheme.accent)
+                }
+            }
+        }
+        .sheet(isPresented: $showNotes) {
+            ContactNotesSheet(contact: contact)
+        }
         .onAppear {
             viewModel.markAsRead(contact)
         }
@@ -1192,4 +1206,43 @@ struct DateSeparator: View {
 /// Returns true if two dates fall on different calendar days.
 private func isDifferentDay(_ a: Date, _ b: Date) -> Bool {
     !Calendar.current.isDate(a, inSameDayAs: b)
+}
+
+// MARK: - Contact Notes Sheet
+
+struct ContactNotesSheet: View {
+    let contact: Contact
+    @EnvironmentObject var viewModel: MeshCoreViewModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var noteText = ""
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Notes") {
+                    TextEditor(text: $noteText)
+                        .frame(minHeight: 120)
+                        .font(.body)
+                }
+            }
+            .navigationTitle("Notes for \(viewModel.displayName(for: contact))")
+            #if !os(macOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        viewModel.setNote(noteText, for: contact)
+                        dismiss()
+                    }
+                }
+            }
+            .onAppear {
+                noteText = viewModel.note(for: contact)
+            }
+        }
+    }
 }
