@@ -22,5 +22,7 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>MeshCore needs Bluetooth to communicate with your LoRa radio device.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>MeshCore shows your location on the mesh map and can include it in your advertisements.</string>
 </dict>
 </plist>
