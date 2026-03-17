@@ -6,6 +6,7 @@ struct SettingsView: View {
     @AppStorage("batteryChemistry") private var batteryChemistryRaw: String = BatteryChemistry.lipo.rawValue
     @AppStorage("appTheme") private var appTheme: String = AppTheme.system.rawValue
     @State private var statsExpanded = false
+    @State private var clockSynced = false
 
     private var batteryChemistry: BatteryChemistry {
         BatteryChemistry(rawValue: batteryChemistryRaw) ?? .lipo
@@ -1163,13 +1164,15 @@ private extension SettingsView {
             Button {
                 let epoch = UInt32(Date().timeIntervalSince1970)
                 viewModel.setDeviceTime(epochSeconds: epoch)
+                clockSynced = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2) { clockSynced = false }
             } label: {
                 HStack {
-                    Image(systemName: "arrow.triangle.2.circlepath")
-                        .foregroundStyle(MeshTheme.accent)
+                    Image(systemName: clockSynced ? "checkmark.circle.fill" : "arrow.triangle.2.circlepath")
+                        .foregroundStyle(clockSynced ? MeshTheme.connected : MeshTheme.accent)
                         .frame(width: 24)
-                    Text("Sync Device Clock")
-                        .foregroundStyle(MeshTheme.accent)
+                    Text(clockSynced ? "Clock Synced" : "Sync Device Clock")
+                        .foregroundStyle(clockSynced ? MeshTheme.connected : MeshTheme.accent)
                     Spacer()
                 }
                 .contentShape(Rectangle())
