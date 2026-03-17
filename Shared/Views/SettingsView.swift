@@ -878,7 +878,14 @@ struct RadioSection: View {
                 Button("Enable") { repeatMode = true }
                 Button("Cancel", role: .cancel) {}
             } message: {
-                Text("Your companion radio will act as a portable repeater.\n\nThis is useful for camping, hiking, and search & rescue where repeater infrastructure doesn't exist.\n\nRepeat mode is restricted to allowed frequency ranges configured on the device.")
+                if viewModel.allowedRepeatFreqRanges.isEmpty {
+                    Text("Your companion radio will act as a portable repeater.\n\nThis is useful for camping, hiking, and search & rescue where repeater infrastructure doesn't exist.\n\nRepeat mode is restricted to allowed frequency ranges configured on the device.")
+                } else {
+                    let freqText = viewModel.allowedRepeatFreqRanges.map { range in
+                        String(format: "%.1f\u{2013}%.1f MHz", Double(range.lowerHz) / 1_000_000, Double(range.upperHz) / 1_000_000)
+                    }.joined(separator: "\n")
+                    Text("Your companion radio will act as a portable repeater.\n\nAllowed frequency ranges:\n\(freqText)\n\nThis is useful for camping, hiking, and search & rescue where repeater infrastructure doesn't exist.")
+                }
             }
 
             SaveButton(state: saveState, label: "Apply Radio Settings") {
