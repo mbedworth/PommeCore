@@ -411,10 +411,17 @@ struct AdvertPathView: View {
     }
 
     private func nodeName(for hash: Data) -> String {
+        // Try exact 6-byte match first
         if let contact = viewModel.contacts.first(where: { $0.publicKeyPrefix == hash }) {
             return viewModel.displayName(for: contact)
         }
-        return hash.prefix(4).map { String(format: "%02X", $0) }.joined(separator: ":")
+        // Try prefix match for smaller hashes (1-3 byte path hash mode)
+        if hash.count < 6 {
+            if let contact = viewModel.contacts.first(where: { $0.publicKeyPrefix.prefix(hash.count) == hash }) {
+                return viewModel.displayName(for: contact)
+            }
+        }
+        return hash.map { String(format: "%02X", $0) }.joined(separator: ":")
     }
 }
 

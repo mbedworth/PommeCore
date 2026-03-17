@@ -354,6 +354,24 @@ final class MeshCoreViewModel: ObservableObject {
         saveBatteryCalibration(cal)
     }
 
+    // MARK: - Path Hash Resolution
+
+    /// Resolve a path hop hash to a known contact/repeater name.
+    func contactNameForHash(_ hashHex: String) -> String? {
+        let hashBytes = Data(stride(from: 0, to: hashHex.count, by: 2).compactMap { i in
+            let start = hashHex.index(hashHex.startIndex, offsetBy: i)
+            let end = hashHex.index(start, offsetBy: min(2, hashHex.distance(from: start, to: hashHex.endIndex)))
+            return UInt8(hashHex[start..<end], radix: 16)
+        })
+        guard !hashBytes.isEmpty else { return nil }
+        for contact in contacts where contact.type == .repeater {
+            if contact.publicKeyPrefix.prefix(hashBytes.count) == hashBytes {
+                return displayName(for: contact)
+            }
+        }
+        return nil
+    }
+
     /// Active remote management sessions keyed by contact public key prefix.
     /// Not @Published — sessions are ObservableObjects whose changes are
     /// forwarded to the ViewModel via objectWillChange so the contact list updates.
