@@ -1049,6 +1049,76 @@ struct PrivacySection: View {
                 .font(.caption2)
         }
 
+        // Per-contact telemetry permission picker
+        if telBase == 1 {
+            Section {
+                let chatContacts = viewModel.contacts.filter { $0.type == .chat }
+                if chatContacts.isEmpty {
+                    Text("No chat contacts available")
+                        .foregroundStyle(MeshTheme.textSecondary)
+                        .listRowBackground(MeshTheme.surface)
+                } else {
+                    ForEach(chatContacts) { contact in
+                        Toggle(isOn: Binding(
+                            get: { contact.allowTelemetry },
+                            set: { enabled in
+                                var newFlags = contact.flags
+                                if enabled { newFlags |= 0x02 } else { newFlags &= ~0x02 }
+                                viewModel.updateContactFlags(contact, newFlags: newFlags)
+                            }
+                        )) {
+                            Text(viewModel.displayName(for: contact))
+                                .foregroundStyle(MeshTheme.textPrimary)
+                        }
+                        .tint(MeshTheme.accent)
+                        .listRowBackground(MeshTheme.surface)
+                    }
+                }
+            } header: {
+                Text("Contacts with Telemetry Permission")
+                    .foregroundStyle(MeshTheme.textSecondary)
+            } footer: {
+                let count = viewModel.contacts.filter { $0.type == .chat && $0.allowTelemetry }.count
+                Text("\(count) contact\(count == 1 ? "" : "s") can request your telemetry data.")
+                    .font(.caption2)
+            }
+        }
+
+        // Per-contact location permission picker
+        if telLoc == 1 {
+            Section {
+                let chatContacts = viewModel.contacts.filter { $0.type == .chat }
+                if chatContacts.isEmpty {
+                    Text("No chat contacts available")
+                        .foregroundStyle(MeshTheme.textSecondary)
+                        .listRowBackground(MeshTheme.surface)
+                } else {
+                    ForEach(chatContacts) { contact in
+                        Toggle(isOn: Binding(
+                            get: { contact.shareTelemetryLocation },
+                            set: { enabled in
+                                var newFlags = contact.flags
+                                if enabled { newFlags |= 0x04 } else { newFlags &= ~0x04 }
+                                viewModel.updateContactFlags(contact, newFlags: newFlags)
+                            }
+                        )) {
+                            Text(viewModel.displayName(for: contact))
+                                .foregroundStyle(MeshTheme.textPrimary)
+                        }
+                        .tint(MeshTheme.accent)
+                        .listRowBackground(MeshTheme.surface)
+                    }
+                }
+            } header: {
+                Text("Contacts with Location Permission")
+                    .foregroundStyle(MeshTheme.textSecondary)
+            } footer: {
+                let count = viewModel.contacts.filter { $0.type == .chat && $0.shareTelemetryLocation }.count
+                Text("\(count) contact\(count == 1 ? "" : "s") will receive your location in telemetry.")
+                    .font(.caption2)
+            }
+        }
+
         // BLE PIN — adaptive based on whether device has a screen
         Section {
             if viewModel.deviceConfig.blePIN == 0 {
