@@ -7,6 +7,8 @@ struct DeviceScannerView: View {
 
     /// Tracks the scan cycle timer while the view is visible.
     @State private var scanCycleTask: Task<Void, Never>?
+    @State private var wifiHost = ""
+    @State private var wifiPort = "5000"
 
     var body: some View {
         List {
@@ -97,6 +99,54 @@ struct DeviceScannerView: View {
             } header: {
                 Text("Nearby Devices")
                     .foregroundStyle(MeshTheme.textSecondary)
+            }
+
+            Section {
+                if viewModel.wifiManager.isConnected {
+                    HStack {
+                        Image(systemName: "wifi")
+                            .foregroundStyle(MeshTheme.connected)
+                        Text(viewModel.wifiManager.connectedHost ?? "Connected")
+                            .foregroundStyle(MeshTheme.textPrimary)
+                        Spacer()
+                        Button("Disconnect") {
+                            viewModel.disconnectWiFi()
+                        }
+                        .foregroundStyle(MeshTheme.disconnected)
+                    }
+                    .listRowBackground(MeshTheme.surface)
+                } else {
+                    HStack(spacing: 8) {
+                        Image(systemName: "wifi")
+                            .foregroundStyle(MeshTheme.accent)
+                        TextField("IP Address", text: $wifiHost)
+                            .foregroundStyle(MeshTheme.textPrimary)
+                            #if !os(watchOS)
+                            .textFieldStyle(.roundedBorder)
+                            #endif
+                        Text(":")
+                            .foregroundStyle(MeshTheme.textSecondary)
+                        TextField("Port", text: $wifiPort)
+                            .foregroundStyle(MeshTheme.textPrimary)
+                            .frame(width: 60)
+                            #if !os(watchOS)
+                            .textFieldStyle(.roundedBorder)
+                            #endif
+                        Button("Connect") {
+                            viewModel.connectWiFi(host: wifiHost, port: UInt16(wifiPort) ?? 5000)
+                        }
+                        .disabled(wifiHost.isEmpty)
+                        .buttonStyle(.borderedProminent)
+                        .tint(MeshTheme.interactiveGreen)
+                    }
+                    .listRowBackground(MeshTheme.surface)
+                }
+            } header: {
+                Text("WiFi")
+                    .foregroundStyle(MeshTheme.textSecondary)
+            } footer: {
+                Text("Connect to a companion radio with WiFi enabled (TCP, default port 5000).")
+                    .font(.caption2)
             }
 
             #if os(macOS)

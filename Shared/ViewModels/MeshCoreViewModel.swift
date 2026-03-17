@@ -309,6 +309,7 @@ final class MeshCoreViewModel: ObservableObject {
     @Published var bleStatusMessage: String?
 
     let bleManager = BLEManager()
+    let wifiManager = WiFiConnectionManager()
     #if os(macOS)
     let usbManager = USBSerialManager()
     @Published var usbCLIOutput: [USBTerminalLine] = []
@@ -662,6 +663,33 @@ final class MeshCoreViewModel: ObservableObject {
             }
             .store(in: &cancellables)
 
+        // WiFi/TCP subscriptions
+        wifiManager.receivedDataSubject
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] data in
+                self?.handleReceivedData(data)
+            }
+            .store(in: &cancellables)
+
+        wifiManager.$isConnected
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] connected in
+                guard let self else { return }
+                if connected {
+                    Self.logger.info("WiFi connected — initializing device")
+                    self.connectionState = .ready
+                    self.connectedDeviceName = "WiFi: \(self.wifiManager.connectedHost ?? "unknown")"
+                    self.onDeviceReady()
+                } else if self.wifiManager.connectedHost != nil {
+                    // WiFi disconnected
+                    if self.connectionState == .ready {
+                        self.connectionState = .disconnected
+                        self.connectedDeviceName = nil
+                    }
+                }
+            }
+            .store(in: &cancellables)
+
         // USB Serial subscriptions (macOS only)
         #if os(macOS)
         usbManager.receivedDataSubject
@@ -778,6 +806,14 @@ final class MeshCoreViewModel: ObservableObject {
     /// Whether the UI should present the scanner sheet (set by auto-scan after disconnect).
     @Published var requestShowScanner = false
 
+    func connectWiFi(host: String, port: UInt16 = 5000) {
+        wifiManager.connect(host: host, port: port)
+    }
+
+    func disconnectWiFi() {
+        wifiManager.disconnect()
+    }
+
     #if os(macOS)
     func connectUSB(port: String) {
         usbManager.connect(to: port)
@@ -811,6 +847,12 @@ final class MeshCoreViewModel: ObservableObject {
     // MARK: - Protocol Commands
 
     private func sendCommand(_ data: Data, label: String) {
+        if wifiManager.isConnected {
+            let hex = data.map { String(format: "%02x", $0) }.joined(separator: " ")
+            Self.logger.info("TX(WiFi) \(label) [\(data.count) bytes]: \(hex)")
+            wifiManager.sendFrame(data)
+            return
+        }
         #if os(macOS)
         if usbManager.isConnected && usbManager.detectedMode == .binary {
             let hex = data.map { String(format: "%02x", $0) }.joined(separator: " ")
