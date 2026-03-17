@@ -849,7 +849,7 @@ struct TuningSection: View {
                     .foregroundStyle(MeshTheme.accent)
                 Spacer()
                 Picker("", selection: $floodMaxHops) {
-                    ForEach(1...7, id: \.self) { hops in
+                    ForEach(1...64, id: \.self) { hops in
                         Text("\(hops)").tag(hops)
                     }
                 }
@@ -871,7 +871,7 @@ struct TuningSection: View {
         } header: {
             Text("Mesh Network")
         } footer: {
-            Text("Maximum number of hops for flood messages. Lower values reduce network traffic but limit range. Default is 3.")
+            Text("Maximum number of hops for flood messages. Lower values reduce network traffic but limit range. Default is 3. Maximum is 64.")
                 .font(.caption2)
         }
 
