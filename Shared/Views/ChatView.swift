@@ -6,6 +6,7 @@ struct ChatView: View {
     @EnvironmentObject var viewModel: MeshCoreViewModel
     @State private var messageText = ""
     @State private var showNotes = false
+    @State private var unreadDividerIndex: Int?
 
     private let maxMessageLength = 160
 
@@ -69,6 +70,9 @@ struct ChatView: View {
                         if index == 0 || isDifferentDay(messages[index - 1].timestamp, message.timestamp) {
                             DateSeparator(date: message.timestamp)
                         }
+                        if index == unreadDividerIndex {
+                            UnreadDivider()
+                        }
                         MessageBubble(message: message)
                             .id(message.id)
                     }
@@ -87,7 +91,10 @@ struct ChatView: View {
                 }
             }
             .onAppear {
-                if let last = messages.last {
+                unreadDividerIndex = viewModel.firstUnreadIndex(in: messages, for: contact.publicKeyPrefix)
+                if let idx = unreadDividerIndex, idx < messages.count {
+                    proxy.scrollTo(messages[idx].id, anchor: .center)
+                } else if let last = messages.last {
                     proxy.scrollTo(last.id, anchor: .bottom)
                 }
             }
@@ -158,6 +165,7 @@ struct ChannelChatView: View {
     let channelName: String
     @EnvironmentObject var viewModel: MeshCoreViewModel
     @State private var messageText = ""
+    @State private var unreadDividerIndex: Int?
 
     private let maxMessageLength = 160
 
@@ -177,6 +185,9 @@ struct ChannelChatView: View {
         .background(MeshTheme.background)
         .navigationTitle(channelName)
         .onAppear {
+            // Store last-read timestamp for unread divider before clearing count
+            let lastReadKey = "lastRead.\(channelKey.map { String(format: "%02x", $0) }.joined())"
+            UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: lastReadKey)
             viewModel.unreadCounts[channelKey] = 0
             if messageText.isEmpty {
                 messageText = viewModel.loadDraft(for: channelKey)
@@ -210,6 +221,9 @@ struct ChannelChatView: View {
                         if index == 0 || isDifferentDay(messages[index - 1].timestamp, message.timestamp) {
                             DateSeparator(date: message.timestamp)
                         }
+                        if index == unreadDividerIndex {
+                            UnreadDivider()
+                        }
                         ChannelMessageBubble(message: message)
                             .id(message.id)
                     }
@@ -228,7 +242,10 @@ struct ChannelChatView: View {
                 }
             }
             .onAppear {
-                if let last = messages.last {
+                unreadDividerIndex = viewModel.firstUnreadIndex(in: messages, for: channelKey)
+                if let idx = unreadDividerIndex, idx < messages.count {
+                    proxy.scrollTo(messages[idx].id, anchor: .center)
+                } else if let last = messages.last {
                     proxy.scrollTo(last.id, anchor: .bottom)
                 }
             }
@@ -1214,6 +1231,20 @@ struct DateSeparator: View {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         return formatter.string(from: date)
+    }
+}
+
+struct UnreadDivider: View {
+    var body: some View {
+        HStack {
+            VStack { Divider().background(MeshTheme.accent) }
+            Text("New Messages")
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(MeshTheme.accent)
+                .padding(.horizontal, 8)
+            VStack { Divider().background(MeshTheme.accent) }
+        }
+        .padding(.vertical, 4)
     }
 }
 
