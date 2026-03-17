@@ -1635,6 +1635,7 @@ private extension SettingsView {
 
 // MARK: - Tip Jar
 
+@MainActor
 class TipJarManager: ObservableObject {
     @Published var products: [Product] = []
     @Published var purchaseSuccess = false
@@ -1667,9 +1668,9 @@ class TipJarManager: ObservableObject {
             products = try await Product.products(for: productIDs)
                 .sorted { $0.price < $1.price }
         } catch {
-            // Products not configured yet — placeholders will show
+            products = []
         }
-        await MainActor.run { didAttemptLoad = true }
+        didAttemptLoad = true
     }
 
     func purchase(_ product: Product) async {
@@ -1678,7 +1679,7 @@ class TipJarManager: ObservableObject {
             if case .success(let verification) = result {
                 if case .verified(let transaction) = verification {
                     await transaction.finish()
-                    await MainActor.run { purchaseSuccess = true }
+                    purchaseSuccess = true
                 }
             }
         } catch {
