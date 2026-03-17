@@ -425,6 +425,7 @@ struct ContactDetailSheet: View {
     let contact: Contact
     @EnvironmentObject var viewModel: MeshCoreViewModel
     @Environment(\.dismiss) private var dismiss
+    @State private var showPathEditor = false
 
     private var isTracePending: Bool { viewModel.pendingTraceTag != nil }
     private var isStatusPending: Bool { viewModel.pendingStatusKey == contact.publicKeyPrefix }
@@ -465,6 +466,9 @@ struct ContactDetailSheet: View {
                         TelemetryView(readings: readings, contactName: viewModel.displayName(for: contact))
                     }
 
+                    // Routing Path (from contact's outPath)
+                    PathViewer(contact: contact)
+
                     // Advert Path
                     if isPathPending {
                         ActivityOverlay(message: "Loading path info for \(viewModel.displayName(for: contact))...", timeout: 10)
@@ -489,6 +493,12 @@ struct ContactDetailSheet: View {
                         actionButton("Show Path Info", icon: "map", pending: isPathPending) {
                             viewModel.requestAdvertPath(for: contact)
                         }
+                        actionButton("Reset Path", icon: "arrow.counterclockwise", pending: false) {
+                            viewModel.resetPath(for: contact)
+                        }
+                        actionButton("Edit Path", icon: "pencil.line", pending: false) {
+                            showPathEditor = true
+                        }
                     }
                     .foregroundStyle(MeshTheme.accent)
                 }
@@ -500,6 +510,10 @@ struct ContactDetailSheet: View {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Done") { dismiss() }
                 }
+            }
+            .sheet(isPresented: $showPathEditor) {
+                ManualPathEditor(contact: contact)
+                    .environmentObject(viewModel)
             }
         }
         .meshTheme()
@@ -958,6 +972,252 @@ struct ActivityOverlay: View {
         }
         .onReceive(timer) { _ in
             if elapsed < timeout { elapsed += 1 }
+        }
+    }
+}
+
+// MARK: - Path Viewer
+
+struct PathViewer: View {
+    let contact: Contact
+    @EnvironmentObject var viewModel: MeshCoreViewModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Image(systemName: "point.topleft.down.to.point.bottomright.curvepath")
+                    .foregroundStyle(MeshTheme.accent)
+                Text("Routing Path")
+                    .font(.headline)
+                    .foregroundStyle(MeshTheme.textPrimary)
+            }
+
+            if contact.outPathLen == 0 {
+                Label("Direct neighbor (0 hops)", systemImage: "arrow.right")
+                    .foregroundStyle(MeshTheme.connected)
+            } else if contact.outPathLen < 0 {
+                Label("No known path \u{2014} messages will flood", systemImage: "antenna.radiowaves.left.and.right")
+                    .foregroundStyle(.orange)
+            } else {
+                let hops = parsePathHops(from: contact.outPath, pathLen: Int(contact.outPathLen))
+
+                // Visual path
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 4) {
+                        pathNode("You", color: MeshTheme.interactiveGreen)
+                        ForEach(Array(hops.enumerated()), id: \.offset) { _, hop in
+                            Image(systemName: "arrow.right")
+                                .font(.caption2)
+                                .foregroundStyle(MeshTheme.textSecondary)
+                            pathNode(hop, color: MeshTheme.surfaceLight)
+                        }
+                        Image(systemName: "arrow.right")
+                            .font(.caption2)
+                            .foregroundStyle(MeshTheme.textSecondary)
+                        pathNode(viewModel.displayName(for: contact), color: MeshTheme.incomingBubble)
+                    }
+                }
+
+                Text("\(hops.count) hop\(hops.count == 1 ? "" : "s")")
+                    .font(.caption)
+                    .foregroundStyle(MeshTheme.textSecondary)
+            }
+        }
+        .padding()
+        .background(MeshTheme.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    private func pathNode(_ label: String, color: Color) -> some View {
+        Text(label)
+            .font(.system(.caption, design: .monospaced))
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(color)
+            .clipShape(RoundedRectangle(cornerRadius: 4))
+            .foregroundStyle(MeshTheme.textPrimary)
+    }
+
+    private func parsePathHops(from pathData: Data, pathLen: Int) -> [String] {
+        guard !pathData.isEmpty, pathLen > 0 else { return [] }
+        // Infer bytes per hop from data length and hop count
+        let bytesPerHop = max(1, min(3, pathData.count / pathLen))
+        var hops: [String] = []
+        for i in 0..<pathLen {
+            let start = i * bytesPerHop
+            let end = min(start + bytesPerHop, pathData.count)
+            guard end <= pathData.count else { break }
+            let hashBytes = Data(pathData[start..<end])
+            if let name = resolvePathHash(hashBytes) {
+                hops.append(name)
+            } else {
+                hops.append(hashBytes.map { String(format: "%02X", $0) }.joined())
+            }
+        }
+        return hops
+    }
+
+    /// Try to match a path hash to a known repeater name.
+    private func resolvePathHash(_ hashBytes: Data) -> String? {
+        for c in viewModel.contacts where c.type == .repeater {
+            if c.publicKeyPrefix.prefix(hashBytes.count) == hashBytes {
+                return viewModel.displayName(for: c)
+            }
+        }
+        return nil
+    }
+}
+
+// MARK: - Manual Path Editor
+
+struct ManualPathEditor: View {
+    let contact: Contact
+    @EnvironmentObject var viewModel: MeshCoreViewModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var pathMode = 0 // 0=auto, 1=flood, 2=manual
+    @State private var selectedRepeaters: [Contact] = []
+    @State private var manualPathHex = ""
+    @State private var pathApplied = false
+
+    private var repeaters: [Contact] {
+        viewModel.contacts.filter { $0.type == .repeater }
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                modePickerSection
+                if pathMode == 2 {
+                    repeaterSelectionSection
+                    pathOrderSection
+                    manualHexSection
+                }
+            }
+            .navigationTitle("Edit Path")
+            #if !os(macOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(pathApplied ? "Done" : "Apply") {
+                        if pathApplied {
+                            dismiss()
+                        } else {
+                            applyPath()
+                            pathApplied = true
+                        }
+                    }
+                    .foregroundStyle(pathApplied ? MeshTheme.connected : MeshTheme.accent)
+                }
+            }
+        }
+    }
+
+    private var modePickerSection: some View {
+        Section {
+            Picker("Routing Mode", selection: $pathMode) {
+                Text("Auto (device discovers path)").tag(0)
+                Text("Flood (broadcast to all)").tag(1)
+                Text("Manual (select repeaters)").tag(2)
+            }
+            .pickerStyle(.inline)
+        }
+    }
+
+    private var repeaterSelectionSection: some View {
+        Section("Select Repeaters") {
+            if repeaters.isEmpty {
+                Text("No repeaters discovered")
+                    .font(.caption)
+                    .foregroundStyle(MeshTheme.textSecondary)
+            }
+            ForEach(repeaters) { repeater in
+                let isSelected = selectedRepeaters.contains(where: { $0.publicKey == repeater.publicKey })
+                Button { toggleRepeater(repeater) } label: {
+                    HStack {
+                        Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                            .foregroundStyle(isSelected ? MeshTheme.accent : MeshTheme.textSecondary)
+                        Text(viewModel.displayName(for: repeater))
+                            .foregroundStyle(MeshTheme.textPrimary)
+                    }
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var pathOrderSection: some View {
+        if !selectedRepeaters.isEmpty {
+            Section("Path Order") {
+                ForEach(Array(selectedRepeaters.enumerated()), id: \.element.publicKey) { idx, rep in
+                    HStack {
+                        Text("\(idx + 1).")
+                            .foregroundStyle(MeshTheme.textSecondary)
+                        Text(viewModel.displayName(for: rep))
+                            .foregroundStyle(MeshTheme.textPrimary)
+                    }
+                }
+                .onMove { from, to in
+                    selectedRepeaters.move(fromOffsets: from, toOffset: to)
+                }
+            }
+        }
+    }
+
+    private var manualHexSection: some View {
+        Section {
+            TextField("Hex hops (e.g., A3,B7,4F)", text: $manualPathHex)
+                .font(.system(.body, design: .monospaced))
+                .foregroundStyle(MeshTheme.textPrimary)
+        } header: {
+            Text("Or Enter Path Manually")
+        } footer: {
+            Text("Enter repeater hashes separated by commas.")
+                .font(.caption2)
+        }
+    }
+
+    private func toggleRepeater(_ repeater: Contact) {
+        if let idx = selectedRepeaters.firstIndex(where: { $0.publicKey == repeater.publicKey }) {
+            selectedRepeaters.remove(at: idx)
+        } else {
+            selectedRepeaters.append(repeater)
+        }
+    }
+
+    private func applyPath() {
+        switch pathMode {
+        case 1: // Flood
+            viewModel.setContactPath(contact, pathLen: -1, pathData: Data())
+        case 2: // Manual
+            if !selectedRepeaters.isEmpty {
+                var pathData = Data()
+                for rep in selectedRepeaters {
+                    pathData.append(rep.publicKeyPrefix.prefix(1)) // 1-byte hash
+                }
+                viewModel.setContactPath(contact, pathLen: Int8(selectedRepeaters.count), pathData: pathData)
+            } else if !manualPathHex.isEmpty {
+                let hexParts = manualPathHex.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+                var pathData = Data()
+                for hex in hexParts {
+                    var bytes = Data()
+                    var chars = hex[hex.startIndex...]
+                    while chars.count >= 2 {
+                        if let byte = UInt8(String(chars.prefix(2)), radix: 16) {
+                            bytes.append(byte)
+                        }
+                        chars = chars.dropFirst(2)
+                    }
+                    pathData.append(bytes)
+                }
+                viewModel.setContactPath(contact, pathLen: Int8(hexParts.count), pathData: pathData)
+            }
+        default: // Auto — reset path so device rediscovers
+            viewModel.resetPath(for: contact)
         }
     }
 }
