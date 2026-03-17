@@ -1353,6 +1353,17 @@ private extension SettingsView {
             }
             .listRowBackground(MeshTheme.surface)
 
+            if let deviceDate = config.deviceTimeDate, abs(deviceDate.timeIntervalSince(Date())) > 86400 {
+                HStack(spacing: 8) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.orange)
+                    Text("Device clock is off by more than 24 hours. Tap \u{2018}Sync Device Clock\u{2019} to fix.")
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                }
+                .listRowBackground(MeshTheme.surface)
+            }
+
             Button {
                 let epoch = UInt32(Date().timeIntervalSince1970)
                 viewModel.setDeviceTime(epochSeconds: epoch)
