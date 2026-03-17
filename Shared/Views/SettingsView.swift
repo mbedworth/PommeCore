@@ -67,6 +67,7 @@ struct SettingsView: View {
             appearanceSection
             iCloudSection
             notificationsSection
+            messageSettingsSection
             deviceInfoSection
             connectionSection
             identitySection
@@ -194,6 +195,48 @@ struct NotificationsSection: View {
             Text("Choose which events trigger notifications when the app is in the background.")
                 .font(.caption2)
         }
+    }
+}
+
+// MARK: - Message Settings
+
+private extension SettingsView {
+    var messageSettingsSection: some View {
+        Section {
+            Toggle(isOn: autoRetryBinding) {
+                Label("Auto Retry", systemImage: "arrow.clockwise")
+                    .foregroundStyle(MeshTheme.accent)
+            }
+            .tint(MeshTheme.accent)
+            .listRowBackground(MeshTheme.surface)
+
+            Toggle(isOn: autoResetPathBinding) {
+                Label("Auto Reset Path", systemImage: "dot.radiowaves.left.and.right")
+                    .foregroundStyle(MeshTheme.accent)
+            }
+            .tint(MeshTheme.accent)
+            .listRowBackground(MeshTheme.surface)
+        } header: {
+            Text("Message Delivery")
+                .foregroundStyle(MeshTheme.textSecondary)
+        } footer: {
+            Text("Auto Retry resends failed messages up to 3 times on the direct path. Auto Reset Path clears the cached route after direct retries fail and resends as a flood message using the Flood Max Hops setting.")
+                .font(.caption2)
+        }
+    }
+
+    private var autoRetryBinding: Binding<Bool> {
+        Binding(
+            get: { UserDefaults.standard.bool(forKey: "autoRetry") },
+            set: { UserDefaults.standard.set($0, forKey: "autoRetry") }
+        )
+    }
+
+    private var autoResetPathBinding: Binding<Bool> {
+        Binding(
+            get: { UserDefaults.standard.bool(forKey: "autoResetPath") },
+            set: { UserDefaults.standard.set($0, forKey: "autoResetPath") }
+        )
     }
 }
 

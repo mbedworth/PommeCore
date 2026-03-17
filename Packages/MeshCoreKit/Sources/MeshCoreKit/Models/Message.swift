@@ -6,6 +6,8 @@ public enum DeliveryStatus: String, Codable, Sendable {
     case sent       // device accepted it (RESP_CODE_SENT received)
     case delivered  // ACK received from recipient (PUSH_CODE_SEND_CONFIRMED)
     case failed     // send timed out or errored
+    case retrying   // automatic retry in progress (direct path)
+    case flooding   // retrying via flood after path reset
 }
 
 /// A text message sent or received via the MeshCore mesh network.
@@ -51,11 +53,17 @@ public struct Message: Identifiable, Codable, Sendable {
     /// Text type: 0 = plain text, 1 = CLI data. Used to route CLI responses to management.
     public let txtType: UInt8
 
-    /// Send attempt number (0 = first try, increments on retry, max 3).
+    /// Send attempt number (0 = first try, increments on retry).
     public var attempt: UInt8
 
     /// Whether this message was cryptographically signed (txt_type=2).
     public let isSigned: Bool
+
+    /// Suggested timeout from device (ms) for ACK wait. Stored for retry reuse.
+    public var suggestedTimeoutMs: UInt32?
+
+    /// Whether path was reset (flood phase active).
+    public var didResetPath: Bool
 
     public init(
         id: UUID = UUID(),
@@ -73,7 +81,9 @@ public struct Message: Identifiable, Codable, Sendable {
         roundTripMs: UInt32? = nil,
         txtType: UInt8 = 0,
         attempt: UInt8 = 0,
-        isSigned: Bool = false
+        isSigned: Bool = false,
+        suggestedTimeoutMs: UInt32? = nil,
+        didResetPath: Bool = false
     ) {
         self.id = id
         self.senderKeyHash = senderKeyHash
@@ -91,5 +101,7 @@ public struct Message: Identifiable, Codable, Sendable {
         self.txtType = txtType
         self.attempt = attempt
         self.isSigned = isSigned
+        self.suggestedTimeoutMs = suggestedTimeoutMs
+        self.didResetPath = didResetPath
     }
 }

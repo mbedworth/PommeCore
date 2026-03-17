@@ -694,7 +694,8 @@ struct RoomMessageBubble: View {
                         .foregroundStyle(MeshTheme.textSecondary)
 
                     if message.isOutgoing {
-                        if message.status == .failed {
+                        switch message.status {
+                        case .failed:
                             HStack(spacing: 2) {
                                 Image(systemName: "exclamationmark.circle")
                                     .font(.caption2)
@@ -703,7 +704,31 @@ struct RoomMessageBubble: View {
                                     .font(.caption2)
                                     .foregroundStyle(MeshTheme.disconnected)
                             }
-                        } else {
+                        case .retrying:
+                            HStack(spacing: 2) {
+                                Image(systemName: "arrow.clockwise")
+                                    .font(.caption2)
+                                    .foregroundStyle(.orange)
+                                Text("Retrying (\(message.attempt + 1)/3)...")
+                                    .font(.caption2)
+                                    .foregroundStyle(.orange)
+                            }
+                        case .flooding:
+                            HStack(spacing: 2) {
+                                Image(systemName: "dot.radiowaves.left.and.right")
+                                    .font(.caption2)
+                                    .foregroundStyle(.orange)
+                                Text("Flooding...")
+                                    .font(.caption2)
+                                    .foregroundStyle(.orange)
+                            }
+                        case .delivered:
+                            HStack(spacing: 2) {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .font(.caption2)
+                                    .foregroundStyle(MeshTheme.accent)
+                            }
+                        default:
                             Image(systemName: message.status == .sending ? "clock" : "checkmark")
                                 .font(.caption2)
                                 .foregroundStyle(MeshTheme.textSecondary)
@@ -737,13 +762,13 @@ struct RoomMessageBubble: View {
                 }
                 .padding(.horizontal, 4)
 
-                if message.status == .failed, message.attempt < 3 {
+                if message.status == .failed {
                     Button {
                         viewModel.retryMessage(message)
                     } label: {
                         HStack(spacing: 4) {
                             Image(systemName: "arrow.clockwise")
-                            Text("Retry")
+                            Text("Tap to retry")
                         }
                         .font(.caption2.weight(.medium))
                         .foregroundStyle(MeshTheme.accent)
@@ -970,13 +995,13 @@ struct MessageBubble: View {
                 }
                 .padding(.horizontal, 4)
 
-                if message.status == .failed, message.attempt < 3 {
+                if message.status == .failed {
                     Button {
                         viewModel.retryMessage(message)
                     } label: {
                         HStack(spacing: 4) {
                             Image(systemName: "arrow.clockwise")
-                            Text("Retry")
+                            Text("Tap to retry")
                         }
                         .font(.caption2.weight(.medium))
                         .foregroundStyle(MeshTheme.accent)
@@ -1004,6 +1029,24 @@ struct MessageBubble: View {
             Image(systemName: "checkmark")
                 .font(.caption2)
                 .foregroundStyle(MeshTheme.textSecondary)
+        case .retrying:
+            HStack(spacing: 2) {
+                Image(systemName: "arrow.clockwise")
+                    .font(.caption2)
+                    .foregroundStyle(.orange)
+                Text("Retrying (\(message.attempt + 1)/3)...")
+                    .font(.caption2)
+                    .foregroundStyle(.orange)
+            }
+        case .flooding:
+            HStack(spacing: 2) {
+                Image(systemName: "dot.radiowaves.left.and.right")
+                    .font(.caption2)
+                    .foregroundStyle(.orange)
+                Text("Flooding...")
+                    .font(.caption2)
+                    .foregroundStyle(.orange)
+            }
         case .delivered:
             HStack(spacing: 2) {
                 Image(systemName: "checkmark.circle.fill")
