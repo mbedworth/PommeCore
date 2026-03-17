@@ -56,6 +56,28 @@ struct ContactListView: View {
             }
             contactsSection
             #if !os(watchOS)
+            Section {
+                NavigationLink(value: SidebarSelection.map) {
+                    HStack(spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(MeshTheme.accent.opacity(0.15))
+                                .frame(width: 40, height: 40)
+                            Image(systemName: "map.fill")
+                                .foregroundStyle(MeshTheme.accent)
+                        }
+                        Text("Mesh Map")
+                            .font(.body)
+                            .foregroundStyle(MeshTheme.accent)
+                    }
+                    .contentShape(Rectangle())
+                }
+                .listRowBackground(
+                    viewModel.sidebarSelection == .map
+                        ? MeshTheme.surfaceLight
+                        : MeshTheme.surface
+                )
+            }
             settingsSection
             #endif
             #if os(macOS)
@@ -1096,6 +1118,12 @@ struct ContactListView: View {
         case .settings:
             SettingsView()
                 .environmentObject(viewModel)
+        case .map:
+            if #available(iOS 17.0, macOS 14.0, *) {
+                MeshMapView()
+            } else {
+                Text("Map requires iOS 17+ or macOS 14+")
+            }
         #if os(macOS)
         case .usbTerminal:
             USBTerminalView()

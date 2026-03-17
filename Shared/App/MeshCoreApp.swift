@@ -135,6 +135,14 @@ struct ContentView: View {
             case .settings:
                 SettingsView()
                     .environmentObject(viewModel)
+            #if !os(watchOS)
+            case .map:
+                if #available(iOS 17.0, macOS 14.0, *) {
+                    MeshMapView()
+                } else {
+                    Text("Map requires iOS 17+ or macOS 14+")
+                }
+            #endif
             #if os(macOS)
             case .usbTerminal:
                 USBTerminalView()

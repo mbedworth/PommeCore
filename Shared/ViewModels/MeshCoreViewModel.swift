@@ -78,6 +78,7 @@ enum SidebarSelection: Hashable {
     case channel(UInt8)
     case contact(Data) // publicKeyPrefix
     case settings
+    case map
     #if os(macOS)
     case usbTerminal
     #endif
