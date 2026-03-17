@@ -133,6 +133,7 @@ final class MeshCoreViewModel: ObservableObject {
         ) { [weak self] _ in
             Task { @MainActor in
                 self?.loadNicknamesFromiCloud()
+                self?.loadContactNotesFromiCloud()
             }
         }
     }
@@ -154,6 +155,43 @@ final class MeshCoreViewModel: ObservableObject {
 
     func displayName(for contact: Contact) -> String {
         nickname(for: contact) ?? contact.name
+    }
+
+    // MARK: - Contact Notes (iCloud synced)
+
+    @Published private var contactNotes: [String: String] = [:]
+
+    func loadContactNotesFromiCloud() {
+        guard let data = iCloudStore.data(forKey: "contactNotes"),
+              let decoded = try? JSONDecoder().decode([String: String].self, from: data) else { return }
+        contactNotes = decoded
+    }
+
+    private func saveContactNotesToiCloud() {
+        if let data = try? JSONEncoder().encode(contactNotes) {
+            iCloudStore.set(data, forKey: "contactNotes")
+            iCloudStore.synchronize()
+        }
+    }
+
+    func setNote(_ note: String, for contact: Contact) {
+        let key = contact.publicKey.map { String(format: "%02x", $0) }.joined()
+        if note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            contactNotes.removeValue(forKey: key)
+        } else {
+            contactNotes[key] = note
+        }
+        saveContactNotesToiCloud()
+    }
+
+    func note(for contact: Contact) -> String {
+        let key = contact.publicKey.map { String(format: "%02x", $0) }.joined()
+        return contactNotes[key] ?? ""
+    }
+
+    func hasNote(for contact: Contact) -> Bool {
+        let key = contact.publicKey.map { String(format: "%02x", $0) }.joined()
+        return contactNotes[key] != nil && !contactNotes[key]!.isEmpty
     }
 
     // MARK: - Battery Calibration (per-device, iCloud synced)
@@ -324,6 +362,7 @@ final class MeshCoreViewModel: ObservableObject {
         requestNotificationPermissions()
         Task { @MainActor in
             self.loadNicknamesFromiCloud()
+            self.loadContactNotesFromiCloud()
         }
         observeiCloudChanges()
     }
