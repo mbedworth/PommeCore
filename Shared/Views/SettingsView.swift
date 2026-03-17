@@ -58,6 +58,7 @@ struct SettingsView: View {
                 .padding(.vertical, 24)
             }
 
+            tipJarSection
             aboutSection
         }
         .meshListStyle()
@@ -1637,6 +1638,22 @@ private extension SettingsView {
 class TipJarManager: ObservableObject {
     @Published var products: [Product] = []
     @Published var purchaseSuccess = false
+    @Published var didAttemptLoad = false
+
+    struct PlaceholderTip: Identifiable {
+        let id: String
+        let emoji: String
+        let name: String
+        let description: String
+        let price: String
+    }
+
+    static let placeholders: [PlaceholderTip] = [
+        PlaceholderTip(id: "decent", emoji: "\u{1F44B}", name: "Decent Try!", description: "Thanks for giving MeshCore a shot", price: "$0.99"),
+        PlaceholderTip(id: "nice", emoji: "\u{1F44D}", name: "Nice App!", description: "You're enjoying the mesh life", price: "$2.99"),
+        PlaceholderTip(id: "great", emoji: "\u{1F389}", name: "Great Job!", description: "MeshCore has become your go-to client", price: "$4.99"),
+        PlaceholderTip(id: "help", emoji: "\u{1F49A}", name: "I Want to Help!", description: "You believe in off-grid communication", price: "$9.99"),
+    ]
 
     let productIDs = [
         "com.mbedworth.meshcore.tip.decent",
@@ -1650,8 +1667,9 @@ class TipJarManager: ObservableObject {
             products = try await Product.products(for: productIDs)
                 .sorted { $0.price < $1.price }
         } catch {
-            // Products not configured yet
+            // Products not configured yet — placeholders will show
         }
+        await MainActor.run { didAttemptLoad = true }
     }
 
     func purchase(_ product: Product) async {
@@ -1681,11 +1699,7 @@ private extension SettingsView {
                     .font(.subheadline)
                     .foregroundStyle(MeshTheme.textSecondary)
 
-                if tipJar.products.isEmpty {
-                    Text("Loading...")
-                        .font(.caption)
-                        .foregroundStyle(MeshTheme.textSecondary)
-                } else {
+                if !tipJar.products.isEmpty {
                     ForEach(tipJar.products) { product in
                         Button {
                             Task { await tipJar.purchase(product) }
@@ -1708,6 +1722,30 @@ private extension SettingsView {
                             .padding(.vertical, 4)
                         }
                         .buttonStyle(.plain)
+                    }
+                } else {
+                    // Show placeholders when StoreKit products aren't available
+                    ForEach(TipJarManager.placeholders) { tip in
+                        HStack {
+                            Text(tip.emoji)
+                            VStack(alignment: .leading) {
+                                Text(tip.name)
+                                    .fontWeight(.medium)
+                                    .foregroundStyle(MeshTheme.textPrimary)
+                                Text(tip.description)
+                                    .font(.caption)
+                                    .foregroundStyle(MeshTheme.textSecondary)
+                            }
+                            Spacer()
+                            Text(tip.price)
+                                .fontWeight(.bold)
+                                .foregroundStyle(MeshTheme.accent)
+                        }
+                        .padding(.vertical, 4)
+                    }
+                    if !tipJar.didAttemptLoad {
+                        ProgressView()
+                            .frame(maxWidth: .infinity)
                     }
                 }
 
