@@ -1,4 +1,5 @@
 import SwiftUI
+import StoreKit
 import LocalAuthentication
 import MeshCoreKit
 
@@ -8,6 +9,7 @@ struct SettingsView: View {
     @AppStorage("appTheme") private var appTheme: String = AppTheme.system.rawValue
     @State private var statsExpanded = false
     @State private var clockSynced = false
+    @StateObject private var tipJar = TipJarManager()
 
     private var batteryChemistry: BatteryChemistry {
         BatteryChemistry(rawValue: batteryChemistryRaw) ?? .lipo
@@ -81,6 +83,7 @@ struct SettingsView: View {
             }
             statsSection
             securitySection
+            tipJarSection
             aboutSection
             dangerZoneSection
         }
@@ -1619,6 +1622,112 @@ private extension SettingsView {
         #else
         return "lock"
         #endif
+    }
+}
+
+// MARK: - Tip Jar
+
+class TipJarManager: ObservableObject {
+    @Published var products: [Product] = []
+    @Published var purchaseSuccess = false
+
+    let productIDs = [
+        "com.mbedworth.meshcore.tip.decent",
+        "com.mbedworth.meshcore.tip.nice",
+        "com.mbedworth.meshcore.tip.great",
+        "com.mbedworth.meshcore.tip.help"
+    ]
+
+    func loadProducts() async {
+        do {
+            products = try await Product.products(for: productIDs)
+                .sorted { $0.price < $1.price }
+        } catch {
+            // Products not configured yet
+        }
+    }
+
+    func purchase(_ product: Product) async {
+        do {
+            let result = try await product.purchase()
+            if case .success(let verification) = result {
+                if case .verified(let transaction) = verification {
+                    await transaction.finish()
+                    await MainActor.run { purchaseSuccess = true }
+                }
+            }
+        } catch {
+            // Purchase failed
+        }
+    }
+}
+
+private extension SettingsView {
+    var tipJarSection: some View {
+        Section {
+            VStack(alignment: .leading, spacing: 12) {
+                Label("Support Development", systemImage: "heart.fill")
+                    .font(.headline)
+                    .foregroundStyle(MeshTheme.accent)
+
+                Text("MeshCore is free with all features unlocked. If you find it useful, consider leaving a tip to support continued development.")
+                    .font(.subheadline)
+                    .foregroundStyle(MeshTheme.textSecondary)
+
+                if tipJar.products.isEmpty {
+                    Text("Loading...")
+                        .font(.caption)
+                        .foregroundStyle(MeshTheme.textSecondary)
+                } else {
+                    ForEach(tipJar.products) { product in
+                        Button {
+                            Task { await tipJar.purchase(product) }
+                        } label: {
+                            HStack {
+                                Text(tipEmoji(for: product))
+                                VStack(alignment: .leading) {
+                                    Text(product.displayName)
+                                        .fontWeight(.medium)
+                                        .foregroundStyle(MeshTheme.textPrimary)
+                                    Text(product.description)
+                                        .font(.caption)
+                                        .foregroundStyle(MeshTheme.textSecondary)
+                                }
+                                Spacer()
+                                Text(product.displayPrice)
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(MeshTheme.accent)
+                            }
+                            .padding(.vertical, 4)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+
+                if tipJar.purchaseSuccess {
+                    HStack {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(MeshTheme.connected)
+                        Text("Thank you for your support!")
+                            .foregroundStyle(MeshTheme.connected)
+                    }
+                }
+            }
+            .listRowBackground(MeshTheme.surface)
+        } header: {
+            sectionHeader("Tip Jar")
+        }
+        .task {
+            await tipJar.loadProducts()
+        }
+    }
+
+    private func tipEmoji(for product: Product) -> String {
+        if product.id.hasSuffix(".decent") { return "\u{1F44B}" }
+        if product.id.hasSuffix(".nice") { return "\u{1F44D}" }
+        if product.id.hasSuffix(".great") { return "\u{1F389}" }
+        if product.id.hasSuffix(".help") { return "\u{1F49A}" }
+        return "\u{2764}\u{FE0F}"
     }
 }
 
