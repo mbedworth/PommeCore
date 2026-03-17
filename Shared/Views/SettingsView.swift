@@ -835,11 +835,46 @@ struct TuningSection: View {
     @ObservedObject var viewModel: MeshCoreViewModel
     @State private var rxDelay: String = ""
     @State private var airtime: String = ""
+    @State private var floodMaxHops: Int = 3
     @State private var saveState: SaveButtonState = .idle
 
     @State private var isExpanded = false
 
     var body: some View {
+        // Flood Max Hops — prominent, always visible
+        Section {
+            HStack {
+                Label("Flood Max Hops", systemImage: "arrow.triangle.branch")
+                    .foregroundStyle(MeshTheme.accent)
+                Spacer()
+                Picker("", selection: $floodMaxHops) {
+                    ForEach(1...7, id: \.self) { hops in
+                        Text("\(hops)").tag(hops)
+                    }
+                }
+                #if !os(watchOS)
+                .frame(width: 80)
+                #endif
+            }
+            .listRowBackground(MeshTheme.surface)
+            .onChange(of: floodMaxHops) { newValue in
+                let c = viewModel.deviceConfig
+                viewModel.setTuningParams(
+                    rxDelayBase: c.rxDelayBase,
+                    airtimeFactor: c.airtimeFactor,
+                    txDelay: c.txDelay,
+                    directTxDelay: c.directTxDelay,
+                    floodMax: UInt8(newValue)
+                )
+            }
+        } header: {
+            Text("Mesh Network")
+        } footer: {
+            Text("Maximum number of hops for flood messages. Lower values reduce network traffic but limit range. Default is 3.")
+                .font(.caption2)
+        }
+
+        // Advanced Tuning — disclosure group
         Section {
             DisclosureGroup(isExpanded: $isExpanded) {
                 HStack {
@@ -883,7 +918,8 @@ struct TuningSection: View {
                 SaveButton(state: saveState, label: "Apply Tuning") {
                     let rx = UInt32((Double(rxDelay) ?? 0) * 1000)
                     let at = UInt32((Double(airtime) ?? 0) * 1000)
-                    viewModel.setTuningParams(rxDelayBase: rx, airtimeFactor: at)
+                    let c = viewModel.deviceConfig
+                    viewModel.setTuningParams(rxDelayBase: rx, airtimeFactor: at, txDelay: c.txDelay, directTxDelay: c.directTxDelay, floodMax: c.floodMax)
                     showSaved($saveState)
                 }
             } label: {
@@ -897,12 +933,16 @@ struct TuningSection: View {
         }
         .onAppear { loadFromConfig() }
         .onChange(of: viewModel.deviceConfig.rxDelayBase) { _ in loadFromConfig() }
+        .onChange(of: viewModel.deviceConfig.floodMax) { newValue in
+            floodMaxHops = Int(newValue)
+        }
     }
 
     private func loadFromConfig() {
         let c = viewModel.deviceConfig
         rxDelay = c.rxDelayBase == 0 ? "0" : String(format: "%.1f", c.rxDelaySeconds)
         airtime = c.airtimeFactor == 0 ? "0" : String(format: "%.1f", c.airtimeMultiplier)
+        floodMaxHops = Int(c.floodMax)
     }
 }
 
