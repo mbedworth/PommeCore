@@ -216,11 +216,18 @@ private extension SettingsView {
             }
             .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
+
+            Toggle(isOn: channelEchoBinding) {
+                Label("Channel Echo Detection", systemImage: "arrow.triangle.2.circlepath")
+                    .foregroundStyle(MeshTheme.accent)
+            }
+            .tint(MeshTheme.accent)
+            .listRowBackground(MeshTheme.surface)
         } header: {
             Text("Message Delivery")
                 .foregroundStyle(MeshTheme.textSecondary)
         } footer: {
-            Text("Auto Retry resends failed messages up to 3 times on the direct path. Auto Reset Path clears the cached route after direct retries fail and resends as a flood message using the Flood Max Hops setting.")
+            Text("Auto Retry resends failed messages up to 3 times on the direct path. Auto Reset Path clears the cached route and resends as flood. Channel Echo Detection monitors if repeaters relayed your channel messages (30s timeout).")
                 .font(.caption2)
         }
     }
@@ -236,6 +243,13 @@ private extension SettingsView {
         Binding(
             get: { UserDefaults.standard.bool(forKey: "autoResetPath") },
             set: { UserDefaults.standard.set($0, forKey: "autoResetPath") }
+        )
+    }
+
+    private var channelEchoBinding: Binding<Bool> {
+        Binding(
+            get: { UserDefaults.standard.bool(forKey: "channelEchoDetection") },
+            set: { UserDefaults.standard.set($0, forKey: "channelEchoDetection") }
         )
     }
 }
