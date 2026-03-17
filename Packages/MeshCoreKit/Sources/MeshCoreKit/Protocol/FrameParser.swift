@@ -796,6 +796,26 @@ public enum FrameParser {
             case 0x65: // Illuminance (uint16, 1 lux)
                 let raw = readUInt16(data, offset: &offset)
                 readings.append(TelemetryReading(name: "Light", value: Double(raw), unit: "lux"))
+            case 0x88: // GPS (lat 3 bytes, lon 3 bytes, alt 3 bytes — all signed)
+                guard offset + 9 <= data.count else { break }
+                let latBytes = data[offset..<offset+3]
+                var latRaw: Int32 = 0
+                latRaw = Int32(latBytes[offset]) << 16 | Int32(latBytes[offset+1]) << 8 | Int32(latBytes[offset+2])
+                if latRaw & 0x800000 != 0 { latRaw |= -0x1000000 } // sign extend 24-bit
+                offset += 3
+                let lonBytes = data[offset..<offset+3]
+                var lonRaw: Int32 = 0
+                lonRaw = Int32(lonBytes[offset]) << 16 | Int32(lonBytes[offset+1]) << 8 | Int32(lonBytes[offset+2])
+                if lonRaw & 0x800000 != 0 { lonRaw |= -0x1000000 }
+                offset += 3
+                let altBytes = data[offset..<offset+3]
+                var altRaw: Int32 = 0
+                altRaw = Int32(altBytes[offset]) << 16 | Int32(altBytes[offset+1]) << 8 | Int32(altBytes[offset+2])
+                if altRaw & 0x800000 != 0 { altRaw |= -0x1000000 }
+                offset += 3
+                readings.append(TelemetryReading(name: "GPS Lat", value: Double(latRaw) / 10000.0, unit: "\u{00B0}"))
+                readings.append(TelemetryReading(name: "GPS Lon", value: Double(lonRaw) / 10000.0, unit: "\u{00B0}"))
+                readings.append(TelemetryReading(name: "Altitude", value: Double(altRaw) / 100.0, unit: "m"))
             default:
                 // Unknown LPP type — skip remaining data
                 logger.debug("Unknown LPP type 0x\(String(format: "%02x", lppType)) at offset \(offset)")
