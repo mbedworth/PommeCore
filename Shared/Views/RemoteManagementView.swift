@@ -39,6 +39,7 @@ struct RemoteManagementView: View {
                 if canRead {
                     radioSection
                     timingSection
+                    routingSection
                     advertisingSection
                     gpsSection
                     if contact.type == .room {
@@ -304,6 +305,10 @@ private extension RemoteManagementView {
             .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
 
+            if let blVer = session.settings["bootloader.ver"], !blVer.isEmpty {
+                cliInfoRow(icon: "memorychip", label: "Bootloader", value: blVer)
+            }
+
             RemoteClockRow(session: session, sendCLI: sendCLI)
 
             if DeviceCapabilities.forContactType(contact.type).hasNeighbors {
@@ -334,6 +339,7 @@ private extension RemoteManagementView {
             Button {
                 sendCLI("ver")
                 sendCLI("clock")
+                sendCLI("get bootloader.ver")
             } label: {
                 HStack {
                     Image(systemName: "arrow.clockwise")
@@ -472,6 +478,108 @@ struct RemoteTimingSection: View {
 }
 
 // MARK: - Advertising Section
+
+private extension RemoteManagementView {
+    var routingSection: some View {
+        RemoteRoutingSection(session: session, sendCLI: sendCLI, canEdit: canEdit)
+    }
+}
+
+struct RemoteRoutingSection: View {
+    @ObservedObject var session: RemoteDeviceSession
+    let sendCLI: (String) -> Void
+    let canEdit: Bool
+    @State private var loopDetect = ""
+    @State private var pathHashMode = ""
+    @State private var saveState: SaveButtonState = .idle
+    @State private var isExpanded = false
+
+    var body: some View {
+        Section {
+            DisclosureGroup(isExpanded: $isExpanded) {
+                HStack {
+                    Image(systemName: "arrow.triangle.capsulepath")
+                        .foregroundStyle(MeshTheme.accent)
+                        .frame(width: 24)
+                    Picker("Loop Detection", selection: loopDetectBinding) {
+                        Text("Off").tag("off")
+                        Text("Minimal").tag("minimal")
+                        Text("Moderate").tag("moderate")
+                        Text("Strict").tag("strict")
+                    }
+                    .foregroundStyle(MeshTheme.accent)
+                    .tint(MeshTheme.accent)
+                }
+                .listRowBackground(MeshTheme.surface)
+
+                HStack {
+                    Image(systemName: "number.circle")
+                        .foregroundStyle(MeshTheme.accent)
+                        .frame(width: 24)
+                    Picker("Path Hash Size", selection: pathHashBinding) {
+                        Text("1 byte (legacy)").tag("1")
+                        Text("2 bytes").tag("2")
+                        Text("3 bytes").tag("3")
+                    }
+                    .foregroundStyle(MeshTheme.accent)
+                    .tint(MeshTheme.accent)
+                }
+                .listRowBackground(MeshTheme.surface)
+
+                Button {
+                    sendCLI("discover.neighbors")
+                } label: {
+                    HStack {
+                        Image(systemName: "antenna.radiowaves.left.and.right")
+                            .foregroundStyle(MeshTheme.accent)
+                            .frame(width: 24)
+                        Text("Discover Neighbors")
+                            .foregroundStyle(MeshTheme.accent)
+                        Spacer()
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .listRowBackground(MeshTheme.surface)
+            } label: {
+                Label("Advanced Routing", systemImage: "arrow.triangle.branch")
+                    .foregroundStyle(MeshTheme.accent)
+            }
+            .listRowBackground(MeshTheme.surface)
+        } footer: {
+            Text("Loop detection rejects flood packets that appear to be in a loop (v1.14+). Path hash size controls ID/hash encoding in path headers \u{2014} higher values reduce collision risk but require v1.14+ firmware across the network.")
+                .font(.caption2)
+                .foregroundStyle(MeshTheme.textSecondary)
+        }
+        .disabled(!canEdit)
+    }
+
+    private var loopDetectBinding: Binding<String> {
+        Binding(
+            get: {
+                if !loopDetect.isEmpty { return loopDetect }
+                return session.settings["loop.detect"] ?? "off"
+            },
+            set: { newValue in
+                loopDetect = newValue
+                sendCLI("set loop.detect \(newValue)")
+            }
+        )
+    }
+
+    private var pathHashBinding: Binding<String> {
+        Binding(
+            get: {
+                if !pathHashMode.isEmpty { return pathHashMode }
+                return session.settings["path.hash.mode"] ?? "1"
+            },
+            set: { newValue in
+                pathHashMode = newValue
+                sendCLI("set path.hash.mode \(newValue)")
+            }
+        )
+    }
+}
 
 private extension RemoteManagementView {
     var advertisingSection: some View {
