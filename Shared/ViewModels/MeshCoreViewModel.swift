@@ -298,6 +298,9 @@ final class MeshCoreViewModel: ObservableObject {
     /// Maps expected ACK code → message ID for delivery tracking.
     private var pendingACKs: [UInt32: (contactKeyHash: Data, messageID: UUID)] = [:]
 
+    /// Tracks outgoing channel messages awaiting a repeater echo. Key = message UUID.
+    private var pendingChannelEchoes: Set<UUID> = []
+
     /// Whether we're currently syncing queued messages.
     private var isSyncingMessages = false
 
@@ -1245,6 +1248,64 @@ final class MeshCoreViewModel: ObservableObject {
         )
         messagesByContact[channelKey, default: []].append(outgoing)
         persistMessages(for: channelKey)
+
+        // Start echo detection timer
+        let msgID = outgoing.id
+        pendingChannelEchoes.insert(msgID)
+        Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 10_000_000_000) // 10 seconds
+            guard let self else { return }
+            if self.pendingChannelEchoes.remove(msgID) != nil {
+                // No echo heard — mark as noRepeats
+                if var msgs = self.messagesByContact[channelKey],
+                   let idx = msgs.firstIndex(where: { $0.id == msgID }) {
+                    msgs[idx].status = .noRepeats
+                    self.messagesByContact[channelKey] = msgs
+                    self.persistMessages(for: channelKey)
+                }
+            }
+        }
+    }
+
+    /// Called when a channel message is received that matches our own sent message (echo from repeater).
+    func markChannelEchoReceived(messageID: UUID) {
+        pendingChannelEchoes.remove(messageID)
+    }
+
+    /// Resend a channel message that had no repeats.
+    func resendChannelMessage(_ message: Message) {
+        guard let channelIdx = message.channelIndex else { return }
+        let channelKey = Data([channelIdx])
+
+        // Reset status to sending
+        if var msgs = messagesByContact[channelKey],
+           let idx = msgs.firstIndex(where: { $0.id == message.id }) {
+            msgs[idx].status = .sending
+            messagesByContact[channelKey] = msgs
+
+            let frame = MeshCoreProtocol.buildSendChannelMessage(
+                text: message.text,
+                channelIndex: channelIdx
+            )
+            sendCommand(frame, label: "RESEND_CHANNEL_TXT")
+            persistMessages(for: channelKey)
+
+            // Restart echo timer
+            let msgID = message.id
+            pendingChannelEchoes.insert(msgID)
+            Task { [weak self] in
+                try? await Task.sleep(nanoseconds: 10_000_000_000)
+                guard let self else { return }
+                if self.pendingChannelEchoes.remove(msgID) != nil {
+                    if var msgs2 = self.messagesByContact[channelKey],
+                       let idx2 = msgs2.firstIndex(where: { $0.id == msgID }) {
+                        msgs2[idx2].status = .noRepeats
+                        self.messagesByContact[channelKey] = msgs2
+                        self.persistMessages(for: channelKey)
+                    }
+                }
+            }
+        }
     }
 
     func syncNextMessage() {
@@ -1558,6 +1619,26 @@ final class MeshCoreViewModel: ObservableObject {
 
         case .channelMsgRecv(let message):
             Self.logger.info("Channel message: ch=\(message.channelIndex ?? 0) text=\(message.text)")
+            // Check if this is an echo of our own channel message from a repeater
+            if let chIdx = message.channelIndex {
+                let channelKey = Data([chIdx])
+                if let msgs = messagesByContact[channelKey] {
+                    for sent in msgs where sent.isOutgoing && pendingChannelEchoes.contains(sent.id) {
+                        if sent.text == message.text {
+                            Self.logger.info("Channel echo detected for message \(sent.id)")
+                            markChannelEchoReceived(messageID: sent.id)
+                            // Update status to delivered (echoed)
+                            if var mutableMsgs = messagesByContact[channelKey],
+                               let idx = mutableMsgs.firstIndex(where: { $0.id == sent.id }) {
+                                mutableMsgs[idx].status = .delivered
+                                messagesByContact[channelKey] = mutableMsgs
+                                persistMessages(for: channelKey)
+                            }
+                            break
+                        }
+                    }
+                }
+            }
             handleIncomingMessage(message)
             if isSyncingMessages {
                 syncNextMessage()
