@@ -147,6 +147,7 @@ final class MeshCoreViewModel: ObservableObject {
             Task { @MainActor in
                 self?.loadNicknamesFromiCloud()
                 self?.loadContactNotesFromiCloud()
+                self?.loadContactGroupsFromiCloud()
             }
         }
     }
@@ -230,6 +231,72 @@ final class MeshCoreViewModel: ObservableObject {
             return true
         }
         return false
+    }
+
+    // MARK: - Contact Groups (iCloud synced)
+
+    @Published var contactGroups: [ContactGroup] = []
+
+    struct ContactGroup: Codable, Identifiable {
+        let id: UUID
+        var name: String
+        var emoji: String
+        var memberPubkeys: [String] // publicKey hex strings
+
+        init(id: UUID = UUID(), name: String, emoji: String = "", memberPubkeys: [String] = []) {
+            self.id = id
+            self.name = name
+            self.emoji = emoji
+            self.memberPubkeys = memberPubkeys
+        }
+    }
+
+    func loadContactGroupsFromiCloud() {
+        guard let data = iCloudStore.data(forKey: "contactGroups"),
+              let decoded = try? JSONDecoder().decode([ContactGroup].self, from: data) else { return }
+        contactGroups = decoded
+    }
+
+    private func saveContactGroupsToiCloud() {
+        if let data = try? JSONEncoder().encode(contactGroups) {
+            iCloudStore.set(data, forKey: "contactGroups")
+            iCloudStore.synchronize()
+        }
+    }
+
+    func addContactGroup(name: String, emoji: String) {
+        contactGroups.append(ContactGroup(name: name, emoji: emoji))
+        saveContactGroupsToiCloud()
+    }
+
+    func deleteContactGroup(_ group: ContactGroup) {
+        contactGroups.removeAll { $0.id == group.id }
+        saveContactGroupsToiCloud()
+    }
+
+    func addContactToGroup(_ contact: Contact, group: ContactGroup) {
+        let pubkeyHex = contact.publicKey.map { String(format: "%02x", $0) }.joined()
+        if let idx = contactGroups.firstIndex(where: { $0.id == group.id }) {
+            if !contactGroups[idx].memberPubkeys.contains(pubkeyHex) {
+                contactGroups[idx].memberPubkeys.append(pubkeyHex)
+                saveContactGroupsToiCloud()
+            }
+        }
+    }
+
+    func removeContactFromGroup(_ contact: Contact, group: ContactGroup) {
+        let pubkeyHex = contact.publicKey.map { String(format: "%02x", $0) }.joined()
+        if let idx = contactGroups.firstIndex(where: { $0.id == group.id }) {
+            contactGroups[idx].memberPubkeys.removeAll { $0 == pubkeyHex }
+            saveContactGroupsToiCloud()
+        }
+    }
+
+    func contactsInGroup(_ group: ContactGroup) -> [Contact] {
+        contacts.filter { contact in
+            let hex = contact.publicKey.map { String(format: "%02x", $0) }.joined()
+            return group.memberPubkeys.contains(hex)
+        }
     }
 
     // MARK: - Channel Notification Modes (iCloud synced)
@@ -429,6 +496,7 @@ final class MeshCoreViewModel: ObservableObject {
         Task { @MainActor in
             self.loadNicknamesFromiCloud()
             self.loadContactNotesFromiCloud()
+            self.loadContactGroupsFromiCloud()
         }
         observeiCloudChanges()
     }
