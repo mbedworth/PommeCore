@@ -317,9 +317,15 @@ struct TelemetryView: View {
                             Text(reading.name)
                                 .foregroundStyle(MeshTheme.textPrimary)
                             Spacer()
-                            Text(String(format: "%.1f %@", reading.value, reading.unit))
-                                .foregroundStyle(MeshTheme.textSecondary)
-                                .font(.system(.body, design: .monospaced))
+                            if reading.name == "Altitude" {
+                                Text(String(format: "%.0f m (%.0f ft)", reading.value, reading.value * 3.28084))
+                                    .foregroundStyle(MeshTheme.textSecondary)
+                                    .font(.system(.body, design: .monospaced))
+                            } else {
+                                Text(String(format: "%.1f %@", reading.value, reading.unit))
+                                    .foregroundStyle(MeshTheme.textSecondary)
+                                    .font(.system(.body, design: .monospaced))
+                            }
                         }
                     }
                 }
@@ -337,6 +343,8 @@ struct TelemetryView: View {
         case "pressure": return "barometer"
         case "battery": return "battery.75"
         case "illuminance": return "sun.max"
+        case "altitude": return "arrow.up.to.line"
+        case "gps lat", "gps lon": return "location"
         default: return "gauge"
         }
     }
