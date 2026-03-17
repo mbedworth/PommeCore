@@ -14,7 +14,7 @@ public enum FrameParser {
         case deviceInfo(DeviceInfoPayload)
         case battAndStorage(BattStoragePayload)
         case currentTime(UInt32)
-        case tuningParams(rxDelayBase: UInt32, airtimeFactor: UInt32)
+        case tuningParams(rxDelayBase: UInt32, airtimeFactor: UInt32, txDelay: UInt32, directTxDelay: UInt32, floodMax: UInt8)
         case customVars(String)
         case stats(subType: UInt8, payload: Data)
         case contactsStart(count: UInt32)             // RESP_CODE_CONTACTS_START (code 2)
@@ -403,8 +403,12 @@ public enum FrameParser {
         var offset = 0
         let rxDelay = readUInt32(data, offset: &offset)
         let airtime = readUInt32(data, offset: &offset)
-        logger.info("TuningParams: rxDelay=\(rxDelay) airtime=\(airtime)")
-        return .tuningParams(rxDelayBase: rxDelay, airtimeFactor: airtime)
+        // Extended fields (firmware may include additional tuning params)
+        let txDelay = offset + 4 <= data.count ? readUInt32(data, offset: &offset) : 0
+        let directTxDelay = offset + 4 <= data.count ? readUInt32(data, offset: &offset) : 0
+        let floodMax = offset < data.count ? readUInt8(data, offset: &offset) : 3
+        logger.info("TuningParams: rxDelay=\(rxDelay) airtime=\(airtime) txDelay=\(txDelay) directTxDelay=\(directTxDelay) floodMax=\(floodMax)")
+        return .tuningParams(rxDelayBase: rxDelay, airtimeFactor: airtime, txDelay: txDelay, directTxDelay: directTxDelay, floodMax: floodMax)
     }
 
     // MARK: - Contacts Protocol

@@ -739,8 +739,8 @@ final class MeshCoreViewModel: ObservableObject {
         sendCommand(MeshCoreProtocol.buildSetRadioTXPower(power), label: "SET_TX_POWER")
     }
 
-    func setTuningParams(rxDelayBase: UInt32, airtimeFactor: UInt32) {
-        sendCommand(MeshCoreProtocol.buildSetTuningParams(rxDelayBase: rxDelayBase, airtimeFactor: airtimeFactor), label: "SET_TUNING")
+    func setTuningParams(rxDelayBase: UInt32, airtimeFactor: UInt32, txDelay: UInt32 = 0, directTxDelay: UInt32 = 0, floodMax: UInt8 = 3) {
+        sendCommand(MeshCoreProtocol.buildSetTuningParams(rxDelayBase: rxDelayBase, airtimeFactor: airtimeFactor, txDelay: txDelay, directTxDelay: directTxDelay, floodMax: floodMax), label: "SET_TUNING")
     }
 
     func setOtherParams(manualAddContacts: UInt8, telemetryBase: UInt8, telemetryLocation: UInt8, advertLocPolicy: UInt8, multiACK: UInt8) {
@@ -1237,10 +1237,13 @@ final class MeshCoreViewModel: ObservableObject {
             deviceConfig.loadedSections.insert("time")
             checkLoadingComplete()
 
-        case .tuningParams(let rxDelay, let airtime):
-            Self.logger.info("PARSED Tuning: rxDelay=\(rxDelay) airtime=\(airtime)")
+        case .tuningParams(let rxDelay, let airtime, let txDelay, let directTxDelay, let floodMax):
+            Self.logger.info("PARSED Tuning: rxDelay=\(rxDelay) airtime=\(airtime) txDelay=\(txDelay) directTxDelay=\(directTxDelay) floodMax=\(floodMax)")
             deviceConfig.rxDelayBase = rxDelay
             deviceConfig.airtimeFactor = airtime
+            deviceConfig.txDelay = txDelay
+            deviceConfig.directTxDelay = directTxDelay
+            deviceConfig.floodMax = floodMax
             deviceConfig.loadedSections.insert("tuning")
             checkLoadingComplete()
 
