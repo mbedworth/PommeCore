@@ -1297,7 +1297,13 @@ struct ContactListView: View {
             let end = min(start + bytesPerHop, pathData.count)
             guard end <= pathData.count else { break }
             let hash = pathData[start..<end]
-            hops.append(hash.map { String(format: "%02X", $0) }.joined())
+            let hexStr = hash.map { String(format: "%02X", $0) }.joined()
+            // Try to resolve to a known repeater name
+            if let name = viewModel.contactNameForHash(hexStr) {
+                hops.append(name)
+            } else {
+                hops.append(hexStr)
+            }
         }
         return hops.joined(separator: " \u{2192} ")
     }
