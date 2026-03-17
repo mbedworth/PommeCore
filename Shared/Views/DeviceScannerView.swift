@@ -98,6 +98,10 @@ struct DeviceScannerView: View {
                 Text("Nearby Devices")
                     .foregroundStyle(MeshTheme.textSecondary)
             }
+
+            #if os(macOS)
+            USBSerialSection()
+            #endif
         }
         .meshListStyle()
         .navigationTitle("Scanner")
