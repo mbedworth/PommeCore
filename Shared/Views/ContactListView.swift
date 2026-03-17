@@ -1178,10 +1178,34 @@ struct ContactListView: View {
                 .font(.caption2)
                 .foregroundStyle(MeshTheme.connected)
         } else if contact.outPathLen > 0 {
-            Text("\(contact.outPathLen) hop\(contact.outPathLen == 1 ? "" : "s")")
-                .font(.caption2)
-                .foregroundStyle(MeshTheme.textSecondary)
+            let pathStr = formatPathHashes(contact.outPath, hopCount: Int(contact.outPathLen))
+            if pathStr.isEmpty {
+                Text("\(contact.outPathLen) hop\(contact.outPathLen == 1 ? "" : "s")")
+                    .font(.caption2)
+                    .foregroundStyle(MeshTheme.textSecondary)
+            } else {
+                Text(pathStr)
+                    .font(.system(.caption2, design: .monospaced))
+                    .foregroundStyle(MeshTheme.textSecondary)
+                    .lineLimit(1)
+            }
         }
+    }
+
+    /// Format path hashes from outPath data. Each hop uses 1-3 bytes depending on path hash mode.
+    private func formatPathHashes(_ pathData: Data, hopCount: Int) -> String {
+        guard !pathData.isEmpty, hopCount > 0 else { return "" }
+        let bytesPerHop = pathData.count / hopCount
+        guard bytesPerHop >= 1 && bytesPerHop <= 3 else { return "" }
+        var hops: [String] = []
+        for i in 0..<hopCount {
+            let start = i * bytesPerHop
+            let end = min(start + bytesPerHop, pathData.count)
+            guard end <= pathData.count else { break }
+            let hash = pathData[start..<end]
+            hops.append(hash.map { String(format: "%02X", $0) }.joined())
+        }
+        return hops.joined(separator: " \u{2192} ")
     }
 
     @ViewBuilder
