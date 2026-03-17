@@ -493,10 +493,20 @@ final class MeshCoreViewModel: ObservableObject {
     /// Trigger haptic feedback on message send.
     func playHapticFeedback() {
         #if os(iOS)
-        let generator = UIImpactFeedbackGenerator(style: .medium)
+        let generator = UIImpactFeedbackGenerator(style: .light)
         generator.impactOccurred()
         #elseif os(watchOS)
         WKInterfaceDevice.current().play(.click)
+        #endif
+    }
+
+    /// Trigger notification haptic on message receive.
+    func playReceiveHaptic() {
+        #if os(iOS)
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.success)
+        #elseif os(watchOS)
+        WKInterfaceDevice.current().play(.notification)
         #endif
     }
 
@@ -1963,6 +1973,10 @@ final class MeshCoreViewModel: ObservableObject {
 
         messagesByContact[contactKey, default: []].append(message)
         persistMessages(for: contactKey)
+
+        if !isInBackground {
+            playReceiveHaptic()
+        }
 
         if selectedContact?.publicKeyPrefix != contactKey {
             unreadCounts[contactKey, default: 0] += 1
