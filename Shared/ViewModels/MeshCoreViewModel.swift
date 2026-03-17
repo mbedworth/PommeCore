@@ -1181,6 +1181,26 @@ final class MeshCoreViewModel: ObservableObject {
     func markAsRead(_ contact: Contact) {
         unreadCounts[contact.publicKeyPrefix] = 0
         updateAppBadge()
+        // Store the last-read timestamp for unread divider
+        let key = "lastRead.\(contact.publicKeyPrefix.map { String(format: "%02x", $0) }.joined())"
+        UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: key)
+    }
+
+    /// Returns the index of the first unread incoming message for a contact.
+    func firstUnreadIndex(in messages: [Message], for contactKey: Data) -> Int? {
+        let key = "lastRead.\(contactKey.map { String(format: "%02x", $0) }.joined())"
+        let lastRead = UserDefaults.standard.double(forKey: key)
+        guard lastRead > 0 else { return nil }
+        let lastReadDate = Date(timeIntervalSince1970: lastRead)
+        return messages.firstIndex { $0.timestamp > lastReadDate && !$0.isOutgoing }
+    }
+
+    /// Returns the last-read timestamp for a contact, used to capture before markAsRead clears it.
+    func lastReadTimestamp(for contactKey: Data) -> Date? {
+        let key = "lastRead.\(contactKey.map { String(format: "%02x", $0) }.joined())"
+        let ts = UserDefaults.standard.double(forKey: key)
+        guard ts > 0 else { return nil }
+        return Date(timeIntervalSince1970: ts)
     }
 
     func sendTextMessage(_ text: String, to contact: Contact) {
