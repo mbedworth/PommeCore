@@ -2162,25 +2162,40 @@ final class MeshCoreViewModel: ObservableObject {
 
         if var messages = messagesByContact[contactKey],
            let idx = messages.firstIndex(where: { $0.id == message.id }) {
-            messages[idx].status = .sending
-            messages[idx].attempt = 0
-            messages[idx].didResetPath = false
-            messagesByContact[contactKey] = messages
 
-            // Re-send the frame
-            if let channelIdx = message.channelIndex {
+            // If this is a DM that already failed, reset path and flood
+            if message.channelIndex == nil {
+                // Reset path so the device floods instead of using the stale direct route
+                if let contact = contacts.first(where: { $0.publicKeyPrefix == contactKey }) {
+                    Self.logger.info("RETRY: resetting path for \(contact.name) before flood retry")
+                    resetPath(for: contact)
+                }
+                messages[idx].status = .flooding
+                messages[idx].attempt = 2 // attempt >= 2 tells firmware to flood
+                messages[idx].didResetPath = true
+                messagesByContact[contactKey] = messages
+
+                // Delay to let path reset take effect, then send as flood
+                Task { [weak self] in
+                    try? await Task.sleep(nanoseconds: 500_000_000)
+                    guard let self else { return }
+                    let frame = MeshCoreProtocol.buildSendTextMessage(
+                        text: message.text,
+                        recipientKeyHash: contactKey,
+                        attempt: 2
+                    )
+                    self.sendCommand(frame, label: "MANUAL_RETRY_FLOOD")
+                }
+            } else {
+                // Channel message retry — just resend
+                messages[idx].status = .sending
+                messages[idx].attempt = 0
+                messagesByContact[contactKey] = messages
                 let frame = MeshCoreProtocol.buildSendChannelMessage(
                     text: message.text,
-                    channelIndex: channelIdx
+                    channelIndex: message.channelIndex!
                 )
                 sendCommand(frame, label: "MANUAL_RETRY_CHANNEL")
-            } else {
-                let frame = MeshCoreProtocol.buildSendTextMessage(
-                    text: message.text,
-                    recipientKeyHash: contactKey,
-                    attempt: 0
-                )
-                sendCommand(frame, label: "MANUAL_RETRY_TXT")
             }
             persistMessages(for: contactKey)
         }
