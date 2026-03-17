@@ -593,6 +593,16 @@ final class MeshCoreViewModel: ObservableObject {
 
         if isChannel {
             guard prefs.notifyChannel else { return }
+            // Check per-channel notify mode (mentions only)
+            if let chIdx = message.channelIndex,
+               let channel = channels.first(where: { $0.index == chIdx }) {
+                let mode = channelNotifyMode(for: channel.name)
+                if mode == .muted { return }
+                if mode == .mentionsOnly {
+                    let myName = deviceConfig.deviceName.lowercased()
+                    guard !myName.isEmpty, message.text.lowercased().contains("@\(myName)") else { return }
+                }
+            }
         } else if isRoom {
             guard prefs.notifyRoom else { return }
         } else {
@@ -608,13 +618,17 @@ final class MeshCoreViewModel: ObservableObject {
             ?? contact.map { displayName(for: $0) }
 
         if let channelIdx = message.channelIndex {
-            content.title = "Public Channel"
+            let channelName = channels.first(where: { $0.index == channelIdx })?.name ?? "Channel"
+            content.title = channelName
             if let name = message.senderName, !name.isEmpty {
                 content.subtitle = name
             }
-            _ = channelIdx // suppress unused warning
+            // Group by channel
+            content.threadIdentifier = "channel.\(channelIdx)"
         } else if let name = senderName {
             content.title = name
+            // Group by contact
+            content.threadIdentifier = "dm.\(message.contactKeyHash.map { String(format: "%02x", $0) }.joined())"
         } else {
             content.title = "New Message"
         }
@@ -623,6 +637,7 @@ final class MeshCoreViewModel: ObservableObject {
         // Include contact pubkey for quick reply
         if let contact {
             content.userInfo["contactPubkey"] = contact.publicKey.map { String(format: "%02x", $0) }.joined()
+            content.userInfo["isChannel"] = isChannel
             #if os(iOS)
             if !isChannel {
                 content.categoryIdentifier = "MESSAGE_CATEGORY"
