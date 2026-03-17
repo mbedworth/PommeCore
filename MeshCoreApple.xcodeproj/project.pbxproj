@@ -50,6 +50,9 @@
 		OBV10000000000000000001 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBV10000000000000000000 /* OnboardingView.swift */; };
 		OBV10000000000000000002 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBV10000000000000000000 /* OnboardingView.swift */; };
 		OBV10000000000000000003 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBV10000000000000000000 /* OnboardingView.swift */; };
+		USB10000000000000000001 /* USBSerialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = USB10000000000000000000 /* USBSerialView.swift */; };
+		USB10000000000000000002 /* USBSerialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = USB10000000000000000000 /* USBSerialView.swift */; };
+		USB10000000000000000003 /* USBSerialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = USB10000000000000000000 /* USBSerialView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -71,6 +74,7 @@
 		LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteManagementView.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F60718293A4B5C /* ShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareView.swift; sourceTree = "<group>"; };
 		OBV10000000000000000000 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		USB10000000000000000000 /* USBSerialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = USBSerialView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -122,6 +126,7 @@
 				LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */,
 				A1B2C3D4E5F60718293A4B5C /* ShareView.swift */,
 				OBV10000000000000000000 /* OnboardingView.swift */,
+				USB10000000000000000000 /* USBSerialView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -323,6 +328,7 @@
 				KCM1ABCD0001000000000001 /* KeychainManager.swift in Sources */,
 				D4E5F60718293A4BC5D6E7F8 /* ShareView.swift in Sources */,
 				OBV10000000000000000001 /* OnboardingView.swift in Sources */,
+				USB10000000000000000001 /* USBSerialView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -342,6 +348,7 @@
 				KCM1ABCD0002000000000001 /* KeychainManager.swift in Sources */,
 				C3D4E5F60718293AB4C5D6E7 /* ShareView.swift in Sources */,
 				OBV10000000000000000002 /* OnboardingView.swift in Sources */,
+				USB10000000000000000002 /* USBSerialView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -361,6 +368,7 @@
 				KCM1ABCD0003000000000001 /* KeychainManager.swift in Sources */,
 				B2C3D4E5F6071829A3B4C5D6 /* ShareView.swift in Sources */,
 				OBV10000000000000000003 /* OnboardingView.swift in Sources */,
+				USB10000000000000000003 /* USBSerialView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

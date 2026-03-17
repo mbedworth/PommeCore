@@ -7,6 +7,15 @@ import WatchKit
 #endif
 import MeshCoreKit
 
+#if os(macOS)
+/// A line of output in the USB serial terminal.
+struct USBTerminalLine: Identifiable {
+    let id = UUID()
+    let text: String
+    let isCommand: Bool
+}
+#endif
+
 /// Whether iCloud sync is enabled (stored locally per device, defaults to true).
 var iCloudSyncEnabled: Bool {
     UserDefaults.standard.object(forKey: "iCloudSyncEnabled") == nil ? true : UserDefaults.standard.bool(forKey: "iCloudSyncEnabled")
@@ -276,6 +285,10 @@ final class MeshCoreViewModel: ObservableObject {
     @Published var bleStatusMessage: String?
 
     let bleManager = BLEManager()
+    #if os(macOS)
+    let usbManager = USBSerialManager()
+    @Published var usbCLIOutput: [USBTerminalLine] = []
+    #endif
     private var cancellables = Set<AnyCancellable>()
     private let messageStore = MessageStore()
 
@@ -621,6 +634,47 @@ final class MeshCoreViewModel: ObservableObject {
                 self?.bleStatusMessage = message
             }
             .store(in: &cancellables)
+
+        // USB Serial subscriptions (macOS only)
+        #if os(macOS)
+        usbManager.receivedDataSubject
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] data in
+                self?.handleReceivedData(data)
+            }
+            .store(in: &cancellables)
+
+        usbManager.receivedLineSubject
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] line in
+                self?.usbCLIOutput.append(USBTerminalLine(text: line, isCommand: false))
+            }
+            .store(in: &cancellables)
+
+        usbManager.$isConnected
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] connected in
+                guard let self else { return }
+                if connected && self.usbManager.detectedMode == .binary {
+                    self.connectionState = .ready
+                    self.connectedDeviceName = self.usbManager.connectedPort?.replacingOccurrences(of: "/dev/cu.", with: "")
+                }
+            }
+            .store(in: &cancellables)
+
+        usbManager.$detectedMode
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] mode in
+                guard let self else { return }
+                if mode == .binary && self.usbManager.isConnected {
+                    Self.logger.info("USB binary mode detected — initializing device")
+                    self.connectionState = .ready
+                    self.connectedDeviceName = self.usbManager.connectedPort?.replacingOccurrences(of: "/dev/cu.", with: "")
+                    self.onDeviceReady()
+                }
+            }
+            .store(in: &cancellables)
+        #endif
     }
 
     private func onDeviceReady() {
@@ -697,6 +751,25 @@ final class MeshCoreViewModel: ObservableObject {
     /// Whether the UI should present the scanner sheet (set by auto-scan after disconnect).
     @Published var requestShowScanner = false
 
+    #if os(macOS)
+    func connectUSB(port: String) {
+        usbManager.connect(to: port)
+    }
+
+    func disconnectUSB() {
+        usbManager.disconnect()
+        if connectionState != .disconnected {
+            connectionState = .disconnected
+            connectedDeviceName = nil
+        }
+    }
+
+    func sendUSBCLI(_ command: String) {
+        usbManager.sendCLI(command)
+        usbCLIOutput.append(USBTerminalLine(text: "> \(command)", isCommand: true))
+    }
+    #endif
+
     func disconnect() {
         bleManager.disconnect()
         // Auto-scan after user-initiated disconnect
@@ -711,6 +784,14 @@ final class MeshCoreViewModel: ObservableObject {
     // MARK: - Protocol Commands
 
     private func sendCommand(_ data: Data, label: String) {
+        #if os(macOS)
+        if usbManager.isConnected && usbManager.detectedMode == .binary {
+            let hex = data.map { String(format: "%02x", $0) }.joined(separator: " ")
+            Self.logger.info("TX(USB) \(label) [\(data.count) bytes]: \(hex)")
+            usbManager.sendFrame(data)
+            return
+        }
+        #endif
         guard connectionState == .ready || connectionState == .connected else {
             Self.logger.warning("Cannot send \(label) — not connected (state: \(String(describing: self.connectionState)))")
             return
