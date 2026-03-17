@@ -37,6 +37,12 @@ struct ChatView: View {
         }
         .onAppear {
             viewModel.markAsRead(contact)
+            if messageText.isEmpty {
+                messageText = viewModel.loadDraft(for: contact.publicKeyPrefix)
+            }
+        }
+        .onDisappear {
+            viewModel.saveDraft(messageText, for: contact.publicKeyPrefix)
         }
     }
 
@@ -141,6 +147,7 @@ struct ChatView: View {
         viewModel.sendTextMessage(messageText, to: contact)
         viewModel.playHapticFeedback()
         messageText = ""
+        viewModel.saveDraft("", for: contact.publicKeyPrefix)
     }
 }
 
@@ -171,6 +178,12 @@ struct ChannelChatView: View {
         .navigationTitle(channelName)
         .onAppear {
             viewModel.unreadCounts[channelKey] = 0
+            if messageText.isEmpty {
+                messageText = viewModel.loadDraft(for: channelKey)
+            }
+        }
+        .onDisappear {
+            viewModel.saveDraft(messageText, for: channelKey)
         }
     }
 
@@ -275,6 +288,7 @@ struct ChannelChatView: View {
         viewModel.sendChannelMessage(messageText, channelIndex: channelIndex)
         viewModel.playHapticFeedback()
         messageText = ""
+        viewModel.saveDraft("", for: channelKey)
     }
 }
 
