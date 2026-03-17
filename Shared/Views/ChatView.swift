@@ -7,6 +7,8 @@ struct ChatView: View {
     @State private var messageText = ""
     @State private var showNotes = false
     @State private var unreadDividerIndex: Int?
+    @State private var isSearching = false
+    @State private var searchText = ""
 
     private let maxMessageLength = 160
 
@@ -14,8 +16,39 @@ struct ChatView: View {
         viewModel.messages(for: contact)
     }
 
+    private var displayedMessages: [Message] {
+        if searchText.isEmpty { return messages }
+        return messages.filter { $0.text.localizedCaseInsensitiveContains(searchText) }
+    }
+
+    private var searchBar: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(MeshTheme.textSecondary)
+            TextField("Search messages...", text: $searchText)
+                .foregroundStyle(MeshTheme.textPrimary)
+            if !searchText.isEmpty {
+                Button {
+                    searchText = ""
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(MeshTheme.textSecondary)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(8)
+        .background(MeshTheme.surfaceLight)
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .padding(.horizontal, 12)
+        .padding(.vertical, 4)
+    }
+
     var body: some View {
         VStack(spacing: 0) {
+            if isSearching {
+                searchBar
+            }
             messageList
             Divider()
                 .overlay(MeshTheme.surfaceLight)
@@ -25,11 +58,20 @@ struct ChatView: View {
         .navigationTitle(viewModel.displayName(for: contact))
         .toolbar {
             ToolbarItem(placement: .automatic) {
-                Button {
-                    showNotes = true
-                } label: {
-                    Image(systemName: viewModel.hasNote(for: contact) ? "note.text" : "note.text.badge.plus")
-                        .foregroundStyle(MeshTheme.accent)
+                HStack(spacing: 12) {
+                    Button {
+                        withAnimation { isSearching.toggle() }
+                        if !isSearching { searchText = "" }
+                    } label: {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundStyle(isSearching ? MeshTheme.accent : MeshTheme.textSecondary)
+                    }
+                    Button {
+                        showNotes = true
+                    } label: {
+                        Image(systemName: viewModel.hasNote(for: contact) ? "note.text" : "note.text.badge.plus")
+                            .foregroundStyle(MeshTheme.accent)
+                    }
                 }
             }
         }
@@ -66,11 +108,17 @@ struct ChatView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
                 LazyVStack(spacing: 4) {
-                    ForEach(Array(messages.enumerated()), id: \.element.id) { index, message in
-                        if index == 0 || isDifferentDay(messages[index - 1].timestamp, message.timestamp) {
+                    if !searchText.isEmpty {
+                        Text("\(displayedMessages.count) result\(displayedMessages.count == 1 ? "" : "s")")
+                            .font(.caption2)
+                            .foregroundStyle(MeshTheme.textSecondary)
+                            .padding(.vertical, 4)
+                    }
+                    ForEach(Array(displayedMessages.enumerated()), id: \.element.id) { index, message in
+                        if searchText.isEmpty && (index == 0 || isDifferentDay(displayedMessages[index - 1].timestamp, message.timestamp)) {
                             DateSeparator(date: message.timestamp)
                         }
-                        if index == unreadDividerIndex {
+                        if searchText.isEmpty && index == unreadDividerIndex {
                             UnreadDivider()
                         }
                         MessageBubble(message: message)
