@@ -1,6 +1,9 @@
 import CoreBluetooth
 import Combine
 import os.log
+#if os(iOS)
+import UIKit
+#endif
 
 /// Connection state for BLE device.
 public enum BLEConnectionState: Equatable, Sendable {
@@ -86,10 +89,16 @@ public final class BLEManager: NSObject, ObservableObject {
             return
         }
 
+        #if os(iOS)
+        // Don't scan if we have a pending reconnect — CoreBluetooth manages it
+        if connectedPeripheral != nil && connectionState == .connecting {
+            Self.logger.info("Skipping scan — reconnect pending for \(self.connectedPeripheral?.name ?? "unknown")")
+            return
+        }
+        #endif
+
         DispatchQueue.main.async {
             self.discoveredPeripherals.removeAll()
-            // Only change to scanning state if not currently connected
-            // Scanning while connected is safe but must not overwrite the connection state
             if self.connectionState != .ready && self.connectionState != .connected && self.connectionState != .connecting {
                 self.connectionState = .scanning
             }
@@ -221,13 +230,26 @@ extension BLEManager: CBCentralManagerDelegate {
            let peripheral = peripherals.first {
             peripheral.delegate = self
             connectedPeripheral = peripheral
+            shouldAutoReconnect = true
 
             DispatchQueue.main.async {
                 self.connectedDeviceName = peripheral.name
                 self.connectionState = .connected
             }
 
-            Self.logger.info("Restored peripheral: \(peripheral.name ?? "unknown")")
+            // Re-discover services to re-subscribe to TX notifications
+            if peripheral.state == .connected {
+                Self.logger.info("Restored connected peripheral — re-discovering services")
+                peripheral.discoverServices([BLEConstants.nusServiceUUID])
+            } else {
+                Self.logger.info("Restored disconnected peripheral — queuing reconnect")
+                central.connect(peripheral, options: nil)
+                DispatchQueue.main.async {
+                    self.connectionState = .connecting
+                }
+            }
+
+            Self.logger.info("Restored peripheral: \(peripheral.name ?? "unknown"), state: \(peripheral.state.rawValue)")
         }
     }
 
@@ -262,7 +284,13 @@ extension BLEManager: CBCentralManagerDelegate {
     }
 
     public func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
+        #if os(iOS)
+        let bgState = DispatchQueue.main.sync { UIApplication.shared.applicationState }
+        let isBackground = bgState != .active
+        Self.logger.info("Connected to \(peripheral.name ?? "unknown") (background: \(isBackground))")
+        #else
         Self.logger.info("Connected to \(peripheral.name ?? "unknown")")
+        #endif
 
         reconnectAttemptsRemaining = Self.maxReconnectAttempts
         reconnectTimeoutWork?.cancel()
@@ -283,6 +311,15 @@ extension BLEManager: CBCentralManagerDelegate {
     ) {
         Self.logger.error("Failed to connect: \(error?.localizedDescription ?? "unknown error")")
 
+        #if os(iOS)
+        if shouldAutoReconnect {
+            // Retry — CoreBluetooth will queue it for when the device is available
+            Self.logger.info("iOS: re-queuing connect after failure")
+            central.connect(peripheral, options: nil)
+            return
+        }
+        #endif
+
         DispatchQueue.main.async {
             self.connectionState = .disconnected
             self.connectedPeripheral = nil
@@ -294,7 +331,13 @@ extension BLEManager: CBCentralManagerDelegate {
         didDisconnectPeripheral peripheral: CBPeripheral,
         error: Error?
     ) {
+        #if os(iOS)
+        let bgState = DispatchQueue.main.sync { UIApplication.shared.applicationState }
+        let isBackground = bgState != .active
+        Self.logger.info("Disconnected from \(peripheral.name ?? "unknown") (background: \(isBackground), error: \(error?.localizedDescription ?? "none"))")
+        #else
         Self.logger.info("Disconnected from \(peripheral.name ?? "unknown"), error: \(error?.localizedDescription ?? "none")")
+        #endif
 
         DispatchQueue.main.async {
             self.rxCharacteristic = nil
@@ -304,31 +347,19 @@ extension BLEManager: CBCentralManagerDelegate {
         let isUnexpected = error != nil && shouldAutoReconnect
 
         #if os(iOS)
-        if isUnexpected && reconnectAttemptsRemaining > 0 {
-            reconnectAttemptsRemaining -= 1
-            let attempt = Self.maxReconnectAttempts - reconnectAttemptsRemaining
-            Self.logger.info("iOS auto-reconnect attempt \(attempt)/\(Self.maxReconnectAttempts) for \(peripheral.name ?? "unknown")")
+        if shouldAutoReconnect {
+            // iOS: ALWAYS queue reconnect for unexpected disconnects.
+            // CoreBluetooth manages the reconnect queue even while the app is suspended.
+            // This is the key to background BLE — never give up, never clear connectedPeripheral.
+            Self.logger.info("iOS: queuing reconnect for \(peripheral.name ?? "unknown") (background-safe)")
 
             DispatchQueue.main.async {
                 self.connectionState = .connecting
             }
+            // CoreBluetooth will connect when the device becomes available again
             central.connect(peripheral, options: nil)
-
-            // Timeout: if not reconnected within 5 seconds, trigger another didDisconnect
-            let timeoutWork = DispatchWorkItem { [weak self] in
-                guard let self else { return }
-                // Still not connected — cancel and let didDisconnect fire again
-                if self.connectionState == .connecting {
-                    Self.logger.info("Reconnect attempt timed out, cancelling...")
-                    central.cancelPeripheralConnection(peripheral)
-                }
-            }
-            reconnectTimeoutWork = timeoutWork
-            bleQueue.asyncAfter(deadline: .now() + 5.0, execute: timeoutWork)
         } else {
-            // User-initiated disconnect OR reconnect attempts exhausted
-            shouldAutoReconnect = false
-            reconnectAttemptsRemaining = 0
+            // User-initiated disconnect — clean up fully
             reconnectTimeoutWork?.cancel()
             reconnectTimeoutWork = nil
 
@@ -336,16 +367,6 @@ extension BLEManager: CBCentralManagerDelegate {
                 self.connectionState = .disconnected
                 self.connectedPeripheral = nil
                 self.connectedDeviceName = nil
-            }
-
-            // If attempts exhausted (not user-initiated), auto-scan after 2 seconds
-            if isUnexpected {
-                self.bleQueue.asyncAfter(deadline: .now() + 2.0) { [weak self] in
-                    guard let self, self.centralManager.state == .poweredOn,
-                          self.connectionState == .disconnected else { return }
-                    Self.logger.info("Auto-scanning after failed reconnect attempts")
-                    self.startScanning()
-                }
             }
         }
         #else
