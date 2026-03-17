@@ -1091,9 +1091,8 @@ struct ContactListView: View {
                     .font(.caption)
                     .foregroundStyle(MeshTheme.textSecondary)
                     .lineLimit(1)
-            } else if contact.lastAdvert > 1_000_000_000 {
-                // Only show relative time for valid timestamps (after ~2001)
-                Text(contact.lastSeen, style: .relative)
+            } else if let seenText = lastSeenText(for: contact) {
+                Text(seenText)
                     .font(.caption)
                     .foregroundStyle(MeshTheme.textSecondary)
             } else {
@@ -1102,6 +1101,28 @@ struct ContactListView: View {
                     .foregroundStyle(MeshTheme.textSecondary)
             }
         }
+    }
+
+    /// Returns a "Seen X ago" string for valid, recent timestamps, or nil.
+    private func lastSeenText(for contact: Contact) -> String? {
+        guard contact.lastAdvert > 1_000_000_000 else { return nil }
+
+        let date = Date(timeIntervalSince1970: TimeInterval(contact.lastAdvert))
+        let now = Date()
+
+        // If more than 1 year ago, likely stale
+        if now.timeIntervalSince(date) > 365 * 24 * 60 * 60 {
+            return nil
+        }
+
+        // If in the future (clock skew), allow 5 min tolerance
+        if date > now.addingTimeInterval(300) {
+            return nil
+        }
+
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .abbreviated
+        return "Seen \(formatter.localizedString(for: date, relativeTo: now))"
     }
 
     @ViewBuilder
