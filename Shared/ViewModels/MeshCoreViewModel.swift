@@ -662,6 +662,17 @@ final class MeshCoreViewModel: ObservableObject {
         }
     }
 
+    /// Post a notification for a system event (not a message).
+    private func postEventNotification(title: String, body: String, threadId: String = "system") {
+        let content = UNMutableNotificationContent()
+        content.title = title
+        content.body = body
+        content.sound = .default
+        content.threadIdentifier = threadId
+        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)
+        UNUserNotificationCenter.current().add(request)
+    }
+
     /// Update the app icon badge to reflect total unread messages.
     func updateAppBadge() {
         let totalUnread = unreadCounts.values.reduce(0, +)
@@ -774,15 +785,32 @@ final class MeshCoreViewModel: ObservableObject {
 
                     // If transitioning from connecting (reconnect attempts) to disconnected,
                     // show scanner after BLE layer starts auto-scanning
-                    if previousState == .connecting {
-                        Task { @MainActor in
-                            try? await Task.sleep(nanoseconds: 3_000_000_000)
-                            guard self.connectionState == .disconnected else { return }
-                            self.requestShowScanner = true
+                    if previousState == .connecting || previousState == .ready {
+                        if self.isInBackground && NotificationPreferences.shared.notifyConnection {
+                            let deviceName = self.connectedDeviceName ?? "radio"
+                            self.postEventNotification(
+                                title: "Connection Lost",
+                                body: "Lost connection to \(deviceName). Attempting to reconnect...",
+                                threadId: "connection"
+                            )
+                        }
+                        if previousState == .connecting {
+                            Task { @MainActor in
+                                try? await Task.sleep(nanoseconds: 3_000_000_000)
+                                guard self.connectionState == .disconnected else { return }
+                                self.requestShowScanner = true
+                            }
                         }
                     }
                 }
                 if state == .ready && previousState != .ready {
+                    if self.isInBackground && previousState == .disconnected && NotificationPreferences.shared.notifyConnection {
+                        self.postEventNotification(
+                            title: "Reconnected",
+                            body: "Connected to \(self.connectedDeviceName ?? "radio")",
+                            threadId: "connection"
+                        )
+                    }
                     self.onDeviceReady()
                 }
             }
@@ -1939,6 +1967,9 @@ final class MeshCoreViewModel: ObservableObject {
             // Add to pending contacts list for user approval
             if !pendingNewContacts.contains(where: { $0.publicKeyPrefix == contact.publicKeyPrefix }) {
                 pendingNewContacts.append(contact)
+                if isInBackground && NotificationPreferences.shared.notifyNewContacts {
+                    postEventNotification(title: "New Contact Discovered", body: contact.name, threadId: "contacts")
+                }
             }
             // Also show as discovered node during discover scan
             if isDiscovering {
@@ -1999,6 +2030,7 @@ final class MeshCoreViewModel: ObservableObject {
         case .contactsFull(let maxContacts):
             Self.logger.warning("Contact storage full: \(maxContacts)")
             lastErrorMessage = "Contact storage is full (\(maxContacts) contacts). New contacts cannot be added."
+            postEventNotification(title: "Contact Storage Full", body: "Device has reached \(maxContacts) contacts. New contacts cannot be added.", threadId: "system")
 
         case .unknown(let type, let payload):
             // Push notifications are informational — log at debug level
