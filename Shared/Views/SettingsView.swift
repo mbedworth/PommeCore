@@ -987,6 +987,7 @@ struct TuningSection: View {
     @State private var airtime: String = ""
     @State private var floodMaxHops: Int = 3
     @State private var saveState: SaveButtonState = .idle
+    @State private var suppressFloodMaxReadback = false
 
     @State private var isExpanded = false
 
@@ -1008,6 +1009,7 @@ struct TuningSection: View {
             }
             .listRowBackground(MeshTheme.surface)
             .onChange(of: floodMaxHops) { newValue in
+                suppressFloodMaxReadback = true
                 let c = viewModel.deviceConfig
                 viewModel.setTuningParams(
                     rxDelayBase: c.rxDelayBase,
@@ -1016,6 +1018,10 @@ struct TuningSection: View {
                     directTxDelay: c.directTxDelay,
                     floodMax: UInt8(newValue)
                 )
+                // Allow readback after device has had time to process
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                    suppressFloodMaxReadback = false
+                }
             }
         } header: {
             Text("Mesh Network")
@@ -1084,7 +1090,9 @@ struct TuningSection: View {
         .onAppear { loadFromConfig() }
         .onChange(of: viewModel.deviceConfig.rxDelayBase) { _ in loadFromConfig() }
         .onChange(of: viewModel.deviceConfig.floodMax) { newValue in
-            floodMaxHops = Int(newValue)
+            if !suppressFloodMaxReadback {
+                floodMaxHops = Int(newValue)
+            }
         }
     }
 
