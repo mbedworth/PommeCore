@@ -1479,9 +1479,10 @@ final class MeshCoreViewModel: ObservableObject {
         }
 
         for (contactKey, messages) in messagesByContact {
-            if let idx = messages.lastIndex(where: { $0.isOutgoing && $0.status == .sending }) {
+            if let idx = messages.lastIndex(where: { $0.isOutgoing && ($0.status == .sending || $0.status == .retrying || $0.status == .flooding) }) {
                 messagesByContact[contactKey]![idx].status = .sent
                 messagesByContact[contactKey]![idx].expectedACK = expectedACK
+                messagesByContact[contactKey]![idx].suggestedTimeoutMs = suggestedTimeoutMs
                 pendingACKs[expectedACK] = (contactKeyHash: contactKey, messageID: messages[idx].id)
                 persistMessages(for: contactKey)
 
@@ -1514,47 +1515,133 @@ final class MeshCoreViewModel: ObservableObject {
         }
     }
 
-    /// Handle ACK timeout — mark as .failed so user can retry.
+    /// Handle ACK timeout — auto-retry on direct path, then flood fallback if enabled.
     private func handleACKTimeout(ackCode: UInt32) {
         guard let pending = pendingACKs.removeValue(forKey: ackCode) else { return }
 
-        if var messages = messagesByContact[pending.contactKeyHash],
-           let idx = messages.firstIndex(where: { $0.id == pending.messageID }),
-           messages[idx].status == .sent {
-            Self.logger.info("ACK timeout for message \(pending.messageID), marking as failed")
-            messages[idx].status = .failed
-            messagesByContact[pending.contactKeyHash] = messages
-            persistMessages(for: pending.contactKeyHash)
+        guard var messages = messagesByContact[pending.contactKeyHash],
+              let idx = messages.firstIndex(where: { $0.id == pending.messageID }),
+              messages[idx].status == .sent else { return }
+
+        let message = messages[idx]
+        let autoRetry = UserDefaults.standard.bool(forKey: "autoRetry")
+        let autoResetPath = UserDefaults.standard.bool(forKey: "autoResetPath")
+        let maxDirectRetries: UInt8 = 3
+        let maxFloodRetries: UInt8 = 2
+
+        // Phase 1: Direct path retries (attempts 0-2 = 3 tries total)
+        if !message.didResetPath && message.attempt < maxDirectRetries - 1 {
+            if autoRetry {
+                Self.logger.info("ACK timeout for message \(pending.messageID), auto-retrying (attempt \(message.attempt + 1))")
+                messages[idx].status = .retrying
+                messages[idx].attempt += 1
+                let attempt = messages[idx].attempt
+                let contactKey = pending.contactKeyHash
+                messagesByContact[contactKey] = messages
+                persistMessages(for: contactKey)
+
+                // Re-send on direct path
+                if let channelIdx = message.channelIndex {
+                    let frame = MeshCoreProtocol.buildSendChannelMessage(
+                        text: message.text,
+                        channelIndex: channelIdx
+                    )
+                    sendCommand(frame, label: "AUTO_RETRY_CHANNEL(\(attempt))")
+                } else {
+                    let frame = MeshCoreProtocol.buildSendTextMessage(
+                        text: message.text,
+                        recipientKeyHash: contactKey,
+                        attempt: attempt
+                    )
+                    sendCommand(frame, label: "AUTO_RETRY_TXT(\(attempt))")
+                }
+                return
+            }
         }
-    }
 
-    /// Retry sending a failed message. Increments attempt count (max 3).
-    func retryMessage(_ message: Message) {
-        guard message.isOutgoing, message.status == .failed, message.attempt < 3 else { return }
-        let contactKey = message.contactKeyHash
-
-        // Update existing message to sending with incremented attempt
-        if var messages = messagesByContact[contactKey],
-           let idx = messages.firstIndex(where: { $0.id == message.id }) {
-            messages[idx].status = .sending
-            messages[idx].attempt += 1
-            let attempt = messages[idx].attempt
+        // Phase 2: Reset path and flood (if enabled and not already flooding)
+        if autoRetry && autoResetPath && !message.didResetPath && message.channelIndex == nil {
+            Self.logger.info("Direct retries exhausted for \(pending.messageID), resetting path and flooding")
+            messages[idx].status = .flooding
+            messages[idx].didResetPath = true
+            messages[idx].attempt = 0 // Reset attempt counter for flood phase
+            let contactKey = pending.contactKeyHash
             messagesByContact[contactKey] = messages
+            persistMessages(for: contactKey)
 
-            // Re-send the frame with incremented attempt
-            if let channelIdx = message.channelIndex {
-                let frame = MeshCoreProtocol.buildSendChannelMessage(
+            // Find the contact to reset path
+            if let contact = contacts.first(where: { $0.publicKeyPrefix == contactKey }) {
+                resetPath(for: contact)
+            }
+
+            // Delay before flood send to allow path reset to take effect
+            Task { [weak self] in
+                try? await Task.sleep(nanoseconds: 500_000_000)
+                guard let self else { return }
+                let frame = MeshCoreProtocol.buildSendTextMessage(
                     text: message.text,
-                    channelIndex: channelIdx
+                    recipientKeyHash: contactKey,
+                    attempt: 0
                 )
-                sendCommand(frame, label: "RETRY_CHANNEL_TXT(\(attempt))")
-            } else {
+                self.sendCommand(frame, label: "FLOOD_RETRY_TXT")
+            }
+            return
+        }
+
+        // Phase 3: Flood retries (didResetPath = true, retry within flood phase)
+        if message.didResetPath && message.attempt < maxFloodRetries - 1 {
+            if autoRetry {
+                Self.logger.info("Flood retry for \(pending.messageID) (attempt \(message.attempt + 1))")
+                messages[idx].status = .flooding
+                messages[idx].attempt += 1
+                let attempt = messages[idx].attempt
+                let contactKey = pending.contactKeyHash
+                messagesByContact[contactKey] = messages
+                persistMessages(for: contactKey)
+
                 let frame = MeshCoreProtocol.buildSendTextMessage(
                     text: message.text,
                     recipientKeyHash: contactKey,
                     attempt: attempt
                 )
-                sendCommand(frame, label: "RETRY_TXT(\(attempt))")
+                sendCommand(frame, label: "FLOOD_RETRY_TXT(\(attempt))")
+                return
+            }
+        }
+
+        // All retries exhausted — mark as failed
+        Self.logger.info("All retries exhausted for message \(pending.messageID), marking as failed")
+        messages[idx].status = .failed
+        messagesByContact[pending.contactKeyHash] = messages
+        persistMessages(for: pending.contactKeyHash)
+    }
+
+    /// Retry sending a failed message. Restarts the full retry flow.
+    func retryMessage(_ message: Message) {
+        guard message.isOutgoing, message.status == .failed else { return }
+        let contactKey = message.contactKeyHash
+
+        if var messages = messagesByContact[contactKey],
+           let idx = messages.firstIndex(where: { $0.id == message.id }) {
+            messages[idx].status = .sending
+            messages[idx].attempt = 0
+            messages[idx].didResetPath = false
+            messagesByContact[contactKey] = messages
+
+            // Re-send the frame
+            if let channelIdx = message.channelIndex {
+                let frame = MeshCoreProtocol.buildSendChannelMessage(
+                    text: message.text,
+                    channelIndex: channelIdx
+                )
+                sendCommand(frame, label: "MANUAL_RETRY_CHANNEL")
+            } else {
+                let frame = MeshCoreProtocol.buildSendTextMessage(
+                    text: message.text,
+                    recipientKeyHash: contactKey,
+                    attempt: 0
+                )
+                sendCommand(frame, label: "MANUAL_RETRY_TXT")
             }
             persistMessages(for: contactKey)
         }
