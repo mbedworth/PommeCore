@@ -1669,9 +1669,15 @@ class TipJarManager: ObservableObject {
         Task.detached {
             let loaded: [Product]
             do {
+                print("TIP JAR: Requesting products: \(Self.productIDs)")
                 loaded = try await Product.products(for: Self.productIDs)
                     .sorted { $0.price < $1.price }
+                print("TIP JAR: Loaded \(loaded.count) products")
+                for p in loaded {
+                    print("  - \(p.id): \(p.displayName) \(p.displayPrice)")
+                }
             } catch {
+                print("TIP JAR ERROR: \(error)")
                 loaded = []
             }
             await MainActor.run {
