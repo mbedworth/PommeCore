@@ -359,7 +359,7 @@ extension BLEManager: CBCentralManagerDelegate {
             // CoreBluetooth will connect when the device becomes available again
             central.connect(peripheral, options: nil)
         } else {
-            // User-initiated disconnect — clean up fully
+            // User-initiated disconnect — clean up fully and auto-scan
             reconnectTimeoutWork?.cancel()
             reconnectTimeoutWork = nil
 
@@ -367,6 +367,13 @@ extension BLEManager: CBCentralManagerDelegate {
                 self.connectionState = .disconnected
                 self.connectedPeripheral = nil
                 self.connectedDeviceName = nil
+            }
+
+            self.bleQueue.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+                guard let self, self.centralManager.state == .poweredOn,
+                      self.connectionState == .disconnected else { return }
+                Self.logger.info("iOS: auto-scanning after user disconnect")
+                self.startScanning()
             }
         }
         #else
