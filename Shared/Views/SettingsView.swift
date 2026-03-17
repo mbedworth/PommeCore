@@ -1639,7 +1639,9 @@ private extension SettingsView {
 class TipJarManager: ObservableObject {
     @Published var products: [Product] = []
     @Published var purchaseSuccess = false
-    @Published var didAttemptLoad = false
+    @Published var isLoading = false
+
+    private var hasLoaded = false
 
     struct PlaceholderTip: Identifiable {
         let id: String
@@ -1656,34 +1658,43 @@ class TipJarManager: ObservableObject {
         PlaceholderTip(id: "help", emoji: "\u{1F49A}", name: "I Want to Help!", description: "You believe in off-grid communication", price: "$9.99"),
     ]
 
-    let productIDs = [
+    static let productIDs = [
         "com.mbedworth.meshcore.tip.decent",
         "com.mbedworth.meshcore.tip.nice",
         "com.mbedworth.meshcore.tip.great",
         "com.mbedworth.meshcore.tip.help"
     ]
 
-    func loadProducts() {
-        Task { @MainActor in
+    func loadProductsIfNeeded() {
+        guard !hasLoaded && !isLoading else { return }
+        isLoading = true
+        hasLoaded = true
+
+        Task.detached {
+            let loaded: [Product]
             do {
-                let loaded = try await Product.products(for: productIDs)
+                loaded = try await Product.products(for: Self.productIDs)
                     .sorted { $0.price < $1.price }
-                self.products = loaded
             } catch {
-                self.products = []
+                loaded = []
             }
-            self.didAttemptLoad = true
+            await MainActor.run {
+                self.products = loaded
+                self.isLoading = false
+            }
         }
     }
 
     func purchase(_ product: Product) {
-        Task { @MainActor in
+        Task.detached {
             do {
                 let result = try await product.purchase()
                 if case .success(let verification) = result {
                     if case .verified(let transaction) = verification {
                         await transaction.finish()
-                        self.purchaseSuccess = true
+                        await MainActor.run {
+                            self.purchaseSuccess = true
+                        }
                     }
                 }
             } catch {
@@ -1749,7 +1760,7 @@ private extension SettingsView {
                         }
                         .padding(.vertical, 4)
                     }
-                    if !tipJar.didAttemptLoad {
+                    if tipJar.isLoading {
                         ProgressView()
                             .frame(maxWidth: .infinity)
                     }
@@ -1769,7 +1780,7 @@ private extension SettingsView {
             sectionHeader("Tip Jar")
         }
         .onAppear {
-            tipJar.loadProducts()
+            tipJar.loadProductsIfNeeded()
         }
     }
 
