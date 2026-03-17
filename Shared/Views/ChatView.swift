@@ -1251,7 +1251,7 @@ struct MessageBubble: View {
             Image(systemName: "clock")
                 .font(.caption2)
                 .foregroundStyle(MeshTheme.textSecondary)
-        case .sent:
+        case .sent, .repeated:
             Image(systemName: "checkmark")
                 .font(.caption2)
                 .foregroundStyle(MeshTheme.textSecondary)
@@ -1351,6 +1351,15 @@ struct ChannelMessageBubble: View {
                             Image(systemName: "clock")
                                 .font(.caption2)
                                 .foregroundStyle(MeshTheme.textSecondary)
+                        case .repeated:
+                            HStack(spacing: 2) {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .font(.caption2)
+                                    .foregroundStyle(MeshTheme.accent)
+                                Text("Repeated")
+                                    .font(.caption2)
+                                    .foregroundStyle(MeshTheme.accent)
+                            }
                         default:
                             Image(systemName: "checkmark")
                                 .font(.caption2)
