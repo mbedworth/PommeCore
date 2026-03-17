@@ -526,7 +526,7 @@ public enum FrameParser {
         _ = readUInt8(data, offset: &offset) // reserved byte 2
         let pubkeyPrefix = data.count >= offset + 6 ? Data(data[offset..<offset+6]) : Data()
         offset += min(6, data.count - offset)
-        _ = readUInt8(data, offset: &offset) // path_len
+        let pathLen = readUInt8(data, offset: &offset)
         let txtType = readUInt8(data, offset: &offset)
         let senderTimestamp = readUInt32(data, offset: &offset)
         let text: String
@@ -541,7 +541,7 @@ public enum FrameParser {
             ? Date(timeIntervalSince1970: TimeInterval(senderTimestamp))
             : Date()
 
-        logger.info("ContactMsgRecvV3: snr=\(snr) txtType=\(txtType) from=\(pubkeyPrefix.map { String(format: "%02x", $0) }.joined()) text='\(text)'")
+        logger.info("ContactMsgRecvV3: snr=\(snr) pathLen=\(pathLen) txtType=\(txtType) from=\(pubkeyPrefix.map { String(format: "%02x", $0) }.joined()) text='\(text)'")
 
         let isSigned = txtType == 2
 
@@ -553,6 +553,7 @@ public enum FrameParser {
             isOutgoing: false,
             status: .delivered,
             snr: snr,
+            hops: pathLen,
             txtType: txtType,
             isSigned: isSigned
         )
@@ -567,7 +568,7 @@ public enum FrameParser {
         let snr = Int8(bitPattern: readUInt8(data, offset: &offset))
         _ = readUInt8(data, offset: &offset) // reserved
         let channelIdx = readUInt8(data, offset: &offset)
-        _ = readUInt8(data, offset: &offset) // path_len
+        let pathLen = readUInt8(data, offset: &offset)
         let txtType = readUInt8(data, offset: &offset)
         let senderTimestamp = readUInt32(data, offset: &offset)
 
@@ -585,7 +586,7 @@ public enum FrameParser {
             ? Date(timeIntervalSince1970: TimeInterval(senderTimestamp))
             : Date()
 
-        logger.info("ChannelMsgRecvV3: snr=\(snr) ch=\(channelIdx) sender='\(senderName)' txtType=\(txtType) text='\(text)'")
+        logger.info("ChannelMsgRecvV3: snr=\(snr) pathLen=\(pathLen) ch=\(channelIdx) sender='\(senderName)' txtType=\(txtType) text='\(text)'")
 
         let isSigned = txtType == 2
 
@@ -597,6 +598,7 @@ public enum FrameParser {
             isOutgoing: false,
             status: .delivered,
             snr: snr,
+            hops: pathLen,
             channelIndex: channelIdx,
             senderName: senderName.isEmpty ? nil : senderName,
             txtType: txtType,
@@ -636,7 +638,7 @@ public enum FrameParser {
         offset += min(6, data.count - offset)
 
         // path_len: 1 byte (0xFF = direct)
-        _ = readUInt8(data, offset: &offset)
+        let pathLen = readUInt8(data, offset: &offset)
 
         // txt_type: 1 byte (0 = plain, 1 = CLI_DATA, 2 = signed)
         let txtType = readUInt8(data, offset: &offset)
@@ -659,7 +661,7 @@ public enum FrameParser {
 
         let isSigned = txtType == 2
 
-        logger.info("ContactMsgRecv(v1): from=\(pubkeyPrefix.map { String(format: "%02x", $0) }.joined()) txtType=\(txtType) text='\(text)'")
+        logger.info("ContactMsgRecv(v1): from=\(pubkeyPrefix.map { String(format: "%02x", $0) }.joined()) pathLen=\(pathLen) txtType=\(txtType) text='\(text)'")
 
         let message = Message(
             senderKeyHash: pubkeyPrefix,
@@ -668,6 +670,7 @@ public enum FrameParser {
             timestamp: timestamp,
             isOutgoing: false,
             status: .delivered,
+            hops: pathLen,
             txtType: txtType,
             isSigned: isSigned
         )
