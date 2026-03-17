@@ -985,7 +985,7 @@ struct MessageBubble: View {
 
                     if message.isSigned {
                         HStack(spacing: 2) {
-                            Image(systemName: "checkmark.seal.fill")
+                            Image(systemName: "checkmark.shield.fill")
                                 .font(.caption2)
                             Text("Verified")
                                 .font(.caption2)
@@ -1147,7 +1147,7 @@ struct ChannelMessageBubble: View {
 
                     if message.isSigned {
                         HStack(spacing: 2) {
-                            Image(systemName: "checkmark.seal.fill")
+                            Image(systemName: "checkmark.shield.fill")
                                 .font(.caption2)
                             Text("Verified")
                                 .font(.caption2)
