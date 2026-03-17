@@ -1667,7 +1667,7 @@ class TipJarManager: ObservableObject {
         PlaceholderTip(id: "help", emoji: "\u{1F49A}", name: "I Want to Help!", description: "You believe in off-grid communication", price: "$9.99"),
     ]
 
-    static let productIDs = [
+    nonisolated static let productIDs = [
         "com.mbedworth.meshcore.tip.decent",
         "com.mbedworth.meshcore.tip.nice",
         "com.mbedworth.meshcore.tip.great",
