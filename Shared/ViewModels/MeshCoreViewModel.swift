@@ -194,6 +194,30 @@ final class MeshCoreViewModel: ObservableObject {
         return contactNotes[key] != nil && !contactNotes[key]!.isEmpty
     }
 
+    // MARK: - Message Drafts
+
+    func saveDraft(_ text: String, for contactKey: Data) {
+        let key = "draft.\(contactKey.map { String(format: "%02x", $0) }.joined())"
+        if text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            UserDefaults.standard.removeObject(forKey: key)
+        } else {
+            UserDefaults.standard.set(text, forKey: key)
+        }
+    }
+
+    func loadDraft(for contactKey: Data) -> String {
+        let key = "draft.\(contactKey.map { String(format: "%02x", $0) }.joined())"
+        return UserDefaults.standard.string(forKey: key) ?? ""
+    }
+
+    func hasDraft(for contactKey: Data) -> Bool {
+        let key = "draft.\(contactKey.map { String(format: "%02x", $0) }.joined())"
+        if let draft = UserDefaults.standard.string(forKey: key), !draft.isEmpty {
+            return true
+        }
+        return false
+    }
+
     // MARK: - Battery Calibration (per-device, iCloud synced)
 
     @Published var batteryCalibration: BatteryCalibration?

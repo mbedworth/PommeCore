@@ -932,6 +932,11 @@ struct ContactListView: View {
                 lastMessagePreview(for: contact)
             }
             Spacer()
+            if viewModel.hasDraft(for: contact.publicKeyPrefix) {
+                Text("Draft")
+                    .font(.caption2)
+                    .foregroundStyle(.orange)
+            }
             if viewModel.hasNote(for: contact) {
                 Image(systemName: "note.text")
                     .foregroundStyle(MeshTheme.textSecondary)
