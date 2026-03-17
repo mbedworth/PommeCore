@@ -1734,14 +1734,18 @@ private extension SettingsView {
                                 Spacer()
                                 Text(product.displayPrice)
                                     .fontWeight(.bold)
-                                    .foregroundStyle(MeshTheme.accent)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                                    .background(MeshTheme.interactiveGreen)
+                                    .foregroundStyle(.black)
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
                             }
+                            .contentShape(Rectangle())
                             .padding(.vertical, 4)
                         }
                         .buttonStyle(.plain)
                     }
                 } else {
-                    // Show placeholders when StoreKit products aren't available
                     ForEach(TipJarManager.placeholders) { tip in
                         HStack {
                             Text(tip.emoji)
@@ -1756,7 +1760,11 @@ private extension SettingsView {
                             Spacer()
                             Text(tip.price)
                                 .fontWeight(.bold)
-                                .foregroundStyle(MeshTheme.accent)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(MeshTheme.interactiveGreen.opacity(0.5))
+                                .foregroundStyle(.black)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
                         }
                         .padding(.vertical, 4)
                     }
