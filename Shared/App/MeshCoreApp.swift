@@ -1,10 +1,14 @@
 import SwiftUI
+import UserNotifications
 import MeshCoreKit
 
 @main
 struct MeshCoreApp: App {
     @StateObject private var viewModel = MeshCoreViewModel()
     @Environment(\.scenePhase) private var scenePhase
+    #if os(iOS)
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    #endif
 
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
 
@@ -14,6 +18,9 @@ struct MeshCoreApp: App {
                 ContentView()
                     .environmentObject(viewModel)
                     .meshTheme()
+                    #if os(iOS)
+                    .onAppear { appDelegate.viewModel = viewModel }
+                    #endif
             } else {
                 OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
                     .meshTheme()
@@ -27,6 +34,28 @@ struct MeshCoreApp: App {
         }
     }
 }
+
+#if os(iOS)
+class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
+    var viewModel: MeshCoreViewModel?
+
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
+        UNUserNotificationCenter.current().delegate = self
+        return true
+    }
+
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        if response.actionIdentifier == "REPLY_ACTION",
+           let textResponse = response as? UNTextInputNotificationResponse,
+           let pubkeyHex = response.notification.request.content.userInfo["contactPubkey"] as? String {
+            Task { @MainActor in
+                viewModel?.handleNotificationReply(text: textResponse.userText, contactPubkeyHex: pubkeyHex)
+            }
+        }
+        completionHandler()
+    }
+}
+#endif
 
 struct ContentView: View {
     @EnvironmentObject var viewModel: MeshCoreViewModel
