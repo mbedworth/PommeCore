@@ -3,6 +3,8 @@ import Combine
 import os.log
 #if os(iOS)
 import UIKit
+#elseif os(macOS)
+import AppKit
 #endif
 
 /// Connection state for BLE device.
@@ -77,6 +79,53 @@ public final class BLEManager: NSObject, ObservableObject {
                 CBCentralManagerOptionRestoreIdentifierKey: BLEConstants.centralManagerRestoreIdentifier
             ]
         )
+
+        #if os(macOS)
+        // Clean disconnect before sleep to prevent stale BLE state on the radio
+        NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.willSleepNotification,
+            object: nil, queue: .main
+        ) { [weak self] _ in
+            guard let self else { return }
+            DebugLogger.shared.log("macOS sleep — disconnecting BLE cleanly", level: .info)
+            if let peripheral = self.connectedPeripheral {
+                self.centralManager.cancelPeripheralConnection(peripheral)
+            }
+        }
+
+        // Fresh scan on wake — BLE stack needs a moment to recover
+        NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didWakeNotification,
+            object: nil, queue: .main
+        ) { [weak self] _ in
+            guard let self else { return }
+            DebugLogger.shared.log("macOS wake detected — resetting BLE", level: .info)
+
+            // Cancel any stale connection
+            if let peripheral = self.connectedPeripheral {
+                self.centralManager.cancelPeripheralConnection(peripheral)
+            }
+
+            // Clear all state
+            self.connectedPeripheral = nil
+            self.rxCharacteristic = nil
+            self.txCharacteristic = nil
+            self.shouldAutoReconnect = false
+            self.reconnectAttemptsRemaining = 0
+
+            DispatchQueue.main.async {
+                self.connectionState = .disconnected
+                self.connectedDeviceName = nil
+            }
+
+            // Wait for BLE stack to reset after wake, then scan
+            self.bleQueue.asyncAfter(deadline: .now() + 3.0) { [weak self] in
+                guard let self, self.centralManager.state == .poweredOn else { return }
+                DebugLogger.shared.log("macOS wake: starting fresh scan", level: .info)
+                self.startScanning()
+            }
+        }
+        #endif
     }
 
     // MARK: - Public API
