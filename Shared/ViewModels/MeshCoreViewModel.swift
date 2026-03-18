@@ -833,6 +833,20 @@ final class MeshCoreViewModel: ObservableObject {
             }
             .store(in: &cancellables)
 
+        // Background fast-path: parse PUSH_CODE_MSG_WAITING immediately on BLE queue
+        // to trigger CMD_SYNC_NEXT_MESSAGE without waiting for main thread dispatch
+        bleManager.receivedDataSubject
+            .sink { [weak self] data in
+                guard let self, data.count >= 1 else { return }
+                let code = data[0]
+                // PUSH_CODE_MSG_WAITING (0x83) — immediately request the message
+                if code == 0x83 {
+                    Self.logger.info("BG FAST-PATH: PUSH_CODE_MSG_WAITING — sending SYNC_NEXT_MESSAGE immediately")
+                    self.bleManager.send(data: Data([0x0A])) // CMD_SYNC_NEXT_MESSAGE
+                }
+            }
+            .store(in: &cancellables)
+
         bleManager.$discoveredPeripherals
             .receive(on: DispatchQueue.main)
             .assign(to: &$discoveredPeripherals)
