@@ -2518,6 +2518,11 @@ final class MeshCoreViewModel: ObservableObject {
 
     /// Convert a Contact from an advert push into a DiscoveredNode for the discover list.
     private func addAdvertAsDiscoveredNode(_ contact: Contact) {
+        // Filter self-adverts
+        let selfKeyHex = deviceConfig.publicKeyHex
+        let contactKeyHex = contact.publicKeyPrefix.map { String(format: "%02x", $0) }.joined()
+        if !selfKeyHex.isEmpty && selfKeyHex.hasPrefix(contactKeyHex) { return }
+
         let node = DiscoveredNode(
             publicKey: Data(contact.publicKeyPrefix),
             name: contact.name,
@@ -2852,6 +2857,20 @@ final class MeshCoreViewModel: ObservableObject {
             }
             longitude = Double(Int32(littleEndian: lonRaw)) / 1_000_000.0
             offset += 4
+        }
+
+        // Filter out our own device (self-advert reflection)
+        let selfKeyHex = deviceConfig.publicKeyHex
+        let nodeKeyHex = publicKey.prefix(6).map { String(format: "%02x", $0) }.joined()
+        if !selfKeyHex.isEmpty && selfKeyHex.hasPrefix(nodeKeyHex) {
+            Self.logger.debug("Discover: filtered self-advert (\(name))")
+            return
+        }
+
+        // Filter out nodes with empty name and zero signal (malformed)
+        if name.isEmpty && snr == 0 && rssi == 0 {
+            Self.logger.debug("Discover: filtered zero-signal unnamed node")
+            return
         }
 
         let node = DiscoveredNode(
