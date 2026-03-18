@@ -388,13 +388,26 @@ private extension SettingsView {
             .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
 
+            Toggle(isOn: channelEchoBinding) {
+                Label("Channel Echo Detection", systemImage: "arrow.triangle.2.circlepath")
+                    .foregroundStyle(MeshTheme.accent)
+            }
+            .tint(MeshTheme.accent)
+            .listRowBackground(MeshTheme.surface)
         } header: {
             Text("Message Delivery")
                 .foregroundStyle(MeshTheme.textSecondary)
         } footer: {
-            Text("Auto Retry resends failed direct messages up to 3 times. Auto Reset Path clears the cached route and resends as flood.")
+            Text("Auto Retry resends failed direct messages up to 3 times. Auto Reset Path clears the cached route and resends as flood. Channel Echo Detection shows a 'Repeated' indicator when nearby repeaters rebroadcast your channel messages.")
                 .font(.caption2)
         }
+    }
+
+    private var channelEchoBinding: Binding<Bool> {
+        Binding(
+            get: { UserDefaults.standard.bool(forKey: "channelEchoDetection") },
+            set: { UserDefaults.standard.set($0, forKey: "channelEchoDetection") }
+        )
     }
 
     private var autoRetryBinding: Binding<Bool> {
