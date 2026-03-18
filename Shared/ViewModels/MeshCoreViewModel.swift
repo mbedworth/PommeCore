@@ -1697,8 +1697,10 @@ final class MeshCoreViewModel: ObservableObject {
             channelIndex: channelIndex
         )
         Self.logger.info("CHANNEL TX: [\(frame.count) bytes] \(frame.map { String(format: "%02X", $0) }.joined(separator: " "))")
-        Self.logger.info("CHANNEL TX: cmd=0x\(String(format: "%02X", frame[0])) txtType=\(frame[1]) chIdx=\(frame[2]) text='\(trimmed)'")
+        let connDesc = String(describing: self.connectionState)
+        Self.logger.info("CHANNEL TX: cmd=0x\(String(format: "%02X", frame[0])) txtType=\(frame[1]) chIdx=\(frame[2]) text='\(trimmed)' connState=\(connDesc)")
         sendCommand(frame, label: "SEND_CHANNEL_TXT")
+        Self.logger.info("CHANNEL TX: frame sent, awaiting RESP_CODE_OK (0x00) or RESP_CODE_ERR (0x01)")
 
         let channelKey = Data([channelIndex])
         let outgoing = Message(
@@ -1914,7 +1916,7 @@ final class MeshCoreViewModel: ObservableObject {
 
         switch response {
         case .ok:
-            Self.logger.debug("OK response")
+            Self.logger.info("RESP OK — last command accepted by device")
 
         case .error(let code, let description):
             Self.logger.warning("Error response: code=\(code) \(description)")
@@ -2052,19 +2054,23 @@ final class MeshCoreViewModel: ObservableObject {
             }
 
         case .channelMsgRecv(let message):
-            Self.logger.info("Channel message: ch=\(message.channelIndex ?? 0) text=\(message.text)")
+            Self.logger.info("CHANNEL RX: ch=\(message.channelIndex ?? 0) isOutgoing=\(message.isOutgoing) sender='\(message.senderName ?? "?")' text='\(message.text.prefix(40))'")
             // Positive echo detection: if this matches a recent outgoing message, mark as repeated
+            let echoEnabled = UserDefaults.standard.bool(forKey: "channelEchoDetection")
+            Self.logger.info("ECHO CHECK: enabled=\(echoEnabled) pendingCount=\(self.recentChannelMessages.count)")
             if let chIdx = message.channelIndex, !recentChannelMessages.isEmpty {
                 let channelKey = Data([chIdx])
                 if let echoIdx = recentChannelMessages.firstIndex(where: { $0.channelKey == channelKey && $0.text == message.text }) {
                     let echoInfo = recentChannelMessages.remove(at: echoIdx)
                     if var msgs = messagesByContact[channelKey],
                        let msgIdx = msgs.firstIndex(where: { $0.id == echoInfo.id }) {
-                        Self.logger.info("Channel echo detected — marking as repeated")
+                        Self.logger.info("ECHO MATCH: marking message as repeated (text='\(message.text.prefix(30))')")
                         msgs[msgIdx].status = .repeated
                         messagesByContact[channelKey] = msgs
                         persistMessages(for: channelKey)
                     }
+                } else {
+                    Self.logger.debug("ECHO CHECK: no match found for ch=\(chIdx) text='\(message.text.prefix(30))'")
                 }
             }
             handleIncomingMessage(message)
@@ -2179,8 +2185,15 @@ final class MeshCoreViewModel: ObservableObject {
             postEventNotification(title: "Contact Storage Full", body: "Device has reached \(maxContacts) contacts. New contacts cannot be added.", threadId: "system")
 
         case .unknown(let type, let payload):
-            // Push notifications are informational — log at debug level
-            if type >= 0x80 {
+            if type == 0x88 {
+                // PUSH_CODE_LOG_RX_DATA — raw LoRa packet received by device
+                let snr = payload.count > 0 ? Int8(bitPattern: payload[0]) : 0
+                let rssi = payload.count > 1 ? Int8(bitPattern: payload[1]) : 0
+                Self.logger.info("LOG_RX_DATA (0x88): snr=\(Float(snr)/4.0) rssi=\(rssi) rawLen=\(payload.count - 2)")
+                if payload.count > 3 {
+                    Self.logger.debug("LOG_RX_DATA payload: \(payload.prefix(min(20, payload.count)).map { String(format: "%02X", $0) }.joined(separator: " "))")
+                }
+            } else if type >= 0x80 {
                 Self.logger.debug("Ignoring push notification 0x\(String(format: "%02x", type)), \(payload.count) bytes payload")
             } else {
                 Self.logger.warning("Unhandled response 0x\(String(format: "%02x", type)), \(payload.count) bytes payload")
