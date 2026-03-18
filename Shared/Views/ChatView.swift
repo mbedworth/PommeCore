@@ -10,6 +10,11 @@ struct ChatView: View {
     @State private var isSearching = false
     @State private var searchText = ""
     @State private var showPathEditor = false
+
+    /// Live contact from ViewModel (picks up optimistic path updates).
+    private var liveContact: Contact {
+        viewModel.contacts.first(where: { $0.publicKey == contact.publicKey }) ?? contact
+    }
     @State private var exportURL: URL?
     @State private var showExportSheet = false
 
@@ -20,14 +25,16 @@ struct ChatView: View {
     }
 
     private var routeLabel: String {
-        if contact.outPathLen == 0 { return "Direct" }
-        if contact.outPathLen < 0 { return "Flood" }
-        return "\(contact.outPathLen) hop\(contact.outPathLen == 1 ? "" : "s")"
+        let c = liveContact
+        if c.outPathLen == 0 { return "Direct" }
+        if c.outPathLen < 0 { return "Flood" }
+        return "\(c.outPathLen) hop\(c.outPathLen == 1 ? "" : "s")"
     }
 
     private var routeColor: Color {
-        if contact.outPathLen == 0 { return MeshTheme.connected }
-        if contact.outPathLen < 0 { return .orange }
+        let c = liveContact
+        if c.outPathLen == 0 { return MeshTheme.connected }
+        if c.outPathLen < 0 { return .orange }
         return MeshTheme.textSecondary
     }
 
@@ -112,7 +119,7 @@ struct ChatView: View {
             ContactNotesSheet(contact: contact)
         }
         .sheet(isPresented: $showPathEditor) {
-            ManualPathEditor(contact: contact)
+            ManualPathEditor(contact: liveContact)
                 .environmentObject(viewModel)
         }
         .sheet(isPresented: $showExportSheet) {
