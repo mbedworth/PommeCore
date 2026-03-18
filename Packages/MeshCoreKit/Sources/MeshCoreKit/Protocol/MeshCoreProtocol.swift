@@ -6,7 +6,9 @@ public enum MeshCoreProtocol {
     // MARK: - Connection & Query
 
     /// Supported companion protocol version sent with DeviceQuery.
-    public static let supportedProtocolVersion: UInt8 = 1
+    /// MUST be >= 3 for V3 message format (0x10/0x11 with SNR + reserved bytes).
+    /// Version 1-2 uses legacy format (0x07/0x08) which lacks SNR and has different layout.
+    public static let supportedProtocolVersion: UInt8 = 3
 
     /// CMD_APP_START (code 1) — initialize connection, returns SELF_INFO.
     /// Format: [cmd, appVer, 6×reserved, appName..., 0x00]

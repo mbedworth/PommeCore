@@ -53,8 +53,8 @@ public enum MeshCoreResponseCode: UInt8, Sendable {
     case endOfContacts        = 0x04  // 4  — end of contact list (contains lastmod)
     case selfInfo             = 0x05  // 5  — RESP_CODE_SELF_INFO
     case sent                 = 0x06  // 6  — RESP_CODE_SENT (type + ack_code + timeout)
-    case contactMsgRecv       = 0x07  // 7  — RESP_CODE_CONTACT_MSG_RECV (old format, v1)
-    case currentAdvert        = 0x08  // 8  — RESP_CODE_CHANNEL_MSG_RECV (legacy)
+    case contactMsgRecv       = 0x07  // 7  — RESP_CODE_CONTACT_MSG_RECV (v1 format, ver < 3)
+    case channelMsgRecv       = 0x08  // 8  — RESP_CODE_CHANNEL_MSG_RECV (v1 format, ver < 3)
     case currTime             = 0x09  // 9  — RESP_CODE_CURR_TIME
     case noMoreMessages       = 0x0A  // 10 — RESP_CODE_NO_MORE_MESSAGES
     case exportedContact      = 0x0B  // 11 — RESP_CODE_EXPORT_CONTACT

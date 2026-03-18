@@ -173,6 +173,9 @@ public enum FrameParser {
         case .contactMsgRecvV3:
             return parseContactMsgRecvV3(payload)
 
+        case .channelMsgRecv:
+            return parseChannelMsgRecvV1(payload)
+
         case .channelMsgRecvV3:
             return parseChannelMsgRecvV3(payload)
 
@@ -181,9 +184,6 @@ public enum FrameParser {
 
         case .noMoreMessages:
             return .noMoreMessages
-
-        case .currentAdvert:
-            return .currentAdvert(payload)
 
         case .privateKey:
             logger.info("RESP_CODE_PRIVATE_KEY: \(payload.count) bytes (not handled)")
@@ -576,25 +576,37 @@ public enum FrameParser {
     }
 
     /// RESP_CODE_CHANNEL_MSG_RECV_V3 (code 17) — received channel message.
-    /// Layout: SNR(1) reserved(1) channel_idx(1) path_len(1) txt_type(1) sender_timestamp(uint32)
-    ///         sender_name(null-terminated) text(remaining)
+    /// Verified against firmware MyMesh.cpp:520-544 and meshcore_py reader.py:
+    /// Layout: SNR*4(1) reserved(1) reserved(1) channel_idx(1) path_len(1) txt_type(1) timestamp(uint32) text(remaining)
+    /// Text is "SenderName: message" — one continuous string, no null separator.
     private static func parseChannelMsgRecvV3(_ data: Data) -> ParsedResponse {
         var offset = 0
         let snr = Int8(bitPattern: readUInt8(data, offset: &offset))
-        _ = readUInt8(data, offset: &offset) // reserved
+        _ = readUInt8(data, offset: &offset) // reserved1
+        _ = readUInt8(data, offset: &offset) // reserved2
         let channelIdx = readUInt8(data, offset: &offset)
         let pathLen = readUInt8(data, offset: &offset)
         let txtType = readUInt8(data, offset: &offset)
         let senderTimestamp = readUInt32(data, offset: &offset)
 
-        // sender_name is null-terminated, text is the remainder
-        let senderName = readNullTerminated(data, offset: &offset)
-        let text: String
+        // Firmware sends text as "SenderName: message" — one continuous UTF-8 string.
+        // Split on ": " to extract sender name.
+        let fullText: String
         if offset < data.count {
-            text = String(data: Data(data[offset...]), encoding: .utf8)?
+            fullText = String(data: Data(data[offset...]), encoding: .utf8)?
                 .trimmingCharacters(in: .controlCharacters) ?? ""
         } else {
-            text = ""
+            fullText = ""
+        }
+
+        let senderName: String
+        let text: String
+        if let colonSpace = fullText.range(of: ": ") {
+            senderName = String(fullText[fullText.startIndex..<colonSpace.lowerBound])
+            text = String(fullText[colonSpace.upperBound...])
+        } else {
+            senderName = ""
+            text = fullText
         }
 
         let timestamp = senderTimestamp > 0
@@ -618,6 +630,55 @@ public enum FrameParser {
             senderName: senderName.isEmpty ? nil : senderName,
             txtType: txtType,
             isSigned: isSigned
+        )
+        return .channelMsgRecv(message)
+    }
+
+    /// RESP_CODE_CHANNEL_MSG_RECV (code 8) — V1 channel message (firmware ver < 3).
+    /// Layout: channel_idx(1) path_len(1) txt_type(1) sender_timestamp(uint32) text(remaining)
+    /// No SNR or reserved bytes in V1 format.
+    private static func parseChannelMsgRecvV1(_ data: Data) -> ParsedResponse {
+        var offset = 0
+        let channelIdx = readUInt8(data, offset: &offset)
+        let pathLen = readUInt8(data, offset: &offset)
+        let txtType = readUInt8(data, offset: &offset)
+        let senderTimestamp = readUInt32(data, offset: &offset)
+
+        let fullText: String
+        if offset < data.count {
+            fullText = String(data: Data(data[offset...]), encoding: .utf8)?
+                .trimmingCharacters(in: .controlCharacters) ?? ""
+        } else {
+            fullText = ""
+        }
+
+        let senderName: String
+        let text: String
+        if let colonSpace = fullText.range(of: ": ") {
+            senderName = String(fullText[fullText.startIndex..<colonSpace.lowerBound])
+            text = String(fullText[colonSpace.upperBound...])
+        } else {
+            senderName = ""
+            text = fullText
+        }
+
+        let timestamp = senderTimestamp > 0
+            ? Date(timeIntervalSince1970: TimeInterval(senderTimestamp))
+            : Date()
+
+        logger.info("ChannelMsgRecv(v1): ch=\(channelIdx) pathLen=\(pathLen) txtType=\(txtType) sender='\(senderName)' text='\(text)'")
+
+        let message = Message(
+            senderKeyHash: Data(),
+            contactKeyHash: Data([channelIdx]),
+            text: text,
+            timestamp: timestamp,
+            isOutgoing: false,
+            status: .delivered,
+            hops: pathLen,
+            channelIndex: channelIdx,
+            senderName: senderName.isEmpty ? nil : senderName,
+            txtType: txtType
         )
         return .channelMsgRecv(message)
     }
