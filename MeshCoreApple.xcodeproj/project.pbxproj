@@ -26,11 +26,17 @@
 		9A92FFC5BE2A781BEC80720C /* DeviceScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2377BED4FF5A7170783BA649 /* DeviceScannerView.swift */; };
 		9D7EAB7850F077EF373AC84F /* NetworkToolsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB24E21D8CDBE0500C92E469 /* NetworkToolsView.swift */; };
 		A81875C1B0A1226A9333AFCF /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6BA0593D517B1467DBC1C42 /* Theme.swift */; };
+		B2C3D4E5F6071829A3B4C5D6 /* ShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* ShareView.swift */; };
 		C0FC54B3FE70C36D754DEEEC /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EFFE2BF3488F0C0647632CD /* ChatView.swift */; };
 		C2497AA6CDB94C882FC3C7CB /* DeviceScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2377BED4FF5A7170783BA649 /* DeviceScannerView.swift */; };
+		C3D4E5F60718293AB4C5D6E7 /* ShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* ShareView.swift */; };
 		C9CEA8D3714859C1177D7704 /* ContactListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21606E2B959E6496D3B0230D /* ContactListView.swift */; };
 		CATKUXG25PTVMENJWXQZY49X /* RemoteManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */; };
 		D3633106D9031C89E0589468 /* MeshCoreViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FBBD4DD1E3CAFDF4D56504 /* MeshCoreViewModel.swift */; };
+		D4E5F60718293A4BC5D6E7F8 /* ShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* ShareView.swift */; };
+		DBG10000000000000000001 /* DebugLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBG10000000000000000000 /* DebugLogView.swift */; };
+		DBG10000000000000000002 /* DebugLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBG10000000000000000000 /* DebugLogView.swift */; };
+		DBG10000000000000000003 /* DebugLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBG10000000000000000000 /* DebugLogView.swift */; };
 		EC8655805E2DCD03D8C9C4F6 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D859AE9C98610F71C2FBAAF /* SettingsView.swift */; };
 		EE31FC870779BB9B07A11EEE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 43931BD12312D05F62A9E3B3 /* Assets.xcassets */; };
 		F01FFE8B0B7AB2F62D296F88 /* NetworkToolsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB24E21D8CDBE0500C92E469 /* NetworkToolsView.swift */; };
@@ -43,22 +49,16 @@
 		KCM1ABCD0001000000000001 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = KCM1ABCD0000000000000001 /* KeychainManager.swift */; };
 		KCM1ABCD0002000000000001 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = KCM1ABCD0000000000000001 /* KeychainManager.swift */; };
 		KCM1ABCD0003000000000001 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = KCM1ABCD0000000000000001 /* KeychainManager.swift */; };
-		XUOVAQ6Y1NIWH1G3OMK55ENV /* RemoteManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */; };
-		B2C3D4E5F6071829A3B4C5D6 /* ShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* ShareView.swift */; };
-		C3D4E5F60718293AB4C5D6E7 /* ShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* ShareView.swift */; };
-		D4E5F60718293A4BC5D6E7F8 /* ShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* ShareView.swift */; };
+		MAP10000000000000000001 /* MeshMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MAP10000000000000000000 /* MeshMapView.swift */; };
+		MAP10000000000000000002 /* MeshMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MAP10000000000000000000 /* MeshMapView.swift */; };
+		MAP10000000000000000003 /* MeshMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MAP10000000000000000000 /* MeshMapView.swift */; };
 		OBV10000000000000000001 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBV10000000000000000000 /* OnboardingView.swift */; };
 		OBV10000000000000000002 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBV10000000000000000000 /* OnboardingView.swift */; };
 		OBV10000000000000000003 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBV10000000000000000000 /* OnboardingView.swift */; };
 		USB10000000000000000001 /* USBSerialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = USB10000000000000000000 /* USBSerialView.swift */; };
 		USB10000000000000000002 /* USBSerialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = USB10000000000000000000 /* USBSerialView.swift */; };
 		USB10000000000000000003 /* USBSerialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = USB10000000000000000000 /* USBSerialView.swift */; };
-		MAP10000000000000000001 /* MeshMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MAP10000000000000000000 /* MeshMapView.swift */; };
-		MAP10000000000000000002 /* MeshMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MAP10000000000000000000 /* MeshMapView.swift */; };
-		MAP10000000000000000003 /* MeshMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MAP10000000000000000000 /* MeshMapView.swift */; };
-		DBG10000000000000000001 /* DebugLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBG10000000000000000000 /* DebugLogView.swift */; };
-		DBG10000000000000000002 /* DebugLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBG10000000000000000000 /* DebugLogView.swift */; };
-		DBG10000000000000000003 /* DebugLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBG10000000000000000000 /* DebugLogView.swift */; };
+		XUOVAQ6Y1NIWH1G3OMK55ENV /* RemoteManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -67,22 +67,22 @@
 		43931BD12312D05F62A9E3B3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		4FECE91529DA51E24B5EE93A /* WatchChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchChatView.swift; sourceTree = "<group>"; };
 		5D859AE9C98610F71C2FBAAF /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-		669B72A1B0246925F17F1F37 /* MeshCoreApple-macOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = "MeshCoreApple-macOS.app"; path = MeshCore.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		669B72A1B0246925F17F1F37 /* MeshCore.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MeshCore.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7EFFE2BF3488F0C0647632CD /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718293A4B5C /* ShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareView.swift; sourceTree = "<group>"; };
 		A259126AAB80661010C6A336 /* MeshCoreApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshCoreApp.swift; sourceTree = "<group>"; };
 		AE9677D40F85F6D31BD8C43C /* MeshCore.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MeshCore.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B1FBBD4DD1E3CAFDF4D56504 /* MeshCoreViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshCoreViewModel.swift; sourceTree = "<group>"; };
 		D2AEF5C51E98EC24A3CCA95F /* MeshCoreKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = MeshCoreKit; path = Packages/MeshCoreKit; sourceTree = SOURCE_ROOT; };
 		D4F0BB9B2578DD9861508E3D /* MeshCoreApple-watchOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = "MeshCoreApple-watchOS.app"; path = "MeshCore Watch.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		DB24E21D8CDBE0500C92E469 /* NetworkToolsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkToolsView.swift; sourceTree = "<group>"; };
+		DBG10000000000000000000 /* DebugLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugLogView.swift; sourceTree = "<group>"; };
 		F6BA0593D517B1467DBC1C42 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		KCM1ABCD0000000000000001 /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
 		LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteManagementView.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F60718293A4B5C /* ShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareView.swift; sourceTree = "<group>"; };
+		MAP10000000000000000000 /* MeshMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshMapView.swift; sourceTree = "<group>"; };
 		OBV10000000000000000000 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		USB10000000000000000000 /* USBSerialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = USBSerialView.swift; sourceTree = "<group>"; };
-		MAP10000000000000000000 /* MeshMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshMapView.swift; sourceTree = "<group>"; };
-		DBG10000000000000000000 /* DebugLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugLogView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -170,7 +170,7 @@
 		725951214897A58A06E32F73 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				669B72A1B0246925F17F1F37 /* MeshCoreApple-macOS.app */,
+				669B72A1B0246925F17F1F37 /* MeshCore.app */,
 				D4F0BB9B2578DD9861508E3D /* MeshCoreApple-watchOS.app */,
 				AE9677D40F85F6D31BD8C43C /* MeshCore.app */,
 			);
@@ -257,7 +257,7 @@
 				FBBB0BD5BAFCC905A8DC17D3 /* MeshCoreKit */,
 			);
 			productName = "MeshCoreApple-macOS";
-			productReference = 669B72A1B0246925F17F1F37 /* MeshCoreApple-macOS.app */;
+			productReference = 669B72A1B0246925F17F1F37 /* MeshCore.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -400,6 +400,7 @@
 				CURRENT_PROJECT_VERSION = 17;
 				DEVELOPMENT_TEAM = 7R925EW7AT;
 				INFOPLIST_FILE = iOS/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.social-networking";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -497,6 +498,7 @@
 				CURRENT_PROJECT_VERSION = 17;
 				DEVELOPMENT_TEAM = 7R925EW7AT;
 				INFOPLIST_FILE = macOS/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.social-networking";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -519,6 +521,7 @@
 				CURRENT_PROJECT_VERSION = 17;
 				DEVELOPMENT_TEAM = 7R925EW7AT;
 				INFOPLIST_FILE = macOS/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.social-networking";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -540,6 +543,7 @@
 				CURRENT_PROJECT_VERSION = 17;
 				DEVELOPMENT_TEAM = 7R925EW7AT;
 				INFOPLIST_FILE = iOS/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.social-networking";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

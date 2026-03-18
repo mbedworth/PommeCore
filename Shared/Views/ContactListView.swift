@@ -268,11 +268,23 @@ struct ContactListView: View {
                         #if os(watchOS)
                         TextField("Nickname", text: $nicknameText)
                             .foregroundStyle(MeshTheme.textPrimary)
+                            .onChange(of: nicknameText) { newValue in
+                                if newValue.count > 32 { nicknameText = String(newValue.prefix(32)) }
+                            }
                         #else
                         TextField("Nickname", text: $nicknameText)
                             .foregroundStyle(MeshTheme.textPrimary)
                             .textFieldStyle(MeshTextFieldStyle())
+                            .onChange(of: nicknameText) { newValue in
+                                if newValue.count > 32 { nicknameText = String(newValue.prefix(32)) }
+                            }
                         #endif
+                        HStack {
+                            Spacer()
+                            Text("\(nicknameText.count)/32")
+                                .font(.caption2)
+                                .foregroundStyle(nicknameText.count > 28 ? .orange : MeshTheme.textSecondary)
+                        }
                     } header: {
                         Text("Custom Nickname")
                             .foregroundStyle(MeshTheme.textSecondary)
