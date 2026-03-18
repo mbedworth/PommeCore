@@ -2193,15 +2193,17 @@ final class MeshCoreViewModel: ObservableObject {
                     Self.logger.info("RETRY: resetting path for \(contact.name) before flood retry")
                     resetPath(for: contact)
                 }
-                messages[idx].status = .flooding
-                messages[idx].attempt = 2 // attempt >= 2 tells firmware to flood
+                messages[idx].status = .sending  // Must be .sending so handleSentResponse can match
+                messages[idx].attempt = 2
                 messages[idx].didResetPath = true
                 messagesByContact[contactKey] = messages
 
                 // Delay to let path reset take effect, then send as flood
+                let msgID = message.id
                 Task { [weak self] in
                     try? await Task.sleep(nanoseconds: 500_000_000)
                     guard let self else { return }
+                    Self.logger.info("RETRY: sending flood for \(msgID) with attempt=2")
                     let frame = MeshCoreProtocol.buildSendTextMessage(
                         text: message.text,
                         recipientKeyHash: contactKey,
