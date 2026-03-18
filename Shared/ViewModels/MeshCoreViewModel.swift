@@ -456,8 +456,9 @@ final class MeshCoreViewModel: ObservableObject {
     /// Maps expected ACK code → message ID for delivery tracking.
     private var pendingACKs: [UInt32: (contactKeyHash: Data, messageID: UUID)] = [:]
 
-    /// Tracks recent outgoing channel messages for positive echo detection (opt-in).
-    private var recentChannelMessages: [(id: UUID, channelKey: Data, text: String, sent: Date)] = []
+    /// Tracks the most recent outgoing channel message for 0x88-based echo detection.
+    /// When LOG_RX_DATA (0x88) arrives within 30s of a channel send, a repeater forwarded it.
+    private var pendingChannelEcho: (id: UUID, channelKey: Data, sent: Date)?
 
     /// Whether we're currently syncing queued messages.
     private var isSyncingMessages = false
@@ -1753,12 +1754,11 @@ final class MeshCoreViewModel: ObservableObject {
         messagesByContact[channelKey, default: []].append(outgoing)
         persistMessages(for: channelKey)
 
-        // Echo detection: store sent message for matching against repeater rebroadcasts.
-        // When a 0-hop repeater rebroadcasts our message, the firmware delivers it back
-        // as a RESP_CODE_CHANNEL_MSG_RECV_V3 with our device name as sender.
+        // Echo detection via 0x88 (LOG_RX_DATA) timing correlation.
+        // The firmware does NOT deliver our own channel messages back as 0x11.
+        // Instead, 0x88 fires when any repeater forwards a packet after our send.
         if UserDefaults.standard.bool(forKey: "channelEchoDetection") {
-            recentChannelMessages.append((id: outgoing.id, channelKey: channelKey, text: trimmed, sent: Date()))
-            recentChannelMessages.removeAll { Date().timeIntervalSince($0.sent) > 30 }
+            pendingChannelEcho = (id: outgoing.id, channelKey: channelKey, sent: Date())
         }
     }
 
@@ -2116,30 +2116,6 @@ final class MeshCoreViewModel: ObservableObject {
         case .channelMsgRecv(let message):
             Self.logger.info("CHANNEL RX: ch=\(message.channelIndex ?? 0) isOutgoing=\(message.isOutgoing) sender='\(message.senderName ?? "?")' text='\(message.text.prefix(40))'")
             DebugLogger.shared.log("CH RX: ch=\(message.channelIndex ?? 0) from='\(message.senderName ?? "?")' '\(message.text.prefix(40))'", level: .rx)
-
-            // Echo detection: match sender name == our device name AND text matches a recent send
-            if let chIdx = message.channelIndex,
-               let senderName = message.senderName,
-               !senderName.isEmpty,
-               senderName == deviceConfig.deviceName,
-               !recentChannelMessages.isEmpty {
-                let channelKey = Data([chIdx])
-                if let echoIdx = recentChannelMessages.firstIndex(where: { $0.channelKey == channelKey && $0.text == message.text }) {
-                    let echoInfo = recentChannelMessages.remove(at: echoIdx)
-                    if var msgs = messagesByContact[channelKey],
-                       let msgIdx = msgs.firstIndex(where: { $0.id == echoInfo.id }) {
-                        Self.logger.info("ECHO MATCH: sender='\(senderName)' matches our name, marking as repeated")
-                        DebugLogger.shared.log("ECHO: '\(message.text.prefix(30))' repeated by network", level: .info)
-                        msgs[msgIdx].status = .repeated
-                        messagesByContact[channelKey] = msgs
-                        persistMessages(for: channelKey)
-                    }
-                    // Don't add echo as a separate incoming message
-                    if isSyncingMessages { syncNextMessage() }
-                    break
-                }
-            }
-
             handleIncomingMessage(message)
             if isSyncingMessages {
                 syncNextMessage()
@@ -2262,8 +2238,27 @@ final class MeshCoreViewModel: ObservableObject {
                 let snr = payload.count > 0 ? Int8(bitPattern: payload[0]) : 0
                 let rssi = payload.count > 1 ? Int8(bitPattern: payload[1]) : 0
                 Self.logger.info("LOG_RX_DATA (0x88): snr=\(Float(snr)/4.0) rssi=\(rssi) rawLen=\(payload.count - 2)")
-                if payload.count > 3 {
-                    Self.logger.debug("LOG_RX_DATA payload: \(payload.prefix(min(20, payload.count)).map { String(format: "%02X", $0) }.joined(separator: " "))")
+                DebugLogger.shared.log("0x88 LOG_RX: snr=\(String(format: "%.1f", Float(snr)/4.0)) rssi=\(rssi) \(payload.count - 2)B", level: .rx)
+
+                // Echo detection via 0x88 timing correlation.
+                // If a LOG_RX_DATA arrives within 30s of our channel send,
+                // a repeater forwarded our message → mark as .repeated.
+                if let pending = pendingChannelEcho {
+                    let elapsed = Date().timeIntervalSince(pending.sent)
+                    if elapsed < 30 {
+                        if var msgs = messagesByContact[pending.channelKey],
+                           let msgIdx = msgs.firstIndex(where: { $0.id == pending.id }) {
+                            Self.logger.info("ECHO: 0x88 received \(String(format: "%.1f", elapsed))s after channel send — marking as repeated")
+                            DebugLogger.shared.log("ECHO: repeated after \(String(format: "%.1f", elapsed))s (snr=\(String(format: "%.1f", Float(snr)/4.0)))", level: .info)
+                            msgs[msgIdx].status = .repeated
+                            messagesByContact[pending.channelKey] = msgs
+                            persistMessages(for: pending.channelKey)
+                        }
+                        pendingChannelEcho = nil
+                    } else {
+                        // Expired — clear stale pending echo
+                        pendingChannelEcho = nil
+                    }
                 }
             } else if type >= 0x80 {
                 Self.logger.debug("Ignoring push notification 0x\(String(format: "%02x", type)), \(payload.count) bytes payload")
