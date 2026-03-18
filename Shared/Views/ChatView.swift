@@ -24,6 +24,15 @@ struct ChatView: View {
         viewModel.messages(for: contact)
     }
 
+    private var toolbarName: (text: String, font: Font) {
+        let fullName = viewModel.displayName(for: contact)
+        if fullName.count <= 14 { return (fullName, .headline) }
+        if fullName.count <= 18 { return (fullName, .subheadline) }
+        let firstName = fullName.components(separatedBy: " ").first ?? fullName
+        if firstName.count <= 14 { return (firstName, .subheadline) }
+        return (firstName, .caption)
+    }
+
     private var routeLabel: String {
         let c = liveContact
         if c.outPathLen == 0 { return "Direct" }
@@ -79,13 +88,30 @@ struct ChatView: View {
             messageInput
         }
         .background(MeshTheme.background)
-        .navigationTitle(viewModel.displayName(for: contact))
+        .navigationTitle(toolbarName.text)
         #if os(macOS)
         .navigationSubtitle(routeLabel)
         #endif
         .toolbar {
+            #if os(iOS)
+            ToolbarItem(placement: .principal) {
+                Button { showPathEditor = true } label: {
+                    VStack(spacing: 1) {
+                        Text(toolbarName.text)
+                            .font(toolbarName.font)
+                            .foregroundStyle(MeshTheme.textPrimary)
+                            .lineLimit(1)
+                        Text(routeLabel)
+                            .font(.caption2)
+                            .foregroundStyle(routeColor)
+                    }
+                }
+                .buttonStyle(.plain)
+            }
+            #endif
             ToolbarItem(placement: .automatic) {
                 HStack(spacing: 12) {
+                    #if os(macOS)
                     Button {
                         showPathEditor = true
                     } label: {
@@ -94,6 +120,7 @@ struct ChatView: View {
                             .foregroundStyle(routeColor)
                     }
                     .buttonStyle(.plain)
+                    #endif
                     Button {
                         withAnimation { isSearching.toggle() }
                         if !isSearching { searchText = "" }
