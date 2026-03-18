@@ -2413,6 +2413,16 @@ final class MeshCoreViewModel: ObservableObject {
         persistMessages(for: pending.contactKeyHash)
     }
 
+    /// Delete a single message from local storage and iCloud.
+    func deleteMessage(_ message: Message, in contactKey: Data) {
+        if var messages = messagesByContact[contactKey],
+           let idx = messages.firstIndex(where: { $0.id == message.id }) {
+            messages.remove(at: idx)
+            messagesByContact[contactKey] = messages
+            persistMessages(for: contactKey)
+        }
+    }
+
     /// Retry sending a failed message. Restarts the full retry flow.
     func retryMessage(_ message: Message) {
         guard message.isOutgoing, message.status == .failed else { return }
