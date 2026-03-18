@@ -1106,23 +1106,34 @@ struct RemoteClockRow: View {
     let sendCLI: (String) -> Void
 
     private var clockValue: String {
-        session.settings["clock"] ?? "\u{2014}"
+        guard let raw = session.settings["clock"], !raw.isEmpty else { return "\u{2014}" }
+        // If the response looks like a raw epoch number, format it as a date
+        if let epoch = Double(raw.trimmingCharacters(in: .whitespaces)), epoch > 1_000_000_000 {
+            let date = Date(timeIntervalSince1970: epoch)
+            let formatter = DateFormatter()
+            formatter.dateStyle = .medium
+            formatter.timeStyle = .medium
+            return formatter.string(from: date)
+        }
+        return raw
     }
 
-    /// Check if the clock text indicates a stale date (more than 24h from now).
+    /// Check if the clock text indicates a stale date (more than 60 seconds from now).
     private var isClockStale: Bool {
         guard let clockStr = session.settings["clock"], !clockStr.isEmpty else { return false }
-        // Try to parse common date formats from the clock string
-        // Clock responses look like "03:42 - 19/5/2024" or similar
-        // Simple heuristic: if the string contains a year that's not the current year, flag it
+        // Try to extract epoch from the response — firmware returns "HH:MM - DD/MM/YYYY" or epoch
+        // Check for year mismatch (robust heuristic for date-formatted responses)
         let calendar = Calendar.current
         let currentYear = calendar.component(.year, from: Date())
-        // Check if string contains a 4-digit year that doesn't match current year
         let yearPattern = try? NSRegularExpression(pattern: "\\b(20\\d{2})\\b")
         if let match = yearPattern?.firstMatch(in: clockStr, range: NSRange(clockStr.startIndex..., in: clockStr)),
            let range = Range(match.range(at: 1), in: clockStr),
            let year = Int(clockStr[range]) {
             return abs(year - currentYear) >= 1
+        }
+        // If response is just an epoch number, compare with 60-second tolerance
+        if let epoch = Double(clockStr.trimmingCharacters(in: .whitespaces)) {
+            return abs(epoch - Date().timeIntervalSince1970) > 60
         }
         return false
     }
