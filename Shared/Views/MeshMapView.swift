@@ -85,6 +85,7 @@ struct MeshMapView: View {
         case .chat: return "person.fill"
         case .repeater: return "antenna.radiowaves.left.and.right"
         case .room: return "building.2.fill"
+        case .sensor: return "sensor.fill"
         case .unknown: return "questionmark.circle"
         }
     }
@@ -94,6 +95,7 @@ struct MeshMapView: View {
         case .chat: return .blue
         case .repeater: return MeshTheme.accent
         case .room: return .purple
+        case .sensor: return .orange
         case .unknown: return .gray
         }
     }

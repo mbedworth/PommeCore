@@ -74,7 +74,7 @@
 		AE9677D40F85F6D31BD8C43C /* MeshCore.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MeshCore.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B1FBBD4DD1E3CAFDF4D56504 /* MeshCoreViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshCoreViewModel.swift; sourceTree = "<group>"; };
 		D2AEF5C51E98EC24A3CCA95F /* MeshCoreKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = MeshCoreKit; path = Packages/MeshCoreKit; sourceTree = SOURCE_ROOT; };
-		D4F0BB9B2578DD9861508E3D /* MeshCoreApple-watchOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = "MeshCoreApple-watchOS.app"; path = "MeshCore Watch.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		D4F0BB9B2578DD9861508E3D /* MeshCore Watch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "MeshCore Watch.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		DB24E21D8CDBE0500C92E469 /* NetworkToolsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkToolsView.swift; sourceTree = "<group>"; };
 		DBG10000000000000000000 /* DebugLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugLogView.swift; sourceTree = "<group>"; };
 		F6BA0593D517B1467DBC1C42 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
@@ -171,7 +171,7 @@
 			isa = PBXGroup;
 			children = (
 				669B72A1B0246925F17F1F37 /* MeshCore.app */,
-				D4F0BB9B2578DD9861508E3D /* MeshCoreApple-watchOS.app */,
+				D4F0BB9B2578DD9861508E3D /* MeshCore Watch.app */,
 				AE9677D40F85F6D31BD8C43C /* MeshCore.app */,
 			);
 			name = Products;
@@ -217,7 +217,7 @@
 				635A77C284788242D78AE126 /* MeshCoreKit */,
 			);
 			productName = "MeshCoreApple-watchOS";
-			productReference = D4F0BB9B2578DD9861508E3D /* MeshCoreApple-watchOS.app */;
+			productReference = D4F0BB9B2578DD9861508E3D /* MeshCore Watch.app */;
 			productType = "com.apple.product-type.application";
 		};
 		7EF13F7D45DA717ECBD83014 /* MeshCoreApple */ = {
@@ -400,6 +400,7 @@
 				CURRENT_PROJECT_VERSION = 17;
 				DEVELOPMENT_TEAM = 7R925EW7AT;
 				INFOPLIST_FILE = iOS/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = MeshCore;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.social-networking";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -478,6 +479,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CURRENT_PROJECT_VERSION = 17;
 				INFOPLIST_FILE = watchOS/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = MeshCore;
 				MARKETING_VERSION = 1.1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mbedworth.meshcore.watchos;
 				PRODUCT_NAME = "MeshCore Watch";
@@ -485,6 +487,7 @@
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.9;
 				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 11.6;
 			};
 			name = Debug;
 		};
@@ -543,6 +546,7 @@
 				CURRENT_PROJECT_VERSION = 17;
 				DEVELOPMENT_TEAM = 7R925EW7AT;
 				INFOPLIST_FILE = iOS/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = MeshCore;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.social-networking";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -628,6 +632,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CURRENT_PROJECT_VERSION = 17;
 				INFOPLIST_FILE = watchOS/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = MeshCore;
 				MARKETING_VERSION = 1.1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mbedworth.meshcore.watchos;
 				PRODUCT_NAME = "MeshCore Watch";
@@ -635,6 +640,7 @@
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.9;
 				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 11.6;
 			};
 			name = Release;
 		};
