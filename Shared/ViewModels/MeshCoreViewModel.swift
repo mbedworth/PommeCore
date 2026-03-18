@@ -1765,6 +1765,7 @@ final class MeshCoreViewModel: ObservableObject {
         // Instead, 0x88 fires when any repeater forwards a packet after our send.
         if UserDefaults.standard.bool(forKey: "channelEchoDetection") {
             pendingChannelEcho = (id: outgoing.id, channelKey: channelKey, sent: Date())
+            DebugLogger.shared.log("ECHO: armed pending echo for ch=\(channelIndex)", level: .info)
         }
     }
 
