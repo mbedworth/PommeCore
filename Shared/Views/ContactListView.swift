@@ -40,6 +40,7 @@ struct ContactListView: View {
     @State private var isSelecting = false
     @State private var selectedContacts: Set<Data> = [] // publicKeyPrefix
     @State private var showBulkDeleteConfirm = false
+    @State private var pathEditorContact: Contact?
     #if !os(watchOS)
     @State private var shareContact: Contact?
     #endif
@@ -192,6 +193,10 @@ struct ContactListView: View {
             ContactDetailSheet(contact: contact)
                 .environmentObject(viewModel)
                 .frame(minWidth: 360, minHeight: 400)
+        }
+        .sheet(item: $pathEditorContact) { contact in
+            ManualPathEditor(contact: contact)
+                .environmentObject(viewModel)
         }
         .sheet(isPresented: $showChannelSheet) {
             NavigationStack {
@@ -1076,6 +1081,12 @@ struct ContactListView: View {
         #endif
 
         Divider()
+
+        Button {
+            pathEditorContact = contact
+        } label: {
+            Label("Edit Route", systemImage: "arrow.triangle.branch")
+        }
 
         Button {
             viewModel.resetPath(for: contact)
