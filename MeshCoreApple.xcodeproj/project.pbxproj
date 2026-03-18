@@ -56,6 +56,9 @@
 		MAP10000000000000000001 /* MeshMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MAP10000000000000000000 /* MeshMapView.swift */; };
 		MAP10000000000000000002 /* MeshMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MAP10000000000000000000 /* MeshMapView.swift */; };
 		MAP10000000000000000003 /* MeshMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MAP10000000000000000000 /* MeshMapView.swift */; };
+		DBG10000000000000000001 /* DebugLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBG10000000000000000000 /* DebugLogView.swift */; };
+		DBG10000000000000000002 /* DebugLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBG10000000000000000000 /* DebugLogView.swift */; };
+		DBG10000000000000000003 /* DebugLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBG10000000000000000000 /* DebugLogView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -79,6 +82,7 @@
 		OBV10000000000000000000 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		USB10000000000000000000 /* USBSerialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = USBSerialView.swift; sourceTree = "<group>"; };
 		MAP10000000000000000000 /* MeshMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshMapView.swift; sourceTree = "<group>"; };
+		DBG10000000000000000000 /* DebugLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugLogView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -132,6 +136,7 @@
 				OBV10000000000000000000 /* OnboardingView.swift */,
 				USB10000000000000000000 /* USBSerialView.swift */,
 				MAP10000000000000000000 /* MeshMapView.swift */,
+				DBG10000000000000000000 /* DebugLogView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -335,6 +340,7 @@
 				OBV10000000000000000001 /* OnboardingView.swift in Sources */,
 				USB10000000000000000001 /* USBSerialView.swift in Sources */,
 				MAP10000000000000000001 /* MeshMapView.swift in Sources */,
+				DBG10000000000000000001 /* DebugLogView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -356,6 +362,7 @@
 				OBV10000000000000000002 /* OnboardingView.swift in Sources */,
 				USB10000000000000000002 /* USBSerialView.swift in Sources */,
 				MAP10000000000000000002 /* MeshMapView.swift in Sources */,
+				DBG10000000000000000002 /* DebugLogView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -377,6 +384,7 @@
 				OBV10000000000000000003 /* OnboardingView.swift in Sources */,
 				USB10000000000000000003 /* USBSerialView.swift in Sources */,
 				MAP10000000000000000003 /* MeshMapView.swift in Sources */,
+				DBG10000000000000000003 /* DebugLogView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

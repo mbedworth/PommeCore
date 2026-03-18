@@ -139,6 +139,7 @@ public final class BLEManager: NSObject, ObservableObject {
         centralManager.connect(peripheral, options: nil)
 
         Self.logger.info("Connecting to \(peripheral.name ?? "unknown")")
+        DebugLogger.shared.log("BLE: connecting to \(peripheral.name ?? "unknown")", level: .info)
     }
 
     /// Disconnect from the current peripheral.
@@ -147,6 +148,7 @@ public final class BLEManager: NSObject, ObservableObject {
         shouldAutoReconnect = false
         centralManager.cancelPeripheralConnection(peripheral)
         Self.logger.info("Disconnecting from \(peripheral.name ?? "unknown")")
+        DebugLogger.shared.log("BLE: disconnecting from \(peripheral.name ?? "unknown")", level: .info)
     }
 
     /// Clean disconnect for app termination — prevents stale BLE state on the radio.
@@ -334,6 +336,7 @@ extension BLEManager: CBCentralManagerDelegate {
         error: Error?
     ) {
         Self.logger.error("Failed to connect: \(error?.localizedDescription ?? "unknown error")")
+        DebugLogger.shared.log("BLE: connect failed — \(error?.localizedDescription ?? "unknown")", level: .error)
 
         #if os(iOS)
         if shouldAutoReconnect {
@@ -362,6 +365,7 @@ extension BLEManager: CBCentralManagerDelegate {
         #else
         Self.logger.info("Disconnected from \(peripheral.name ?? "unknown"), error: \(error?.localizedDescription ?? "none")")
         #endif
+        DebugLogger.shared.log("BLE: disconnected from \(peripheral.name ?? "unknown")\(error != nil ? " (unexpected)" : "")", level: error != nil ? .warning : .info)
 
         DispatchQueue.main.async {
             self.rxCharacteristic = nil
@@ -490,6 +494,7 @@ extension BLEManager: CBPeripheralDelegate {
                 self.connectionState = .ready
             }
             Self.logger.info("NUS service ready — device is fully connected")
+            DebugLogger.shared.log("BLE: connected and ready", level: .info)
         }
     }
 

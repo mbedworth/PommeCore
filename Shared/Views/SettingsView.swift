@@ -2083,6 +2083,23 @@ private extension SettingsView {
             }
             .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
+
+            NavigationLink {
+                DebugLogView()
+            } label: {
+                HStack {
+                    Text("Debug Log")
+                        .foregroundStyle(MeshTheme.accent)
+                    Spacer()
+                    Text("\(DebugLogger.shared.entries.count)")
+                        .font(.caption)
+                        .foregroundStyle(MeshTheme.textSecondary)
+                    Image(systemName: "chevron.right")
+                        .font(.caption2)
+                        .foregroundStyle(MeshTheme.textSecondary)
+                }
+            }
+            .listRowBackground(MeshTheme.surface)
         } header: {
             sectionHeader("About")
         }
