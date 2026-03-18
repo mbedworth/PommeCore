@@ -1464,6 +1464,7 @@ final class MeshCoreViewModel: ObservableObject {
     }
 
     func setOtherParams(manualAddContacts: UInt8, telemetryBase: UInt8, telemetryLocation: UInt8, advertLocPolicy: UInt8, multiACK: UInt8) {
+        DebugLogger.shared.log("SET_OTHER_PARAMS: manual=\(manualAddContacts) telBase=\(telemetryBase) telLoc=\(telemetryLocation) advLoc=\(advertLocPolicy) multiACK=\(multiACK)", level: .tx)
         sendCommand(MeshCoreProtocol.buildSetOtherParams(
             manualAddContacts: manualAddContacts, telemetryBase: telemetryBase,
             telemetryLocation: telemetryLocation, advertLocPolicy: advertLocPolicy,
