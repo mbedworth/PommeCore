@@ -942,7 +942,7 @@ struct RoomMessageBubble: View {
                         .padding(.horizontal, 4)
                 }
 
-                Text(parsed.text)
+                linkifyMeshcoreURLs(parsed.text)
                     .textSelection(.enabled)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 9)
@@ -1208,7 +1208,7 @@ struct MessageBubble: View {
             if message.isOutgoing { Spacer(minLength: 48) }
 
             VStack(alignment: message.isOutgoing ? .trailing : .leading, spacing: 2) {
-                Text(message.text)
+                linkifyMeshcoreURLs(message.text)
                     .textSelection(.enabled)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 9)
@@ -1363,7 +1363,10 @@ struct ChannelMessageBubble: View {
     @EnvironmentObject var viewModel: MeshCoreViewModel
 
     private var highlightedText: Text {
-        highlightMentions(in: message.text, myName: viewModel.deviceConfig.deviceName)
+        if message.text.contains("meshcore://") {
+            return linkifyMeshcoreURLs(message.text)
+        }
+        return highlightMentions(in: message.text, myName: viewModel.deviceConfig.deviceName)
     }
 
     var body: some View {
@@ -1541,6 +1544,29 @@ struct ShareSheetView: UIViewControllerRepresentable {
     func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 #endif
+
+/// Make meshcore:// URLs in text tappable as links.
+private func linkifyMeshcoreURLs(_ text: String) -> Text {
+    guard let range = text.range(of: "meshcore://", options: .caseInsensitive) else {
+        return Text(text)
+    }
+    // Find full URL (up to next whitespace or end)
+    var endIdx = range.upperBound
+    while endIdx < text.endIndex && !text[endIdx].isWhitespace {
+        endIdx = text.index(after: endIdx)
+    }
+    let before = String(text[text.startIndex..<range.lowerBound])
+    let urlString = String(text[range.lowerBound..<endIdx])
+    let after = String(text[endIdx...])
+
+    if let url = URL(string: urlString) {
+        var linked = AttributedString(urlString)
+        linked.link = url
+        linked.foregroundColor = .accentColor
+        return Text(before) + Text(linked) + Text(after)
+    }
+    return Text(text)
+}
 
 struct UnreadDivider: View {
     var body: some View {
