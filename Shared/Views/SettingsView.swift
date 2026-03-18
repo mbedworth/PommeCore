@@ -1176,15 +1176,7 @@ struct TuningSection: View {
             .listRowBackground(MeshTheme.surface)
             .onChange(of: floodMaxHops) { newValue in
                 suppressFloodMaxReadback = true
-                let c = viewModel.deviceConfig
-                viewModel.setTuningParams(
-                    rxDelayBase: c.rxDelayBase,
-                    airtimeFactor: c.airtimeFactor,
-                    txDelay: c.txDelay,
-                    directTxDelay: c.directTxDelay,
-                    floodMax: UInt8(newValue)
-                )
-                // Suppress readback until the device has processed and we've re-read
+                viewModel.setFloodMaxHops(UInt8(newValue))
                 DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
                     suppressFloodMaxReadback = false
                 }
@@ -1192,7 +1184,7 @@ struct TuningSection: View {
         } header: {
             Text("Mesh Network")
         } footer: {
-            Text("Maximum number of hops for flood messages. Lower values reduce network traffic but limit range. Default is 3. Maximum is 64.")
+            Text("Maximum number of hops for flood messages. This value is read from the device and can be changed via remote management CLI (set flood.max N).")
                 .font(.caption2)
         }
 
@@ -1240,8 +1232,7 @@ struct TuningSection: View {
                 SaveButton(state: saveState, label: "Apply Tuning") {
                     let rx = UInt32((Double(rxDelay) ?? 0) * 1000)
                     let at = UInt32((Double(airtime) ?? 0) * 1000)
-                    let c = viewModel.deviceConfig
-                    viewModel.setTuningParams(rxDelayBase: rx, airtimeFactor: at, txDelay: c.txDelay, directTxDelay: c.directTxDelay, floodMax: c.floodMax)
+                    viewModel.setTuningParams(rxDelayBase: rx, airtimeFactor: at)
                     showSaved($saveState)
                 }
             } label: {
