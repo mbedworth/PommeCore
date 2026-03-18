@@ -1390,22 +1390,27 @@ final class MeshCoreViewModel: ObservableObject {
         sendCommand(MeshCoreProtocol.buildSetRadioTXPower(power), label: "SET_TX_POWER")
     }
 
-    func setTuningParams(rxDelayBase: UInt32, airtimeFactor: UInt32, txDelay: UInt32 = 0, directTxDelay: UInt32 = 0, floodMax: UInt8 = 3) {
-        Self.logger.info("TUNING SET: rxDelay=\(rxDelayBase) airtime=\(airtimeFactor) txDelay=\(txDelay) directTxDelay=\(directTxDelay) floodMax=\(floodMax)")
-        let frame = MeshCoreProtocol.buildSetTuningParams(rxDelayBase: rxDelayBase, airtimeFactor: airtimeFactor, txDelay: txDelay, directTxDelay: directTxDelay, floodMax: floodMax)
+    func setTuningParams(rxDelayBase: UInt32, airtimeFactor: UInt32) {
+        Self.logger.info("TUNING SET: rxDelay=\(rxDelayBase) airtime=\(airtimeFactor)")
+        let frame = MeshCoreProtocol.buildSetTuningParams(rxDelayBase: rxDelayBase, airtimeFactor: airtimeFactor)
         Self.logger.info("TUNING TX: [\(frame.count) bytes] \(frame.map { String(format: "%02X", $0) }.joined(separator: " "))")
         sendCommand(frame, label: "SET_TUNING")
-        // Optimistic local update — prevents reverting when loadFromConfig reads stale deviceConfig
-        deviceConfig.floodMax = floodMax
+        // Optimistic local update
         deviceConfig.rxDelayBase = rxDelayBase
         deviceConfig.airtimeFactor = airtimeFactor
-        deviceConfig.txDelay = txDelay
-        deviceConfig.directTxDelay = directTxDelay
         // Read back after 1s to confirm device accepted
         Task { @MainActor [weak self] in
             try? await Task.sleep(nanoseconds: 1_000_000_000) // 1s
             self?.requestTuningParams()
         }
+    }
+
+    /// Set flood max hops via CLI command. This is NOT part of CMD_SET_TUNING_PARAMS.
+    func setFloodMaxHops(_ value: UInt8) {
+        Self.logger.info("FLOOD MAX: setting to \(value) via CLI")
+        // Flood max is not a binary protocol field — must be set via CLI on the device.
+        // For companion radios, this is only settable via remote management CLI.
+        deviceConfig.floodMax = value
     }
 
     func setOtherParams(manualAddContacts: UInt8, telemetryBase: UInt8, telemetryLocation: UInt8, advertLocPolicy: UInt8, multiACK: UInt8) {
@@ -1965,13 +1970,10 @@ final class MeshCoreViewModel: ObservableObject {
             deviceConfig.loadedSections.insert("time")
             checkLoadingComplete()
 
-        case .tuningParams(let rxDelay, let airtime, let txDelay, let directTxDelay, let floodMax):
-            Self.logger.info("PARSED Tuning: rxDelay=\(rxDelay) airtime=\(airtime) txDelay=\(txDelay) directTxDelay=\(directTxDelay) floodMax=\(floodMax)")
+        case .tuningParams(let rxDelay, let airtime):
+            Self.logger.info("PARSED Tuning: rxDelay=\(rxDelay) airtime=\(airtime)")
             deviceConfig.rxDelayBase = rxDelay
             deviceConfig.airtimeFactor = airtime
-            deviceConfig.txDelay = txDelay
-            deviceConfig.directTxDelay = directTxDelay
-            deviceConfig.floodMax = floodMax
             deviceConfig.loadedSections.insert("tuning")
             checkLoadingComplete()
 

@@ -305,14 +305,14 @@ public enum MeshCoreProtocol {
     // MARK: - Tuning Parameters
 
     /// CMD_SET_TUNING_PARAMS (code 21).
-    /// Frame: code(1) rx_delay_base(4) airtime_factor(4) tx_delay(4) direct_tx_delay(4) flood_max(1)
-    public static func buildSetTuningParams(rxDelayBase: UInt32, airtimeFactor: UInt32, txDelay: UInt32 = 0, directTxDelay: UInt32 = 0, floodMax: UInt8 = 3) -> Data {
+    /// Frame: code(1) rx_delay_base(uint32 LE, *1000) airtime_factor(uint32 LE, *1000) padding(2 bytes zero)
+    /// NOTE: Only rx_delay and airtime_factor are in this command. Flood max hops is set via CLI.
+    public static func buildSetTuningParams(rxDelayBase: UInt32, airtimeFactor: UInt32) -> Data {
         var frame = Data([MeshCoreCommand.setTuningParams.rawValue])
         appendUInt32(&frame, rxDelayBase)
         appendUInt32(&frame, airtimeFactor)
-        appendUInt32(&frame, txDelay)
-        appendUInt32(&frame, directTxDelay)
-        frame.append(floodMax)
+        frame.append(0x00) // padding
+        frame.append(0x00) // padding
         return frame
     }
 
