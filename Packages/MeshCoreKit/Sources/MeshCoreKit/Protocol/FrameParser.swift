@@ -141,7 +141,10 @@ public enum FrameParser {
         case .exportedContact:
             let url = String(data: payload, encoding: .utf8)?
                 .trimmingCharacters(in: .controlCharacters) ?? ""
-            logger.info("ExportedContact: \(url)")
+            logger.info("ExportedContact: \(payload.count) bytes, url='\(url.prefix(80))'")
+            if payload.isEmpty {
+                logger.warning("ExportedContact: empty payload")
+            }
             return .exportedContact(url: url)
 
         case .customVars:

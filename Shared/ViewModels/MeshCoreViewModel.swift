@@ -1401,15 +1401,17 @@ final class MeshCoreViewModel: ObservableObject {
 
     /// Export a contact as a meshcore:// URL. Result arrives as .exportedContact response.
     func exportContact(_ contact: Contact) {
-        Self.logger.info("EXPORT: requesting export for \(contact.name) key=\(contact.publicKey.prefix(6).map { String(format: "%02x", $0) }.joined())")
-        lastExportedURL = nil // Clear previous result
+        let keyHex = contact.publicKey.prefix(6).map { String(format: "%02x", $0) }.joined()
+        Self.logger.info("EXPORT: requesting export for '\(contact.name)' key=\(keyHex) fullKeyLen=\(contact.publicKey.count)")
+        lastExportedURL = nil
         let frame = MeshCoreProtocol.buildExportContact(publicKey: contact.publicKey)
+        Self.logger.info("EXPORT: frame=[\(frame.count) bytes] \(frame.map { String(format: "%02x", $0) }.joined(separator: " "))")
         sendCommand(frame, label: "EXPORT_CONTACT")
     }
 
     /// Export self as a meshcore:// URL (send code byte only, no public key).
     func exportSelfContact() {
-        Self.logger.info("EXPORT: requesting self contact export")
+        Self.logger.info("EXPORT: requesting self contact export (frame=[1 byte] 11)")
         lastExportedURL = nil
         let frame = Data([0x11])  // CMD_EXPORT_CONTACT with no payload = export self
         sendCommand(frame, label: "EXPORT_SELF")
@@ -2053,9 +2055,11 @@ final class MeshCoreViewModel: ObservableObject {
             handleChannelInfo(channel)
 
         case .exportedContact(let url):
-            Self.logger.info("EXPORT RESP: url=\(url) (\(url.count) chars)")
+            Self.logger.info("EXPORT RESP: url='\(url.prefix(80))' (\(url.count) chars)")
             if url.isEmpty {
-                Self.logger.warning("EXPORT RESP: empty URL received")
+                Self.logger.warning("EXPORT RESP: empty URL — device returned no card data")
+            } else {
+                Self.logger.info("EXPORT RESP: setting lastExportedURL, observers will fire")
             }
             lastExportedURL = url
 
