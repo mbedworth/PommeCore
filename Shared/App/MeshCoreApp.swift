@@ -67,11 +67,28 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
     }
 
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        let userInfo = response.notification.request.content.userInfo
+
+        // Handle quick reply action
         if response.actionIdentifier == "REPLY_ACTION",
            let textResponse = response as? UNTextInputNotificationResponse,
-           let pubkeyHex = response.notification.request.content.userInfo["contactPubkey"] as? String {
+           let pubkeyHex = userInfo["contactPubkey"] as? String {
             Task { @MainActor in
                 viewModel?.handleNotificationReply(text: textResponse.userText, contactPubkeyHex: pubkeyHex)
+            }
+        }
+
+        // Navigate to the correct chat on tap
+        Task { @MainActor in
+            if let isChannel = userInfo["isChannel"] as? Bool, isChannel,
+               let chIdx = userInfo["channelIndex"] as? UInt8 {
+                viewModel?.sidebarSelection = chIdx == 0 ? .publicChannel : .channel(chIdx)
+            } else if let pubkeyHex = userInfo["contactPubkey"] as? String {
+                if let contact = viewModel?.contacts.first(where: {
+                    $0.publicKey.map { String(format: "%02x", $0) }.joined() == pubkeyHex
+                }) {
+                    viewModel?.sidebarSelection = .contact(contact.publicKeyPrefix)
+                }
             }
         }
         completionHandler()
