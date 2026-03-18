@@ -27,15 +27,17 @@ struct ChatView: View {
     private var routeLabel: String {
         let c = liveContact
         if c.outPathLen == 0 { return "Direct" }
-        if c.outPathLen < 0 { return "Flood" }
-        return "\(c.outPathLen) hop\(c.outPathLen == 1 ? "" : "s")"
+        if c.outPathLen < 0 { return c.outPath.isEmpty ? "Auto" : "Flood" }
+        // Lower 6 bits = hop count (upper 2 bits = hash_mode)
+        let hops = Int(c.outPathLen) & 0x3F
+        return "\(hops) hop\(hops == 1 ? "" : "s")"
     }
 
     private var routeColor: Color {
         let c = liveContact
         if c.outPathLen == 0 { return MeshTheme.connected }
-        if c.outPathLen < 0 { return .orange }
-        return MeshTheme.textSecondary
+        if c.outPathLen < 0 { return c.outPath.isEmpty ? MeshTheme.textSecondary : .orange }
+        return MeshTheme.accent
     }
 
     private var displayedMessages: [Message] {
