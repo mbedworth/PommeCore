@@ -377,9 +377,16 @@ struct ContactListView: View {
                         .foregroundStyle(MeshTheme.textPrimary)
                     Spacer()
                     if let name = viewModel.connectedDeviceName {
-                        Text(name)
-                            .font(.caption)
-                            .foregroundStyle(MeshTheme.textSecondary)
+                        HStack(spacing: 4) {
+                            Text(name)
+                                .font(.caption)
+                                .foregroundStyle(MeshTheme.textSecondary)
+                            if viewModel.deviceConfig.batteryPercent() > 0 {
+                                Text("\(viewModel.deviceConfig.batteryPercent())%")
+                                    .font(.caption2)
+                                    .foregroundStyle(MeshTheme.textSecondary)
+                            }
+                        }
                     } else {
                         Image(systemName: "chevron.right")
                             .font(.caption)
