@@ -975,7 +975,7 @@ struct RoomMessageBubble: View {
                                 Image(systemName: "arrow.clockwise")
                                     .font(.caption2)
                                     .foregroundStyle(.orange)
-                                Text("Retrying (\(message.attempt + 1)/3)...")
+                                Text("Retrying (attempt \(message.attempt + 1))...")
                                     .font(.caption2)
                                     .foregroundStyle(.orange)
                             }
