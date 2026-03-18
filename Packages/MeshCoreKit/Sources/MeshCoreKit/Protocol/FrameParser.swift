@@ -694,20 +694,32 @@ public enum FrameParser {
 
     // MARK: - Channel Info (code 18)
 
-    /// RESP_CODE_CHANNEL_INFO (code 0x12/18) — channel metadata.
-    /// Layout: channel_idx(1) channel_name(32 null-terminated) flags(1)
+    /// RESP_CODE_CHANNEL_INFO (code 0x12/18) — channel metadata + secret.
+    /// Actual layout (verified against firmware MyMesh.cpp + meshcore.js):
+    ///   channel_idx(1) channel_name(32 null-terminated) secret(16 bytes)
+    /// The firmware DOES return the 16-byte channel PSK. There is no flags byte.
     private static func parseChannelInfo(_ data: Data) -> ParsedResponse {
-        let hex = data.prefix(40).map { String(format: "%02x", $0) }.joined(separator: " ")
+        let hex = data.prefix(50).map { String(format: "%02x", $0) }.joined(separator: " ")
         logger.info("ChannelInfo raw [\(data.count) bytes]: \(hex)")
 
         var offset = 0
         let channelIdx = readUInt8(data, offset: &offset)
         let name = readFixedString(data, offset: &offset, maxLen: 32)
-        let flags = (offset < data.count) ? readUInt8(data, offset: &offset) : UInt8(0)
 
-        logger.info("ChannelInfo: idx=\(channelIdx) name='\(name)' flags=\(flags)")
+        // Firmware sends 16-byte channel secret (PSK) after the name.
+        // Previous code incorrectly read secret[0] as "flags".
+        var secret: Data?
+        let remaining = data.count - offset
+        if remaining >= 16 {
+            secret = Data(data[offset..<offset+16])
+            offset += 16
+            let secretHex = secret!.map { String(format: "%02x", $0) }.joined()
+            logger.info("ChannelInfo: idx=\(channelIdx) name='\(name)' secret=\(secretHex)")
+        } else {
+            logger.info("ChannelInfo: idx=\(channelIdx) name='\(name)' (no secret, \(remaining) trailing bytes)")
+        }
 
-        let channel = MeshChannel(index: channelIdx, name: name, flags: flags)
+        let channel = MeshChannel(index: channelIdx, name: name, flags: 0, secret: secret)
         return .channelInfo(channel)
     }
 
