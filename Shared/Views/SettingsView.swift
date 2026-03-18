@@ -15,6 +15,7 @@ struct SettingsView: View {
     @State private var radioToMigrate: String?
     @State private var showMigrateSheet = false
     @State private var showConnectionHelp = false
+    @State private var showPurgeOptions = false
 
     private var batteryChemistry: BatteryChemistry {
         BatteryChemistry(rawValue: batteryChemistryRaw) ?? .lipo
@@ -91,6 +92,7 @@ struct SettingsView: View {
             }
             statsSection
             securitySection
+            storageSection
             tipJarSection
             troubleshootingSection
             aboutSection
@@ -1864,6 +1866,37 @@ class TipJarManager: ObservableObject {
 }
 
 private extension SettingsView {
+    var storageSection: some View {
+        Section {
+            Button {
+                showPurgeOptions = true
+            } label: {
+                HStack {
+                    Label("Manage Storage", systemImage: "externaldrive")
+                        .foregroundStyle(MeshTheme.accent)
+                    Spacer()
+                    let count = viewModel.messagesByContact.values.reduce(0) { $0 + $1.count }
+                    Text("\(count) messages")
+                        .font(.caption)
+                        .foregroundStyle(MeshTheme.textSecondary)
+                }
+            }
+            .buttonStyle(.plain)
+            .listRowBackground(MeshTheme.surface)
+            .confirmationDialog("Manage Storage", isPresented: $showPurgeOptions) {
+                Button("Clear All Messages", role: .destructive) {
+                    viewModel.clearAllMessages()
+                }
+                Button("Clear Message Drafts") {
+                    viewModel.clearAllDrafts()
+                }
+                Button("Cancel", role: .cancel) {}
+            }
+        } header: {
+            sectionHeader("Storage")
+        }
+    }
+
     var tipJarSection: some View {
         Section {
             VStack(alignment: .leading, spacing: 12) {
