@@ -782,6 +782,7 @@ final class MeshCoreViewModel: ObservableObject {
         let totalUnread = unreadCounts.values.reduce(0, +)
         content.badge = NSNumber(value: totalUnread)
 
+        DebugLogger.shared.log("NOTIF: posting notification for '\(message.text.prefix(30))'", level: .info)
         let request = UNNotificationRequest(
             identifier: message.id.uuidString,
             content: content,
@@ -855,6 +856,7 @@ final class MeshCoreViewModel: ObservableObject {
                 // PUSH_CODE_MSG_WAITING (0x83) — immediately request the message
                 if code == 0x83 {
                     Self.logger.info("BG FAST-PATH: PUSH_CODE_MSG_WAITING — sending SYNC_NEXT_MESSAGE immediately")
+                    DebugLogger.shared.log("NOTIF: 0x83 received, sending SYNC_NEXT immediately", level: .rx)
                     self.bleManager.send(data: Data([0x0A])) // CMD_SYNC_NEXT_MESSAGE
                 }
             }
