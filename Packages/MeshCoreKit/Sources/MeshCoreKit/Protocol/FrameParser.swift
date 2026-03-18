@@ -205,8 +205,10 @@ public enum FrameParser {
             return parseAdvertPath(payload)
 
         case .autoAddConfig:
-            let bitmask: UInt8 = payload.isEmpty ? 0 : payload[0]
-            logger.info("AutoAddConfig: bitmask=0x\(String(format: "%02x", bitmask)) (chat=\(bitmask & 0x01 != 0), repeater=\(bitmask & 0x02 != 0), room=\(bitmask & 0x04 != 0), sensor=\(bitmask & 0x08 != 0))")
+            var offset = 0
+            let bitmask = readUInt8(payload, offset: &offset)
+            let maxHops = readUInt8(payload, offset: &offset)
+            logger.info("AutoAddConfig: bitmask=0x\(String(format: "%02x", bitmask)) maxHops=\(maxHops) (chat=\(bitmask & 0x01 != 0), repeater=\(bitmask & 0x02 != 0), room=\(bitmask & 0x04 != 0), sensor=\(bitmask & 0x08 != 0))")
             return .autoAddConfig(bitmask: bitmask)
 
         case .allowedRepeatFreq:
@@ -298,10 +300,9 @@ public enum FrameParser {
             return .contactDeleted(publicKey: key)
 
         case .contactsFull:
-            var offset = 0
-            let maxContacts = readUInt16(payload, offset: &offset)
-            logger.warning("ContactsFull: max=\(maxContacts)")
-            return .contactsFull(maxContacts: maxContacts)
+            // Firmware sends just the code byte with no payload
+            logger.warning("ContactsFull: device contact storage is full")
+            return .contactsFull(maxContacts: 0)
         }
     }
 

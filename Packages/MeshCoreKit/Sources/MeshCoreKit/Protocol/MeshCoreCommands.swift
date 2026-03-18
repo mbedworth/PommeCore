@@ -40,6 +40,7 @@ public enum MeshCoreCommand: UInt8, Sendable {
     case sendControlData      = 0x37  // 55 — send control packet (discover, etc.)
     case getStats             = 0x38  // 56
     case setAutoAddConfig     = 0x3A  // 58 — set contact auto-add bitmask
+    case getAutoAddConfig     = 0x3B  // 59 — get contact auto-add config
     case getAllowedRepeatFreq = 0x3C  // 60 — get allowed repeat frequency ranges
 }
 
