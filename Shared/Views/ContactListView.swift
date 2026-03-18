@@ -41,6 +41,8 @@ struct ContactListView: View {
     @State private var selectedContacts: Set<Data> = [] // publicKeyPrefix
     @State private var showBulkDeleteConfirm = false
     @State private var pathEditorContact: Contact?
+    @State private var showExportCopied = false
+    @State private var isExporting = false
     #if !os(watchOS)
     @State private var shareContact: Contact?
     #endif
@@ -332,7 +334,14 @@ struct ContactListView: View {
                 NSPasteboard.general.setString(url, forType: .string)
                 #endif
                 viewModel.lastExportedURL = nil
+                isExporting = false
+                showExportCopied = true
             }
+        }
+        .alert("Link Copied", isPresented: $showExportCopied) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("The contact's meshcore:// link has been copied to the clipboard.")
         }
     }
 
@@ -1067,9 +1076,10 @@ struct ContactListView: View {
         }
 
         Button {
+            isExporting = true
             viewModel.exportContact(contact)
         } label: {
-            Label("Export Link", systemImage: "square.and.arrow.up")
+            Label(isExporting ? "Exporting..." : "Export Link", systemImage: "square.and.arrow.up")
         }
 
         #if !os(watchOS)
