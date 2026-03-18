@@ -149,7 +149,7 @@ public final class RemoteDeviceSession: ObservableObject {
 
         // Bare commands like "ver", "clock", "powersaving", "gps", "neighbors"
         // use the command itself as the key
-        let bareCommands = ["ver", "clock", "powersaving", "gps", "neighbors", "region", "log"]
+        let bareCommands = ["ver", "clock", "powersaving", "gps", "gps advert", "neighbors", "discover.neighbors", "region", "log"]
         if bareCommands.contains(cmd) {
             settings[cmd] = response
             return
