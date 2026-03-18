@@ -32,6 +32,17 @@
 	<array>
 		<string>bluetooth-central</string>
 	</array>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.mbedworth.meshcore</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>meshcore</string>
+			</array>
+		</dict>
+	</array>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>UILaunchScreen</key>
