@@ -394,9 +394,10 @@ public enum MeshCoreProtocol {
         Data([MeshCoreCommand.setAutoAddConfig.rawValue, bitmask])
     }
 
-    /// CMD_SET_AUTOADD_CONFIG — read current config (send with no payload to query).
+    /// CMD_GET_AUTOADD_CONFIG (code 59) — read current auto-add config.
+    /// Separate command from SET (58). Sending SET with no payload corrupts device config!
     public static func buildGetAutoAddConfig() -> Data {
-        Data([MeshCoreCommand.setAutoAddConfig.rawValue])
+        Data([MeshCoreCommand.getAutoAddConfig.rawValue])
     }
 
     // MARK: - Discovery & Diagnostics
