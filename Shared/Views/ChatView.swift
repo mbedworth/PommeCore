@@ -9,6 +9,7 @@ struct ChatView: View {
     @State private var unreadDividerIndex: Int?
     @State private var isSearching = false
     @State private var searchText = ""
+    @State private var showPathEditor = false
     @State private var exportURL: URL?
     @State private var showExportSheet = false
 
@@ -76,9 +77,14 @@ struct ChatView: View {
         .toolbar {
             ToolbarItem(placement: .automatic) {
                 HStack(spacing: 12) {
-                    Text(routeLabel)
-                        .font(.caption2)
-                        .foregroundStyle(routeColor)
+                    Button {
+                        showPathEditor = true
+                    } label: {
+                        Text(routeLabel)
+                            .font(.caption2)
+                            .foregroundStyle(routeColor)
+                    }
+                    .buttonStyle(.plain)
                     Button {
                         withAnimation { isSearching.toggle() }
                         if !isSearching { searchText = "" }
@@ -104,6 +110,10 @@ struct ChatView: View {
         }
         .sheet(isPresented: $showNotes) {
             ContactNotesSheet(contact: contact)
+        }
+        .sheet(isPresented: $showPathEditor) {
+            ManualPathEditor(contact: contact)
+                .environmentObject(viewModel)
         }
         .sheet(isPresented: $showExportSheet) {
             if let url = exportURL {
