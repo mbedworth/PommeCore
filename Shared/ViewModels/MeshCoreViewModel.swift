@@ -1895,7 +1895,8 @@ final class MeshCoreViewModel: ObservableObject {
             "get advert.interval", "get flood.advert.interval", "get multi.acks",
             "get allow.read.only",
             "get adc.multiplier",
-            "powersaving", "gps",
+            "get loop.detect", "get path.hash.mode",
+            "powersaving", "gps", "gps advert",
         ]
 
         session.fetchTotalCount = commands.count
@@ -1905,6 +1906,7 @@ final class MeshCoreViewModel: ObservableObject {
             for command in commands {
                 guard let self else { return }
                 await self.fetchRemoteSetting(command: command, contact: contact, session: session)
+                session.fetchReceivedCount += 1
             }
             session.isFetchingSettings = false
             session.hasLoadedFullSettings = true

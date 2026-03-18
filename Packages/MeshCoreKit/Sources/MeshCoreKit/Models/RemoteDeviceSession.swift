@@ -112,9 +112,6 @@ public final class RemoteDeviceSession: ObservableObject {
         guard index < cliHistory.count, !cliHistory[index].isComplete else { return }
         cliHistory[index].response = "(no response)"
         isWaitingForResponse = cliHistory.contains(where: { !$0.isComplete })
-        if isFetchingSettings {
-            fetchReceivedCount += 1
-        }
     }
 
     /// Record a CLI response received from the device.
@@ -135,10 +132,6 @@ public final class RemoteDeviceSession: ObservableObject {
             parseKeyValueFallback(trimmedResponse)
         }
         isWaitingForResponse = cliHistory.contains(where: { !$0.isComplete })
-
-        if isFetchingSettings {
-            fetchReceivedCount += 1
-        }
     }
 
     /// Derive the setting key from the CLI command and store the response as its value.
