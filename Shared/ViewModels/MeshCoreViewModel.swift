@@ -1331,12 +1331,16 @@ final class MeshCoreViewModel: ObservableObject {
 
     /// Export a contact as a meshcore:// URL. Result arrives as .exportedContact response.
     func exportContact(_ contact: Contact) {
+        Self.logger.info("EXPORT: requesting export for \(contact.name) key=\(contact.publicKey.prefix(6).map { String(format: "%02x", $0) }.joined())")
+        lastExportedURL = nil // Clear previous result
         let frame = MeshCoreProtocol.buildExportContact(publicKey: contact.publicKey)
         sendCommand(frame, label: "EXPORT_CONTACT")
     }
 
     /// Export self as a meshcore:// URL (send code byte only, no public key).
     func exportSelfContact() {
+        Self.logger.info("EXPORT: requesting self contact export")
+        lastExportedURL = nil
         let frame = Data([0x11])  // CMD_EXPORT_CONTACT with no payload = export self
         sendCommand(frame, label: "EXPORT_SELF")
     }
@@ -1978,7 +1982,10 @@ final class MeshCoreViewModel: ObservableObject {
             handleChannelInfo(channel)
 
         case .exportedContact(let url):
-            Self.logger.info("Exported contact URL: \(url)")
+            Self.logger.info("EXPORT RESP: url=\(url) (\(url.count) chars)")
+            if url.isEmpty {
+                Self.logger.warning("EXPORT RESP: empty URL received")
+            }
             lastExportedURL = url
 
         case .advertPath(let info):
