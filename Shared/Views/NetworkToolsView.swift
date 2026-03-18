@@ -1115,9 +1115,21 @@ struct ManualPathEditor: View {
                         } else {
                             applyPath()
                             pathApplied = true
+                            // Auto-dismiss after a brief delay so user sees confirmation
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { dismiss() }
                         }
                     }
                     .foregroundStyle(pathApplied ? MeshTheme.connected : MeshTheme.accent)
+                }
+            }
+            .onAppear {
+                // Initialize mode from current contact state
+                if contact.outPathLen < 0 {
+                    pathMode = 1 // Flood
+                } else if contact.outPathLen > 0 {
+                    pathMode = 2 // Manual
+                } else {
+                    pathMode = 0 // Auto/Direct
                 }
             }
         }
