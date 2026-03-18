@@ -2042,6 +2042,28 @@ private extension SettingsView {
             .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
 
+            Button {
+                viewModel.verifyRadioConfig()
+            } label: {
+                HStack {
+                    Text("Verify Radio Config")
+                        .foregroundStyle(MeshTheme.accent)
+                    Spacer()
+                    if viewModel.isVerifyingConfig {
+                        ProgressView()
+                            #if !os(watchOS)
+                            .controlSize(.small)
+                            #endif
+                    } else {
+                        Image(systemName: "checkmark.shield")
+                            .foregroundStyle(MeshTheme.textSecondary)
+                    }
+                }
+            }
+            .buttonStyle(.plain)
+            .disabled(!isConnected || viewModel.isVerifyingConfig)
+            .listRowBackground(MeshTheme.surface)
+
             NavigationLink {
                 DebugLogView()
             } label: {

@@ -1187,6 +1187,42 @@ final class MeshCoreViewModel: ObservableObject {
         sendCommand(MeshCoreProtocol.buildDeviceQuery(), label: "DEVICE_QUERY")
     }
 
+    /// Verify radio configuration by requesting all parameters and logging them to DebugLogger.
+    /// Used to diagnose potential config corruption from malformed frames.
+    @Published var isVerifyingConfig = false
+
+    func verifyRadioConfig() {
+        DebugLogger.shared.log("=== RADIO CONFIG VERIFICATION START ===", level: .info)
+        isVerifyingConfig = true
+
+        // Request device info (firmware, model)
+        DebugLogger.shared.log("Requesting DEVICE_QUERY...", level: .tx)
+        requestDeviceInfo()
+
+        // Request self info (radio params, name, pubkey)
+        DebugLogger.shared.log("Requesting APP_START for SELF_INFO...", level: .tx)
+        sendAppStart()
+
+        // Request tuning params
+        DebugLogger.shared.log("Requesting GET_TUNING_PARAMS...", level: .tx)
+        requestTuningParams()
+
+        // Request battery/storage
+        DebugLogger.shared.log("Requesting GET_BATT_AND_STORAGE...", level: .tx)
+        requestBattAndStorage()
+
+        // Request device time
+        DebugLogger.shared.log("Requesting GET_DEVICE_TIME...", level: .tx)
+        requestDeviceTime()
+
+        // End marker after a delay to allow responses
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 3_000_000_000)
+            DebugLogger.shared.log("=== RADIO CONFIG VERIFICATION COMPLETE ===", level: .info)
+            self.isVerifyingConfig = false
+        }
+    }
+
     /// Request an incremental contact sync with debouncing.
     /// Coalesces rapid-fire advert/path pushes into a single CMD_GET_CONTACTS.
     private func requestDebouncedIncrementalSync() {
@@ -1925,7 +1961,12 @@ final class MeshCoreViewModel: ObservableObject {
 
         case .selfInfo(let info):
             Self.logger.info("PARSED SelfInfo: name='\(info.name)' txPwr=\(info.txPower)/\(info.maxTXPower) freq=\(info.radioFreq) bw=\(info.radioBW) sf=\(info.radioSF) cr=\(info.radioCR) lat=\(info.latitude) lon=\(info.longitude)")
-            DebugLogger.shared.log("SelfInfo: '\(info.name)' tx=\(info.txPower)dBm freq=\(info.radioFreq)", level: .rx)
+            let freqMHz = String(format: "%.3f", Double(info.radioFreq) / 1000.0)
+            let bwKHz = String(format: "%.1f", Double(info.radioBW) / 1000.0)
+            let keyHex = info.publicKey.prefix(8).map { String(format: "%02x", $0) }.joined()
+            DebugLogger.shared.log("RADIO: freq=\(freqMHz)MHz BW=\(bwKHz)kHz SF=\(info.radioSF) CR=\(info.radioCR) TX=\(info.txPower)/\(info.maxTXPower)dBm", level: .rx)
+            DebugLogger.shared.log("RADIO: name='\(info.name)' type=\(info.type) pubkey=\(keyHex)...", level: .rx)
+            DebugLogger.shared.log("RADIO: lat=\(info.latitude) lon=\(info.longitude) multiACK=\(info.multiACK) advLoc=\(info.advertLocPolicy)", level: .rx)
             deviceConfig.deviceName = info.name
             deviceConfig.selfType = info.type
             deviceConfig.radioTXPower = info.txPower
@@ -1949,7 +1990,8 @@ final class MeshCoreViewModel: ObservableObject {
 
         case .deviceInfo(let info):
             Self.logger.info("PARSED DeviceInfo: fwVer=\(info.firmwareVersion) buildDate='\(info.buildDate)' mfg='\(info.manufacturer)' semVer='\(info.semanticVersion)' blePIN=\(info.blePIN)")
-            DebugLogger.shared.log("DeviceInfo: fw=\(info.firmwareVersion) '\(info.semanticVersion)' \(info.manufacturer)", level: .rx)
+            DebugLogger.shared.log("DEVICE: fw=\(info.firmwareVersion) ver='\(info.semanticVersion)' build='\(info.buildDate)'", level: .rx)
+            DebugLogger.shared.log("DEVICE: mfg='\(info.manufacturer)' maxContacts=\(Int(info.maxContactsDiv2) * 2) maxCh=\(info.maxChannels) PIN=\(info.blePIN)", level: .rx)
             deviceConfig.firmwareVersion = String(info.firmwareVersion)
             deviceConfig.buildDate = info.buildDate
             deviceConfig.manufacturer = info.manufacturer
@@ -1977,6 +2019,9 @@ final class MeshCoreViewModel: ObservableObject {
 
         case .tuningParams(let rxDelay, let airtime):
             Self.logger.info("PARSED Tuning: rxDelay=\(rxDelay) airtime=\(airtime)")
+            let rxSec = String(format: "%.1f", Double(rxDelay) / 1000.0)
+            let atFactor = String(format: "%.1f", Double(airtime) / 1000.0)
+            DebugLogger.shared.log("TUNING: rxDelay=\(rxSec)s airtime=\(atFactor)x (raw: \(rxDelay), \(airtime))", level: .rx)
             deviceConfig.rxDelayBase = rxDelay
             deviceConfig.airtimeFactor = airtime
             deviceConfig.loadedSections.insert("tuning")
