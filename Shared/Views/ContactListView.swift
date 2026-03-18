@@ -1275,6 +1275,7 @@ struct ContactListView: View {
         case .chat: return "person.fill"
         case .repeater: return "antenna.radiowaves.left.and.right"
         case .room: return "server.rack"
+        case .sensor: return "sensor.fill"
         case .unknown: return "person.fill"
         }
     }

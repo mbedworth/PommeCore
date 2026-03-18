@@ -5,7 +5,14 @@ public enum ContactType: UInt8, Codable, Sendable {
     case chat = 1       // Regular chat contact
     case repeater = 2   // Repeater/relay node
     case room = 3       // Room server
+    case sensor = 4     // Sensor node
     case unknown = 0
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let raw = try container.decode(UInt8.self)
+        self = ContactType(rawValue: raw) ?? .unknown
+    }
 }
 
 /// A MeshCore contact discovered on the mesh network.

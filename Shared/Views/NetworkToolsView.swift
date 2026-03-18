@@ -128,6 +128,7 @@ struct DiscoverView: View {
         case .chat: return "person.fill"
         case .repeater: return "antenna.radiowaves.left.and.right"
         case .room: return "server.rack"
+        case .sensor: return "sensor.fill"
         case .unknown: return "person.fill"
         }
     }
@@ -137,6 +138,7 @@ struct DiscoverView: View {
         case .chat: return "Chat"
         case .repeater: return "Repeater"
         case .room: return "Room"
+        case .sensor: return "Sensor"
         case .unknown: return "Unknown"
         }
     }
