@@ -934,7 +934,8 @@ struct RoomMessageBubble: View {
             if message.isOutgoing { Spacer(minLength: 48) }
 
             VStack(alignment: message.isOutgoing ? .trailing : .leading, spacing: 2) {
-                if !message.isOutgoing, let sender = parsed.sender {
+                if !message.isOutgoing, let rawSender = parsed.sender {
+                    let sender = viewModel.channelSenderDisplayName(rawSender)
                     Text(sender)
                         .font(.caption2.weight(.semibold))
                         .foregroundStyle(MeshTheme.accent)
@@ -1371,7 +1372,7 @@ struct ChannelMessageBubble: View {
 
             VStack(alignment: message.isOutgoing ? .trailing : .leading, spacing: 2) {
                 if !message.isOutgoing, let sender = message.senderName, !sender.isEmpty {
-                    Text(sender)
+                    Text(viewModel.channelSenderDisplayName(sender))
                         .font(.caption2.weight(.semibold))
                         .foregroundStyle(MeshTheme.accent)
                         .padding(.horizontal, 4)

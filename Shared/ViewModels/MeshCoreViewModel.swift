@@ -191,6 +191,15 @@ final class MeshCoreViewModel: ObservableObject {
         nickname(for: contact) ?? contact.name
     }
 
+    /// Resolve a channel message sender name to a nickname if one exists.
+    /// Matches the raw adv_name from the channel message against known contacts.
+    func channelSenderDisplayName(_ rawSenderName: String) -> String {
+        if let contact = contacts.first(where: { $0.name == rawSenderName }) {
+            return displayName(for: contact)
+        }
+        return rawSenderName
+    }
+
     // MARK: - Contact Notes (iCloud synced)
 
     @Published private var contactNotes: [String: String] = [:]
