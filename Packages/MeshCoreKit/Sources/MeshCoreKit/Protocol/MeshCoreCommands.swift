@@ -44,29 +44,33 @@ public enum MeshCoreCommand: UInt8, Sendable {
 }
 
 /// MeshCore Companion Radio Protocol — response codes received FROM the device.
+/// Verified against firmware source: examples/companion_radio/MyMesh.h
 public enum MeshCoreResponseCode: UInt8, Sendable {
     case ok                   = 0x00  // 0  — RESP_CODE_OK
     case err                  = 0x01  // 1  — RESP_CODE_ERR (followed by err_code byte)
     case contactsStart        = 0x02  // 2  — start of contact list (contains count)
     case contact              = 0x03  // 3  — individual contact data
     case endOfContacts        = 0x04  // 4  — end of contact list (contains lastmod)
-    case selfInfo             = 0x05  // 5
+    case selfInfo             = 0x05  // 5  — RESP_CODE_SELF_INFO
     case sent                 = 0x06  // 6  — RESP_CODE_SENT (type + ack_code + timeout)
     case contactMsgRecv       = 0x07  // 7  — RESP_CODE_CONTACT_MSG_RECV (old format, v1)
-    case currentAdvert        = 0x08  // 8
-    case currTime             = 0x09  // 9
-    case noMoreMessages       = 0x0A  // 10 — end of message sync queue
-    case rawMeshPacket        = 0x0B  // 11
-    case battAndStorage       = 0x0C  // 12
-    case deviceInfo           = 0x0D  // 13
-    case contactMsgRecvV3     = 0x10  // 16 — received direct message (v3)
-    case channelMsgRecvV3     = 0x11  // 17 — received channel message (v3)
-    case channelInfo          = 0x12  // 18 — RESP_CODE_CHANNEL_INFO (channel metadata)
-    case exportedContact      = 0x14  // 20 — exported contact URL string
-    case customVars           = 0x15  // 21
+    case currentAdvert        = 0x08  // 8  — RESP_CODE_CHANNEL_MSG_RECV (legacy)
+    case currTime             = 0x09  // 9  — RESP_CODE_CURR_TIME
+    case noMoreMessages       = 0x0A  // 10 — RESP_CODE_NO_MORE_MESSAGES
+    case exportedContact      = 0x0B  // 11 — RESP_CODE_EXPORT_CONTACT
+    case battAndStorage       = 0x0C  // 12 — RESP_CODE_BATT_AND_STORAGE
+    case deviceInfo           = 0x0D  // 13 — RESP_CODE_DEVICE_INFO
+    case privateKey           = 0x0E  // 14 — RESP_CODE_PRIVATE_KEY
+    case disabled             = 0x0F  // 15 — RESP_CODE_DISABLED
+    case contactMsgRecvV3     = 0x10  // 16 — RESP_CODE_CONTACT_MSG_RECV_V3
+    case channelMsgRecvV3     = 0x11  // 17 — RESP_CODE_CHANNEL_MSG_RECV_V3
+    case channelInfo          = 0x12  // 18 — RESP_CODE_CHANNEL_INFO
+    case signStart            = 0x13  // 19 — RESP_CODE_SIGN_START
+    case signature            = 0x14  // 20 — RESP_CODE_SIGNATURE
+    case customVars           = 0x15  // 21 — RESP_CODE_CUSTOM_VARS
     case advertPath           = 0x16  // 22 — RESP_CODE_ADVERT_PATH
-    case tuningParams         = 0x17  // 23
-    case stats                = 0x18  // 24
+    case tuningParams         = 0x17  // 23 — RESP_CODE_TUNING_PARAMS
+    case stats                = 0x18  // 24 — RESP_CODE_STATS
     case autoAddConfig        = 0x19  // 25 — RESP_CODE_AUTOADD_CONFIG
     case allowedRepeatFreq    = 0x1A  // 26 — RESP_ALLOWED_REPEAT_FREQ
 }
