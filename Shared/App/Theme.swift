@@ -161,7 +161,6 @@ struct MeshTextFieldStyle: TextFieldStyle {
                 RoundedRectangle(cornerRadius: 7)
                     .stroke(Color.primary.opacity(0.15), lineWidth: 0.5)
             )
-            .contentShape(Rectangle())
     }
 }
 #endif
