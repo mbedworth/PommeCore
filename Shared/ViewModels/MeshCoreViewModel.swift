@@ -1753,8 +1753,13 @@ final class MeshCoreViewModel: ObservableObject {
         messagesByContact[channelKey, default: []].append(outgoing)
         persistMessages(for: channelKey)
 
-        // Note: echo/repeat detection removed. meshcore.js does not implement it.
-        // The firmware does not deliver echoes of our own channel messages back to us.
+        // Echo detection: store sent message for matching against repeater rebroadcasts.
+        // When a 0-hop repeater rebroadcasts our message, the firmware delivers it back
+        // as a RESP_CODE_CHANNEL_MSG_RECV_V3 with our device name as sender.
+        if UserDefaults.standard.bool(forKey: "channelEchoDetection") {
+            recentChannelMessages.append((id: outgoing.id, channelKey: channelKey, text: trimmed, sent: Date()))
+            recentChannelMessages.removeAll { Date().timeIntervalSince($0.sent) > 30 }
+        }
     }
 
     func syncNextMessage() {
@@ -2111,6 +2116,30 @@ final class MeshCoreViewModel: ObservableObject {
         case .channelMsgRecv(let message):
             Self.logger.info("CHANNEL RX: ch=\(message.channelIndex ?? 0) isOutgoing=\(message.isOutgoing) sender='\(message.senderName ?? "?")' text='\(message.text.prefix(40))'")
             DebugLogger.shared.log("CH RX: ch=\(message.channelIndex ?? 0) from='\(message.senderName ?? "?")' '\(message.text.prefix(40))'", level: .rx)
+
+            // Echo detection: match sender name == our device name AND text matches a recent send
+            if let chIdx = message.channelIndex,
+               let senderName = message.senderName,
+               !senderName.isEmpty,
+               senderName == deviceConfig.deviceName,
+               !recentChannelMessages.isEmpty {
+                let channelKey = Data([chIdx])
+                if let echoIdx = recentChannelMessages.firstIndex(where: { $0.channelKey == channelKey && $0.text == message.text }) {
+                    let echoInfo = recentChannelMessages.remove(at: echoIdx)
+                    if var msgs = messagesByContact[channelKey],
+                       let msgIdx = msgs.firstIndex(where: { $0.id == echoInfo.id }) {
+                        Self.logger.info("ECHO MATCH: sender='\(senderName)' matches our name, marking as repeated")
+                        DebugLogger.shared.log("ECHO: '\(message.text.prefix(30))' repeated by network", level: .info)
+                        msgs[msgIdx].status = .repeated
+                        messagesByContact[channelKey] = msgs
+                        persistMessages(for: channelKey)
+                    }
+                    // Don't add echo as a separate incoming message
+                    if isSyncingMessages { syncNextMessage() }
+                    break
+                }
+            }
+
             handleIncomingMessage(message)
             if isSyncingMessages {
                 syncNextMessage()
