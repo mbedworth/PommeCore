@@ -1391,6 +1391,9 @@ final class MeshCoreViewModel: ObservableObject {
         deviceConfig.deviceName = name
     }
 
+    /// Set local device's advertised location. Privacy fudge is applied here.
+    /// This is the ONLY path that writes coordinates to our local radio.
+    /// Remote management "set lat/lon" goes to other devices and is not fudged.
     func setAdvertLatLon(latitude: Double, longitude: Double) {
         let (fLat, fLon) = fudgeLocation(lat: latitude, lon: longitude)
         sendCommand(MeshCoreProtocol.buildSetAdvertLatLon(latitude: fLat, longitude: fLon), label: "SET_LATLON")
