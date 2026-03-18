@@ -1155,6 +1155,7 @@ final class MeshCoreViewModel: ObservableObject {
         if wifiManager.isConnected {
             let hex = data.map { String(format: "%02x", $0) }.joined(separator: " ")
             Self.logger.info("TX(WiFi) \(label) [\(data.count) bytes]: \(hex)")
+            DebugLogger.shared.log("TX(WiFi) \(label) [\(data.count)B] \(hex)", level: .tx)
             wifiManager.sendFrame(data)
             return
         }
@@ -1162,16 +1163,19 @@ final class MeshCoreViewModel: ObservableObject {
         if usbManager.isConnected && usbManager.detectedMode == .binary {
             let hex = data.map { String(format: "%02x", $0) }.joined(separator: " ")
             Self.logger.info("TX(USB) \(label) [\(data.count) bytes]: \(hex)")
+            DebugLogger.shared.log("TX(USB) \(label) [\(data.count)B] \(hex)", level: .tx)
             usbManager.sendFrame(data)
             return
         }
         #endif
         guard connectionState == .ready || connectionState == .connected else {
             Self.logger.warning("Cannot send \(label) — not connected (state: \(String(describing: self.connectionState)))")
+            DebugLogger.shared.log("TX FAIL \(label) — not connected", level: .error)
             return
         }
         let hex = data.map { String(format: "%02x", $0) }.joined(separator: " ")
         Self.logger.info("TX \(label) [\(data.count) bytes]: \(hex)")
+        DebugLogger.shared.log("TX \(label) [\(data.count)B] \(hex)", level: .tx)
         bleManager.send(data: data)
     }
 
@@ -1685,6 +1689,7 @@ final class MeshCoreViewModel: ObservableObject {
             recipientKeyHash: contact.publicKeyPrefix
         )
         Self.logger.info("DM SEND: to=\(contact.name) key=\(contact.publicKeyPrefix.map { String(format: "%02x", $0) }.joined())")
+        DebugLogger.shared.log("DM SEND: to='\(contact.name)' '\(text.prefix(40))'", level: .tx)
         sendCommand(frame, label: "SEND_TXT")
     }
 
@@ -1699,6 +1704,7 @@ final class MeshCoreViewModel: ObservableObject {
         Self.logger.info("CHANNEL TX: [\(frame.count) bytes] \(frame.map { String(format: "%02X", $0) }.joined(separator: " "))")
         let connDesc = String(describing: self.connectionState)
         Self.logger.info("CHANNEL TX: cmd=0x\(String(format: "%02X", frame[0])) txtType=\(frame[1]) chIdx=\(frame[2]) text='\(trimmed)' connState=\(connDesc)")
+        DebugLogger.shared.log("CH TX: ch=\(frame[2]) '\(trimmed.prefix(40))'", level: .tx)
         sendCommand(frame, label: "SEND_CHANNEL_TXT")
         Self.logger.info("CHANNEL TX: frame sent, awaiting RESP_CODE_OK (0x00) or RESP_CODE_ERR (0x01)")
 
@@ -1911,19 +1917,23 @@ final class MeshCoreViewModel: ObservableObject {
     private func handleReceivedData(_ data: Data) {
         let hex = data.map { String(format: "%02x", $0) }.joined(separator: " ")
         Self.logger.info("RX [\(data.count)]: \(hex)")
+        DebugLogger.shared.log("RX [\(data.count)B] \(hex)", level: .rx)
 
         let response = FrameParser.parse(data)
 
         switch response {
         case .ok:
             Self.logger.info("RESP OK — last command accepted by device")
+            DebugLogger.shared.log("RESP OK", level: .rx)
 
         case .error(let code, let description):
             Self.logger.warning("Error response: code=\(code) \(description)")
+            DebugLogger.shared.log("RESP ERR code=\(code) \(description)", level: .error)
             handleErrorResponse(code: code, description: description)
 
         case .selfInfo(let info):
             Self.logger.info("PARSED SelfInfo: name='\(info.name)' txPwr=\(info.txPower)/\(info.maxTXPower) freq=\(info.radioFreq) bw=\(info.radioBW) sf=\(info.radioSF) cr=\(info.radioCR) lat=\(info.latitude) lon=\(info.longitude)")
+            DebugLogger.shared.log("SelfInfo: '\(info.name)' tx=\(info.txPower)dBm freq=\(info.radioFreq)", level: .rx)
             deviceConfig.deviceName = info.name
             deviceConfig.selfType = info.type
             deviceConfig.radioTXPower = info.txPower
@@ -1947,6 +1957,7 @@ final class MeshCoreViewModel: ObservableObject {
 
         case .deviceInfo(let info):
             Self.logger.info("PARSED DeviceInfo: fwVer=\(info.firmwareVersion) buildDate='\(info.buildDate)' mfg='\(info.manufacturer)' semVer='\(info.semanticVersion)' blePIN=\(info.blePIN)")
+            DebugLogger.shared.log("DeviceInfo: fw=\(info.firmwareVersion) '\(info.semanticVersion)' \(info.manufacturer)", level: .rx)
             deviceConfig.firmwareVersion = String(info.firmwareVersion)
             deviceConfig.buildDate = info.buildDate
             deviceConfig.manufacturer = info.manufacturer
@@ -2002,6 +2013,7 @@ final class MeshCoreViewModel: ObservableObject {
 
         case .contactsStart(let count):
             Self.logger.info("Contacts sync starting: \(count) contacts expected")
+            DebugLogger.shared.log("Contacts sync: \(count) expected", level: .info)
             expectedContactCount = count
             // Clear only the buffer, never the displayed contacts
             incomingContacts = []
@@ -2012,6 +2024,7 @@ final class MeshCoreViewModel: ObservableObject {
 
         case .endOfContacts(let lastmod):
             Self.logger.info("Contacts sync complete: \(self.incomingContacts.count) contacts, lastmod=\(lastmod), incremental=\(self.isIncrementalContactSync)")
+            DebugLogger.shared.log("Contacts done: \(self.incomingContacts.count) synced", level: .info)
             if isIncrementalContactSync {
                 // Incremental sync: merge only modified contacts into existing list
                 if !incomingContacts.isEmpty {
@@ -2044,10 +2057,12 @@ final class MeshCoreViewModel: ObservableObject {
 
         case .sent(let type, let expectedACK, let suggestedTimeout):
             Self.logger.info("PARSED Sent: type=\(type) expectedACK=\(expectedACK) timeout=\(suggestedTimeout)ms")
+            DebugLogger.shared.log("Sent: type=\(type == 0 ? "direct" : "flood") ack=\(expectedACK) timeout=\(suggestedTimeout)ms", level: .rx)
             handleSentResponse(expectedACK: expectedACK, suggestedTimeoutMs: suggestedTimeout)
 
         case .contactMsgRecv(let message):
             Self.logger.info("Received direct message: \(message.text)")
+            DebugLogger.shared.log("DM RX: '\(message.text.prefix(60))'", level: .rx)
             handleIncomingMessage(message)
             if isSyncingMessages {
                 syncNextMessage()
@@ -2055,6 +2070,7 @@ final class MeshCoreViewModel: ObservableObject {
 
         case .channelMsgRecv(let message):
             Self.logger.info("CHANNEL RX: ch=\(message.channelIndex ?? 0) isOutgoing=\(message.isOutgoing) sender='\(message.senderName ?? "?")' text='\(message.text.prefix(40))'")
+            DebugLogger.shared.log("CH RX: ch=\(message.channelIndex ?? 0) from='\(message.senderName ?? "?")' '\(message.text.prefix(40))'", level: .rx)
             // Positive echo detection: if this matches a recent outgoing message, mark as repeated
             let echoEnabled = UserDefaults.standard.bool(forKey: "channelEchoDetection")
             Self.logger.info("ECHO CHECK: enabled=\(echoEnabled) pendingCount=\(self.recentChannelMessages.count)")
@@ -2084,6 +2100,7 @@ final class MeshCoreViewModel: ObservableObject {
 
         case .sendConfirmed(let ackCode, let roundTripMs):
             Self.logger.info("PARSED SendConfirmed: ackCode=\(ackCode) roundTrip=\(roundTripMs)ms")
+            DebugLogger.shared.log("ACK confirmed: \(roundTripMs)ms", level: .rx)
             handleSendConfirmed(ackCode: ackCode, roundTripMs: roundTripMs)
 
         case .msgWaiting:
@@ -2100,6 +2117,7 @@ final class MeshCoreViewModel: ObservableObject {
 
         case .advert(let contact):
             Self.logger.info("PUSH Advert from: \(contact.name)")
+            DebugLogger.shared.log("PUSH Advert: \(contact.name)", level: .rx)
             handleAdvert(contact)
             // Also trigger debounced incremental sync for full data refresh
             requestDebouncedIncrementalSync()
@@ -2111,6 +2129,7 @@ final class MeshCoreViewModel: ObservableObject {
 
         case .newAdvert(let contact):
             Self.logger.info("PUSH NewAdvert (manual_add): \(contact.name)")
+            DebugLogger.shared.log("PUSH NewAdvert: \(contact.name)", level: .rx)
             // Add to pending contacts list for user approval
             if !pendingNewContacts.contains(where: { $0.publicKeyPrefix == contact.publicKeyPrefix }) {
                 pendingNewContacts.append(contact)
