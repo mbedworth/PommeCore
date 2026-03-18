@@ -1377,7 +1377,21 @@ final class MeshCoreViewModel: ObservableObject {
     }
 
     func setTuningParams(rxDelayBase: UInt32, airtimeFactor: UInt32, txDelay: UInt32 = 0, directTxDelay: UInt32 = 0, floodMax: UInt8 = 3) {
-        sendCommand(MeshCoreProtocol.buildSetTuningParams(rxDelayBase: rxDelayBase, airtimeFactor: airtimeFactor, txDelay: txDelay, directTxDelay: directTxDelay, floodMax: floodMax), label: "SET_TUNING")
+        Self.logger.info("TUNING SET: rxDelay=\(rxDelayBase) airtime=\(airtimeFactor) txDelay=\(txDelay) directTxDelay=\(directTxDelay) floodMax=\(floodMax)")
+        let frame = MeshCoreProtocol.buildSetTuningParams(rxDelayBase: rxDelayBase, airtimeFactor: airtimeFactor, txDelay: txDelay, directTxDelay: directTxDelay, floodMax: floodMax)
+        Self.logger.info("TUNING TX: [\(frame.count) bytes] \(frame.map { String(format: "%02X", $0) }.joined(separator: " "))")
+        sendCommand(frame, label: "SET_TUNING")
+        // Optimistic local update — prevents reverting when loadFromConfig reads stale deviceConfig
+        deviceConfig.floodMax = floodMax
+        deviceConfig.rxDelayBase = rxDelayBase
+        deviceConfig.airtimeFactor = airtimeFactor
+        deviceConfig.txDelay = txDelay
+        deviceConfig.directTxDelay = directTxDelay
+        // Read back after 1s to confirm device accepted
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 1_000_000_000) // 1s
+            self?.requestTuningParams()
+        }
     }
 
     func setOtherParams(manualAddContacts: UInt8, telemetryBase: UInt8, telemetryLocation: UInt8, advertLocPolicy: UInt8, multiACK: UInt8) {
