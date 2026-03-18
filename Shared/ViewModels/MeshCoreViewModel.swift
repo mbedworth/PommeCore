@@ -2530,6 +2530,24 @@ final class MeshCoreViewModel: ObservableObject {
         }
     }
 
+    /// Clear all messages for all contacts.
+    func clearAllMessages() {
+        messagesByContact.removeAll()
+        messageStore.deleteAllMessages()
+        unreadCounts.removeAll()
+        updateAppBadge()
+    }
+
+    /// Clear all saved message drafts from iCloud.
+    func clearAllDrafts() {
+        let store = NSUbiquitousKeyValueStore.default
+        let keys = store.dictionaryRepresentation.keys.filter { $0.hasPrefix("draft.") }
+        for key in keys {
+            store.removeObject(forKey: key)
+        }
+        store.synchronize()
+    }
+
     /// Retry sending a failed message. Restarts the full retry flow.
     func retryMessage(_ message: Message) {
         guard message.isOutgoing, message.status == .failed else { return }

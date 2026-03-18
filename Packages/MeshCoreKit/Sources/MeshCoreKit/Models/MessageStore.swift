@@ -43,6 +43,15 @@ public final class MessageStore {
         }
     }
 
+    /// Delete all message files from disk.
+    public func deleteAllMessages() {
+        guard let files = try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
+        else { return }
+        for file in files where file.pathExtension == "json" {
+            try? FileManager.default.removeItem(at: file)
+        }
+    }
+
     /// Load all persisted messages grouped by contact key hash.
     public func loadAllMessages() -> [Data: [Message]] {
         var result: [Data: [Message]] = [:]
