@@ -2163,8 +2163,8 @@ final class MeshCoreViewModel: ObservableObject {
         case .currentAdvert(let adData):
             Self.logger.debug("Current advert: \(adData.count) bytes")
 
-        case .rawMeshPacket(let pktData):
-            Self.logger.debug("Raw mesh packet: \(pktData.count) bytes")
+        case .rawData(let pktData):
+            Self.logger.debug("Raw data: \(pktData.count) bytes")
 
         case .contactDeleted(let publicKey):
             let keyPrefix = publicKey.prefix(6)
