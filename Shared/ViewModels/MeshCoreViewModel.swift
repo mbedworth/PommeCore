@@ -1166,11 +1166,19 @@ final class MeshCoreViewModel: ObservableObject {
 
     // MARK: - Protocol Commands
 
+    /// Routine commands that don't need hex dumps in the in-app debug log.
+    private static let routineLabels: Set<String> = [
+        "GET_BATT", "GET_TIME", "GET_TUNING", "GET_CUSTOM_VARS", "GET_STATS(0)",
+        "GET_STATS(1)", "GET_STATS(2)", "GET_AUTOADD", "APP_START", "DEVICE_QUERY",
+    ]
+
     private func sendCommand(_ data: Data, label: String) {
+        let verbose = !Self.routineLabels.contains(label)
+
         if wifiManager.isConnected {
             let hex = data.map { String(format: "%02x", $0) }.joined(separator: " ")
             Self.logger.info("TX(WiFi) \(label) [\(data.count) bytes]: \(hex)")
-            DebugLogger.shared.log("TX(WiFi) \(label) [\(data.count)B] \(hex)", level: .tx)
+            if verbose { DebugLogger.shared.log("TX(WiFi) \(label) [\(data.count)B] \(hex)", level: .tx) }
             wifiManager.sendFrame(data)
             return
         }
@@ -1178,7 +1186,7 @@ final class MeshCoreViewModel: ObservableObject {
         if usbManager.isConnected && usbManager.detectedMode == .binary {
             let hex = data.map { String(format: "%02x", $0) }.joined(separator: " ")
             Self.logger.info("TX(USB) \(label) [\(data.count) bytes]: \(hex)")
-            DebugLogger.shared.log("TX(USB) \(label) [\(data.count)B] \(hex)", level: .tx)
+            if verbose { DebugLogger.shared.log("TX(USB) \(label) [\(data.count)B] \(hex)", level: .tx) }
             usbManager.sendFrame(data)
             return
         }
@@ -1190,7 +1198,7 @@ final class MeshCoreViewModel: ObservableObject {
         }
         let hex = data.map { String(format: "%02x", $0) }.joined(separator: " ")
         Self.logger.info("TX \(label) [\(data.count) bytes]: \(hex)")
-        DebugLogger.shared.log("TX \(label) [\(data.count)B] \(hex)", level: .tx)
+        if verbose { DebugLogger.shared.log("TX \(label) [\(data.count)B] \(hex)", level: .tx) }
         bleManager.send(data: data)
     }
 
@@ -1969,17 +1977,39 @@ final class MeshCoreViewModel: ObservableObject {
 
     // MARK: - Response Handling
 
+    /// Routine response codes that don't need hex dumps in the in-app debug log.
+    private static let routineResponseCodes: Set<UInt8> = [
+        0x00, // OK
+        0x02, // contactsStart
+        0x03, // contact
+        0x04, // endOfContacts
+        0x09, // currTime
+        0x0A, // noMoreMessages
+        0x0C, // battAndStorage
+        0x12, // channelInfo
+        0x17, // tuningParams
+        0x18, // stats
+        0x19, // autoAddConfig
+        0x80, // advert
+        0x81, // pathUpdated
+        0x83, // msgWaiting
+        0x88, // logRxData
+    ]
+
     private func handleReceivedData(_ data: Data) {
         let hex = data.map { String(format: "%02x", $0) }.joined(separator: " ")
         Self.logger.info("RX [\(data.count)]: \(hex)")
-        DebugLogger.shared.log("RX [\(data.count)B] \(hex)", level: .rx)
+        // Only log hex to in-app debug log for non-routine frames
+        let code = data.first ?? 0
+        if !Self.routineResponseCodes.contains(code) {
+            DebugLogger.shared.log("RX [\(data.count)B] \(hex)", level: .rx)
+        }
 
         let response = FrameParser.parse(data)
 
         switch response {
         case .ok:
             Self.logger.info("RESP OK — last command accepted by device")
-            DebugLogger.shared.log("RESP OK", level: .rx)
 
         case .error(let code, let description):
             Self.logger.warning("Error response: code=\(code) \(description)")
@@ -2083,7 +2113,7 @@ final class MeshCoreViewModel: ObservableObject {
             incomingContacts = []
 
         case .contact(let contact):
-            Self.logger.info("Received contact: \(contact.name) type=\(contact.type.rawValue)")
+            Self.logger.debug("Received contact: \(contact.name) type=\(contact.type.rawValue)")
             incomingContacts.append(contact)
 
         case .endOfContacts(let lastmod):
@@ -2162,14 +2192,13 @@ final class MeshCoreViewModel: ObservableObject {
             handleLoginFail()
 
         case .advert(let contact):
-            Self.logger.info("PUSH Advert from: \(contact.name)")
-            DebugLogger.shared.log("PUSH Advert: \(contact.name)", level: .rx)
+            Self.logger.debug("PUSH Advert from: \(contact.name)")
             handleAdvert(contact)
             // Also trigger debounced incremental sync for full data refresh
             requestDebouncedIncrementalSync()
 
         case .pathUpdated(let publicKey):
-            Self.logger.info("PUSH PathUpdated: key=\(publicKey.prefix(6).map { String(format: "%02x", $0) }.joined())")
+            Self.logger.debug("PUSH PathUpdated: key=\(publicKey.prefix(6).map { String(format: "%02x", $0) }.joined())")
             // Trigger debounced incremental contact sync to pick up the new path
             requestDebouncedIncrementalSync()
 
@@ -2256,8 +2285,7 @@ final class MeshCoreViewModel: ObservableObject {
                 // PUSH_CODE_LOG_RX_DATA — raw LoRa packet received by device
                 let snr = payload.count > 0 ? Int8(bitPattern: payload[0]) : 0
                 let rssi = payload.count > 1 ? Int8(bitPattern: payload[1]) : 0
-                Self.logger.info("LOG_RX_DATA (0x88): snr=\(Float(snr)/4.0) rssi=\(rssi) rawLen=\(payload.count - 2)")
-                DebugLogger.shared.log("0x88 LOG_RX: snr=\(String(format: "%.1f", Float(snr)/4.0)) rssi=\(rssi) \(payload.count - 2)B", level: .rx)
+                Self.logger.debug("LOG_RX_DATA (0x88): snr=\(Float(snr)/4.0) rssi=\(rssi) rawLen=\(payload.count - 2)")
 
                 // Echo detection via 0x88 timing correlation.
                 // If a LOG_RX_DATA arrives within 30s of our channel send,
