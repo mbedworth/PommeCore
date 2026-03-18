@@ -10,6 +10,10 @@ struct SettingsView: View {
     @State private var statsExpanded = false
     @State private var clockSynced = false
     @StateObject private var tipJar = TipJarManager()
+    @State private var radioToDelete: String?
+    @State private var showDeleteRadioConfirm = false
+    @State private var radioToMigrate: String?
+    @State private var showMigrateSheet = false
 
     private var batteryChemistry: BatteryChemistry {
         BatteryChemistry(rawValue: batteryChemistryRaw) ?? .lipo
@@ -41,6 +45,7 @@ struct SettingsView: View {
         List {
             appearanceSection
             iCloudSection
+            radioDataSection
 
             Section {
                 VStack(spacing: 16) {
@@ -70,6 +75,7 @@ struct SettingsView: View {
         List {
             appearanceSection
             iCloudSection
+            radioDataSection
             notificationsSection
             messageSettingsSection
             deviceInfoSection
@@ -117,7 +123,7 @@ private extension SettingsView {
         } header: {
             sectionHeader("iCloud")
         } footer: {
-            Text("When enabled, nicknames, channel secrets, saved passwords, and notification preferences sync across your Apple devices via iCloud.")
+            Text("Syncs nicknames, notes, channel secrets, login credentials, and recent messages between your Apple devices via iCloud. Data is encrypted by Apple in transit and at rest. Messages are stored per radio \u{2014} switching radios keeps data separate.")
                 .font(.caption2)
         }
     }
@@ -127,6 +133,163 @@ private extension SettingsView {
             get: { UserDefaults.standard.object(forKey: "iCloudSyncEnabled") == nil ? true : UserDefaults.standard.bool(forKey: "iCloudSyncEnabled") },
             set: { UserDefaults.standard.set($0, forKey: "iCloudSyncEnabled") }
         )
+    }
+
+    var radioDataSection: some View {
+        RadioDataSection(viewModel: viewModel, radioToDelete: $radioToDelete, showDeleteRadioConfirm: $showDeleteRadioConfirm, radioToMigrate: $radioToMigrate, showMigrateSheet: $showMigrateSheet)
+    }
+}
+
+struct RadioDataSection: View {
+    @ObservedObject var viewModel: MeshCoreViewModel
+    @Binding var radioToDelete: String?
+    @Binding var showDeleteRadioConfirm: Bool
+    @Binding var radioToMigrate: String?
+    @Binding var showMigrateSheet: Bool
+
+    private var currentRadioPrefix: String? {
+        let hex = viewModel.deviceConfig.publicKeyHex
+        return hex.isEmpty ? nil : String(hex.prefix(12))
+    }
+
+    private var knownRadios: [String] {
+        let store = NSUbiquitousKeyValueStore.default
+        let allKeys = store.dictionaryRepresentation.keys
+        var prefixes = Set<String>()
+        for key in allKeys where key.hasPrefix("msg.") {
+            let parts = key.dropFirst(4) // remove "msg."
+            if let dot = parts.firstIndex(of: ".") {
+                prefixes.insert(String(parts[parts.startIndex..<dot]))
+            }
+        }
+        return prefixes.sorted()
+    }
+
+    var body: some View {
+        if !knownRadios.isEmpty {
+            Section {
+                ForEach(knownRadios, id: \.self) { radioPrefix in
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Radio \(radioPrefix.prefix(8))...")
+                                .font(.body)
+                                .foregroundStyle(MeshTheme.textPrimary)
+                            Text("\(messageCountForRadio(radioPrefix)) messages synced")
+                                .font(.caption)
+                                .foregroundStyle(MeshTheme.textSecondary)
+                        }
+                        Spacer()
+                        if radioPrefix == currentRadioPrefix {
+                            Text("Connected")
+                                .font(.caption)
+                                .foregroundStyle(MeshTheme.connected)
+                        }
+                    }
+                    .listRowBackground(MeshTheme.surface)
+                    .contextMenu {
+                        if radioPrefix != currentRadioPrefix && currentRadioPrefix != nil {
+                            Button {
+                                radioToMigrate = radioPrefix
+                                showMigrateSheet = true
+                            } label: {
+                                Label("Migrate to Current Radio", systemImage: "arrow.right.arrow.left")
+                            }
+                        }
+                        Button(role: .destructive) {
+                            radioToDelete = radioPrefix
+                            showDeleteRadioConfirm = true
+                        } label: {
+                            Label("Delete All Data", systemImage: "trash")
+                        }
+                    }
+                    .swipeActions(edge: .trailing) {
+                        Button(role: .destructive) {
+                            radioToDelete = radioPrefix
+                            showDeleteRadioConfirm = true
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    }
+                }
+            } header: {
+                Text("Radio Data")
+                    .foregroundStyle(MeshTheme.textSecondary)
+            } footer: {
+                Text("Each radio stores messages separately. If you replace a radio, use \u{2018}Migrate\u{2019} to move history to your new device.")
+                    .font(.caption2)
+            }
+            .confirmationDialog("Delete Radio Data?", isPresented: $showDeleteRadioConfirm) {
+                Button("Delete All Messages", role: .destructive) {
+                    if let prefix = radioToDelete {
+                        deleteRadioData(radioPrefix: prefix)
+                    }
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("This will permanently delete all synced messages for this radio from iCloud and all your devices. This cannot be undone.")
+            }
+            .sheet(isPresented: $showMigrateSheet) {
+                NavigationStack {
+                    VStack(spacing: 16) {
+                        Image(systemName: "arrow.right.arrow.left")
+                            .font(.system(size: 48))
+                            .foregroundStyle(MeshTheme.accent)
+                        Text("Migrate Messages")
+                            .font(.headline)
+                        Text("Copy all message history from the old radio to your currently connected radio.")
+                            .font(.subheadline)
+                            .foregroundStyle(MeshTheme.textSecondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+                        Button("Migrate") {
+                            if let old = radioToMigrate, let current = currentRadioPrefix {
+                                migrateRadioData(from: old, to: current)
+                            }
+                            showMigrateSheet = false
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(MeshTheme.interactiveGreen)
+                    }
+                    .padding()
+                    .navigationTitle("Migrate Radio Data")
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Cancel") { showMigrateSheet = false }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func messageCountForRadio(_ radioPrefix: String) -> Int {
+        let store = NSUbiquitousKeyValueStore.default
+        let allKeys = store.dictionaryRepresentation.keys
+        return allKeys.filter { $0.hasPrefix("msg.\(radioPrefix).") }.count * 50 // approximate
+    }
+
+    private func deleteRadioData(radioPrefix: String) {
+        let store = NSUbiquitousKeyValueStore.default
+        let allKeys = store.dictionaryRepresentation.keys
+        let radioKeys = allKeys.filter { $0.hasPrefix("msg.\(radioPrefix).") }
+        for key in radioKeys {
+            store.removeObject(forKey: key)
+        }
+        store.synchronize()
+    }
+
+    private func migrateRadioData(from oldPrefix: String, to newPrefix: String) {
+        let store = NSUbiquitousKeyValueStore.default
+        let allKeys = store.dictionaryRepresentation.keys
+        let oldKeys = allKeys.filter { $0.hasPrefix("msg.\(oldPrefix).") }
+        for oldKey in oldKeys {
+            let contactSuffix = oldKey.replacingOccurrences(of: "msg.\(oldPrefix).", with: "")
+            let newKey = "msg.\(newPrefix).\(contactSuffix)"
+            if let data = store.data(forKey: oldKey) {
+                store.set(data, forKey: newKey)
+            }
+        }
+        store.synchronize()
     }
 }
 
