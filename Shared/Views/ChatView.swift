@@ -241,6 +241,9 @@ struct ChatView: View {
                         proxy.scrollTo(last.id, anchor: .bottom)
                     }
                 }
+                // User is viewing the chat — new messages are read immediately
+                withAnimation { unreadDividerIndex = nil }
+                viewModel.markAsRead(contactKey: contact.publicKeyPrefix)
             }
             .onAppear {
                 unreadDividerIndex = viewModel.firstUnreadIndex(in: messages, for: contact.publicKeyPrefix)
@@ -400,6 +403,9 @@ struct ChannelChatView: View {
                         proxy.scrollTo(last.id, anchor: .bottom)
                     }
                 }
+                // User is viewing the chat — new messages are read immediately
+                withAnimation { unreadDividerIndex = nil }
+                viewModel.markAsRead(contactKey: channelKey)
             }
             .onAppear {
                 unreadDividerIndex = viewModel.firstUnreadIndex(in: messages, for: channelKey)
@@ -407,6 +413,12 @@ struct ChannelChatView: View {
                     proxy.scrollTo(messages[idx].id, anchor: .center)
                 } else if let last = messages.last {
                     proxy.scrollTo(last.id, anchor: .bottom)
+                }
+                // Clear the divider after user has had time to see it
+                if unreadDividerIndex != nil {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                        withAnimation { unreadDividerIndex = nil }
+                    }
                 }
             }
         }

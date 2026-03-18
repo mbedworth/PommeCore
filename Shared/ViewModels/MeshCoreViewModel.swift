@@ -1676,10 +1676,13 @@ final class MeshCoreViewModel: ObservableObject {
     }
 
     func markAsRead(_ contact: Contact) {
-        unreadCounts[contact.publicKeyPrefix] = 0
+        markAsRead(contactKey: contact.publicKeyPrefix)
+    }
+
+    func markAsRead(contactKey: Data) {
+        unreadCounts[contactKey] = 0
         updateAppBadge()
-        // Store the last-read timestamp for unread divider (iCloud synced)
-        let key = "lastRead.\(contact.publicKeyPrefix.map { String(format: "%02x", $0) }.joined())"
+        let key = "lastRead.\(contactKey.map { String(format: "%02x", $0) }.joined())"
         iCloudStore.set(Date().timeIntervalSince1970, forKey: key)
         iCloudStore.synchronize()
     }
