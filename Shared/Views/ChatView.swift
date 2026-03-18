@@ -947,6 +947,11 @@ struct RoomMessageBubble: View {
                         } label: {
                             Label("Copy", systemImage: "doc.on.doc")
                         }
+                        Button(role: .destructive) {
+                            viewModel.deleteMessage(message, in: message.contactKeyHash)
+                        } label: {
+                            Label("Delete Message", systemImage: "trash")
+                        }
                     }
 
                 HStack(spacing: 4) {
@@ -1208,6 +1213,11 @@ struct MessageBubble: View {
                         } label: {
                             Label("Copy", systemImage: "doc.on.doc")
                         }
+                        Button(role: .destructive) {
+                            viewModel.deleteMessage(message, in: message.contactKeyHash)
+                        } label: {
+                            Label("Delete Message", systemImage: "trash")
+                        }
                     }
 
                 HStack(spacing: 4) {
@@ -1372,6 +1382,11 @@ struct ChannelMessageBubble: View {
                             #endif
                         } label: {
                             Label("Copy", systemImage: "doc.on.doc")
+                        }
+                        Button(role: .destructive) {
+                            viewModel.deleteMessage(message, in: message.contactKeyHash)
+                        } label: {
+                            Label("Delete Message", systemImage: "trash")
                         }
                     }
 
