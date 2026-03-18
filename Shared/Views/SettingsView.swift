@@ -97,6 +97,11 @@ struct SettingsView: View {
             dangerZoneSection
         }
         .meshListStyle()
+        #if os(macOS)
+        .safeAreaInset(edge: .bottom) {
+            Color.clear.frame(height: 40)
+        }
+        #endif
         .toolbar {
             ToolbarItem(placement: .automatic) {
                 Button {
