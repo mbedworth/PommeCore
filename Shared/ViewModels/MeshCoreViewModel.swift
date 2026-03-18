@@ -151,6 +151,7 @@ final class MeshCoreViewModel: ObservableObject {
                 self?.loadNicknamesFromiCloud()
                 self?.loadContactNotesFromiCloud()
                 self?.loadContactGroupsFromiCloud()
+                self?.mergeMessagesForCurrentRadio()
             }
         }
     }
@@ -563,11 +564,80 @@ final class MeshCoreViewModel: ObservableObject {
 
     private func loadPersistedMessages() {
         messagesByContact = messageStore.loadAllMessages()
+        // Merge any messages synced from other devices via iCloud
+        mergeMessagesFromiCloud()
     }
 
     private func persistMessages(for contactKeyHash: Data) {
         if let messages = messagesByContact[contactKeyHash] {
             messageStore.saveMessages(messages, for: contactKeyHash)
+            syncMessagesToiCloud(for: contactKeyHash)
+        }
+    }
+
+    // MARK: - iCloud Message Sync
+
+    /// Sync the last 50 messages per contact to iCloud, keyed by radio pubkey.
+    private func syncMessagesToiCloud(for contactKeyHash: Data) {
+        guard UserDefaults.standard.object(forKey: "iCloudSyncEnabled") == nil
+                || UserDefaults.standard.bool(forKey: "iCloudSyncEnabled") else { return }
+        let radioKey = deviceConfig.publicKeyHex
+        guard !radioKey.isEmpty else { return }
+
+        let contactHex = contactKeyHash.map { String(format: "%02x", $0) }.joined()
+        let key = "msg.\(radioKey.prefix(12)).\(contactHex)"
+
+        guard let messages = messagesByContact[contactKeyHash] else { return }
+        let recent = Array(messages.suffix(50))
+
+        if let data = try? JSONEncoder().encode(recent), data.count < 60_000 {
+            iCloudStore.set(data, forKey: key)
+            // Don't call synchronize on every message — let the system batch
+        }
+    }
+
+    /// On launch, merge iCloud messages with local messages.
+    private func mergeMessagesFromiCloud() {
+        guard UserDefaults.standard.object(forKey: "iCloudSyncEnabled") == nil
+                || UserDefaults.standard.bool(forKey: "iCloudSyncEnabled") else { return }
+
+        // We don't know the radio key yet at launch — defer to after SELF_INFO
+    }
+
+    /// Called after SELF_INFO when we know the radio's public key.
+    func mergeMessagesForCurrentRadio() {
+        let radioKey = deviceConfig.publicKeyHex
+        guard !radioKey.isEmpty else { return }
+        let prefix = "msg.\(radioKey.prefix(12))."
+
+        let allKeys = iCloudStore.dictionaryRepresentation.keys
+        var mergedCount = 0
+
+        for key in allKeys where key.hasPrefix(prefix) {
+            let contactHex = String(key.dropFirst(prefix.count))
+            guard let contactKeyHash = Data(hexString: contactHex),
+                  let data = iCloudStore.data(forKey: key),
+                  let cloudMessages = try? JSONDecoder().decode([Message].self, from: data)
+            else { continue }
+
+            let localMessages = messagesByContact[contactKeyHash] ?? []
+            let localIDs = Set(localMessages.map(\.id))
+            var merged = localMessages
+
+            for msg in cloudMessages where !localIDs.contains(msg.id) {
+                merged.append(msg)
+                mergedCount += 1
+            }
+
+            if merged.count > localMessages.count {
+                merged.sort { $0.timestamp < $1.timestamp }
+                messagesByContact[contactKeyHash] = merged
+                messageStore.saveMessages(merged, for: contactKeyHash)
+            }
+        }
+
+        if mergedCount > 0 {
+            Self.logger.info("iCloud sync: merged \(mergedCount) messages from other devices")
         }
     }
 
@@ -1765,6 +1835,7 @@ final class MeshCoreViewModel: ObservableObject {
             deviceConfig.maxTXPower = info.maxTXPower
             deviceConfig.publicKeyHex = info.publicKey.map { String(format: "%02x", $0) }.joined()
             loadBatteryCalibration()
+            mergeMessagesForCurrentRadio()
             deviceConfig.latitude = info.latitude
             deviceConfig.longitude = info.longitude
             deviceConfig.radioFrequency = info.radioFreq
