@@ -550,6 +550,13 @@ struct RemoteRoutingSection: View {
                 }
                 .buttonStyle(.plain)
                 .listRowBackground(MeshTheme.surface)
+
+                if let neighborsResult = session.settings["discover.neighbors"], !neighborsResult.isEmpty {
+                    Text(neighborsResult)
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundStyle(MeshTheme.textPrimary)
+                        .listRowBackground(MeshTheme.surface)
+                }
             } label: {
                 Label("Advanced Routing", systemImage: "arrow.triangle.branch")
                     .foregroundStyle(MeshTheme.accent)
