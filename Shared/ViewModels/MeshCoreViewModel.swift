@@ -144,11 +144,15 @@ final class MeshCoreViewModel: ObservableObject {
     private func registerTerminationHandler() {
         #if os(iOS)
         NotificationCenter.default.addObserver(forName: UIApplication.willTerminateNotification, object: nil, queue: .main) { [weak self] _ in
-            self?.bleManager.disconnectForTermination()
+            Task { @MainActor in
+                self?.bleManager.disconnectForTermination()
+            }
         }
         #elseif os(macOS)
         NotificationCenter.default.addObserver(forName: NSApplication.willTerminateNotification, object: nil, queue: .main) { [weak self] _ in
-            self?.bleManager.disconnectForTermination()
+            Task { @MainActor in
+                self?.bleManager.disconnectForTermination()
+            }
         }
         #endif
     }
