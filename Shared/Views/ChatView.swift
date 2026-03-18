@@ -18,6 +18,18 @@ struct ChatView: View {
         viewModel.messages(for: contact)
     }
 
+    private var routeLabel: String {
+        if contact.outPathLen == 0 { return "Direct" }
+        if contact.outPathLen < 0 { return "Flood" }
+        return "\(contact.outPathLen) hop\(contact.outPathLen == 1 ? "" : "s")"
+    }
+
+    private var routeColor: Color {
+        if contact.outPathLen == 0 { return MeshTheme.connected }
+        if contact.outPathLen < 0 { return .orange }
+        return MeshTheme.textSecondary
+    }
+
     private var displayedMessages: [Message] {
         if searchText.isEmpty { return messages }
         return messages.filter { $0.text.localizedCaseInsensitiveContains(searchText) }
@@ -58,9 +70,15 @@ struct ChatView: View {
         }
         .background(MeshTheme.background)
         .navigationTitle(viewModel.displayName(for: contact))
+        #if os(macOS)
+        .navigationSubtitle(routeLabel)
+        #endif
         .toolbar {
             ToolbarItem(placement: .automatic) {
                 HStack(spacing: 12) {
+                    Text(routeLabel)
+                        .font(.caption2)
+                        .foregroundStyle(routeColor)
                     Button {
                         withAnimation { isSearching.toggle() }
                         if !isSearching { searchText = "" }
