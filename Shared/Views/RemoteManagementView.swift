@@ -6,6 +6,7 @@ struct RemoteManagementView: View {
     let contact: Contact
     @EnvironmentObject var viewModel: MeshCoreViewModel
     @ObservedObject var session: RemoteDeviceSession
+    @State private var showLogoutConfirm = false
 
     /// Accent color — teal for room servers, amber for repeaters.
     private var remoteAccent: Color {
@@ -112,7 +113,7 @@ struct RemoteManagementView: View {
     private var disconnectSection: some View {
         Section {
             Button {
-                viewModel.logoutFromRemoteDevice(contact)
+                showLogoutConfirm = true
             } label: {
                 HStack {
                     Image(systemName: "rectangle.portrait.and.arrow.right")
@@ -126,6 +127,14 @@ struct RemoteManagementView: View {
             }
             .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
+            .confirmationDialog("Logout from \(viewModel.displayName(for: contact))?", isPresented: $showLogoutConfirm, titleVisibility: .visible) {
+                Button("Logout", role: .destructive) {
+                    viewModel.logoutFromRemoteDevice(contact)
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("You will need to re-enter the password to reconnect.")
+            }
         }
     }
 
