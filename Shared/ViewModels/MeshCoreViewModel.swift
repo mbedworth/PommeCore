@@ -1553,7 +1553,7 @@ final class MeshCoreViewModel: ObservableObject {
             text: trimmed,
             timestamp: Date(),
             isOutgoing: true,
-            status: .sending,
+            status: .sent,  // Channel messages are fire-and-forget — mark sent immediately
             channelIndex: channelIndex
         )
         messagesByContact[channelKey, default: []].append(outgoing)
