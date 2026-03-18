@@ -186,6 +186,13 @@ public enum FrameParser {
             return .currentAdvert(payload)
 
         case .rawMeshPacket:
+            // 0x0B may also be RESP_CODE_EXPORT_CONTACT on some firmware versions
+            // (the wiki spec says export response is 0x0B, not 0x14)
+            if let urlString = String(data: payload, encoding: .utf8),
+               urlString.contains("meshcore://") {
+                logger.info("ExportedContact (via 0x0B): \(payload.count) bytes, url='\(urlString.prefix(80))'")
+                return .exportedContact(url: urlString.trimmingCharacters(in: .controlCharacters))
+            }
             return .rawMeshPacket(payload)
 
         case .advertPath:
