@@ -461,7 +461,7 @@ struct RemoteTimingSection: View {
                 cliEditRow(icon: "dial.low", label: "AGC Reset Interval", text: $agcReset, current: session.settings["agc.reset.interval"])
 
                 if canEdit {
-                    SaveButton(state: saveState, label: "Apply Timing") {
+                    SaveButton(state: saveState, label: "Apply Settings") {
                         if !airtimeFactor.isEmpty { sendCLI("set af \(airtimeFactor)") }
                         if !rxDelay.isEmpty { sendCLI("set rxdelay \(rxDelay)") }
                         if !txDelay.isEmpty { sendCLI("set txdelay \(txDelay)") }
