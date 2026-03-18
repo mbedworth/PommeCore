@@ -1800,6 +1800,7 @@ class TipJarManager: ObservableObject {
     @Published var products: [Product] = []
     @Published var purchaseSuccess = false
     @Published var isLoading = false
+    @Published var purchasingProductID: String?
 
     private var hasLoaded = false
 
@@ -1847,20 +1848,34 @@ class TipJarManager: ObservableObject {
     }
 
     func purchase(_ product: Product) {
-        Task.detached {
+        DebugLogger.shared.log("TIP JAR: tapped \(product.id) (\(product.displayPrice))", level: .info)
+        purchasingProductID = product.id
+
+        Task { @MainActor in
             do {
                 let result = try await product.purchase()
-                if case .success(let verification) = result {
+                DebugLogger.shared.log("TIP JAR: purchase result for \(product.id): \(result)", level: .info)
+
+                switch result {
+                case .success(let verification):
                     if case .verified(let transaction) = verification {
                         await transaction.finish()
-                        await MainActor.run {
-                            self.purchaseSuccess = true
-                        }
+                        DebugLogger.shared.log("TIP JAR: verified and finished \(product.id)", level: .info)
+                        self.purchaseSuccess = true
+                    } else {
+                        DebugLogger.shared.log("TIP JAR: unverified transaction for \(product.id)", level: .warning)
                     }
+                case .pending:
+                    DebugLogger.shared.log("TIP JAR: purchase pending (Ask to Buy?) for \(product.id)", level: .warning)
+                case .userCancelled:
+                    DebugLogger.shared.log("TIP JAR: user cancelled \(product.id)", level: .info)
+                @unknown default:
+                    DebugLogger.shared.log("TIP JAR: unknown result for \(product.id)", level: .warning)
                 }
             } catch {
-                // Purchase failed
+                DebugLogger.shared.log("TIP JAR: purchase error for \(product.id): \(error.localizedDescription)", level: .error)
             }
+            self.purchasingProductID = nil
         }
     }
 }
@@ -1924,18 +1939,24 @@ private extension SettingsView {
                                         .foregroundStyle(MeshTheme.textSecondary)
                                 }
                                 Spacer()
-                                Text(product.displayPrice)
-                                    .fontWeight(.bold)
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 6)
-                                    .background(MeshTheme.interactiveGreen)
-                                    .foregroundStyle(.black)
-                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                                if tipJar.purchasingProductID == product.id {
+                                    ProgressView()
+                                        .frame(width: 60)
+                                } else {
+                                    Text(product.displayPrice)
+                                        .fontWeight(.bold)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 6)
+                                        .background(MeshTheme.interactiveGreen)
+                                        .foregroundStyle(.black)
+                                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                                }
                             }
                             .contentShape(Rectangle())
                             .padding(.vertical, 4)
                         }
                         .buttonStyle(.plain)
+                        .disabled(tipJar.purchasingProductID != nil)
                     }
                 } else {
                     ForEach(TipJarManager.placeholders) { tip in
