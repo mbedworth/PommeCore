@@ -1295,6 +1295,7 @@ struct PrivacySection: View {
     @State private var autoAddRepeater: Bool = true
     @State private var autoAddRoom: Bool = true
     @State private var autoAddSensor: Bool = true
+    @AppStorage("locationPrivacyRadius") private var locationPrivacyRadius: Double = 0
 
     var body: some View {
         Section {
@@ -1383,6 +1384,22 @@ struct PrivacySection: View {
             .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
 
+            HStack {
+                Image(systemName: "location.slash.circle")
+                    .foregroundStyle(MeshTheme.accent)
+                    .frame(width: 24)
+                Picker("Position Accuracy", selection: $locationPrivacyRadius) {
+                    Text("Exact").tag(0.0)
+                    Text("\u{00B1} 100m (~1 block)").tag(100.0)
+                    Text("\u{00B1} 500m (~\u{00BC} mile)").tag(500.0)
+                    Text("\u{00B1} 1km (~\u{00BD} mile)").tag(1000.0)
+                    Text("\u{00B1} 5km (~3 miles)").tag(5000.0)
+                }
+                .foregroundStyle(MeshTheme.accent)
+                .tint(MeshTheme.accent)
+            }
+            .listRowBackground(MeshTheme.surface)
+
             SaveButton(state: saveState, label: "Save Privacy Settings") {
                 viewModel.setOtherParams(
                     manualAddContacts: manualAdd ? 1 : 0,
@@ -1397,7 +1414,7 @@ struct PrivacySection: View {
             Text("Privacy & Security")
                 .foregroundStyle(MeshTheme.textSecondary)
         } footer: {
-            Text("Controls what telemetry data is shared when requested. Per-Contact mode only shares with contacts that have telemetry permission set.")
+            Text("Controls what telemetry data is shared when requested. Per-Contact mode only shares with contacts that have telemetry permission set. Position Accuracy adds a random offset to your advertised location for privacy.")
                 .font(.caption2)
         }
 
@@ -1552,6 +1569,9 @@ struct PrivacySection: View {
         .onAppear { loadFromConfig() }
         .onChange(of: viewModel.deviceConfig.manualAddContacts) { _ in loadFromConfig() }
         .onChange(of: viewModel.deviceConfig.blePIN) { _ in pinText = String(viewModel.deviceConfig.blePIN) }
+        .onChange(of: locationPrivacyRadius) { _ in
+            MeshCoreViewModel.regenerateLocationFudge()
+        }
     }
 
     private func loadFromConfig() {

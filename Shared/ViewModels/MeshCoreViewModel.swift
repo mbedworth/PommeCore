@@ -1338,7 +1338,30 @@ final class MeshCoreViewModel: ObservableObject {
     }
 
     func setAdvertLatLon(latitude: Double, longitude: Double) {
-        sendCommand(MeshCoreProtocol.buildSetAdvertLatLon(latitude: latitude, longitude: longitude), label: "SET_LATLON")
+        let (fLat, fLon) = fudgeLocation(lat: latitude, lon: longitude)
+        sendCommand(MeshCoreProtocol.buildSetAdvertLatLon(latitude: fLat, longitude: fLon), label: "SET_LATLON")
+    }
+
+    /// Session-stable random offset for location privacy. Regenerated on app launch
+    /// or when the privacy radius setting changes.
+    private static var locationFudgeAngle: Double = Double.random(in: 0..<(2 * .pi))
+    private static var locationFudgeFraction: Double = Double.random(in: 0...1)
+
+    /// Apply a privacy offset to coordinates. The offset is consistent within a session.
+    private func fudgeLocation(lat: Double, lon: Double) -> (Double, Double) {
+        let radius = UserDefaults.standard.double(forKey: "locationPrivacyRadius")
+        guard radius > 0 else { return (lat, lon) }
+
+        let distance = Self.locationFudgeFraction * radius
+        let latOffset = (distance * cos(Self.locationFudgeAngle)) / 111_320.0
+        let lonOffset = (distance * sin(Self.locationFudgeAngle)) / (111_320.0 * cos(lat * .pi / 180))
+        return (lat + latOffset, lon + lonOffset)
+    }
+
+    /// Regenerate the location fudge offset (called when privacy radius changes).
+    static func regenerateLocationFudge() {
+        locationFudgeAngle = Double.random(in: 0..<(2 * .pi))
+        locationFudgeFraction = Double.random(in: 0...1)
     }
 
     func setRadioParams(frequency: UInt32, bandwidth: UInt32, spreadingFactor: UInt8, codingRate: UInt8, repeatMode: Bool) {
