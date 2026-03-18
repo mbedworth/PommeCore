@@ -755,10 +755,13 @@ final class MeshCoreViewModel: ObservableObject {
         }
         content.body = message.text
 
-        // Include contact pubkey for quick reply
+        // Include contact pubkey for quick reply and navigation
         if let contact {
             content.userInfo["contactPubkey"] = contact.publicKey.map { String(format: "%02x", $0) }.joined()
             content.userInfo["isChannel"] = isChannel
+            if let chIdx = message.channelIndex {
+                content.userInfo["channelIndex"] = chIdx
+            }
             #if os(iOS)
             if !isChannel {
                 content.categoryIdentifier = "MESSAGE_CATEGORY"
