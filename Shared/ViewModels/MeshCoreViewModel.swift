@@ -1753,12 +1753,8 @@ final class MeshCoreViewModel: ObservableObject {
         messagesByContact[channelKey, default: []].append(outgoing)
         persistMessages(for: channelKey)
 
-        // Track for positive echo detection (opt-in) — no timeout, no failure state
-        if UserDefaults.standard.bool(forKey: "channelEchoDetection") {
-            recentChannelMessages.append((id: outgoing.id, channelKey: channelKey, text: trimmed, sent: Date()))
-            // Prune entries older than 60 seconds
-            recentChannelMessages.removeAll { Date().timeIntervalSince($0.sent) > 60 }
-        }
+        // Note: echo/repeat detection removed. meshcore.js does not implement it.
+        // The firmware does not deliver echoes of our own channel messages back to us.
     }
 
     func syncNextMessage() {
@@ -2115,24 +2111,6 @@ final class MeshCoreViewModel: ObservableObject {
         case .channelMsgRecv(let message):
             Self.logger.info("CHANNEL RX: ch=\(message.channelIndex ?? 0) isOutgoing=\(message.isOutgoing) sender='\(message.senderName ?? "?")' text='\(message.text.prefix(40))'")
             DebugLogger.shared.log("CH RX: ch=\(message.channelIndex ?? 0) from='\(message.senderName ?? "?")' '\(message.text.prefix(40))'", level: .rx)
-            // Positive echo detection: if this matches a recent outgoing message, mark as repeated
-            let echoEnabled = UserDefaults.standard.bool(forKey: "channelEchoDetection")
-            Self.logger.info("ECHO CHECK: enabled=\(echoEnabled) pendingCount=\(self.recentChannelMessages.count)")
-            if let chIdx = message.channelIndex, !recentChannelMessages.isEmpty {
-                let channelKey = Data([chIdx])
-                if let echoIdx = recentChannelMessages.firstIndex(where: { $0.channelKey == channelKey && $0.text == message.text }) {
-                    let echoInfo = recentChannelMessages.remove(at: echoIdx)
-                    if var msgs = messagesByContact[channelKey],
-                       let msgIdx = msgs.firstIndex(where: { $0.id == echoInfo.id }) {
-                        Self.logger.info("ECHO MATCH: marking message as repeated (text='\(message.text.prefix(30))')")
-                        msgs[msgIdx].status = .repeated
-                        messagesByContact[channelKey] = msgs
-                        persistMessages(for: channelKey)
-                    }
-                } else {
-                    Self.logger.debug("ECHO CHECK: no match found for ch=\(chIdx) text='\(message.text.prefix(30))'")
-                }
-            }
             handleIncomingMessage(message)
             if isSyncingMessages {
                 syncNextMessage()
