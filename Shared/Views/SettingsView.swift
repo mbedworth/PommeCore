@@ -1019,8 +1019,8 @@ struct TuningSection: View {
                     directTxDelay: c.directTxDelay,
                     floodMax: UInt8(newValue)
                 )
-                // Allow readback after device has had time to process
-                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                // Suppress readback until the device has processed and we've re-read
+                DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
                     suppressFloodMaxReadback = false
                 }
             }
@@ -1101,7 +1101,11 @@ struct TuningSection: View {
         let c = viewModel.deviceConfig
         rxDelay = c.rxDelayBase == 0 ? "0" : String(format: "%.1f", c.rxDelaySeconds)
         airtime = c.airtimeFactor == 0 ? "0" : String(format: "%.1f", c.airtimeMultiplier)
-        floodMaxHops = Int(c.floodMax)
+        // Only update floodMaxHops if the device has reported a value (floodMax > 0)
+        // and we're not suppressing readback from a recent user change
+        if c.floodMax > 0 && !suppressFloodMaxReadback {
+            floodMaxHops = Int(c.floodMax)
+        }
     }
 }
 
