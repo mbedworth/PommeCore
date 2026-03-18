@@ -859,7 +859,7 @@ struct RemoteGPSSection: View {
         Binding(
             get: {
                 if !gpsAdvertMode.isEmpty { return gpsAdvertMode }
-                return session.settings["gps.advert"] ?? "none"
+                return session.settings["gps advert"] ?? session.settings["gps.advert"] ?? "none"
             },
             set: { newValue in
                 gpsAdvertMode = newValue
