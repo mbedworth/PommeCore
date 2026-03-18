@@ -1663,6 +1663,8 @@ final class MeshCoreViewModel: ObservableObject {
             text: trimmed,
             channelIndex: channelIndex
         )
+        Self.logger.info("CHANNEL TX: [\(frame.count) bytes] \(frame.map { String(format: "%02X", $0) }.joined(separator: " "))")
+        Self.logger.info("CHANNEL TX: cmd=0x\(String(format: "%02X", frame[0])) txtType=\(frame[1]) chIdx=\(frame[2]) text='\(trimmed)'")
         sendCommand(frame, label: "SEND_CHANNEL_TXT")
 
         let channelKey = Data([channelIndex])
