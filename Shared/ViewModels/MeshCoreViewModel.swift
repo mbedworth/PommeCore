@@ -1520,12 +1520,7 @@ final class MeshCoreViewModel: ObservableObject {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
 
-        let frame = MeshCoreProtocol.buildSendTextMessage(
-            text: trimmed,
-            recipientKeyHash: contact.publicKeyPrefix
-        )
-        sendCommand(frame, label: "SEND_TXT")
-
+        // Add message to array BEFORE sending — prevents race where response arrives before message is stored
         let outgoing = Message(
             contactKeyHash: contact.publicKeyPrefix,
             text: trimmed,
@@ -1535,6 +1530,13 @@ final class MeshCoreViewModel: ObservableObject {
         )
         messagesByContact[contact.publicKeyPrefix, default: []].append(outgoing)
         persistMessages(for: contact.publicKeyPrefix)
+
+        let frame = MeshCoreProtocol.buildSendTextMessage(
+            text: trimmed,
+            recipientKeyHash: contact.publicKeyPrefix
+        )
+        Self.logger.info("DM SEND: to=\(contact.name) key=\(contact.publicKeyPrefix.map { String(format: "%02x", $0) }.joined())")
+        sendCommand(frame, label: "SEND_TXT")
     }
 
     func sendChannelMessage(_ text: String, channelIndex: UInt8 = 0) {
@@ -2040,13 +2042,16 @@ final class MeshCoreViewModel: ObservableObject {
             }
         }
 
+        var matched = false
         for (contactKey, messages) in messagesByContact {
             if let idx = messages.lastIndex(where: { $0.isOutgoing && ($0.status == .sending || $0.status == .retrying || $0.status == .flooding) }) {
+                Self.logger.info("DM RESP_SENT: matched message \(messages[idx].id) for contact \(contactKey.map { String(format: "%02x", $0) }.joined()) → .sent, ack=\(expectedACK)")
                 messagesByContact[contactKey]![idx].status = .sent
                 messagesByContact[contactKey]![idx].expectedACK = expectedACK
                 messagesByContact[contactKey]![idx].suggestedTimeoutMs = suggestedTimeoutMs
                 pendingACKs[expectedACK] = (contactKeyHash: contactKey, messageID: messages[idx].id)
                 persistMessages(for: contactKey)
+                matched = true
 
                 let timeoutSec = max(UInt64(suggestedTimeoutMs / 1000), 30)
                 Task { [weak self] in
@@ -2059,17 +2064,21 @@ final class MeshCoreViewModel: ObservableObject {
                 break
             }
         }
+        if !matched {
+            Self.logger.warning("DM RESP_SENT: NO .sending message found for ack=\(expectedACK)")
+        }
     }
 
     /// Handle PUSH_CODE_SEND_CONFIRMED — recipient ACKed our message.
     private func handleSendConfirmed(ackCode: UInt32, roundTripMs: UInt32) {
         guard let pending = pendingACKs.removeValue(forKey: ackCode) else {
-            Self.logger.warning("Received ACK for unknown code: \(ackCode)")
+            Self.logger.warning("DM CONFIRMED: no pending ACK for code \(ackCode)")
             return
         }
 
         if var messages = messagesByContact[pending.contactKeyHash],
            let idx = messages.firstIndex(where: { $0.id == pending.messageID }) {
+            Self.logger.info("DM CONFIRMED: message \(pending.messageID) → .delivered, roundTrip=\(roundTripMs)ms")
             messages[idx].status = .delivered
             messages[idx].roundTripMs = roundTripMs
             messagesByContact[pending.contactKeyHash] = messages
