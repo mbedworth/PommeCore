@@ -478,7 +478,7 @@ struct RemoteTimingSection: View {
             }
             .listRowBackground(MeshTheme.surface)
         } footer: {
-            Text("Advanced — adjust timing parameters for mesh performance. Default values work well for most setups. Flood Max Hops supports 1\u{2013}64 (default 3).")
+            Text("Advanced — adjust timing parameters for mesh performance. Default values work well for most setups. Flood Max Hops supports 0\u{2013}64 (default 64).")
                 .font(.caption2)
                 .foregroundStyle(MeshTheme.textSecondary)
         }

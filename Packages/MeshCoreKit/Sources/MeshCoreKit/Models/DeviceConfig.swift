@@ -93,7 +93,6 @@ public final class DeviceConfig: ObservableObject {
     @Published public var airtimeFactor: UInt32 = 0 // value * 1000
     @Published public var txDelay: UInt32 = 0       // value * 1000
     @Published public var directTxDelay: UInt32 = 0 // value * 1000
-    @Published public var floodMax: UInt8 = 3       // default 3 hops
 
     // MARK: - Privacy & Security
 

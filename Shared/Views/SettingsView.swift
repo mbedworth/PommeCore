@@ -1151,44 +1151,12 @@ struct TuningSection: View {
     @ObservedObject var viewModel: MeshCoreViewModel
     @State private var rxDelay: String = ""
     @State private var airtime: String = ""
-    @State private var floodMaxHops: Int = 3
     @State private var saveState: SaveButtonState = .idle
-    @State private var suppressFloodMaxReadback = false
 
     @State private var isExpanded = false
 
     var body: some View {
-        // Flood Max Hops — prominent, always visible
-        Section {
-            HStack {
-                Label("Flood Max Hops", systemImage: "arrow.triangle.branch")
-                    .foregroundStyle(MeshTheme.accent)
-                Spacer()
-                Picker("", selection: $floodMaxHops) {
-                    ForEach(1...64, id: \.self) { hops in
-                        Text("\(hops)").tag(hops)
-                    }
-                }
-                #if !os(watchOS)
-                .frame(width: 80)
-                #endif
-            }
-            .listRowBackground(MeshTheme.surface)
-            .onChange(of: floodMaxHops) { newValue in
-                suppressFloodMaxReadback = true
-                viewModel.setFloodMaxHops(UInt8(newValue))
-                DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
-                    suppressFloodMaxReadback = false
-                }
-            }
-        } header: {
-            Text("Mesh Network")
-        } footer: {
-            Text("Maximum number of hops for flood messages. This value is read from the device and can be changed via remote management CLI (set flood.max N).")
-                .font(.caption2)
-        }
-
-        // Advanced Tuning — disclosure group
+        // Tuning parameters
         Section {
             DisclosureGroup(isExpanded: $isExpanded) {
                 HStack {
@@ -1246,22 +1214,12 @@ struct TuningSection: View {
         }
         .onAppear { loadFromConfig() }
         .onChange(of: viewModel.deviceConfig.rxDelayBase) { _ in loadFromConfig() }
-        .onChange(of: viewModel.deviceConfig.floodMax) { newValue in
-            if !suppressFloodMaxReadback {
-                floodMaxHops = Int(newValue)
-            }
-        }
     }
 
     private func loadFromConfig() {
         let c = viewModel.deviceConfig
         rxDelay = c.rxDelayBase == 0 ? "0" : String(format: "%.1f", c.rxDelaySeconds)
         airtime = c.airtimeFactor == 0 ? "0" : String(format: "%.1f", c.airtimeMultiplier)
-        // Only update floodMaxHops if the device has reported a value (floodMax > 0)
-        // and we're not suppressing readback from a recent user change
-        if c.floodMax > 0 && !suppressFloodMaxReadback {
-            floodMaxHops = Int(c.floodMax)
-        }
     }
 }
 

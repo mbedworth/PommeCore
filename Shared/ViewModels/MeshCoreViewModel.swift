@@ -1409,14 +1409,6 @@ final class MeshCoreViewModel: ObservableObject {
         }
     }
 
-    /// Set flood max hops via CLI command. This is NOT part of CMD_SET_TUNING_PARAMS.
-    func setFloodMaxHops(_ value: UInt8) {
-        Self.logger.info("FLOOD MAX: setting to \(value) via CLI")
-        // Flood max is not a binary protocol field — must be set via CLI on the device.
-        // For companion radios, this is only settable via remote management CLI.
-        deviceConfig.floodMax = value
-    }
-
     func setOtherParams(manualAddContacts: UInt8, telemetryBase: UInt8, telemetryLocation: UInt8, advertLocPolicy: UInt8, multiACK: UInt8) {
         sendCommand(MeshCoreProtocol.buildSetOtherParams(
             manualAddContacts: manualAddContacts, telemetryBase: telemetryBase,
