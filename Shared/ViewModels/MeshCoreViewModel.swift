@@ -131,7 +131,8 @@ final class MeshCoreViewModel: ObservableObject {
     private func loadNicknamesFromiCloud() {
         guard let data = iCloudStore.data(forKey: "contactNicknames"),
               let decoded = try? JSONDecoder().decode([String: String].self, from: data) else { return }
-        nicknames = decoded
+        // Truncate any nicknames that exceed 32 characters (sync safety)
+        nicknames = decoded.mapValues { $0.count > 32 ? String($0.prefix(32)) : $0 }
     }
 
     private func saveNicknamesToiCloud() {
@@ -174,10 +175,11 @@ final class MeshCoreViewModel: ObservableObject {
 
     func setNickname(_ nickname: String, for contact: Contact) {
         let key = contact.publicKey.map { String(format: "%02x", $0) }.joined()
-        if nickname.isEmpty {
+        let trimmed = String(nickname.prefix(32))
+        if trimmed.isEmpty {
             nicknames.removeValue(forKey: key)
         } else {
-            nicknames[key] = nickname
+            nicknames[key] = trimmed
         }
         saveNicknamesToiCloud()
     }
