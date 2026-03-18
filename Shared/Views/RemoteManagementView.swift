@@ -61,7 +61,7 @@ struct RemoteManagementView: View {
         .meshListStyle()
         .navigationTitle("Remote Management")
         .task {
-            // Lazy-load: fetch full settings only when management screen opens
+            // Backup trigger: fetch settings if login auto-fetch hasn't started yet
             guard isLoggedIn, !session.hasLoadedFullSettings, !session.isFetchingSettings else { return }
             viewModel.fetchRemoteSettings(for: contact)
         }

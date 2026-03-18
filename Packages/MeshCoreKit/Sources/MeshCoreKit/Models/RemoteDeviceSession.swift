@@ -89,6 +89,11 @@ public final class RemoteDeviceSession: ObservableObject {
         cliHistory.filter({ !$0.isComplete }).count
     }
 
+    /// The oldest pending (unanswered) command, used for response attribution logging.
+    public var oldestPendingCommand: String? {
+        cliHistory.first(where: { !$0.isComplete })?.command
+    }
+
     public init(contact: Contact) {
         self.contact = contact
     }

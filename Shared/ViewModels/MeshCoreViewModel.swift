@@ -1708,6 +1708,11 @@ final class MeshCoreViewModel: ObservableObject {
         let session = remoteSession(for: contact)
         let cmdIndex = session.commandSent(trimmed)
 
+        // GPS-specific logging
+        if trimmed.hasPrefix("gps") {
+            Self.logger.info("REMOTE GPS: Sending '\(trimmed)' to \(contact.name)")
+        }
+
         let frame = MeshCoreProtocol.buildSendCLICommand(
             command: trimmed,
             recipientKeyHash: contact.publicKeyPrefix
@@ -1770,9 +1775,14 @@ final class MeshCoreViewModel: ObservableObject {
     }
 
     /// Fetch all settings from a remote device sequentially.
-    /// Called when the management screen opens (not on login).
+    /// Called automatically after login and when management screen opens.
     func fetchRemoteSettings(for contact: Contact) {
         let session = remoteSession(for: contact)
+        // Skip if already fetching (prevents race between auto-fetch and .task)
+        guard !session.isFetchingSettings else {
+            Self.logger.info("REMOTE MGMT: Settings fetch already in progress, skipping duplicate for \(contact.name)")
+            return
+        }
         session.isFetchingSettings = true
         session.fetchReceivedCount = 0
 
@@ -1789,6 +1799,7 @@ final class MeshCoreViewModel: ObservableObject {
         ]
 
         session.fetchTotalCount = commands.count
+        Self.logger.info("REMOTE MGMT: Fetching \(commands.count) settings for \(contact.name)")
 
         Task { [weak self] in
             for command in commands {
@@ -1797,6 +1808,7 @@ final class MeshCoreViewModel: ObservableObject {
             }
             session.isFetchingSettings = false
             session.hasLoadedFullSettings = true
+            Self.logger.info("REMOTE MGMT: Finished fetching settings for \(contact.name), received \(session.fetchReceivedCount)/\(commands.count)")
         }
     }
 
@@ -1808,6 +1820,7 @@ final class MeshCoreViewModel: ObservableObject {
             command: command,
             recipientKeyHash: contact.publicKeyPrefix
         )
+        Self.logger.debug("REMOTE MGMT: Sending CLI: '\(command)' to \(contact.name)")
         sendCommand(frame, label: "CLI_FETCH")
 
         // Wait for radio transmission, then poll
@@ -1818,11 +1831,14 @@ final class MeshCoreViewModel: ObservableObject {
         for _ in 0..<6 {
             try? await Task.sleep(nanoseconds: 500_000_000)
             if cmdIndex < session.cliHistory.count && session.cliHistory[cmdIndex].isComplete {
+                let response = session.cliHistory[cmdIndex].response ?? "(empty)"
+                Self.logger.debug("REMOTE MGMT: Response for '\(command)': '\(response)'")
                 return
             }
         }
 
         // Timeout
+        Self.logger.warning("REMOTE MGMT: Timeout for '\(command)' on \(contact.name)")
         session.timeoutCommand(at: cmdIndex)
     }
 
@@ -2386,31 +2402,17 @@ final class MeshCoreViewModel: ObservableObject {
                 // Sync stored messages first (room server pushes last 32 messages)
                 syncNextMessage()
                 if let contact = contacts.first(where: { $0.publicKeyPrefix == key }) {
-                    // Only fetch basic info (ver + clock) on login — full settings deferred to management screen
+                    // Auto-fetch full settings after login — brief delay to let message sync start
+                    Self.logger.info("REMOTE MGMT: Login success for \(contact.name), scheduling settings fetch")
                     Task { [weak self] in
-                        try? await Task.sleep(nanoseconds: 2_000_000_000) // 2s
-                        self?.fetchBasicRemoteInfo(for: contact)
+                        try? await Task.sleep(nanoseconds: 1_500_000_000) // 1.5s
+                        guard let self else { return }
+                        Self.logger.info("REMOTE MGMT: Starting auto-fetch settings for \(contact.name)")
+                        self.fetchRemoteSettings(for: contact)
                     }
                 }
                 return
             }
-        }
-    }
-
-    /// Fetch only ver + clock from a remote device (fast, called on login).
-    func fetchBasicRemoteInfo(for contact: Contact) {
-        let session = remoteSession(for: contact)
-        let commands = ["ver", "clock"]
-        session.isFetchingSettings = true
-        session.fetchTotalCount = commands.count
-        session.fetchReceivedCount = 0
-
-        Task { [weak self] in
-            for command in commands {
-                guard let self else { return }
-                await self.fetchRemoteSetting(command: command, contact: contact, session: session)
-            }
-            session.isFetchingSettings = false
         }
     }
 
@@ -2506,6 +2508,10 @@ final class MeshCoreViewModel: ObservableObject {
                     let responseText = message.text.hasPrefix("> ")
                         ? String(message.text.dropFirst(2))
                         : message.text
+                    // GPS-specific logging
+                    if let pending = session.oldestPendingCommand, pending.hasPrefix("gps") {
+                        Self.logger.info("REMOTE GPS: Response: '\(responseText)'")
+                    }
                     session.responseReceived(responseText)
                     return
                 }
