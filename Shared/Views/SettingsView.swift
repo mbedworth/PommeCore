@@ -1239,6 +1239,7 @@ struct PrivacySection: View {
     @State private var advertLoc: Bool = false
     @State private var multiACK: Bool = false
     @State private var pinText: String = ""
+    @State private var suppressReadback = false
     @State private var saveState: SaveButtonState = .idle
     @State private var autoAddChat: Bool = true
     @State private var autoAddRepeater: Bool = true
@@ -1350,6 +1351,7 @@ struct PrivacySection: View {
             .listRowBackground(MeshTheme.surface)
 
             SaveButton(state: saveState, label: "Save Privacy Settings") {
+                suppressReadback = true
                 viewModel.setOtherParams(
                     manualAddContacts: manualAdd ? 1 : 0,
                     telemetryBase: telBase,
@@ -1358,6 +1360,9 @@ struct PrivacySection: View {
                     multiACK: multiACK ? 1 : 0
                 )
                 showSaved($saveState)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                    suppressReadback = false
+                }
             }
         } header: {
             Text("Privacy & Security")
@@ -1524,6 +1529,7 @@ struct PrivacySection: View {
     }
 
     private func loadFromConfig() {
+        guard !suppressReadback else { return }
         let c = viewModel.deviceConfig
         manualAdd = c.manualAddContacts != 0
         telBase = c.telemetryBase
