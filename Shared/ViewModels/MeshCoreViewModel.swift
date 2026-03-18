@@ -1732,7 +1732,9 @@ final class MeshCoreViewModel: ObservableObject {
         Self.logger.info("CHANNEL TX: [\(frame.count) bytes] \(frame.map { String(format: "%02X", $0) }.joined(separator: " "))")
         let connDesc = String(describing: self.connectionState)
         Self.logger.info("CHANNEL TX: cmd=0x\(String(format: "%02X", frame[0])) txtType=\(frame[1]) chIdx=\(frame[2]) text='\(trimmed)' connState=\(connDesc)")
-        DebugLogger.shared.log("CH TX: ch=\(frame[2]) '\(trimmed.prefix(40))'", level: .tx)
+        let frameHex = frame.map { String(format: "%02X", $0) }.joined(separator: " ")
+        DebugLogger.shared.log("CH TX: ch=\(frame[2]) [\(frame.count)B] \(frameHex)", level: .tx)
+        DebugLogger.shared.log("CH TX: text='\(trimmed)'", level: .tx)
         sendCommand(frame, label: "SEND_CHANNEL_TXT")
         Self.logger.info("CHANNEL TX: frame sent, awaiting RESP_CODE_OK (0x00) or RESP_CODE_ERR (0x01)")
 
@@ -2201,7 +2203,9 @@ final class MeshCoreViewModel: ObservableObject {
             handleControlData(snr: snr, rssi: rssi, pathLen: pathLen, payload: payload)
 
         case .channelInfo(let channel):
-            Self.logger.info("Channel info: idx=\(channel.index) name='\(channel.name)' flags=\(channel.flags)")
+            let secretDesc = channel.secret.map { $0.map { String(format: "%02x", $0) }.joined() } ?? "none"
+            Self.logger.info("Channel info: idx=\(channel.index) name='\(channel.name)' secret=\(secretDesc)")
+            DebugLogger.shared.log("CH[\(channel.index)]: '\(channel.name)' secret=\(channel.secret != nil ? "\(channel.secret!.count)B" : "none")", level: .rx)
             handleChannelInfo(channel)
 
         case .exportedContact(let url):
@@ -3060,13 +3064,20 @@ final class MeshCoreViewModel: ObservableObject {
     /// Channel info frames arrive after contacts. Once all maxChannels are received,
     /// we finalize the channel list.
     private func handleChannelInfo(_ channel: MeshChannel) {
-        // Restore secret: first from in-memory channels, then from iCloud Keychain
         var ch = channel
-        if let existing = channels.first(where: { $0.index == channel.index }) {
-            ch.secret = existing.secret
+        // Prefer the secret from the firmware response (now correctly parsed).
+        // Fall back to in-memory or Keychain only if firmware didn't provide one.
+        if ch.secret == nil {
+            if let existing = channels.first(where: { $0.index == channel.index }) {
+                ch.secret = existing.secret
+            }
         }
         if ch.secret == nil, !ch.name.isEmpty {
             ch.secret = KeychainManager.getChannelSecret(forChannelName: ch.name)
+        }
+        // Persist the device-provided secret to Keychain for backup
+        if let secret = ch.secret, !ch.name.isEmpty {
+            _ = KeychainManager.saveChannelSecret(secret, forChannelName: ch.name)
         }
         // Deduplicate by index — replace if already received (handles overlapping syncs)
         if let existingIdx = incomingChannels.firstIndex(where: { $0.index == ch.index }) {
