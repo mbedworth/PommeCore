@@ -1312,6 +1312,10 @@ final class MeshCoreViewModel: ObservableObject {
     /// Update a contact's flags byte and sync to the radio (preserves all other contact data).
     /// Update a contact's routing path via CMD_ADD_UPDATE_CONTACT.
     func setContactPath(_ contact: Contact, pathLen: Int8, pathData: Data) {
+        let pathHex = pathData.isEmpty ? "(empty)" : pathData.map { String(format: "%02x", $0) }.joined()
+        let mode = pathLen < 0 ? "flood" : pathLen == 0 ? "direct" : "\(pathLen) hops"
+        DebugLogger.shared.log("PATH SET: \(mode) pathLen=\(pathLen) pathHex=\(pathHex) for \(contact.name)", level: .tx)
+
         let frame = MeshCoreProtocol.buildAddUpdateContact(
             publicKey: contact.publicKey,
             type: contact.type.rawValue,
@@ -1339,6 +1343,12 @@ final class MeshCoreViewModel: ObservableObject {
                 longitude: contact.longitude,
                 lastmod: contact.lastmod
             )
+        }
+
+        // Request updated contacts after a delay to verify the device accepted the path
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            self?.requestDebouncedIncrementalSync()
         }
     }
 
@@ -1520,9 +1530,33 @@ final class MeshCoreViewModel: ObservableObject {
     }
 
     /// Reset the outbound path for a contact. Sends CMD_RESET_PATH.
+    /// Sets firmware path_len to 0xFF (flood). Device will auto-discover a direct path on next send.
     func resetPath(for contact: Contact) {
+        DebugLogger.shared.log("PATH RESET: \(contact.name) — will flood until path discovered", level: .tx)
         let frame = MeshCoreProtocol.buildResetPath(publicKey: contact.publicKey)
         sendCommand(frame, label: "RESET_PATH")
+
+        // Optimistic local update — set to flood (0xFF = -1 signed)
+        if let index = contacts.firstIndex(where: { $0.publicKeyPrefix == contact.publicKeyPrefix }) {
+            contacts[index] = Contact(
+                publicKey: contact.publicKey,
+                name: contact.name,
+                type: contact.type,
+                flags: contact.flags,
+                outPathLen: -1,  // OUT_PATH_UNKNOWN = 0xFF
+                outPath: Data(),
+                lastAdvert: contact.lastAdvert,
+                latitude: contact.latitude,
+                longitude: contact.longitude,
+                lastmod: contact.lastmod
+            )
+        }
+
+        // Request updated contacts after a delay to pick up any path changes
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            self?.requestDebouncedIncrementalSync()
+        }
     }
 
     /// Share a contact's advert on the mesh (zero-hop). Sends CMD_SHARE_CONTACT.
