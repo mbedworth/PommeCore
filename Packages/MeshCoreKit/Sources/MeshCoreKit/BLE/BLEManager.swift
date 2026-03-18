@@ -149,6 +149,13 @@ public final class BLEManager: NSObject, ObservableObject {
         Self.logger.info("Disconnecting from \(peripheral.name ?? "unknown")")
     }
 
+    /// Clean disconnect for app termination — prevents stale BLE state on the radio.
+    public func disconnectForTermination() {
+        guard let peripheral = connectedPeripheral else { return }
+        centralManager.cancelPeripheralConnection(peripheral)
+        Self.logger.info("BLE: clean disconnect on app termination")
+    }
+
     /// Write data to the device RX characteristic.
     public func send(data: Data) {
         guard let peripheral = connectedPeripheral,
@@ -246,6 +253,23 @@ extension BLEManager: CBCentralManagerDelegate {
                 central.connect(peripheral, options: nil)
                 DispatchQueue.main.async {
                     self.connectionState = .connecting
+                }
+
+                // Timeout — don't stay stuck if peripheral never reconnects
+                bleQueue.asyncAfter(deadline: .now() + 10.0) { [weak self] in
+                    guard let self else { return }
+                    if self.connectionState != .ready && self.connectionState != .connected {
+                        Self.logger.info("BLE RESTORE: timeout — giving up and scanning")
+                        central.cancelPeripheralConnection(peripheral)
+                        self.shouldAutoReconnect = false
+                        DispatchQueue.main.async {
+                            self.connectedPeripheral = nil
+                            self.connectionState = .disconnected
+                        }
+                        self.bleQueue.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+                            self?.startScanning()
+                        }
+                    }
                 }
             }
 

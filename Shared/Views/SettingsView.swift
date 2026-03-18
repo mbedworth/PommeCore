@@ -14,6 +14,7 @@ struct SettingsView: View {
     @State private var showDeleteRadioConfirm = false
     @State private var radioToMigrate: String?
     @State private var showMigrateSheet = false
+    @State private var showConnectionHelp = false
 
     private var batteryChemistry: BatteryChemistry {
         BatteryChemistry(rawValue: batteryChemistryRaw) ?? .lipo
@@ -91,6 +92,7 @@ struct SettingsView: View {
             statsSection
             securitySection
             tipJarSection
+            troubleshootingSection
             aboutSection
             dangerZoneSection
         }
@@ -1980,6 +1982,33 @@ private extension SettingsView {
         if product.id.hasSuffix(".great") { return "\u{1F389}" }
         if product.id.hasSuffix(".help") { return "\u{1F49A}" }
         return "\u{2764}\u{FE0F}"
+    }
+}
+
+// MARK: - Troubleshooting
+
+private extension SettingsView {
+    var troubleshootingSection: some View {
+        Section {
+            Button {
+                showConnectionHelp = true
+            } label: {
+                HStack {
+                    Label("Can't Connect to Radio?", systemImage: "questionmark.circle")
+                        .foregroundStyle(MeshTheme.accent)
+                    Spacer()
+                }
+            }
+            .buttonStyle(.plain)
+            .listRowBackground(MeshTheme.surface)
+        } header: {
+            sectionHeader("Troubleshooting")
+        }
+        .alert("Connection Troubleshooting", isPresented: $showConnectionHelp) {
+            Button("OK") {}
+        } message: {
+            Text("If your radio won't appear in the scanner:\n\n1. Go to Settings \u{2192} Bluetooth\n2. Find your MeshCore device and tap \u{24D8}\n3. Tap \u{2018}Forget This Device\u{2019}\n4. Power off the radio for 30 seconds\n5. Power it back on and scan again\n\nForce-quitting the app can leave the radio\u{2019}s Bluetooth in a stuck state. A full power cycle clears it.")
+        }
     }
 }
 
