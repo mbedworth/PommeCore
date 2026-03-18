@@ -3085,6 +3085,8 @@ final class MeshCoreViewModel: ObservableObject {
 
     /// Iterate through all channel slots and request info for each.
     /// Called after contact sync completes.
+    private var channelSyncTimeoutTask: Task<Void, Never>?
+
     private func syncChannels() {
         let maxCh = Int(deviceConfig.maxChannels)
         guard maxCh > 0 else { return }
@@ -3099,6 +3101,15 @@ final class MeshCoreViewModel: ObservableObject {
                 let frame = MeshCoreProtocol.buildGetChannel(index: UInt8(idx))
                 self.sendCommand(frame, label: "GET_CHANNEL(\(idx))")
             }
+        }
+
+        // Timeout: if not all channels received within 10s, complete with what we have
+        channelSyncTimeoutTask?.cancel()
+        channelSyncTimeoutTask = Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 10_000_000_000)
+            guard !Task.isCancelled, self.isSyncingChannels else { return }
+            DebugLogger.shared.log("Channel sync timeout — completing with \(self.incomingChannels.count) channels", level: .warning)
+            self.finalizeChannelSync()
         }
     }
 
@@ -3137,6 +3148,7 @@ final class MeshCoreViewModel: ObservableObject {
 
     /// Finalize channel sync — atomic swap of channel list, keeping only active channels.
     private func finalizeChannelSync() {
+        channelSyncTimeoutTask?.cancel()
         let active = incomingChannels.filter { $0.isActive }
         Self.logger.info("Channel sync complete: \(active.count) active channels out of \(self.incomingChannels.count) total")
         channels = active
