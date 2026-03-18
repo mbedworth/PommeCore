@@ -1,3 +1,11 @@
+// USB Serial on iOS/iPadOS: NOT currently possible.
+// iOS does not expose CDC ACM serial devices to apps. The ExternalAccessory framework
+// requires MFi certification (ESP32/Heltec devices are not MFi-certified). IOKit is
+// macOS-only. As of iOS 18, there is no public API for USB serial communication with
+// generic USB CDC ACM devices. Meshtastic iOS uses BLE only, not USB serial.
+// If Apple adds DriverKit for iOS or exposes USB serial APIs in a future iOS version,
+// this would need a separate USBSerialManager implementation using that framework.
+
 #if os(macOS)
 import Foundation
 import Combine
