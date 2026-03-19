@@ -1267,6 +1267,7 @@ struct CLITerminalSection: View {
 
     var body: some View {
         Section {
+            DisclosureGroup("CLI Terminal") {
             // History
             if !session.cliHistory.isEmpty {
                 ScrollView {
@@ -1320,9 +1321,8 @@ struct CLITerminalSection: View {
                 .disabled(commandText.isEmpty)
             }
             .listRowBackground(MeshTheme.surface)
-        } header: {
-            Text("CLI Terminal")
-                .foregroundStyle(MeshTheme.textSecondary)
+            }
+            .listRowBackground(MeshTheme.surface)
         } footer: {
             Text("Send raw CLI commands to the device. Type 'help' for available commands.")
                 .foregroundStyle(MeshTheme.textSecondary)
