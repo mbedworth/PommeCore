@@ -2,6 +2,9 @@ import SwiftUI
 import StoreKit
 import LocalAuthentication
 import MeshCoreKit
+#if !os(watchOS)
+import CoreLocation
+#endif
 
 struct SettingsView: View {
     @EnvironmentObject var viewModel: MeshCoreViewModel
@@ -684,6 +687,9 @@ struct IdentitySection: View {
     @State private var saveState: SaveButtonState = .idle
     @State private var showAdvertOptions = false
     @State private var showAdvertSent = false
+    @State private var gpsSyncFeedback = false
+    @AppStorage("autoUpdateLocation") private var autoUpdateLocation = false
+    @AppStorage("locationUpdateInterval") private var locationUpdateInterval = 900
 
     var body: some View {
         Section {
@@ -722,6 +728,60 @@ struct IdentitySection: View {
             }
             .listRowBackground(MeshTheme.surface)
 
+            #if !os(watchOS)
+            Button {
+                setLocationFromPhone()
+            } label: {
+                HStack {
+                    Image(systemName: "iphone.radiowaves.left.and.right")
+                        .foregroundStyle(MeshTheme.accent)
+                        .frame(width: 24)
+                    Text(gpsSyncFeedback ? "Location Set!" : "Set from Phone GPS")
+                        .foregroundStyle(gpsSyncFeedback ? .green : MeshTheme.accent)
+                    Spacer()
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .listRowBackground(MeshTheme.surface)
+
+            Toggle(isOn: $autoUpdateLocation) {
+                HStack {
+                    Image(systemName: "location.fill.viewfinder")
+                        .foregroundStyle(MeshTheme.accent)
+                        .frame(width: 24)
+                    Text("Auto-Update Location")
+                        .foregroundStyle(MeshTheme.accent)
+                }
+            }
+            .tint(MeshTheme.accent)
+            .listRowBackground(MeshTheme.surface)
+            .onChange(of: autoUpdateLocation) { enabled in
+                if enabled {
+                    viewModel.startAutoLocationUpdates(interval: locationUpdateInterval)
+                } else {
+                    viewModel.stopAutoLocationUpdates()
+                }
+            }
+
+            if autoUpdateLocation {
+                Picker("Update Interval", selection: $locationUpdateInterval) {
+                    Text("Every 5 minutes").tag(300)
+                    Text("Every 15 minutes").tag(900)
+                    Text("Every 30 minutes").tag(1800)
+                    Text("Every hour").tag(3600)
+                }
+                .foregroundStyle(MeshTheme.accent)
+                .tint(MeshTheme.accent)
+                .listRowBackground(MeshTheme.surface)
+                .onChange(of: locationUpdateInterval) { newInterval in
+                    if autoUpdateLocation {
+                        viewModel.startAutoLocationUpdates(interval: newInterval)
+                    }
+                }
+            }
+            #endif
+
             HStack(spacing: 12) {
                 SaveButton(state: saveState, label: "Save Identity") {
                     viewModel.setAdvertName(advertName)
@@ -747,7 +807,7 @@ struct IdentitySection: View {
             Text("Identity & Advertising")
                 .foregroundStyle(MeshTheme.textSecondary)
         } footer: {
-            Text("TIP: Use a short, unique name like \u{2018}NMA-5abd\u{2019} (your initials + first 4 of your public key). Repeaters should follow: [AREA]-[LOCATION]-[TYPE]-[ID] (e.g., FLA-ORLANDO-RPT-01).")
+            Text("TIP: Use a short, unique name like \u{2018}NMA-5abd\u{2019} (your initials + first 4 of your public key). If your radio lacks GPS, use \u{2018}Set from Phone GPS\u{2019} to send your phone\u{2019}s location to the radio. Auto-Update periodically syncs your position. GPS privacy fudge is applied.")
                 .font(.caption2)
         }
         .confirmationDialog("Send Advertisement", isPresented: $showAdvertOptions) {
@@ -780,6 +840,26 @@ struct IdentitySection: View {
             longitude = String(format: "%.6f", c.longitude)
         }
     }
+
+    #if !os(watchOS)
+    private func setLocationFromPhone() {
+        let locManager = CLLocationManager()
+        guard let location = locManager.location else {
+            DebugLogger.shared.log("PHONE GPS: location unavailable", level: .warning)
+            return
+        }
+        let (fLat, fLon) = viewModel.fudgeLocation(
+            lat: location.coordinate.latitude,
+            lon: location.coordinate.longitude
+        )
+        latitude = String(format: "%.6f", fLat)
+        longitude = String(format: "%.6f", fLon)
+        viewModel.setAdvertLatLon(latitude: fLat, longitude: fLon)
+        gpsSyncFeedback = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { gpsSyncFeedback = false }
+        DebugLogger.shared.log("PHONE GPS: set radio location to \(String(format: "%.6f", fLat)), \(String(format: "%.6f", fLon))", level: .tx)
+    }
+    #endif
 }
 
 // MARK: - Section 4: Radio Configuration (Fixes #3, #4, #5, #6)

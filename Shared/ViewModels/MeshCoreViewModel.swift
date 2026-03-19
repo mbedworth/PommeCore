@@ -6,6 +6,9 @@ import UserNotifications
 import WatchKit
 #endif
 import MeshCoreKit
+#if !os(watchOS)
+import CoreLocation
+#endif
 #if canImport(CoreSpotlight)
 import CoreSpotlight
 #endif
@@ -902,6 +905,7 @@ final class MeshCoreViewModel: ObservableObject {
                     self.discoverTimeoutTask?.cancel()
                     self.contactSyncDebounceTask?.cancel()
                     self.hasCompletedInitialChannelSync = false
+                    self.stopAutoLocationUpdates()
                     self.deviceConfig = DeviceConfig()
                     self.forwardDeviceConfigChanges()
                     self.isSyncingMessages = false
@@ -1458,6 +1462,37 @@ final class MeshCoreViewModel: ObservableObject {
     static func regenerateLocationFudge() {
         locationFudgeAngle = Double.random(in: 0..<(2 * .pi))
         locationFudgeFraction = Double.random(in: 0...1)
+    }
+
+    // MARK: - Phone GPS Auto-Update
+
+    private var locationUpdateTimer: Timer?
+
+    /// Start periodically syncing phone GPS to the radio.
+    func startAutoLocationUpdates(interval: Int) {
+        locationUpdateTimer?.invalidate()
+        setLocationFromPhoneGPS()
+        locationUpdateTimer = Timer.scheduledTimer(withTimeInterval: TimeInterval(interval), repeats: true) { [weak self] _ in
+            self?.setLocationFromPhoneGPS()
+        }
+        DebugLogger.shared.log("PHONE GPS: auto-update every \(interval / 60)min", level: .info)
+    }
+
+    /// Stop periodic phone GPS syncing.
+    func stopAutoLocationUpdates() {
+        locationUpdateTimer?.invalidate()
+        locationUpdateTimer = nil
+        DebugLogger.shared.log("PHONE GPS: auto-update stopped", level: .info)
+    }
+
+    /// Send phone GPS location to radio (with fudge applied).
+    private func setLocationFromPhoneGPS() {
+        #if !os(watchOS)
+        let locManager = CLLocationManager()
+        guard let location = locManager.location else { return }
+        let (fLat, fLon) = fudgeLocation(lat: location.coordinate.latitude, lon: location.coordinate.longitude)
+        setAdvertLatLon(latitude: fLat, longitude: fLon)
+        #endif
     }
 
     func setRadioParams(frequency: UInt32, bandwidth: UInt32, spreadingFactor: UInt8, codingRate: UInt8, repeatMode: Bool) {
