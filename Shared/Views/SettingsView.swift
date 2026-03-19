@@ -78,21 +78,32 @@ struct SettingsView: View {
 
     private var settingsForm: some View {
         List {
-            // Essential — always visible
-            deviceInfoSection
+            // 1. Connection (always at top)
             connectionSection
-            identitySection
+
+            // 2. Device Info (only when connected)
+            if isConnected {
+                deviceInfoSection
+                identitySection
+            }
+
+            // 3. Notifications & Messages
             notificationsSection
             messageSettingsSection
-            privacySection
 
-            // Radio & Advanced — collapsed by default
-            Section {
-                DisclosureGroup("Radio & Tuning") {
-                    radioSection
-                    tuningSection
+            // 4. Privacy & Security
+            privacySection
+            securitySection
+
+            // 5. Radio & Advanced (collapsed)
+            if isConnected {
+                Section {
+                    DisclosureGroup("Radio & Tuning") {
+                        radioSection
+                        tuningSection
+                    }
+                    .listRowBackground(MeshTheme.surface)
                 }
-                .listRowBackground(MeshTheme.surface)
             }
 
             Section {
@@ -100,21 +111,25 @@ struct SettingsView: View {
                     appearanceSection
                     iCloudSection
                     radioDataSection
-                    timeSection
-                    if !viewModel.deviceConfig.customVars.isEmpty {
-                        customVarsSection
+                    if isConnected {
+                        timeSection
+                        if !viewModel.deviceConfig.customVars.isEmpty {
+                            customVarsSection
+                        }
+                        statsSection
                     }
-                    statsSection
                     storageSection
                 }
                 .listRowBackground(MeshTheme.surface)
             }
 
-            securitySection
+            // 6. About & Support
             tipJarSection
             troubleshootingSection
             aboutSection
-            dangerZoneSection
+            if isConnected {
+                dangerZoneSection
+            }
         }
         .meshListStyle()
         #if os(macOS)
