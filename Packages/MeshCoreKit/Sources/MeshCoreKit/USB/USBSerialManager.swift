@@ -62,15 +62,20 @@ public final class USBSerialManager: ObservableObject {
         let result = IOServiceGetMatchingServices(kIOMainPortDefault, matchingDict, &iterator)
         guard result == KERN_SUCCESS else {
             Self.logger.warning("Failed to enumerate serial ports: \(result)")
+            DebugLogger.shared.log("USB SCAN: IOKit enumeration failed (\(result))", level: .error)
             return
         }
 
+        var allPaths: [String] = []
         var service = IOIteratorNext(iterator)
         while service != 0 {
             if let cfPath = IORegistryEntryCreateCFProperty(
                 service, kIOCalloutDeviceKey as CFString, kCFAllocatorDefault, 0
             )?.takeRetainedValue() as? String {
-                // Filter to cu.* devices (callout ports)
+                allPaths.append(cfPath)
+                // Include all /dev/cu.* devices (callout ports)
+                // Common USB-serial chips: CP2102, CH340, CH9102, FTDI
+                // Port names: cu.usbmodem*, cu.usbserial*, cu.SLAB_USBtoUART*, cu.wchusbserial*
                 if cfPath.contains("/dev/cu.") {
                     ports.append(cfPath)
                 }
@@ -83,6 +88,10 @@ public final class USBSerialManager: ObservableObject {
         DispatchQueue.main.async {
             self.availablePorts = ports.sorted()
             Self.logger.info("Found \(ports.count) serial port(s)")
+            DebugLogger.shared.log("USB SCAN: \(ports.count) ports found: \(ports.isEmpty ? "(none)" : ports.joined(separator: ", "))", level: .info)
+            if !allPaths.isEmpty && ports.isEmpty {
+                DebugLogger.shared.log("USB SCAN: IOKit found \(allPaths.count) devices but none matched /dev/cu.*: \(allPaths.joined(separator: ", "))", level: .warning)
+            }
         }
     }
 
@@ -151,6 +160,7 @@ public final class USBSerialManager: ObservableObject {
             self.connectedPort = port
             self.detectedMode = .unknown
             Self.logger.info("Connected to \(port)")
+            DebugLogger.shared.log("USB: connected to \(port), probing mode...", level: .info)
         }
 
         // Probe device type after brief delay
@@ -251,6 +261,7 @@ public final class USBSerialManager: ObservableObject {
             _ = write(fileDescriptor, base, probe.count)
         }
         Self.logger.info("Sent probe '$$' to detect device type")
+        DebugLogger.shared.log("USB: sent probe '$$' for mode detection", level: .tx)
     }
 
     private func detectMode() {
@@ -261,6 +272,7 @@ public final class USBSerialManager: ObservableObject {
             DispatchQueue.main.async {
                 self.detectedMode = .binary
                 Self.logger.info("Detected binary companion mode")
+                DebugLogger.shared.log("USB: detected BINARY mode (companion radio)", level: .info)
             }
             parseBinaryFrames()
             return
@@ -272,6 +284,7 @@ public final class USBSerialManager: ObservableObject {
             DispatchQueue.main.async {
                 self.detectedMode = .cli
                 Self.logger.info("Detected CLI mode")
+                DebugLogger.shared.log("USB: detected CLI mode (repeater/room)", level: .info)
             }
             parseCLILines()
         }
