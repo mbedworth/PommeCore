@@ -2283,6 +2283,7 @@ private extension SettingsView {
             Spacer()
             Text(value)
                 .foregroundStyle(MeshTheme.textPrimary)
+                .textSelection(.enabled)
         }
         .listRowBackground(MeshTheme.surface)
     }
