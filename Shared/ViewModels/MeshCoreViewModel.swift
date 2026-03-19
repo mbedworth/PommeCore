@@ -2123,6 +2123,7 @@ final class MeshCoreViewModel: ObservableObject {
             "get allow.read.only",
             "get adc.multiplier",
             "get loop.detect", "get path.hash.mode",
+            "get role", "get public.key", "get guest.password",
             "powersaving", "gps", "gps advert",
         ]
 
