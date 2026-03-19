@@ -809,22 +809,6 @@ struct ContactListView: View {
 
             #if !os(watchOS)
             Button {
-                showMyContactCode = true
-            } label: {
-                HStack {
-                    Image(systemName: "qrcode")
-                        .foregroundStyle(MeshTheme.accent)
-                    Text("My Contact Code")
-                        .foregroundStyle(MeshTheme.accent)
-                    Spacer()
-                }
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .listRowBackground(MeshTheme.surface)
-            .disabled(viewModel.connectionState != .ready)
-
-            Button {
                 importURLText = ""
                 showImportSheet = true
             } label: {
