@@ -250,6 +250,17 @@ struct LoginSection: View {
                     .foregroundStyle(MeshTheme.textSecondary)
                     .listRowBackground(MeshTheme.surface)
 
+                if contact.type == .sensor {
+                    HStack(spacing: 6) {
+                        Image(systemName: "exclamationmark.triangle")
+                            .foregroundStyle(.orange)
+                        Text("Sensors require admin access. Guest login is not supported.")
+                            .font(.caption)
+                            .foregroundStyle(.orange)
+                    }
+                    .listRowBackground(MeshTheme.surface)
+                }
+
                 Button {
                     viewModel.loginToRemoteDevice(contact, password: password)
                 } label: {
