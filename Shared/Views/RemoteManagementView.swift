@@ -343,27 +343,33 @@ struct LoginSection: View {
 private extension RemoteManagementView {
     var infoSection: some View {
         Section {
-            cliInfoRow(icon: "info.circle", label: "Type", value: contact.type == .repeater ? "Repeater" : "Room Server")
-            cliInfoRow(icon: "arrow.triangle.branch", label: "Path", value: contact.outPathLen == 0 ? "Direct" : "\(contact.outPathLen) hops")
+            // Compact device info card
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text(getValue("name").isEmpty ? contact.name : getValue("name"))
+                        .font(.headline)
+                        .foregroundStyle(MeshTheme.textPrimary)
+                    Spacer()
+                    Text(session.settings["role"] ?? (contact.type == .repeater ? "Repeater" : contact.type == .room ? "Room" : "Sensor"))
+                        .font(.caption)
+                        .foregroundStyle(MeshTheme.textSecondary)
+                }
+                HStack(spacing: 12) {
+                    if !getValue("ver").isEmpty {
+                        Label(getValue("ver"), systemImage: "cpu")
+                    }
+                    Label(contact.outPathLen == 0 ? "direct" : "\(contact.outPathLen & 0x3F) hops", systemImage: "arrow.triangle.branch")
+                }
+                .font(.caption)
+                .foregroundStyle(MeshTheme.textSecondary)
 
-            Button {
-                sendCLI("ver")
-            } label: {
-                cliSettingRow(icon: "cpu", label: "Version", value: getValue("ver"))
-                    .contentShape(Rectangle())
+                if let radio = session.settings["radio"], !radio.isEmpty {
+                    Text(radio)
+                        .font(.caption2)
+                        .foregroundStyle(MeshTheme.textSecondary)
+                }
             }
-            .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
-
-            if let blVer = session.settings["bootloader.ver"], !blVer.isEmpty {
-                cliInfoRow(icon: "memorychip", label: "Bootloader", value: blVer)
-            }
-            if let role = session.settings["role"], !role.isEmpty {
-                cliInfoRow(icon: "person.badge.shield.checkmark", label: "Role", value: role)
-            }
-            if let pubkey = session.settings["public.key"], !pubkey.isEmpty {
-                cliInfoRow(icon: "key", label: "Public Key", value: String(pubkey.prefix(16)) + "...")
-            }
 
             RemoteClockRow(session: session, sendCLI: sendCLI)
 
