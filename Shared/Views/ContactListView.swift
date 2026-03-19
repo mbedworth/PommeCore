@@ -143,30 +143,26 @@ struct ContactListView: View {
         #else
         .toolbar {
             ToolbarItem(placement: .automatic) {
-                Button {
-                    if viewModel.connectionState == .ready {
-                        showAdvertOptions = true
-                    } else {
-                        showScanner = true
+                Menu {
+                    Button { showImportSheet = true } label: {
+                        Label("Import Contact", systemImage: "doc.on.clipboard")
                     }
+                    Button {
+                        viewModel.sendAdvertise(type: 1)
+                    } label: {
+                        Label("Send Flood Advert", systemImage: "antenna.radiowaves.left.and.right")
+                    }
+                    .disabled(viewModel.connectionState != .ready)
+                    Button {
+                        showDiscover?.wrappedValue = true
+                    } label: {
+                        Label("Discover Nodes", systemImage: "sensor.tag.radiowaves.forward")
+                    }
+                    .disabled(viewModel.connectionState != .ready)
                 } label: {
-                    Image(systemName: viewModel.connectionState == .ready
-                          ? "antenna.radiowaves.left.and.right"
-                          : "antenna.radiowaves.left.and.right.slash")
+                    Image(systemName: "plus")
                         .foregroundStyle(MeshTheme.accent)
                 }
-                .accessibilityLabel("Send Advertisement")
-            }
-
-            ToolbarItem(placement: .automatic) {
-                Button {
-                    showDiscover?.wrappedValue = true
-                } label: {
-                    Image(systemName: "sensor.tag.radiowaves.forward")
-                        .foregroundStyle(MeshTheme.accent)
-                }
-                .accessibilityLabel("Discover Nearby Nodes")
-                .disabled(viewModel.connectionState != .ready)
             }
 
             ToolbarItem(placement: .automatic) {
@@ -406,6 +402,17 @@ struct ContactListView: View {
             }
             .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
+            .contextMenu {
+                if viewModel.connectionState == .ready || viewModel.connectionState == .connected {
+                    Button { viewModel.verifyRadioConfig() } label: {
+                        Label("Verify Radio Config", systemImage: "checkmark.shield")
+                    }
+                    Divider()
+                    Button(role: .destructive) { viewModel.disconnect() } label: {
+                        Label("Disconnect", systemImage: "xmark.circle")
+                    }
+                }
+            }
 
             if let bleMsg = viewModel.bleStatusMessage {
                 HStack(alignment: .top, spacing: 8) {
