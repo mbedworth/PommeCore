@@ -700,12 +700,12 @@ struct RemoteAdvertSection: View {
         }
         .confirmationDialog("Send Advertisement", isPresented: $showAdvertOptions) {
             Button("Zero-Hop (nearby only)") {
-                sendCLI("advert")
+                sendCLI("advert.zerohop")
                 showAdvertSent = true
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2) { showAdvertSent = false }
             }
             Button("Flood (entire mesh)") {
-                sendCLI("advert flood")
+                sendCLI("advert")
                 showAdvertSent = true
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2) { showAdvertSent = false }
             }
