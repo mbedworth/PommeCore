@@ -18,6 +18,9 @@ struct SettingsView: View {
     @State private var radioToMigrate: String?
     @State private var showMigrateSheet = false
     @State private var showConnectionHelp = false
+    @State private var showRadioEditor = false
+    @State private var showNameEditor = false
+    @State private var showFirmwareDetail = false
     @State private var showPurgeOptions = false
 
     private var batteryChemistry: BatteryChemistry {
@@ -469,40 +472,49 @@ private extension SettingsView {
 private extension SettingsView {
     var deviceInfoSection: some View {
         Section {
-            infoRow(icon: "tag", label: "Name", value: config.deviceName.isEmpty ? (viewModel.connectedDeviceName ?? "\u{2014}") : config.deviceName)
-            infoRow(icon: "cpu", label: "Firmware", value: config.semanticVersion.isEmpty ? (config.firmwareVersion.isEmpty ? "\u{2014}" : "v\(config.firmwareVersion)") : "\(config.semanticVersion) (\(config.buildDate))")
-            if !config.manufacturer.isEmpty {
-                infoRow(icon: "building.2", label: "Model", value: config.manufacturer)
-            }
-            if config.radioFrequency > 0 {
-                let freqMHz = String(format: "%.3f", Double(config.radioFrequency) / 1000.0)
-                let bwKHz = String(format: "%.1f", Double(config.radioBandwidth) / 1000.0)
-                let presetName = detectRadioPreset(freqKHz: Double(config.radioFrequency), bw: Double(config.radioBandwidth) / 1000.0, sf: config.radioSpreadingFactor, cr: config.radioCodingRate)
+            // Name — tap opens editor
+            Button { showNameEditor = true } label: {
                 HStack {
-                    Image(systemName: "antenna.radiowaves.left.and.right")
-                        .foregroundStyle(MeshTheme.accent)
-                        .frame(width: 24)
-                    Text("Radio")
+                    Label("Name", systemImage: "textformat")
                         .foregroundStyle(MeshTheme.accent)
                     Spacer()
-                    VStack(alignment: .trailing, spacing: 2) {
-                        Text("\(freqMHz) MHz \u{2022} \(bwKHz)kHz \u{2022} SF\(config.radioSpreadingFactor) CR\(config.radioCodingRate)")
-                            .foregroundStyle(MeshTheme.textPrimary)
-                            .textSelection(.enabled)
-                        Text(presetName ?? "Custom")
-                            .font(.caption2)
-                            .foregroundStyle(presetName != nil ? .green : .orange)
+                    Text(config.deviceName.isEmpty ? (viewModel.connectedDeviceName ?? "\u{2014}") : config.deviceName)
+                        .foregroundStyle(MeshTheme.textSecondary)
+                }
+            }
+            .buttonStyle(.plain)
+            .listRowBackground(MeshTheme.surface)
+            .sheet(isPresented: $showNameEditor) {
+                NameEditorSheet(viewModel: viewModel)
+            }
+
+            // Radio — tap opens radio editor in Advanced
+            if config.radioFrequency > 0 {
+                Button { showRadioEditor = true } label: {
+                    let freqMHz = String(format: "%.3f", Double(config.radioFrequency) / 1000.0)
+                    let bwKHz = String(format: "%.1f", Double(config.radioBandwidth) / 1000.0)
+                    let presetName = detectRadioPreset(freqKHz: Double(config.radioFrequency), bw: Double(config.radioBandwidth) / 1000.0, sf: config.radioSpreadingFactor, cr: config.radioCodingRate)
+                    HStack {
+                        Label("Radio", systemImage: "antenna.radiowaves.left.and.right")
+                            .foregroundStyle(MeshTheme.accent)
+                        Spacer()
+                        VStack(alignment: .trailing, spacing: 2) {
+                            Text("\(freqMHz) MHz \u{2022} \(bwKHz)kHz \u{2022} SF\(config.radioSpreadingFactor) CR\(config.radioCodingRate)")
+                                .font(.caption)
+                                .foregroundStyle(MeshTheme.textSecondary)
+                            Text(presetName ?? "Custom")
+                                .font(.caption2)
+                                .foregroundStyle(presetName != nil ? .green : .orange)
+                        }
                     }
                 }
+                .buttonStyle(.plain)
                 .listRowBackground(MeshTheme.surface)
+
                 infoRow(icon: "bolt.fill", label: "TX Power", value: "\(config.radioTXPower)/\(config.maxTXPower) dBm")
             }
-            if config.maxContacts > 0 {
-                infoRow(icon: "person.2", label: "Capacity", value: "\(viewModel.contacts.count)/\(config.maxContacts) contacts \u{2022} \(viewModel.channels.count)/\(config.maxChannels) channels")
-            }
-            if !config.publicKeyHex.isEmpty {
-                publicKeyRow
-            }
+
+            // Battery
             batteryRow
             DisclosureGroup("Battery Settings") {
                 batteryChemistryPicker
@@ -511,8 +523,39 @@ private extension SettingsView {
                 }
             }
             .listRowBackground(MeshTheme.surface)
+
+            // Firmware — tap shows details
+            Button { showFirmwareDetail = true } label: {
+                HStack {
+                    Label("Firmware", systemImage: "cpu")
+                        .foregroundStyle(MeshTheme.accent)
+                    Spacer()
+                    Text(config.semanticVersion.isEmpty ? "v\(config.firmwareVersion)" : config.semanticVersion)
+                        .foregroundStyle(MeshTheme.textSecondary)
+                    Image(systemName: "chevron.right")
+                        .font(.caption2)
+                        .foregroundStyle(MeshTheme.textSecondary)
+                }
+            }
+            .buttonStyle(.plain)
+            .listRowBackground(MeshTheme.surface)
+            .sheet(isPresented: $showFirmwareDetail) {
+                FirmwareDetailSheet(viewModel: viewModel)
+            }
         } header: {
-            sectionHeader("Device Info")
+            sectionHeader("Device")
+        }
+        .sheet(isPresented: $showRadioEditor) {
+            NavigationStack {
+                radioSection
+                    .navigationTitle("Radio Settings")
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Done") { showRadioEditor = false }
+                        }
+                    }
+            }
+            .meshTheme()
         }
     }
 
@@ -2517,5 +2560,95 @@ private extension SettingsView {
             p.spreadingFactor == sf &&
             p.codingRate == cr
         }?.name
+    }
+}
+
+// MARK: - Editor Sheets
+
+struct NameEditorSheet: View {
+    @ObservedObject var viewModel: MeshCoreViewModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var name: String = ""
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    TextField("Device Name", text: $name)
+                        .onChange(of: name) { newValue in
+                            if newValue.count > 31 { name = String(newValue.prefix(31)) }
+                        }
+                    HStack {
+                        Spacer()
+                        Text("\(name.count)/31")
+                            .font(.caption2)
+                            .foregroundStyle(name.count > 28 ? .orange : .secondary)
+                    }
+                } footer: {
+                    Text("TIP: Use your initials + first 4 of your public key (e.g., NMA-5abd). Max 31 characters.")
+                        .font(.caption2)
+                }
+            }
+            .navigationTitle("Device Name")
+            #if !os(macOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Apply") {
+                        viewModel.setAdvertName(name)
+                        dismiss()
+                    }
+                    .disabled(name.isEmpty)
+                }
+            }
+            .onAppear {
+                name = viewModel.deviceConfig.deviceName
+            }
+        }
+        .meshTheme()
+    }
+}
+
+struct FirmwareDetailSheet: View {
+    @ObservedObject var viewModel: MeshCoreViewModel
+    @Environment(\.dismiss) private var dismiss
+
+    private var config: DeviceConfig { viewModel.deviceConfig }
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section("Firmware") {
+                    LabeledContent("Version", value: config.semanticVersion.isEmpty ? "v\(config.firmwareVersion)" : config.semanticVersion)
+                    LabeledContent("Build Date", value: config.buildDate.isEmpty ? "\u{2014}" : config.buildDate)
+                    LabeledContent("Model", value: config.manufacturer.isEmpty ? "\u{2014}" : config.manufacturer)
+                }
+                Section("Capacity") {
+                    LabeledContent("Max Contacts", value: "\(config.maxContacts)")
+                    LabeledContent("Max Channels", value: "\(config.maxChannels)")
+                }
+                if !config.publicKeyHex.isEmpty {
+                    Section("Identity") {
+                        LabeledContent("Public Key", value: String(config.publicKeyHex.prefix(16)) + "...")
+                            .textSelection(.enabled)
+                    }
+                }
+            }
+            .meshListStyle()
+            .navigationTitle("Device Details")
+            #if !os(macOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
+                }
+            }
+        }
+        .meshTheme()
     }
 }
