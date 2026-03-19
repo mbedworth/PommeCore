@@ -2302,10 +2302,9 @@ final class MeshCoreViewModel: ObservableObject {
 
         case .exportedContact(let url):
             Self.logger.info("EXPORT RESP: url='\(url.prefix(80))' (\(url.count) chars)")
+            DebugLogger.shared.log("EXPORT: \(url.count) chars → \(url.prefix(60))...", level: .rx)
             if url.isEmpty {
                 Self.logger.warning("EXPORT RESP: empty URL — device returned no card data")
-            } else {
-                Self.logger.info("EXPORT RESP: setting lastExportedURL, observers will fire")
             }
             lastExportedURL = url
 
