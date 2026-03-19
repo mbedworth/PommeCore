@@ -382,7 +382,7 @@ struct ContactListView: View {
                         .font(.subheadline)
                         .foregroundStyle(MeshTheme.textPrimary)
                     Spacer()
-                    if let rawName = viewModel.connectedDeviceName {
+                    if let rawName = !viewModel.deviceConfig.deviceName.isEmpty ? viewModel.deviceConfig.deviceName : viewModel.connectedDeviceName {
                         let shortName = rawName
                             .replacingOccurrences(of: "MeshCore-", with: "")
                             .replacingOccurrences(of: "meshcore-", with: "")
