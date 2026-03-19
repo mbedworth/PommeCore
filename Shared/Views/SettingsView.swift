@@ -1213,7 +1213,7 @@ struct RadioSection: View {
             Text("Radio Configuration")
                 .foregroundStyle(MeshTheme.textSecondary)
         } footer: {
-            Text("Changing radio parameters will disconnect you from nodes using different settings. All nodes on your mesh must use the same frequency, bandwidth, spreading factor, and coding rate.")
+            Text("All radios on your mesh must use the same settings. SF (Spreading Factor): higher = longer range, slower. CR (Coding Rate): higher = more error correction. BW (Bandwidth): lower = longer range. Changes require reboot.")
                 .font(.caption2)
         }
         .onAppear { loadFromConfig() }
