@@ -506,10 +506,13 @@ private extension SettingsView {
                 publicKeyRow
             }
             batteryRow
-            batteryChemistryPicker
-            if viewModel.batteryCalibration != nil {
-                batteryCalibrationsRows
+            DisclosureGroup("Battery Settings") {
+                batteryChemistryPicker
+                if viewModel.batteryCalibration != nil {
+                    batteryCalibrationsRows
+                }
             }
+            .listRowBackground(MeshTheme.surface)
         } header: {
             sectionHeader("Device Info")
         }
