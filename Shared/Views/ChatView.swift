@@ -401,6 +401,8 @@ struct ChannelChatView: View {
     @State private var messageText = ""
     @State private var unreadDividerIndex: Int?
     @State private var mentionQuery: String?
+    @State private var notifyMode: String = "all"
+    @State private var showChannelDetail = false
 
     private let maxMessageLength = 160
 
@@ -431,20 +433,18 @@ struct ChannelChatView: View {
                     }
                     Button {
                         // Cycle notification mode: all → mentions → muted → all
-                        let key = "channel.notify.\(channelName)"
-                        let store = NSUbiquitousKeyValueStore.default
-                        let current = store.string(forKey: key) ?? "all"
                         let next: String
-                        switch current {
+                        switch notifyMode {
                         case "all": next = "mentions"
                         case "mentions": next = "muted"
                         default: next = "all"
                         }
-                        store.set(next, forKey: key)
-                        store.synchronize()
+                        notifyMode = next
+                        let key = "channel.notify.\(channelName)"
+                        NSUbiquitousKeyValueStore.default.set(next, forKey: key)
+                        NSUbiquitousKeyValueStore.default.synchronize()
                     } label: {
-                        let mode = NSUbiquitousKeyValueStore.default.string(forKey: "channel.notify.\(channelName)") ?? "all"
-                        Image(systemName: mode == "muted" ? "bell.slash" : mode == "mentions" ? "at" : "bell.fill")
+                        Image(systemName: notifyMode == "muted" ? "bell.slash" : notifyMode == "mentions" ? "at" : "bell.fill")
                             .foregroundStyle(MeshTheme.accent)
                     }
                 }
@@ -452,6 +452,7 @@ struct ChannelChatView: View {
         }
         #endif
         .onAppear {
+            notifyMode = NSUbiquitousKeyValueStore.default.string(forKey: "channel.notify.\(channelName)") ?? "all"
             // Store last-read timestamp for unread divider (iCloud synced)
             let lastReadKey = "lastRead.\(channelKey.map { String(format: "%02x", $0) }.joined())"
             NSUbiquitousKeyValueStore.default.set(Date().timeIntervalSince1970, forKey: lastReadKey)
