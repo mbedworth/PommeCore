@@ -444,13 +444,6 @@ private extension SettingsView {
         }
     }
 
-    private var channelEchoBinding: Binding<Bool> {
-        Binding(
-            get: { UserDefaults.standard.bool(forKey: "channelEchoDetection") },
-            set: { UserDefaults.standard.set($0, forKey: "channelEchoDetection") }
-        )
-    }
-
     private var autoRetryBinding: Binding<Bool> {
         Binding(
             get: { UserDefaults.standard.bool(forKey: "autoRetry") },
@@ -478,18 +471,9 @@ private extension SettingsView {
                 .listRowBackground(MeshTheme.surface)
             }
 
-            Toggle(isOn: channelEchoBinding) {
-                Label("Echo Detection", systemImage: "arrow.triangle.2.circlepath")
-                    .foregroundStyle(MeshTheme.accent)
-            }
-            .tint(MeshTheme.accent)
-            .listRowBackground(MeshTheme.surface)
         } header: {
             Text("Channels")
                 .foregroundStyle(MeshTheme.textSecondary)
-        } footer: {
-            Text("Echo detection shows a \u{2018}Repeated\u{2019} indicator when nearby repeaters rebroadcast your channel messages.")
-                .font(.caption2)
         }
     }
 }

@@ -1995,13 +1995,11 @@ final class MeshCoreViewModel: ObservableObject {
         messagesByContact[channelKey, default: []].append(outgoing)
         persistMessages(for: channelKey)
 
-        // Echo detection via 0x88 (LOG_RX_DATA) timing correlation.
+        // Echo detection always active — 0x88 timing correlation.
         // The firmware does NOT deliver our own channel messages back as 0x11.
         // Instead, 0x88 fires when any repeater forwards a packet after our send.
-        if UserDefaults.standard.bool(forKey: "channelEchoDetection") {
-            pendingChannelEcho = (id: outgoing.id, channelKey: channelKey, sent: Date())
-            DebugLogger.shared.log("ECHO: armed pending echo for ch=\(channelIndex)", level: .info)
-        }
+        pendingChannelEcho = (id: outgoing.id, channelKey: channelKey, sent: Date())
+        DebugLogger.shared.log("ECHO: armed pending echo for ch=\(channelIndex)", level: .info)
     }
 
     func syncNextMessage() {
