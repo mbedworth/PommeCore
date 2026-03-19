@@ -2275,6 +2275,11 @@ final class MeshCoreViewModel: ObservableObject {
             deviceConfig.loadedSections.insert("selfInfo")
             checkLoadingComplete()
 
+            // Auto-sync device clock on every connection
+            let epoch = UInt32(Date().timeIntervalSince1970)
+            sendCommand(MeshCoreProtocol.buildSetDeviceTime(epochSeconds: epoch), label: "SET_TIME(auto)")
+            DebugLogger.shared.log("CLOCK: auto-synced device time to \(epoch)", level: .info)
+
         case .deviceInfo(let info):
             Self.logger.info("PARSED DeviceInfo: fwVer=\(info.firmwareVersion) buildDate='\(info.buildDate)' mfg='\(info.manufacturer)' semVer='\(info.semanticVersion)' blePIN=\(info.blePIN)")
             DebugLogger.shared.log("DEVICE: fw=\(info.firmwareVersion) ver='\(info.semanticVersion)' build='\(info.buildDate)'", level: .rx)
