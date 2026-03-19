@@ -1042,12 +1042,7 @@ struct ContactListView: View {
 
     @ViewBuilder
     private func contactContextMenu(for contact: Contact) -> some View {
-        Button {
-            detailContact = contact
-        } label: {
-            Label("Network Details", systemImage: "info.circle")
-        }
-
+        // Nickname — always first, most used
         Button {
             nicknameContact = contact
             nicknameText = viewModel.nickname(for: contact) ?? ""
@@ -1057,15 +1052,60 @@ struct ContactListView: View {
                   systemImage: "pencil")
         }
 
-        if viewModel.nickname(for: contact) != nil {
+        // Type-specific actions
+        if contact.type == .repeater || contact.type == .room {
             Button {
-                viewModel.setNickname("", for: contact)
+                viewModel.sidebarSelection = .contact(contact.publicKeyPrefix)
             } label: {
-                Label("Remove Nickname", systemImage: "pencil.slash")
+                Label("Remote Management", systemImage: "gearshape.2")
             }
         }
 
-        if !viewModel.contactGroups.isEmpty {
+        Button {
+            viewModel.requestStatus(for: contact)
+        } label: {
+            Label("Request Status", systemImage: "antenna.radiowaves.left.and.right")
+        }
+
+        Button {
+            viewModel.requestTelemetry(for: contact)
+        } label: {
+            Label("Request Telemetry", systemImage: "gauge.with.dots.needle.bottom.50percent")
+        }
+
+        if contact.type == .chat {
+            Button {
+                isExporting = true
+                viewModel.exportContact(contact)
+            } label: {
+                Label("Share Contact", systemImage: "square.and.arrow.up")
+            }
+        }
+
+        Button {
+            pathEditorContact = contact
+        } label: {
+            Label("Edit Route", systemImage: "arrow.triangle.branch")
+        }
+
+        if contact.type == .chat && contact.outPathLen > 0 {
+            Button {
+                viewModel.traceRoute(to: contact)
+            } label: {
+                Label("Trace Route", systemImage: "point.3.connected.trianglepath.dotted")
+            }
+        }
+
+        Button {
+            viewModel.toggleFavourite(for: contact)
+        } label: {
+            Label(
+                contact.isFavourite ? "Remove from Favourites" : "Add to Favourites",
+                systemImage: contact.isFavourite ? "star.slash" : "star"
+            )
+        }
+
+        if !viewModel.contactGroups.isEmpty && contact.type == .chat {
             Menu {
                 ForEach(viewModel.contactGroups) { group in
                     Button {
@@ -1079,52 +1119,17 @@ struct ContactListView: View {
             }
         }
 
-        Divider()
-
         Button {
-            viewModel.toggleFavourite(for: contact)
+            detailContact = contact
         } label: {
-            Label(
-                contact.isFavourite ? "Remove from Favourites" : "Add to Favourites",
-                systemImage: contact.isFavourite ? "star.slash" : "star"
-            )
-        }
-
-        Button {
-            viewModel.shareContact(contact)
-            showShareConfirmation = true
-        } label: {
-            Label("Share on Mesh", systemImage: "dot.radiowaves.left.and.right")
-        }
-
-        Button {
-            isExporting = true
-            viewModel.exportContact(contact)
-        } label: {
-            Label(isExporting ? "Exporting..." : "Export Link", systemImage: "square.and.arrow.up")
-        }
-
-        #if !os(watchOS)
-        Button {
-            shareContact = contact
-        } label: {
-            Label("Share QR Code", systemImage: "qrcode")
-        }
-        #endif
-
-        Divider()
-
-        Button {
-            pathEditorContact = contact
-        } label: {
-            Label("Edit Route", systemImage: "arrow.triangle.branch")
+            Label("Network Details", systemImage: "info.circle")
         }
 
         Button {
             viewModel.resetPath(for: contact)
             showResetConfirmation = true
         } label: {
-            Label("Reset Path", systemImage: "arrow.triangle.2.circlepath")
+            Label("Reset Path", systemImage: "arrow.counterclockwise")
         }
 
         Divider()
@@ -1133,7 +1138,7 @@ struct ContactListView: View {
             contactToDelete = contact
             showDeleteConfirm = true
         } label: {
-            Label("Remove Contact", systemImage: "trash")
+            Label("Delete Contact", systemImage: "trash")
         }
     }
 
