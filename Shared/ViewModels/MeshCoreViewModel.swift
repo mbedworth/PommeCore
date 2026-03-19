@@ -2901,6 +2901,13 @@ final class MeshCoreViewModel: ObservableObject {
         }
     }
 
+    /// Stop the current discover scan.
+    func stopDiscover() {
+        discoverTimeoutTask?.cancel()
+        isDiscovering = false
+        DebugLogger.shared.log("DISCOVER: stopped by user", level: .info)
+    }
+
     /// Fallback discover: send flood advertisement and listen for advert responses.
     private func startDiscoverFallback() {
         discoverFallbackMessage = "Using advertisement-based discovery (firmware does not support active discover scan)"

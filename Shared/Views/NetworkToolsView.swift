@@ -17,7 +17,7 @@ struct DiscoverView: View {
                         Image(systemName: "magnifyingglass.circle")
                             .foregroundStyle(MeshTheme.accent)
                             .frame(width: 24)
-                        Text(viewModel.isDiscovering ? "Scanning..." : "Start Discover")
+                        Text(viewModel.isDiscovering ? "Restart Scan" : "Start Discover")
                             .foregroundStyle(MeshTheme.accent)
                         Spacer()
                         if viewModel.isDiscovering {
@@ -28,8 +28,25 @@ struct DiscoverView: View {
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .disabled(viewModel.isDiscovering)
                 .listRowBackground(MeshTheme.surface)
+
+                if viewModel.isDiscovering {
+                    Button {
+                        viewModel.stopDiscover()
+                    } label: {
+                        HStack {
+                            Image(systemName: "stop.circle")
+                                .foregroundStyle(.orange)
+                                .frame(width: 24)
+                            Text("Stop Scan")
+                                .foregroundStyle(.orange)
+                            Spacer()
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .listRowBackground(MeshTheme.surface)
+                }
 
                 if viewModel.isDiscovering {
                     ActivityOverlay(message: "Scanning for nearby nodes...", timeout: 30)
