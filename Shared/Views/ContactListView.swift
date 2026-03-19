@@ -376,13 +376,16 @@ struct ContactListView: View {
                         .font(.subheadline)
                         .foregroundStyle(MeshTheme.textPrimary)
                     Spacer()
-                    if let name = viewModel.connectedDeviceName {
+                    if let rawName = viewModel.connectedDeviceName {
+                        let shortName = rawName
+                            .replacingOccurrences(of: "MeshCore-", with: "")
+                            .replacingOccurrences(of: "meshcore-", with: "")
                         HStack(spacing: 4) {
-                            Text(name)
+                            Text(shortName)
                                 .font(.caption)
                                 .foregroundStyle(MeshTheme.textSecondary)
                             if viewModel.deviceConfig.batteryPercent() > 0 {
-                                Text("\(viewModel.deviceConfig.batteryPercent())%")
+                                Text("\u{2022} \(viewModel.deviceConfig.batteryPercent())%")
                                     .font(.caption2)
                                     .foregroundStyle(MeshTheme.textSecondary)
                             }
