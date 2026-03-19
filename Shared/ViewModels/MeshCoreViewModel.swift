@@ -3085,6 +3085,7 @@ final class MeshCoreViewModel: ObservableObject {
 
     /// Request telemetry from a sensor contact.
     func requestTelemetry(for contact: Contact) {
+        DebugLogger.shared.log("TELEMETRY REQ: requesting from \(contact.name)", level: .tx)
         let key = contact.publicKeyPrefix
         pendingTelemetryKey = key
         let frame = MeshCoreProtocol.buildSendTelemetryReq(recipientPublicKey: contact.publicKey)
