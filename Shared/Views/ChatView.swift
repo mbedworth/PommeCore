@@ -387,6 +387,32 @@ struct ChannelChatView: View {
         }
         .background(MeshTheme.background)
         .navigationTitle(channelName)
+        #if !os(watchOS)
+        .toolbar {
+            ToolbarItem(placement: .automatic) {
+                HStack(spacing: 12) {
+                    Button {
+                        // Cycle notification mode: all → mentions → muted → all
+                        let key = "channel.notify.\(channelName)"
+                        let store = NSUbiquitousKeyValueStore.default
+                        let current = store.string(forKey: key) ?? "all"
+                        let next: String
+                        switch current {
+                        case "all": next = "mentions"
+                        case "mentions": next = "muted"
+                        default: next = "all"
+                        }
+                        store.set(next, forKey: key)
+                        store.synchronize()
+                    } label: {
+                        let mode = NSUbiquitousKeyValueStore.default.string(forKey: "channel.notify.\(channelName)") ?? "all"
+                        Image(systemName: mode == "muted" ? "bell.slash" : mode == "mentions" ? "at" : "bell.fill")
+                            .foregroundStyle(MeshTheme.accent)
+                    }
+                }
+            }
+        }
+        #endif
         .onAppear {
             // Store last-read timestamp for unread divider (iCloud synced)
             let lastReadKey = "lastRead.\(channelKey.map { String(format: "%02x", $0) }.joined())"
