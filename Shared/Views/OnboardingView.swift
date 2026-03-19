@@ -3,7 +3,7 @@ import SwiftUI
 struct OnboardingView: View {
     @Binding var hasCompletedOnboarding: Bool
     @State private var currentPage = 0
-    private let lastPage = 3
+    private let lastPage = 4
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -11,7 +11,8 @@ struct OnboardingView: View {
                 welcomePage.tag(0)
                 connectPage.tag(1)
                 communicatePage.tag(2)
-                getStartedPage.tag(3)
+                regionPage.tag(3)
+                getStartedPage.tag(4)
             }
             #if os(watchOS)
             .tabViewStyle(.carousel)
@@ -68,39 +69,30 @@ struct OnboardingView: View {
     }
 
     private var connectPage: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: 16) {
             Spacer()
             Image(systemName: "cable.connector")
-                .font(.system(size: 72))
+                .font(.system(size: 60))
                 .foregroundStyle(MeshTheme.accent)
             Text("Connect Your Radio")
-                .font(.title.bold())
+                .font(.title2.bold())
                 .foregroundStyle(MeshTheme.textPrimary)
-            Text("MeshCore works with companion radios over Bluetooth Low Energy. Turn on your radio and the app will find it automatically.")
-                .font(.body)
+
+            VStack(alignment: .leading, spacing: 10) {
+                stepRow(number: "1", text: "Power on your MeshCore radio and make sure Bluetooth is enabled on your device.")
+                stepRow(number: "2", text: "MeshCore will scan for nearby radios automatically.")
+                stepRow(number: "3", text: "Tap your radio\u{2019}s name when it appears.")
+                stepRow(number: "4", text: "Enter the BLE PIN shown on your radio\u{2019}s screen (if required).")
+                stepRow(number: "5", text: "Once connected, your contacts and channels will sync automatically.")
+            }
+            .padding(.horizontal, 24)
+
+            Text("TIP: Name your radio with your initials + first 4 of your public key (e.g., NMA-5abd). You can change this in Settings after connecting.")
+                .font(.caption)
                 .foregroundStyle(MeshTheme.textSecondary)
                 .multilineTextAlignment(.center)
-                .padding(.horizontal, 32)
-            HStack(spacing: 24) {
-                VStack {
-                    Image(systemName: "wave.3.right")
-                        .font(.title2)
-                        .foregroundStyle(MeshTheme.accent)
-                    Text("BLE")
-                        .font(.caption)
-                        .foregroundStyle(MeshTheme.textSecondary)
-                }
-                #if os(macOS)
-                VStack {
-                    Image(systemName: "cable.connector.horizontal")
-                        .font(.title2)
-                        .foregroundStyle(MeshTheme.accent)
-                    Text("USB")
-                        .font(.caption)
-                        .foregroundStyle(MeshTheme.textSecondary)
-                }
-                #endif
-            }
+                .padding(.horizontal, 24)
+
             Spacer()
             navigationControls
         }
@@ -111,10 +103,10 @@ struct OnboardingView: View {
         VStack(spacing: 24) {
             Spacer()
             Image(systemName: "bubble.left.and.bubble.right")
-                .font(.system(size: 72))
+                .font(.system(size: 60))
                 .foregroundStyle(MeshTheme.accent)
             Text("Communicate Off-Grid")
-                .font(.title.bold())
+                .font(.title2.bold())
                 .foregroundStyle(MeshTheme.textPrimary)
             Text("Send direct messages, join channels, and connect with others across the mesh network without internet or cell service.")
                 .font(.body)
@@ -153,6 +145,46 @@ struct OnboardingView: View {
         .padding()
     }
 
+    private var regionPage: some View {
+        VStack(spacing: 16) {
+            Spacer()
+            Image(systemName: "globe.americas")
+                .font(.system(size: 60))
+                .foregroundStyle(MeshTheme.accent)
+            Text("Set Your Region")
+                .font(.title2.bold())
+                .foregroundStyle(MeshTheme.textPrimary)
+
+            Text("Your radio must use the correct frequency for your country. Using the wrong frequency may violate local regulations.")
+                .font(.subheadline)
+                .foregroundStyle(MeshTheme.textSecondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 24)
+
+            VStack(spacing: 6) {
+                frequencyRow(region: "\u{1F1FA}\u{1F1F8} Americas (US, CA, AU, NZ)", freq: "915 MHz")
+                frequencyRow(region: "\u{1F1EA}\u{1F1FA} Europe (EU, UK)", freq: "868 MHz")
+                frequencyRow(region: "\u{1F1EF}\u{1F1F5} Japan", freq: "920 MHz")
+                frequencyRow(region: "\u{1F1EE}\u{1F1F3} India", freq: "865 MHz")
+            }
+            .padding(.horizontal, 24)
+
+            Text("Your radio\u{2019}s frequency is set during flashing. If you need to change it, go to Settings \u{2192} Radio after connecting. All radios on your mesh must use the same frequency, bandwidth, spreading factor, and coding rate.")
+                .font(.caption)
+                .foregroundStyle(MeshTheme.textSecondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 24)
+
+            Link("View MeshCore Frequency Guide", destination: URL(string: "https://meshcore.co.uk")!)
+                .font(.caption)
+                .foregroundStyle(MeshTheme.accent)
+
+            Spacer()
+            navigationControls
+        }
+        .padding()
+    }
+
     private var getStartedPage: some View {
         VStack(spacing: 24) {
             Spacer()
@@ -185,6 +217,33 @@ struct OnboardingView: View {
             navigationControls
         }
         .padding()
+    }
+
+    // MARK: - Helpers
+
+    private func stepRow(number: String, text: String) -> some View {
+        HStack(alignment: .top, spacing: 8) {
+            Text(number + ".")
+                .fontWeight(.bold)
+                .frame(width: 20, alignment: .trailing)
+                .foregroundStyle(MeshTheme.accent)
+            Text(text)
+                .foregroundStyle(MeshTheme.textSecondary)
+        }
+        .font(.subheadline)
+    }
+
+    private func frequencyRow(region: String, freq: String) -> some View {
+        HStack {
+            Text(region)
+                .foregroundStyle(MeshTheme.textSecondary)
+            Spacer()
+            Text(freq)
+                .fontWeight(.medium)
+                .foregroundStyle(MeshTheme.textPrimary)
+        }
+        .font(.subheadline)
+        .padding(.vertical, 4)
     }
 
     // MARK: - Navigation Controls
