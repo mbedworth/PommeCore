@@ -6,6 +6,11 @@ import MeshCoreKit
 
 struct DiscoverView: View {
     @EnvironmentObject var viewModel: MeshCoreViewModel
+    @State private var discoveryDuration: TimeInterval = 300
+    @State private var timeRemaining: TimeInterval = 0
+    @State private var discoveryTimer: Timer?
+    @State private var advertTimer: Timer?
+    @State private var isTimedDiscovery = false
 
     var body: some View {
         List {
@@ -30,9 +35,10 @@ struct DiscoverView: View {
                 .buttonStyle(.plain)
                 .listRowBackground(MeshTheme.surface)
 
-                if viewModel.isDiscovering {
+                if viewModel.isDiscovering || isTimedDiscovery {
                     Button {
                         viewModel.stopDiscover()
+                        stopTimedDiscovery()
                     } label: {
                         HStack {
                             Image(systemName: "stop.circle")
@@ -41,6 +47,12 @@ struct DiscoverView: View {
                             Text("Stop Scan")
                                 .foregroundStyle(.orange)
                             Spacer()
+                            if isTimedDiscovery && timeRemaining > 0 {
+                                Text(formatTimeRemaining(timeRemaining))
+                                    .font(.caption)
+                                    .foregroundStyle(.orange)
+                                    .monospacedDigit()
+                            }
                         }
                         .contentShape(Rectangle())
                     }
@@ -63,6 +75,52 @@ struct DiscoverView: View {
                     }
                     .listRowBackground(MeshTheme.surface)
                 }
+            }
+
+            Section {
+                HStack {
+                    Image(systemName: "timer")
+                        .foregroundStyle(MeshTheme.accent)
+                        .frame(width: 24)
+                    Picker("Duration", selection: $discoveryDuration) {
+                        Text("5 minutes").tag(TimeInterval(300))
+                        Text("10 minutes").tag(TimeInterval(600))
+                        Text("15 minutes").tag(TimeInterval(900))
+                        Text("30 minutes").tag(TimeInterval(1800))
+                    }
+                    .foregroundStyle(MeshTheme.accent)
+                    .tint(MeshTheme.accent)
+                }
+                .listRowBackground(MeshTheme.surface)
+
+                Button {
+                    if isTimedDiscovery { stopTimedDiscovery() }
+                    startTimedDiscovery()
+                } label: {
+                    HStack {
+                        Image(systemName: "antenna.radiowaves.left.and.right")
+                            .foregroundStyle(MeshTheme.accent)
+                            .frame(width: 24)
+                        Text(isTimedDiscovery ? "Restart Timed Discovery" : "Start Timed Discovery")
+                            .foregroundStyle(MeshTheme.accent)
+                        Spacer()
+                        if isTimedDiscovery {
+                            Text(formatTimeRemaining(timeRemaining))
+                                .font(.caption)
+                                .foregroundStyle(MeshTheme.accent)
+                                .monospacedDigit()
+                        }
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .listRowBackground(MeshTheme.surface)
+            } header: {
+                Text("Timed Discovery")
+                    .foregroundStyle(MeshTheme.textSecondary)
+            } footer: {
+                Text("Sends periodic flood advertisements for the selected duration. Uses more battery and airtime than a single scan.")
+                    .font(.caption2)
             }
 
             if viewModel.discoveredNodes.isEmpty {
@@ -164,6 +222,43 @@ struct DiscoverView: View {
         if snr >= 5 { return MeshTheme.connected }
         if snr >= 0 { return .yellow }
         return .orange
+    }
+
+    private func startTimedDiscovery() {
+        isTimedDiscovery = true
+        timeRemaining = discoveryDuration
+        viewModel.discoveredNodes = []
+        DebugLogger.shared.log("DISCOVER: started \(Int(discoveryDuration / 60))min timed discovery", level: .info)
+        viewModel.sendAdvertise(type: 1) // Initial flood advert
+
+        // Re-advertise every 30 seconds
+        advertTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak viewModel] _ in
+            viewModel?.sendAdvertise(type: 1)
+        }
+
+        // Countdown timer
+        discoveryTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
+            timeRemaining -= 1
+            if timeRemaining <= 0 {
+                stopTimedDiscovery()
+            }
+        }
+    }
+
+    private func stopTimedDiscovery() {
+        advertTimer?.invalidate()
+        discoveryTimer?.invalidate()
+        advertTimer = nil
+        discoveryTimer = nil
+        isTimedDiscovery = false
+        timeRemaining = 0
+        DebugLogger.shared.log("DISCOVER: timed discovery stopped", level: .info)
+    }
+
+    private func formatTimeRemaining(_ seconds: TimeInterval) -> String {
+        let mins = Int(seconds) / 60
+        let secs = Int(seconds) % 60
+        return String(format: "%d:%02d", mins, secs)
     }
 }
 
