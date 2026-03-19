@@ -1265,11 +1265,12 @@ struct ContactListView: View {
         }()
 
         ZStack {
+            let statusColor = viewModel.contactStatusColor(for: contact)
             Circle()
-                .fill(MeshTheme.accent.opacity(0.15))
+                .fill(statusColor.opacity(0.15))
                 .frame(width: 40, height: 40)
             Image(systemName: contactIconName(for: contact.type))
-                .foregroundStyle(MeshTheme.accent)
+                .foregroundStyle(statusColor)
 
             // Status overlay for repeaters/room servers
             if isManaged {
