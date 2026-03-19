@@ -24,17 +24,23 @@ struct MeshMapView: View {
                                    latitude: contact.latitude,
                                    longitude: contact.longitude
                                )) {
-                        VStack(spacing: 2) {
-                            Image(systemName: contactTypeIcon(contact))
-                                .foregroundStyle(contactTypeColor(contact))
-                                .font(.title2)
-                                .padding(6)
-                                .background(Circle().fill(.background))
-                                .shadow(radius: 2)
-                            Text(viewModel.displayName(for: contact))
-                                .font(.caption2)
-                                .lineLimit(1)
+                        Button {
+                            viewModel.sidebarSelection = .contact(contact.publicKeyPrefix)
+                        } label: {
+                            VStack(spacing: 2) {
+                                Image(systemName: contactTypeIcon(contact))
+                                    .foregroundStyle(contactTypeColor(contact))
+                                    .font(.title2)
+                                    .padding(6)
+                                    .background(Circle().fill(.background))
+                                    .shadow(radius: 2)
+                                Text(viewModel.displayName(for: contact))
+                                    .font(.caption2)
+                                    .foregroundStyle(MeshTheme.textPrimary)
+                                    .lineLimit(1)
+                            }
                         }
+                        .buttonStyle(.plain)
                     }
                 }
 
