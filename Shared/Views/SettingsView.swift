@@ -78,24 +78,39 @@ struct SettingsView: View {
 
     private var settingsForm: some View {
         List {
-            appearanceSection
-            iCloudSection
-            radioDataSection
-            notificationsSection
-            messageSettingsSection
+            // Essential — always visible
             deviceInfoSection
             connectionSection
             identitySection
-            radioSection
-            tuningSection
+            notificationsSection
+            messageSettingsSection
             privacySection
-            timeSection
-            if !viewModel.deviceConfig.customVars.isEmpty {
-                customVarsSection
+
+            // Radio & Advanced — collapsed by default
+            Section {
+                DisclosureGroup("Radio & Tuning") {
+                    radioSection
+                    tuningSection
+                }
+                .listRowBackground(MeshTheme.surface)
             }
-            statsSection
+
+            Section {
+                DisclosureGroup("Advanced") {
+                    appearanceSection
+                    iCloudSection
+                    radioDataSection
+                    timeSection
+                    if !viewModel.deviceConfig.customVars.isEmpty {
+                        customVarsSection
+                    }
+                    statsSection
+                    storageSection
+                }
+                .listRowBackground(MeshTheme.surface)
+            }
+
             securitySection
-            storageSection
             tipJarSection
             troubleshootingSection
             aboutSection
