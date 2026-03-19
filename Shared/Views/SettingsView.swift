@@ -103,7 +103,10 @@ struct SettingsView: View {
             notificationsSection
             messageSettingsSection
 
-            // 6. Privacy & Security
+            // 6. Channels
+            channelsSettingsSection
+
+            // 7. Privacy & Security
             privacySection
             securitySection
 
@@ -432,17 +435,11 @@ private extension SettingsView {
             .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
 
-            Toggle(isOn: channelEchoBinding) {
-                Label("Channel Echo Detection", systemImage: "arrow.triangle.2.circlepath")
-                    .foregroundStyle(MeshTheme.accent)
-            }
-            .tint(MeshTheme.accent)
-            .listRowBackground(MeshTheme.surface)
         } header: {
             Text("Message Delivery")
                 .foregroundStyle(MeshTheme.textSecondary)
         } footer: {
-            Text("Auto Retry resends failed direct messages up to 3 times. Auto Reset Path clears the cached route and resends as flood. Channel Echo Detection shows a 'Repeated' indicator when nearby repeaters rebroadcast your channel messages.")
+            Text("Auto Retry resends failed direct messages up to 3 times. Auto Reset Path clears the cached route and resends as flood.")
                 .font(.caption2)
         }
     }
@@ -468,6 +465,33 @@ private extension SettingsView {
         )
     }
 
+    var channelsSettingsSection: some View {
+        Section {
+            if isConnected && !viewModel.channels.isEmpty {
+                Button {
+                    // Share all channels
+                } label: {
+                    Label("Share All Channels", systemImage: "square.and.arrow.up")
+                        .foregroundStyle(MeshTheme.accent)
+                }
+                .buttonStyle(.plain)
+                .listRowBackground(MeshTheme.surface)
+            }
+
+            Toggle(isOn: channelEchoBinding) {
+                Label("Echo Detection", systemImage: "arrow.triangle.2.circlepath")
+                    .foregroundStyle(MeshTheme.accent)
+            }
+            .tint(MeshTheme.accent)
+            .listRowBackground(MeshTheme.surface)
+        } header: {
+            Text("Channels")
+                .foregroundStyle(MeshTheme.textSecondary)
+        } footer: {
+            Text("Echo detection shows a \u{2018}Repeated\u{2019} indicator when nearby repeaters rebroadcast your channel messages.")
+                .font(.caption2)
+        }
+    }
 }
 
 // MARK: - Section 1: Device Info
@@ -2854,7 +2878,7 @@ struct BatteryEditorSheet: View {
                     Picker("Battery Type", selection: $batteryChemistryRaw) {
                         Text("LiPo (3.7V)").tag(BatteryChemistry.lipo.rawValue)
                         Text("LiFePO4 (3.2V)").tag(BatteryChemistry.lifepo4.rawValue)
-                        Text("Li-Ion 18650 (3.7V)").tag(BatteryChemistry.li18650.rawValue)
+                        Text("Li-Ion (3.7V)").tag(BatteryChemistry.li18650.rawValue)
                     }
                 } footer: {
                     Text("Select battery chemistry for accurate percentage calculation.")
