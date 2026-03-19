@@ -1375,7 +1375,7 @@ struct PrivacySection: View {
             Text("Privacy & Security")
                 .foregroundStyle(MeshTheme.textSecondary)
         } footer: {
-            Text("Controls what telemetry data is shared when requested. Per-Contact mode only shares with contacts that have telemetry permission set. Position Accuracy adds a random offset to your advertised location for privacy.")
+            Text("Controls what telemetry data is shared when requested. Per-Contact mode only shares with contacts that have telemetry permission set. Position Accuracy adds a random offset to your personal device location only. Repeater and room server locations are always shared at exact coordinates for accurate mesh routing.")
                 .font(.caption2)
         }
 
