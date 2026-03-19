@@ -52,11 +52,19 @@ struct RemoteManagementView: View {
                 if canRead {
                     radioSection
                     timingSection
-                    routingSection
+                    // Repeater-only: routing has discover.neighbors and regions
+                    if contact.type == .repeater {
+                        routingSection
+                    }
                     advertisingSection
                     gpsSection
+                    // Room server-only sections
                     if contact.type == .room {
                         roomSection
+                    }
+                    // Sensor-only sections
+                    if contact.type == .sensor && isAdmin {
+                        sensorSection
                     }
                 }
                 // Admin only: security, maintenance, CLI
@@ -948,6 +956,10 @@ private extension RemoteManagementView {
     var roomSection: some View {
         RemoteRoomSection(session: session, sendCLI: sendCLI, canEdit: canEdit)
     }
+
+    var sensorSection: some View {
+        RemoteSensorSection(session: session, sendCLI: sendCLI)
+    }
 }
 
 struct RemoteRoomSection: View {
@@ -961,6 +973,72 @@ struct RemoteRoomSection: View {
         } header: {
             Text("Room Server")
                 .foregroundStyle(MeshTheme.textSecondary)
+        }
+    }
+}
+
+// MARK: - Sensor Section
+
+struct RemoteSensorSection: View {
+    @ObservedObject var session: RemoteDeviceSession
+    let sendCLI: (String) -> Void
+    @State private var gpioPin = ""
+
+    var body: some View {
+        Section {
+            Button {
+                sendCLI("io")
+            } label: {
+                HStack {
+                    Image(systemName: "cpu")
+                        .foregroundStyle(MeshTheme.accent)
+                        .frame(width: 24)
+                    Text("Read All GPIO Pins")
+                        .foregroundStyle(MeshTheme.accent)
+                    Spacer()
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .listRowBackground(MeshTheme.surface)
+
+            if let ioResult = session.settings["io"], !ioResult.isEmpty {
+                Text(ioResult)
+                    .font(.system(.caption, design: .monospaced))
+                    .foregroundStyle(MeshTheme.textPrimary)
+                    .listRowBackground(MeshTheme.surface)
+            }
+
+            HStack(spacing: 8) {
+                Image(systemName: "pin")
+                    .foregroundStyle(MeshTheme.accent)
+                    .frame(width: 24)
+                #if os(watchOS)
+                TextField("Pin", text: $gpioPin)
+                    .frame(width: 40)
+                #else
+                TextField("Pin", text: $gpioPin)
+                    .frame(width: 40)
+                    .textFieldStyle(MeshTextFieldStyle())
+                #endif
+                Button("Set") { sendCLI("io s\(gpioPin)") }
+                    .foregroundStyle(MeshTheme.accent)
+                    .buttonStyle(.plain)
+                Button("Reset") { sendCLI("io r\(gpioPin)") }
+                    .foregroundStyle(.orange)
+                    .buttonStyle(.plain)
+                Button("Toggle") { sendCLI("io t\(gpioPin)") }
+                    .foregroundStyle(MeshTheme.accent)
+                    .buttonStyle(.plain)
+            }
+            .listRowBackground(MeshTheme.surface)
+            .disabled(gpioPin.isEmpty)
+        } header: {
+            Text("Sensor GPIO")
+                .foregroundStyle(MeshTheme.textSecondary)
+        } footer: {
+            Text("Direct GPIO pin control. Use with caution \u{2014} incorrect operations may affect sensor readings.")
+                .font(.caption2)
         }
     }
 }
