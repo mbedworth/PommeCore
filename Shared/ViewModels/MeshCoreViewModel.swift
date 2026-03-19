@@ -1556,9 +1556,10 @@ final class MeshCoreViewModel: ObservableObject {
             )
         }
 
-        // Request updated contacts after a delay to pick up any path changes
+        // Request updated contacts after a longer delay (5s) to give the firmware
+        // time to process the reset before we read back the path value
         Task { @MainActor [weak self] in
-            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            try? await Task.sleep(nanoseconds: 5_000_000_000)
             self?.requestDebouncedIncrementalSync()
         }
     }
