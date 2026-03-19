@@ -1013,7 +1013,7 @@ struct RemoteMaintenanceSection: View {
                 .buttonStyle(.plain)
                 .listRowBackground(MeshTheme.surface)
 
-                // Logging
+                // Logging (start/stop work over BLE; log dump is serial-only)
                 HStack(spacing: 12) {
                     Button { sendCLI("log start") } label: {
                         Text("Start Log").foregroundStyle(MeshTheme.accent)
@@ -1025,10 +1025,9 @@ struct RemoteMaintenanceSection: View {
                     }
                     .buttonStyle(.plain)
 
-                    Button { sendCLI("log") } label: {
-                        Text("View Log").foregroundStyle(MeshTheme.accent)
-                    }
-                    .buttonStyle(.plain)
+                    Text("View: USB only")
+                        .font(.caption2)
+                        .foregroundStyle(MeshTheme.textSecondary)
                 }
                 .listRowBackground(MeshTheme.surface)
 
