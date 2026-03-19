@@ -1945,13 +1945,20 @@ class TipJarManager: ObservableObject {
         isLoading = true
         hasLoaded = true
 
+        let ids = Set(Self.productIDs)
+        DebugLogger.shared.log("TIP JAR: requesting \(ids.count) products: \(ids.joined(separator: ", "))", level: .info)
+
         Task.detached {
             let loaded: [Product]
             do {
-                loaded = try await Product.products(for: Self.productIDs)
-                    .sorted { $0.price < $1.price }
+                let fetched = try await Product.products(for: ids)
+                loaded = fetched.sorted { $0.price < $1.price }
+                for p in loaded {
+                    DebugLogger.shared.log("TIP JAR: product \(p.id) — \(p.displayPrice)", level: .info)
+                }
+                DebugLogger.shared.log("TIP JAR: loaded \(loaded.count) products", level: .info)
             } catch {
-                DebugLogger.shared.log("TIP JAR ERROR: \(error)", level: .error)
+                DebugLogger.shared.log("TIP JAR: ERROR loading — \(error.localizedDescription)", level: .error)
                 loaded = []
             }
             await MainActor.run {
@@ -2113,6 +2120,7 @@ struct TipJarView: View {
         .navigationBarTitleDisplayMode(.inline)
         #endif
         .onAppear {
+            DebugLogger.shared.log("TIP JAR VIEW: appeared, products=\(manager.products.count)", level: .info)
             manager.loadProductsIfNeeded()
         }
     }
