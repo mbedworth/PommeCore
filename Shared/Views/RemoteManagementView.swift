@@ -34,6 +34,18 @@ struct RemoteManagementView: View {
                         .listRowBackground(MeshTheme.surface)
                     }
                 }
+                // Permission-level banner for non-admin users
+                if !isAdmin && isLoggedIn {
+                    HStack(spacing: 8) {
+                        Image(systemName: permission == .guest ? "person" : "eye")
+                            .foregroundStyle(permissionBadgeColor)
+                        Text(permission == .guest ? "Logged in as Guest \u{2014} no access to settings" : "Logged in as \(permission.displayName) \u{2014} read-only access")
+                            .font(.caption)
+                            .foregroundStyle(MeshTheme.textSecondary)
+                    }
+                    .listRowBackground(MeshTheme.surface)
+                }
+
                 // All permission levels: device info (read-only)
                 infoSection
                 // Read-only and above: settings sections
@@ -50,10 +62,11 @@ struct RemoteManagementView: View {
                 // Admin only: security, maintenance, CLI
                 if isAdmin {
                     securitySection
-                }
-                maintenanceSection
-                if isAdmin {
+                    maintenanceSection
                     cliTerminalSection
+                } else if canRead {
+                    // Non-admin readers see read-only maintenance (power saving status)
+                    maintenanceSection
                 }
             } else {
                 loginSection
