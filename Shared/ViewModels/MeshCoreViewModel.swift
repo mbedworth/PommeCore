@@ -1442,7 +1442,7 @@ final class MeshCoreViewModel: ObservableObject {
     private static var locationFudgeFraction: Double = Double.random(in: 0...1)
 
     /// Apply a privacy offset to coordinates. The offset is consistent within a session.
-    private func fudgeLocation(lat: Double, lon: Double) -> (Double, Double) {
+    func fudgeLocation(lat: Double, lon: Double) -> (Double, Double) {
         let radius = UserDefaults.standard.double(forKey: "locationPrivacyRadius")
         guard radius > 0 else { return (lat, lon) }
 

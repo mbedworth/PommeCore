@@ -1,5 +1,8 @@
 import SwiftUI
 import MeshCoreKit
+#if !os(watchOS)
+import CoreLocation
+#endif
 
 extension Notification.Name {
     static let insertMention = Notification.Name("insertMention")
@@ -151,6 +154,14 @@ struct ChatView: View {
                         Image(systemName: "magnifyingglass")
                             .foregroundStyle(isSearching ? MeshTheme.accent : MeshTheme.textSecondary)
                     }
+                    #if !os(watchOS)
+                    Button {
+                        sendLocationAsDM()
+                    } label: {
+                        Image(systemName: "location.fill")
+                            .foregroundStyle(MeshTheme.accent)
+                    }
+                    #endif
                     Button {
                         showNotes = true
                     } label: {
@@ -362,6 +373,23 @@ struct ChatView: View {
         messageText = ""
         viewModel.saveDraft("", for: contact.publicKeyPrefix)
     }
+
+    #if !os(watchOS)
+    private func sendLocationAsDM() {
+        let locManager = CLLocationManager()
+        guard let location = locManager.location else {
+            DebugLogger.shared.log("LOCATION: unavailable for send", level: .warning)
+            return
+        }
+        let lat = location.coordinate.latitude
+        let lon = location.coordinate.longitude
+        let (fLat, fLon) = viewModel.fudgeLocation(lat: lat, lon: lon)
+        let text = "\u{1F4CD} \(String(format: "%.6f", fLat)), \(String(format: "%.6f", fLon))"
+        viewModel.sendTextMessage(text, to: contact)
+        viewModel.playHapticFeedback()
+        DebugLogger.shared.log("LOCATION: sent to \(contact.name)", level: .tx)
+    }
+    #endif
 }
 
 // MARK: - Channel Chat View
@@ -395,6 +423,12 @@ struct ChannelChatView: View {
         .toolbar {
             ToolbarItem(placement: .automatic) {
                 HStack(spacing: 12) {
+                    Button {
+                        sendLocationToChannel()
+                    } label: {
+                        Image(systemName: "location.fill")
+                            .foregroundStyle(MeshTheme.accent)
+                    }
                     Button {
                         // Cycle notification mode: all → mentions → muted → all
                         let key = "channel.notify.\(channelName)"
@@ -610,6 +644,19 @@ struct ChannelChatView: View {
         messageText = ""
         mentionQuery = nil
         viewModel.saveDraft("", for: channelKey)
+    }
+
+    private func sendLocationToChannel() {
+        let locManager = CLLocationManager()
+        guard let location = locManager.location else {
+            DebugLogger.shared.log("LOCATION: unavailable for channel send", level: .warning)
+            return
+        }
+        let (fLat, fLon) = viewModel.fudgeLocation(lat: location.coordinate.latitude, lon: location.coordinate.longitude)
+        let text = "\u{1F4CD} \(String(format: "%.6f", fLat)), \(String(format: "%.6f", fLon))"
+        viewModel.sendChannelMessage(text, channelIndex: channelIndex)
+        viewModel.playHapticFeedback()
+        DebugLogger.shared.log("LOCATION: sent to channel \(channelIndex)", level: .tx)
     }
 }
 
