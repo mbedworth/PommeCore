@@ -1578,19 +1578,3 @@ func cliEditRow(icon: String, label: String, text: Binding<String>, current: Str
     .listRowBackground(MeshTheme.surface)
 }
 
-/// Format an ACL line from firmware CLI response into readable text.
-/// Firmware returns lines like "ab12cd34ef56 3" (pubkey_prefix + space + permission_level).
-private func formatACLLine(_ line: String) -> String {
-    let parts = line.trimmingCharacters(in: .whitespaces).split(separator: " ", maxSplits: 1)
-    guard parts.count == 2, let level = Int(parts[1]) else { return line }
-    let prefix = String(parts[0])
-    let permission: String
-    switch level {
-    case 0: permission = "Guest"
-    case 1: permission = "Read-Only"
-    case 2: permission = "Read-Write"
-    case 3: permission = "Admin"
-    default: permission = "Level \(level)"
-    }
-    return "\(prefix) \u{2014} \(permission)"
-}

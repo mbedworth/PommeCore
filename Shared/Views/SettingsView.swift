@@ -2133,13 +2133,6 @@ private extension SettingsView {
         }
     }
 
-    private func tipEmoji(for product: Product) -> String {
-        if product.id.hasSuffix(".decent") { return "\u{1F44B}" }
-        if product.id.hasSuffix(".nice") { return "\u{1F44D}" }
-        if product.id.hasSuffix(".great") { return "\u{1F389}" }
-        if product.id.hasSuffix(".help") { return "\u{1F49A}" }
-        return "\u{2764}\u{FE0F}"
-    }
 }
 
 /// MARK: - Tip Jar Standalone View (outside List hierarchy)
