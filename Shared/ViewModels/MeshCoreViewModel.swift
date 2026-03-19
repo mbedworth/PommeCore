@@ -1219,6 +1219,13 @@ final class MeshCoreViewModel: ObservableObject {
             connectionState = .disconnected
             connectedDeviceName = nil
         }
+        // Start BLE scan after USB disconnect (same as BLE disconnect behavior)
+        DebugLogger.shared.log("USB: disconnected — starting BLE scan in 2s", level: .info)
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            guard self.connectionState == .disconnected else { return }
+            self.startScanning()
+        }
     }
 
     func sendUSBCLI(_ command: String) {
