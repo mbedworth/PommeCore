@@ -196,6 +196,12 @@ struct ContactListView: View {
                 .environmentObject(viewModel)
                 .frame(minWidth: 360, minHeight: 400)
         }
+        .onChange(of: viewModel.detailContactForTrace?.id) { _ in
+            if let contact = viewModel.detailContactForTrace {
+                detailContact = contact
+                viewModel.detailContactForTrace = nil
+            }
+        }
         .sheet(item: $pathEditorContact) { contact in
             ManualPathEditor(contact: contact)
                 .environmentObject(viewModel)

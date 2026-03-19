@@ -559,6 +559,8 @@ final class MeshCoreViewModel: ObservableObject {
 
     /// Active trace route tag for correlating responses.
     @Published private(set) var pendingTraceTag: UInt32?
+    private var pendingTraceContact: Contact?
+    @Published var detailContactForTrace: Contact?
 
     /// Contact key for which we're awaiting an advert path response.
     @Published private(set) var pendingAdvertPathKey: Data?
@@ -2281,9 +2283,15 @@ final class MeshCoreViewModel: ObservableObject {
 
         case .traceData(let result):
             Self.logger.info("PUSH TraceData: tag=\(result.tag) hops=\(result.hops.count)")
+            DebugLogger.shared.log("TRACE: \(result.hops.count) hops received", level: .rx)
             traceTimeoutTask?.cancel()
             lastTraceResult = result
             pendingTraceTag = nil
+            // Auto-open contact detail to show trace result
+            if let contact = pendingTraceContact {
+                detailContactForTrace = contact
+            }
+            pendingTraceContact = nil
 
         case .telemetryResponse(let senderKey, let readings):
             Self.logger.info("PUSH Telemetry: \(readings.count) readings from \(senderKey.prefix(6).map { String(format: "%02x", $0) }.joined())")
@@ -3029,6 +3037,7 @@ final class MeshCoreViewModel: ObservableObject {
         }
         let tag = UInt32.random(in: 0..<UInt32.max)
         pendingTraceTag = tag
+        pendingTraceContact = contact
         lastTraceResult = nil
         // Only send the actual path bytes (outPathLen), not zero-padded data
         let actualPathLen = Int(contact.outPathLen)
