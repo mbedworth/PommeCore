@@ -2123,6 +2123,11 @@ struct TipJarView: View {
             DebugLogger.shared.log("TIP JAR VIEW: appeared, products=\(manager.products.count)", level: .info)
             manager.loadProductsIfNeeded()
         }
+        .onDisappear {
+            // Cancel any pending purchase to prevent UI freeze from stuck StoreKit overlay
+            manager.purchasingProductID = nil
+            DebugLogger.shared.log("TIP JAR VIEW: disappeared, cleaned up", level: .info)
+        }
     }
 }
 
