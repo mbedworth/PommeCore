@@ -399,6 +399,9 @@ struct ContactListView: View {
             .listRowBackground(MeshTheme.surface)
             .contextMenu {
                 if viewModel.connectionState == .ready || viewModel.connectionState == .connected {
+                    Button { showMyContactCode = true } label: {
+                        Label("My Contact Code", systemImage: "qrcode")
+                    }
                     Button { viewModel.verifyRadioConfig() } label: {
                         Label("Verify Radio Config", systemImage: "checkmark.shield")
                     }
