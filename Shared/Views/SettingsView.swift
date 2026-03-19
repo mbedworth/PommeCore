@@ -746,6 +746,9 @@ struct IdentitySection: View {
         } header: {
             Text("Identity & Advertising")
                 .foregroundStyle(MeshTheme.textSecondary)
+        } footer: {
+            Text("TIP: Use a short, unique name like \u{2018}NMA-5abd\u{2019} (your initials + first 4 of your public key). Repeaters should follow: [AREA]-[LOCATION]-[TYPE]-[ID] (e.g., FLA-CLERMONT-RPT-01).")
+                .font(.caption2)
         }
         .confirmationDialog("Send Advertisement", isPresented: $showAdvertOptions) {
             Button("Zero-Hop (nearby only)") {
