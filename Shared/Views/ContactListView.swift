@@ -879,6 +879,17 @@ struct ContactListView: View {
                 Text("Contacts")
                     .foregroundStyle(MeshTheme.textSecondary)
                 Spacer()
+                Menu {
+                    Button { showImportSheet = true } label: {
+                        Label("Paste Contact Link", systemImage: "doc.on.clipboard")
+                    }
+                    Button { viewModel.sendAdvertise(type: 1) } label: {
+                        Label("Send Flood Advert", systemImage: "antenna.radiowaves.left.and.right")
+                    }
+                } label: {
+                    Image(systemName: "plus")
+                        .foregroundStyle(MeshTheme.accent)
+                }
                 Button(isSelecting ? "Done" : "Edit") {
                     isSelecting.toggle()
                     if !isSelecting { selectedContacts.removeAll() }
