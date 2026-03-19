@@ -326,6 +326,12 @@ private extension RemoteManagementView {
             if let blVer = session.settings["bootloader.ver"], !blVer.isEmpty {
                 cliInfoRow(icon: "memorychip", label: "Bootloader", value: blVer)
             }
+            if let role = session.settings["role"], !role.isEmpty {
+                cliInfoRow(icon: "person.badge.shield.checkmark", label: "Role", value: role)
+            }
+            if let pubkey = session.settings["public.key"], !pubkey.isEmpty {
+                cliInfoRow(icon: "key", label: "Public Key", value: String(pubkey.prefix(16)) + "...")
+            }
 
             RemoteClockRow(session: session, sendCLI: sendCLI)
 
