@@ -24,6 +24,16 @@ struct ChatView: View {
         viewModel.messages(for: contact)
     }
 
+    private var lastSeenText: String? {
+        let c = liveContact
+        guard c.lastAdvert > 1_000_000_000 else { return nil }
+        let date = Date(timeIntervalSince1970: TimeInterval(c.lastAdvert))
+        guard Date().timeIntervalSince(date) < 365 * 24 * 60 * 60 else { return nil }
+        let fmt = RelativeDateTimeFormatter()
+        fmt.unitsStyle = .abbreviated
+        return fmt.localizedString(for: date, relativeTo: Date())
+    }
+
     private var toolbarName: (text: String, font: Font) {
         let fullName = viewModel.displayName(for: contact)
         if fullName.count <= 14 { return (fullName, .headline) }
@@ -95,18 +105,27 @@ struct ChatView: View {
         .toolbar {
             #if os(iOS)
             ToolbarItem(placement: .principal) {
-                Button { showPathEditor = true } label: {
-                    VStack(spacing: 1) {
-                        Text(toolbarName.text)
-                            .font(toolbarName.font)
-                            .foregroundStyle(MeshTheme.textPrimary)
-                            .lineLimit(1)
-                        Text(routeLabel)
-                            .font(.caption2)
-                            .foregroundStyle(routeColor)
+                VStack(spacing: 1) {
+                    Text(toolbarName.text)
+                        .font(toolbarName.font)
+                        .foregroundStyle(MeshTheme.textPrimary)
+                        .lineLimit(1)
+                    HStack(spacing: 4) {
+                        Button { showPathEditor = true } label: {
+                            Text(routeLabel)
+                                .font(.caption2)
+                                .foregroundStyle(routeColor)
+                        }
+                        .buttonStyle(.plain)
+
+                        if let lastSeen = lastSeenText {
+                            Text("\u{2022}").font(.caption2).foregroundStyle(MeshTheme.textSecondary)
+                            Text(lastSeen)
+                                .font(.caption2)
+                                .foregroundStyle(MeshTheme.textSecondary)
+                        }
                     }
                 }
-                .buttonStyle(.plain)
             }
             #endif
             ToolbarItem(placement: .automatic) {
@@ -127,13 +146,6 @@ struct ChatView: View {
                     } label: {
                         Image(systemName: "magnifyingglass")
                             .foregroundStyle(isSearching ? MeshTheme.accent : MeshTheme.textSecondary)
-                    }
-                    Button {
-                        exportURL = exportChatHistory()
-                        showExportSheet = exportURL != nil
-                    } label: {
-                        Image(systemName: "square.and.arrow.up")
-                            .foregroundStyle(MeshTheme.accent)
                     }
                     Button {
                         showNotes = true
