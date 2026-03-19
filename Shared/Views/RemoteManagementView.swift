@@ -66,6 +66,14 @@ struct RemoteManagementView: View {
             guard isLoggedIn, !session.hasLoadedFullSettings, !session.isFetchingSettings else { return }
             viewModel.fetchRemoteSettings(for: contact)
         }
+        .onDisappear {
+            // Auto-logout when leaving remote management to release admin lock
+            if isLoggedIn {
+                viewModel.sendCLICommand("logout", to: contact)
+                viewModel.logoutFromRemoteDevice(contact)
+                DebugLogger.shared.log("REMOTE: auto-logout from \(contact.name) on exit", level: .info)
+            }
+        }
         .toolbar {
             if isLoggedIn {
                 ToolbarItem(placement: .automatic) {
