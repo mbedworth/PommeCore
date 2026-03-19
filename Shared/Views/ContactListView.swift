@@ -553,27 +553,21 @@ struct ContactListView: View {
                 #endif
             }
             #if !os(watchOS)
-            if viewModel.channels.contains(where: { $0.index != 0 }) {
-                Button {
-                    showShareAllChannels = true
-                } label: {
-                    HStack {
-                        Image(systemName: "square.and.arrow.up")
-                            .foregroundStyle(MeshTheme.accent)
-                        Text("Share All Channels")
-                            .foregroundStyle(MeshTheme.accent)
-                        Spacer()
-                    }
-                    .contentShape(Rectangle())
+            Menu {
+                Button { showChannelSheet = true } label: {
+                    Label("Create Private Channel", systemImage: "lock.fill")
                 }
-                .buttonStyle(.plain)
-                .listRowBackground(MeshTheme.surface)
-            }
-            Button {
-                showChannelSheet = true
+                Button { showChannelSheet = true } label: {
+                    Label("Join Channel", systemImage: "number")
+                }
+                if viewModel.channels.contains(where: { $0.index != 0 }) {
+                    Button { showShareAllChannels = true } label: {
+                        Label("Share All Channels", systemImage: "square.and.arrow.up")
+                    }
+                }
             } label: {
                 HStack {
-                    Image(systemName: "plus.bubble")
+                    Image(systemName: "plus.circle.fill")
                         .foregroundStyle(MeshTheme.accent)
                     Text("Add Channel")
                         .foregroundStyle(MeshTheme.accent)
@@ -581,7 +575,6 @@ struct ContactListView: View {
                 }
                 .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
             #endif
         } header: {
