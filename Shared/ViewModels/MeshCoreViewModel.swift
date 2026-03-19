@@ -1473,7 +1473,9 @@ final class MeshCoreViewModel: ObservableObject {
         locationUpdateTimer?.invalidate()
         setLocationFromPhoneGPS()
         locationUpdateTimer = Timer.scheduledTimer(withTimeInterval: TimeInterval(interval), repeats: true) { [weak self] _ in
-            self?.setLocationFromPhoneGPS()
+            Task { @MainActor in
+                self?.setLocationFromPhoneGPS()
+            }
         }
         DebugLogger.shared.log("PHONE GPS: auto-update every \(interval / 60)min", level: .info)
     }

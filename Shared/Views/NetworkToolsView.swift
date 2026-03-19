@@ -233,7 +233,9 @@ struct DiscoverView: View {
 
         // Re-advertise every 30 seconds
         advertTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak viewModel] _ in
-            viewModel?.sendAdvertise(type: 1)
+            Task { @MainActor in
+                viewModel?.sendAdvertise(type: 1)
+            }
         }
 
         // Countdown timer
