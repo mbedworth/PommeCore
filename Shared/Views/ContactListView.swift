@@ -143,37 +143,32 @@ struct ContactListView: View {
         #else
         .toolbar {
             ToolbarItem(placement: .automatic) {
-                Menu {
-                    Button { showImportSheet = true } label: {
-                        Label("Import Contact", systemImage: "doc.on.clipboard")
-                    }
+                HStack(spacing: 12) {
                     Button {
                         viewModel.sendAdvertise(type: 1)
                     } label: {
-                        Label("Send Flood Advert", systemImage: "antenna.radiowaves.left.and.right")
+                        Image(systemName: "antenna.radiowaves.left.and.right")
+                            .foregroundStyle(MeshTheme.accent)
                     }
                     .disabled(viewModel.connectionState != .ready)
+
                     Button {
                         showDiscover?.wrappedValue = true
                     } label: {
-                        Label("Discover Nodes", systemImage: "sensor.tag.radiowaves.forward")
+                        Image(systemName: "binoculars.fill")
+                            .foregroundStyle(MeshTheme.accent)
                     }
                     .disabled(viewModel.connectionState != .ready)
-                } label: {
-                    Image(systemName: "plus")
-                        .foregroundStyle(MeshTheme.accent)
-                }
-            }
 
-            ToolbarItem(placement: .automatic) {
-                Button {
-                    viewModel.refreshAll()
-                } label: {
-                    Image(systemName: "arrow.clockwise")
-                        .foregroundStyle(MeshTheme.accent)
+                    Button {
+                        viewModel.refreshAll()
+                    } label: {
+                        Image(systemName: "arrow.clockwise")
+                            .foregroundStyle(MeshTheme.accent)
                 }
                 .accessibilityLabel("Refresh")
                 .disabled(viewModel.connectionState != .ready)
+                }
             }
         }
         #endif
