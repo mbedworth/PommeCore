@@ -464,7 +464,24 @@ private extension SettingsView {
             if config.radioFrequency > 0 {
                 let freqMHz = String(format: "%.3f", Double(config.radioFrequency) / 1000.0)
                 let bwKHz = String(format: "%.1f", Double(config.radioBandwidth) / 1000.0)
-                infoRow(icon: "antenna.radiowaves.left.and.right", label: "Radio", value: "\(freqMHz) MHz \u{2022} \(bwKHz)kHz \u{2022} SF\(config.radioSpreadingFactor) CR\(config.radioCodingRate)")
+                let presetName = detectRadioPreset(freqKHz: Double(config.radioFrequency), bw: Double(config.radioBandwidth) / 1000.0, sf: config.radioSpreadingFactor, cr: config.radioCodingRate)
+                HStack {
+                    Image(systemName: "antenna.radiowaves.left.and.right")
+                        .foregroundStyle(MeshTheme.accent)
+                        .frame(width: 24)
+                    Text("Radio")
+                        .foregroundStyle(MeshTheme.accent)
+                    Spacer()
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Text("\(freqMHz) MHz \u{2022} \(bwKHz)kHz \u{2022} SF\(config.radioSpreadingFactor) CR\(config.radioCodingRate)")
+                            .foregroundStyle(MeshTheme.textPrimary)
+                            .textSelection(.enabled)
+                        Text(presetName ?? "Custom")
+                            .font(.caption2)
+                            .foregroundStyle(presetName != nil ? .green : .orange)
+                    }
+                }
+                .listRowBackground(MeshTheme.surface)
                 infoRow(icon: "bolt.fill", label: "TX Power", value: "\(config.radioTXPower)/\(config.maxTXPower) dBm")
             }
             if config.maxContacts > 0 {
@@ -2475,5 +2492,14 @@ private extension SettingsView {
     func sectionHeader(_ title: String) -> some View {
         Text(title)
             .foregroundStyle(MeshTheme.textSecondary)
+    }
+
+    func detectRadioPreset(freqKHz: Double, bw: Double, sf: UInt8, cr: UInt8) -> String? {
+        radioPresets.first { p in
+            abs(p.frequencyKHz - freqKHz) < 1.0 &&
+            abs(p.bandwidth - bw) < 0.1 &&
+            p.spreadingFactor == sf &&
+            p.codingRate == cr
+        }?.name
     }
 }
