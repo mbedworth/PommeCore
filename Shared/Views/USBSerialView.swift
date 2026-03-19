@@ -5,12 +5,14 @@ import MeshCoreKit
 /// USB Serial connection section for DeviceScannerView on macOS.
 struct USBSerialSection: View {
     @EnvironmentObject var viewModel: MeshCoreViewModel
+    @State private var manualPort = ""
 
     var body: some View {
         Section {
             if viewModel.usbManager.isConnected {
                 connectedRow
             } else {
+                // Auto-discovered ports
                 ForEach(viewModel.usbManager.availablePorts, id: \.self) { port in
                     HStack {
                         Image(systemName: "cable.connector")
@@ -32,16 +34,36 @@ struct USBSerialSection: View {
                     HStack {
                         Image(systemName: "cable.connector.slash")
                             .foregroundStyle(MeshTheme.textSecondary)
-                        Text("No serial devices found")
+                        Text("No serial ports detected")
+                            .font(.caption)
                             .foregroundStyle(MeshTheme.textSecondary)
                     }
                     .listRowBackground(MeshTheme.surface)
                 }
 
+                // Manual port entry fallback
+                HStack(spacing: 8) {
+                    Image(systemName: "terminal")
+                        .foregroundStyle(MeshTheme.accent)
+                        .frame(width: 24)
+                    TextField("/dev/cu.usbmodem...", text: $manualPort)
+                        .font(.system(.body, design: .monospaced))
+                        .textFieldStyle(.roundedBorder)
+                    Button("Connect") {
+                        guard !manualPort.isEmpty else { return }
+                        viewModel.connectUSB(port: manualPort)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(MeshTheme.interactiveGreen)
+                    .disabled(manualPort.isEmpty)
+                }
+                .listRowBackground(MeshTheme.surface)
+
+                // Refresh button
                 Button {
                     viewModel.usbManager.scanPorts()
                 } label: {
-                    Label("Scan for Devices", systemImage: "arrow.clockwise")
+                    Label("Refresh Ports", systemImage: "arrow.clockwise")
                         .foregroundStyle(MeshTheme.accent)
                 }
                 .buttonStyle(.plain)
@@ -51,7 +73,7 @@ struct USBSerialSection: View {
             Text("USB Serial")
                 .foregroundStyle(MeshTheme.textSecondary)
         } footer: {
-            Text("Connect to a MeshCore device via USB serial. Companion radios use the binary protocol. Repeaters and room servers use CLI mode.")
+            Text("If your device isn\u{2019}t listed, run \u{2018}ls /dev/cu.*\u{2019} in Terminal and enter the path manually. ESP32-S3 native USB may require holding BOOT during connection.")
                 .font(.caption2)
         }
         .onAppear {
