@@ -353,6 +353,11 @@ private extension RemoteManagementView {
                     Text(session.settings["role"] ?? (contact.type == .repeater ? "Repeater" : contact.type == .room ? "Room" : "Sensor"))
                         .font(.caption)
                         .foregroundStyle(MeshTheme.textSecondary)
+                    if !isAdmin {
+                        Text("\u{2022} \(permission.displayName)")
+                            .font(.caption)
+                            .foregroundStyle(.orange)
+                    }
                 }
                 HStack(spacing: 12) {
                     if !getValue("ver").isEmpty {
@@ -364,12 +369,27 @@ private extension RemoteManagementView {
                 .foregroundStyle(MeshTheme.textSecondary)
 
                 if let radio = session.settings["radio"], !radio.isEmpty {
-                    Text(radio)
+                    let tx = session.settings["tx"] ?? ""
+                    Text("\(radio)\(!tx.isEmpty ? " \u{2022} \(tx)dBm" : "")")
                         .font(.caption2)
                         .foregroundStyle(MeshTheme.textSecondary)
                 }
             }
             .listRowBackground(MeshTheme.surface)
+            .contextMenu {
+                if let pubkey = session.settings["public.key"], !pubkey.isEmpty {
+                    Button {
+                        #if os(macOS)
+                        NSPasteboard.general.clearContents()
+                        NSPasteboard.general.setString(pubkey, forType: .string)
+                        #elseif !os(watchOS)
+                        UIPasteboard.general.string = pubkey
+                        #endif
+                    } label: {
+                        Label("Copy Public Key", systemImage: "doc.on.doc")
+                    }
+                }
+            }
 
             RemoteClockRow(session: session, sendCLI: sendCLI)
 
