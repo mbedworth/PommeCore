@@ -46,9 +46,7 @@ struct MeshCoreApp: App {
             viewModel.isInBackground = (newPhase != .active)
             if newPhase == .active {
                 viewModel.updateAppBadge()
-                if appLock.appLockEnabled && !appLock.isUnlocked {
-                    appLock.authenticate()
-                }
+                // Authentication is handled by AppLockView.onAppear — don't duplicate here
             }
             if newPhase == .background && appLock.appLockEnabled {
                 appLock.isUnlocked = false
@@ -372,6 +370,8 @@ struct ContentView: View {
 
 class AppLockManager: ObservableObject {
     @Published var isUnlocked = false
+    @Published var authFailCount = 0
+    @Published var showResetOption = false
     @AppStorage("appLockEnabled") var appLockEnabled = false
 
     func authenticate() {
@@ -379,37 +379,57 @@ class AppLockManager: ObservableObject {
             isUnlocked = true
             return
         }
+
+        DebugLogger.shared.log("APP LOCK: starting authentication", level: .info)
+
+        // Use .deviceOwnerAuthentication which falls back to device passcode
+        // if biometrics fail — never leaves the user locked out.
         let context = LAContext()
-        var error: NSError?
-        if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
-            context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics,
-                                   localizedReason: "Unlock MeshCore to access your messages") { success, _ in
+        context.localizedFallbackTitle = "Use Passcode"
+
+        // Small delay to ensure the window is fully presented before showing prompt
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            var error: NSError?
+            guard context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &error) else {
+                // No authentication available (no passcode set on device) — unlock directly
+                DebugLogger.shared.log("APP LOCK: no auth available, unlocking: \(error?.localizedDescription ?? "none")", level: .warning)
+                self.isUnlocked = true
+                return
+            }
+
+            context.evaluatePolicy(.deviceOwnerAuthentication,
+                                   localizedReason: "Unlock MeshCore to access your messages") { success, authError in
                 Task { @MainActor in
                     if success {
+                        DebugLogger.shared.log("APP LOCK: authenticated successfully", level: .info)
                         self.isUnlocked = true
+                        self.authFailCount = 0
+                        self.showResetOption = false
                     } else {
-                        self.authenticateWithPasscode()
+                        self.authFailCount += 1
+                        DebugLogger.shared.log("APP LOCK: auth failed (\(self.authFailCount)/3): \(authError?.localizedDescription ?? "cancelled")", level: .warning)
+                        if self.authFailCount >= 3 {
+                            self.showResetOption = true
+                        }
                     }
                 }
             }
-        } else {
-            authenticateWithPasscode()
         }
     }
 
-    func authenticateWithPasscode() {
-        let context = LAContext()
-        context.evaluatePolicy(.deviceOwnerAuthentication,
-                               localizedReason: "Unlock MeshCore") { success, _ in
-            Task { @MainActor in
-                self.isUnlocked = success
-            }
-        }
+    /// Emergency reset — disables app lock when user is locked out.
+    func resetLock() {
+        DebugLogger.shared.log("APP LOCK: emergency reset — disabling app lock", level: .warning)
+        appLockEnabled = false
+        isUnlocked = true
+        authFailCount = 0
+        showResetOption = false
     }
 }
 
 struct AppLockView: View {
     @ObservedObject var appLock: AppLockManager
+    @State private var hasTriedAutoAuth = false
 
     var body: some View {
         VStack(spacing: 24) {
@@ -423,7 +443,15 @@ struct AppLockView: View {
             Text("Authenticate to access your messages")
                 .font(.subheadline)
                 .foregroundStyle(MeshTheme.textSecondary)
+
+            if appLock.showResetOption {
+                Text("Authentication failed \(appLock.authFailCount) times")
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+            }
+
             Spacer()
+
             Button {
                 appLock.authenticate()
             } label: {
@@ -437,10 +465,27 @@ struct AppLockView: View {
             }
             .buttonStyle(.plain)
             .padding(.horizontal, 40)
-            .padding(.bottom, 40)
+
+            if appLock.showResetOption {
+                Button {
+                    appLock.resetLock()
+                } label: {
+                    Text("Disable App Lock")
+                        .font(.subheadline)
+                        .foregroundStyle(.red)
+                }
+                .buttonStyle(.plain)
+                .padding(.top, 8)
+            }
         }
+        .padding(.bottom, 40)
         .background(MeshTheme.background)
-        .onAppear { appLock.authenticate() }
+        .onAppear {
+            // Only auto-authenticate once per view appearance
+            guard !hasTriedAutoAuth else { return }
+            hasTriedAutoAuth = true
+            appLock.authenticate()
+        }
     }
 
     private var biometricIcon: String {

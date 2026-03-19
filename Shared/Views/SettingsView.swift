@@ -1857,7 +1857,20 @@ private extension SettingsView {
     private var appLockBinding: Binding<Bool> {
         Binding(
             get: { UserDefaults.standard.bool(forKey: "appLockEnabled") },
-            set: { UserDefaults.standard.set($0, forKey: "appLockEnabled") }
+            set: { newValue in
+                if newValue {
+                    // Verify authentication works before enabling
+                    let context = LAContext()
+                    var error: NSError?
+                    if context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &error) {
+                        UserDefaults.standard.set(true, forKey: "appLockEnabled")
+                    } else {
+                        DebugLogger.shared.log("APP LOCK: cannot enable — no auth available: \(error?.localizedDescription ?? "unknown")", level: .error)
+                    }
+                } else {
+                    UserDefaults.standard.set(false, forKey: "appLockEnabled")
+                }
+            }
         )
     }
 
