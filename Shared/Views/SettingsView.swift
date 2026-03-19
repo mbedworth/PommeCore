@@ -2223,6 +2223,23 @@ private extension SettingsView {
             .disabled(!isConnected || viewModel.isVerifyingConfig)
             .listRowBackground(MeshTheme.surface)
 
+            if let result = viewModel.lastConfigVerification {
+                VStack(alignment: .leading, spacing: 6) {
+                    LabeledContent("Firmware", value: result.firmware)
+                    LabeledContent("Frequency", value: result.frequency)
+                    LabeledContent("Bandwidth", value: result.bandwidth)
+                    LabeledContent("SF / CR", value: "SF\(result.spreadingFactor) CR\(result.codingRate)")
+                    LabeledContent("TX Power", value: result.txPower)
+                    LabeledContent("Battery", value: result.battery)
+                    Divider()
+                    Text(result.regionMessage)
+                        .font(.caption)
+                        .foregroundStyle(result.regionCheck == .pass ? .green : result.regionCheck == .fail ? .red : .orange)
+                }
+                .font(.caption)
+                .listRowBackground(MeshTheme.surface)
+            }
+
             NavigationLink {
                 DebugLogView()
             } label: {
