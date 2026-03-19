@@ -2010,89 +2010,92 @@ private extension SettingsView {
 
     var tipJarSection: some View {
         Section {
-            VStack(alignment: .leading, spacing: 12) {
+            // Header text as its own row
+            VStack(alignment: .leading, spacing: 8) {
                 Label("Support Development", systemImage: "heart.fill")
                     .font(.headline)
                     .foregroundStyle(MeshTheme.accent)
-
                 Text("MeshCore is free with all features unlocked. If you find it useful, consider leaving a tip to support continued development.")
                     .font(.subheadline)
                     .foregroundStyle(MeshTheme.textSecondary)
+            }
+            .listRowBackground(MeshTheme.surface)
 
-                if !tipJar.products.isEmpty {
-                    ForEach(tipJar.products) { product in
-                        Button {
-                            tipJar.purchase(product)
-                        } label: {
-                            HStack {
-                                Text(tipEmoji(for: product))
-                                VStack(alignment: .leading) {
-                                    Text(product.displayName)
-                                        .fontWeight(.medium)
-                                        .foregroundStyle(MeshTheme.textPrimary)
-                                    Text(product.description)
-                                        .font(.caption)
-                                        .foregroundStyle(MeshTheme.textSecondary)
-                                }
-                                Spacer()
-                                if tipJar.purchasingProductID == product.id {
-                                    ProgressView()
-                                        .frame(width: 60)
-                                } else {
-                                    Text(product.displayPrice)
-                                        .fontWeight(.bold)
-                                        .padding(.horizontal, 12)
-                                        .padding(.vertical, 6)
-                                        .background(MeshTheme.interactiveGreen)
-                                        .foregroundStyle(.black)
-                                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                                }
-                            }
-                            .contentShape(Rectangle())
-                            .padding(.vertical, 4)
+            // Each product as its OWN List row — not nested in a VStack.
+            // Buttons inside a VStack inside a single List row get their taps
+            // swallowed by the List gesture recognizer.
+            if !tipJar.products.isEmpty {
+                ForEach(tipJar.products) { product in
+                    HStack {
+                        Text(tipEmoji(for: product))
+                        VStack(alignment: .leading) {
+                            Text(product.displayName)
+                                .fontWeight(.medium)
+                                .foregroundStyle(MeshTheme.textPrimary)
+                            Text(product.description)
+                                .font(.caption)
+                                .foregroundStyle(MeshTheme.textSecondary)
                         }
-                        .buttonStyle(.plain)
-                        .disabled(tipJar.purchasingProductID != nil)
-                    }
-                } else {
-                    ForEach(TipJarManager.placeholders) { tip in
-                        HStack {
-                            Text(tip.emoji)
-                            VStack(alignment: .leading) {
-                                Text(tip.name)
-                                    .fontWeight(.medium)
-                                    .foregroundStyle(MeshTheme.textPrimary)
-                                Text(tip.description)
-                                    .font(.caption)
-                                    .foregroundStyle(MeshTheme.textSecondary)
-                            }
-                            Spacer()
-                            Text(tip.price)
+                        Spacer()
+                        if tipJar.purchasingProductID == product.id {
+                            ProgressView()
+                                .frame(width: 60)
+                        } else {
+                            Text(product.displayPrice)
                                 .fontWeight(.bold)
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 6)
-                                .background(MeshTheme.interactiveGreen.opacity(0.5))
+                                .background(MeshTheme.interactiveGreen)
                                 .foregroundStyle(.black)
                                 .clipShape(RoundedRectangle(cornerRadius: 8))
                         }
-                        .padding(.vertical, 4)
                     }
-                    if tipJar.isLoading {
-                        ProgressView()
-                            .frame(maxWidth: .infinity)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        guard tipJar.purchasingProductID == nil else { return }
+                        tipJar.purchase(product)
                     }
+                    .listRowBackground(MeshTheme.surface)
                 }
-
-                if tipJar.purchaseSuccess {
+            } else {
+                ForEach(TipJarManager.placeholders) { tip in
                     HStack {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundStyle(MeshTheme.connected)
-                        Text("Thank you for your support!")
-                            .foregroundStyle(MeshTheme.connected)
+                        Text(tip.emoji)
+                        VStack(alignment: .leading) {
+                            Text(tip.name)
+                                .fontWeight(.medium)
+                                .foregroundStyle(MeshTheme.textPrimary)
+                            Text(tip.description)
+                                .font(.caption)
+                                .foregroundStyle(MeshTheme.textSecondary)
+                        }
+                        Spacer()
+                        Text(tip.price)
+                            .fontWeight(.bold)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(MeshTheme.interactiveGreen.opacity(0.5))
+                            .foregroundStyle(.black)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
                     }
+                    .listRowBackground(MeshTheme.surface)
+                }
+                if tipJar.isLoading {
+                    ProgressView()
+                        .frame(maxWidth: .infinity)
+                        .listRowBackground(MeshTheme.surface)
                 }
             }
-            .listRowBackground(MeshTheme.surface)
+
+            if tipJar.purchaseSuccess {
+                HStack {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(MeshTheme.connected)
+                    Text("Thank you for your support!")
+                        .foregroundStyle(MeshTheme.connected)
+                }
+                .listRowBackground(MeshTheme.surface)
+            }
         } header: {
             sectionHeader("Tip Jar")
         }
