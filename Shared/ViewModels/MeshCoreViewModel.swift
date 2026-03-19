@@ -2791,10 +2791,13 @@ final class MeshCoreViewModel: ObservableObject {
     /// Update the existing contact or add a new one. No need to trigger
     /// CMD_GET_CONTACTS — the advert itself contains the full contact data.
     private func handleAdvert(_ contact: Contact) {
+        // Update contact with fresh advert data (includes updated lastAdvert timestamp)
         if let idx = contacts.firstIndex(where: { $0.publicKeyPrefix == contact.publicKeyPrefix }) {
             contacts[idx] = contact
+            DebugLogger.shared.log("ADVERT: updated \(contact.name) lastAdvert=\(contact.lastAdvert)", level: .rx)
         } else {
             contacts.append(contact)
+            DebugLogger.shared.log("ADVERT: new contact \(contact.name) lastAdvert=\(contact.lastAdvert)", level: .rx)
         }
 
         // If discover is active (fallback mode), also show as discovered node
