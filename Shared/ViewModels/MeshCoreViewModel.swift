@@ -1400,6 +1400,18 @@ final class MeshCoreViewModel: ObservableObject {
     }
 
     func sendAdvertise(type: UInt8 = 0) {
+        // Apply GPS fudge before advertising so the broadcast position is fudged
+        #if !os(watchOS)
+        let radius = UserDefaults.standard.double(forKey: "locationPrivacyRadius")
+        if radius > 0 {
+            let locManager = CLLocationManager()
+            if let location = locManager.location {
+                let (fLat, fLon) = fudgeLocation(lat: location.coordinate.latitude, lon: location.coordinate.longitude)
+                sendCommand(MeshCoreProtocol.buildSetAdvertLatLon(latitude: fLat, longitude: fLon), label: "FUDGE_LATLON")
+                DebugLogger.shared.log("ADVERT: fudged GPS applied before advert", level: .tx)
+            }
+        }
+        #endif
         sendCommand(MeshCoreProtocol.buildSendSelfAdvert(advertType: type), label: "SELF_ADVERT")
     }
 
