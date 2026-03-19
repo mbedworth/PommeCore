@@ -1943,36 +1943,39 @@ class TipJarManager: ObservableObject {
         }
     }
 
-    func purchase(_ product: Product) {
-        DebugLogger.shared.log("TIP JAR: tapped \(product.id) (\(product.displayPrice))", level: .info)
+    @MainActor
+    func purchase(_ product: Product) async {
+        DebugLogger.shared.log("TIP JAR: purchase START for \(product.id)", level: .info)
         purchasingProductID = product.id
 
-        Task { @MainActor in
-            do {
-                let result = try await product.purchase()
-                DebugLogger.shared.log("TIP JAR: purchase result for \(product.id): \(result)", level: .info)
+        do {
+            DebugLogger.shared.log("TIP JAR: calling product.purchase()", level: .info)
+            let result = try await product.purchase()
+            DebugLogger.shared.log("TIP JAR: purchase returned for \(product.id)", level: .info)
 
-                switch result {
-                case .success(let verification):
-                    if case .verified(let transaction) = verification {
-                        await transaction.finish()
-                        DebugLogger.shared.log("TIP JAR: verified and finished \(product.id)", level: .info)
-                        self.purchaseSuccess = true
-                    } else {
-                        DebugLogger.shared.log("TIP JAR: unverified transaction for \(product.id)", level: .warning)
-                    }
-                case .pending:
-                    DebugLogger.shared.log("TIP JAR: purchase pending (Ask to Buy?) for \(product.id)", level: .warning)
-                case .userCancelled:
-                    DebugLogger.shared.log("TIP JAR: user cancelled \(product.id)", level: .info)
-                @unknown default:
-                    DebugLogger.shared.log("TIP JAR: unknown result for \(product.id)", level: .warning)
+            switch result {
+            case .success(let verification):
+                switch verification {
+                case .verified(let transaction):
+                    DebugLogger.shared.log("TIP JAR: verified transaction \(transaction.id)", level: .info)
+                    await transaction.finish()
+                    self.purchaseSuccess = true
+                case .unverified(let transaction, let error):
+                    DebugLogger.shared.log("TIP JAR: unverified — \(error.localizedDescription)", level: .warning)
+                    await transaction.finish()
                 }
-            } catch {
-                DebugLogger.shared.log("TIP JAR: purchase error for \(product.id): \(error.localizedDescription)", level: .error)
+            case .pending:
+                DebugLogger.shared.log("TIP JAR: pending (Ask to Buy?)", level: .warning)
+            case .userCancelled:
+                DebugLogger.shared.log("TIP JAR: user cancelled", level: .info)
+            @unknown default:
+                DebugLogger.shared.log("TIP JAR: unknown result", level: .warning)
             }
-            self.purchasingProductID = nil
+        } catch {
+            DebugLogger.shared.log("TIP JAR: ERROR — \(error.localizedDescription)", level: .error)
         }
+
+        self.purchasingProductID = nil
     }
 }
 
@@ -2010,97 +2013,22 @@ private extension SettingsView {
 
     var tipJarSection: some View {
         Section {
-            // Header text as its own row
-            VStack(alignment: .leading, spacing: 8) {
-                Label("Support Development", systemImage: "heart.fill")
-                    .font(.headline)
-                    .foregroundStyle(MeshTheme.accent)
-                Text("MeshCore is free with all features unlocked. If you find it useful, consider leaving a tip to support continued development.")
-                    .font(.subheadline)
-                    .foregroundStyle(MeshTheme.textSecondary)
+            NavigationLink {
+                TipJarView(manager: tipJar)
+            } label: {
+                HStack {
+                    Label("Tip Jar", systemImage: "heart.fill")
+                        .foregroundStyle(MeshTheme.accent)
+                    Spacer()
+                    if tipJar.purchaseSuccess {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(MeshTheme.connected)
+                    }
+                }
             }
             .listRowBackground(MeshTheme.surface)
-
-            // Each product as its OWN List row — not nested in a VStack.
-            // Buttons inside a VStack inside a single List row get their taps
-            // swallowed by the List gesture recognizer.
-            if !tipJar.products.isEmpty {
-                ForEach(tipJar.products) { product in
-                    HStack {
-                        Text(tipEmoji(for: product))
-                        VStack(alignment: .leading) {
-                            Text(product.displayName)
-                                .fontWeight(.medium)
-                                .foregroundStyle(MeshTheme.textPrimary)
-                            Text(product.description)
-                                .font(.caption)
-                                .foregroundStyle(MeshTheme.textSecondary)
-                        }
-                        Spacer()
-                        if tipJar.purchasingProductID == product.id {
-                            ProgressView()
-                                .frame(width: 60)
-                        } else {
-                            Text(product.displayPrice)
-                                .fontWeight(.bold)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                                .background(MeshTheme.interactiveGreen)
-                                .foregroundStyle(.black)
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
-                        }
-                    }
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        guard tipJar.purchasingProductID == nil else { return }
-                        tipJar.purchase(product)
-                    }
-                    .listRowBackground(MeshTheme.surface)
-                }
-            } else {
-                ForEach(TipJarManager.placeholders) { tip in
-                    HStack {
-                        Text(tip.emoji)
-                        VStack(alignment: .leading) {
-                            Text(tip.name)
-                                .fontWeight(.medium)
-                                .foregroundStyle(MeshTheme.textPrimary)
-                            Text(tip.description)
-                                .font(.caption)
-                                .foregroundStyle(MeshTheme.textSecondary)
-                        }
-                        Spacer()
-                        Text(tip.price)
-                            .fontWeight(.bold)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(MeshTheme.interactiveGreen.opacity(0.5))
-                            .foregroundStyle(.black)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
-                    }
-                    .listRowBackground(MeshTheme.surface)
-                }
-                if tipJar.isLoading {
-                    ProgressView()
-                        .frame(maxWidth: .infinity)
-                        .listRowBackground(MeshTheme.surface)
-                }
-            }
-
-            if tipJar.purchaseSuccess {
-                HStack {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(MeshTheme.connected)
-                    Text("Thank you for your support!")
-                        .foregroundStyle(MeshTheme.connected)
-                }
-                .listRowBackground(MeshTheme.surface)
-            }
         } header: {
-            sectionHeader("Tip Jar")
-        }
-        .onAppear {
-            tipJar.loadProductsIfNeeded()
+            sectionHeader("Support")
         }
     }
 
@@ -2110,6 +2038,118 @@ private extension SettingsView {
         if product.id.hasSuffix(".great") { return "\u{1F389}" }
         if product.id.hasSuffix(".help") { return "\u{1F49A}" }
         return "\u{2764}\u{FE0F}"
+    }
+}
+
+/// MARK: - Tip Jar Standalone View (outside List hierarchy)
+
+struct TipJarView: View {
+    @ObservedObject var manager: TipJarManager
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 16) {
+                Image(systemName: "heart.fill")
+                    .font(.system(size: 48))
+                    .foregroundStyle(MeshTheme.accent)
+                    .padding(.top, 20)
+
+                Text("Support MeshCore Development")
+                    .font(.title2.bold())
+                    .foregroundStyle(MeshTheme.textPrimary)
+
+                Text("MeshCore is free with all features unlocked. If you find it useful, consider leaving a tip to support continued development.")
+                    .font(.subheadline)
+                    .foregroundStyle(MeshTheme.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+
+                if manager.products.isEmpty && manager.isLoading {
+                    ProgressView("Loading products...")
+                        .padding()
+                } else if manager.products.isEmpty {
+                    Text("Products unavailable")
+                        .foregroundStyle(MeshTheme.textSecondary)
+                        .padding()
+                } else {
+                    ForEach(manager.products) { product in
+                        TipButton(product: product, manager: manager)
+                    }
+                }
+
+                if manager.purchaseSuccess {
+                    HStack(spacing: 8) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(MeshTheme.connected)
+                        Text("Thank you for your support!")
+                            .foregroundStyle(MeshTheme.connected)
+                    }
+                    .padding()
+                }
+            }
+            .padding()
+        }
+        .background(MeshTheme.background)
+        .navigationTitle("Tip Jar")
+        #if !os(macOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
+        .onAppear {
+            manager.loadProductsIfNeeded()
+        }
+    }
+}
+
+struct TipButton: View {
+    let product: Product
+    @ObservedObject var manager: TipJarManager
+
+    private var emoji: String {
+        if product.id.hasSuffix(".decent") { return "\u{1F44B}" }
+        if product.id.hasSuffix(".nice") { return "\u{1F44D}" }
+        if product.id.hasSuffix(".great") { return "\u{1F389}" }
+        if product.id.hasSuffix(".help") { return "\u{1F49A}" }
+        return "\u{2764}\u{FE0F}"
+    }
+
+    var body: some View {
+        Button {
+            DebugLogger.shared.log("TIP JAR: BUTTON TAPPED \(product.id)", level: .info)
+            Task {
+                await manager.purchase(product)
+            }
+        } label: {
+            HStack {
+                Text(emoji)
+                    .font(.title2)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(product.displayName)
+                        .font(.headline)
+                        .foregroundStyle(MeshTheme.textPrimary)
+                    Text(product.description)
+                        .font(.caption)
+                        .foregroundStyle(MeshTheme.textSecondary)
+                }
+                Spacer()
+                if manager.purchasingProductID == product.id {
+                    ProgressView()
+                        .frame(width: 60)
+                } else {
+                    Text(product.displayPrice)
+                        .font(.headline)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(MeshTheme.interactiveGreen)
+                        .foregroundStyle(.black)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                }
+            }
+            .padding()
+            .background(MeshTheme.surfaceLight)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+        }
+        .buttonStyle(.plain)
+        .disabled(manager.purchasingProductID != nil)
     }
 }
 
