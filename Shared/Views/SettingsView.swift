@@ -78,54 +78,52 @@ struct SettingsView: View {
 
     private var settingsForm: some View {
         List {
-            // 1. Connection (always at top)
+            // 1. Appearance
+            appearanceSection
+
+            // 2. Tip Jar
+            tipJarSection
+
+            // 3. Connection
             connectionSection
 
-            // 2. Device Info (only when connected)
+            // 4. Device Info (connected only)
             if isConnected {
                 deviceInfoSection
                 identitySection
             }
 
-            // 3. Notifications & Messages
+            // 5. Notifications
             notificationsSection
             messageSettingsSection
 
-            // 4. Privacy & Security
+            // 6. Privacy & Security
             privacySection
             securitySection
 
-            // 5. Radio & Advanced (collapsed)
-            if isConnected {
-                Section {
-                    DisclosureGroup("Radio & Tuning") {
-                        radioSection
-                        tuningSection
-                    }
-                    .listRowBackground(MeshTheme.surface)
-                }
-            }
+            // 7. iCloud & Storage
+            iCloudSection
+            radioDataSection
+            storageSection
 
+            // 8. Advanced (collapsed)
             Section {
                 DisclosureGroup("Advanced") {
-                    appearanceSection
-                    iCloudSection
-                    radioDataSection
                     if isConnected {
+                        radioSection
+                        tuningSection
                         timeSection
                         if !viewModel.deviceConfig.customVars.isEmpty {
                             customVarsSection
                         }
                         statsSection
                     }
-                    storageSection
+                    troubleshootingSection
                 }
                 .listRowBackground(MeshTheme.surface)
             }
 
-            // 6. About & Support
-            tipJarSection
-            troubleshootingSection
+            // 9. About
             aboutSection
             if isConnected {
                 dangerZoneSection
