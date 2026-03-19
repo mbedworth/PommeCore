@@ -1711,10 +1711,27 @@ struct ShareSheetView: UIViewControllerRepresentable {
 
 /// Make meshcore:// URLs in text tappable as links.
 private func linkifyMeshcoreURLs(_ text: String) -> Text {
+    // Check for location pin: "📍 lat, lon"
+    if text.contains("\u{1F4CD}"),
+       let regex = try? NSRegularExpression(pattern: "\u{1F4CD}\\s*(-?\\d+\\.\\d+),\\s*(-?\\d+\\.\\d+)"),
+       let match = regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
+       let latRange = Range(match.range(at: 1), in: text),
+       let lonRange = Range(match.range(at: 2), in: text),
+       let lat = Double(text[latRange]),
+       let lon = Double(text[lonRange]),
+       let mapsURL = URL(string: "https://maps.apple.com/?ll=\(lat),\(lon)&q=Shared%20Location") {
+        var attr = AttributedString(text)
+        if let fullRange = attr.range(of: String(text[text.range(of: "\u{1F4CD}")!.lowerBound...])) {
+            attr[fullRange].link = mapsURL
+            attr[fullRange].foregroundColor = .accentColor
+        }
+        return Text(attr)
+    }
+
+    // Check for meshcore:// URL
     guard let range = text.range(of: "meshcore://", options: .caseInsensitive) else {
         return Text(text)
     }
-    // Find full URL (up to next whitespace or end)
     var endIdx = range.upperBound
     while endIdx < text.endIndex && !text[endIdx].isWhitespace {
         endIdx = text.index(after: endIdx)
