@@ -762,9 +762,18 @@ struct RemoteSecuritySection: View {
             .listRowBackground(MeshTheme.surface)
 
             if let aclText = session.settings["acl"], !aclText.isEmpty {
-                Text(aclText)
-                    .font(.system(.caption, design: .monospaced))
-                    .foregroundStyle(MeshTheme.textPrimary)
+                VStack(alignment: .leading, spacing: 4) {
+                    ForEach(aclText.components(separatedBy: "\n").filter { !$0.isEmpty }, id: \.self) { line in
+                        Text(formatACLLine(line))
+                            .font(.system(.caption, design: .monospaced))
+                            .foregroundStyle(MeshTheme.textPrimary)
+                    }
+                }
+                .listRowBackground(MeshTheme.surface)
+            } else if session.settings.keys.contains("acl") {
+                Text("No authenticated clients")
+                    .font(.caption)
+                    .foregroundStyle(MeshTheme.textSecondary)
                     .listRowBackground(MeshTheme.surface)
             }
         } header: {
@@ -1328,4 +1337,21 @@ func cliEditRow(icon: String, label: String, text: Binding<String>, current: Str
         }
     }
     .listRowBackground(MeshTheme.surface)
+}
+
+/// Format an ACL line from firmware CLI response into readable text.
+/// Firmware returns lines like "ab12cd34ef56 3" (pubkey_prefix + space + permission_level).
+private func formatACLLine(_ line: String) -> String {
+    let parts = line.trimmingCharacters(in: .whitespaces).split(separator: " ", maxSplits: 1)
+    guard parts.count == 2, let level = Int(parts[1]) else { return line }
+    let prefix = String(parts[0])
+    let permission: String
+    switch level {
+    case 0: permission = "Guest"
+    case 1: permission = "Read-Only"
+    case 2: permission = "Read-Write"
+    case 3: permission = "Admin"
+    default: permission = "Level \(level)"
+    }
+    return "\(prefix) \u{2014} \(permission)"
 }
