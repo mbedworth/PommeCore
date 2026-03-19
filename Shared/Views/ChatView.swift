@@ -1835,10 +1835,11 @@ struct ChannelDetailSheet: View {
 
                 Section("Notifications") {
                     Picker("Mode", selection: $notifyMode) {
-                        Text("All Messages").tag("all")
-                        Text("Mentions Only").tag("mentions")
+                        Text("All").tag("all")
+                        Text("Mentions").tag("mentions")
                         Text("Muted").tag("muted")
                     }
+                    .pickerStyle(.segmented)
                     .onChange(of: notifyMode) { mode in
                         NSUbiquitousKeyValueStore.default.set(mode, forKey: "channel.notify.\(channelName)")
                         NSUbiquitousKeyValueStore.default.synchronize()
