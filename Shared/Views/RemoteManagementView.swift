@@ -967,12 +967,75 @@ struct RemoteRoomSection: View {
     let sendCLI: (String) -> Void
     let canEdit: Bool
 
+    @State private var setPermPubkey = ""
+    @State private var setPermLevel = 0
+    @State private var permFeedback = false
+
     var body: some View {
         Section {
             CLIToggleRow(icon: "eye", label: "Allow Read-Only", settingKey: "allow.read.only", onCommand: "set allow.read.only on", offCommand: "set allow.read.only off", session: session, sendCLI: sendCLI, canEdit: canEdit)
+
+            if let guestPw = session.settings["guest.password"], !guestPw.isEmpty {
+                cliInfoRow(icon: "key", label: "Guest Password", value: guestPw)
+            }
         } header: {
             Text("Room Server")
                 .foregroundStyle(MeshTheme.textSecondary)
+        }
+
+        if canEdit {
+            Section {
+                HStack {
+                    Image(systemName: "person.badge.key")
+                        .foregroundStyle(MeshTheme.accent)
+                        .frame(width: 24)
+                    #if os(watchOS)
+                    TextField("Pubkey hex", text: $setPermPubkey)
+                        .foregroundStyle(MeshTheme.textPrimary)
+                    #else
+                    TextField("Pubkey hex prefix", text: $setPermPubkey)
+                        .foregroundStyle(MeshTheme.textPrimary)
+                        .textFieldStyle(MeshTextFieldStyle())
+                        .font(.system(.body, design: .monospaced))
+                    #endif
+                }
+                .listRowBackground(MeshTheme.surface)
+
+                Picker("Permission Level", selection: $setPermLevel) {
+                    Text("Guest (read-only)").tag(0)
+                    Text("Read-Write").tag(2)
+                    Text("Admin").tag(3)
+                }
+                .foregroundStyle(MeshTheme.accent)
+                .tint(MeshTheme.accent)
+                .listRowBackground(MeshTheme.surface)
+
+                Button {
+                    sendCLI("setperm \(setPermPubkey) \(setPermLevel)")
+                    permFeedback = true
+                    setPermPubkey = ""
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) { permFeedback = false }
+                } label: {
+                    HStack {
+                        Image(systemName: permFeedback ? "checkmark.circle.fill" : "lock.rotation")
+                            .foregroundStyle(permFeedback ? .green : MeshTheme.accent)
+                            .frame(width: 24)
+                        Text(permFeedback ? "Permission Set" : "Set Permission")
+                            .foregroundStyle(permFeedback ? .green : MeshTheme.accent)
+                        Spacer()
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .disabled(setPermPubkey.isEmpty)
+                .listRowBackground(MeshTheme.surface)
+            } header: {
+                Text("Client Permissions")
+                    .foregroundStyle(MeshTheme.textSecondary)
+            } footer: {
+                Text("Set access level for a client by their public key prefix. Guest = read-only, Read-Write = can post, Admin = full control.")
+                    .font(.caption2)
+            }
         }
     }
 }
