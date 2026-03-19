@@ -9,6 +9,7 @@ struct DeviceScannerView: View {
     @State private var scanCycleTask: Task<Void, Never>?
     @State private var wifiHost = ""
     @State private var wifiPort = "5000"
+    @AppStorage("savedWiFiConnections") private var savedWiFiData: Data = Data()
 
     var body: some View {
         List {
@@ -116,6 +117,37 @@ struct DeviceScannerView: View {
                     }
                     .listRowBackground(MeshTheme.surface)
                 } else {
+                    // Saved connections
+                    ForEach(savedWiFiConnections) { saved in
+                        Button {
+                            viewModel.connectWiFi(host: saved.host, port: saved.port)
+                            saveWiFiConnection(host: saved.host, port: saved.port)
+                        } label: {
+                            HStack {
+                                Image(systemName: "wifi")
+                                    .foregroundStyle(MeshTheme.accent)
+                                VStack(alignment: .leading) {
+                                    Text("\(saved.host):\(saved.port)")
+                                        .foregroundStyle(MeshTheme.textPrimary)
+                                    Text(saved.lastConnected, style: .relative)
+                                        .font(.caption2)
+                                        .foregroundStyle(MeshTheme.textSecondary)
+                                }
+                                Spacer()
+                            }
+                        }
+                        .buttonStyle(.plain)
+                        .listRowBackground(MeshTheme.surface)
+                        .swipeActions {
+                            Button(role: .destructive) {
+                                removeWiFiConnection(saved)
+                            } label: {
+                                Label("Remove", systemImage: "trash")
+                            }
+                        }
+                    }
+
+                    // Manual entry
                     HStack(spacing: 8) {
                         Image(systemName: "wifi")
                             .foregroundStyle(MeshTheme.accent)
@@ -133,7 +165,9 @@ struct DeviceScannerView: View {
                             .textFieldStyle(.roundedBorder)
                             #endif
                         Button("Connect") {
-                            viewModel.connectWiFi(host: wifiHost, port: UInt16(wifiPort) ?? 5000)
+                            let port = UInt16(wifiPort) ?? 5000
+                            viewModel.connectWiFi(host: wifiHost, port: port)
+                            saveWiFiConnection(host: wifiHost, port: port)
                         }
                         .disabled(wifiHost.isEmpty)
                         .buttonStyle(.borderedProminent)
@@ -217,4 +251,34 @@ struct DeviceScannerView: View {
         default:    return MeshTheme.textSecondary
         }
     }
+
+    // MARK: - Saved WiFi Connections
+
+    private var savedWiFiConnections: [SavedWiFiConnection] {
+        (try? JSONDecoder().decode([SavedWiFiConnection].self, from: savedWiFiData)) ?? []
+    }
+
+    private func saveWiFiConnection(host: String, port: UInt16) {
+        var connections = savedWiFiConnections.filter { $0.host != host || $0.port != port }
+        connections.insert(SavedWiFiConnection(id: UUID(), host: host, port: port, lastConnected: Date()), at: 0)
+        if connections.count > 5 { connections = Array(connections.prefix(5)) }
+        if let data = try? JSONEncoder().encode(connections) {
+            savedWiFiData = data
+        }
+    }
+
+    private func removeWiFiConnection(_ connection: SavedWiFiConnection) {
+        var connections = savedWiFiConnections
+        connections.removeAll { $0.id == connection.id }
+        if let data = try? JSONEncoder().encode(connections) {
+            savedWiFiData = data
+        }
+    }
+}
+
+struct SavedWiFiConnection: Codable, Identifiable {
+    let id: UUID
+    let host: String
+    let port: UInt16
+    let lastConnected: Date
 }
