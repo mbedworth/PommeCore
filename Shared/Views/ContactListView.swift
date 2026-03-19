@@ -1067,10 +1067,12 @@ struct ContactListView: View {
             }
         }
 
-        Button {
-            viewModel.requestStatus(for: contact)
-        } label: {
-            Label("Request Status", systemImage: "antenna.radiowaves.left.and.right")
+        if contact.type != .chat {
+            Button {
+                viewModel.requestStatus(for: contact)
+            } label: {
+                Label("Request Status", systemImage: "antenna.radiowaves.left.and.right")
+            }
         }
 
         Button {
