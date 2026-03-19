@@ -634,8 +634,38 @@ struct RemoteAdvertSection: View {
             cliEditRow(icon: "location", label: "Latitude", text: $lat, current: session.settings["lat"])
             cliEditRow(icon: "location", label: "Longitude", text: $lon, current: session.settings["lon"])
             cliEditRow(icon: "person.crop.rectangle", label: "Owner Info", text: $ownerInfo, current: session.settings["owner.info"])
-            cliEditRow(icon: "clock.arrow.circlepath", label: "Advert Interval (min)", text: $advertInterval, current: session.settings["advert.interval"])
-            cliEditRow(icon: "dot.radiowaves.left.and.right", label: "Flood Advert (hrs)", text: $floodAdvertInterval, current: session.settings["flood.advert.interval"])
+            HStack {
+                Image(systemName: "clock.arrow.circlepath")
+                    .foregroundStyle(MeshTheme.accent)
+                    .frame(width: 24)
+                Picker("Standard Advert", selection: standardAdvertBinding) {
+                    Text("Disabled").tag("0")
+                    Text("60 min").tag("60")
+                    Text("90 min").tag("90")
+                    Text("120 min").tag("120")
+                    Text("180 min").tag("180")
+                    Text("240 min").tag("240")
+                }
+                .foregroundStyle(MeshTheme.accent)
+                .tint(MeshTheme.accent)
+            }
+            .listRowBackground(MeshTheme.surface)
+
+            HStack {
+                Image(systemName: "dot.radiowaves.left.and.right")
+                    .foregroundStyle(MeshTheme.accent)
+                    .frame(width: 24)
+                Picker("Flood Advert", selection: floodAdvertBinding) {
+                    Text("Disabled").tag("0")
+                    Text("3 hours").tag("3")
+                    Text("6 hours").tag("6")
+                    Text("12 hours").tag("12")
+                    Text("24 hours").tag("24")
+                }
+                .foregroundStyle(MeshTheme.accent)
+                .tint(MeshTheme.accent)
+            }
+            .listRowBackground(MeshTheme.surface)
             CLIToggleRow(icon: "checkmark.message", label: "Multi-ACKs", settingKey: "multi.acks", onCommand: "set multi.acks 1", offCommand: "set multi.acks 0", session: session, sendCLI: sendCLI, canEdit: canEdit)
 
             if canEdit {
@@ -645,8 +675,7 @@ struct RemoteAdvertSection: View {
                         if !lat.isEmpty { sendCLI("set lat \(lat)") }
                         if !lon.isEmpty { sendCLI("set lon \(lon)") }
                         if !ownerInfo.isEmpty { sendCLI("set owner.info \(ownerInfo)") }
-                        if !advertInterval.isEmpty { sendCLI("set advert.interval \(advertInterval)") }
-                        if !floodAdvertInterval.isEmpty { sendCLI("set flood.advert.interval \(floodAdvertInterval)") }
+                        // Advert intervals handled via picker bindings
                         showSaved($saveState)
                     }
 
@@ -665,6 +694,9 @@ struct RemoteAdvertSection: View {
         } header: {
             Text("Advertising")
                 .foregroundStyle(MeshTheme.textSecondary)
+        } footer: {
+            Text("Standard adverts are local (0-hop, 60-240 min). Flood adverts are relayed by all repeaters (min 3 hours). Minimum intervals enforced by firmware.")
+                .font(.caption2)
         }
         .confirmationDialog("Send Advertisement", isPresented: $showAdvertOptions) {
             Button("Zero-Hop (nearby only)") {
@@ -682,6 +714,32 @@ struct RemoteAdvertSection: View {
             Text("Zero-hop reaches nearby nodes only. Flood is relayed by repeaters across the entire mesh network.")
         }
         .disabled(!canEdit)
+    }
+
+    private var standardAdvertBinding: Binding<String> {
+        Binding(
+            get: {
+                if !advertInterval.isEmpty { return advertInterval }
+                return session.settings["advert.interval"] ?? "120"
+            },
+            set: { newValue in
+                advertInterval = newValue
+                sendCLI("set advert.interval \(newValue)")
+            }
+        )
+    }
+
+    private var floodAdvertBinding: Binding<String> {
+        Binding(
+            get: {
+                if !floodAdvertInterval.isEmpty { return floodAdvertInterval }
+                return session.settings["flood.advert.interval"] ?? "3"
+            },
+            set: { newValue in
+                floodAdvertInterval = newValue
+                sendCLI("set flood.advert.interval \(newValue)")
+            }
+        )
     }
 }
 
