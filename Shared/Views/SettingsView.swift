@@ -20,6 +20,9 @@ struct SettingsView: View {
     @State private var showConnectionHelp = false
     @State private var showRadioEditor = false
     @State private var showNameEditor = false
+    @State private var showTxPowerEditor = false
+    @State private var showGPSEditor = false
+    @State private var showBatteryEditor = false
     @State private var showFirmwareDetail = false
     @State private var showPurgeOptions = false
 
@@ -511,17 +514,53 @@ private extension SettingsView {
                 .buttonStyle(.plain)
                 .listRowBackground(MeshTheme.surface)
 
-                infoRow(icon: "bolt.fill", label: "TX Power", value: "\(config.radioTXPower)/\(config.maxTXPower) dBm")
+                // TX Power — tap opens editor
+                Button { showTxPowerEditor = true } label: {
+                    HStack {
+                        Label("TX Power", systemImage: "bolt.fill")
+                            .foregroundStyle(MeshTheme.accent)
+                        Spacer()
+                        Text("\(config.radioTXPower)/\(config.maxTXPower) dBm")
+                            .foregroundStyle(MeshTheme.textSecondary)
+                    }
+                }
+                .buttonStyle(.plain)
+                .listRowBackground(MeshTheme.surface)
             }
 
-            // Battery
-            batteryRow
-            DisclosureGroup("Battery Settings") {
-                batteryChemistryPicker
-                if viewModel.batteryCalibration != nil {
-                    batteryCalibrationsRows
+            // GPS — tap opens editor
+            Button { showGPSEditor = true } label: {
+                HStack {
+                    Label("GPS", systemImage: "location.fill")
+                        .foregroundStyle(MeshTheme.accent)
+                    Spacer()
+                    if config.latitude != 0 || config.longitude != 0 {
+                        Text("\(String(format: "%.4f", config.latitude)), \(String(format: "%.4f", config.longitude))")
+                            .font(.caption)
+                            .foregroundStyle(MeshTheme.textSecondary)
+                    } else {
+                        Text("Not set")
+                            .font(.caption)
+                            .foregroundStyle(.orange)
+                    }
                 }
             }
+            .buttonStyle(.plain)
+            .listRowBackground(MeshTheme.surface)
+
+            // Battery — tap opens editor
+            Button { showBatteryEditor = true } label: {
+                HStack {
+                    Label("Battery", systemImage: "battery.50percent")
+                        .foregroundStyle(MeshTheme.accent)
+                    Spacer()
+                    let battV = String(format: "%.2f", Double(config.batteryMillivolts) / 1000.0)
+                    let battPct = config.batteryPercent()
+                    Text(battPct > 0 ? "\(battV)V (\(battPct)%)" : "\(battV)V")
+                        .foregroundStyle(MeshTheme.textSecondary)
+                }
+            }
+            .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
 
             // Firmware — tap shows details
@@ -556,6 +595,15 @@ private extension SettingsView {
                     }
             }
             .meshTheme()
+        }
+        .sheet(isPresented: $showTxPowerEditor) {
+            TxPowerEditorSheet(viewModel: viewModel)
+        }
+        .sheet(isPresented: $showGPSEditor) {
+            GPSEditorSheet(viewModel: viewModel)
+        }
+        .sheet(isPresented: $showBatteryEditor) {
+            BatteryEditorSheet(viewModel: viewModel, batteryChemistryRaw: $batteryChemistryRaw)
         }
     }
 
@@ -2615,17 +2663,17 @@ struct FirmwareDetailSheet: View {
     var body: some View {
         NavigationStack {
             List {
-                Section("Firmware") {
+                Section {
                     LabeledContent("Version", value: config.semanticVersion.isEmpty ? "v\(config.firmwareVersion)" : config.semanticVersion)
                     LabeledContent("Build Date", value: config.buildDate.isEmpty ? "\u{2014}" : config.buildDate)
                     LabeledContent("Model", value: config.manufacturer.isEmpty ? "\u{2014}" : config.manufacturer)
                 }
-                Section("Capacity") {
+                Section {
                     LabeledContent("Max Contacts", value: "\(config.maxContacts)")
                     LabeledContent("Max Channels", value: "\(config.maxChannels)")
                 }
                 if !config.publicKeyHex.isEmpty {
-                    Section("Identity") {
+                    Section {
                         LabeledContent("Public Key", value: String(config.publicKeyHex.prefix(16)) + "...")
                             .textSelection(.enabled)
                     }
@@ -2640,6 +2688,185 @@ struct FirmwareDetailSheet: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
                 }
+            }
+        }
+        .meshTheme()
+    }
+}
+
+// MARK: - TX Power Editor
+
+struct TxPowerEditorSheet: View {
+    @ObservedObject var viewModel: MeshCoreViewModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var txPower: Double = 22
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    HStack {
+                        Text("TX Power")
+                        Spacer()
+                        Text("\(Int(txPower)) dBm").fontWeight(.medium)
+                    }
+                    Slider(value: $txPower, in: 1...Double(max(viewModel.deviceConfig.maxTXPower, 2)), step: 1)
+                        .tint(MeshTheme.accent)
+                } footer: {
+                    Text("Higher power = more range but more battery drain. Max \(viewModel.deviceConfig.maxTXPower) dBm for this device.")
+                        .font(.caption2)
+                }
+            }
+            .navigationTitle("TX Power")
+            #if !os(macOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Apply") {
+                        viewModel.setRadioTXPower(UInt8(txPower))
+                        dismiss()
+                    }
+                }
+            }
+            .onAppear { txPower = Double(viewModel.deviceConfig.radioTXPower) }
+        }
+        .meshTheme()
+    }
+}
+
+// MARK: - GPS Editor
+
+struct GPSEditorSheet: View {
+    @ObservedObject var viewModel: MeshCoreViewModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var latitude = ""
+    @State private var longitude = ""
+    @State private var gpsSyncFeedback = false
+    @AppStorage("autoUpdateLocation") private var autoUpdateLocation = false
+    @AppStorage("locationUpdateInterval") private var locationUpdateInterval = 900
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    LabeledContent("Latitude", value: latitude.isEmpty ? "\u{2014}" : latitude)
+                    LabeledContent("Longitude", value: longitude.isEmpty ? "\u{2014}" : longitude)
+                }
+
+                #if !os(watchOS)
+                Section {
+                    Button {
+                        let locManager = CLLocationManager()
+                        guard let location = locManager.location else { return }
+                        let (fLat, fLon) = viewModel.fudgeLocation(lat: location.coordinate.latitude, lon: location.coordinate.longitude)
+                        latitude = String(format: "%.6f", fLat)
+                        longitude = String(format: "%.6f", fLon)
+                        viewModel.setAdvertLatLon(latitude: fLat, longitude: fLon)
+                        gpsSyncFeedback = true
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { gpsSyncFeedback = false }
+                    } label: {
+                        Label(gpsSyncFeedback ? "Location Set!" : "Set from Phone GPS", systemImage: "iphone.radiowaves.left.and.right")
+                            .foregroundStyle(gpsSyncFeedback ? .green : MeshTheme.accent)
+                    }
+
+                    Toggle(isOn: $autoUpdateLocation) {
+                        Label("Auto-Update", systemImage: "location.fill.viewfinder")
+                    }
+                    .tint(MeshTheme.accent)
+                    .onChange(of: autoUpdateLocation) { enabled in
+                        if enabled { viewModel.startAutoLocationUpdates(interval: locationUpdateInterval) }
+                        else { viewModel.stopAutoLocationUpdates() }
+                    }
+
+                    if autoUpdateLocation {
+                        Picker("Interval", selection: $locationUpdateInterval) {
+                            Text("5 min").tag(300)
+                            Text("15 min").tag(900)
+                            Text("30 min").tag(1800)
+                            Text("1 hour").tag(3600)
+                        }
+                        .pickerStyle(.segmented)
+                        .onChange(of: locationUpdateInterval) { interval in
+                            if autoUpdateLocation { viewModel.startAutoLocationUpdates(interval: interval) }
+                        }
+                    }
+                }
+                #endif
+
+                Section {
+                    Picker("Share Location", selection: Binding(
+                        get: { viewModel.deviceConfig.advertLocPolicy },
+                        set: { newValue in
+                            viewModel.setOtherParams(
+                                manualAddContacts: viewModel.deviceConfig.manualAddContacts,
+                                telemetryBase: viewModel.deviceConfig.telemetryBase,
+                                telemetryLocation: viewModel.deviceConfig.telemetryLocation,
+                                advertLocPolicy: newValue,
+                                multiACK: viewModel.deviceConfig.multiACK
+                            )
+                        }
+                    )) {
+                        Text("Don't Share").tag(UInt8(0))
+                        Text("Share").tag(UInt8(1))
+                    }
+                    .pickerStyle(.segmented)
+                } footer: {
+                    Text("Controls whether your coordinates are included in mesh advertisements.")
+                        .font(.caption2)
+                }
+            }
+            .navigationTitle("GPS & Location")
+            #if !os(macOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } }
+            }
+            .onAppear {
+                let c = viewModel.deviceConfig
+                if c.latitude != 0 { latitude = String(format: "%.6f", c.latitude) }
+                if c.longitude != 0 { longitude = String(format: "%.6f", c.longitude) }
+            }
+        }
+        .meshTheme()
+    }
+}
+
+// MARK: - Battery Editor
+
+struct BatteryEditorSheet: View {
+    @ObservedObject var viewModel: MeshCoreViewModel
+    @Binding var batteryChemistryRaw: String
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    let battV = String(format: "%.2f", Double(viewModel.deviceConfig.batteryMillivolts) / 1000.0)
+                    let battPct = viewModel.deviceConfig.batteryPercent()
+                    LabeledContent("Voltage", value: "\(battV)V")
+                    LabeledContent("Percentage", value: battPct > 0 ? "\(battPct)%" : "\u{2014}")
+                }
+                Section {
+                    Picker("Battery Type", selection: $batteryChemistryRaw) {
+                        Text("LiPo (3.7V)").tag(BatteryChemistry.lipo.rawValue)
+                        Text("LiFePO4 (3.2V)").tag(BatteryChemistry.lifepo4.rawValue)
+                        Text("Li-Ion 18650 (3.7V)").tag(BatteryChemistry.li18650.rawValue)
+                    }
+                } footer: {
+                    Text("Select battery chemistry for accurate percentage calculation.")
+                        .font(.caption2)
+                }
+            }
+            .navigationTitle("Battery")
+            #if !os(macOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } }
             }
         }
         .meshTheme()
