@@ -13,6 +13,7 @@ struct ChatView: View {
     @EnvironmentObject var viewModel: MeshCoreViewModel
     @State private var messageText = ""
     @State private var showNotes = false
+    @State private var showContactDetail = false
     @State private var unreadDividerIndex: Int?
     @State private var isSearching = false
     @State private var searchText = ""
@@ -113,10 +114,13 @@ struct ChatView: View {
             #if os(iOS)
             ToolbarItem(placement: .principal) {
                 VStack(spacing: 1) {
-                    Text(toolbarName.text)
-                        .font(toolbarName.font)
-                        .foregroundStyle(MeshTheme.textPrimary)
-                        .lineLimit(1)
+                    Button { showContactDetail = true } label: {
+                        Text(toolbarName.text)
+                            .font(toolbarName.font)
+                            .foregroundStyle(MeshTheme.textPrimary)
+                            .lineLimit(1)
+                    }
+                    .buttonStyle(.plain)
                     HStack(spacing: 4) {
                         Button { showPathEditor = true } label: {
                             Text(routeLabel)
@@ -173,6 +177,11 @@ struct ChatView: View {
         }
         .sheet(isPresented: $showNotes) {
             ContactNotesSheet(contact: contact)
+        }
+        .sheet(isPresented: $showContactDetail) {
+            ContactDetailSheet(contact: liveContact)
+                .environmentObject(viewModel)
+                .frame(minWidth: 360, minHeight: 400)
         }
         .sheet(isPresented: $showPathEditor) {
             ManualPathEditor(contact: liveContact)
@@ -422,7 +431,21 @@ struct ChannelChatView: View {
         .background(MeshTheme.background)
         .navigationTitle(channelName)
         #if !os(watchOS)
+        .sheet(isPresented: $showChannelDetail) {
+            ChannelDetailSheet(channelIndex: channelIndex, channelName: channelName, notifyMode: $notifyMode)
+                .environmentObject(viewModel)
+        }
         .toolbar {
+            #if os(iOS)
+            ToolbarItem(placement: .principal) {
+                Button { showChannelDetail = true } label: {
+                    Text(channelName)
+                        .font(.headline)
+                        .foregroundStyle(MeshTheme.textPrimary)
+                }
+                .buttonStyle(.plain)
+            }
+            #endif
             ToolbarItem(placement: .automatic) {
                 HStack(spacing: 12) {
                     Button {
@@ -1764,5 +1787,76 @@ struct ContactNotesSheet: View {
                 noteText = viewModel.note(for: contact)
             }
         }
+    }
+}
+
+// MARK: - Channel Detail Sheet
+
+struct ChannelDetailSheet: View {
+    let channelIndex: UInt8
+    let channelName: String
+    @Binding var notifyMode: String
+    @EnvironmentObject var viewModel: MeshCoreViewModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var showRemoveConfirm = false
+
+    private var channel: MeshChannel? {
+        viewModel.channels.first { $0.index == channelIndex }
+    }
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section("Channel Info") {
+                    LabeledContent("Name", value: channelName)
+                    LabeledContent("Index", value: "\(channelIndex)")
+                    if let ch = channel {
+                        LabeledContent("Type", value: ch.channelType == .publicChannel ? "Public" : ch.channelType == .hashChannel ? "Hashtag" : "Private")
+                        LabeledContent("Secret", value: ch.secret != nil ? "Set (\(ch.secret!.count) bytes)" : "None")
+                    }
+                }
+
+                Section("Notifications") {
+                    Picker("Mode", selection: $notifyMode) {
+                        Text("All Messages").tag("all")
+                        Text("Mentions Only").tag("mentions")
+                        Text("Muted").tag("muted")
+                    }
+                    .onChange(of: notifyMode) { mode in
+                        NSUbiquitousKeyValueStore.default.set(mode, forKey: "channel.notify.\(channelName)")
+                        NSUbiquitousKeyValueStore.default.synchronize()
+                    }
+                }
+
+                if channelIndex > 0 {
+                    Section {
+                        Button(role: .destructive) {
+                            showRemoveConfirm = true
+                        } label: {
+                            Label("Leave Channel", systemImage: "xmark.circle")
+                        }
+                    }
+                }
+            }
+            .navigationTitle(channelName)
+            #if !os(macOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") { dismiss() }
+                }
+            }
+            .alert("Leave Channel?", isPresented: $showRemoveConfirm) {
+                Button("Cancel", role: .cancel) {}
+                Button("Leave", role: .destructive) {
+                    viewModel.setChannel(index: channelIndex, name: "", secret: nil)
+                    dismiss()
+                }
+            } message: {
+                Text("Messages in this channel will be deleted from your device.")
+            }
+        }
+        .meshTheme()
     }
 }
