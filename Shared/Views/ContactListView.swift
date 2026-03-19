@@ -1096,7 +1096,7 @@ struct ContactListView: View {
             Label("Edit Route", systemImage: "arrow.triangle.branch")
         }
 
-        if contact.type == .chat && contact.outPathLen > 0 {
+        if contact.outPathLen > 0 && !contact.outPath.isEmpty {
             Button {
                 viewModel.traceRoute(to: contact)
             } label: {
