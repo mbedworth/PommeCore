@@ -812,37 +812,15 @@ struct RemoteSecuritySection: View {
             }
             .listRowBackground(MeshTheme.surface)
 
-            Button {
-                sendCLI("get acl")
-            } label: {
-                HStack {
-                    Image(systemName: "list.bullet.rectangle")
-                        .foregroundStyle(MeshTheme.accent)
-                        .frame(width: 24)
-                    Text("View ACL")
-                        .foregroundStyle(MeshTheme.accent)
-                    Spacer()
-                }
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .listRowBackground(MeshTheme.surface)
-
-            if let aclText = session.settings["acl"], !aclText.isEmpty {
-                VStack(alignment: .leading, spacing: 4) {
-                    ForEach(aclText.components(separatedBy: "\n").filter { !$0.isEmpty }, id: \.self) { line in
-                        Text(formatACLLine(line))
-                            .font(.system(.caption, design: .monospaced))
-                            .foregroundStyle(MeshTheme.textPrimary)
-                    }
-                }
-                .listRowBackground(MeshTheme.surface)
-            } else if session.settings.keys.contains("acl") {
-                Text("No authenticated clients")
+            HStack(spacing: 8) {
+                Image(systemName: "list.bullet.rectangle")
+                    .foregroundStyle(MeshTheme.textSecondary)
+                    .frame(width: 24)
+                Text("ACL requires USB serial connection")
                     .font(.caption)
                     .foregroundStyle(MeshTheme.textSecondary)
-                    .listRowBackground(MeshTheme.surface)
             }
+            .listRowBackground(MeshTheme.surface)
         } header: {
             Text("Security")
                 .foregroundStyle(MeshTheme.textSecondary)
