@@ -19,12 +19,27 @@ public final class WiFiConnectionManager: ObservableObject {
     private var readBuffer = Data()
     private let queue = DispatchQueue(label: "com.meshcore.wifi", qos: .userInitiated)
 
+    /// Auto-reconnect state
+    private var lastHost: String?
+    private var lastPort: UInt16?
+    private var reconnectAttempts = 0
+    private static let maxReconnectAttempts = 3
+    private var reconnectTask: Task<Void, Never>?
+    private var isUserDisconnect = false
+
     public init() {}
 
     // MARK: - Connect / Disconnect
 
     public func connect(host: String, port: UInt16 = 5000) {
-        disconnect()
+        reconnectTask?.cancel()
+        isUserDisconnect = false
+        connection?.cancel()
+        connection = nil
+        readBuffer = Data()
+
+        lastHost = host
+        lastPort = port
 
         let nwHost = NWEndpoint.Host(host)
         guard let nwPort = NWEndpoint.Port(rawValue: port) else {
@@ -38,6 +53,8 @@ public final class WiFiConnectionManager: ObservableObject {
             switch state {
             case .ready:
                 Self.logger.info("WiFi connected to \(host):\(port)")
+                DebugLogger.shared.log("WIFI: connected to \(host):\(port)", level: .info)
+                self.reconnectAttempts = 0
                 DispatchQueue.main.async {
                     self.isConnected = true
                     self.connectedHost = host
@@ -49,6 +66,7 @@ public final class WiFiConnectionManager: ObservableObject {
                     self.isConnected = false
                     self.connectedHost = nil
                 }
+                self.attemptReconnect()
             case .cancelled:
                 DispatchQueue.main.async {
                     self.isConnected = false
@@ -63,12 +81,36 @@ public final class WiFiConnectionManager: ObservableObject {
     }
 
     public func disconnect() {
+        isUserDisconnect = true
+        reconnectTask?.cancel()
+        reconnectAttempts = 0
         connection?.cancel()
         connection = nil
         readBuffer = Data()
         DispatchQueue.main.async {
             self.isConnected = false
             self.connectedHost = nil
+        }
+    }
+
+    private func attemptReconnect() {
+        guard !isUserDisconnect,
+              let host = lastHost, let port = lastPort,
+              reconnectAttempts < Self.maxReconnectAttempts else {
+            if reconnectAttempts >= Self.maxReconnectAttempts {
+                DebugLogger.shared.log("WIFI: reconnect attempts exhausted", level: .warning)
+            }
+            return
+        }
+        reconnectAttempts += 1
+        DebugLogger.shared.log("WIFI: reconnect attempt \(reconnectAttempts)/\(Self.maxReconnectAttempts) to \(host):\(port)", level: .warning)
+
+        reconnectTask = Task {
+            try? await Task.sleep(nanoseconds: 3_000_000_000)
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
+                self.connect(host: host, port: port)
+            }
         }
     }
 
