@@ -442,15 +442,18 @@ private extension SettingsView {
     var deviceInfoSection: some View {
         Section {
             infoRow(icon: "tag", label: "Name", value: config.deviceName.isEmpty ? (viewModel.connectedDeviceName ?? "\u{2014}") : config.deviceName)
-            infoRow(icon: "cpu", label: "Firmware Ver", value: config.firmwareVersion.isEmpty || config.firmwareVersion == "0" ? "\u{2014}" : "v\(config.firmwareVersion)")
-            infoRow(icon: "calendar", label: "Build Date", value: config.buildDate.isEmpty ? "\u{2014}" : config.buildDate)
-            infoRow(icon: "building.2", label: "Model", value: config.manufacturer.isEmpty ? "\u{2014}" : config.manufacturer)
-            infoRow(icon: "number", label: "Version", value: config.semanticVersion.isEmpty ? "\u{2014}" : config.semanticVersion)
-            if config.maxContacts > 0 {
-                infoRow(icon: "person.2", label: "Contacts", value: "\(viewModel.contacts.count) / \(config.maxContacts)")
+            infoRow(icon: "cpu", label: "Firmware", value: config.semanticVersion.isEmpty ? (config.firmwareVersion.isEmpty ? "\u{2014}" : "v\(config.firmwareVersion)") : "\(config.semanticVersion) (\(config.buildDate))")
+            if !config.manufacturer.isEmpty {
+                infoRow(icon: "building.2", label: "Model", value: config.manufacturer)
             }
-            if config.maxChannels > 0 {
-                infoRow(icon: "number.circle", label: "Channels", value: "\(viewModel.channels.count) / \(config.maxChannels)")
+            if config.radioFrequency > 0 {
+                let freqMHz = String(format: "%.3f", Double(config.radioFrequency) / 1000.0)
+                let bwKHz = String(format: "%.1f", Double(config.radioBandwidth) / 1000.0)
+                infoRow(icon: "antenna.radiowaves.left.and.right", label: "Radio", value: "\(freqMHz) MHz \u{2022} \(bwKHz)kHz \u{2022} SF\(config.radioSpreadingFactor) CR\(config.radioCodingRate)")
+                infoRow(icon: "bolt.fill", label: "TX Power", value: "\(config.radioTXPower)/\(config.maxTXPower) dBm")
+            }
+            if config.maxContacts > 0 {
+                infoRow(icon: "person.2", label: "Capacity", value: "\(viewModel.contacts.count)/\(config.maxContacts) contacts \u{2022} \(viewModel.channels.count)/\(config.maxChannels) channels")
             }
             if !config.publicKeyHex.isEmpty {
                 publicKeyRow
