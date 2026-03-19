@@ -1,6 +1,10 @@
 import SwiftUI
 import MeshCoreKit
 
+extension Notification.Name {
+    static let insertMention = Notification.Name("insertMention")
+}
+
 struct ChatView: View {
     let contact: Contact
     @EnvironmentObject var viewModel: MeshCoreViewModel
@@ -425,6 +429,11 @@ struct ChannelChatView: View {
         }
         .onDisappear {
             viewModel.saveDraft(messageText, for: channelKey)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .insertMention)) { notification in
+            if let sender = notification.object as? String {
+                messageText += "@\(sender) "
+            }
         }
     }
 
@@ -1291,8 +1300,16 @@ struct MessageBubble: View {
                             UIPasteboard.general.string = message.text
                             #endif
                         } label: {
-                            Label("Copy", systemImage: "doc.on.doc")
+                            Label("Copy Text", systemImage: "doc.on.doc")
                         }
+                        if message.isOutgoing && message.status == .failed {
+                            Button {
+                                viewModel.retryMessage(message)
+                            } label: {
+                                Label("Retry Send", systemImage: "arrow.clockwise")
+                            }
+                        }
+                        Divider()
                         Button(role: .destructive) {
                             viewModel.deleteMessage(message, in: message.contactKeyHash)
                         } label: {
@@ -1464,8 +1481,17 @@ struct ChannelMessageBubble: View {
                             UIPasteboard.general.string = message.text
                             #endif
                         } label: {
-                            Label("Copy", systemImage: "doc.on.doc")
+                            Label("Copy Text", systemImage: "doc.on.doc")
                         }
+                        if !message.isOutgoing, let sender = message.senderName, !sender.isEmpty {
+                            Button {
+                                // Post notification to insert @mention — ChannelChatView listens
+                                NotificationCenter.default.post(name: .insertMention, object: sender)
+                            } label: {
+                                Label("@\(sender)", systemImage: "at")
+                            }
+                        }
+                        Divider()
                         Button(role: .destructive) {
                             viewModel.deleteMessage(message, in: message.contactKeyHash)
                         } label: {
