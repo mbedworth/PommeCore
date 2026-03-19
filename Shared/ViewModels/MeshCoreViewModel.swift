@@ -214,6 +214,54 @@ final class MeshCoreViewModel: ObservableObject {
 
     /// Resolve a channel message sender name to a nickname if one exists.
     /// Matches the raw adv_name from the channel message against known contacts.
+    // MARK: - Contact Activity Status
+
+    enum ContactStatus {
+        case active, recent, stale, offline
+    }
+
+    func contactStatus(for contact: Contact) -> ContactStatus {
+        let now = Date().timeIntervalSince1970
+        let lastSeen = TimeInterval(contact.lastAdvert)
+
+        // Also check messages for most recent activity
+        var latest = lastSeen
+        if let msgs = messagesByContact[contact.publicKeyPrefix] {
+            for msg in msgs {
+                if msg.isOutgoing && msg.status == .delivered {
+                    latest = max(latest, msg.timestamp.timeIntervalSince1970)
+                }
+                if !msg.isOutgoing {
+                    latest = max(latest, msg.timestamp.timeIntervalSince1970)
+                }
+            }
+        }
+
+        guard latest > 1_000_000_000 else { return .offline }
+        let elapsed = now - latest
+
+        if contact.type == .repeater || contact.type == .room {
+            if elapsed < 6 * 3600 { return .active }
+            if elapsed < 12 * 3600 { return .recent }
+            if elapsed < 48 * 3600 { return .stale }
+            return .offline
+        } else {
+            if elapsed < 1 * 3600 { return .active }
+            if elapsed < 6 * 3600 { return .recent }
+            if elapsed < 24 * 3600 { return .stale }
+            return .offline
+        }
+    }
+
+    func contactStatusColor(for contact: Contact) -> Color {
+        switch contactStatus(for: contact) {
+        case .active: return .green
+        case .recent: return .yellow
+        case .stale: return .gray
+        case .offline: return .red
+        }
+    }
+
     func channelSenderDisplayName(_ rawSenderName: String) -> String {
         if let contact = contacts.first(where: { $0.name == rawSenderName }) {
             return displayName(for: contact)
