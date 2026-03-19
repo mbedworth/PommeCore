@@ -525,6 +525,7 @@ final class MeshCoreViewModel: ObservableObject {
 
     /// Whether channel sync is in progress.
     @Published var isSyncingChannels = false
+    private var hasCompletedInitialChannelSync = false
 
     /// Pending contacts discovered via PUSH_CODE_NEW_ADVERT (manual_add_contacts mode).
     @Published var pendingNewContacts: [Contact] = []
@@ -898,6 +899,7 @@ final class MeshCoreViewModel: ObservableObject {
                     self.pathTimeoutTask?.cancel()
                     self.discoverTimeoutTask?.cancel()
                     self.contactSyncDebounceTask?.cancel()
+                    self.hasCompletedInitialChannelSync = false
                     self.deviceConfig = DeviceConfig()
                     self.forwardDeviceConfigChanges()
                     self.isSyncingMessages = false
@@ -2196,8 +2198,12 @@ final class MeshCoreViewModel: ObservableObject {
             indexContactsForSpotlight()
             #endif
 
-            // Sync channels after contacts complete
-            syncChannels()
+            // Only sync channels on full sync (initial connection), not incremental
+            // (path changes, adverts, etc. don't affect channels)
+            if !hasCompletedInitialChannelSync {
+                syncChannels()
+                hasCompletedInitialChannelSync = true
+            }
 
         case .sent(let type, let expectedACK, let suggestedTimeout):
             Self.logger.info("PARSED Sent: type=\(type) expectedACK=\(expectedACK) timeout=\(suggestedTimeout)ms")
