@@ -67,11 +67,12 @@ struct RemoteManagementView: View {
             viewModel.fetchRemoteSettings(for: contact)
         }
         .onDisappear {
-            // Auto-logout when leaving remote management to release admin lock
+            // Clean up local session state on exit.
+            // Don't send "logout" CLI — firmware has no such command.
+            // The admin lock releases automatically via firmware session timeout.
             if isLoggedIn {
-                viewModel.sendCLICommand("logout", to: contact)
                 viewModel.logoutFromRemoteDevice(contact)
-                DebugLogger.shared.log("REMOTE: auto-logout from \(contact.name) on exit", level: .info)
+                DebugLogger.shared.log("REMOTE: cleared local session for \(contact.name) on exit", level: .info)
             }
         }
         .toolbar {
