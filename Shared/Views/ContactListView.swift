@@ -558,12 +558,13 @@ struct ContactListView: View {
                     Label("Create Private Channel", systemImage: "lock.fill")
                 }
                 Button { showChannelSheet = true } label: {
-                    Label("Join Channel", systemImage: "number")
+                    Label("Join Hashtag Channel", systemImage: "number")
                 }
-                if viewModel.channels.contains(where: { $0.index != 0 }) {
-                    Button { showShareAllChannels = true } label: {
-                        Label("Share All Channels", systemImage: "square.and.arrow.up")
-                    }
+                Button { showChannelSheet = true } label: {
+                    Label("Join Private Channel", systemImage: "key.fill")
+                }
+                Button { showImportSheet = true } label: {
+                    Label("Paste Channel Link", systemImage: "doc.on.clipboard")
                 }
             } label: {
                 HStack {
