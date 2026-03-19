@@ -232,31 +232,6 @@ struct ChatView: View {
         }
     }
 
-    private func exportChatHistory() -> URL? {
-        let name = viewModel.displayName(for: contact)
-        var text = "Chat with \(name)\n"
-        text += "Exported: \(Date().formatted())\n"
-        text += String(repeating: "\u{2500}", count: 40) + "\n\n"
-
-        let fmt = DateFormatter()
-        fmt.dateStyle = .short
-        fmt.timeStyle = .medium
-
-        for message in messages {
-            let sender = message.isOutgoing ? "You" : name
-            let time = fmt.string(from: message.timestamp)
-            text += "[\(time)] \(sender): \(message.text)\n"
-        }
-
-        let safeName = name.replacingOccurrences(of: "/", with: "-")
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent("MeshCore-Chat-\(safeName).txt")
-        do {
-            try text.write(to: url, atomically: true, encoding: .utf8)
-            return url
-        } catch {
-            return nil
-        }
-    }
 
     private var messageList: some View {
         ScrollViewReader { proxy in
