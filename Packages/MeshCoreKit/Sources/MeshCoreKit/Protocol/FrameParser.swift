@@ -139,12 +139,15 @@ public enum FrameParser {
             return parseTuningParams(payload)
 
         case .exportedContact:
-            let url = String(data: payload, encoding: .utf8)?
-                .trimmingCharacters(in: .controlCharacters) ?? ""
-            logger.info("ExportedContact: \(payload.count) bytes, url='\(url.prefix(80))'")
             if payload.isEmpty {
                 logger.warning("ExportedContact: empty payload")
+                return .exportedContact(url: "")
             }
+            // Firmware returns raw advert packet bytes, NOT a URL string.
+            // Format as meshcore:// + hex-encoded card data.
+            let hex = payload.map { String(format: "%02x", $0) }.joined()
+            let url = "meshcore://\(hex)"
+            logger.info("ExportedContact: \(payload.count) raw bytes → url='\(url.prefix(80))'")
             return .exportedContact(url: url)
 
         case .customVars:
