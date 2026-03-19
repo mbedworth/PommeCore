@@ -585,12 +585,11 @@ struct RemoteRoutingSection: View {
                         .frame(width: 24)
                     Picker("Loop Detection", selection: loopDetectBinding) {
                         Text("Off").tag("off")
-                        Text("Minimal").tag("minimal")
-                        Text("Moderate").tag("moderate")
+                        Text("Min").tag("minimal")
+                        Text("Mod").tag("moderate")
                         Text("Strict").tag("strict")
                     }
-                    .foregroundStyle(MeshTheme.accent)
-                    .tint(MeshTheme.accent)
+                    .pickerStyle(.segmented)
                 }
                 .listRowBackground(MeshTheme.surface)
 
@@ -598,13 +597,12 @@ struct RemoteRoutingSection: View {
                     Image(systemName: "number.circle")
                         .foregroundStyle(MeshTheme.accent)
                         .frame(width: 24)
-                    Picker("Path Hash Size", selection: pathHashBinding) {
-                        Text("1 byte (legacy)").tag("1")
-                        Text("2 bytes").tag("2")
-                        Text("3 bytes").tag("3")
+                    Picker("Path Hash", selection: pathHashBinding) {
+                        Text("1-byte").tag("1")
+                        Text("2-byte").tag("2")
+                        Text("3-byte").tag("3")
                     }
-                    .foregroundStyle(MeshTheme.accent)
-                    .tint(MeshTheme.accent)
+                    .pickerStyle(.segmented)
                 }
                 .listRowBackground(MeshTheme.surface)
 
