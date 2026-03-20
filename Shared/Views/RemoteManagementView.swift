@@ -73,6 +73,11 @@ struct RemoteManagementView: View {
                 if isAdmin {
                     securitySection
                     maintenanceSection
+                    #if os(macOS) || targetEnvironment(macCatalyst)
+                    if isUSBDevice {
+                        serialOnlySection
+                    }
+                    #endif
                     cliTerminalSection
                 } else if canRead {
                     // Non-admin readers see read-only maintenance (power saving status)
@@ -1300,7 +1305,86 @@ private extension RemoteManagementView {
     var cliTerminalSection: some View {
         CLITerminalSection(contact: contact, session: session, viewModel: viewModel)
     }
+
+    #if os(macOS) || targetEnvironment(macCatalyst)
+    var serialOnlySection: some View {
+        SerialOnlySection(sendCLI: sendCLI)
+    }
+    #endif
 }
+
+#if os(macOS) || targetEnvironment(macCatalyst)
+struct SerialOnlySection: View {
+    let sendCLI: (String) -> Void
+    @State private var showFactoryResetConfirm = false
+
+    var body: some View {
+        Section {
+            Button {
+                sendCLI("log")
+            } label: {
+                HStack {
+                    Image(systemName: "doc.text")
+                        .foregroundStyle(MeshTheme.accent)
+                        .frame(width: 24)
+                    Text("Dump Log to Terminal")
+                        .foregroundStyle(MeshTheme.accent)
+                    Spacer()
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .listRowBackground(MeshTheme.surface)
+
+            Button {
+                sendCLI("get prv.key")
+            } label: {
+                HStack {
+                    Image(systemName: "key.fill")
+                        .foregroundStyle(.orange)
+                        .frame(width: 24)
+                    Text("View Private Key")
+                        .foregroundStyle(.orange)
+                    Spacer()
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .listRowBackground(MeshTheme.surface)
+
+            Button {
+                showFactoryResetConfirm = true
+            } label: {
+                HStack {
+                    Image(systemName: "exclamationmark.triangle")
+                        .foregroundStyle(.red)
+                        .frame(width: 24)
+                    Text("Factory Reset")
+                        .foregroundStyle(.red)
+                    Spacer()
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .listRowBackground(MeshTheme.surface)
+            .confirmationDialog("Factory Reset?", isPresented: $showFactoryResetConfirm, titleVisibility: .visible) {
+                Button("Erase All Data", role: .destructive) {
+                    sendCLI("erase")
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("Permanently erases ALL data including keys, contacts, and settings. This cannot be undone.")
+            }
+        } header: {
+            Text("USB Serial Commands")
+                .foregroundStyle(MeshTheme.textSecondary)
+        } footer: {
+            Text("These commands are only available via direct USB connection for security. Factory Reset cannot be undone.")
+                .font(.caption2)
+        }
+    }
+}
+#endif
 
 struct CLITerminalSection: View {
     let contact: Contact
