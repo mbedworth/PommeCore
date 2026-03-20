@@ -104,41 +104,48 @@ public final class USBSerialManager: ObservableObject {
             return
         }
 
-        let fd = open(port, O_RDWR | O_NOCTTY | O_NONBLOCK)
+        // Open WITHOUT O_NONBLOCK — some USB CDC devices don't work with it
+        let fd = open(port, O_RDWR | O_NOCTTY)
         guard fd >= 0 else {
             Self.logger.error("Failed to open \(port): \(String(cString: strerror(errno)))")
+            DebugLogger.shared.log("USB: open failed: \(String(cString: strerror(errno)))", level: .error)
             return
         }
 
-        // Configure serial port: raw mode at specified baud rate
+        // Configure: raw mode only, skip baud rate (native USB CDC ignores it)
         var options = termios()
         tcgetattr(fd, &options)
-        cfmakeraw(&options) // Full raw mode — no line processing, no echo
-        cfsetispeed(&options, baudRate)
-        cfsetospeed(&options, baudRate)
-
-        // Enable receiver + local mode
+        cfmakeraw(&options)
         options.c_cflag |= UInt(CLOCAL | CREAD)
-
-        // Minimum 1 byte, no timeout
         options.c_cc.16 = 1  // VMIN
         options.c_cc.17 = 0  // VTIME
-
         tcsetattr(fd, TCSANOW, &options)
 
-        // Clear non-blocking after configuration
-        var flags = fcntl(fd, F_GETFL)
-        flags &= ~O_NONBLOCK
-        _ = fcntl(fd, F_SETFL, flags)
-
-        // Do NOT toggle DTR/RTS immediately — ESP32 resets on DTR change.
-        // Leave DTR/RTS in their default state until the device stabilizes.
-        DebugLogger.shared.log("USB: port opened, raw mode, baud=\(baudRate), waiting for device...", level: .info)
+        DebugLogger.shared.log("USB: port opened (blocking, raw mode, no baud set)", level: .info)
 
         fileDescriptor = fd
         readBuffer = Data()
 
-        // Set up async read BEFORE any probing
+        // Check for any data the device sent on port open (before read source)
+        serialQueue.async { [weak self] in
+            guard let self else { return }
+            var initBuf = [UInt8](repeating: 0, count: 256)
+            // Brief non-blocking check for initial data
+            var fl = fcntl(fd, F_GETFL)
+            _ = fcntl(fd, F_SETFL, fl | O_NONBLOCK)
+            let initRead = read(fd, &initBuf, 256)
+            _ = fcntl(fd, F_SETFL, fl) // restore blocking
+            if initRead > 0 {
+                let hex = initBuf[0..<initRead].map { String(format: "%02X", $0) }.joined(separator: " ")
+                DebugLogger.shared.log("USB INITIAL RX: \(initRead) bytes: \(hex)", level: .rx)
+                self.readBuffer.append(contentsOf: initBuf[0..<initRead])
+                self.detectMode()
+            } else {
+                DebugLogger.shared.log("USB: no initial data from device", level: .info)
+            }
+        }
+
+        // Set up async read
         let source = DispatchSource.makeReadSource(fileDescriptor: fd, queue: serialQueue)
         source.setEventHandler { [weak self] in
             self?.readAvailableData()
@@ -156,35 +163,48 @@ public final class USBSerialManager: ObservableObject {
             self.isConnected = true
             self.connectedPort = port
             self.detectedMode = .unknown
-            Self.logger.info("Connected to \(port)")
             DebugLogger.shared.log("USB: connected to \(port)", level: .info)
         }
 
-        // Wait 3 seconds for ESP32 to boot/stabilize after port open,
-        // then assert DTR and start probing.
-        serialQueue.asyncAfter(deadline: .now() + 3.0) { [weak self] in
-            guard let self, self.fileDescriptor >= 0 else { return }
-
-            // Now assert DTR/RTS (tells device host is ready)
-            var modemBits: CInt = TIOCM_DTR | TIOCM_RTS
-            _ = ioctl(self.fileDescriptor, TIOCMBIS, &modemBits)
-            DebugLogger.shared.log("USB: DTR/RTS set after 3s wait, sending $$ probe...", level: .info)
-
-            // Send $$ probe for CLI devices
+        // Probe sequence with escalating approaches:
+        // 1s: Send $$ (for CLI devices)
+        serialQueue.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+            guard let self, self.detectedMode == .unknown, self.fileDescriptor >= 0 else { return }
+            DebugLogger.shared.log("USB PROBE 1: sending $$ (CLI probe)", level: .tx)
             self.probeDeviceType()
         }
 
-        // At 5.5s: if still no response, try binary CMD_DEVICE_QUERY
-        serialQueue.asyncAfter(deadline: .now() + 5.5) { [weak self] in
+        // 3s: Send framed binary CMD_DEVICE_QUERY: < + len + [0x16, 0x03]
+        serialQueue.asyncAfter(deadline: .now() + 3.0) { [weak self] in
             guard let self, self.detectedMode == .unknown, self.fileDescriptor >= 0 else { return }
-            DebugLogger.shared.log("USB: no $$ response, trying binary probe (CMD_DEVICE_QUERY)", level: .info)
-            self.sendFrame(Data([0x16, 0x03])) // CMD_DEVICE_QUERY + app_target_ver=3
+            DebugLogger.shared.log("USB PROBE 2: sending framed binary CMD_DEVICE_QUERY", level: .tx)
+            self.sendFrame(Data([0x16, 0x03]))
         }
 
-        // At 8s: if still nothing, log failure
-        serialQueue.asyncAfter(deadline: .now() + 8.0) { [weak self] in
+        // 5s: Send RAW binary CMD_DEVICE_QUERY without framing (in case device doesn't use <> framing)
+        serialQueue.asyncAfter(deadline: .now() + 5.0) { [weak self] in
             guard let self, self.detectedMode == .unknown, self.fileDescriptor >= 0 else { return }
-            DebugLogger.shared.log("USB: no response to any probe after 8s — device may need manual reset or different baud rate", level: .error)
+            DebugLogger.shared.log("USB PROBE 3: sending RAW binary (no framing): 16 03", level: .tx)
+            let raw = Data([0x16, 0x03])
+            raw.withUnsafeBytes { ptr in
+                guard let base = ptr.baseAddress else { return }
+                _ = write(self.fileDescriptor, base, raw.count)
+            }
+        }
+
+        // 7s: Assert DTR/RTS and try framed probe again
+        serialQueue.asyncAfter(deadline: .now() + 7.0) { [weak self] in
+            guard let self, self.detectedMode == .unknown, self.fileDescriptor >= 0 else { return }
+            DebugLogger.shared.log("USB PROBE 4: asserting DTR/RTS + framed binary probe", level: .tx)
+            var modemBits: CInt = TIOCM_DTR | TIOCM_RTS
+            _ = ioctl(self.fileDescriptor, TIOCMBIS, &modemBits)
+            self.sendFrame(Data([0x16, 0x03]))
+        }
+
+        // 10s: Final timeout
+        serialQueue.asyncAfter(deadline: .now() + 10.0) { [weak self] in
+            guard let self, self.detectedMode == .unknown else { return }
+            DebugLogger.shared.log("USB: ALL PROBES FAILED after 10s — device not responding. Try: 1) unplug/replug device 2) press reset button 3) check if another app has the port open", level: .error)
         }
     }
 
