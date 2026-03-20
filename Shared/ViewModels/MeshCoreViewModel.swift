@@ -2349,6 +2349,12 @@ final class MeshCoreViewModel: ObservableObject {
     func sendTextMessage(_ text: String, to contact: Contact) {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
+        #if os(macOS) || targetEnvironment(macCatalyst)
+        guard !isUSBCLIConnected else {
+            DebugLogger.shared.log("Cannot send DM via USB CLI — device is infrastructure", level: .warning)
+            return
+        }
+        #endif
 
         // Add message to array BEFORE sending — prevents race where response arrives before message is stored
         let outgoing = Message(
@@ -2373,6 +2379,12 @@ final class MeshCoreViewModel: ObservableObject {
     func sendChannelMessage(_ text: String, channelIndex: UInt8 = 0) {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
+        #if os(macOS) || targetEnvironment(macCatalyst)
+        guard !isUSBCLIConnected else {
+            DebugLogger.shared.log("Cannot send channel message via USB CLI — device is infrastructure", level: .warning)
+            return
+        }
+        #endif
 
         let frame = MeshCoreProtocol.buildSendChannelMessage(
             text: trimmed,
