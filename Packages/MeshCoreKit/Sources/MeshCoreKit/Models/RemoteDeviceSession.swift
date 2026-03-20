@@ -98,6 +98,19 @@ public final class RemoteDeviceSession: ObservableObject {
         self.contact = contact
     }
 
+    /// Wait for a specific command's response to arrive. Polls every 50ms up to timeout.
+    /// Returns true if the response arrived, false on timeout.
+    public func waitForResponse(at index: Int, timeout: TimeInterval = 3.0) async -> Bool {
+        let start = Date()
+        while Date().timeIntervalSince(start) < timeout {
+            if index < cliHistory.count && cliHistory[index].isComplete {
+                return true
+            }
+            try? await Task.sleep(nanoseconds: 50_000_000) // 50ms poll
+        }
+        return false
+    }
+
     /// Record that a CLI command was sent. Returns the index for timeout tracking.
     @discardableResult
     public func commandSent(_ command: String) -> Int {
