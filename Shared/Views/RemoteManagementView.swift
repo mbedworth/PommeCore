@@ -497,6 +497,7 @@ struct RemoteRadioSection: View {
     }
 
     var body: some View {
+        let _ = DebugLogger.shared.log("RADIO SECTION: raw='\(session.settings["radio"] ?? "nil")' parsed=(\(parsedRadio.freqKHz),\(parsedRadio.bw),\(parsedRadio.sf),\(parsedRadio.cr))", level: .info)
         if canEdit {
             RadioPresetPicker(
                 onApply: { preset in
