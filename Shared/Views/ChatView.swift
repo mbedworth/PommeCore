@@ -287,10 +287,13 @@ struct ChatView: View {
             }
             .onAppear {
                 unreadDividerIndex = viewModel.firstUnreadIndex(in: messages, for: contact.publicKeyPrefix)
-                if let idx = unreadDividerIndex, idx < messages.count {
-                    proxy.scrollTo(messages[idx].id, anchor: .center)
-                } else if let last = messages.last {
-                    proxy.scrollTo(last.id, anchor: .bottom)
+                // Delay scroll to let LazyVStack lay out content
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    if let idx = unreadDividerIndex, idx < messages.count {
+                        proxy.scrollTo(messages[idx].id, anchor: .center)
+                    } else if let last = messages.last {
+                        proxy.scrollTo(last.id, anchor: .bottom)
+                    }
                 }
                 // Clear the divider after user has had time to see it
                 if unreadDividerIndex != nil {
@@ -518,10 +521,13 @@ struct ChannelChatView: View {
             }
             .onAppear {
                 unreadDividerIndex = viewModel.firstUnreadIndex(in: messages, for: channelKey)
-                if let idx = unreadDividerIndex, idx < messages.count {
-                    proxy.scrollTo(messages[idx].id, anchor: .center)
-                } else if let last = messages.last {
-                    proxy.scrollTo(last.id, anchor: .bottom)
+                // Delay scroll to let LazyVStack lay out content
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    if let idx = unreadDividerIndex, idx < messages.count {
+                        proxy.scrollTo(messages[idx].id, anchor: .center)
+                    } else if let last = messages.last {
+                        proxy.scrollTo(last.id, anchor: .bottom)
+                    }
                 }
                 // Clear the divider after user has had time to see it
                 if unreadDividerIndex != nil {
