@@ -46,6 +46,8 @@ public final class USBSerialManager: ObservableObject {
     private var fileDescriptor: Int32 = -1
     private var readBuffer = Data()
     private let serialQueue = DispatchQueue(label: "com.meshcore.serial", qos: .userInitiated)
+    /// Mode flag for the background read thread (detectedMode is @Published, only safe on main).
+    private var resolvedMode: DeviceMode = .unknown
 
     public init() {}
 
@@ -124,6 +126,7 @@ public final class USBSerialManager: ObservableObject {
 
         fileDescriptor = fd
         readBuffer = Data()
+        resolvedMode = .unknown
 
         DispatchQueue.main.async {
             self.isConnected = true
@@ -219,6 +222,8 @@ public final class USBSerialManager: ObservableObject {
         let stack = Thread.callStackSymbols.prefix(6).joined(separator: "\n")
         DebugLogger.shared.log("USB: disconnect called from:\n\(stack)", level: .warning)
 
+        resolvedMode = .unknown
+
         if fileDescriptor >= 0 {
             close(fileDescriptor)
             fileDescriptor = -1
@@ -277,7 +282,7 @@ public final class USBSerialManager: ObservableObject {
     private func handleReceivedData(_ data: Data) {
         readBuffer.append(data)
 
-        switch detectedMode {
+        switch resolvedMode {
         case .unknown:
             detectMode()
         case .binary:
@@ -305,8 +310,14 @@ public final class USBSerialManager: ObservableObject {
     private func detectMode() {
         guard !readBuffer.isEmpty else { return }
 
-        // Check for binary marker `>` (0x3E)
-        if readBuffer[0] == 0x3E {
+        let hex = readBuffer.prefix(20).map { String(format: "%02X", $0) }.joined(separator: " ")
+        DebugLogger.shared.log("USB DETECT: \(readBuffer.count) bytes, startIndex=\(readBuffer.startIndex): \(hex)", level: .rx)
+
+        let firstByte = readBuffer[readBuffer.startIndex]
+
+        if firstByte == 0x3E {
+            // Binary frame marker `>` — companion radio
+            resolvedMode = .binary
             DispatchQueue.main.async {
                 self.detectedMode = .binary
                 Self.logger.info("Detected binary companion mode")
@@ -316,24 +327,31 @@ public final class USBSerialManager: ObservableObject {
             return
         }
 
-        // If we have text data (printable ASCII or newlines), it's CLI mode
+        // Check if data looks like ASCII text (printable chars or line endings)
         let hasText = readBuffer.contains(where: { ($0 >= 0x20 && $0 < 0x7F) || $0 == 0x0A || $0 == 0x0D })
         if hasText {
+            resolvedMode = .cli
+            let text = String(data: readBuffer.prefix(80), encoding: .utf8) ?? "(non-UTF8)"
+            DebugLogger.shared.log("USB DETECT: CLI mode — text: '\(text.prefix(50))'", level: .info)
             DispatchQueue.main.async {
                 self.detectedMode = .cli
                 Self.logger.info("Detected CLI mode")
                 DebugLogger.shared.log("USB: detected CLI mode (repeater/room)", level: .info)
             }
             parseCLILines()
+        } else {
+            DebugLogger.shared.log("USB DETECT: unrecognized first byte 0x\(String(format: "%02X", firstByte)), waiting for more data", level: .warning)
         }
     }
 
     private func parseBinaryFrames() {
         while readBuffer.count >= 3 {
-            guard readBuffer[0] == 0x3E else {
+            let si = readBuffer.startIndex
+            guard readBuffer[si] == 0x3E else {
                 // Skip garbage bytes until we find a frame marker
                 if let idx = readBuffer.firstIndex(of: 0x3E) {
-                    readBuffer.removeFirst(idx)
+                    let skip = readBuffer.distance(from: si, to: idx)
+                    readBuffer.removeFirst(skip)
                 } else {
                     readBuffer.removeAll()
                     return
@@ -343,16 +361,18 @@ public final class USBSerialManager: ObservableObject {
 
             var length: UInt16 = 0
             _ = withUnsafeMutableBytes(of: &length) { dest in
-                readBuffer.copyBytes(to: dest, from: 1..<3)
+                readBuffer.copyBytes(to: dest, from: (si + 1)..<(si + 3))
             }
             length = UInt16(littleEndian: length)
 
             let totalNeeded = 3 + Int(length)
             guard readBuffer.count >= totalNeeded else { return } // Wait for more data
 
-            let frameData = Data(readBuffer[3..<totalNeeded])
+            let frameData = Data(readBuffer[(si + 3)..<(si + totalNeeded)])
             readBuffer.removeFirst(totalNeeded)
 
+            let hex = frameData.prefix(20).map { String(format: "%02X", $0) }.joined(separator: " ")
+            DebugLogger.shared.log("USB RX FRAME: \(frameData.count) bytes: \(hex)\(frameData.count > 20 ? "..." : "")", level: .rx)
             Self.logger.debug("RX binary frame [\(frameData.count) bytes]")
             DispatchQueue.main.async { [weak self] in
                 self?.receivedDataSubject.send(frameData)
@@ -362,13 +382,16 @@ public final class USBSerialManager: ObservableObject {
 
     private func parseCLILines() {
         while let newlineIdx = readBuffer.firstIndex(of: 0x0A) {
-            let lineData = Data(readBuffer[readBuffer.startIndex..<newlineIdx])
-            readBuffer.removeFirst(newlineIdx - readBuffer.startIndex + 1)
+            let si = readBuffer.startIndex
+            let lineData = Data(readBuffer[si..<newlineIdx])
+            let consumed = readBuffer.distance(from: si, to: newlineIdx) + 1
+            readBuffer.removeFirst(consumed)
 
             if let line = String(data: lineData, encoding: .utf8)?
                 .trimmingCharacters(in: .controlCharacters) {
                 guard !line.isEmpty else { continue }
                 Self.logger.debug("RX CLI: \(line)")
+                DebugLogger.shared.log("USB CLI RX: \(line)", level: .rx)
                 DispatchQueue.main.async { [weak self] in
                     self?.receivedLineSubject.send(line)
                 }
