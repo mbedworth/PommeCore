@@ -2101,6 +2101,9 @@ final class MeshCoreViewModel: ObservableObject {
     }
 
     func syncNextMessage() {
+        #if os(macOS) || targetEnvironment(macCatalyst)
+        guard !isUSBCLIConnected else { return }
+        #endif
         isSyncingMessages = true
         sendCommand(MeshCoreProtocol.buildSyncNextMessage(), label: "SYNC_NEXT_MSG")
     }
@@ -2287,6 +2290,18 @@ final class MeshCoreViewModel: ObservableObject {
 
     /// Send a single CLI command during settings fetch, poll for response, wait for it.
     private func fetchRemoteSetting(command: String, contact: Contact, session: RemoteDeviceSession) async {
+        #if os(macOS) || targetEnvironment(macCatalyst)
+        // USB CLI: send plain text through serial, responses arrive via receivedLineSubject
+        if let usbContact = usbDeviceContact, contact.publicKey == usbContact.publicKey {
+            session.commandSent(command)
+            usbManager.sendCLI(command)
+            usbCLIOutput.append(USBTerminalLine(text: "> \(command)", isCommand: true))
+            // USB is fast — brief wait for response
+            try? await Task.sleep(nanoseconds: 300_000_000)
+            return
+        }
+        #endif
+
         let cmdIndex = session.commandSent(command)
 
         let frame = MeshCoreProtocol.buildSendCLICommand(
