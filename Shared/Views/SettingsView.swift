@@ -1250,23 +1250,101 @@ private extension SettingsView {
 
 struct PrivacySection: View {
     @ObservedObject var viewModel: MeshCoreViewModel
-    @State private var manualAdd: Bool = false
-    @State private var telBase: UInt8 = 0
-    @State private var telLoc: UInt8 = 0
-    @State private var advertLoc: Bool = false
-    @State private var multiACK: Bool = false
     @State private var pinText: String = ""
-    @State private var suppressReadback = false
-    @State private var saveState: SaveButtonState = .idle
-    @State private var autoAddChat: Bool = true
-    @State private var autoAddRepeater: Bool = true
-    @State private var autoAddRoom: Bool = true
-    @State private var autoAddSensor: Bool = true
     @AppStorage("locationPrivacyRadius") private var locationPrivacyRadius: Double = 0
+
+    private var config: DeviceConfig { viewModel.deviceConfig }
+
+    // Computed bindings that read from deviceConfig and auto-save on change
+    private var manualAddBinding: Binding<Bool> {
+        Binding(
+            get: { config.manualAddContacts != 0 },
+            set: { newValue in
+                viewModel.setOtherParams(
+                    manualAddContacts: newValue ? 1 : 0,
+                    telemetryBase: config.telemetryBase,
+                    telemetryLocation: config.telemetryLocation,
+                    advertLocPolicy: config.advertLocPolicy,
+                    multiACK: config.multiACK
+                )
+            }
+        )
+    }
+
+    private var telBaseBinding: Binding<UInt8> {
+        Binding(
+            get: { config.telemetryBase },
+            set: { newValue in
+                viewModel.setOtherParams(
+                    manualAddContacts: config.manualAddContacts,
+                    telemetryBase: newValue,
+                    telemetryLocation: config.telemetryLocation,
+                    advertLocPolicy: config.advertLocPolicy,
+                    multiACK: config.multiACK
+                )
+            }
+        )
+    }
+
+    private var telLocBinding: Binding<UInt8> {
+        Binding(
+            get: { config.telemetryLocation },
+            set: { newValue in
+                viewModel.setOtherParams(
+                    manualAddContacts: config.manualAddContacts,
+                    telemetryBase: config.telemetryBase,
+                    telemetryLocation: newValue,
+                    advertLocPolicy: config.advertLocPolicy,
+                    multiACK: config.multiACK
+                )
+            }
+        )
+    }
+
+    private var advertLocBinding: Binding<Bool> {
+        Binding(
+            get: { config.advertLocPolicy != 0 },
+            set: { newValue in
+                viewModel.setOtherParams(
+                    manualAddContacts: config.manualAddContacts,
+                    telemetryBase: config.telemetryBase,
+                    telemetryLocation: config.telemetryLocation,
+                    advertLocPolicy: newValue ? 1 : 0,
+                    multiACK: config.multiACK
+                )
+            }
+        )
+    }
+
+    private var multiACKBinding: Binding<Bool> {
+        Binding(
+            get: { config.multiACK != 0 },
+            set: { newValue in
+                viewModel.setOtherParams(
+                    manualAddContacts: config.manualAddContacts,
+                    telemetryBase: config.telemetryBase,
+                    telemetryLocation: config.telemetryLocation,
+                    advertLocPolicy: config.advertLocPolicy,
+                    multiACK: newValue ? 1 : 0
+                )
+            }
+        )
+    }
+
+    private func autoAddBinding(bit: UInt8) -> Binding<Bool> {
+        Binding(
+            get: { config.autoAddBitmask & bit != 0 },
+            set: { enabled in
+                var bm = config.autoAddBitmask
+                if enabled { bm |= bit } else { bm &= ~bit }
+                viewModel.setAutoAddConfig(bitmask: bm)
+            }
+        )
+    }
 
     var body: some View {
         Section {
-            Toggle(isOn: $manualAdd) {
+            Toggle(isOn: manualAddBinding) {
                 HStack {
                     Image(systemName: "person.badge.plus")
                         .foregroundStyle(MeshTheme.accent)
@@ -1278,23 +1356,19 @@ struct PrivacySection: View {
             .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
 
-            if !manualAdd {
+            if config.manualAddContacts == 0 {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Auto-Add Contact Types")
                         .font(.caption)
                         .foregroundStyle(MeshTheme.textSecondary)
-                    Toggle("Chat Users", isOn: $autoAddChat)
+                    Toggle("Chat Users", isOn: autoAddBinding(bit: 0x01))
                         .tint(MeshTheme.accent)
-                        .onChange(of: autoAddChat) { _ in saveAutoAddConfig() }
-                    Toggle("Repeaters", isOn: $autoAddRepeater)
+                    Toggle("Repeaters", isOn: autoAddBinding(bit: 0x02))
                         .tint(MeshTheme.accent)
-                        .onChange(of: autoAddRepeater) { _ in saveAutoAddConfig() }
-                    Toggle("Room Servers", isOn: $autoAddRoom)
+                    Toggle("Room Servers", isOn: autoAddBinding(bit: 0x04))
                         .tint(MeshTheme.accent)
-                        .onChange(of: autoAddRoom) { _ in saveAutoAddConfig() }
-                    Toggle("Sensors", isOn: $autoAddSensor)
+                    Toggle("Sensors", isOn: autoAddBinding(bit: 0x08))
                         .tint(MeshTheme.accent)
-                        .onChange(of: autoAddSensor) { _ in saveAutoAddConfig() }
                 }
                 .listRowBackground(MeshTheme.surface)
             }
@@ -1303,7 +1377,7 @@ struct PrivacySection: View {
                 Image(systemName: "battery.100")
                     .foregroundStyle(MeshTheme.accent)
                     .frame(width: 24)
-                Picker("Telemetry Requests", selection: $telBase) {
+                Picker("Telemetry Requests", selection: telBaseBinding) {
                     Text("Deny").tag(UInt8(0))
                     Text("Per-Contact").tag(UInt8(1))
                     Text("Allow All").tag(UInt8(2))
@@ -1317,7 +1391,7 @@ struct PrivacySection: View {
                 Image(systemName: "location")
                     .foregroundStyle(MeshTheme.accent)
                     .frame(width: 24)
-                Picker("Include Location", selection: $telLoc) {
+                Picker("Include Location", selection: telLocBinding) {
                     Text("Deny").tag(UInt8(0))
                     Text("Per-Contact").tag(UInt8(1))
                     Text("Allow All").tag(UInt8(2))
@@ -1327,7 +1401,7 @@ struct PrivacySection: View {
             }
             .listRowBackground(MeshTheme.surface)
 
-            Toggle(isOn: $advertLoc) {
+            Toggle(isOn: advertLocBinding) {
                 HStack {
                     Image(systemName: "location.slash")
                         .foregroundStyle(MeshTheme.accent)
@@ -1339,7 +1413,7 @@ struct PrivacySection: View {
             .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
 
-            Toggle(isOn: $multiACK) {
+            Toggle(isOn: multiACKBinding) {
                 HStack {
                     Image(systemName: "checkmark.message")
                         .foregroundStyle(MeshTheme.accent)
@@ -1367,20 +1441,6 @@ struct PrivacySection: View {
             }
             .listRowBackground(MeshTheme.surface)
 
-            SaveButton(state: saveState, label: "Save Privacy Settings") {
-                suppressReadback = true
-                viewModel.setOtherParams(
-                    manualAddContacts: manualAdd ? 1 : 0,
-                    telemetryBase: telBase,
-                    telemetryLocation: telLoc,
-                    advertLocPolicy: advertLoc ? 1 : 0,
-                    multiACK: multiACK ? 1 : 0
-                )
-                showSaved($saveState)
-                DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-                    suppressReadback = false
-                }
-            }
         } header: {
             Text("Privacy & Security")
                 .foregroundStyle(MeshTheme.textSecondary)
@@ -1390,7 +1450,7 @@ struct PrivacySection: View {
         }
 
         // Per-contact telemetry permission picker
-        if telBase == 1 {
+        if config.telemetryBase == 1 {
             Section {
                 let chatContacts = viewModel.contacts.filter { $0.type == .chat }
                 if chatContacts.isEmpty {
@@ -1425,7 +1485,7 @@ struct PrivacySection: View {
         }
 
         // Per-contact location permission picker
-        if telLoc == 1 {
+        if config.telemetryLocation == 1 {
             Section {
                 let chatContacts = viewModel.contacts.filter { $0.type == .chat }
                 if chatContacts.isEmpty {
@@ -1537,37 +1597,11 @@ struct PrivacySection: View {
                     .font(.caption2)
             }
         }
-        .onAppear { loadFromConfig() }
-        .onChange(of: viewModel.deviceConfig.manualAddContacts) { _ in loadFromConfig() }
-        .onChange(of: viewModel.deviceConfig.blePIN) { _ in pinText = String(viewModel.deviceConfig.blePIN) }
+        .onAppear { pinText = String(config.blePIN) }
+        .onChange(of: viewModel.deviceConfig.blePIN) { _ in pinText = String(config.blePIN) }
         .onChange(of: locationPrivacyRadius) { _ in
             MeshCoreViewModel.regenerateLocationFudge()
         }
-    }
-
-    private func loadFromConfig() {
-        guard !suppressReadback else { return }
-        let c = viewModel.deviceConfig
-        manualAdd = c.manualAddContacts != 0
-        telBase = c.telemetryBase
-        telLoc = c.telemetryLocation
-        advertLoc = c.advertLocPolicy != 0
-        multiACK = c.multiACK != 0
-        pinText = String(c.blePIN)
-        let bm = c.autoAddBitmask
-        autoAddChat = bm & 0x01 != 0
-        autoAddRepeater = bm & 0x02 != 0
-        autoAddRoom = bm & 0x04 != 0
-        autoAddSensor = bm & 0x08 != 0
-    }
-
-    private func saveAutoAddConfig() {
-        var bitmask: UInt8 = 0
-        if autoAddChat { bitmask |= 0x01 }
-        if autoAddRepeater { bitmask |= 0x02 }
-        if autoAddRoom { bitmask |= 0x04 }
-        if autoAddSensor { bitmask |= 0x08 }
-        viewModel.setAutoAddConfig(bitmask: bitmask)
     }
 }
 
