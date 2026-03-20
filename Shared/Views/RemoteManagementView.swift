@@ -487,8 +487,9 @@ struct RemoteRadioSection: View {
     var body: some View {
         if canEdit {
             RadioPresetPicker { preset in
+                let freqMHz = String(format: "%.6f", preset.frequencyKHz / 1000.0)
                 let bwStr = preset.bandwidth == preset.bandwidth.rounded() ? "\(Int(preset.bandwidth))" : "\(preset.bandwidth)"
-                let params = "\(Int(preset.frequencyKHz)),\(bwStr),\(preset.spreadingFactor),\(preset.codingRate)"
+                let params = "\(freqMHz),\(bwStr),\(preset.spreadingFactor),\(preset.codingRate)"
                 radioParams = params
                 sendCLI("set radio \(params)")
             }
@@ -515,7 +516,7 @@ struct RemoteRadioSection: View {
             Text("Radio Configuration")
                 .foregroundStyle(MeshTheme.textSecondary)
         } footer: {
-            Text("Radio format: freq_kHz,bw_kHz,sf,cr (e.g. 906000,250,12,8)")
+            Text("Radio format: freq_MHz,bw_kHz,sf,cr (e.g. 910.525,62.5,7,5)")
                 .foregroundStyle(MeshTheme.textSecondary)
                 .font(.caption2)
         }
