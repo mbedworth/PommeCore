@@ -10,6 +10,9 @@ struct DeviceScannerView: View {
     @State private var wifiHost = ""
     @State private var wifiPort = "5000"
     @AppStorage("savedWiFiConnections") private var savedWiFiData: Data = Data()
+    #if os(macOS)
+    @State private var manualSerialPort = ""
+    #endif
 
     var body: some View {
         List {
@@ -184,7 +187,77 @@ struct DeviceScannerView: View {
             }
 
             #if os(macOS)
-            USBSerialSection()
+            // USB Serial section — inline to ensure it renders
+            Section {
+                if viewModel.usbManager.isConnected {
+                    HStack {
+                        Image(systemName: "cable.connector")
+                            .foregroundStyle(MeshTheme.connected)
+                        Text(viewModel.usbManager.connectedPort?.replacingOccurrences(of: "/dev/cu.", with: "") ?? "Connected")
+                            .foregroundStyle(MeshTheme.textPrimary)
+                        Spacer()
+                        Button("Disconnect") { viewModel.disconnectUSB() }
+                            .foregroundStyle(MeshTheme.disconnected)
+                    }
+                    .listRowBackground(MeshTheme.surface)
+                } else {
+                    ForEach(viewModel.usbManager.availablePorts, id: \.self) { port in
+                        HStack {
+                            Image(systemName: "cable.connector")
+                                .foregroundStyle(MeshTheme.accent)
+                            Text(port.replacingOccurrences(of: "/dev/cu.", with: ""))
+                                .foregroundStyle(MeshTheme.textPrimary)
+                            Spacer()
+                            Button("Connect") { viewModel.connectUSB(port: port) }
+                                .buttonStyle(.borderedProminent)
+                                .tint(MeshTheme.interactiveGreen)
+                        }
+                        .listRowBackground(MeshTheme.surface)
+                    }
+
+                    if viewModel.usbManager.availablePorts.isEmpty {
+                        Text("No serial ports detected")
+                            .font(.caption)
+                            .foregroundStyle(MeshTheme.textSecondary)
+                            .listRowBackground(MeshTheme.surface)
+                    }
+
+                    // Manual port entry
+                    HStack(spacing: 8) {
+                        Image(systemName: "terminal")
+                            .foregroundStyle(MeshTheme.accent)
+                        TextField("/dev/cu.usbmodem...", text: $manualSerialPort)
+                            .font(.system(.body, design: .monospaced))
+                            .textFieldStyle(.roundedBorder)
+                        Button("Connect") {
+                            guard !manualSerialPort.isEmpty else { return }
+                            viewModel.connectUSB(port: manualSerialPort)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(MeshTheme.interactiveGreen)
+                        .disabled(manualSerialPort.isEmpty)
+                    }
+                    .listRowBackground(MeshTheme.surface)
+
+                    Button {
+                        viewModel.usbManager.scanPorts()
+                    } label: {
+                        Label("Refresh Ports", systemImage: "arrow.clockwise")
+                            .foregroundStyle(MeshTheme.accent)
+                    }
+                    .buttonStyle(.plain)
+                    .listRowBackground(MeshTheme.surface)
+                }
+            } header: {
+                Text("USB Serial")
+                    .foregroundStyle(MeshTheme.textSecondary)
+            } footer: {
+                Text("Connect via USB. If not listed, run 'ls /dev/cu.*' in Terminal and enter the path manually.")
+                    .font(.caption2)
+            }
+            .onAppear {
+                viewModel.usbManager.scanPorts()
+            }
             #endif
         }
         .meshListStyle()
