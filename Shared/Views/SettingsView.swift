@@ -591,30 +591,43 @@ struct DeviceInfoSection: View {
         }
     }
 
-    // MARK: - Body (platform-specific)
+    // MARK: - Body
+
+    #if os(macOS) || targetEnvironment(macCatalyst)
+    @State private var macActiveSheet: DeviceSheet?
+    @State private var canPresent = true
+
+    enum DeviceSheet: Identifiable {
+        case radio, txPower, tuning, name, gps, battery, firmware
+        var id: String { String(describing: self) }
+    }
+
+    private func showSheet(_ sheet: DeviceSheet) {
+        guard canPresent else { return }
+        macActiveSheet = sheet
+    }
+    #endif
 
     var body: some View {
         Section {
             #if os(macOS) || targetEnvironment(macCatalyst)
-            // macOS/Catalyst: NavigationLink pushes (sheets bounce)
-            NavigationLink { NameEditorSheet(viewModel: viewModel) } label: { nameRow }
-                .listRowBackground(MeshTheme.surface)
+            Button { showSheet(.name) } label: { nameRow }
+                .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
             if config.radioFrequency > 0 {
-                NavigationLink { RadioSection(viewModel: viewModel).navigationTitle("Radio Settings") } label: { radioRow }
-                    .listRowBackground(MeshTheme.surface)
-                NavigationLink { TxPowerEditorSheet(viewModel: viewModel) } label: { txPowerRow }
-                    .listRowBackground(MeshTheme.surface)
-                NavigationLink { TuningEditorSheet(viewModel: viewModel) } label: { tuningRow }
-                    .listRowBackground(MeshTheme.surface)
+                Button { showSheet(.radio) } label: { radioRow }
+                    .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
+                Button { showSheet(.txPower) } label: { txPowerRow }
+                    .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
+                Button { showSheet(.tuning) } label: { tuningRow }
+                    .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
             }
-            NavigationLink { GPSEditorSheet(viewModel: viewModel) } label: { gpsRow }
-                .listRowBackground(MeshTheme.surface)
-            NavigationLink { BatteryEditorSheet(viewModel: viewModel, batteryChemistryRaw: $batteryChemistryRaw) } label: { batteryRow }
-                .listRowBackground(MeshTheme.surface)
-            NavigationLink { FirmwareDetailSheet(viewModel: viewModel) } label: { firmwareRow }
-                .listRowBackground(MeshTheme.surface)
+            Button { showSheet(.gps) } label: { gpsRow }
+                .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
+            Button { showSheet(.battery) } label: { batteryRow }
+                .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
+            Button { showSheet(.firmware) } label: { firmwareRow }
+                .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
             #else
-            // iOS: Button + .sheet
             iOSDeviceRows
             #endif
         } header: {
@@ -624,6 +637,34 @@ struct DeviceInfoSection: View {
             Text("Tap any row to view or change that setting on your connected radio.")
                 .font(.caption2)
         }
+        #if os(macOS) || targetEnvironment(macCatalyst)
+        .sheet(item: $macActiveSheet, onDismiss: {
+            canPresent = false
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                canPresent = true
+            }
+        }) { sheet in
+            NavigationStack {
+                Group {
+                    switch sheet {
+                    case .name: NameEditorSheet(viewModel: viewModel)
+                    case .radio: RadioSection(viewModel: viewModel).navigationTitle("Radio Settings")
+                    case .txPower: TxPowerEditorSheet(viewModel: viewModel)
+                    case .tuning: TuningEditorSheet(viewModel: viewModel)
+                    case .gps: GPSEditorSheet(viewModel: viewModel)
+                    case .battery: BatteryEditorSheet(viewModel: viewModel, batteryChemistryRaw: $batteryChemistryRaw)
+                    case .firmware: FirmwareDetailSheet(viewModel: viewModel)
+                    }
+                }
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Done") { macActiveSheet = nil }
+                    }
+                }
+            }
+            .meshTheme()
+        }
+        #endif
     }
 
     // MARK: - iOS sheet-based rows
