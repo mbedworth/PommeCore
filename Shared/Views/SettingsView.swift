@@ -1035,9 +1035,15 @@ struct RadioSection: View {
     @State private var selectedSF: UInt8 = 12
     @State private var selectedCR: UInt8 = 5
     @State private var txPower: Double = 22
+    @State private var maxTxPower: Double = 22
+    @State private var deviceSelfType: UInt8 = 1
     @State private var showRepeatConfirm = false
     @State private var repeatMode = false
     @State private var saveState: SaveButtonState = .idle
+    @State private var initFreqKHz: Double = 0
+    @State private var initBW: Double = 0
+    @State private var initSF: UInt8 = 0
+    @State private var initCR: UInt8 = 0
 
     var body: some View {
         RadioPresetPicker(
@@ -1051,10 +1057,10 @@ struct RadioSection: View {
                     repeatMode: repeatMode
                 )
             },
-            currentFreqKHz: Double(viewModel.deviceConfig.radioFrequency),
-            currentBW: viewModel.deviceConfig.bandwidthKHz,
-            currentSF: viewModel.deviceConfig.radioSpreadingFactor,
-            currentCR: viewModel.deviceConfig.radioCodingRate
+            currentFreqKHz: initFreqKHz,
+            currentBW: initBW,
+            currentSF: initSF,
+            currentCR: initCR
         )
 
         Section {
@@ -1132,7 +1138,7 @@ struct RadioSection: View {
                     Text("TX Power: \(Int(txPower)) dBm")
                         .foregroundStyle(MeshTheme.accent)
                 }
-                Slider(value: $txPower, in: 2...Double(max(viewModel.deviceConfig.maxTXPower, 2)), step: 1)
+                Slider(value: $txPower, in: 2...max(maxTxPower, 2), step: 1)
                     .tint(MeshTheme.accent)
             }
             .listRowBackground(MeshTheme.surface)
@@ -1140,7 +1146,7 @@ struct RadioSection: View {
             Toggle(isOn: Binding(
                 get: { repeatMode },
                 set: { newValue in
-                    if newValue && viewModel.deviceConfig.selfType == 1 {
+                    if newValue && deviceSelfType == 1 {
                         showRepeatConfirm = true
                     } else {
                         repeatMode = newValue
@@ -1225,7 +1231,6 @@ struct RadioSection: View {
                 .font(.caption2)
         }
         .onAppear { loadFromConfig() }
-        .onChange(of: viewModel.deviceConfig.radioFrequency) { _ in loadFromConfig() }
     }
 
     private func loadFromConfig() {
@@ -1235,7 +1240,13 @@ struct RadioSection: View {
         selectedSF = c.radioSpreadingFactor
         selectedCR = c.radioCodingRate
         txPower = Double(c.radioTXPower)
+        maxTxPower = Double(c.maxTXPower)
+        deviceSelfType = c.selfType
         repeatMode = c.repeatMode
+        initFreqKHz = Double(c.radioFrequency)
+        initBW = c.bandwidthKHz
+        initSF = c.radioSpreadingFactor
+        initCR = c.radioCodingRate
     }
 
     private func nearestBW(_ kHz: Double) -> Double {
@@ -2458,26 +2469,31 @@ struct NameEditorSheet: View {
 
 struct FirmwareDetailSheet: View {
     @ObservedObject var viewModel: MeshCoreViewModel
-
-    private var config: DeviceConfig { viewModel.deviceConfig }
+    @State private var version = ""
+    @State private var buildDate = ""
+    @State private var model = ""
+    @State private var maxContacts: UInt16 = 0
+    @State private var maxChannels: UInt8 = 0
+    @State private var publicKeyHex = ""
+    @State private var clockDate: Date?
 
     var body: some View {
         List {
             Section {
-                LabeledContent("Version", value: config.semanticVersion.isEmpty ? "v\(config.firmwareVersion)" : config.semanticVersion)
-                LabeledContent("Build Date", value: config.buildDate.isEmpty ? "\u{2014}" : config.buildDate)
-                LabeledContent("Model", value: config.manufacturer.isEmpty ? "\u{2014}" : config.manufacturer)
+                LabeledContent("Version", value: version.isEmpty ? "\u{2014}" : version)
+                LabeledContent("Build Date", value: buildDate.isEmpty ? "\u{2014}" : buildDate)
+                LabeledContent("Model", value: model.isEmpty ? "\u{2014}" : model)
             } footer: {
                 Text("Hardware and firmware details from your radio.")
                     .font(.caption2)
             }
             Section {
-                LabeledContent("Max Contacts", value: "\(config.maxContacts)")
-                LabeledContent("Max Channels", value: "\(config.maxChannels)")
+                LabeledContent("Max Contacts", value: "\(maxContacts)")
+                LabeledContent("Max Channels", value: "\(maxChannels)")
             }
-            if !config.publicKeyHex.isEmpty {
+            if !publicKeyHex.isEmpty {
                 Section {
-                    LabeledContent("Public Key", value: String(config.publicKeyHex.prefix(16)) + "...")
+                    LabeledContent("Public Key", value: String(publicKeyHex.prefix(16)) + "...")
                         .textSelection(.enabled)
                 } footer: {
                     Text("Long-press to copy. Share this with others to let them add you as a contact.")
@@ -2485,7 +2501,7 @@ struct FirmwareDetailSheet: View {
                 }
             }
             Section {
-                if let date = config.deviceTimeDate {
+                if let date = clockDate {
                     LabeledContent("Device Clock") {
                         Text(date, style: .date) + Text(" ") + Text(date, style: .time)
                     }
@@ -2503,6 +2519,16 @@ struct FirmwareDetailSheet: View {
         #if !os(macOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
+        .onAppear {
+            let c = viewModel.deviceConfig
+            version = c.semanticVersion.isEmpty ? "v\(c.firmwareVersion)" : c.semanticVersion
+            buildDate = c.buildDate
+            model = c.manufacturer
+            maxContacts = c.maxContacts
+            maxChannels = c.maxChannels
+            publicKeyHex = c.publicKeyHex
+            clockDate = c.deviceTimeDate
+        }
     }
 }
 
@@ -2511,6 +2537,7 @@ struct FirmwareDetailSheet: View {
 struct TxPowerEditorSheet: View {
     @ObservedObject var viewModel: MeshCoreViewModel
     @State private var txPower: Double = 22
+    @State private var maxPower: Double = 22
     @State private var saved = false
 
     var body: some View {
@@ -2521,7 +2548,7 @@ struct TxPowerEditorSheet: View {
                     Spacer()
                     Text("\(Int(txPower)) dBm").fontWeight(.medium)
                 }
-                Slider(value: $txPower, in: 1...Double(max(viewModel.deviceConfig.maxTXPower, 2)), step: 1)
+                Slider(value: $txPower, in: 1...max(maxPower, 2), step: 1)
                     .tint(MeshTheme.accent)
                     .onChange(of: txPower) { newValue in
                         viewModel.setRadioTXPower(UInt8(newValue))
@@ -2533,7 +2560,7 @@ struct TxPowerEditorSheet: View {
                     Text("Saved")
                         .foregroundStyle(MeshTheme.connected)
                 } else {
-                    Text("Higher power = more range but more battery drain. Max \(viewModel.deviceConfig.maxTXPower) dBm for this device.")
+                    Text("Higher power = more range but more battery drain. Max \(Int(maxPower)) dBm for this device.")
                 }
             }
         }
@@ -2541,7 +2568,10 @@ struct TxPowerEditorSheet: View {
         #if !os(macOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
-        .onAppear { txPower = Double(viewModel.deviceConfig.radioTXPower) }
+        .onAppear {
+            txPower = Double(viewModel.deviceConfig.radioTXPower)
+            maxPower = Double(viewModel.deviceConfig.maxTXPower)
+        }
     }
 }
 
@@ -2665,28 +2695,6 @@ struct GPSEditorSheet: View {
                     .font(.caption2)
             }
             #endif
-
-            Section {
-                Picker("Share Location", selection: Binding(
-                    get: { viewModel.deviceConfig.advertLocPolicy },
-                    set: { newValue in
-                        viewModel.setOtherParams(
-                            manualAddContacts: viewModel.deviceConfig.manualAddContacts,
-                            telemetryBase: viewModel.deviceConfig.telemetryBase,
-                            telemetryLocation: viewModel.deviceConfig.telemetryLocation,
-                            advertLocPolicy: newValue,
-                            multiACK: viewModel.deviceConfig.multiACK
-                        )
-                    }
-                )) {
-                    Text("Don't Share").tag(UInt8(0))
-                    Text("Share").tag(UInt8(1))
-                }
-                .pickerStyle(.segmented)
-            } footer: {
-                Text("Controls whether your coordinates are included in mesh advertisements.")
-                    .font(.caption2)
-            }
         }
         .navigationTitle("GPS & Location")
         #if !os(macOS)
@@ -2705,14 +2713,14 @@ struct GPSEditorSheet: View {
 struct BatteryEditorSheet: View {
     @ObservedObject var viewModel: MeshCoreViewModel
     @Binding var batteryChemistryRaw: String
+    @State private var voltageText = ""
+    @State private var percentText = ""
 
     var body: some View {
         Form {
             Section {
-                let battV = String(format: "%.2f", Double(viewModel.deviceConfig.batteryMillivolts) / 1000.0)
-                let battPct = viewModel.deviceConfig.batteryPercent()
-                LabeledContent("Voltage", value: "\(battV)V")
-                LabeledContent("Percentage", value: battPct > 0 ? "\(battPct)%" : "\u{2014}")
+                LabeledContent("Voltage", value: voltageText)
+                LabeledContent("Percentage", value: percentText)
             } footer: {
                 Text("Live reading from the radio\u{2019}s battery sensor. Accuracy depends on correct chemistry selection below.")
                     .font(.caption2)
@@ -2732,5 +2740,11 @@ struct BatteryEditorSheet: View {
         #if !os(macOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
+        .onAppear {
+            let battV = String(format: "%.2f", Double(viewModel.deviceConfig.batteryMillivolts) / 1000.0)
+            let battPct = viewModel.deviceConfig.batteryPercent()
+            voltageText = "\(battV)V"
+            percentText = battPct > 0 ? "\(battPct)%" : "\u{2014}"
+        }
     }
 }
