@@ -1741,31 +1741,33 @@ class TipJarManager: ObservableObject {
         let ids = Set(Self.productIDs)
         DebugLogger.shared.log("TIP JAR: requesting \(ids.count) products: \(ids.sorted().joined(separator: ", "))", level: .info)
 
-        Task.detached {
-            var loaded: [Product] = []
-            do {
-                let fetched = try await Product.products(for: ids)
-                loaded = fetched.sorted { $0.price < $1.price }
-                for p in loaded {
-                    DebugLogger.shared.log("TIP JAR: product \(p.id) — \(p.displayPrice)", level: .info)
-                }
-                DebugLogger.shared.log("TIP JAR: loaded \(loaded.count) products", level: .info)
+        Task {
+            let result = await Self.fetchProducts(ids: ids)
+            self.products = result
+            self.isLoading = false
+        }
+    }
 
-                // Retry once if no products returned (App Store may need time)
-                if loaded.isEmpty {
-                    DebugLogger.shared.log("TIP JAR: no products returned — retrying in 5s", level: .warning)
-                    try? await Task.sleep(nanoseconds: 5_000_000_000)
-                    let retry = try await Product.products(for: ids)
-                    loaded = retry.sorted { $0.price < $1.price }
-                    DebugLogger.shared.log("TIP JAR: retry returned \(loaded.count) products", level: .info)
-                }
-            } catch {
-                DebugLogger.shared.log("TIP JAR: ERROR loading — \(error.localizedDescription)", level: .error)
+    private static func fetchProducts(ids: Set<String>) async -> [Product] {
+        do {
+            let fetched = try await Product.products(for: ids)
+            let sorted = fetched.sorted { $0.price < $1.price }
+            for p in sorted {
+                DebugLogger.shared.log("TIP JAR: product \(p.id) — \(p.displayPrice)", level: .info)
             }
-            await MainActor.run {
-                self.products = loaded
-                self.isLoading = false
+            DebugLogger.shared.log("TIP JAR: loaded \(sorted.count) products", level: .info)
+            if sorted.isEmpty {
+                DebugLogger.shared.log("TIP JAR: no products returned — retrying in 5s", level: .warning)
+                try? await Task.sleep(nanoseconds: 5_000_000_000)
+                let retry = try await Product.products(for: ids)
+                let retrySorted = retry.sorted { $0.price < $1.price }
+                DebugLogger.shared.log("TIP JAR: retry returned \(retrySorted.count) products", level: .info)
+                return retrySorted
             }
+            return sorted
+        } catch {
+            DebugLogger.shared.log("TIP JAR: ERROR loading — \(error.localizedDescription)", level: .error)
+            return []
         }
     }
 
