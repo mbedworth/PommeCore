@@ -119,6 +119,9 @@ struct SettingsView: View {
                     troubleshootingSection
                 }
                 .listRowBackground(MeshTheme.surface)
+            } footer: {
+                Text("Developer and diagnostic tools. Most users won\u{2019}t need these.")
+                    .font(.caption2)
             }
 
             // 9. About
@@ -344,6 +347,9 @@ private extension SettingsView {
             .pickerStyle(.segmented)
         } header: {
             sectionHeader("Appearance")
+        } footer: {
+            Text("Choose how MeshCore looks. System follows your device\u{2019}s Dark Mode setting.")
+                .font(.caption2)
         }
     }
 }
@@ -463,6 +469,9 @@ private extension SettingsView {
         } header: {
             Text("Channels")
                 .foregroundStyle(MeshTheme.textSecondary)
+        } footer: {
+            Text("Share All sends your channel list to nearby radios so they can join.")
+                .font(.caption2)
         }
     }
 }
@@ -607,6 +616,9 @@ struct DeviceInfoSection: View {
         } header: {
             Text("Device")
                 .foregroundStyle(MeshTheme.textSecondary)
+        } footer: {
+            Text("Tap any row to view or change that setting on your connected radio.")
+                .font(.caption2)
         }
         .sheet(item: $activeSheet) { sheet in
             NavigationStack {
@@ -833,6 +845,9 @@ private extension SettingsView {
             }
         } header: {
             sectionHeader("Connection")
+        } footer: {
+            Text("MeshCore supports Bluetooth, WiFi, and USB Serial connections to your radio.")
+                .font(.caption2)
         }
     }
 
@@ -1925,6 +1940,9 @@ private extension SettingsView {
             }
         } header: {
             sectionHeader("Storage")
+        } footer: {
+            Text("Clear messages to free space. Message drafts are saved per contact.")
+                .font(.caption2)
         }
     }
 
@@ -1946,6 +1964,9 @@ private extension SettingsView {
             .listRowBackground(MeshTheme.surface)
         } header: {
             sectionHeader("Support")
+        } footer: {
+            Text("MeshCore is free with all features. Tips help fund development.")
+                .font(.caption2)
         }
     }
 
@@ -2221,6 +2242,9 @@ private extension SettingsView {
             .listRowBackground(MeshTheme.surface)
         } header: {
             sectionHeader("About")
+        } footer: {
+            Text("Debug Log records connection and protocol events for troubleshooting.")
+                .font(.caption2)
         }
     }
 }
