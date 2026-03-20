@@ -476,35 +476,41 @@ private extension SettingsView {
 
 }
 
-/// Device Info section using NavigationLink pushes instead of .sheet presentation.
-/// Sheets were being dismissed by parent re-renders resetting @State.
-/// NavigationLink destinations survive parent re-renders.
+/// Device Info section — isolated struct with own @State for sheet management.
+/// Uses .sheet(item:) instead of NavigationLink to avoid corrupting
+/// NavigationSplitView sidebar state. The struct isolation prevents
+/// parent SettingsView re-renders from resetting @State.
 struct DeviceInfoSection: View {
     @EnvironmentObject var viewModel: MeshCoreViewModel
     @Binding var batteryChemistryRaw: String
+    @State private var activeSheet: DeviceSheet?
 
     private var config: DeviceConfig { viewModel.deviceConfig }
 
+    enum DeviceSheet: Identifiable {
+        case radio, txPower, tuning, name, gps, battery, firmware
+        var id: String { String(describing: self) }
+    }
+
     var body: some View {
         Section {
-            NavigationLink {
-                NameEditorSheet(viewModel: viewModel)
-            } label: {
+            Button { activeSheet = .name } label: {
                 HStack {
                     Label("Name", systemImage: "textformat")
                         .foregroundStyle(MeshTheme.accent)
                     Spacer()
                     Text(config.deviceName.isEmpty ? (viewModel.connectedDeviceName ?? "\u{2014}") : config.deviceName)
                         .foregroundStyle(MeshTheme.textSecondary)
+                    Image(systemName: "chevron.right")
+                        .font(.caption2)
+                        .foregroundStyle(MeshTheme.textSecondary)
                 }
             }
+            .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
 
             if config.radioFrequency > 0 {
-                NavigationLink {
-                    RadioSection(viewModel: viewModel)
-                        .navigationTitle("Radio Settings")
-                } label: {
+                Button { activeSheet = .radio } label: {
                     let freqMHz = String(format: "%.3f", Double(config.radioFrequency) / 1000.0)
                     let bwKHz = String(format: "%.1f", Double(config.radioBandwidth) / 1000.0)
                     let presetName = detectPreset()
@@ -522,11 +528,10 @@ struct DeviceInfoSection: View {
                         }
                     }
                 }
+                .buttonStyle(.plain)
                 .listRowBackground(MeshTheme.surface)
 
-                NavigationLink {
-                    TxPowerEditorSheet(viewModel: viewModel)
-                } label: {
+                Button { activeSheet = .txPower } label: {
                     HStack {
                         Label("TX Power", systemImage: "bolt.fill")
                             .foregroundStyle(MeshTheme.accent)
@@ -535,11 +540,10 @@ struct DeviceInfoSection: View {
                             .foregroundStyle(MeshTheme.textSecondary)
                     }
                 }
+                .buttonStyle(.plain)
                 .listRowBackground(MeshTheme.surface)
 
-                NavigationLink {
-                    TuningEditorSheet(viewModel: viewModel)
-                } label: {
+                Button { activeSheet = .tuning } label: {
                     HStack {
                         Label("Tuning", systemImage: "tuningfork")
                             .foregroundStyle(MeshTheme.accent)
@@ -549,12 +553,11 @@ struct DeviceInfoSection: View {
                             .foregroundStyle(MeshTheme.textSecondary)
                     }
                 }
+                .buttonStyle(.plain)
                 .listRowBackground(MeshTheme.surface)
             }
 
-            NavigationLink {
-                GPSEditorSheet(viewModel: viewModel)
-            } label: {
+            Button { activeSheet = .gps } label: {
                 HStack {
                     Label("GPS", systemImage: "location.fill")
                         .foregroundStyle(MeshTheme.accent)
@@ -570,11 +573,10 @@ struct DeviceInfoSection: View {
                     }
                 }
             }
+            .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
 
-            NavigationLink {
-                BatteryEditorSheet(viewModel: viewModel, batteryChemistryRaw: $batteryChemistryRaw)
-            } label: {
+            Button { activeSheet = .battery } label: {
                 HStack {
                     Label("Battery", systemImage: "battery.50percent")
                         .foregroundStyle(MeshTheme.accent)
@@ -585,23 +587,55 @@ struct DeviceInfoSection: View {
                         .foregroundStyle(MeshTheme.textSecondary)
                 }
             }
+            .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
 
-            NavigationLink {
-                FirmwareDetailSheet(viewModel: viewModel)
-            } label: {
+            Button { activeSheet = .firmware } label: {
                 HStack {
                     Label("Firmware", systemImage: "cpu")
                         .foregroundStyle(MeshTheme.accent)
                     Spacer()
                     Text(config.semanticVersion.isEmpty ? "v\(config.firmwareVersion)" : config.semanticVersion)
                         .foregroundStyle(MeshTheme.textSecondary)
+                    Image(systemName: "chevron.right")
+                        .font(.caption2)
+                        .foregroundStyle(MeshTheme.textSecondary)
                 }
             }
+            .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
         } header: {
             Text("Device")
                 .foregroundStyle(MeshTheme.textSecondary)
+        }
+        .sheet(item: $activeSheet) { sheet in
+            NavigationStack {
+                Group {
+                    switch sheet {
+                    case .name:
+                        NameEditorSheet(viewModel: viewModel)
+                    case .radio:
+                        RadioSection(viewModel: viewModel)
+                            .navigationTitle("Radio Settings")
+                    case .txPower:
+                        TxPowerEditorSheet(viewModel: viewModel)
+                    case .tuning:
+                        TuningEditorSheet(viewModel: viewModel)
+                    case .gps:
+                        GPSEditorSheet(viewModel: viewModel)
+                    case .battery:
+                        BatteryEditorSheet(viewModel: viewModel, batteryChemistryRaw: $batteryChemistryRaw)
+                    case .firmware:
+                        FirmwareDetailSheet(viewModel: viewModel)
+                    }
+                }
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Done") { activeSheet = nil }
+                    }
+                }
+            }
+            .meshTheme()
         }
     }
 
