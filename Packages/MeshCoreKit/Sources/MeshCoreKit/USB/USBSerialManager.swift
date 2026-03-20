@@ -6,7 +6,7 @@
 // If Apple adds DriverKit for iOS or exposes USB serial APIs in a future iOS version,
 // this would need a separate USBSerialManager implementation using that framework.
 
-#if os(macOS)
+#if os(macOS) || targetEnvironment(macCatalyst)
 import Foundation
 import Combine
 import IOKit

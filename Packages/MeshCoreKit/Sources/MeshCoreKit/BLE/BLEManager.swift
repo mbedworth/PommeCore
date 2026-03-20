@@ -1,7 +1,7 @@
 import CoreBluetooth
 import Combine
 import os.log
-#if os(iOS)
+#if os(iOS) || targetEnvironment(macCatalyst)
 import UIKit
 #elseif os(macOS)
 import AppKit
@@ -82,6 +82,7 @@ public final class BLEManager: NSObject, ObservableObject {
 
         #if os(macOS)
         // Clean disconnect before sleep to prevent stale BLE state on the radio
+        // NSWorkspace is AppKit-only (not available in Catalyst)
         NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.willSleepNotification,
             object: nil, queue: .main

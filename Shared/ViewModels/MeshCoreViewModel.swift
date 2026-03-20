@@ -13,7 +13,7 @@ import CoreLocation
 import CoreSpotlight
 #endif
 
-#if os(macOS)
+#if os(macOS) || targetEnvironment(macCatalyst)
 /// A line of output in the USB serial terminal.
 struct USBTerminalLine: Identifiable {
     let id = UUID()
@@ -101,7 +101,7 @@ enum SidebarSelection: Hashable {
     case contact(Data) // publicKeyPrefix
     case settings
     case map
-    #if os(macOS)
+    #if os(macOS) || targetEnvironment(macCatalyst)
     case usbTerminal
     #endif
 }
@@ -524,7 +524,7 @@ final class MeshCoreViewModel: ObservableObject {
 
     let bleManager = BLEManager()
     let wifiManager = WiFiConnectionManager()
-    #if os(macOS)
+    #if os(macOS) || targetEnvironment(macCatalyst)
     let usbManager = USBSerialManager()
     @Published var usbCLIOutput: [USBTerminalLine] = []
     #endif
@@ -1085,7 +1085,7 @@ final class MeshCoreViewModel: ObservableObject {
             .store(in: &cancellables)
 
         // USB Serial subscriptions (macOS only)
-        #if os(macOS)
+        #if os(macOS) || targetEnvironment(macCatalyst)
         usbManager.receivedDataSubject
             .receive(on: DispatchQueue.main)
             .sink { [weak self] data in
@@ -1208,7 +1208,7 @@ final class MeshCoreViewModel: ObservableObject {
         wifiManager.disconnect()
     }
 
-    #if os(macOS)
+    #if os(macOS) || targetEnvironment(macCatalyst)
     func connectUSB(port: String) {
         usbManager.connect(to: port)
     }
@@ -1263,7 +1263,7 @@ final class MeshCoreViewModel: ObservableObject {
             wifiManager.sendFrame(data)
             return
         }
-        #if os(macOS)
+        #if os(macOS) || targetEnvironment(macCatalyst)
         if usbManager.isConnected && usbManager.detectedMode == .binary {
             let hex = data.map { String(format: "%02x", $0) }.joined(separator: " ")
             Self.logger.info("TX(USB) \(label) [\(data.count) bytes]: \(hex)")

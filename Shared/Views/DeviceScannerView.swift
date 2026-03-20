@@ -10,7 +10,7 @@ struct DeviceScannerView: View {
     @State private var wifiHost = ""
     @State private var wifiPort = "5000"
     @AppStorage("savedWiFiConnections") private var savedWiFiData: Data = Data()
-    #if os(macOS)
+    #if os(macOS) || targetEnvironment(macCatalyst)
     @State private var manualSerialPort = ""
     #endif
 
@@ -199,7 +199,7 @@ struct DeviceScannerView: View {
                     .listRowBackground(MeshTheme.surface)
             }
 
-            #if os(macOS)
+            #if os(macOS) || targetEnvironment(macCatalyst)
             // USB Serial section
             Section {
                 if viewModel.usbManager.isConnected {
