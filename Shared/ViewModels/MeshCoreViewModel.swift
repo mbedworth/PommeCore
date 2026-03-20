@@ -1357,7 +1357,10 @@ final class MeshCoreViewModel: ObservableObject {
     func fetchUSBSettings() { fetchUSBDeviceSettings() }
     private func fetchUSBDeviceSettings() {
         guard let session = usbDeviceSession else { return }
-        guard !session.isFetchingSettings else { return }
+        guard !session.isFetchingSettings else {
+            DebugLogger.shared.log("USB CLI: fetch already in progress, skipping duplicate", level: .warning)
+            return
+        }
         session.isFetchingSettings = true
         session.fetchReceivedCount = 0
 
