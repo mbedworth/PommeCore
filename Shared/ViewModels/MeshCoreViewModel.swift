@@ -1300,250 +1300,39 @@ final class MeshCoreViewModel: ObservableObject {
 
         DebugLogger.shared.log("USB CLI: management session created with admin access", level: .info)
 
-        // Query clock first, then sync if needed — register in session FIFO
-        // so the response is consumed and doesn't pollute the next command (ver)
+        // Auto-sync clock — query first, sync if needed
         session.commandSent("clock")
         usbManager.sendCLI("clock")
         usbCLIOutput.append(USBTerminalLine(text: "> clock", isCommand: true))
 
-        // Brief delay for clock response, then sync if off by >120s, then fetch settings
         Task { [weak self] in
             try? await Task.sleep(nanoseconds: 800_000_000)
             guard let self else { return }
-
-            // Check if device clock has today's date — simple string match
             let now = Int(Date().timeIntervalSince1970)
             var needsSync = true
             if let clockResponse = session.settings["clock"] {
-                DebugLogger.shared.log("CLOCK: device responded: '\(clockResponse)'", level: .info)
-                // Check if response contains today's date in d/M/yyyy format
                 let todayFmt = DateFormatter()
                 todayFmt.dateFormat = "d/M/yyyy"
                 todayFmt.timeZone = TimeZone(identifier: "UTC")
                 let todayStr = todayFmt.string(from: Date())
                 if clockResponse.contains(todayStr) {
                     needsSync = false
-                    DebugLogger.shared.log("CLOCK: device has today's date (\(todayStr)), skipping sync", level: .info)
-                } else {
-                    DebugLogger.shared.log("CLOCK: device date doesn't match today (\(todayStr)), will sync", level: .info)
+                    DebugLogger.shared.log("CLOCK: device has today's date, skipping sync", level: .info)
                 }
             }
-
             if needsSync {
                 let timeCmd = "time \(now)"
                 session.commandSent(timeCmd)
                 self.usbManager.sendCLI(timeCmd)
                 self.usbCLIOutput.append(USBTerminalLine(text: "> \(timeCmd)", isCommand: true))
                 DebugLogger.shared.log("CLOCK: auto-synced USB CLI device time to \(now)", level: .info)
-                try? await Task.sleep(nanoseconds: 300_000_000)
-            } else {
-                DebugLogger.shared.log("CLOCK: device already in sync, skipping", level: .info)
             }
-
-            self.fetchUSBDeviceSettings()
-        }
-    }
-
-    /// Auto-fetch all settings from a USB CLI device.
-    func fetchUSBSettings() { fetchUSBDeviceSettings() }
-    private func fetchUSBDeviceSettings() {
-        guard let session = usbDeviceSession else { return }
-        guard !session.isFetchingSettings else {
-            DebugLogger.shared.log("USB CLI: fetch already in progress, skipping duplicate", level: .warning)
-            return
-        }
-        session.isFetchingSettings = true
-        session.fetchReceivedCount = 0
-
-        let commands = [
-            "ver", "clock",
-            "get radio", "get tx", "get repeat",
-            "get af", "get rxdelay", "get txdelay", "get direct.txdelay",
-            "get flood.max", "get int.thresh", "get agc.reset.interval",
-            "get name", "get lat", "get lon", "get owner.info",
-            "get advert.interval", "get flood.advert.interval", "get multi.acks",
-            "get allow.read.only",
-            "get adc.multiplier",
-            "get loop.detect", "get path.hash.mode",
-            "get role", "get public.key", "get guest.password",
-            "powersaving", "gps", "gps advert",
-        ]
-
-        session.fetchTotalCount = commands.count
-        Self.logger.info("USB CLI: fetching \(commands.count) settings")
-
-        Task { [weak self] in
-            let batchSize = 3
-            for batchStart in stride(from: 0, to: commands.count, by: batchSize) {
-                guard let self else { return }
-                let batchEnd = min(batchStart + batchSize, commands.count)
-                for i in batchStart..<batchEnd {
-                    let cmd = commands[i]
-                    session.commandSent(cmd)
-                    self.usbManager.sendCLI(cmd)
-                    self.usbCLIOutput.append(USBTerminalLine(text: "> \(cmd)", isCommand: true))
-                }
-                session.fetchReceivedCount += (batchEnd - batchStart)
-                // Delay between batches — USB is faster than BLE but device still needs time
-                if batchEnd < commands.count {
-                    try? await Task.sleep(nanoseconds: 500_000_000)
-                }
-            }
-            // Wait for final responses to arrive
-            try? await Task.sleep(nanoseconds: 1_000_000_000)
-            session.isFetchingSettings = false
-            session.hasLoadedFullSettings = true
-
-            // Map CLI settings to deviceConfig on main actor to avoid view update warnings
-            await MainActor.run {
-                self?.mapUSBCLISettingsToDeviceConfig(session.settings)
-            }
-
-            Self.logger.info("USB CLI: settings fetch complete (\(session.settings.count) values)")
-            DebugLogger.shared.log("USB CLI: fetched \(session.settings.count) settings", level: .info)
-        }
-    }
-    /// Map USB CLI "get" responses to deviceConfig fields — single source of truth.
-    /// Cleans all CLI artifacts from values before writing.
-    private func mapUSBCLISettingsToDeviceConfig(_ rawSettings: [String: String]) {
-        let config = deviceConfig
-
-        // Clean all values of CLI artifacts (-> , > , whitespace)
-        var settings: [String: String] = [:]
-        for (key, value) in rawSettings {
-            settings[key] = RemoteDeviceSession.cleanCLIValue(value)
-        }
-
-        // Log raw → cleaned for debugging
-        for (key, value) in settings {
-            let raw = rawSettings[key] ?? ""
-            if raw != value {
-                DebugLogger.shared.log("CLI MAP: '\(key)' raw='\(raw)' → cleaned='\(value)'", level: .info)
+            // RemoteManagementView.task will trigger fetchRemoteSettings when it appears
+            self.connectionState = .ready
+            if let name = session.settings["name"], !name.isEmpty {
+                self.connectedDeviceName = "USB: \(name)"
             }
         }
-
-        // Device identity
-        if let name = settings["name"], !name.isEmpty {
-            config.deviceName = name
-            connectedDeviceName = "USB: \(name)"
-            DebugLogger.shared.log("CLI MAP: deviceName='\(name)'", level: .info)
-        }
-        if let lat = settings["lat"], let v = Double(lat) {
-            config.latitude = v
-            DebugLogger.shared.log("CLI MAP: latitude=\(v)", level: .info)
-        }
-        if let lon = settings["lon"], let v = Double(lon) {
-            config.longitude = v
-            DebugLogger.shared.log("CLI MAP: longitude=\(v)", level: .info)
-        }
-
-        // Radio params: "get radio" returns "freq_MHz,bw_kHz,sf,cr" as floats
-        // e.g. "910.5250244,62.5,7,5" → freq in MHz, bw in kHz, sf, cr
-        // deviceConfig stores: radioFrequency in kHz (freq*1000), radioBandwidth in Hz (bw*1000)
-        if let radio = settings["radio"] {
-            let cleaned = radio.replacingOccurrences(of: " ", with: "")
-            let parts = cleaned.split(separator: ",")
-            DebugLogger.shared.log("CLI MAP: radio raw='\(radio)' parts=\(parts)", level: .info)
-            if parts.count >= 4 {
-                if let freqMHz = Double(parts[0]) {
-                    config.radioFrequency = UInt32(freqMHz * 1000) // MHz → kHz
-                }
-                if let bwKHz = Double(parts[1]) {
-                    config.radioBandwidth = UInt32(bwKHz * 1000) // kHz → Hz
-                }
-                if let sf = UInt8(parts[2]) { config.radioSpreadingFactor = sf }
-                if let cr = UInt8(parts[3]) { config.radioCodingRate = cr }
-                DebugLogger.shared.log("CLI MAP: freq=\(config.radioFrequency)kHz bw=\(config.radioBandwidth)Hz sf=\(config.radioSpreadingFactor) cr=\(config.radioCodingRate)", level: .info)
-            } else {
-                DebugLogger.shared.log("CLI MAP: radio parse failed — expected 4 comma-separated values, got \(parts.count)", level: .warning)
-            }
-        }
-        if let tx = settings["tx"] {
-            // TX might be "22" or "22 dBm" — extract leading number
-            let numStr = tx.components(separatedBy: .whitespaces).first ?? tx
-            if let v = UInt8(numStr) {
-                config.radioTXPower = v
-                DebugLogger.shared.log("CLI MAP: txPower=\(v)", level: .info)
-            }
-        }
-        if let rep = settings["repeat"]?.lowercased() {
-            config.repeatMode = rep == "on" || rep == "1" || rep == "true"
-        }
-
-        // Tuning — values may be "1.5" or "1500" (ms). CLI returns seconds as float.
-        if let af = settings["af"], let v = Double(af) { config.airtimeFactor = UInt32(v * 1000) }
-        if let rx = settings["rxdelay"], let v = Double(rx) { config.rxDelayBase = UInt32(v * 1000) }
-        if let txd = settings["txdelay"], let v = Double(txd) { config.txDelay = UInt32(v * 1000) }
-        if let dtxd = settings["direct.txdelay"], let v = Double(dtxd) { config.directTxDelay = UInt32(v * 1000) }
-
-        // Device role → selfType
-        if let role = settings["role"]?.lowercased() {
-            if role.contains("repeater") { config.selfType = 2 }
-            else if role.contains("room") { config.selfType = 3 }
-            else if role.contains("sensor") { config.selfType = 4 }
-            else { config.selfType = 1 }
-            DebugLogger.shared.log("CLI MAP: role='\(settings["role"] ?? "")' → selfType=\(config.selfType)", level: .info)
-
-            // Update synthetic USB contact type to match
-            let detectedType: ContactType = {
-                switch config.selfType {
-                case 2: return .repeater
-                case 3: return .room
-                case 4: return .sensor
-                default: return .chat
-                }
-            }()
-            if usbDeviceContact?.type != detectedType {
-                usbDeviceContact = Contact(
-                    publicKey: usbDeviceContact?.publicKey ?? Data(repeating: 0xFE, count: 32),
-                    name: config.deviceName.isEmpty ? (usbDeviceContact?.name ?? "USB Device") : config.deviceName,
-                    type: detectedType
-                )
-            }
-        }
-
-        // Firmware version from "ver" response — reject if it looks like a clock/time value
-        if let ver = settings["ver"] {
-            let firstLine = ver.components(separatedBy: .newlines).first ?? ver
-            let trimmed = firstLine.trimmingCharacters(in: .whitespaces)
-            // Reject pure numeric (epoch timestamp) or "OK" responses that leaked from time command
-            if !trimmed.isEmpty && UInt64(trimmed) == nil && !trimmed.lowercased().hasPrefix("ok") {
-                config.semanticVersion = trimmed
-                DebugLogger.shared.log("CLI MAP: version='\(config.semanticVersion)'", level: .info)
-            } else {
-                DebugLogger.shared.log("CLI MAP: ver response rejected (looks like clock/OK): '\(trimmed)'", level: .warning)
-            }
-        }
-
-        // Clock
-        if let clock = settings["clock"] {
-            // Clock response might be "1234567890" or "Thu Mar 20 10:30:00 2026 (1234567890)"
-            // Try to extract epoch number
-            let nums = clock.components(separatedBy: CharacterSet.decimalDigits.inverted).filter { $0.count >= 10 }
-            if let epochStr = nums.first, let epoch = UInt32(epochStr) {
-                config.deviceTimeEpoch = epoch
-            } else if let epoch = UInt32(clock.trimmingCharacters(in: .whitespaces)) {
-                config.deviceTimeEpoch = epoch
-            }
-        }
-
-        // Multi-acks
-        if let ma = settings["multi.acks"], let v = UInt8(ma) { config.multiACK = v }
-
-        // Public key
-        if let pk = settings["public.key"], !pk.isEmpty {
-            config.publicKeyHex = pk.trimmingCharacters(in: .whitespaces)
-        }
-
-        // Max TX power — use same as current TX if not separately reported
-        if config.maxTXPower < config.radioTXPower {
-            config.maxTXPower = config.radioTXPower
-        }
-
-        config.loadedSections.insert("usbCLI")
-        connectionState = .ready
-
-        DebugLogger.shared.log("CLI MAP: completed — \(settings.count) settings mapped to deviceConfig", level: .info)
     }
     #endif
 
