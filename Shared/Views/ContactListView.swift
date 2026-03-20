@@ -146,9 +146,14 @@ struct ContactListView: View {
                 HStack(spacing: 12) {
                     Button {
                         viewModel.sendAdvertise(type: 1)
+                        showAdvertSent?.wrappedValue = true
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                            showAdvertSent?.wrappedValue = false
+                        }
                     } label: {
-                        Image(systemName: "antenna.radiowaves.left.and.right")
-                            .foregroundStyle(MeshTheme.accent)
+                        Image(systemName: showAdvertSent?.wrappedValue == true
+                              ? "checkmark.circle.fill" : "antenna.radiowaves.left.and.right")
+                            .foregroundStyle(showAdvertSent?.wrappedValue == true ? .green : MeshTheme.accent)
                     }
                     .disabled(viewModel.connectionState != .ready)
 
