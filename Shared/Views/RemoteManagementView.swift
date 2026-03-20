@@ -468,6 +468,9 @@ private extension RemoteManagementView {
         } header: {
             Text("Device Info")
                 .foregroundStyle(MeshTheme.textSecondary)
+        } footer: {
+            Text("Basic device information. Tap Refresh to re-read version and clock from the device.")
+                .font(.caption2)
         }
     }
 }
@@ -1046,6 +1049,9 @@ struct RemoteRoomSection: View {
         } header: {
             Text("Room Server")
                 .foregroundStyle(MeshTheme.textSecondary)
+        } footer: {
+            Text("Allow Read-Only lets guests read messages without a password. Disable to require authentication for all access.")
+                .font(.caption2)
         }
 
         if canEdit {
@@ -1295,6 +1301,9 @@ struct RemoteMaintenanceSection: View {
         } header: {
             Text("Maintenance")
                 .foregroundStyle(MeshTheme.textSecondary)
+        } footer: {
+            Text("Reboot restarts the device (~30 seconds). Clear Stats resets packet counters and airtime. Log dump requires USB serial connection.")
+                .font(.caption2)
         }
     }
 }
