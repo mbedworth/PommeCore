@@ -18,12 +18,12 @@ struct SettingsView: View {
     @State private var radioToMigrate: String?
     @State private var showMigrateSheet = false
     @State private var showConnectionHelp = false
-    @State private var showRadioEditor = false
-    @State private var showNameEditor = false
-    @State private var showTxPowerEditor = false
-    @State private var showGPSEditor = false
-    @State private var showBatteryEditor = false
-    @State private var showFirmwareDetail = false
+    @State private var activeSheet: DeviceSheet?
+
+    enum DeviceSheet: Identifiable {
+        case radio, txPower, name, gps, battery, firmware
+        var id: String { String(describing: self) }
+    }
     @State private var showPurgeOptions = false
 
     private var batteryChemistry: BatteryChemistry {
@@ -484,7 +484,7 @@ private extension SettingsView {
     var deviceInfoSection: some View {
         Section {
             // Name — tap opens editor
-            Button { showNameEditor = true } label: {
+            Button { activeSheet = .name } label: {
                 HStack {
                     Label("Name", systemImage: "textformat")
                         .foregroundStyle(MeshTheme.accent)
@@ -495,13 +495,10 @@ private extension SettingsView {
             }
             .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
-            .sheet(isPresented: $showNameEditor) {
-                NameEditorSheet(viewModel: viewModel)
-            }
 
             // Radio — tap opens radio editor in Advanced
             if config.radioFrequency > 0 {
-                Button { showRadioEditor = true } label: {
+                Button { activeSheet = .radio } label: {
                     let freqMHz = String(format: "%.3f", Double(config.radioFrequency) / 1000.0)
                     let bwKHz = String(format: "%.1f", Double(config.radioBandwidth) / 1000.0)
                     let presetName = detectRadioPreset(freqKHz: Double(config.radioFrequency), bw: Double(config.radioBandwidth) / 1000.0, sf: config.radioSpreadingFactor, cr: config.radioCodingRate)
@@ -523,7 +520,7 @@ private extension SettingsView {
                 .listRowBackground(MeshTheme.surface)
 
                 // TX Power — tap opens editor
-                Button { showTxPowerEditor = true } label: {
+                Button { activeSheet = .txPower } label: {
                     HStack {
                         Label("TX Power", systemImage: "bolt.fill")
                             .foregroundStyle(MeshTheme.accent)
@@ -537,7 +534,7 @@ private extension SettingsView {
             }
 
             // GPS — tap opens editor
-            Button { showGPSEditor = true } label: {
+            Button { activeSheet = .gps } label: {
                 HStack {
                     Label("GPS", systemImage: "location.fill")
                         .foregroundStyle(MeshTheme.accent)
@@ -557,7 +554,7 @@ private extension SettingsView {
             .listRowBackground(MeshTheme.surface)
 
             // Battery — tap opens editor
-            Button { showBatteryEditor = true } label: {
+            Button { activeSheet = .battery } label: {
                 HStack {
                     Label("Battery", systemImage: "battery.50percent")
                         .foregroundStyle(MeshTheme.accent)
@@ -572,7 +569,7 @@ private extension SettingsView {
             .listRowBackground(MeshTheme.surface)
 
             // Firmware — tap shows details
-            Button { showFirmwareDetail = true } label: {
+            Button { activeSheet = .firmware } label: {
                 HStack {
                     Label("Firmware", systemImage: "cpu")
                         .foregroundStyle(MeshTheme.accent)
@@ -586,32 +583,33 @@ private extension SettingsView {
             }
             .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
-            .sheet(isPresented: $showFirmwareDetail) {
-                FirmwareDetailSheet(viewModel: viewModel)
-            }
         } header: {
             sectionHeader("Device")
         }
-        .sheet(isPresented: $showRadioEditor) {
-            NavigationStack {
-                radioSection
-                    .navigationTitle("Radio Settings")
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button("Done") { showRadioEditor = false }
+        .sheet(item: $activeSheet) { sheet in
+            switch sheet {
+            case .name:
+                NameEditorSheet(viewModel: viewModel)
+            case .radio:
+                NavigationStack {
+                    radioSection
+                        .navigationTitle("Radio Settings")
+                        .toolbar {
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button("Done") { activeSheet = nil }
+                            }
                         }
-                    }
+                }
+                .meshTheme()
+            case .txPower:
+                TxPowerEditorSheet(viewModel: viewModel)
+            case .gps:
+                GPSEditorSheet(viewModel: viewModel)
+            case .battery:
+                BatteryEditorSheet(viewModel: viewModel, batteryChemistryRaw: $batteryChemistryRaw)
+            case .firmware:
+                FirmwareDetailSheet(viewModel: viewModel)
             }
-            .meshTheme()
-        }
-        .sheet(isPresented: $showTxPowerEditor) {
-            TxPowerEditorSheet(viewModel: viewModel)
-        }
-        .sheet(isPresented: $showGPSEditor) {
-            GPSEditorSheet(viewModel: viewModel)
-        }
-        .sheet(isPresented: $showBatteryEditor) {
-            BatteryEditorSheet(viewModel: viewModel, batteryChemistryRaw: $batteryChemistryRaw)
         }
     }
 
