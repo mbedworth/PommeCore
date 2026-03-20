@@ -2281,46 +2281,43 @@ final class MeshCoreViewModel: ObservableObject {
         }
     }
 
-    /// Send a single CLI command during settings fetch, poll for response, wait for it.
+    /// Send a single CLI command and wait for its response (response-driven, no fixed delays).
     private func fetchRemoteSetting(command: String, contact: Contact, session: RemoteDeviceSession) async {
+        let cmdIndex: Int
+
         #if os(macOS) || targetEnvironment(macCatalyst)
         // USB CLI: send plain text through serial, responses arrive via receivedLineSubject
         if let usbContact = usbDeviceContact, contact.publicKey == usbContact.publicKey {
-            session.commandSent(command)
+            cmdIndex = session.commandSent(command)
             usbManager.sendCLI(command)
             usbCLIOutput.append(USBTerminalLine(text: "> \(command)", isCommand: true))
-            // USB is fast — brief wait for response
+        } else {
+            cmdIndex = session.commandSent(command)
+            let frame = MeshCoreProtocol.buildSendCLICommand(
+                command: command,
+                recipientKeyHash: contact.publicKeyPrefix
+            )
+            sendCommand(frame, label: "CLI_FETCH")
+            // LoRa: poll for response after brief delay
             try? await Task.sleep(nanoseconds: 300_000_000)
-            return
+            syncNextMessage()
         }
-        #endif
-
-        let cmdIndex = session.commandSent(command)
-
+        #else
+        cmdIndex = session.commandSent(command)
         let frame = MeshCoreProtocol.buildSendCLICommand(
             command: command,
             recipientKeyHash: contact.publicKeyPrefix
         )
-        Self.logger.debug("REMOTE MGMT: Sending CLI: '\(command)' to \(contact.name)")
         sendCommand(frame, label: "CLI_FETCH")
-
-        // Wait for radio transmission, then poll
-        try? await Task.sleep(nanoseconds: 500_000_000) // 500ms
+        try? await Task.sleep(nanoseconds: 300_000_000)
         syncNextMessage()
+        #endif
 
-        // Wait up to 3 seconds for the response to arrive
-        for _ in 0..<6 {
-            try? await Task.sleep(nanoseconds: 500_000_000)
-            if cmdIndex < session.cliHistory.count && session.cliHistory[cmdIndex].isComplete {
-                let response = session.cliHistory[cmdIndex].response ?? "(empty)"
-                Self.logger.debug("REMOTE MGMT: Response for '\(command)': '\(response)'")
-                return
-            }
+        // Wait for this specific command's response (3s timeout)
+        let received = await session.waitForResponse(at: cmdIndex, timeout: 3.0)
+        if !received {
+            session.timeoutCommand(at: cmdIndex)
         }
-
-        // Timeout
-        Self.logger.warning("REMOTE MGMT: Timeout for '\(command)' on \(contact.name)")
-        session.timeoutCommand(at: cmdIndex)
     }
 
     // MARK: - Response Handling
