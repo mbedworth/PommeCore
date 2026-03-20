@@ -435,7 +435,15 @@ struct ContactListView: View {
         Section {
             Button {
                 if viewModel.connectionState == .ready || viewModel.connectionState == .connected {
+                    #if os(macOS) || targetEnvironment(macCatalyst)
+                    if viewModel.isUSBCLIConnected {
+                        viewModel.sidebarSelection = .usbDevice
+                    } else {
+                        showSettings?.wrappedValue = true
+                    }
+                    #else
                     showSettings?.wrappedValue = true
+                    #endif
                 } else {
                     showScanner = true
                 }
@@ -449,7 +457,14 @@ struct ContactListView: View {
                         .font(.subheadline)
                         .foregroundStyle(MeshTheme.textPrimary)
                     Spacer()
-                    if let rawName = !viewModel.deviceConfig.deviceName.isEmpty ? viewModel.deviceConfig.deviceName : viewModel.connectedDeviceName {
+                    if let rawName = {
+                        if !viewModel.deviceConfig.deviceName.isEmpty { return viewModel.deviceConfig.deviceName }
+                        if let name = viewModel.connectedDeviceName { return name }
+                        #if os(macOS) || targetEnvironment(macCatalyst)
+                        if let name = viewModel.usbDeviceContact?.name, viewModel.isUSBCLIConnected { return "USB: \(name)" }
+                        #endif
+                        return nil as String?
+                    }() {
                         let shortName = rawName
                             .replacingOccurrences(of: "MeshCore-", with: "")
                             .replacingOccurrences(of: "meshcore-", with: "")

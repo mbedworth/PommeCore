@@ -2115,6 +2115,13 @@ final class MeshCoreViewModel: ObservableObject {
     /// Changes to session @Published properties are forwarded to the ViewModel
     /// so the contact list re-renders (badges, lock icons, etc.).
     func remoteSession(for contact: Contact) -> RemoteDeviceSession {
+        #if os(macOS) || targetEnvironment(macCatalyst)
+        // USB CLI device uses its dedicated session, not the remote sessions dict
+        if let usbContact = usbDeviceContact, contact.publicKey == usbContact.publicKey,
+           let session = usbDeviceSession {
+            return session
+        }
+        #endif
         let key = contact.publicKeyPrefix
         if let existing = remoteSessions[key] {
             return existing
