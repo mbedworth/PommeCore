@@ -1384,6 +1384,9 @@ struct PrivacySection: View {
                         .tint(MeshTheme.accent)
                     Toggle("Sensors", isOn: autoAddBinding(bit: 0x08))
                         .tint(MeshTheme.accent)
+                    Text("Chat = people, Repeaters extend range, Room Servers host group chats, Sensors report data.")
+                        .font(.caption2)
+                        .foregroundStyle(MeshTheme.textSecondary)
                 }
                 .listRowBackground(MeshTheme.surface)
             }
@@ -1682,6 +1685,9 @@ struct CustomVarsSection: View {
         } header: {
             Text("Custom Variables")
                 .foregroundStyle(MeshTheme.textSecondary)
+        } footer: {
+            Text("Key-value pairs stored on the radio. Used for advanced configuration and firmware development.")
+                .font(.caption2)
         }
     }
 }
@@ -1734,6 +1740,9 @@ private extension SettingsView {
                     .foregroundStyle(MeshTheme.accent)
             }
             .listRowBackground(MeshTheme.surface)
+        } footer: {
+            Text("Live radio diagnostics. Noise Floor is background signal level (lower is better). RSSI is received signal strength. SNR is signal-to-noise ratio (higher is better).")
+                .font(.caption2)
         }
     }
 
@@ -2458,6 +2467,9 @@ struct FirmwareDetailSheet: View {
                 LabeledContent("Version", value: config.semanticVersion.isEmpty ? "v\(config.firmwareVersion)" : config.semanticVersion)
                 LabeledContent("Build Date", value: config.buildDate.isEmpty ? "\u{2014}" : config.buildDate)
                 LabeledContent("Model", value: config.manufacturer.isEmpty ? "\u{2014}" : config.manufacturer)
+            } footer: {
+                Text("Hardware and firmware details from your radio.")
+                    .font(.caption2)
             }
             Section {
                 LabeledContent("Max Contacts", value: "\(config.maxContacts)")
@@ -2467,6 +2479,9 @@ struct FirmwareDetailSheet: View {
                 Section {
                     LabeledContent("Public Key", value: String(config.publicKeyHex.prefix(16)) + "...")
                         .textSelection(.enabled)
+                } footer: {
+                    Text("Long-press to copy. Share this with others to let them add you as a contact.")
+                        .font(.caption2)
                 }
             }
             Section {
@@ -2478,6 +2493,9 @@ struct FirmwareDetailSheet: View {
                 LabeledContent("Clock Status", value: "Auto-synced on connect")
             } header: {
                 Text("Time")
+            } footer: {
+                Text("Device clock is automatically synced from your phone on every connection.")
+                    .font(.caption2)
             }
         }
         .meshListStyle()
@@ -2600,6 +2618,9 @@ struct GPSEditorSheet: View {
             Section {
                 LabeledContent("Latitude", value: latitude.isEmpty ? "\u{2014}" : latitude)
                 LabeledContent("Longitude", value: longitude.isEmpty ? "\u{2014}" : longitude)
+            } footer: {
+                Text("Your radio\u{2019}s stored coordinates. These are shared with other radios when advertising.")
+                    .font(.caption2)
             }
 
             #if !os(watchOS)
@@ -2639,6 +2660,9 @@ struct GPSEditorSheet: View {
                         if autoUpdateLocation { viewModel.startAutoLocationUpdates(interval: interval) }
                     }
                 }
+            } footer: {
+                Text("Set from Phone GPS copies your phone\u{2019}s coordinates to the radio. Auto-Update periodically refreshes while the app is open.")
+                    .font(.caption2)
             }
             #endif
 
@@ -2689,6 +2713,9 @@ struct BatteryEditorSheet: View {
                 let battPct = viewModel.deviceConfig.batteryPercent()
                 LabeledContent("Voltage", value: "\(battV)V")
                 LabeledContent("Percentage", value: battPct > 0 ? "\(battPct)%" : "\u{2014}")
+            } footer: {
+                Text("Live reading from the radio\u{2019}s battery sensor. Accuracy depends on correct chemistry selection below.")
+                    .font(.caption2)
             }
             Section {
                 Picker("Battery Type", selection: $batteryChemistryRaw) {
