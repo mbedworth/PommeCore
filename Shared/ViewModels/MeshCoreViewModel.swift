@@ -2770,7 +2770,7 @@ final class MeshCoreViewModel: ObservableObject {
         let message = messages[idx]
         let autoRetry = UserDefaults.standard.bool(forKey: "autoRetry")
         let autoResetPath = UserDefaults.standard.bool(forKey: "autoResetPath")
-        let maxDirectRetries: UInt8 = 3
+        let maxDirectRetries: UInt8 = 1  // Single direct attempt, then flood fallback (~30s)
         let maxFloodRetries: UInt8 = 2
 
         // Phase 1: Direct path retries (attempts 0-2 = 3 tries total)
