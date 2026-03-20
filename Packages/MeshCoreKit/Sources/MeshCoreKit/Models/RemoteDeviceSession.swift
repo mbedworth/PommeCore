@@ -114,14 +114,25 @@ public final class RemoteDeviceSession: ObservableObject {
         isWaitingForResponse = cliHistory.contains(where: { !$0.isComplete })
     }
 
+    /// Strip all known CLI prefixes from a response value.
+    public static func cleanCLIValue(_ text: String) -> String {
+        var s = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        // Strip "-> > ", "-> ", "> " prefixes (may be nested)
+        while s.hasPrefix("->") || s.hasPrefix("> ") || s.hasPrefix(">") {
+            if s.hasPrefix("->") {
+                s = String(s.dropFirst(2)).trimmingCharacters(in: .whitespaces)
+            } else if s.hasPrefix("> ") {
+                s = String(s.dropFirst(2)).trimmingCharacters(in: .whitespaces)
+            } else if s.hasPrefix(">") {
+                s = String(s.dropFirst(1)).trimmingCharacters(in: .whitespaces)
+            }
+        }
+        return s
+    }
+
     /// Record a CLI response received from the device.
     public func responseReceived(_ text: String) {
-        var trimmedResponse = text.trimmingCharacters(in: .whitespacesAndNewlines)
-
-        // Strip "-> " prefix from USB serial CLI responses
-        if trimmedResponse.hasPrefix("->") {
-            trimmedResponse = String(trimmedResponse.dropFirst(2)).trimmingCharacters(in: .whitespaces)
-        }
+        var trimmedResponse = Self.cleanCLIValue(text)
 
         // Skip empty lines
         guard !trimmedResponse.isEmpty else { return }
@@ -132,18 +143,23 @@ public final class RemoteDeviceSession: ObservableObject {
 
             // Skip echoed command lines (USB serial echoes "get name" before sending the value)
             if trimmedResponse.lowercased() == command.lowercased() { return }
-            // Skip "key = value" lines where key matches the command's "get X" pattern
-            // e.g. "get name" echoed as "name = MyDevice" — keep the value part
-            if command.lowercased().hasPrefix("get ") {
-                let settingKey = String(command.dropFirst(4)).trimmingCharacters(in: .whitespaces).lowercased()
-                if let eqRange = trimmedResponse.range(of: " = ") {
-                    let responseKey = String(trimmedResponse[trimmedResponse.startIndex..<eqRange.lowerBound])
-                        .trimmingCharacters(in: .whitespaces).lowercased()
+
+            // Handle "key = value" format — extract just the value
+            if let eqRange = trimmedResponse.range(of: " = ") {
+                let responseKey = String(trimmedResponse[trimmedResponse.startIndex..<eqRange.lowerBound])
+                    .trimmingCharacters(in: .whitespaces).lowercased()
+                // For "get X" commands, check if key matches
+                if command.lowercased().hasPrefix("get ") {
+                    let settingKey = String(command.dropFirst(4)).trimmingCharacters(in: .whitespaces).lowercased()
                     if responseKey == settingKey {
-                        // Extract just the value after " = "
                         trimmedResponse = String(trimmedResponse[eqRange.upperBound...])
                             .trimmingCharacters(in: .whitespaces)
                     }
+                }
+                // Also handle bare "key = value" where key matches the command itself
+                else if responseKey == command.lowercased() {
+                    trimmedResponse = String(trimmedResponse[eqRange.upperBound...])
+                        .trimmingCharacters(in: .whitespaces)
                 }
             }
 
