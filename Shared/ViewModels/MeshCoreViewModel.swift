@@ -1290,6 +1290,13 @@ final class MeshCoreViewModel: ObservableObject {
             .store(in: &cancellables)
 
         DebugLogger.shared.log("USB CLI: management session created with admin access", level: .info)
+
+        // Auto-sync device clock via CLI
+        let epoch = Int(Date().timeIntervalSince1970)
+        usbManager.sendCLI("time \(epoch)")
+        usbCLIOutput.append(USBTerminalLine(text: "> time \(epoch)", isCommand: true))
+        DebugLogger.shared.log("CLOCK: auto-synced USB CLI device time to \(epoch)", level: .info)
+
         fetchUSBDeviceSettings()
     }
 
