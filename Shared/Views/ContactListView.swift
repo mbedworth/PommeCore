@@ -176,6 +176,41 @@ struct ContactListView: View {
                 }
             }
         }
+        #elseif os(macOS) || targetEnvironment(macCatalyst)
+        .toolbar {
+            ToolbarItem(placement: .automatic) {
+                Menu {
+                    Button {
+                        viewModel.sendAdvertise(type: 1)
+                        showAdvertSent?.wrappedValue = true
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                            showAdvertSent?.wrappedValue = false
+                        }
+                    } label: {
+                        Label(showAdvertSent?.wrappedValue == true ? "Advert Sent!" : "Send Advert",
+                              systemImage: "antenna.radiowaves.left.and.right")
+                    }
+                    .disabled(viewModel.connectionState != .ready)
+
+                    Button {
+                        showDiscover?.wrappedValue = true
+                    } label: {
+                        Label("Discover Nodes", systemImage: "binoculars.fill")
+                    }
+                    .disabled(viewModel.connectionState != .ready)
+
+                    Button {
+                        viewModel.refreshAll()
+                    } label: {
+                        Label("Refresh", systemImage: "arrow.clockwise")
+                    }
+                    .disabled(viewModel.connectionState != .ready)
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                        .foregroundStyle(MeshTheme.accent)
+                }
+            }
+        }
         #else
         .toolbar {
             ToolbarItem(placement: .automatic) {
@@ -206,9 +241,9 @@ struct ContactListView: View {
                     } label: {
                         Image(systemName: "arrow.clockwise")
                             .foregroundStyle(MeshTheme.accent)
-                }
-                .accessibilityLabel("Refresh")
-                .disabled(viewModel.connectionState != .ready)
+                    }
+                    .accessibilityLabel("Refresh")
+                    .disabled(viewModel.connectionState != .ready)
                 }
             }
         }
