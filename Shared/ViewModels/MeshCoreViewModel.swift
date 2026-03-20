@@ -1317,29 +1317,21 @@ final class MeshCoreViewModel: ObservableObject {
             try? await Task.sleep(nanoseconds: 800_000_000)
             guard let self else { return }
 
-            // Parse device clock response: "HH:MM - DD/M/YYYY UTC" or epoch
+            // Check if device clock has today's date — simple string match
             let now = Int(Date().timeIntervalSince1970)
             var needsSync = true
             if let clockResponse = session.settings["clock"] {
                 DebugLogger.shared.log("CLOCK: device responded: '\(clockResponse)'", level: .info)
-                // Try parsing "HH:MM - DD/M/YYYY UTC" format
-                let fmt = DateFormatter()
-                fmt.dateFormat = "HH:mm - d/M/yyyy"
-                fmt.timeZone = TimeZone(identifier: "UTC")
-                let cleaned = clockResponse.replacingOccurrences(of: " UTC", with: "").trimmingCharacters(in: .whitespaces)
-                if let parsed = fmt.date(from: cleaned) {
-                    let drift = abs(Int(parsed.timeIntervalSince1970) - now)
-                    DebugLogger.shared.log("CLOCK: parsed device time, drift=\(drift)s", level: .info)
-                    if drift < 120 { needsSync = false }
-                }
-                // Fallback: try extracting a 10-digit epoch
-                if needsSync {
-                    let nums = clockResponse.components(separatedBy: CharacterSet.decimalDigits.inverted)
-                        .filter { $0.count >= 10 }
-                    if let epochStr = nums.first, let deviceEpoch = Int(epochStr) {
-                        let drift = abs(deviceEpoch - now)
-                        if drift < 120 { needsSync = false }
-                    }
+                // Check if response contains today's date in d/M/yyyy format
+                let todayFmt = DateFormatter()
+                todayFmt.dateFormat = "d/M/yyyy"
+                todayFmt.timeZone = TimeZone(identifier: "UTC")
+                let todayStr = todayFmt.string(from: Date())
+                if clockResponse.contains(todayStr) {
+                    needsSync = false
+                    DebugLogger.shared.log("CLOCK: device has today's date (\(todayStr)), skipping sync", level: .info)
+                } else {
+                    DebugLogger.shared.log("CLOCK: device date doesn't match today (\(todayStr)), will sync", level: .info)
                 }
             }
 
