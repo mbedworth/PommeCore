@@ -2434,8 +2434,8 @@ struct FirmwareDetailSheet: View {
 
 struct TxPowerEditorSheet: View {
     @ObservedObject var viewModel: MeshCoreViewModel
-    @Environment(\.dismiss) private var dismiss
     @State private var txPower: Double = 22
+    @State private var saved = false
 
     var body: some View {
         Form {
@@ -2447,23 +2447,24 @@ struct TxPowerEditorSheet: View {
                 }
                 Slider(value: $txPower, in: 1...Double(max(viewModel.deviceConfig.maxTXPower, 2)), step: 1)
                     .tint(MeshTheme.accent)
+                    .onChange(of: txPower) { newValue in
+                        viewModel.setRadioTXPower(UInt8(newValue))
+                        saved = true
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { saved = false }
+                    }
             } footer: {
-                Text("Higher power = more range but more battery drain. Max \(viewModel.deviceConfig.maxTXPower) dBm for this device.")
-                    .font(.caption2)
+                if saved {
+                    Text("Saved")
+                        .foregroundStyle(MeshTheme.connected)
+                } else {
+                    Text("Higher power = more range but more battery drain. Max \(viewModel.deviceConfig.maxTXPower) dBm for this device.")
+                }
             }
         }
         .navigationTitle("TX Power")
         #if !os(macOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
-        .toolbar {
-            ToolbarItem(placement: .confirmationAction) {
-                Button("Apply") {
-                    viewModel.setRadioTXPower(UInt8(txPower))
-                    dismiss()
-                }
-            }
-        }
         .onAppear { txPower = Double(viewModel.deviceConfig.radioTXPower) }
     }
 }
