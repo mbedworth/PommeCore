@@ -899,7 +899,7 @@ struct RadioPreset: Identifiable {
 }
 
 /// Reusable radio preset picker section. Calls `onApply` with the selected preset.
-/// Auto-detects current preset from device config on appear.
+/// Auto-detects current preset from device config via inline computation.
 struct RadioPresetPicker: View {
     let onApply: (RadioPreset) -> Void
     var currentFreqKHz: Double = 0
@@ -908,9 +908,34 @@ struct RadioPresetPicker: View {
     var currentCR: UInt8 = 0
     @State private var selectedPresetIndex: Int = -1
     @State private var presetToConfirm: RadioPreset?
+    @State private var hasAutoDetected = false
+
+    /// Computed: find matching preset index from current radio params.
+    private var detectedPresetIndex: Int {
+        guard currentFreqKHz > 0 else { return -1 }
+        for (index, p) in radioPresets.enumerated() {
+            if abs(p.frequencyKHz - currentFreqKHz) < 2.0 &&
+               abs(p.bandwidth - currentBW) < 0.5 &&
+               p.spreadingFactor == currentSF &&
+               p.codingRate == currentCR {
+                return index
+            }
+        }
+        return -1
+    }
 
     var body: some View {
-        let _ = DebugLogger.shared.log("PICKER BODY: freqKHz=\(currentFreqKHz) bw=\(currentBW) sf=\(currentSF) cr=\(currentCR) selected=\(selectedPresetIndex)", level: .info)
+        // Auto-detect preset on every render when values are available and user hasn't manually changed
+        let detected = detectedPresetIndex
+        let _ = {
+            if detected != selectedPresetIndex && !hasAutoDetected && detected >= 0 {
+                DispatchQueue.main.async {
+                    selectedPresetIndex = detected
+                    hasAutoDetected = true
+                    DebugLogger.shared.log("PRESET AUTO: matched '\(radioPresets[detected].name)' from freq=\(currentFreqKHz) bw=\(currentBW) sf=\(currentSF) cr=\(currentCR)", level: .info)
+                }
+            }
+        }()
         Section {
             HStack {
                 Image(systemName: "globe")
@@ -926,8 +951,6 @@ struct RadioPresetPicker: View {
                 .tint(MeshTheme.accent)
             }
             .listRowBackground(MeshTheme.surface)
-            .onAppear { detectCurrentPreset() }
-            .onChange(of: currentFreqKHz) { _ in detectCurrentPreset() }
 
             if selectedPresetIndex >= 0, selectedPresetIndex < radioPresets.count {
                 let preset = radioPresets[selectedPresetIndex]
@@ -983,26 +1006,6 @@ struct RadioPresetPicker: View {
         }
     }
 
-    private func detectCurrentPreset() {
-        guard currentFreqKHz > 0 else { return }
-        DebugLogger.shared.log("DETECT START: input freqKHz=\(currentFreqKHz) bw=\(currentBW) sf=\(currentSF) cr=\(currentCR)", level: .info)
-        for (index, p) in radioPresets.enumerated() {
-            let freqDiff = abs(p.frequencyKHz - currentFreqKHz)
-            let bwDiff = abs(p.bandwidth - currentBW)
-            let sfMatch = p.spreadingFactor == currentSF
-            let crMatch = p.codingRate == currentCR
-            if freqDiff < 100 { // Only log presets that are remotely close in frequency
-                DebugLogger.shared.log("COMPARE[\(index)]: '\(p.name)' presetFreq=\(p.frequencyKHz) freqDiff=\(freqDiff) presetBW=\(p.bandwidth) bwDiff=\(bwDiff) presetSF=\(p.spreadingFactor) sfMatch=\(sfMatch) presetCR=\(p.codingRate) crMatch=\(crMatch)", level: .info)
-            }
-            if freqDiff < 2.0 && bwDiff < 0.5 && sfMatch && crMatch {
-                selectedPresetIndex = index
-                DebugLogger.shared.log("MATCHED: '\(p.name)' at index \(index)", level: .info)
-                return
-            }
-        }
-        selectedPresetIndex = -1
-        DebugLogger.shared.log("DETECT: no match found among \(radioPresets.count) presets", level: .warning)
-    }
 }
 
 let radioPresets: [RadioPreset] = [
