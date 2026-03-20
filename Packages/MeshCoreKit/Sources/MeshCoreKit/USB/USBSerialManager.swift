@@ -141,14 +141,15 @@ public final class USBSerialManager: ObservableObject {
         DebugLogger.shared.log("USB: sent \\r\\n to flush device input buffer", level: .tx)
 
         // Synchronous read loop on background thread — replaces DispatchSourceRead
-        // which was not firing for USB CDC devices
+        // which was not firing for USB CDC devices.
+        // Use fd (local, set synchronously) not isConnected (@Published, set async on main).
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self else { return }
             var buffer = [UInt8](repeating: 0, count: 1024)
             DebugLogger.shared.log("USB: sync read loop started on fd=\(fd)", level: .info)
 
-            while self.isConnected && self.fileDescriptor >= 0 {
-                let bytesRead = read(self.fileDescriptor, &buffer, 1024)
+            while self.fileDescriptor >= 0 {
+                let bytesRead = read(fd, &buffer, 1024)
                 if bytesRead > 0 {
                     let data = Data(buffer[0..<bytesRead])
                     let hex = data.prefix(40).map { String(format: "%02X", $0) }.joined(separator: " ")
@@ -161,7 +162,6 @@ public final class USBSerialManager: ObservableObject {
                     DebugLogger.shared.log("USB: read error \(errno): \(String(cString: strerror(errno)))", level: .error)
                     break
                 }
-                usleep(10000) // 10ms between reads
             }
 
             DebugLogger.shared.log("USB: read loop ended", level: .info)
@@ -216,6 +216,9 @@ public final class USBSerialManager: ObservableObject {
     public func disconnect() {
         guard isConnected || fileDescriptor >= 0 else { return }
 
+        let stack = Thread.callStackSymbols.prefix(6).joined(separator: "\n")
+        DebugLogger.shared.log("USB: disconnect called from:\n\(stack)", level: .warning)
+
         if fileDescriptor >= 0 {
             close(fileDescriptor)
             fileDescriptor = -1
@@ -226,6 +229,7 @@ public final class USBSerialManager: ObservableObject {
             self.connectedPort = nil
             self.detectedMode = .unknown
             Self.logger.info("Disconnected")
+            DebugLogger.shared.log("USB: disconnected — state cleared", level: .info)
         }
     }
 
