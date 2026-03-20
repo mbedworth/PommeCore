@@ -557,32 +557,6 @@ struct ContactListView: View {
                 )
                 #endif
             }
-            #if !os(watchOS)
-            Menu {
-                Button { showChannelSheet = true } label: {
-                    Label("Create Private Channel", systemImage: "lock.fill")
-                }
-                Button { showChannelSheet = true } label: {
-                    Label("Join Hashtag Channel", systemImage: "number")
-                }
-                Button { showChannelSheet = true } label: {
-                    Label("Join Private Channel", systemImage: "key.fill")
-                }
-                Button { showImportSheet = true } label: {
-                    Label("Paste Channel Link", systemImage: "doc.on.clipboard")
-                }
-            } label: {
-                HStack {
-                    Image(systemName: "plus.circle.fill")
-                        .foregroundStyle(MeshTheme.accent)
-                    Text("Add Channel")
-                        .foregroundStyle(MeshTheme.accent)
-                    Spacer()
-                }
-                .contentShape(Rectangle())
-            }
-            .listRowBackground(MeshTheme.surface)
-            #endif
         } header: {
             HStack {
                 Text("Channels")
@@ -591,6 +565,26 @@ struct ContactListView: View {
                     ProgressView()
                         .controlSize(.mini)
                 }
+                Spacer()
+                #if !os(watchOS)
+                Menu {
+                    Button { showChannelSheet = true } label: {
+                        Label("Create Private Channel", systemImage: "lock.fill")
+                    }
+                    Button { showChannelSheet = true } label: {
+                        Label("Join Hashtag Channel", systemImage: "number")
+                    }
+                    Button { showChannelSheet = true } label: {
+                        Label("Join Private Channel", systemImage: "key.fill")
+                    }
+                    Button { showImportSheet = true } label: {
+                        Label("Paste Channel Link", systemImage: "doc.on.clipboard")
+                    }
+                } label: {
+                    Image(systemName: "plus")
+                        .foregroundStyle(MeshTheme.accent)
+                }
+                #endif
             }
         }
     }
