@@ -665,7 +665,9 @@ final class MeshCoreViewModel: ObservableObject {
         deviceConfig.objectWillChange
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
-                self?.objectWillChange.send()
+                DispatchQueue.main.async {
+                    self?.objectWillChange.send()
+                }
             }
             .store(in: &cancellables)
     }
@@ -1291,11 +1293,14 @@ final class MeshCoreViewModel: ObservableObject {
         let session = RemoteDeviceSession(contact: contact)
         session.loginState = .loggedIn(permission: .admin) // USB = physical access = full trust
         usbDeviceSession = session
-        // Forward session changes to ViewModel
+        // Forward session changes to ViewModel — defer to next run loop
+        // to avoid "Publishing changes from within view updates" warnings
         session.objectWillChange
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
-                self?.objectWillChange.send()
+                DispatchQueue.main.async {
+                    self?.objectWillChange.send()
+                }
             }
             .store(in: &cancellables)
 
@@ -2429,7 +2434,9 @@ final class MeshCoreViewModel: ObservableObject {
         sessionCancellables[key] = session.objectWillChange
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
-                self?.objectWillChange.send()
+                DispatchQueue.main.async {
+                    self?.objectWillChange.send()
+                }
             }
         return session
     }
