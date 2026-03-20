@@ -1355,33 +1355,67 @@ final class MeshCoreViewModel: ObservableObject {
         }
     }
     /// Map USB CLI "get" responses to deviceConfig fields — single source of truth.
-    private func mapUSBCLISettingsToDeviceConfig(_ settings: [String: String]) {
+    /// Cleans all CLI artifacts from values before writing.
+    private func mapUSBCLISettingsToDeviceConfig(_ rawSettings: [String: String]) {
         let config = deviceConfig
+
+        // Clean all values of CLI artifacts (-> , > , whitespace)
+        var settings: [String: String] = [:]
+        for (key, value) in rawSettings {
+            settings[key] = RemoteDeviceSession.cleanCLIValue(value)
+        }
+
+        // Log raw → cleaned for debugging
+        for (key, value) in settings {
+            let raw = rawSettings[key] ?? ""
+            if raw != value {
+                DebugLogger.shared.log("CLI MAP: '\(key)' raw='\(raw)' → cleaned='\(value)'", level: .info)
+            }
+        }
 
         // Device identity
         if let name = settings["name"], !name.isEmpty {
             config.deviceName = name
             connectedDeviceName = "USB: \(name)"
+            DebugLogger.shared.log("CLI MAP: deviceName='\(name)'", level: .info)
         }
-        if let lat = settings["lat"], let v = Double(lat) { config.latitude = v }
-        if let lon = settings["lon"], let v = Double(lon) { config.longitude = v }
+        if let lat = settings["lat"], let v = Double(lat) {
+            config.latitude = v
+            DebugLogger.shared.log("CLI MAP: latitude=\(v)", level: .info)
+        }
+        if let lon = settings["lon"], let v = Double(lon) {
+            config.longitude = v
+            DebugLogger.shared.log("CLI MAP: longitude=\(v)", level: .info)
+        }
 
-        // Radio params: "get radio" returns "freq_kHz,bw_kHz,sf,cr" or similar
+        // Radio params: "get radio" returns "freq_kHz,bw_kHz,sf,cr"
         if let radio = settings["radio"] {
-            let parts = radio.replacingOccurrences(of: " ", with: "").split(separator: ",")
+            let cleaned = radio.replacingOccurrences(of: " ", with: "")
+            let parts = cleaned.split(separator: ",")
+            DebugLogger.shared.log("CLI MAP: radio raw='\(radio)' parts=\(parts)", level: .info)
             if parts.count >= 4 {
                 if let freq = UInt32(parts[0]) { config.radioFrequency = freq }
                 if let bw = UInt32(parts[1]) { config.radioBandwidth = bw }
                 if let sf = UInt8(parts[2]) { config.radioSpreadingFactor = sf }
                 if let cr = UInt8(parts[3]) { config.radioCodingRate = cr }
+                DebugLogger.shared.log("CLI MAP: freq=\(config.radioFrequency) bw=\(config.radioBandwidth) sf=\(config.radioSpreadingFactor) cr=\(config.radioCodingRate)", level: .info)
+            } else {
+                DebugLogger.shared.log("CLI MAP: radio parse failed — expected 4 comma-separated values, got \(parts.count)", level: .warning)
             }
         }
-        if let tx = settings["tx"], let v = UInt8(tx) { config.radioTXPower = v }
+        if let tx = settings["tx"] {
+            // TX might be "22" or "22 dBm" — extract leading number
+            let numStr = tx.components(separatedBy: .whitespaces).first ?? tx
+            if let v = UInt8(numStr) {
+                config.radioTXPower = v
+                DebugLogger.shared.log("CLI MAP: txPower=\(v)", level: .info)
+            }
+        }
         if let rep = settings["repeat"]?.lowercased() {
             config.repeatMode = rep == "on" || rep == "1" || rep == "true"
         }
 
-        // Tuning
+        // Tuning — values may be "1.5" or "1500" (ms). CLI returns seconds as float.
         if let af = settings["af"], let v = Double(af) { config.airtimeFactor = UInt32(v * 1000) }
         if let rx = settings["rxdelay"], let v = Double(rx) { config.rxDelayBase = UInt32(v * 1000) }
         if let txd = settings["txdelay"], let v = Double(txd) { config.txDelay = UInt32(v * 1000) }
@@ -1393,6 +1427,7 @@ final class MeshCoreViewModel: ObservableObject {
             else if role.contains("room") { config.selfType = 3 }
             else if role.contains("sensor") { config.selfType = 4 }
             else { config.selfType = 1 }
+            DebugLogger.shared.log("CLI MAP: role='\(settings["role"] ?? "")' → selfType=\(config.selfType)", level: .info)
 
             // Update synthetic USB contact type to match
             let detectedType: ContactType = {
@@ -1414,14 +1449,21 @@ final class MeshCoreViewModel: ObservableObject {
 
         // Firmware version from "ver" response
         if let ver = settings["ver"] {
-            // "ver" typically returns multi-line: first line has version info
             let firstLine = ver.components(separatedBy: .newlines).first ?? ver
             config.semanticVersion = firstLine.trimmingCharacters(in: .whitespaces)
+            DebugLogger.shared.log("CLI MAP: version='\(config.semanticVersion)'", level: .info)
         }
 
         // Clock
-        if let clock = settings["clock"], let epoch = UInt32(clock.trimmingCharacters(in: .whitespaces)) {
-            config.deviceTimeEpoch = epoch
+        if let clock = settings["clock"] {
+            // Clock response might be "1234567890" or "Thu Mar 20 10:30:00 2026 (1234567890)"
+            // Try to extract epoch number
+            let nums = clock.components(separatedBy: CharacterSet.decimalDigits.inverted).filter { $0.count >= 10 }
+            if let epochStr = nums.first, let epoch = UInt32(epochStr) {
+                config.deviceTimeEpoch = epoch
+            } else if let epoch = UInt32(clock.trimmingCharacters(in: .whitespaces)) {
+                config.deviceTimeEpoch = epoch
+            }
         }
 
         // Multi-acks
@@ -1432,10 +1474,15 @@ final class MeshCoreViewModel: ObservableObject {
             config.publicKeyHex = pk.trimmingCharacters(in: .whitespaces)
         }
 
+        // Max TX power — use same as current TX if not separately reported
+        if config.maxTXPower < config.radioTXPower {
+            config.maxTXPower = config.radioTXPower
+        }
+
         config.loadedSections.insert("usbCLI")
         connectionState = .ready
 
-        DebugLogger.shared.log("USB CLI: mapped \(settings.count) settings to deviceConfig", level: .info)
+        DebugLogger.shared.log("CLI MAP: completed — \(settings.count) settings mapped to deviceConfig", level: .info)
     }
     #endif
 
