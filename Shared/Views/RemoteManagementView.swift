@@ -87,12 +87,6 @@ struct RemoteManagementView: View {
         .task {
             // Backup trigger: fetch settings if login auto-fetch hasn't started yet
             guard isLoggedIn, !session.hasLoadedFullSettings, !session.isFetchingSettings else { return }
-            #if os(macOS) || targetEnvironment(macCatalyst)
-            if contact.publicKey == viewModel.usbDeviceContact?.publicKey {
-                viewModel.fetchUSBSettings()
-                return
-            }
-            #endif
             viewModel.fetchRemoteSettings(for: contact)
         }
         .onDisappear {
@@ -112,15 +106,7 @@ struct RemoteManagementView: View {
             if isLoggedIn {
                 ToolbarItem(placement: .automatic) {
                     Button {
-                        #if os(macOS) || targetEnvironment(macCatalyst)
-                        if contact.publicKey == viewModel.usbDeviceContact?.publicKey {
-                            viewModel.fetchUSBSettings()
-                        } else {
-                            viewModel.fetchRemoteSettings(for: contact)
-                        }
-                        #else
                         viewModel.fetchRemoteSettings(for: contact)
-                        #endif
                     } label: {
                         Image(systemName: "arrow.clockwise")
                             .foregroundStyle(remoteAccent)
