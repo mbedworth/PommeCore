@@ -44,7 +44,6 @@ public final class USBSerialManager: ObservableObject {
     // MARK: - Private
 
     private var fileDescriptor: Int32 = -1
-    private var readSource: DispatchSourceRead?
     private var readBuffer = Data()
     private let serialQueue = DispatchQueue(label: "com.meshcore.serial", qos: .userInitiated)
 
@@ -126,44 +125,49 @@ public final class USBSerialManager: ObservableObject {
         fileDescriptor = fd
         readBuffer = Data()
 
-        // Check for any data the device sent on port open (before read source)
-        serialQueue.async { [weak self] in
-            guard let self else { return }
-            var initBuf = [UInt8](repeating: 0, count: 256)
-            // Brief non-blocking check for initial data
-            var fl = fcntl(fd, F_GETFL)
-            _ = fcntl(fd, F_SETFL, fl | O_NONBLOCK)
-            let initRead = read(fd, &initBuf, 256)
-            _ = fcntl(fd, F_SETFL, fl) // restore blocking
-            if initRead > 0 {
-                let hex = initBuf[0..<initRead].map { String(format: "%02X", $0) }.joined(separator: " ")
-                DebugLogger.shared.log("USB INITIAL RX: \(initRead) bytes: \(hex)", level: .rx)
-                self.readBuffer.append(contentsOf: initBuf[0..<initRead])
-                self.detectMode()
-            } else {
-                DebugLogger.shared.log("USB: no initial data from device", level: .info)
-            }
-        }
-
-        // Set up async read
-        let source = DispatchSource.makeReadSource(fileDescriptor: fd, queue: serialQueue)
-        source.setEventHandler { [weak self] in
-            self?.readAvailableData()
-        }
-        source.setCancelHandler { [weak self] in
-            guard let self, self.fileDescriptor >= 0 else { return }
-            close(self.fileDescriptor)
-            self.fileDescriptor = -1
-        }
-        source.resume()
-        readSource = source
-        DebugLogger.shared.log("USB: read source installed and resumed", level: .info)
-
         DispatchQueue.main.async {
             self.isConnected = true
             self.connectedPort = port
             self.detectedMode = .unknown
             DebugLogger.shared.log("USB: connected to \(port)", level: .info)
+        }
+
+        // Send a bare newline to flush any pending input buffer on the device
+        "\r\n".data(using: .utf8)!.withUnsafeBytes { ptr in
+            if let base = ptr.baseAddress {
+                _ = write(fd, base, 2)
+            }
+        }
+        DebugLogger.shared.log("USB: sent \\r\\n to flush device input buffer", level: .tx)
+
+        // Synchronous read loop on background thread — replaces DispatchSourceRead
+        // which was not firing for USB CDC devices
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self else { return }
+            var buffer = [UInt8](repeating: 0, count: 1024)
+            DebugLogger.shared.log("USB: sync read loop started on fd=\(fd)", level: .info)
+
+            while self.isConnected && self.fileDescriptor >= 0 {
+                let bytesRead = read(self.fileDescriptor, &buffer, 1024)
+                if bytesRead > 0 {
+                    let data = Data(buffer[0..<bytesRead])
+                    let hex = data.prefix(40).map { String(format: "%02X", $0) }.joined(separator: " ")
+                    DebugLogger.shared.log("USB RX: \(bytesRead) bytes: \(hex)\(bytesRead > 40 ? "..." : "")", level: .rx)
+                    self.handleReceivedData(data)
+                } else if bytesRead == 0 {
+                    DebugLogger.shared.log("USB: EOF — device disconnected", level: .warning)
+                    break
+                } else if errno != EAGAIN && errno != EWOULDBLOCK {
+                    DebugLogger.shared.log("USB: read error \(errno): \(String(cString: strerror(errno)))", level: .error)
+                    break
+                }
+                usleep(10000) // 10ms between reads
+            }
+
+            DebugLogger.shared.log("USB: read loop ended", level: .info)
+            DispatchQueue.main.async { [weak self] in
+                self?.disconnect()
+            }
         }
 
         // Probe sequence with escalating approaches:
@@ -210,8 +214,7 @@ public final class USBSerialManager: ObservableObject {
 
     /// Disconnect from the current serial port.
     public func disconnect() {
-        readSource?.cancel()
-        readSource = nil
+        guard isConnected || fileDescriptor >= 0 else { return }
 
         if fileDescriptor >= 0 {
             close(fileDescriptor)
@@ -266,25 +269,9 @@ public final class USBSerialManager: ObservableObject {
 
     // MARK: - Read
 
-    private func readAvailableData() {
-        var buffer = [UInt8](repeating: 0, count: 4096)
-        let bytesRead = read(fileDescriptor, &buffer, buffer.count)
-        guard bytesRead > 0 else {
-            if bytesRead == 0 {
-                DebugLogger.shared.log("USB RAW: EOF — port closed", level: .warning)
-                DispatchQueue.main.async { [weak self] in
-                    self?.disconnect()
-                }
-            } else {
-                DebugLogger.shared.log("USB RAW: read error \(errno): \(String(cString: strerror(errno)))", level: .error)
-            }
-            return
-        }
-
-        let rxHex = buffer[0..<min(bytesRead, 20)].map { String(format: "%02X", $0) }.joined(separator: " ")
-        DebugLogger.shared.log("USB RAW RX: \(bytesRead) bytes: \(rxHex)\(bytesRead > 20 ? "..." : "")", level: .rx)
-
-        readBuffer.append(contentsOf: buffer[0..<bytesRead])
+    /// Called from the synchronous read loop with received data.
+    private func handleReceivedData(_ data: Data) {
+        readBuffer.append(data)
 
         switch detectedMode {
         case .unknown:
