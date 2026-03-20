@@ -807,40 +807,7 @@ struct ContactListView: View {
                 }
             }
 
-            #if !os(watchOS)
-            Button {
-                importURLText = ""
-                showImportSheet = true
-            } label: {
-                HStack {
-                    Image(systemName: "link")
-                        .foregroundStyle(MeshTheme.accent)
-                    Text("Paste Link")
-                        .foregroundStyle(MeshTheme.accent)
-                    Spacer()
-                }
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .listRowBackground(MeshTheme.surface)
-
-            #if os(iOS)
-            Button {
-                showQRScanner = true
-            } label: {
-                HStack {
-                    Image(systemName: "qrcode.viewfinder")
-                        .foregroundStyle(MeshTheme.accent)
-                    Text("Scan QR Code")
-                        .foregroundStyle(MeshTheme.accent)
-                    Spacer()
-                }
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .listRowBackground(MeshTheme.surface)
-            #endif
-            #endif
+            // Paste Link and Scan QR are in the contacts "+" header menu
             if isSelecting {
                 HStack {
                     Button(selectedContacts.count == viewModel.sortedContacts.count ? "Deselect All" : "Select All") {
