@@ -476,23 +476,20 @@ private extension SettingsView {
 
 }
 
-/// Device Info section extracted into its own struct so @State activeSheet
-/// is isolated from parent SettingsView re-renders (prevents sheet auto-dismiss).
+/// Device Info section using NavigationLink pushes instead of .sheet presentation.
+/// Sheets were being dismissed by parent re-renders resetting @State.
+/// NavigationLink destinations survive parent re-renders.
 struct DeviceInfoSection: View {
     @EnvironmentObject var viewModel: MeshCoreViewModel
     @Binding var batteryChemistryRaw: String
-    @State private var activeSheet: ActiveSheet?
 
     private var config: DeviceConfig { viewModel.deviceConfig }
 
-    enum ActiveSheet: Identifiable {
-        case radio, txPower, tuning, name, gps, battery, firmware
-        var id: String { String(describing: self) }
-    }
-
     var body: some View {
         Section {
-            Button { activeSheet = .name } label: {
+            NavigationLink {
+                NameEditorSheet(viewModel: viewModel)
+            } label: {
                 HStack {
                     Label("Name", systemImage: "textformat")
                         .foregroundStyle(MeshTheme.accent)
@@ -501,11 +498,13 @@ struct DeviceInfoSection: View {
                         .foregroundStyle(MeshTheme.textSecondary)
                 }
             }
-            .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
 
             if config.radioFrequency > 0 {
-                Button { activeSheet = .radio } label: {
+                NavigationLink {
+                    RadioSection(viewModel: viewModel)
+                        .navigationTitle("Radio Settings")
+                } label: {
                     let freqMHz = String(format: "%.3f", Double(config.radioFrequency) / 1000.0)
                     let bwKHz = String(format: "%.1f", Double(config.radioBandwidth) / 1000.0)
                     let presetName = detectPreset()
@@ -523,10 +522,11 @@ struct DeviceInfoSection: View {
                         }
                     }
                 }
-                .buttonStyle(.plain)
                 .listRowBackground(MeshTheme.surface)
 
-                Button { activeSheet = .txPower } label: {
+                NavigationLink {
+                    TxPowerEditorSheet(viewModel: viewModel)
+                } label: {
                     HStack {
                         Label("TX Power", systemImage: "bolt.fill")
                             .foregroundStyle(MeshTheme.accent)
@@ -535,10 +535,11 @@ struct DeviceInfoSection: View {
                             .foregroundStyle(MeshTheme.textSecondary)
                     }
                 }
-                .buttonStyle(.plain)
                 .listRowBackground(MeshTheme.surface)
 
-                Button { activeSheet = .tuning } label: {
+                NavigationLink {
+                    TuningEditorSheet(viewModel: viewModel)
+                } label: {
                     HStack {
                         Label("Tuning", systemImage: "tuningfork")
                             .foregroundStyle(MeshTheme.accent)
@@ -548,11 +549,12 @@ struct DeviceInfoSection: View {
                             .foregroundStyle(MeshTheme.textSecondary)
                     }
                 }
-                .buttonStyle(.plain)
                 .listRowBackground(MeshTheme.surface)
             }
 
-            Button { activeSheet = .gps } label: {
+            NavigationLink {
+                GPSEditorSheet(viewModel: viewModel)
+            } label: {
                 HStack {
                     Label("GPS", systemImage: "location.fill")
                         .foregroundStyle(MeshTheme.accent)
@@ -568,10 +570,11 @@ struct DeviceInfoSection: View {
                     }
                 }
             }
-            .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
 
-            Button { activeSheet = .battery } label: {
+            NavigationLink {
+                BatteryEditorSheet(viewModel: viewModel, batteryChemistryRaw: $batteryChemistryRaw)
+            } label: {
                 HStack {
                     Label("Battery", systemImage: "battery.50percent")
                         .foregroundStyle(MeshTheme.accent)
@@ -582,53 +585,23 @@ struct DeviceInfoSection: View {
                         .foregroundStyle(MeshTheme.textSecondary)
                 }
             }
-            .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
 
-            Button { activeSheet = .firmware } label: {
+            NavigationLink {
+                FirmwareDetailSheet(viewModel: viewModel)
+            } label: {
                 HStack {
                     Label("Firmware", systemImage: "cpu")
                         .foregroundStyle(MeshTheme.accent)
                     Spacer()
                     Text(config.semanticVersion.isEmpty ? "v\(config.firmwareVersion)" : config.semanticVersion)
                         .foregroundStyle(MeshTheme.textSecondary)
-                    Image(systemName: "chevron.right")
-                        .font(.caption2)
-                        .foregroundStyle(MeshTheme.textSecondary)
                 }
             }
-            .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
         } header: {
             Text("Device")
                 .foregroundStyle(MeshTheme.textSecondary)
-        }
-        .sheet(item: $activeSheet) { sheet in
-            switch sheet {
-            case .name:
-                NameEditorSheet(viewModel: viewModel)
-            case .radio:
-                NavigationStack {
-                    RadioSection(viewModel: viewModel)
-                        .navigationTitle("Radio Settings")
-                        .toolbar {
-                            ToolbarItem(placement: .cancellationAction) {
-                                Button("Done") { activeSheet = nil }
-                            }
-                        }
-                }
-                .meshTheme()
-            case .txPower:
-                TxPowerEditorSheet(viewModel: viewModel)
-            case .tuning:
-                TuningEditorSheet(viewModel: viewModel)
-            case .gps:
-                GPSEditorSheet(viewModel: viewModel)
-            case .battery:
-                BatteryEditorSheet(viewModel: viewModel, batteryChemistryRaw: $batteryChemistryRaw)
-            case .firmware:
-                FirmwareDetailSheet(viewModel: viewModel)
-            }
         }
     }
 
@@ -2315,95 +2288,80 @@ struct NameEditorSheet: View {
     @State private var name: String = ""
 
     var body: some View {
-        NavigationStack {
-            Form {
-                Section {
-                    TextField("Device Name", text: $name)
-                        .onChange(of: name) { newValue in
-                            if newValue.count > 31 { name = String(newValue.prefix(31)) }
-                        }
-                    HStack {
-                        Spacer()
-                        Text("\(name.count)/31")
-                            .font(.caption2)
-                            .foregroundStyle(name.count > 28 ? .orange : .secondary)
+        Form {
+            Section {
+                TextField("Device Name", text: $name)
+                    .onChange(of: name) { newValue in
+                        if newValue.count > 31 { name = String(newValue.prefix(31)) }
                     }
-                } footer: {
-                    Text("TIP: Use your initials + first 4 of your public key (e.g., NMA-5abd). Max 31 characters.")
+                HStack {
+                    Spacer()
+                    Text("\(name.count)/31")
                         .font(.caption2)
+                        .foregroundStyle(name.count > 28 ? .orange : .secondary)
                 }
-            }
-            .navigationTitle("Device Name")
-            #if !os(macOS)
-            .navigationBarTitleDisplayMode(.inline)
-            #endif
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Apply") {
-                        viewModel.setAdvertName(name)
-                        dismiss()
-                    }
-                    .disabled(name.isEmpty)
-                }
-            }
-            .onAppear {
-                name = viewModel.deviceConfig.deviceName
+            } footer: {
+                Text("TIP: Use your initials + first 4 of your public key (e.g., NMA-5abd). Max 31 characters.")
+                    .font(.caption2)
             }
         }
-        .meshTheme()
+        .navigationTitle("Device Name")
+        #if !os(macOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Apply") {
+                    viewModel.setAdvertName(name)
+                    dismiss()
+                }
+                .disabled(name.isEmpty)
+            }
+        }
+        .onAppear {
+            name = viewModel.deviceConfig.deviceName
+        }
     }
 }
 
 struct FirmwareDetailSheet: View {
     @ObservedObject var viewModel: MeshCoreViewModel
-    @Environment(\.dismiss) private var dismiss
 
     private var config: DeviceConfig { viewModel.deviceConfig }
 
     var body: some View {
-        NavigationStack {
-            List {
+        List {
+            Section {
+                LabeledContent("Version", value: config.semanticVersion.isEmpty ? "v\(config.firmwareVersion)" : config.semanticVersion)
+                LabeledContent("Build Date", value: config.buildDate.isEmpty ? "\u{2014}" : config.buildDate)
+                LabeledContent("Model", value: config.manufacturer.isEmpty ? "\u{2014}" : config.manufacturer)
+            }
+            Section {
+                LabeledContent("Max Contacts", value: "\(config.maxContacts)")
+                LabeledContent("Max Channels", value: "\(config.maxChannels)")
+            }
+            if !config.publicKeyHex.isEmpty {
                 Section {
-                    LabeledContent("Version", value: config.semanticVersion.isEmpty ? "v\(config.firmwareVersion)" : config.semanticVersion)
-                    LabeledContent("Build Date", value: config.buildDate.isEmpty ? "\u{2014}" : config.buildDate)
-                    LabeledContent("Model", value: config.manufacturer.isEmpty ? "\u{2014}" : config.manufacturer)
-                }
-                Section {
-                    LabeledContent("Max Contacts", value: "\(config.maxContacts)")
-                    LabeledContent("Max Channels", value: "\(config.maxChannels)")
-                }
-                if !config.publicKeyHex.isEmpty {
-                    Section {
-                        LabeledContent("Public Key", value: String(config.publicKeyHex.prefix(16)) + "...")
-                            .textSelection(.enabled)
-                    }
-                }
-                Section {
-                    if let date = config.deviceTimeDate {
-                        LabeledContent("Device Clock") {
-                            Text(date, style: .date) + Text(" ") + Text(date, style: .time)
-                        }
-                    }
-                    LabeledContent("Clock Status", value: "Auto-synced on connect")
-                } header: {
-                    Text("Time")
+                    LabeledContent("Public Key", value: String(config.publicKeyHex.prefix(16)) + "...")
+                        .textSelection(.enabled)
                 }
             }
-            .meshListStyle()
-            .navigationTitle("Device Details")
-            #if !os(macOS)
-            .navigationBarTitleDisplayMode(.inline)
-            #endif
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { dismiss() }
+            Section {
+                if let date = config.deviceTimeDate {
+                    LabeledContent("Device Clock") {
+                        Text(date, style: .date) + Text(" ") + Text(date, style: .time)
+                    }
                 }
+                LabeledContent("Clock Status", value: "Auto-synced on connect")
+            } header: {
+                Text("Time")
             }
         }
-        .meshTheme()
+        .meshListStyle()
+        .navigationTitle("Device Details")
+        #if !os(macOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
     }
 }
 
@@ -2415,37 +2373,33 @@ struct TxPowerEditorSheet: View {
     @State private var txPower: Double = 22
 
     var body: some View {
-        NavigationStack {
-            Form {
-                Section {
-                    HStack {
-                        Text("TX Power")
-                        Spacer()
-                        Text("\(Int(txPower)) dBm").fontWeight(.medium)
-                    }
-                    Slider(value: $txPower, in: 1...Double(max(viewModel.deviceConfig.maxTXPower, 2)), step: 1)
-                        .tint(MeshTheme.accent)
-                } footer: {
-                    Text("Higher power = more range but more battery drain. Max \(viewModel.deviceConfig.maxTXPower) dBm for this device.")
-                        .font(.caption2)
+        Form {
+            Section {
+                HStack {
+                    Text("TX Power")
+                    Spacer()
+                    Text("\(Int(txPower)) dBm").fontWeight(.medium)
                 }
+                Slider(value: $txPower, in: 1...Double(max(viewModel.deviceConfig.maxTXPower, 2)), step: 1)
+                    .tint(MeshTheme.accent)
+            } footer: {
+                Text("Higher power = more range but more battery drain. Max \(viewModel.deviceConfig.maxTXPower) dBm for this device.")
+                    .font(.caption2)
             }
-            .navigationTitle("TX Power")
-            #if !os(macOS)
-            .navigationBarTitleDisplayMode(.inline)
-            #endif
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Apply") {
-                        viewModel.setRadioTXPower(UInt8(txPower))
-                        dismiss()
-                    }
-                }
-            }
-            .onAppear { txPower = Double(viewModel.deviceConfig.radioTXPower) }
         }
-        .meshTheme()
+        .navigationTitle("TX Power")
+        #if !os(macOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Apply") {
+                    viewModel.setRadioTXPower(UInt8(txPower))
+                    dismiss()
+                }
+            }
+        }
+        .onAppear { txPower = Double(viewModel.deviceConfig.radioTXPower) }
     }
 }
 
@@ -2458,55 +2412,51 @@ struct TuningEditorSheet: View {
     @State private var airtimeFactor: Double = 0
 
     var body: some View {
-        NavigationStack {
-            Form {
-                Section {
-                    HStack {
-                        Text("RX Delay")
-                        Spacer()
-                        Text("\(String(format: "%.1f", rxDelay))s").fontWeight(.medium)
-                    }
-                    Slider(value: $rxDelay, in: 0...20, step: 0.5)
-                        .tint(MeshTheme.accent)
-                } footer: {
-                    Text("Base delay for SNR-based packet prioritization. Higher values give better-signal packets more priority. 0 = disabled.")
-                        .font(.caption2)
+        Form {
+            Section {
+                HStack {
+                    Text("RX Delay")
+                    Spacer()
+                    Text("\(String(format: "%.1f", rxDelay))s").fontWeight(.medium)
                 }
+                Slider(value: $rxDelay, in: 0...20, step: 0.5)
+                    .tint(MeshTheme.accent)
+            } footer: {
+                Text("Base delay for SNR-based packet prioritization. Higher values give better-signal packets more priority. 0 = disabled.")
+                    .font(.caption2)
+            }
 
-                Section {
-                    HStack {
-                        Text("Airtime Factor")
-                        Spacer()
-                        Text("\(String(format: "%.1f", airtimeFactor))x").fontWeight(.medium)
-                    }
-                    Slider(value: $airtimeFactor, in: 0...9, step: 0.5)
-                        .tint(MeshTheme.accent)
-                } footer: {
-                    Text("Multiplier for airtime budget. Higher values allow more frequent transmissions. 0 = no limit.")
-                        .font(.caption2)
+            Section {
+                HStack {
+                    Text("Airtime Factor")
+                    Spacer()
+                    Text("\(String(format: "%.1f", airtimeFactor))x").fontWeight(.medium)
                 }
-            }
-            .navigationTitle("Tuning")
-            #if !os(macOS)
-            .navigationBarTitleDisplayMode(.inline)
-            #endif
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Apply") {
-                        let rx = UInt32(rxDelay * 1000)
-                        let air = UInt32(airtimeFactor * 1000)
-                        viewModel.setTuningParams(rxDelayBase: rx, airtimeFactor: air)
-                        dismiss()
-                    }
-                }
-            }
-            .onAppear {
-                rxDelay = viewModel.deviceConfig.rxDelaySeconds
-                airtimeFactor = viewModel.deviceConfig.airtimeMultiplier
+                Slider(value: $airtimeFactor, in: 0...9, step: 0.5)
+                    .tint(MeshTheme.accent)
+            } footer: {
+                Text("Multiplier for airtime budget. Higher values allow more frequent transmissions. 0 = no limit.")
+                    .font(.caption2)
             }
         }
-        .meshTheme()
+        .navigationTitle("Tuning")
+        #if !os(macOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Apply") {
+                    let rx = UInt32(rxDelay * 1000)
+                    let air = UInt32(airtimeFactor * 1000)
+                    viewModel.setTuningParams(rxDelayBase: rx, airtimeFactor: air)
+                    dismiss()
+                }
+            }
+        }
+        .onAppear {
+            rxDelay = viewModel.deviceConfig.rxDelaySeconds
+            airtimeFactor = viewModel.deviceConfig.airtimeMultiplier
+        }
     }
 }
 
@@ -2522,89 +2472,83 @@ struct GPSEditorSheet: View {
     @AppStorage("locationUpdateInterval") private var locationUpdateInterval = 900
 
     var body: some View {
-        NavigationStack {
-            Form {
-                Section {
-                    LabeledContent("Latitude", value: latitude.isEmpty ? "\u{2014}" : latitude)
-                    LabeledContent("Longitude", value: longitude.isEmpty ? "\u{2014}" : longitude)
+        Form {
+            Section {
+                LabeledContent("Latitude", value: latitude.isEmpty ? "\u{2014}" : latitude)
+                LabeledContent("Longitude", value: longitude.isEmpty ? "\u{2014}" : longitude)
+            }
+
+            #if !os(watchOS)
+            Section {
+                Button {
+                    let locManager = CLLocationManager()
+                    guard let location = locManager.location else { return }
+                    let (fLat, fLon) = viewModel.fudgeLocation(lat: location.coordinate.latitude, lon: location.coordinate.longitude)
+                    latitude = String(format: "%.6f", fLat)
+                    longitude = String(format: "%.6f", fLon)
+                    viewModel.setAdvertLatLon(latitude: fLat, longitude: fLon)
+                    gpsSyncFeedback = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) { gpsSyncFeedback = false }
+                } label: {
+                    Label(gpsSyncFeedback ? "Location Set!" : "Set from Phone GPS", systemImage: "iphone.radiowaves.left.and.right")
+                        .foregroundStyle(gpsSyncFeedback ? .green : MeshTheme.accent)
                 }
 
-                #if !os(watchOS)
-                Section {
-                    Button {
-                        let locManager = CLLocationManager()
-                        guard let location = locManager.location else { return }
-                        let (fLat, fLon) = viewModel.fudgeLocation(lat: location.coordinate.latitude, lon: location.coordinate.longitude)
-                        latitude = String(format: "%.6f", fLat)
-                        longitude = String(format: "%.6f", fLon)
-                        viewModel.setAdvertLatLon(latitude: fLat, longitude: fLon)
-                        gpsSyncFeedback = true
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { gpsSyncFeedback = false }
-                    } label: {
-                        Label(gpsSyncFeedback ? "Location Set!" : "Set from Phone GPS", systemImage: "iphone.radiowaves.left.and.right")
-                            .foregroundStyle(gpsSyncFeedback ? .green : MeshTheme.accent)
-                    }
-
-                    Toggle(isOn: $autoUpdateLocation) {
-                        Label("Auto-Update", systemImage: "location.fill.viewfinder")
-                    }
-                    .tint(MeshTheme.accent)
-                    .onChange(of: autoUpdateLocation) { enabled in
-                        if enabled { viewModel.startAutoLocationUpdates(interval: locationUpdateInterval) }
-                        else { viewModel.stopAutoLocationUpdates() }
-                    }
-
-                    if autoUpdateLocation {
-                        Picker("Interval", selection: $locationUpdateInterval) {
-                            Text("5 min").tag(300)
-                            Text("15 min").tag(900)
-                            Text("30 min").tag(1800)
-                            Text("1 hour").tag(3600)
-                        }
-                        .pickerStyle(.segmented)
-                        .onChange(of: locationUpdateInterval) { interval in
-                            if autoUpdateLocation { viewModel.startAutoLocationUpdates(interval: interval) }
-                        }
-                    }
+                Toggle(isOn: $autoUpdateLocation) {
+                    Label("Auto-Update", systemImage: "location.fill.viewfinder")
                 }
-                #endif
+                .tint(MeshTheme.accent)
+                .onChange(of: autoUpdateLocation) { enabled in
+                    if enabled { viewModel.startAutoLocationUpdates(interval: locationUpdateInterval) }
+                    else { viewModel.stopAutoLocationUpdates() }
+                }
 
-                Section {
-                    Picker("Share Location", selection: Binding(
-                        get: { viewModel.deviceConfig.advertLocPolicy },
-                        set: { newValue in
-                            viewModel.setOtherParams(
-                                manualAddContacts: viewModel.deviceConfig.manualAddContacts,
-                                telemetryBase: viewModel.deviceConfig.telemetryBase,
-                                telemetryLocation: viewModel.deviceConfig.telemetryLocation,
-                                advertLocPolicy: newValue,
-                                multiACK: viewModel.deviceConfig.multiACK
-                            )
-                        }
-                    )) {
-                        Text("Don't Share").tag(UInt8(0))
-                        Text("Share").tag(UInt8(1))
+                if autoUpdateLocation {
+                    Picker("Interval", selection: $locationUpdateInterval) {
+                        Text("5 min").tag(300)
+                        Text("15 min").tag(900)
+                        Text("30 min").tag(1800)
+                        Text("1 hour").tag(3600)
                     }
                     .pickerStyle(.segmented)
-                } footer: {
-                    Text("Controls whether your coordinates are included in mesh advertisements.")
-                        .font(.caption2)
+                    .onChange(of: locationUpdateInterval) { interval in
+                        if autoUpdateLocation { viewModel.startAutoLocationUpdates(interval: interval) }
+                    }
                 }
             }
-            .navigationTitle("GPS & Location")
-            #if !os(macOS)
-            .navigationBarTitleDisplayMode(.inline)
             #endif
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } }
-            }
-            .onAppear {
-                let c = viewModel.deviceConfig
-                if c.latitude != 0 { latitude = String(format: "%.6f", c.latitude) }
-                if c.longitude != 0 { longitude = String(format: "%.6f", c.longitude) }
+
+            Section {
+                Picker("Share Location", selection: Binding(
+                    get: { viewModel.deviceConfig.advertLocPolicy },
+                    set: { newValue in
+                        viewModel.setOtherParams(
+                            manualAddContacts: viewModel.deviceConfig.manualAddContacts,
+                            telemetryBase: viewModel.deviceConfig.telemetryBase,
+                            telemetryLocation: viewModel.deviceConfig.telemetryLocation,
+                            advertLocPolicy: newValue,
+                            multiACK: viewModel.deviceConfig.multiACK
+                        )
+                    }
+                )) {
+                    Text("Don't Share").tag(UInt8(0))
+                    Text("Share").tag(UInt8(1))
+                }
+                .pickerStyle(.segmented)
+            } footer: {
+                Text("Controls whether your coordinates are included in mesh advertisements.")
+                    .font(.caption2)
             }
         }
-        .meshTheme()
+        .navigationTitle("GPS & Location")
+        #if !os(macOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
+        .onAppear {
+            let c = viewModel.deviceConfig
+            if c.latitude != 0 { latitude = String(format: "%.6f", c.latitude) }
+            if c.longitude != 0 { longitude = String(format: "%.6f", c.longitude) }
+        }
     }
 }
 
@@ -2613,36 +2557,29 @@ struct GPSEditorSheet: View {
 struct BatteryEditorSheet: View {
     @ObservedObject var viewModel: MeshCoreViewModel
     @Binding var batteryChemistryRaw: String
-    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        NavigationStack {
-            Form {
-                Section {
-                    let battV = String(format: "%.2f", Double(viewModel.deviceConfig.batteryMillivolts) / 1000.0)
-                    let battPct = viewModel.deviceConfig.batteryPercent()
-                    LabeledContent("Voltage", value: "\(battV)V")
-                    LabeledContent("Percentage", value: battPct > 0 ? "\(battPct)%" : "\u{2014}")
-                }
-                Section {
-                    Picker("Battery Type", selection: $batteryChemistryRaw) {
-                        Text("LiPo (3.7V)").tag(BatteryChemistry.lipo.rawValue)
-                        Text("LiFePO4 (3.2V)").tag(BatteryChemistry.lifepo4.rawValue)
-                        Text("Li-Ion (3.7V)").tag(BatteryChemistry.li18650.rawValue)
-                    }
-                } footer: {
-                    Text("Select battery chemistry for accurate percentage calculation.")
-                        .font(.caption2)
-                }
+        Form {
+            Section {
+                let battV = String(format: "%.2f", Double(viewModel.deviceConfig.batteryMillivolts) / 1000.0)
+                let battPct = viewModel.deviceConfig.batteryPercent()
+                LabeledContent("Voltage", value: "\(battV)V")
+                LabeledContent("Percentage", value: battPct > 0 ? "\(battPct)%" : "\u{2014}")
             }
-            .navigationTitle("Battery")
-            #if !os(macOS)
-            .navigationBarTitleDisplayMode(.inline)
-            #endif
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } }
+            Section {
+                Picker("Battery Type", selection: $batteryChemistryRaw) {
+                    Text("LiPo (3.7V)").tag(BatteryChemistry.lipo.rawValue)
+                    Text("LiFePO4 (3.2V)").tag(BatteryChemistry.lifepo4.rawValue)
+                    Text("Li-Ion (3.7V)").tag(BatteryChemistry.li18650.rawValue)
+                }
+            } footer: {
+                Text("Select battery chemistry for accurate percentage calculation.")
+                    .font(.caption2)
             }
         }
-        .meshTheme()
+        .navigationTitle("Battery")
+        #if !os(macOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
     }
 }
