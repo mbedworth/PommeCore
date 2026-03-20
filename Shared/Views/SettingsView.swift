@@ -874,8 +874,13 @@ struct RadioPreset: Identifiable {
 }
 
 /// Reusable radio preset picker section. Calls `onApply` with the selected preset.
+/// Auto-detects current preset from device config on appear.
 struct RadioPresetPicker: View {
     let onApply: (RadioPreset) -> Void
+    var currentFreqKHz: Double = 0
+    var currentBW: Double = 0
+    var currentSF: UInt8 = 0
+    var currentCR: UInt8 = 0
     @State private var selectedPresetIndex: Int = -1
     @State private var presetToConfirm: RadioPreset?
 
@@ -895,6 +900,17 @@ struct RadioPresetPicker: View {
                 .tint(MeshTheme.accent)
             }
             .listRowBackground(MeshTheme.surface)
+            .onAppear {
+                guard selectedPresetIndex == -1, currentFreqKHz > 0 else { return }
+                if let idx = radioPresets.firstIndex(where: { p in
+                    abs(p.frequencyKHz - currentFreqKHz) < 1.0 &&
+                    abs(p.bandwidth - currentBW) < 0.1 &&
+                    p.spreadingFactor == currentSF &&
+                    p.codingRate == currentCR
+                }) {
+                    selectedPresetIndex = idx
+                }
+            }
 
             if selectedPresetIndex >= 0, selectedPresetIndex < radioPresets.count {
                 let preset = radioPresets[selectedPresetIndex]
@@ -1009,17 +1025,22 @@ struct RadioSection: View {
     @State private var saveState: SaveButtonState = .idle
 
     var body: some View {
-        RadioPresetPicker { preset in
-            applyPreset(preset)
-            // Send directly to device
-            let freq = UInt32(preset.frequencyKHz)
-            let bw = UInt32(preset.bandwidth * 1000)
-            viewModel.setRadioParams(
-                frequency: freq, bandwidth: bw,
-                spreadingFactor: preset.spreadingFactor, codingRate: preset.codingRate,
-                repeatMode: repeatMode
-            )
-        }
+        RadioPresetPicker(
+            onApply: { preset in
+                applyPreset(preset)
+                let freq = UInt32(preset.frequencyKHz)
+                let bw = UInt32(preset.bandwidth * 1000)
+                viewModel.setRadioParams(
+                    frequency: freq, bandwidth: bw,
+                    spreadingFactor: preset.spreadingFactor, codingRate: preset.codingRate,
+                    repeatMode: repeatMode
+                )
+            },
+            currentFreqKHz: Double(viewModel.deviceConfig.radioFrequency),
+            currentBW: viewModel.deviceConfig.bandwidthKHz,
+            currentSF: viewModel.deviceConfig.radioSpreadingFactor,
+            currentCR: viewModel.deviceConfig.radioCodingRate
+        )
 
         Section {
             HStack {
