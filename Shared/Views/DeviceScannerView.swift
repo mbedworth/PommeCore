@@ -125,6 +125,7 @@ struct DeviceScannerView: View {
                         Button {
                             viewModel.connectWiFi(host: saved.host, port: saved.port)
                             saveWiFiConnection(host: saved.host, port: saved.port)
+                            dismiss()
                         } label: {
                             HStack {
                                 Image(systemName: "wifi")
@@ -171,6 +172,7 @@ struct DeviceScannerView: View {
                             let port = UInt16(wifiPort) ?? 5000
                             viewModel.connectWiFi(host: wifiHost, port: port)
                             saveWiFiConnection(host: wifiHost, port: port)
+                            dismiss()
                         }
                         .disabled(wifiHost.isEmpty)
                         .buttonStyle(.borderedProminent)
@@ -208,7 +210,7 @@ struct DeviceScannerView: View {
                             Text(port.replacingOccurrences(of: "/dev/cu.", with: ""))
                                 .foregroundStyle(MeshTheme.textPrimary)
                             Spacer()
-                            Button("Connect") { viewModel.connectUSB(port: port) }
+                            Button("Connect") { viewModel.connectUSB(port: port); dismiss() }
                                 .buttonStyle(.borderedProminent)
                                 .tint(MeshTheme.interactiveGreen)
                         }
@@ -232,6 +234,7 @@ struct DeviceScannerView: View {
                         Button("Connect") {
                             guard !manualSerialPort.isEmpty else { return }
                             viewModel.connectUSB(port: manualSerialPort)
+                            dismiss()
                         }
                         .buttonStyle(.borderedProminent)
                         .tint(MeshTheme.interactiveGreen)
