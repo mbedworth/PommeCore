@@ -19,7 +19,7 @@ struct ContactListView: View {
     @State private var showResetConfirmation = false
     @State private var detailContact: Contact?
     @State private var showChannelSheet = false
-    @State private var showDeviceInfo = false
+    // showDeviceInfo removed — connection bar now navigates to Settings
     #if !os(watchOS)
     @State private var channelToShareSidebar: MeshChannel?
     @State private var channelToRenameSidebar: MeshChannel?
@@ -364,7 +364,7 @@ struct ContactListView: View {
         Section {
             Button {
                 if viewModel.connectionState == .ready || viewModel.connectionState == .connected {
-                    showDeviceInfo = true
+                    showSettings?.wrappedValue = true
                 } else {
                     showScanner = true
                 }
@@ -428,19 +428,7 @@ struct ContactListView: View {
                 .listRowBackground(MeshTheme.surface)
             }
         }
-        .sheet(isPresented: $showDeviceInfo) {
-            NavigationStack {
-                DeviceInfoPopover()
-                    .environmentObject(viewModel)
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button("Done") { showDeviceInfo = false }
-                        }
-                    }
-            }
-            .meshTheme()
-            .frame(minWidth: 360, minHeight: 300)
-        }
+        // Device info sheet removed — connection bar now opens Settings
     }
 
     private var publicChannelRow: some View {
