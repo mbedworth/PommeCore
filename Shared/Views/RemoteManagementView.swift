@@ -484,15 +484,33 @@ struct RemoteRadioSection: View {
     @State private var txPower = ""
     @State private var saveState: SaveButtonState = .idle
 
+    /// Parse "freq_MHz,bw_kHz,sf,cr" from session settings into components for preset detection.
+    private var parsedRadio: (freqKHz: Double, bw: Double, sf: UInt8, cr: UInt8) {
+        guard let radio = session.settings["radio"] else { return (0, 0, 0, 0) }
+        let parts = radio.replacingOccurrences(of: " ", with: "").split(separator: ",")
+        guard parts.count >= 4,
+              let freqMHz = Double(parts[0]),
+              let bw = Double(parts[1]),
+              let sf = UInt8(parts[2]),
+              let cr = UInt8(parts[3]) else { return (0, 0, 0, 0) }
+        return (freqMHz * 1000, bw, sf, cr) // Convert MHz → kHz for preset comparison
+    }
+
     var body: some View {
         if canEdit {
-            RadioPresetPicker { preset in
-                let freqMHz = String(format: "%.6f", preset.frequencyKHz / 1000.0)
-                let bwStr = preset.bandwidth == preset.bandwidth.rounded() ? "\(Int(preset.bandwidth))" : "\(preset.bandwidth)"
-                let params = "\(freqMHz),\(bwStr),\(preset.spreadingFactor),\(preset.codingRate)"
-                radioParams = params
-                sendCLI("set radio \(params)")
-            }
+            RadioPresetPicker(
+                onApply: { preset in
+                    let freqMHz = String(format: "%.6f", preset.frequencyKHz / 1000.0)
+                    let bwStr = preset.bandwidth == preset.bandwidth.rounded() ? "\(Int(preset.bandwidth))" : "\(preset.bandwidth)"
+                    let params = "\(freqMHz),\(bwStr),\(preset.spreadingFactor),\(preset.codingRate)"
+                    radioParams = params
+                    sendCLI("set radio \(params)")
+                },
+                currentFreqKHz: parsedRadio.freqKHz,
+                currentBW: parsedRadio.bw,
+                currentSF: parsedRadio.sf,
+                currentCR: parsedRadio.cr
+            )
         }
 
         Section {
