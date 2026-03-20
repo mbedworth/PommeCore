@@ -1871,6 +1871,7 @@ private extension SettingsView {
 
 struct TipJarView: View {
     @ObservedObject var manager: TipJarManager
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         ScrollView {
@@ -1917,7 +1918,13 @@ struct TipJarView: View {
         }
         .background(MeshTheme.background)
         .navigationTitle("Tip Jar")
-        #if !os(macOS)
+        #if os(macOS) || targetEnvironment(macCatalyst)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Back") { dismiss() }
+            }
+        }
+        #else
         .navigationBarTitleDisplayMode(.inline)
         #endif
         .onAppear {
