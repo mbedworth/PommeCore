@@ -652,11 +652,16 @@ struct DeviceInfoSection: View {
     }
 
     private func detectPreset() -> String? {
-        radioPresets.first { p in
-            abs(p.frequencyKHz - Double(config.radioFrequency)) < 1.0 &&
-            abs(p.bandwidth - Double(config.radioBandwidth) / 1000.0) < 0.1 &&
-            p.spreadingFactor == config.radioSpreadingFactor &&
-            p.codingRate == config.radioCodingRate
+        let freqKHz = Double(config.radioFrequency)
+        let bwKHz = Double(config.radioBandwidth) / 1000.0
+        let sf = config.radioSpreadingFactor
+        let cr = config.radioCodingRate
+        DebugLogger.shared.log("PRESET DETECT: freq=\(freqKHz)kHz bw=\(bwKHz)kHz sf=\(sf) cr=\(cr)", level: .info)
+        return radioPresets.first { p in
+            abs(p.frequencyKHz - freqKHz) < 1.0 &&
+            abs(p.bandwidth - bwKHz) < 0.1 &&
+            p.spreadingFactor == sf &&
+            p.codingRate == cr
         }?.name
     }
 }
