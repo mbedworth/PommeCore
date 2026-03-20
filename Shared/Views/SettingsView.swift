@@ -662,10 +662,9 @@ struct DeviceInfoSection: View {
         let bwKHz = Double(config.radioBandwidth) / 1000.0
         let sf = config.radioSpreadingFactor
         let cr = config.radioCodingRate
-        DebugLogger.shared.log("PRESET DETECT: freq=\(freqKHz)kHz bw=\(bwKHz)kHz sf=\(sf) cr=\(cr)", level: .info)
         return radioPresets.first { p in
-            abs(p.frequencyKHz - freqKHz) < 1.0 &&
-            abs(p.bandwidth - bwKHz) < 0.1 &&
+            abs(p.frequencyKHz - freqKHz) < 2.0 &&
+            abs(p.bandwidth - bwKHz) < 0.5 &&
             p.spreadingFactor == sf &&
             p.codingRate == cr
         }?.name
@@ -926,17 +925,8 @@ struct RadioPresetPicker: View {
                 .tint(MeshTheme.accent)
             }
             .listRowBackground(MeshTheme.surface)
-            .onAppear {
-                guard selectedPresetIndex == -1, currentFreqKHz > 0 else { return }
-                if let idx = radioPresets.firstIndex(where: { p in
-                    abs(p.frequencyKHz - currentFreqKHz) < 1.0 &&
-                    abs(p.bandwidth - currentBW) < 0.1 &&
-                    p.spreadingFactor == currentSF &&
-                    p.codingRate == currentCR
-                }) {
-                    selectedPresetIndex = idx
-                }
-            }
+            .onAppear { detectCurrentPreset() }
+            .onChange(of: currentFreqKHz) { _ in detectCurrentPreset() }
 
             if selectedPresetIndex >= 0, selectedPresetIndex < radioPresets.count {
                 let preset = radioPresets[selectedPresetIndex]
@@ -989,6 +979,24 @@ struct RadioPresetPicker: View {
         } footer: {
             Text("Select a preset for your region. All nodes on your mesh must use the same settings.")
                 .font(.caption2)
+        }
+    }
+
+    private func detectCurrentPreset() {
+        guard currentFreqKHz > 0 else { return }
+        if let idx = radioPresets.firstIndex(where: { p in
+            abs(p.frequencyKHz - currentFreqKHz) < 2.0 &&
+            abs(p.bandwidth - currentBW) < 0.5 &&
+            p.spreadingFactor == currentSF &&
+            p.codingRate == currentCR
+        }) {
+            selectedPresetIndex = idx
+            DebugLogger.shared.log("PRESET: matched '\(radioPresets[idx].name)' freq=\(currentFreqKHz) bw=\(currentBW) sf=\(currentSF) cr=\(currentCR)", level: .info)
+        } else {
+            selectedPresetIndex = -1
+            if let usa = radioPresets.first(where: { $0.name.contains("USA") }) {
+                DebugLogger.shared.log("PRESET: no match. Input freq=\(currentFreqKHz) bw=\(currentBW) sf=\(currentSF) cr=\(currentCR). USA diff: freq=\(abs(currentFreqKHz - usa.frequencyKHz)) bw=\(abs(currentBW - usa.bandwidth)) sf=\(currentSF==usa.spreadingFactor) cr=\(currentCR==usa.codingRate)", level: .warning)
+            }
         }
     }
 }
@@ -2426,8 +2434,8 @@ private extension SettingsView {
 
     func detectRadioPreset(freqKHz: Double, bw: Double, sf: UInt8, cr: UInt8) -> String? {
         radioPresets.first { p in
-            abs(p.frequencyKHz - freqKHz) < 1.0 &&
-            abs(p.bandwidth - bw) < 0.1 &&
+            abs(p.frequencyKHz - freqKHz) < 2.0 &&
+            abs(p.bandwidth - bw) < 0.5 &&
             p.spreadingFactor == sf &&
             p.codingRate == cr
         }?.name
