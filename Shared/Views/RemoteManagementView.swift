@@ -17,7 +17,9 @@ struct RemoteManagementView: View {
         List {
             if isLoggedIn {
                 remoteBanner
-                disconnectSection
+                if !isUSBDevice {
+                    disconnectSection
+                }
                 if session.isFetchingSettings {
                     Section {
                         HStack(spacing: 12) {
@@ -85,12 +87,22 @@ struct RemoteManagementView: View {
         .task {
             // Backup trigger: fetch settings if login auto-fetch hasn't started yet
             guard isLoggedIn, !session.hasLoadedFullSettings, !session.isFetchingSettings else { return }
+            #if os(macOS) || targetEnvironment(macCatalyst)
+            if contact.publicKey == viewModel.usbDeviceContact?.publicKey {
+                viewModel.fetchUSBSettings()
+                return
+            }
+            #endif
             viewModel.fetchRemoteSettings(for: contact)
         }
         .onDisappear {
             // Clean up local session state on exit.
             // Don't send "logout" CLI — firmware has no such command.
             // The admin lock releases automatically via firmware session timeout.
+            // Skip for USB-connected devices — session persists while USB is connected.
+            #if os(macOS) || targetEnvironment(macCatalyst)
+            if contact.publicKey == viewModel.usbDeviceContact?.publicKey { return }
+            #endif
             if isLoggedIn {
                 viewModel.logoutFromRemoteDevice(contact)
                 DebugLogger.shared.log("REMOTE: cleared local session for \(contact.name) on exit", level: .info)
@@ -100,7 +112,15 @@ struct RemoteManagementView: View {
             if isLoggedIn {
                 ToolbarItem(placement: .automatic) {
                     Button {
+                        #if os(macOS) || targetEnvironment(macCatalyst)
+                        if contact.publicKey == viewModel.usbDeviceContact?.publicKey {
+                            viewModel.fetchUSBSettings()
+                        } else {
+                            viewModel.fetchRemoteSettings(for: contact)
+                        }
+                        #else
                         viewModel.fetchRemoteSettings(for: contact)
+                        #endif
                     } label: {
                         Image(systemName: "arrow.clockwise")
                             .foregroundStyle(remoteAccent)
@@ -130,7 +150,9 @@ struct RemoteManagementView: View {
                         .background(permissionBadgeColor)
                         .clipShape(Capsule())
                 }
-                Text("Managing \(viewModel.displayName(for: contact)) via LoRa \u{2014} commands travel over the mesh and may take a few seconds.")
+                Text(isUSBDevice
+                    ? "Managing via USB Serial \u{2014} direct connection, no latency."
+                    : "Managing \(viewModel.displayName(for: contact)) via LoRa \u{2014} commands travel over the mesh and may take a few seconds.")
                     .font(.caption)
                     .foregroundStyle(MeshTheme.textSecondary)
             }
@@ -181,6 +203,14 @@ struct RemoteManagementView: View {
     private var isAdmin: Bool { permission.isAdmin }
     private var canEdit: Bool { permission.canEdit }
     private var canRead: Bool { permission.canRead }
+
+    private var isUSBDevice: Bool {
+        #if os(macOS) || targetEnvironment(macCatalyst)
+        contact.publicKey == viewModel.usbDeviceContact?.publicKey
+        #else
+        false
+        #endif
+    }
 
     private var permissionBadgeColor: Color {
         switch permission {

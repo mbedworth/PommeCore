@@ -86,9 +86,31 @@ struct ContactListView: View {
             }
             settingsSection
             #endif
-            #if os(macOS)
-            if viewModel.usbManager.isConnected && viewModel.usbManager.detectedMode == .cli {
+            #if os(macOS) || targetEnvironment(macCatalyst)
+            if viewModel.isUSBCLIConnected {
                 Section {
+                    NavigationLink(value: SidebarSelection.usbDevice) {
+                        HStack(spacing: 12) {
+                            ZStack {
+                                Circle()
+                                    .fill(MeshTheme.connected.opacity(0.15))
+                                    .frame(width: 40, height: 40)
+                                Image(systemName: "cable.connector")
+                                    .foregroundStyle(MeshTheme.connected)
+                            }
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(viewModel.usbDeviceContact?.name ?? "USB Device")
+                                    .font(.body)
+                                    .foregroundStyle(MeshTheme.textPrimary)
+                                Text("USB Serial \u{2022} Admin")
+                                    .font(.caption)
+                                    .foregroundStyle(MeshTheme.textSecondary)
+                            }
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .listRowBackground(MeshTheme.surface)
+
                     NavigationLink(value: SidebarSelection.usbTerminal) {
                         HStack(spacing: 12) {
                             ZStack {
@@ -103,6 +125,20 @@ struct ContactListView: View {
                                 .foregroundStyle(MeshTheme.accent)
                         }
                         .contentShape(Rectangle())
+                    }
+                    .listRowBackground(MeshTheme.surface)
+                } header: {
+                    Text("USB Device")
+                        .foregroundStyle(MeshTheme.textSecondary)
+                }
+            } else if viewModel.usbManager.isConnected && viewModel.usbManager.detectedMode == .cli {
+                // Fallback: CLI connected but session not ready yet
+                Section {
+                    HStack(spacing: 12) {
+                        ProgressView()
+                            .tint(MeshTheme.accent)
+                        Text("Connecting to USB device...")
+                            .foregroundStyle(MeshTheme.textSecondary)
                     }
                     .listRowBackground(MeshTheme.surface)
                 }
@@ -404,6 +440,24 @@ struct ContactListView: View {
             .listRowBackground(MeshTheme.surface)
             .contextMenu {
                 if viewModel.connectionState == .ready || viewModel.connectionState == .connected {
+                    #if os(macOS) || targetEnvironment(macCatalyst)
+                    if viewModel.isUSBCLIConnected {
+                        Button(role: .destructive) { viewModel.disconnectUSB() } label: {
+                            Label("Disconnect USB", systemImage: "cable.connector.slash")
+                        }
+                    } else {
+                        Button { showMyContactCode = true } label: {
+                            Label("My Contact Code", systemImage: "qrcode")
+                        }
+                        Button { viewModel.verifyRadioConfig() } label: {
+                            Label("Verify Radio Config", systemImage: "checkmark.shield")
+                        }
+                        Divider()
+                        Button(role: .destructive) { viewModel.disconnect() } label: {
+                            Label("Disconnect", systemImage: "xmark.circle")
+                        }
+                    }
+                    #else
                     Button { showMyContactCode = true } label: {
                         Label("My Contact Code", systemImage: "qrcode")
                     }
@@ -414,6 +468,7 @@ struct ContactListView: View {
                     Button(role: .destructive) { viewModel.disconnect() } label: {
                         Label("Disconnect", systemImage: "xmark.circle")
                     }
+                    #endif
                 }
             }
 
@@ -1194,9 +1249,17 @@ struct ContactListView: View {
             } else {
                 Text("Map requires iOS 17+ or macOS 14+")
             }
-        #if os(macOS)
+        #if os(macOS) || targetEnvironment(macCatalyst)
         case .usbTerminal:
             USBTerminalView()
+        case .usbDevice:
+            if let contact = viewModel.usbDeviceContact, let session = viewModel.usbDeviceSession {
+                RemoteManagementView(contact: contact, session: session)
+                    .environmentObject(viewModel)
+            } else {
+                Text("USB device not connected")
+                    .foregroundStyle(MeshTheme.textSecondary)
+            }
         #endif
         }
     }

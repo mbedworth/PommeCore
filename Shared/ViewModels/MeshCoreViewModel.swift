@@ -103,6 +103,7 @@ enum SidebarSelection: Hashable {
     case map
     #if os(macOS) || targetEnvironment(macCatalyst)
     case usbTerminal
+    case usbDevice
     #endif
 }
 
@@ -527,6 +528,14 @@ final class MeshCoreViewModel: ObservableObject {
     #if os(macOS) || targetEnvironment(macCatalyst)
     let usbManager = USBSerialManager()
     @Published var usbCLIOutput: [USBTerminalLine] = []
+    /// Session for managing a USB CLI-connected device (repeater/room/sensor).
+    @Published var usbDeviceSession: RemoteDeviceSession?
+    /// Synthetic contact for the USB-connected CLI device.
+    var usbDeviceContact: Contact?
+    /// Whether the USB device is CLI-connected and has a management session.
+    var isUSBCLIConnected: Bool {
+        usbManager.isConnected && usbManager.detectedMode == .cli && usbDeviceSession != nil
+    }
     #endif
     private var cancellables = Set<AnyCancellable>()
     private let messageStore = MessageStore()
@@ -1096,7 +1105,12 @@ final class MeshCoreViewModel: ObservableObject {
         usbManager.receivedLineSubject
             .receive(on: DispatchQueue.main)
             .sink { [weak self] line in
-                self?.usbCLIOutput.append(USBTerminalLine(text: line, isCommand: false))
+                guard let self else { return }
+                self.usbCLIOutput.append(USBTerminalLine(text: line, isCommand: false))
+                // Route to USB device session if active
+                if let session = self.usbDeviceSession {
+                    session.responseReceived(line)
+                }
             }
             .store(in: &cancellables)
 
@@ -1107,6 +1121,11 @@ final class MeshCoreViewModel: ObservableObject {
                 if connected && self.usbManager.detectedMode == .binary {
                     self.connectionState = .ready
                     self.connectedDeviceName = self.usbManager.connectedPort?.replacingOccurrences(of: "/dev/cu.", with: "")
+                }
+                if !connected {
+                    // Clean up USB CLI session on disconnect
+                    self.usbDeviceSession = nil
+                    self.usbDeviceContact = nil
                 }
             }
             .store(in: &cancellables)
@@ -1120,6 +1139,11 @@ final class MeshCoreViewModel: ObservableObject {
                     self.connectionState = .ready
                     self.connectedDeviceName = self.usbManager.connectedPort?.replacingOccurrences(of: "/dev/cu.", with: "")
                     self.onDeviceReady()
+                } else if mode == .cli && self.usbManager.isConnected {
+                    Self.logger.info("USB CLI mode detected — initializing management session")
+                    self.connectionState = .connected
+                    self.connectedDeviceName = "USB: \(self.usbManager.connectedPort?.replacingOccurrences(of: "/dev/cu.", with: "") ?? "Serial")"
+                    self.onUSBCLIReady()
                 }
             }
             .store(in: &cancellables)
@@ -1215,6 +1239,8 @@ final class MeshCoreViewModel: ObservableObject {
 
     func disconnectUSB() {
         usbManager.disconnect()
+        usbDeviceSession = nil
+        usbDeviceContact = nil
         if connectionState != .disconnected {
             connectionState = .disconnected
             connectedDeviceName = nil
@@ -1231,6 +1257,113 @@ final class MeshCoreViewModel: ObservableObject {
     func sendUSBCLI(_ command: String) {
         usbManager.sendCLI(command)
         usbCLIOutput.append(USBTerminalLine(text: "> \(command)", isCommand: true))
+    }
+
+    /// Called when USB CLI mode is detected — sets up management session and auto-fetches settings.
+    private func onUSBCLIReady() {
+        // Create a synthetic contact for the USB device
+        // Use a well-known fake pubkey so we can identify it
+        let usbPubKey = Data(repeating: 0xFE, count: 32)
+        let portName = usbManager.connectedPort?.replacingOccurrences(of: "/dev/cu.", with: "") ?? "USB Device"
+        let contact = Contact(
+            publicKey: usbPubKey,
+            name: portName,
+            type: .repeater, // Default — will be updated after "get role" response
+            flags: 0,
+            outPathLen: 0,
+            outPath: Data(),
+            lastAdvert: UInt32(Date().timeIntervalSince1970),
+            latitude: 0,
+            longitude: 0
+        )
+        usbDeviceContact = contact
+
+        let session = RemoteDeviceSession(contact: contact)
+        session.loginState = .loggedIn(permission: .admin) // USB = physical access = full trust
+        usbDeviceSession = session
+        // Forward session changes to ViewModel
+        session.objectWillChange
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+
+        DebugLogger.shared.log("USB CLI: management session created with admin access", level: .info)
+        fetchUSBDeviceSettings()
+    }
+
+    /// Auto-fetch all settings from a USB CLI device.
+    func fetchUSBSettings() { fetchUSBDeviceSettings() }
+    private func fetchUSBDeviceSettings() {
+        guard let session = usbDeviceSession else { return }
+        guard !session.isFetchingSettings else { return }
+        session.isFetchingSettings = true
+        session.fetchReceivedCount = 0
+
+        let commands = [
+            "ver", "clock",
+            "get radio", "get tx", "get repeat",
+            "get af", "get rxdelay", "get txdelay", "get direct.txdelay",
+            "get flood.max", "get int.thresh", "get agc.reset.interval",
+            "get name", "get lat", "get lon", "get owner.info",
+            "get advert.interval", "get flood.advert.interval", "get multi.acks",
+            "get allow.read.only",
+            "get adc.multiplier",
+            "get loop.detect", "get path.hash.mode",
+            "get role", "get public.key", "get guest.password",
+            "powersaving", "gps", "gps advert",
+        ]
+
+        session.fetchTotalCount = commands.count
+        Self.logger.info("USB CLI: fetching \(commands.count) settings")
+
+        Task { [weak self] in
+            let batchSize = 3
+            for batchStart in stride(from: 0, to: commands.count, by: batchSize) {
+                guard let self else { return }
+                let batchEnd = min(batchStart + batchSize, commands.count)
+                for i in batchStart..<batchEnd {
+                    let cmd = commands[i]
+                    session.commandSent(cmd)
+                    self.usbManager.sendCLI(cmd)
+                    self.usbCLIOutput.append(USBTerminalLine(text: "> \(cmd)", isCommand: true))
+                }
+                session.fetchReceivedCount += (batchEnd - batchStart)
+                // Delay between batches — USB is faster than BLE but device still needs time
+                if batchEnd < commands.count {
+                    try? await Task.sleep(nanoseconds: 500_000_000)
+                }
+            }
+            // Wait for final responses to arrive
+            try? await Task.sleep(nanoseconds: 1_000_000_000)
+            session.isFetchingSettings = false
+            session.hasLoadedFullSettings = true
+
+            // Update connection state and device name from fetched settings
+            self?.connectionState = .ready
+            if let name = session.settings["name"], !name.isEmpty {
+                self?.connectedDeviceName = "USB: \(name)"
+            }
+            // Update contact type from role response
+            if let role = session.settings["role"]?.lowercased() {
+                var detectedType: ContactType = .repeater
+                if role.contains("room") { detectedType = .room }
+                else if role.contains("sensor") { detectedType = .sensor }
+                else if role.contains("chat") || role.contains("companion") { detectedType = .chat }
+                if detectedType != self?.usbDeviceContact?.type {
+                    let updated = Contact(
+                        publicKey: self?.usbDeviceContact?.publicKey ?? Data(repeating: 0xFE, count: 32),
+                        name: session.settings["name"] ?? self?.usbDeviceContact?.name ?? "USB Device",
+                        type: detectedType
+                    )
+                    self?.usbDeviceContact = updated
+                    session.loginState = .loggedIn(permission: .admin)
+                }
+            }
+            Self.logger.info("USB CLI: settings fetch complete (\(session.settings.count) values)")
+            DebugLogger.shared.log("USB CLI: fetched \(session.settings.count) settings", level: .info)
+        }
     }
     #endif
 
@@ -2048,6 +2181,18 @@ final class MeshCoreViewModel: ObservableObject {
     func sendCLICommand(_ command: String, to contact: Contact) {
         let trimmed = command.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
+
+        #if os(macOS) || targetEnvironment(macCatalyst)
+        // Route through USB serial if this is the USB device contact
+        if let usbContact = usbDeviceContact, contact.publicKey == usbContact.publicKey,
+           let session = usbDeviceSession {
+            session.commandSent(trimmed)
+            usbManager.sendCLI(trimmed)
+            usbCLIOutput.append(USBTerminalLine(text: "> \(trimmed)", isCommand: true))
+            DebugLogger.shared.log("USB CLI TX: \(trimmed)", level: .tx)
+            return
+        }
+        #endif
 
         let session = remoteSession(for: contact)
         let cmdIndex = session.commandSent(trimmed)
