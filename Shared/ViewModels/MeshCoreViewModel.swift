@@ -1400,8 +1400,10 @@ final class MeshCoreViewModel: ObservableObject {
             session.isFetchingSettings = false
             session.hasLoadedFullSettings = true
 
-            // Map CLI settings to deviceConfig — single source of truth
-            self?.mapUSBCLISettingsToDeviceConfig(session.settings)
+            // Map CLI settings to deviceConfig on main actor to avoid view update warnings
+            await MainActor.run {
+                self?.mapUSBCLISettingsToDeviceConfig(session.settings)
+            }
 
             Self.logger.info("USB CLI: settings fetch complete (\(session.settings.count) values)")
             DebugLogger.shared.log("USB CLI: fetched \(session.settings.count) settings", level: .info)
