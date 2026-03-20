@@ -499,6 +499,7 @@ struct DeviceInfoSection: View {
     @EnvironmentObject var viewModel: MeshCoreViewModel
     @Binding var batteryChemistryRaw: String
     @State private var activeSheet: DeviceSheet?
+    @State private var dismissCooldown = false
 
     private var config: DeviceConfig { viewModel.deviceConfig }
 
@@ -507,9 +508,14 @@ struct DeviceInfoSection: View {
         var id: String { String(describing: self) }
     }
 
+    private func showSheet(_ sheet: DeviceSheet) {
+        guard !dismissCooldown else { return }
+        activeSheet = sheet
+    }
+
     var body: some View {
         Section {
-            Button { activeSheet = .name } label: {
+            Button { showSheet(.name) } label: {
                 HStack {
                     Label("Name", systemImage: "textformat")
                         .foregroundStyle(MeshTheme.accent)
@@ -525,7 +531,7 @@ struct DeviceInfoSection: View {
             .listRowBackground(MeshTheme.surface)
 
             if config.radioFrequency > 0 {
-                Button { activeSheet = .radio } label: {
+                Button { showSheet(.radio) } label: {
                     let freqMHz = String(format: "%.3f", Double(config.radioFrequency) / 1000.0)
                     let bwKHz = String(format: "%.1f", Double(config.radioBandwidth) / 1000.0)
                     let presetName = detectPreset()
@@ -546,7 +552,7 @@ struct DeviceInfoSection: View {
                 .buttonStyle(.plain)
                 .listRowBackground(MeshTheme.surface)
 
-                Button { activeSheet = .txPower } label: {
+                Button { showSheet(.txPower) } label: {
                     HStack {
                         Label("TX Power", systemImage: "bolt.fill")
                             .foregroundStyle(MeshTheme.accent)
@@ -558,7 +564,7 @@ struct DeviceInfoSection: View {
                 .buttonStyle(.plain)
                 .listRowBackground(MeshTheme.surface)
 
-                Button { activeSheet = .tuning } label: {
+                Button { showSheet(.tuning) } label: {
                     HStack {
                         Label("Tuning", systemImage: "tuningfork")
                             .foregroundStyle(MeshTheme.accent)
@@ -572,7 +578,7 @@ struct DeviceInfoSection: View {
                 .listRowBackground(MeshTheme.surface)
             }
 
-            Button { activeSheet = .gps } label: {
+            Button { showSheet(.gps) } label: {
                 HStack {
                     Label("GPS", systemImage: "location.fill")
                         .foregroundStyle(MeshTheme.accent)
@@ -591,7 +597,7 @@ struct DeviceInfoSection: View {
             .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
 
-            Button { activeSheet = .battery } label: {
+            Button { showSheet(.battery) } label: {
                 HStack {
                     Label("Battery", systemImage: "battery.50percent")
                         .foregroundStyle(MeshTheme.accent)
@@ -605,7 +611,7 @@ struct DeviceInfoSection: View {
             .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
 
-            Button { activeSheet = .firmware } label: {
+            Button { showSheet(.firmware) } label: {
                 HStack {
                     Label("Firmware", systemImage: "cpu")
                         .foregroundStyle(MeshTheme.accent)
@@ -654,6 +660,14 @@ struct DeviceInfoSection: View {
                 }
             }
             .meshTheme()
+        }
+        .onChange(of: activeSheet) { newValue in
+            if newValue == nil {
+                dismissCooldown = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    dismissCooldown = false
+                }
+            }
         }
     }
 
