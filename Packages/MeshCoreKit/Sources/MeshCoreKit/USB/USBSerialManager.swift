@@ -163,9 +163,15 @@ public final class USBSerialManager: ObservableObject {
             DebugLogger.shared.log("USB: connected to \(port), probing mode...", level: .info)
         }
 
-        // Probe device type after brief delay
+        // Probe device type: try $$ first (for CLI devices), then binary probe
         serialQueue.asyncAfter(deadline: .now() + 0.5) { [weak self] in
             self?.probeDeviceType()
+        }
+        // Fallback: if no response to $$ within 2s, try binary CMD_DEVICE_QUERY
+        serialQueue.asyncAfter(deadline: .now() + 2.5) { [weak self] in
+            guard let self, self.detectedMode == .unknown, self.fileDescriptor >= 0 else { return }
+            DebugLogger.shared.log("USB: no $$ response, trying binary probe (CMD_DEVICE_QUERY)", level: .info)
+            self.sendFrame(Data([0x16, 0x03])) // CMD_DEVICE_QUERY + app_target_ver=3
         }
     }
 
