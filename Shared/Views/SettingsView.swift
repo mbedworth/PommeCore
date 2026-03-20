@@ -491,134 +491,132 @@ private extension SettingsView {
 
 }
 
-/// Device Info section — isolated struct with own @State for sheet management.
-/// Uses .sheet(item:) instead of NavigationLink to avoid corrupting
-/// NavigationSplitView sidebar state. The struct isolation prevents
-/// parent SettingsView re-renders from resetting @State.
+/// Device Info section.
+/// macOS/Catalyst: NavigationLink pushes (sheets bounce on Catalyst).
+/// iOS: .sheet(item:) with isolated @State.
 struct DeviceInfoSection: View {
     @EnvironmentObject var viewModel: MeshCoreViewModel
     @Binding var batteryChemistryRaw: String
-    @State private var activeSheet: DeviceSheet?
 
     private var config: DeviceConfig { viewModel.deviceConfig }
 
-    enum DeviceSheet: Identifiable {
-        case radio, txPower, tuning, name, gps, battery, firmware
-        var id: String { String(describing: self) }
+    // MARK: - Row views (shared between platforms)
+
+    private var nameRow: some View {
+        HStack {
+            Label("Name", systemImage: "textformat")
+                .foregroundStyle(MeshTheme.accent)
+            Spacer()
+            Text(config.deviceName.isEmpty ? (viewModel.connectedDeviceName ?? "\u{2014}") : config.deviceName)
+                .foregroundStyle(MeshTheme.textSecondary)
+        }
     }
+
+    private var radioRow: some View {
+        let freqMHz = String(format: "%.3f", Double(config.radioFrequency) / 1000.0)
+        let bwKHz = String(format: "%.1f", Double(config.radioBandwidth) / 1000.0)
+        let presetName = detectPreset()
+        return HStack {
+            Label("Radio", systemImage: "antenna.radiowaves.left.and.right")
+                .foregroundStyle(MeshTheme.accent)
+            Spacer()
+            VStack(alignment: .trailing, spacing: 2) {
+                Text("\(freqMHz) MHz \u{2022} \(bwKHz)kHz \u{2022} SF\(config.radioSpreadingFactor) CR\(config.radioCodingRate)")
+                    .font(.caption)
+                    .foregroundStyle(MeshTheme.textSecondary)
+                Text(presetName ?? "Custom")
+                    .font(.caption2)
+                    .foregroundStyle(presetName != nil ? .green : .orange)
+            }
+        }
+    }
+
+    private var txPowerRow: some View {
+        HStack {
+            Label("TX Power", systemImage: "bolt.fill")
+                .foregroundStyle(MeshTheme.accent)
+            Spacer()
+            Text("\(config.radioTXPower)/\(config.maxTXPower) dBm")
+                .foregroundStyle(MeshTheme.textSecondary)
+        }
+    }
+
+    private var tuningRow: some View {
+        HStack {
+            Label("Tuning", systemImage: "tuningfork")
+                .foregroundStyle(MeshTheme.accent)
+            Spacer()
+            Text("RX \(String(format: "%.1f", config.rxDelaySeconds))s \u{2022} Air \(String(format: "%.1f", config.airtimeMultiplier))x")
+                .font(.caption)
+                .foregroundStyle(MeshTheme.textSecondary)
+        }
+    }
+
+    private var gpsRow: some View {
+        HStack {
+            Label("GPS", systemImage: "location.fill")
+                .foregroundStyle(MeshTheme.accent)
+            Spacer()
+            if config.latitude != 0 || config.longitude != 0 {
+                Text("\(String(format: "%.4f", config.latitude)), \(String(format: "%.4f", config.longitude))")
+                    .font(.caption)
+                    .foregroundStyle(MeshTheme.textSecondary)
+            } else {
+                Text("Not set")
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+            }
+        }
+    }
+
+    private var batteryRow: some View {
+        HStack {
+            Label("Battery", systemImage: "battery.50percent")
+                .foregroundStyle(MeshTheme.accent)
+            Spacer()
+            let battV = String(format: "%.2f", Double(config.batteryMillivolts) / 1000.0)
+            let battPct = config.batteryPercent()
+            Text(battPct > 0 ? "\(battV)V (\(battPct)%)" : "\(battV)V")
+                .foregroundStyle(MeshTheme.textSecondary)
+        }
+    }
+
+    private var firmwareRow: some View {
+        HStack {
+            Label("Firmware", systemImage: "cpu")
+                .foregroundStyle(MeshTheme.accent)
+            Spacer()
+            Text(config.semanticVersion.isEmpty ? "v\(config.firmwareVersion)" : config.semanticVersion)
+                .foregroundStyle(MeshTheme.textSecondary)
+        }
+    }
+
+    // MARK: - Body (platform-specific)
 
     var body: some View {
         Section {
-            Button { activeSheet = .name } label: {
-                HStack {
-                    Label("Name", systemImage: "textformat")
-                        .foregroundStyle(MeshTheme.accent)
-                    Spacer()
-                    Text(config.deviceName.isEmpty ? (viewModel.connectedDeviceName ?? "\u{2014}") : config.deviceName)
-                        .foregroundStyle(MeshTheme.textSecondary)
-                    Image(systemName: "chevron.right")
-                        .font(.caption2)
-                        .foregroundStyle(MeshTheme.textSecondary)
-                }
-            }
-            .buttonStyle(.plain)
-            .listRowBackground(MeshTheme.surface)
-
+            #if os(macOS) || targetEnvironment(macCatalyst)
+            // macOS/Catalyst: NavigationLink pushes (sheets bounce)
+            NavigationLink { NameEditorSheet(viewModel: viewModel) } label: { nameRow }
+                .listRowBackground(MeshTheme.surface)
             if config.radioFrequency > 0 {
-                Button { activeSheet = .radio } label: {
-                    let freqMHz = String(format: "%.3f", Double(config.radioFrequency) / 1000.0)
-                    let bwKHz = String(format: "%.1f", Double(config.radioBandwidth) / 1000.0)
-                    let presetName = detectPreset()
-                    HStack {
-                        Label("Radio", systemImage: "antenna.radiowaves.left.and.right")
-                            .foregroundStyle(MeshTheme.accent)
-                        Spacer()
-                        VStack(alignment: .trailing, spacing: 2) {
-                            Text("\(freqMHz) MHz \u{2022} \(bwKHz)kHz \u{2022} SF\(config.radioSpreadingFactor) CR\(config.radioCodingRate)")
-                                .font(.caption)
-                                .foregroundStyle(MeshTheme.textSecondary)
-                            Text(presetName ?? "Custom")
-                                .font(.caption2)
-                                .foregroundStyle(presetName != nil ? .green : .orange)
-                        }
-                    }
-                }
-                .buttonStyle(.plain)
+                NavigationLink { RadioSection(viewModel: viewModel).navigationTitle("Radio Settings") } label: { radioRow }
+                    .listRowBackground(MeshTheme.surface)
+                NavigationLink { TxPowerEditorSheet(viewModel: viewModel) } label: { txPowerRow }
+                    .listRowBackground(MeshTheme.surface)
+                NavigationLink { TuningEditorSheet(viewModel: viewModel) } label: { tuningRow }
+                    .listRowBackground(MeshTheme.surface)
+            }
+            NavigationLink { GPSEditorSheet(viewModel: viewModel) } label: { gpsRow }
                 .listRowBackground(MeshTheme.surface)
-
-                Button { activeSheet = .txPower } label: {
-                    HStack {
-                        Label("TX Power", systemImage: "bolt.fill")
-                            .foregroundStyle(MeshTheme.accent)
-                        Spacer()
-                        Text("\(config.radioTXPower)/\(config.maxTXPower) dBm")
-                            .foregroundStyle(MeshTheme.textSecondary)
-                    }
-                }
-                .buttonStyle(.plain)
+            NavigationLink { BatteryEditorSheet(viewModel: viewModel, batteryChemistryRaw: $batteryChemistryRaw) } label: { batteryRow }
                 .listRowBackground(MeshTheme.surface)
-
-                Button { activeSheet = .tuning } label: {
-                    HStack {
-                        Label("Tuning", systemImage: "tuningfork")
-                            .foregroundStyle(MeshTheme.accent)
-                        Spacer()
-                        Text("RX \(String(format: "%.1f", config.rxDelaySeconds))s \u{2022} Air \(String(format: "%.1f", config.airtimeMultiplier))x")
-                            .font(.caption)
-                            .foregroundStyle(MeshTheme.textSecondary)
-                    }
-                }
-                .buttonStyle(.plain)
+            NavigationLink { FirmwareDetailSheet(viewModel: viewModel) } label: { firmwareRow }
                 .listRowBackground(MeshTheme.surface)
-            }
-
-            Button { activeSheet = .gps } label: {
-                HStack {
-                    Label("GPS", systemImage: "location.fill")
-                        .foregroundStyle(MeshTheme.accent)
-                    Spacer()
-                    if config.latitude != 0 || config.longitude != 0 {
-                        Text("\(String(format: "%.4f", config.latitude)), \(String(format: "%.4f", config.longitude))")
-                            .font(.caption)
-                            .foregroundStyle(MeshTheme.textSecondary)
-                    } else {
-                        Text("Not set")
-                            .font(.caption)
-                            .foregroundStyle(.orange)
-                    }
-                }
-            }
-            .buttonStyle(.plain)
-            .listRowBackground(MeshTheme.surface)
-
-            Button { activeSheet = .battery } label: {
-                HStack {
-                    Label("Battery", systemImage: "battery.50percent")
-                        .foregroundStyle(MeshTheme.accent)
-                    Spacer()
-                    let battV = String(format: "%.2f", Double(config.batteryMillivolts) / 1000.0)
-                    let battPct = config.batteryPercent()
-                    Text(battPct > 0 ? "\(battV)V (\(battPct)%)" : "\(battV)V")
-                        .foregroundStyle(MeshTheme.textSecondary)
-                }
-            }
-            .buttonStyle(.plain)
-            .listRowBackground(MeshTheme.surface)
-
-            Button { activeSheet = .firmware } label: {
-                HStack {
-                    Label("Firmware", systemImage: "cpu")
-                        .foregroundStyle(MeshTheme.accent)
-                    Spacer()
-                    Text(config.semanticVersion.isEmpty ? "v\(config.firmwareVersion)" : config.semanticVersion)
-                        .foregroundStyle(MeshTheme.textSecondary)
-                    Image(systemName: "chevron.right")
-                        .font(.caption2)
-                        .foregroundStyle(MeshTheme.textSecondary)
-                }
-            }
-            .buttonStyle(.plain)
-            .listRowBackground(MeshTheme.surface)
+            #else
+            // iOS: Button + .sheet
+            iOSDeviceRows
+            #endif
         } header: {
             Text("Device")
                 .foregroundStyle(MeshTheme.textSecondary)
@@ -626,53 +624,60 @@ struct DeviceInfoSection: View {
             Text("Tap any row to view or change that setting on your connected radio.")
                 .font(.caption2)
         }
-        #if targetEnvironment(macCatalyst)
-        .fullScreenCover(item: $activeSheet) { sheet in
-            NavigationStack {
-                editorContent(for: sheet)
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button("Done") { activeSheet = nil }
-                        }
-                    }
-            }
-            .meshTheme()
-        }
-        #else
-        .sheet(item: $activeSheet) { sheet in
-            NavigationStack {
-                editorContent(for: sheet)
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button("Done") { activeSheet = nil }
-                        }
-                    }
-            }
-            .meshTheme()
-        }
-        #endif
     }
 
-    @ViewBuilder
-    private func editorContent(for sheet: DeviceSheet) -> some View {
-        switch sheet {
-        case .name:
-            NameEditorSheet(viewModel: viewModel)
-        case .radio:
-            RadioSection(viewModel: viewModel)
-                .navigationTitle("Radio Settings")
-        case .txPower:
-            TxPowerEditorSheet(viewModel: viewModel)
-        case .tuning:
-            TuningEditorSheet(viewModel: viewModel)
-        case .gps:
-            GPSEditorSheet(viewModel: viewModel)
-        case .battery:
-            BatteryEditorSheet(viewModel: viewModel, batteryChemistryRaw: $batteryChemistryRaw)
-        case .firmware:
-            FirmwareDetailSheet(viewModel: viewModel)
+    // MARK: - iOS sheet-based rows
+
+    #if !os(macOS) && !targetEnvironment(macCatalyst)
+    @State private var activeSheet: DeviceSheet?
+
+    enum DeviceSheet: Identifiable {
+        case radio, txPower, tuning, name, gps, battery, firmware
+        var id: String { String(describing: self) }
+    }
+
+    private var iOSDeviceRows: some View {
+        Group {
+            Button { activeSheet = .name } label: { nameRow }
+                .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
+            if config.radioFrequency > 0 {
+                Button { activeSheet = .radio } label: { radioRow }
+                    .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
+                Button { activeSheet = .txPower } label: { txPowerRow }
+                    .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
+                Button { activeSheet = .tuning } label: { tuningRow }
+                    .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
+            }
+            Button { activeSheet = .gps } label: { gpsRow }
+                .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
+            Button { activeSheet = .battery } label: { batteryRow }
+                .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
+            Button { activeSheet = .firmware } label: { firmwareRow }
+                .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
+        }
+        .sheet(item: $activeSheet) { sheet in
+            NavigationStack {
+                Group {
+                    switch sheet {
+                    case .name: NameEditorSheet(viewModel: viewModel)
+                    case .radio: RadioSection(viewModel: viewModel).navigationTitle("Radio Settings")
+                    case .txPower: TxPowerEditorSheet(viewModel: viewModel)
+                    case .tuning: TuningEditorSheet(viewModel: viewModel)
+                    case .gps: GPSEditorSheet(viewModel: viewModel)
+                    case .battery: BatteryEditorSheet(viewModel: viewModel, batteryChemistryRaw: $batteryChemistryRaw)
+                    case .firmware: FirmwareDetailSheet(viewModel: viewModel)
+                    }
+                }
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Done") { activeSheet = nil }
+                    }
+                }
+            }
+            .meshTheme()
         }
     }
+    #endif
 
     private func detectPreset() -> String? {
         let freqKHz = Double(config.radioFrequency)
