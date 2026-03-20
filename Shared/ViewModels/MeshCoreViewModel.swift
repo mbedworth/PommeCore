@@ -1301,19 +1301,43 @@ final class MeshCoreViewModel: ObservableObject {
 
         DebugLogger.shared.log("USB CLI: management session created with admin access", level: .info)
 
-        // Auto-sync device clock via CLI — register in session FIFO
+        // Query clock first, then sync if needed — register in session FIFO
         // so the response is consumed and doesn't pollute the next command (ver)
-        let epoch = Int(Date().timeIntervalSince1970)
-        let timeCmd = "time \(epoch)"
-        session.commandSent(timeCmd)
-        usbManager.sendCLI(timeCmd)
-        usbCLIOutput.append(USBTerminalLine(text: "> \(timeCmd)", isCommand: true))
-        DebugLogger.shared.log("CLOCK: auto-synced USB CLI device time to \(epoch)", level: .info)
+        session.commandSent("clock")
+        usbManager.sendCLI("clock")
+        usbCLIOutput.append(USBTerminalLine(text: "> clock", isCommand: true))
 
-        // Brief delay for clock response before starting settings fetch
+        // Brief delay for clock response, then sync if off by >60s, then fetch settings
         Task { [weak self] in
             try? await Task.sleep(nanoseconds: 500_000_000)
-            self?.fetchUSBDeviceSettings()
+            guard let self else { return }
+
+            // Check if device clock is already close to correct
+            let now = Int(Date().timeIntervalSince1970)
+            var needsSync = true
+            if let clockResponse = session.settings["clock"] {
+                let nums = clockResponse.components(separatedBy: CharacterSet.decimalDigits.inverted)
+                    .filter { $0.count >= 10 }
+                if let epochStr = nums.first, let deviceEpoch = Int(epochStr) {
+                    let drift = abs(now - deviceEpoch)
+                    if drift < 60 {
+                        needsSync = false
+                        DebugLogger.shared.log("CLOCK: device already in sync (drift \(drift)s), skipping", level: .info)
+                    }
+                }
+            }
+
+            if needsSync {
+                let epoch = now
+                let timeCmd = "time \(epoch)"
+                session.commandSent(timeCmd)
+                self.usbManager.sendCLI(timeCmd)
+                self.usbCLIOutput.append(USBTerminalLine(text: "> \(timeCmd)", isCommand: true))
+                DebugLogger.shared.log("CLOCK: auto-synced USB CLI device time to \(epoch)", level: .info)
+                try? await Task.sleep(nanoseconds: 300_000_000)
+            }
+
+            self.fetchUSBDeviceSettings()
         }
     }
 
@@ -1681,6 +1705,13 @@ final class MeshCoreViewModel: ObservableObject {
     }
 
     func sendAdvertise(type: UInt8 = 0) {
+        #if os(macOS) || targetEnvironment(macCatalyst)
+        if isUSBCLIConnected {
+            if type == 1 { usbManager.sendCLI("advert") }
+            else { usbManager.sendCLI("advert.zerohop") }
+            return
+        }
+        #endif
         // Apply GPS fudge before advertising so the broadcast position is fudged
         #if !os(watchOS)
         let radius = UserDefaults.standard.double(forKey: "locationPrivacyRadius")
@@ -1830,6 +1861,12 @@ final class MeshCoreViewModel: ObservableObject {
     }
 
     func refreshAllSettings() {
+        #if os(macOS) || targetEnvironment(macCatalyst)
+        if isUSBCLIConnected {
+            fetchUSBSettings()
+            return
+        }
+        #endif
         deviceConfig.isLoading = true
         deviceConfig.loadedSections = []
         requestDeviceInfo()
@@ -1847,8 +1884,15 @@ final class MeshCoreViewModel: ObservableObject {
     // MARK: - Settings Commands
 
     func setAdvertName(_ name: String) {
+        #if os(macOS) || targetEnvironment(macCatalyst)
+        if isUSBCLIConnected {
+            usbManager.sendCLI("set name \(name)")
+            deviceConfig.deviceName = name
+            connectedDeviceName = "USB: \(name)"
+            return
+        }
+        #endif
         sendCommand(MeshCoreProtocol.buildSetAdvertName(name), label: "SET_ADVERT_NAME")
-        // Update local config so UI reflects the change immediately
         deviceConfig.deviceName = name
     }
 
@@ -1857,6 +1901,15 @@ final class MeshCoreViewModel: ObservableObject {
     /// Remote management "set lat/lon" goes to other devices and is not fudged.
     func setAdvertLatLon(latitude: Double, longitude: Double) {
         let (fLat, fLon) = fudgeLocation(lat: latitude, lon: longitude)
+        #if os(macOS) || targetEnvironment(macCatalyst)
+        if isUSBCLIConnected {
+            usbManager.sendCLI("set lat \(String(format: "%.6f", fLat))")
+            usbManager.sendCLI("set lon \(String(format: "%.6f", fLon))")
+            deviceConfig.latitude = fLat
+            deviceConfig.longitude = fLon
+            return
+        }
+        #endif
         sendCommand(MeshCoreProtocol.buildSetAdvertLatLon(latitude: fLat, longitude: fLon), label: "SET_LATLON")
     }
 
@@ -1916,6 +1969,20 @@ final class MeshCoreViewModel: ObservableObject {
     }
 
     func setRadioParams(frequency: UInt32, bandwidth: UInt32, spreadingFactor: UInt8, codingRate: UInt8, repeatMode: Bool) {
+        #if os(macOS) || targetEnvironment(macCatalyst)
+        if isUSBCLIConnected {
+            // CLI format: "set radio freq_kHz,bw_kHz,sf,cr"
+            usbManager.sendCLI("set radio \(frequency),\(bandwidth),\(spreadingFactor),\(codingRate)")
+            if repeatMode { usbManager.sendCLI("set repeat on") }
+            else { usbManager.sendCLI("set repeat off") }
+            deviceConfig.radioFrequency = frequency
+            deviceConfig.radioBandwidth = bandwidth
+            deviceConfig.radioSpreadingFactor = spreadingFactor
+            deviceConfig.radioCodingRate = codingRate
+            deviceConfig.repeatMode = repeatMode
+            return
+        }
+        #endif
         sendCommand(MeshCoreProtocol.buildSetRadioParams(
             frequency: frequency, bandwidth: bandwidth,
             spreadingFactor: spreadingFactor, codingRate: codingRate,
@@ -1924,25 +1991,49 @@ final class MeshCoreViewModel: ObservableObject {
     }
 
     func setRadioTXPower(_ power: UInt8) {
+        #if os(macOS) || targetEnvironment(macCatalyst)
+        if isUSBCLIConnected {
+            usbManager.sendCLI("set tx \(power)")
+            deviceConfig.radioTXPower = power
+            return
+        }
+        #endif
         sendCommand(MeshCoreProtocol.buildSetRadioTXPower(power), label: "SET_TX_POWER")
     }
 
     func setTuningParams(rxDelayBase: UInt32, airtimeFactor: UInt32) {
+        #if os(macOS) || targetEnvironment(macCatalyst)
+        if isUSBCLIConnected {
+            let rx = Double(rxDelayBase) / 1000.0
+            let af = Double(airtimeFactor) / 1000.0
+            usbManager.sendCLI("set rxdelay \(String(format: "%.1f", rx))")
+            usbManager.sendCLI("set af \(String(format: "%.1f", af))")
+            deviceConfig.rxDelayBase = rxDelayBase
+            deviceConfig.airtimeFactor = airtimeFactor
+            return
+        }
+        #endif
         Self.logger.info("TUNING SET: rxDelay=\(rxDelayBase) airtime=\(airtimeFactor)")
         let frame = MeshCoreProtocol.buildSetTuningParams(rxDelayBase: rxDelayBase, airtimeFactor: airtimeFactor)
         Self.logger.info("TUNING TX: [\(frame.count) bytes] \(frame.map { String(format: "%02X", $0) }.joined(separator: " "))")
         sendCommand(frame, label: "SET_TUNING")
-        // Optimistic local update
         deviceConfig.rxDelayBase = rxDelayBase
         deviceConfig.airtimeFactor = airtimeFactor
-        // Read back after 1s to confirm device accepted
         Task { @MainActor [weak self] in
-            try? await Task.sleep(nanoseconds: 1_000_000_000) // 1s
+            try? await Task.sleep(nanoseconds: 1_000_000_000)
             self?.requestTuningParams()
         }
     }
 
     func setOtherParams(manualAddContacts: UInt8, telemetryBase: UInt8, telemetryLocation: UInt8, advertLocPolicy: UInt8, multiACK: UInt8) {
+        #if os(macOS) || targetEnvironment(macCatalyst)
+        if isUSBCLIConnected {
+            usbManager.sendCLI("set multi.acks \(multiACK)")
+            deviceConfig.multiACK = multiACK
+            deviceConfig.advertLocPolicy = advertLocPolicy
+            return
+        }
+        #endif
         DebugLogger.shared.log("SET_OTHER_PARAMS: manual=\(manualAddContacts) telBase=\(telemetryBase) telLoc=\(telemetryLocation) advLoc=\(advertLocPolicy) multiACK=\(multiACK)", level: .tx)
         sendCommand(MeshCoreProtocol.buildSetOtherParams(
             manualAddContacts: manualAddContacts, telemetryBase: telemetryBase,
@@ -1956,8 +2047,14 @@ final class MeshCoreViewModel: ObservableObject {
     }
 
     func setDeviceTime(epochSeconds: UInt32) {
+        #if os(macOS) || targetEnvironment(macCatalyst)
+        if isUSBCLIConnected {
+            usbManager.sendCLI("time \(epochSeconds)")
+            deviceConfig.deviceTimeEpoch = epochSeconds
+            return
+        }
+        #endif
         sendCommand(MeshCoreProtocol.buildSetDeviceTime(epochSeconds: epochSeconds), label: "SET_TIME")
-        // Read back the device time to confirm and update display
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
             self?.requestDeviceTime()
         }
@@ -1968,10 +2065,22 @@ final class MeshCoreViewModel: ObservableObject {
     }
 
     func rebootDevice() {
+        #if os(macOS) || targetEnvironment(macCatalyst)
+        if isUSBCLIConnected {
+            usbManager.sendCLI("reboot")
+            return
+        }
+        #endif
         sendCommand(MeshCoreProtocol.buildReboot(), label: "REBOOT")
     }
 
     func factoryReset() {
+        #if os(macOS) || targetEnvironment(macCatalyst)
+        if isUSBCLIConnected {
+            usbManager.sendCLI("erase")
+            return
+        }
+        #endif
         sendCommand(MeshCoreProtocol.buildFactoryReset(), label: "FACTORY_RESET")
     }
 
