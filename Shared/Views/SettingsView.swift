@@ -11,7 +11,6 @@ struct SettingsView: View {
     @AppStorage("batteryChemistry") private var batteryChemistryRaw: String = BatteryChemistry.lipo.rawValue
     @AppStorage("appTheme") private var appTheme: String = AppTheme.system.rawValue
     @State private var statsExpanded = false
-    @State private var clockSynced = false
     @StateObject private var tipJar = TipJarManager()
     @State private var radioToDelete: String?
     @State private var showDeleteRadioConfirm = false
@@ -21,7 +20,7 @@ struct SettingsView: View {
     @State private var activeSheet: DeviceSheet?
 
     enum DeviceSheet: Identifiable {
-        case radio, txPower, name, gps, battery, firmware
+        case radio, txPower, tuning, name, gps, battery, firmware
         var id: String { String(describing: self) }
     }
     @State private var showPurgeOptions = false
@@ -118,9 +117,6 @@ struct SettingsView: View {
             Section {
                 DisclosureGroup("Advanced") {
                     if isConnected {
-                        radioSection
-                        tuningSection
-                        timeSection
                         if !viewModel.deviceConfig.customVars.isEmpty {
                             customVarsSection
                         }
@@ -530,6 +526,22 @@ private extension SettingsView {
                 }
                 .buttonStyle(.plain)
                 .listRowBackground(MeshTheme.surface)
+
+                // Tuning — tap opens editor
+                Button { activeSheet = .tuning } label: {
+                    HStack {
+                        Label("Tuning", systemImage: "tuningfork")
+                            .foregroundStyle(MeshTheme.accent)
+                        Spacer()
+                        let rx = config.rxDelaySeconds
+                        let air = config.airtimeMultiplier
+                        Text("RX \(String(format: "%.1f", rx))s \u{2022} Air \(String(format: "%.1f", air))x")
+                            .font(.caption)
+                            .foregroundStyle(MeshTheme.textSecondary)
+                    }
+                }
+                .buttonStyle(.plain)
+                .listRowBackground(MeshTheme.surface)
             }
 
             // GPS — tap opens editor
@@ -602,6 +614,8 @@ private extension SettingsView {
                 .meshTheme()
             case .txPower:
                 TxPowerEditorSheet(viewModel: viewModel)
+            case .tuning:
+                TuningEditorSheet(viewModel: viewModel)
             case .gps:
                 GPSEditorSheet(viewModel: viewModel)
             case .battery:
@@ -1186,90 +1200,6 @@ struct RadioSection: View {
     }
 }
 
-// MARK: - Section 5: Tuning Parameters (Fix #7: populate values)
-
-private extension SettingsView {
-    var tuningSection: some View {
-        TuningSection(viewModel: viewModel)
-    }
-}
-
-struct TuningSection: View {
-    @ObservedObject var viewModel: MeshCoreViewModel
-    @State private var rxDelay: String = ""
-    @State private var airtime: String = ""
-    @State private var saveState: SaveButtonState = .idle
-
-    @State private var isExpanded = false
-
-    var body: some View {
-        // Tuning parameters
-        Section {
-            DisclosureGroup(isExpanded: $isExpanded) {
-                HStack {
-                    Image(systemName: "timer")
-                        .foregroundStyle(MeshTheme.accent)
-                        .frame(width: 24)
-                    Text("RX Delay Base (s)")
-                        .foregroundStyle(MeshTheme.accent)
-                    Spacer()
-                    #if os(watchOS)
-                    TextField("seconds", text: $rxDelay)
-                        .foregroundStyle(MeshTheme.textPrimary)
-                        .frame(width: 80)
-                    #else
-                    TextField("seconds", text: $rxDelay)
-                        .foregroundStyle(MeshTheme.textPrimary)
-                        .textFieldStyle(MeshTextFieldStyle())
-                        .frame(width: 100)
-                    #endif
-                }
-
-                HStack {
-                    Image(systemName: "clock.arrow.2.circlepath")
-                        .foregroundStyle(MeshTheme.accent)
-                        .frame(width: 24)
-                    Text("Airtime Factor")
-                        .foregroundStyle(MeshTheme.accent)
-                    Spacer()
-                    #if os(watchOS)
-                    TextField("multiplier", text: $airtime)
-                        .foregroundStyle(MeshTheme.textPrimary)
-                        .frame(width: 80)
-                    #else
-                    TextField("multiplier", text: $airtime)
-                        .foregroundStyle(MeshTheme.textPrimary)
-                        .textFieldStyle(MeshTextFieldStyle())
-                        .frame(width: 100)
-                    #endif
-                }
-
-                SaveButton(state: saveState, label: "Apply Tuning") {
-                    let rx = UInt32((Double(rxDelay) ?? 0) * 1000)
-                    let at = UInt32((Double(airtime) ?? 0) * 1000)
-                    viewModel.setTuningParams(rxDelayBase: rx, airtimeFactor: at)
-                    showSaved($saveState)
-                }
-            } label: {
-                Label("Tuning Parameters", systemImage: "slider.horizontal.3")
-                    .foregroundStyle(MeshTheme.accent)
-            }
-            .listRowBackground(MeshTheme.surface)
-        } footer: {
-            Text("Advanced — adjust timing parameters for mesh performance. Default values work well for most setups.")
-                .font(.caption2)
-        }
-        .onAppear { loadFromConfig() }
-        .onChange(of: viewModel.deviceConfig.rxDelayBase) { _ in loadFromConfig() }
-    }
-
-    private func loadFromConfig() {
-        let c = viewModel.deviceConfig
-        rxDelay = c.rxDelayBase == 0 ? "0" : String(format: "%.1f", c.rxDelaySeconds)
-        airtime = c.airtimeFactor == 0 ? "0" : String(format: "%.1f", c.airtimeMultiplier)
-    }
-}
-
 // MARK: - Section 6: Privacy & Security (Fix #8: telemetry pickers)
 
 private extension SettingsView {
@@ -1598,67 +1528,6 @@ struct PrivacySection: View {
         if autoAddRoom { bitmask |= 0x04 }
         if autoAddSensor { bitmask |= 0x08 }
         viewModel.setAutoAddConfig(bitmask: bitmask)
-    }
-}
-
-// MARK: - Section 7: Time
-
-private extension SettingsView {
-    var timeSection: some View {
-        Section {
-            HStack {
-                Image(systemName: "clock")
-                    .foregroundStyle(MeshTheme.accent)
-                    .frame(width: 24)
-                Text("Device Time")
-                    .foregroundStyle(MeshTheme.accent)
-                Spacer()
-                Text(deviceTimeString)
-                    .foregroundStyle(MeshTheme.textPrimary)
-                    .font(.caption)
-            }
-            .listRowBackground(MeshTheme.surface)
-
-            if let deviceDate = config.deviceTimeDate, abs(deviceDate.timeIntervalSince(Date())) > 86400 {
-                HStack(spacing: 8) {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundStyle(.orange)
-                    Text("Device clock is off by more than 24 hours. Tap \u{2018}Sync Device Clock\u{2019} to fix.")
-                        .font(.caption)
-                        .foregroundStyle(.orange)
-                }
-                .listRowBackground(MeshTheme.surface)
-            }
-
-            Button {
-                let epoch = UInt32(Date().timeIntervalSince1970)
-                viewModel.setDeviceTime(epochSeconds: epoch)
-                clockSynced = true
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2) { clockSynced = false }
-            } label: {
-                HStack {
-                    Image(systemName: clockSynced ? "checkmark.circle.fill" : "arrow.triangle.2.circlepath")
-                        .foregroundStyle(clockSynced ? MeshTheme.connected : MeshTheme.accent)
-                        .frame(width: 24)
-                    Text(clockSynced ? "Clock Synced" : "Sync Device Clock")
-                        .foregroundStyle(clockSynced ? MeshTheme.connected : MeshTheme.accent)
-                    Spacer()
-                }
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .listRowBackground(MeshTheme.surface)
-        } header: {
-            sectionHeader("Time")
-        }
-    }
-
-    var deviceTimeString: String {
-        guard let date = config.deviceTimeDate else { return "\u{2014}" }
-        let fmt = DateFormatter()
-        fmt.dateStyle = .medium
-        fmt.timeStyle = .medium
-        return fmt.string(from: date)
     }
 }
 
@@ -2493,6 +2362,16 @@ struct FirmwareDetailSheet: View {
                             .textSelection(.enabled)
                     }
                 }
+                Section {
+                    if let date = config.deviceTimeDate {
+                        LabeledContent("Device Clock") {
+                            Text(date, style: .date) + Text(" ") + Text(date, style: .time)
+                        }
+                    }
+                    LabeledContent("Clock Status", value: "Auto-synced on connect")
+                } header: {
+                    Text("Time")
+                }
             }
             .meshListStyle()
             .navigationTitle("Device Details")
@@ -2546,6 +2425,67 @@ struct TxPowerEditorSheet: View {
                 }
             }
             .onAppear { txPower = Double(viewModel.deviceConfig.radioTXPower) }
+        }
+        .meshTheme()
+    }
+}
+
+// MARK: - Tuning Editor
+
+struct TuningEditorSheet: View {
+    @ObservedObject var viewModel: MeshCoreViewModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var rxDelay: Double = 0
+    @State private var airtimeFactor: Double = 0
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    HStack {
+                        Text("RX Delay")
+                        Spacer()
+                        Text("\(String(format: "%.1f", rxDelay))s").fontWeight(.medium)
+                    }
+                    Slider(value: $rxDelay, in: 0...20, step: 0.5)
+                        .tint(MeshTheme.accent)
+                } footer: {
+                    Text("Base delay for SNR-based packet prioritization. Higher values give better-signal packets more priority. 0 = disabled.")
+                        .font(.caption2)
+                }
+
+                Section {
+                    HStack {
+                        Text("Airtime Factor")
+                        Spacer()
+                        Text("\(String(format: "%.1f", airtimeFactor))x").fontWeight(.medium)
+                    }
+                    Slider(value: $airtimeFactor, in: 0...9, step: 0.5)
+                        .tint(MeshTheme.accent)
+                } footer: {
+                    Text("Multiplier for airtime budget. Higher values allow more frequent transmissions. 0 = no limit.")
+                        .font(.caption2)
+                }
+            }
+            .navigationTitle("Tuning")
+            #if !os(macOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Apply") {
+                        let rx = UInt32(rxDelay * 1000)
+                        let air = UInt32(airtimeFactor * 1000)
+                        viewModel.setTuningParams(rxDelayBase: rx, airtimeFactor: air)
+                        dismiss()
+                    }
+                }
+            }
+            .onAppear {
+                rxDelay = viewModel.deviceConfig.rxDelaySeconds
+                airtimeFactor = viewModel.deviceConfig.airtimeMultiplier
+            }
         }
         .meshTheme()
     }
