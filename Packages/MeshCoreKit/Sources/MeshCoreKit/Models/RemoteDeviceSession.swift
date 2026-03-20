@@ -116,13 +116,38 @@ public final class RemoteDeviceSession: ObservableObject {
 
     /// Record a CLI response received from the device.
     public func responseReceived(_ text: String) {
-        let trimmedResponse = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        var trimmedResponse = text.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // Strip "-> " prefix from USB serial CLI responses
+        if trimmedResponse.hasPrefix("->") {
+            trimmedResponse = String(trimmedResponse.dropFirst(2)).trimmingCharacters(in: .whitespaces)
+        }
+
+        // Skip empty lines
+        guard !trimmedResponse.isEmpty else { return }
 
         // FIFO match: find the first unanswered command (oldest pending)
         if let idx = cliHistory.firstIndex(where: { !$0.isComplete }) {
-            cliHistory[idx].response = trimmedResponse
-            // Derive setting key from the command that triggered this response
             let command = cliHistory[idx].command
+
+            // Skip echoed command lines (USB serial echoes "get name" before sending the value)
+            if trimmedResponse.lowercased() == command.lowercased() { return }
+            // Skip "key = value" lines where key matches the command's "get X" pattern
+            // e.g. "get name" echoed as "name = MyDevice" — keep the value part
+            if command.lowercased().hasPrefix("get ") {
+                let settingKey = String(command.dropFirst(4)).trimmingCharacters(in: .whitespaces).lowercased()
+                if let eqRange = trimmedResponse.range(of: " = ") {
+                    let responseKey = String(trimmedResponse[trimmedResponse.startIndex..<eqRange.lowerBound])
+                        .trimmingCharacters(in: .whitespaces).lowercased()
+                    if responseKey == settingKey {
+                        // Extract just the value after " = "
+                        trimmedResponse = String(trimmedResponse[eqRange.upperBound...])
+                            .trimmingCharacters(in: .whitespaces)
+                    }
+                }
+            }
+
+            cliHistory[idx].response = trimmedResponse
             parseSettingFromCommand(command, response: trimmedResponse)
         } else {
             // Unsolicited response — add as standalone, try "key = value" fallback
