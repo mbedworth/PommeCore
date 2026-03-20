@@ -1151,6 +1151,10 @@ final class MeshCoreViewModel: ObservableObject {
     }
 
     private func onDeviceReady() {
+        #if os(macOS) || targetEnvironment(macCatalyst)
+        // USB CLI mode handles its own settings fetch — don't send binary commands
+        if usbManager.isConnected && usbManager.detectedMode == .cli { return }
+        #endif
         refreshAllSettings()
         requestContacts(fullSync: true)
         isSyncingChannels = true
@@ -1161,6 +1165,12 @@ final class MeshCoreViewModel: ObservableObject {
     /// Manually refresh contacts, channels, and settings from the device.
     func refreshAll() {
         guard connectionState == .ready else { return }
+        #if os(macOS) || targetEnvironment(macCatalyst)
+        if isUSBCLIConnected {
+            fetchUSBSettings()
+            return
+        }
+        #endif
         refreshAllSettings()
         requestContacts(fullSync: true)
     }
@@ -1291,13 +1301,20 @@ final class MeshCoreViewModel: ObservableObject {
 
         DebugLogger.shared.log("USB CLI: management session created with admin access", level: .info)
 
-        // Auto-sync device clock via CLI
+        // Auto-sync device clock via CLI — register in session FIFO
+        // so the response is consumed and doesn't pollute the next command (ver)
         let epoch = Int(Date().timeIntervalSince1970)
-        usbManager.sendCLI("time \(epoch)")
-        usbCLIOutput.append(USBTerminalLine(text: "> time \(epoch)", isCommand: true))
+        let timeCmd = "time \(epoch)"
+        session.commandSent(timeCmd)
+        usbManager.sendCLI(timeCmd)
+        usbCLIOutput.append(USBTerminalLine(text: "> \(timeCmd)", isCommand: true))
         DebugLogger.shared.log("CLOCK: auto-synced USB CLI device time to \(epoch)", level: .info)
 
-        fetchUSBDeviceSettings()
+        // Brief delay for clock response before starting settings fetch
+        Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            self?.fetchUSBDeviceSettings()
+        }
     }
 
     /// Auto-fetch all settings from a USB CLI device.
@@ -1388,17 +1405,23 @@ final class MeshCoreViewModel: ObservableObject {
             DebugLogger.shared.log("CLI MAP: longitude=\(v)", level: .info)
         }
 
-        // Radio params: "get radio" returns "freq_kHz,bw_kHz,sf,cr"
+        // Radio params: "get radio" returns "freq_MHz,bw_kHz,sf,cr" as floats
+        // e.g. "910.5250244,62.5,7,5" → freq in MHz, bw in kHz, sf, cr
+        // deviceConfig stores: radioFrequency in kHz (freq*1000), radioBandwidth in Hz (bw*1000)
         if let radio = settings["radio"] {
             let cleaned = radio.replacingOccurrences(of: " ", with: "")
             let parts = cleaned.split(separator: ",")
             DebugLogger.shared.log("CLI MAP: radio raw='\(radio)' parts=\(parts)", level: .info)
             if parts.count >= 4 {
-                if let freq = UInt32(parts[0]) { config.radioFrequency = freq }
-                if let bw = UInt32(parts[1]) { config.radioBandwidth = bw }
+                if let freqMHz = Double(parts[0]) {
+                    config.radioFrequency = UInt32(freqMHz * 1000) // MHz → kHz
+                }
+                if let bwKHz = Double(parts[1]) {
+                    config.radioBandwidth = UInt32(bwKHz * 1000) // kHz → Hz
+                }
                 if let sf = UInt8(parts[2]) { config.radioSpreadingFactor = sf }
                 if let cr = UInt8(parts[3]) { config.radioCodingRate = cr }
-                DebugLogger.shared.log("CLI MAP: freq=\(config.radioFrequency) bw=\(config.radioBandwidth) sf=\(config.radioSpreadingFactor) cr=\(config.radioCodingRate)", level: .info)
+                DebugLogger.shared.log("CLI MAP: freq=\(config.radioFrequency)kHz bw=\(config.radioBandwidth)Hz sf=\(config.radioSpreadingFactor) cr=\(config.radioCodingRate)", level: .info)
             } else {
                 DebugLogger.shared.log("CLI MAP: radio parse failed — expected 4 comma-separated values, got \(parts.count)", level: .warning)
             }
@@ -1447,11 +1470,17 @@ final class MeshCoreViewModel: ObservableObject {
             }
         }
 
-        // Firmware version from "ver" response
+        // Firmware version from "ver" response — reject if it looks like a clock/time value
         if let ver = settings["ver"] {
             let firstLine = ver.components(separatedBy: .newlines).first ?? ver
-            config.semanticVersion = firstLine.trimmingCharacters(in: .whitespaces)
-            DebugLogger.shared.log("CLI MAP: version='\(config.semanticVersion)'", level: .info)
+            let trimmed = firstLine.trimmingCharacters(in: .whitespaces)
+            // Reject pure numeric (epoch timestamp) or "OK" responses that leaked from time command
+            if !trimmed.isEmpty && UInt64(trimmed) == nil && !trimmed.lowercased().hasPrefix("ok") {
+                config.semanticVersion = trimmed
+                DebugLogger.shared.log("CLI MAP: version='\(config.semanticVersion)'", level: .info)
+            } else {
+                DebugLogger.shared.log("CLI MAP: ver response rejected (looks like clock/OK): '\(trimmed)'", level: .warning)
+            }
         }
 
         // Clock
