@@ -910,6 +910,7 @@ struct RadioPresetPicker: View {
     @State private var presetToConfirm: RadioPreset?
 
     var body: some View {
+        let _ = DebugLogger.shared.log("PICKER BODY: freqKHz=\(currentFreqKHz) bw=\(currentBW) sf=\(currentSF) cr=\(currentCR) selected=\(selectedPresetIndex)", level: .info)
         Section {
             HStack {
                 Image(systemName: "globe")
