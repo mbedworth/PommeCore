@@ -985,20 +985,23 @@ struct RadioPresetPicker: View {
 
     private func detectCurrentPreset() {
         guard currentFreqKHz > 0 else { return }
-        if let idx = radioPresets.firstIndex(where: { p in
-            abs(p.frequencyKHz - currentFreqKHz) < 2.0 &&
-            abs(p.bandwidth - currentBW) < 0.5 &&
-            p.spreadingFactor == currentSF &&
-            p.codingRate == currentCR
-        }) {
-            selectedPresetIndex = idx
-            DebugLogger.shared.log("PRESET: matched '\(radioPresets[idx].name)' freq=\(currentFreqKHz) bw=\(currentBW) sf=\(currentSF) cr=\(currentCR)", level: .info)
-        } else {
-            selectedPresetIndex = -1
-            if let usa = radioPresets.first(where: { $0.name.contains("USA") }) {
-                DebugLogger.shared.log("PRESET: no match. Input freq=\(currentFreqKHz) bw=\(currentBW) sf=\(currentSF) cr=\(currentCR). USA diff: freq=\(abs(currentFreqKHz - usa.frequencyKHz)) bw=\(abs(currentBW - usa.bandwidth)) sf=\(currentSF==usa.spreadingFactor) cr=\(currentCR==usa.codingRate)", level: .warning)
+        DebugLogger.shared.log("DETECT START: input freqKHz=\(currentFreqKHz) bw=\(currentBW) sf=\(currentSF) cr=\(currentCR)", level: .info)
+        for (index, p) in radioPresets.enumerated() {
+            let freqDiff = abs(p.frequencyKHz - currentFreqKHz)
+            let bwDiff = abs(p.bandwidth - currentBW)
+            let sfMatch = p.spreadingFactor == currentSF
+            let crMatch = p.codingRate == currentCR
+            if freqDiff < 100 { // Only log presets that are remotely close in frequency
+                DebugLogger.shared.log("COMPARE[\(index)]: '\(p.name)' presetFreq=\(p.frequencyKHz) freqDiff=\(freqDiff) presetBW=\(p.bandwidth) bwDiff=\(bwDiff) presetSF=\(p.spreadingFactor) sfMatch=\(sfMatch) presetCR=\(p.codingRate) crMatch=\(crMatch)", level: .info)
+            }
+            if freqDiff < 2.0 && bwDiff < 0.5 && sfMatch && crMatch {
+                selectedPresetIndex = index
+                DebugLogger.shared.log("MATCHED: '\(p.name)' at index \(index)", level: .info)
+                return
             }
         }
+        selectedPresetIndex = -1
+        DebugLogger.shared.log("DETECT: no match found among \(radioPresets.count) presets", level: .warning)
     }
 }
 
