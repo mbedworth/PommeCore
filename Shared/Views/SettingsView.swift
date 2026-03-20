@@ -17,12 +17,6 @@ struct SettingsView: View {
     @State private var radioToMigrate: String?
     @State private var showMigrateSheet = false
     @State private var showConnectionHelp = false
-    @State private var activeSheet: DeviceSheet?
-
-    enum DeviceSheet: Identifiable {
-        case radio, txPower, tuning, name, gps, battery, firmware
-        var id: String { String(describing: self) }
-    }
     @State private var showPurgeOptions = false
 
     private var batteryChemistry: BatteryChemistry {
@@ -477,8 +471,27 @@ private extension SettingsView {
 
 private extension SettingsView {
     var deviceInfoSection: some View {
+        DeviceInfoSection(batteryChemistryRaw: $batteryChemistryRaw)
+    }
+
+}
+
+/// Device Info section extracted into its own struct so @State activeSheet
+/// is isolated from parent SettingsView re-renders (prevents sheet auto-dismiss).
+struct DeviceInfoSection: View {
+    @EnvironmentObject var viewModel: MeshCoreViewModel
+    @Binding var batteryChemistryRaw: String
+    @State private var activeSheet: ActiveSheet?
+
+    private var config: DeviceConfig { viewModel.deviceConfig }
+
+    enum ActiveSheet: Identifiable {
+        case radio, txPower, tuning, name, gps, battery, firmware
+        var id: String { String(describing: self) }
+    }
+
+    var body: some View {
         Section {
-            // Name — tap opens editor
             Button { activeSheet = .name } label: {
                 HStack {
                     Label("Name", systemImage: "textformat")
@@ -491,12 +504,11 @@ private extension SettingsView {
             .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
 
-            // Radio — tap opens radio editor in Advanced
             if config.radioFrequency > 0 {
                 Button { activeSheet = .radio } label: {
                     let freqMHz = String(format: "%.3f", Double(config.radioFrequency) / 1000.0)
                     let bwKHz = String(format: "%.1f", Double(config.radioBandwidth) / 1000.0)
-                    let presetName = detectRadioPreset(freqKHz: Double(config.radioFrequency), bw: Double(config.radioBandwidth) / 1000.0, sf: config.radioSpreadingFactor, cr: config.radioCodingRate)
+                    let presetName = detectPreset()
                     HStack {
                         Label("Radio", systemImage: "antenna.radiowaves.left.and.right")
                             .foregroundStyle(MeshTheme.accent)
@@ -514,7 +526,6 @@ private extension SettingsView {
                 .buttonStyle(.plain)
                 .listRowBackground(MeshTheme.surface)
 
-                // TX Power — tap opens editor
                 Button { activeSheet = .txPower } label: {
                     HStack {
                         Label("TX Power", systemImage: "bolt.fill")
@@ -527,15 +538,12 @@ private extension SettingsView {
                 .buttonStyle(.plain)
                 .listRowBackground(MeshTheme.surface)
 
-                // Tuning — tap opens editor
                 Button { activeSheet = .tuning } label: {
                     HStack {
                         Label("Tuning", systemImage: "tuningfork")
                             .foregroundStyle(MeshTheme.accent)
                         Spacer()
-                        let rx = config.rxDelaySeconds
-                        let air = config.airtimeMultiplier
-                        Text("RX \(String(format: "%.1f", rx))s \u{2022} Air \(String(format: "%.1f", air))x")
+                        Text("RX \(String(format: "%.1f", config.rxDelaySeconds))s \u{2022} Air \(String(format: "%.1f", config.airtimeMultiplier))x")
                             .font(.caption)
                             .foregroundStyle(MeshTheme.textSecondary)
                     }
@@ -544,7 +552,6 @@ private extension SettingsView {
                 .listRowBackground(MeshTheme.surface)
             }
 
-            // GPS — tap opens editor
             Button { activeSheet = .gps } label: {
                 HStack {
                     Label("GPS", systemImage: "location.fill")
@@ -564,7 +571,6 @@ private extension SettingsView {
             .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
 
-            // Battery — tap opens editor
             Button { activeSheet = .battery } label: {
                 HStack {
                     Label("Battery", systemImage: "battery.50percent")
@@ -579,7 +585,6 @@ private extension SettingsView {
             .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
 
-            // Firmware — tap shows details
             Button { activeSheet = .firmware } label: {
                 HStack {
                     Label("Firmware", systemImage: "cpu")
@@ -595,7 +600,8 @@ private extension SettingsView {
             .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
         } header: {
-            sectionHeader("Device")
+            Text("Device")
+                .foregroundStyle(MeshTheme.textSecondary)
         }
         .sheet(item: $activeSheet) { sheet in
             switch sheet {
@@ -603,7 +609,7 @@ private extension SettingsView {
                 NameEditorSheet(viewModel: viewModel)
             case .radio:
                 NavigationStack {
-                    radioSection
+                    RadioSection(viewModel: viewModel)
                         .navigationTitle("Radio Settings")
                         .toolbar {
                             ToolbarItem(placement: .cancellationAction) {
@@ -626,6 +632,17 @@ private extension SettingsView {
         }
     }
 
+    private func detectPreset() -> String? {
+        radioPresets.first { p in
+            abs(p.frequencyKHz - Double(config.radioFrequency)) < 1.0 &&
+            abs(p.bandwidth - Double(config.radioBandwidth) / 1000.0) < 0.1 &&
+            p.spreadingFactor == config.radioSpreadingFactor &&
+            p.codingRate == config.radioCodingRate
+        }?.name
+    }
+}
+
+private extension SettingsView {
     var batteryChemistryPicker: some View {
         HStack {
             Image(systemName: "bolt.batteryblock")
@@ -835,11 +852,6 @@ private extension SettingsView {
 
 // MARK: - Section 4: Radio Configuration (Fixes #3, #4, #5, #6)
 
-private extension SettingsView {
-    var radioSection: some View {
-        RadioSection(viewModel: viewModel)
-    }
-}
 
 /// Standard LoRa bandwidths in kHz
 private let loraBandwidths: [Double] = [7.8, 10.4, 15.6, 20.8, 31.25, 41.7, 62.5, 125, 250, 500]
