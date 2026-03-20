@@ -1307,34 +1307,46 @@ final class MeshCoreViewModel: ObservableObject {
         usbManager.sendCLI("clock")
         usbCLIOutput.append(USBTerminalLine(text: "> clock", isCommand: true))
 
-        // Brief delay for clock response, then sync if off by >60s, then fetch settings
+        // Brief delay for clock response, then sync if off by >120s, then fetch settings
         Task { [weak self] in
-            try? await Task.sleep(nanoseconds: 500_000_000)
+            try? await Task.sleep(nanoseconds: 800_000_000)
             guard let self else { return }
 
-            // Check if device clock is already close to correct
+            // Parse device clock response: "HH:MM - DD/M/YYYY UTC" or epoch
             let now = Int(Date().timeIntervalSince1970)
             var needsSync = true
             if let clockResponse = session.settings["clock"] {
-                let nums = clockResponse.components(separatedBy: CharacterSet.decimalDigits.inverted)
-                    .filter { $0.count >= 10 }
-                if let epochStr = nums.first, let deviceEpoch = Int(epochStr) {
-                    let drift = abs(now - deviceEpoch)
-                    if drift < 60 {
-                        needsSync = false
-                        DebugLogger.shared.log("CLOCK: device already in sync (drift \(drift)s), skipping", level: .info)
+                DebugLogger.shared.log("CLOCK: device responded: '\(clockResponse)'", level: .info)
+                // Try parsing "HH:MM - DD/M/YYYY UTC" format
+                let fmt = DateFormatter()
+                fmt.dateFormat = "HH:mm - d/M/yyyy"
+                fmt.timeZone = TimeZone(identifier: "UTC")
+                let cleaned = clockResponse.replacingOccurrences(of: " UTC", with: "").trimmingCharacters(in: .whitespaces)
+                if let parsed = fmt.date(from: cleaned) {
+                    let drift = abs(Int(parsed.timeIntervalSince1970) - now)
+                    DebugLogger.shared.log("CLOCK: parsed device time, drift=\(drift)s", level: .info)
+                    if drift < 120 { needsSync = false }
+                }
+                // Fallback: try extracting a 10-digit epoch
+                if needsSync {
+                    let nums = clockResponse.components(separatedBy: CharacterSet.decimalDigits.inverted)
+                        .filter { $0.count >= 10 }
+                    if let epochStr = nums.first, let deviceEpoch = Int(epochStr) {
+                        let drift = abs(deviceEpoch - now)
+                        if drift < 120 { needsSync = false }
                     }
                 }
             }
 
             if needsSync {
-                let epoch = now
-                let timeCmd = "time \(epoch)"
+                let timeCmd = "time \(now)"
                 session.commandSent(timeCmd)
                 self.usbManager.sendCLI(timeCmd)
                 self.usbCLIOutput.append(USBTerminalLine(text: "> \(timeCmd)", isCommand: true))
-                DebugLogger.shared.log("CLOCK: auto-synced USB CLI device time to \(epoch)", level: .info)
+                DebugLogger.shared.log("CLOCK: auto-synced USB CLI device time to \(now)", level: .info)
                 try? await Task.sleep(nanoseconds: 300_000_000)
+            } else {
+                DebugLogger.shared.log("CLOCK: device already in sync, skipping", level: .info)
             }
 
             self.fetchUSBDeviceSettings()
