@@ -1143,9 +1143,11 @@ final class MeshCoreViewModel: ObservableObject {
                     self.onDeviceReady()
                 } else if mode == .cli && self.usbManager.isConnected {
                     Self.logger.info("USB CLI mode detected — initializing management session")
+                    DebugLogger.shared.log("USB CLI: mode=.cli detected, isConnected=\(self.usbManager.isConnected), creating session", level: .info)
                     self.connectionState = .connected
                     self.connectedDeviceName = "USB: \(self.usbManager.connectedPort?.replacingOccurrences(of: "/dev/cu.", with: "") ?? "Serial")"
                     self.onUSBCLIReady()
+                    DebugLogger.shared.log("USB CLI: session created, isUSBCLIConnected=\(self.isUSBCLIConnected), connectionState=\(String(describing: self.connectionState))", level: .info)
                 }
             }
             .store(in: &cancellables)
@@ -1329,9 +1331,7 @@ final class MeshCoreViewModel: ObservableObject {
             }
             // RemoteManagementView.task will trigger fetchRemoteSettings when it appears
             self.connectionState = .ready
-            if let name = session.settings["name"], !name.isEmpty {
-                self.connectedDeviceName = "USB: \(name)"
-            }
+            DebugLogger.shared.log("USB CLI: connectionState set to .ready, isUSBCLIConnected=\(self.isUSBCLIConnected)", level: .info)
         }
     }
     #endif
