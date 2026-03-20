@@ -180,7 +180,7 @@ struct ContentView: View {
                     Text("Map requires iOS 17+ or macOS 14+")
                 }
             #endif
-            #if os(macOS)
+            #if os(macOS) || targetEnvironment(macCatalyst)
             case .usbTerminal:
                 USBTerminalView()
             #endif
@@ -226,7 +226,7 @@ struct ContentView: View {
                 }
             }
         }
-        #if os(macOS)
+        #if os(macOS) || targetEnvironment(macCatalyst)
         .navigationSplitViewColumnWidth(min: 280, ideal: 320, max: 420)
         #endif
         .sheet(isPresented: $showScanner) {
