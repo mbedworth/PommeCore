@@ -186,8 +186,21 @@ struct DeviceScannerView: View {
                     .font(.caption2)
             }
 
+            // Diagnostic: show platform info on all platforms
+            Section {
+                #if os(macOS)
+                let _ = DebugLogger.shared.log("SCANNER: running on macOS — USB section should show", level: .info)
+                #elseif os(iOS)
+                let _ = DebugLogger.shared.log("SCANNER: running on iOS — no USB section (run macOS target for USB)", level: .warning)
+                #endif
+                Text("Platform: \(ProcessInfo.processInfo.operatingSystemVersionString)")
+                    .font(.caption2)
+                    .foregroundStyle(MeshTheme.textSecondary)
+                    .listRowBackground(MeshTheme.surface)
+            }
+
             #if os(macOS)
-            // USB Serial section — inline to ensure it renders
+            // USB Serial section
             Section {
                 if viewModel.usbManager.isConnected {
                     HStack {
