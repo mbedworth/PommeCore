@@ -2267,27 +2267,13 @@ final class MeshCoreViewModel: ObservableObject {
         ]
 
         session.fetchTotalCount = commands.count
-        Self.logger.info("REMOTE MGMT: Fetching \(commands.count) settings for \(contact.name)")
+        Self.logger.info("REMOTE MGMT: Fetching \(commands.count) settings for \(contact.name) (sequential)")
 
         Task { [weak self] in
-            let batchSize = 3
-            for batchStart in stride(from: 0, to: commands.count, by: batchSize) {
+            for (index, command) in commands.enumerated() {
                 guard let self else { return }
-                let batchEnd = min(batchStart + batchSize, commands.count)
-                let batch = commands[batchStart..<batchEnd]
-                // Send batch concurrently
-                await withTaskGroup(of: Void.self) { group in
-                    for command in batch {
-                        group.addTask {
-                            await self.fetchRemoteSetting(command: command, contact: contact, session: session)
-                        }
-                    }
-                }
-                session.fetchReceivedCount += batch.count
-                // Small delay between batches to avoid overwhelming the BLE buffer
-                if batchEnd < commands.count {
-                    try? await Task.sleep(nanoseconds: 200_000_000)
-                }
+                await self.fetchRemoteSetting(command: command, contact: contact, session: session)
+                session.fetchReceivedCount = index + 1
             }
             session.isFetchingSettings = false
             session.hasLoadedFullSettings = true
