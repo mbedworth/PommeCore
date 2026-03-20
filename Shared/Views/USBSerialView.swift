@@ -77,6 +77,7 @@ struct USBSerialSection: View {
                 .font(.caption2)
         }
         .onAppear {
+            DebugLogger.shared.log("USB SECTION: rendered on macOS, scanning ports...", level: .info)
             viewModel.usbManager.scanPorts()
         }
     }
