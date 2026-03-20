@@ -183,6 +183,14 @@ struct ContentView: View {
             #if os(macOS) || targetEnvironment(macCatalyst)
             case .usbTerminal:
                 USBTerminalView()
+            case .usbDevice:
+                if let contact = viewModel.usbDeviceContact, let session = viewModel.usbDeviceSession {
+                    RemoteManagementView(contact: contact, session: session)
+                        .environmentObject(viewModel)
+                } else {
+                    Text("USB device not connected")
+                        .foregroundStyle(MeshTheme.textSecondary)
+                }
             #endif
             case nil:
                 if viewModel.connectionState == .disconnected {
