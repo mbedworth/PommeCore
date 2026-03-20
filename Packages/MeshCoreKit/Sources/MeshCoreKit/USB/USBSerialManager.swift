@@ -110,23 +110,15 @@ public final class USBSerialManager: ObservableObject {
             return
         }
 
-        // Configure serial port: 8N1 at specified baud rate
+        // Configure serial port: raw mode at specified baud rate
         var options = termios()
         tcgetattr(fd, &options)
+        cfmakeraw(&options) // Full raw mode — no line processing, no echo
         cfsetispeed(&options, baudRate)
         cfsetospeed(&options, baudRate)
 
-        // 8 data bits, no parity, 1 stop bit
-        options.c_cflag &= ~UInt(PARENB)
-        options.c_cflag &= ~UInt(CSTOPB)
-        options.c_cflag &= ~UInt(CSIZE)
-        options.c_cflag |= UInt(CS8)
+        // Enable receiver + local mode
         options.c_cflag |= UInt(CLOCAL | CREAD)
-
-        // Raw mode — no echo, no canonical processing
-        options.c_lflag &= ~UInt(ICANON | ECHO | ECHOE | ISIG)
-        options.c_iflag &= ~UInt(IXON | IXOFF | IXANY)
-        options.c_oflag &= ~UInt(OPOST)
 
         // Minimum 1 byte, no timeout
         options.c_cc.16 = 1  // VMIN
@@ -137,7 +129,13 @@ public final class USBSerialManager: ObservableObject {
         // Clear non-blocking after configuration
         var flags = fcntl(fd, F_GETFL)
         flags &= ~O_NONBLOCK
-        fcntl(fd, F_SETFL, flags)
+        _ = fcntl(fd, F_SETFL, flags)
+
+        // Toggle DTR to signal host is ready (some USB CDC devices need this)
+        var modemBits: CInt = TIOCM_DTR | TIOCM_RTS
+        _ = ioctl(fd, TIOCMBIS, &modemBits)
+
+        DebugLogger.shared.log("USB: port opened, raw mode, DTR/RTS set, baud=\(baudRate)", level: .info)
 
         fileDescriptor = fd
         readBuffer = Data()
@@ -203,6 +201,9 @@ public final class USBSerialManager: ObservableObject {
         framedData.append(Data(bytes: &length, count: 2))
         framedData.append(frame)
 
+        let txHex = framedData.map { String(format: "%02X", $0) }.joined(separator: " ")
+        DebugLogger.shared.log("USB RAW TX: \(framedData.count) bytes: \(txHex)", level: .tx)
+
         serialQueue.async { [weak self] in
             guard let self, self.fileDescriptor >= 0 else { return }
             framedData.withUnsafeBytes { ptr in
@@ -235,13 +236,18 @@ public final class USBSerialManager: ObservableObject {
         let bytesRead = read(fileDescriptor, &buffer, buffer.count)
         guard bytesRead > 0 else {
             if bytesRead == 0 {
-                // EOF — port closed
+                DebugLogger.shared.log("USB RAW: EOF — port closed", level: .warning)
                 DispatchQueue.main.async { [weak self] in
                     self?.disconnect()
                 }
+            } else {
+                DebugLogger.shared.log("USB RAW: read error \(errno): \(String(cString: strerror(errno)))", level: .error)
             }
             return
         }
+
+        let rxHex = buffer[0..<min(bytesRead, 20)].map { String(format: "%02X", $0) }.joined(separator: " ")
+        DebugLogger.shared.log("USB RAW RX: \(bytesRead) bytes: \(rxHex)\(bytesRead > 20 ? "..." : "")", level: .rx)
 
         readBuffer.append(contentsOf: buffer[0..<bytesRead])
 
