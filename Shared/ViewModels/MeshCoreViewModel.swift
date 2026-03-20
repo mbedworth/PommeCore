@@ -1347,30 +1347,95 @@ final class MeshCoreViewModel: ObservableObject {
             session.isFetchingSettings = false
             session.hasLoadedFullSettings = true
 
-            // Update connection state and device name from fetched settings
-            self?.connectionState = .ready
-            if let name = session.settings["name"], !name.isEmpty {
-                self?.connectedDeviceName = "USB: \(name)"
-            }
-            // Update contact type from role response
-            if let role = session.settings["role"]?.lowercased() {
-                var detectedType: ContactType = .repeater
-                if role.contains("room") { detectedType = .room }
-                else if role.contains("sensor") { detectedType = .sensor }
-                else if role.contains("chat") || role.contains("companion") { detectedType = .chat }
-                if detectedType != self?.usbDeviceContact?.type {
-                    let updated = Contact(
-                        publicKey: self?.usbDeviceContact?.publicKey ?? Data(repeating: 0xFE, count: 32),
-                        name: session.settings["name"] ?? self?.usbDeviceContact?.name ?? "USB Device",
-                        type: detectedType
-                    )
-                    self?.usbDeviceContact = updated
-                    session.loginState = .loggedIn(permission: .admin)
-                }
-            }
+            // Map CLI settings to deviceConfig — single source of truth
+            self?.mapUSBCLISettingsToDeviceConfig(session.settings)
+
             Self.logger.info("USB CLI: settings fetch complete (\(session.settings.count) values)")
             DebugLogger.shared.log("USB CLI: fetched \(session.settings.count) settings", level: .info)
         }
+    }
+    /// Map USB CLI "get" responses to deviceConfig fields — single source of truth.
+    private func mapUSBCLISettingsToDeviceConfig(_ settings: [String: String]) {
+        let config = deviceConfig
+
+        // Device identity
+        if let name = settings["name"], !name.isEmpty {
+            config.deviceName = name
+            connectedDeviceName = "USB: \(name)"
+        }
+        if let lat = settings["lat"], let v = Double(lat) { config.latitude = v }
+        if let lon = settings["lon"], let v = Double(lon) { config.longitude = v }
+
+        // Radio params: "get radio" returns "freq_kHz,bw_kHz,sf,cr" or similar
+        if let radio = settings["radio"] {
+            let parts = radio.replacingOccurrences(of: " ", with: "").split(separator: ",")
+            if parts.count >= 4 {
+                if let freq = UInt32(parts[0]) { config.radioFrequency = freq }
+                if let bw = UInt32(parts[1]) { config.radioBandwidth = bw }
+                if let sf = UInt8(parts[2]) { config.radioSpreadingFactor = sf }
+                if let cr = UInt8(parts[3]) { config.radioCodingRate = cr }
+            }
+        }
+        if let tx = settings["tx"], let v = UInt8(tx) { config.radioTXPower = v }
+        if let rep = settings["repeat"]?.lowercased() {
+            config.repeatMode = rep == "on" || rep == "1" || rep == "true"
+        }
+
+        // Tuning
+        if let af = settings["af"], let v = Double(af) { config.airtimeFactor = UInt32(v * 1000) }
+        if let rx = settings["rxdelay"], let v = Double(rx) { config.rxDelayBase = UInt32(v * 1000) }
+        if let txd = settings["txdelay"], let v = Double(txd) { config.txDelay = UInt32(v * 1000) }
+        if let dtxd = settings["direct.txdelay"], let v = Double(dtxd) { config.directTxDelay = UInt32(v * 1000) }
+
+        // Device role → selfType
+        if let role = settings["role"]?.lowercased() {
+            if role.contains("repeater") { config.selfType = 2 }
+            else if role.contains("room") { config.selfType = 3 }
+            else if role.contains("sensor") { config.selfType = 4 }
+            else { config.selfType = 1 }
+
+            // Update synthetic USB contact type to match
+            let detectedType: ContactType = {
+                switch config.selfType {
+                case 2: return .repeater
+                case 3: return .room
+                case 4: return .sensor
+                default: return .chat
+                }
+            }()
+            if usbDeviceContact?.type != detectedType {
+                usbDeviceContact = Contact(
+                    publicKey: usbDeviceContact?.publicKey ?? Data(repeating: 0xFE, count: 32),
+                    name: config.deviceName.isEmpty ? (usbDeviceContact?.name ?? "USB Device") : config.deviceName,
+                    type: detectedType
+                )
+            }
+        }
+
+        // Firmware version from "ver" response
+        if let ver = settings["ver"] {
+            // "ver" typically returns multi-line: first line has version info
+            let firstLine = ver.components(separatedBy: .newlines).first ?? ver
+            config.semanticVersion = firstLine.trimmingCharacters(in: .whitespaces)
+        }
+
+        // Clock
+        if let clock = settings["clock"], let epoch = UInt32(clock.trimmingCharacters(in: .whitespaces)) {
+            config.deviceTimeEpoch = epoch
+        }
+
+        // Multi-acks
+        if let ma = settings["multi.acks"], let v = UInt8(ma) { config.multiACK = v }
+
+        // Public key
+        if let pk = settings["public.key"], !pk.isEmpty {
+            config.publicKeyHex = pk.trimmingCharacters(in: .whitespaces)
+        }
+
+        config.loadedSections.insert("usbCLI")
+        connectionState = .ready
+
+        DebugLogger.shared.log("USB CLI: mapped \(settings.count) settings to deviceConfig", level: .info)
     }
     #endif
 
