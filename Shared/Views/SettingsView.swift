@@ -1322,13 +1322,6 @@ struct RadioSection: View {
                 .font(.caption2)
         }
         .onAppear { loadFromConfig() }
-        #if os(macOS) || targetEnvironment(macCatalyst)
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Done") { dismiss() }
-            }
-        }
-        #endif
     }
 
     private func loadFromConfig() {
@@ -2551,11 +2544,6 @@ struct NameEditorSheet: View {
         .navigationBarTitleDisplayMode(.inline)
         #endif
         .toolbar {
-            #if os(macOS) || targetEnvironment(macCatalyst)
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Done") { dismiss() }
-            }
-            #endif
             ToolbarItem(placement: .confirmationAction) {
                 Button("Apply") {
                     viewModel.setAdvertName(name)
@@ -2623,13 +2611,6 @@ struct FirmwareDetailSheet: View {
         #if !os(macOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
-        #if os(macOS) || targetEnvironment(macCatalyst)
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Done") { dismiss() }
-            }
-        }
-        #endif
         .onAppear {
             let c = viewModel.deviceConfig
             version = c.semanticVersion.isEmpty ? "v\(c.firmwareVersion)" : c.semanticVersion
@@ -2680,13 +2661,6 @@ struct TxPowerEditorSheet: View {
         #if !os(macOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
-        #if os(macOS) || targetEnvironment(macCatalyst)
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Done") { dismiss() }
-            }
-        }
-        #endif
         .onAppear {
             txPower = Double(viewModel.deviceConfig.radioTXPower)
             maxPower = Double(viewModel.deviceConfig.maxTXPower)
@@ -2735,11 +2709,6 @@ struct TuningEditorSheet: View {
         .navigationBarTitleDisplayMode(.inline)
         #endif
         .toolbar {
-            #if os(macOS) || targetEnvironment(macCatalyst)
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Done") { dismiss() }
-            }
-            #endif
             ToolbarItem(placement: .confirmationAction) {
                 Button("Apply") {
                     let rx = UInt32(rxDelay * 1000)
@@ -2824,13 +2793,6 @@ struct GPSEditorSheet: View {
         #if !os(macOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
-        #if os(macOS) || targetEnvironment(macCatalyst)
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Done") { dismiss() }
-            }
-        }
-        #endif
         .onAppear {
             let c = viewModel.deviceConfig
             if c.latitude != 0 { latitude = String(format: "%.6f", c.latitude) }
@@ -2871,13 +2833,6 @@ struct BatteryEditorSheet: View {
         .navigationTitle("Battery")
         #if !os(macOS)
         .navigationBarTitleDisplayMode(.inline)
-        #endif
-        #if os(macOS) || targetEnvironment(macCatalyst)
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Done") { dismiss() }
-            }
-        }
         #endif
         .onAppear {
             let battV = String(format: "%.2f", Double(viewModel.deviceConfig.batteryMillivolts) / 1000.0)
