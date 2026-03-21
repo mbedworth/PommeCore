@@ -232,6 +232,7 @@ struct RadioDataSection: View {
                                 .foregroundStyle(MeshTheme.connected)
                         }
                     }
+                    .contentShape(Rectangle())
                     .listRowBackground(MeshTheme.surface)
                     .contextMenu {
                         if radioPrefix != currentRadioPrefix && currentRadioPrefix != nil {
@@ -465,8 +466,12 @@ private extension SettingsView {
                 Button {
                     // Share all channels
                 } label: {
-                    Label("Share All Channels", systemImage: "square.and.arrow.up")
-                        .foregroundStyle(MeshTheme.accent)
+                    HStack {
+                        Label("Share All Channels", systemImage: "square.and.arrow.up")
+                            .foregroundStyle(MeshTheme.accent)
+                        Spacer()
+                    }
+                    .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .listRowBackground(MeshTheme.surface)
@@ -514,6 +519,7 @@ struct DeviceInfoSection: View {
             Text(config.deviceName.isEmpty ? (connectedDeviceName ?? "\u{2014}") : config.deviceName)
                 .foregroundStyle(MeshTheme.textSecondary)
         }
+        .contentShape(Rectangle())
     }
 
     private var radioRow: some View {
@@ -533,6 +539,7 @@ struct DeviceInfoSection: View {
                     .foregroundStyle(presetName != nil ? .green : .orange)
             }
         }
+        .contentShape(Rectangle())
     }
 
     private var txPowerRow: some View {
@@ -543,6 +550,7 @@ struct DeviceInfoSection: View {
             Text("\(config.radioTXPower)/\(config.maxTXPower) dBm")
                 .foregroundStyle(MeshTheme.textSecondary)
         }
+        .contentShape(Rectangle())
     }
 
     private var tuningRow: some View {
@@ -554,6 +562,7 @@ struct DeviceInfoSection: View {
                 .font(.caption)
                 .foregroundStyle(MeshTheme.textSecondary)
         }
+        .contentShape(Rectangle())
     }
 
     private var gpsRow: some View {
@@ -571,6 +580,7 @@ struct DeviceInfoSection: View {
                     .foregroundStyle(.orange)
             }
         }
+        .contentShape(Rectangle())
     }
 
     private var batteryRow: some View {
@@ -583,6 +593,7 @@ struct DeviceInfoSection: View {
             Text(battPct > 0 ? "\(battV)V (\(battPct)%)" : "\(battV)V")
                 .foregroundStyle(MeshTheme.textSecondary)
         }
+        .contentShape(Rectangle())
     }
 
     private var firmwareRow: some View {
@@ -593,6 +604,7 @@ struct DeviceInfoSection: View {
             Text(config.semanticVersion.isEmpty ? "v\(config.firmwareVersion)" : config.semanticVersion)
                 .foregroundStyle(MeshTheme.textSecondary)
         }
+        .contentShape(Rectangle())
     }
 
     // MARK: - Body
@@ -863,7 +875,9 @@ private extension SettingsView {
                             .frame(width: 24)
                         Text("Reset Calibration")
                             .foregroundStyle(MeshTheme.accent)
+                        Spacer()
                     }
+                    .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .listRowBackground(MeshTheme.surface)

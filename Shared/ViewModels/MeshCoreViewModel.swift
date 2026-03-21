@@ -111,7 +111,80 @@ enum SidebarSelection: Hashable {
 final class MeshCoreViewModel: ObservableObject {
     private static let logger = Logger(subsystem: "com.meshcore", category: "ViewModel")
 
-    @Published var contacts: [Contact] = []
+    // MARK: - Stores (Phase 1-5 of @Observable refactor)
+    // Stores own state and logic. ViewModel forwards public API during migration.
+    // Views still use @EnvironmentObject var viewModel — Phase 7 switches to @Environment(Store.self).
+
+    let contactStore = ContactStore()
+    let channelStore = ChannelStore()
+    let messageStoreManager = MessageStoreManager()
+    let connectionManager = ConnectionManager()
+    let remoteSessionManager = RemoteSessionManager()
+
+    // MARK: - Forwarded State (computed, delegates to stores)
+    // These replace the old @Published properties. The bridge in observeStores()
+    // fires objectWillChange when any store property changes.
+
+    var contacts: [Contact] {
+        get { contactStore.contacts }
+        set { contactStore.contacts = newValue }
+    }
+
+    var pendingNewContacts: [Contact] {
+        get { contactStore.pendingNewContacts }
+        set { contactStore.pendingNewContacts = newValue }
+    }
+
+    var contactGroups: [ContactStore.ContactGroup] {
+        get { contactStore.contactGroups }
+        set { contactStore.contactGroups = newValue }
+    }
+
+    var channels: [MeshChannel] {
+        get { channelStore.channels }
+        set { channelStore.channels = newValue }
+    }
+
+    var isSyncingChannels: Bool {
+        get { channelStore.isSyncingChannels }
+        set { channelStore.isSyncingChannels = newValue }
+    }
+
+    var messagesByContact: [Data: [Message]] {
+        get { messageStoreManager.messagesByContact }
+        set { messageStoreManager.messagesByContact = newValue }
+    }
+
+    var unreadCounts: [Data: Int] {
+        get { messageStoreManager.unreadCounts }
+        set { messageStoreManager.unreadCounts = newValue }
+    }
+
+    var lastExportedURL: String? {
+        get { messageStoreManager.lastExportedURL }
+        set { messageStoreManager.lastExportedURL = newValue }
+    }
+
+    var pendingChannelImport: ChannelStore.PendingChannelImport? {
+        get { channelStore.pendingChannelImport }
+        set { channelStore.pendingChannelImport = newValue }
+    }
+
+    var showChannelImportOptions: Bool {
+        get { channelStore.showChannelImportOptions }
+        set { channelStore.showChannelImportOptions = newValue }
+    }
+
+    var pendingMultiChannelImport: ChannelStore.PendingMultiChannelImport? {
+        get { channelStore.pendingMultiChannelImport }
+        set { channelStore.pendingMultiChannelImport = newValue }
+    }
+
+    var showMultiChannelImportOptions: Bool {
+        get { channelStore.showMultiChannelImportOptions }
+        set { channelStore.showMultiChannelImportOptions = newValue }
+    }
+
     @Published var sidebarSelection: SidebarSelection? = nil
 
     /// Convenience: the currently selected contact, derived from sidebarSelection.
@@ -131,36 +204,29 @@ final class MeshCoreViewModel: ObservableObject {
         if case .channel(let idx) = sidebarSelection { return idx }
         return nil
     }
-    @Published var isScanning = false
-    @Published var discoveredPeripherals: [DiscoveredPeripheral] = []
-    @Published var connectionState: BLEConnectionState = .disconnected
-    @Published var connectedDeviceName: String?
+    // Connection state — forwarded from ConnectionManager
+    var isScanning: Bool {
+        get { connectionManager.isScanning }
+        set { connectionManager.isScanning = newValue }
+    }
+    var discoveredPeripherals: [DiscoveredPeripheral] {
+        connectionManager.discoveredPeripherals
+    }
+    var connectionState: BLEConnectionState {
+        get { connectionManager.connectionState }
+        set { connectionManager.connectionState = newValue }
+    }
+    var connectedDeviceName: String? {
+        get { connectionManager.connectedDeviceName }
+        set { connectionManager.connectedDeviceName = newValue }
+    }
     @Published var deviceConfig = DeviceConfig()
 
-    /// All messages keyed by contact public key prefix (6 bytes).
-    @Published var messagesByContact: [Data: [Message]] = [:]
+    // messagesByContact, unreadCounts -> forwarded from messageStoreManager (computed above)
 
-    /// Unread message counts per contact key prefix.
-    @Published var unreadCounts: [Data: Int] = [:]
-
-    // MARK: - Contact Nicknames (iCloud sync via NSUbiquitousKeyValueStore)
+    // MARK: - Contact Nicknames — forwarded to ContactStore
 
     private let iCloudStore = NSUbiquitousKeyValueStore.default
-    @Published private var nicknames: [String: String] = [:]
-
-    private func loadNicknamesFromiCloud() {
-        guard let data = iCloudStore.data(forKey: "contactNicknames"),
-              let decoded = try? JSONDecoder().decode([String: String].self, from: data) else { return }
-        // Truncate any nicknames that exceed 32 characters (sync safety)
-        nicknames = decoded.mapValues { $0.count > 32 ? String($0.prefix(32)) : $0 }
-    }
-
-    private func saveNicknamesToiCloud() {
-        if let data = try? JSONEncoder().encode(nicknames) {
-            iCloudStore.set(data, forKey: "contactNicknames")
-            iCloudStore.synchronize()
-        }
-    }
 
     private func registerTerminationHandler() {
         #if os(iOS)
@@ -185,238 +251,52 @@ final class MeshCoreViewModel: ObservableObject {
             queue: .main
         ) { [weak self] _ in
             Task { @MainActor in
-                self?.loadNicknamesFromiCloud()
-                self?.loadContactNotesFromiCloud()
-                self?.loadContactGroupsFromiCloud()
+                // ContactStore handles its own iCloud observation for nicknames/notes/groups
                 self?.mergeMessagesForCurrentRadio()
             }
         }
     }
 
-    func setNickname(_ nickname: String, for contact: Contact) {
-        let key = contact.publicKey.map { String(format: "%02x", $0) }.joined()
-        let trimmed = String(nickname.prefix(32))
-        if trimmed.isEmpty {
-            nicknames.removeValue(forKey: key)
-        } else {
-            nicknames[key] = trimmed
-        }
-        saveNicknamesToiCloud()
-    }
+    // MARK: - Forwarding: Nicknames/DisplayName/Activity → ContactStore
 
-    func nickname(for contact: Contact) -> String? {
-        let key = contact.publicKey.map { String(format: "%02x", $0) }.joined()
-        return nicknames[key]
-    }
+    typealias ContactGroup = ContactStore.ContactGroup
+    typealias ContactStatus = ContactStore.ContactStatus
 
-    func displayName(for contact: Contact) -> String {
-        nickname(for: contact) ?? contact.name
-    }
+    func setNickname(_ nickname: String, for contact: Contact) { contactStore.setNickname(nickname, for: contact) }
+    func nickname(for contact: Contact) -> String? { contactStore.nickname(for: contact) }
+    func displayName(for contact: Contact) -> String { contactStore.displayName(for: contact) }
+    func channelSenderDisplayName(_ rawSenderName: String) -> String { contactStore.channelSenderDisplayName(rawSenderName) }
+    func contactStatus(for contact: Contact) -> ContactStatus { contactStore.contactStatus(for: contact) }
+    func contactStatusColor(for contact: Contact) -> Color { contactStore.contactStatusColor(for: contact) }
 
-    /// Resolve a channel message sender name to a nickname if one exists.
-    /// Matches the raw adv_name from the channel message against known contacts.
-    // MARK: - Contact Activity Status
+    // MARK: - Forwarding: Notes → ContactStore
 
-    enum ContactStatus {
-        case active, recent, stale, offline
-    }
+    func loadContactNotesFromiCloud() { contactStore.loadContactNotesFromiCloud() }
+    func setNote(_ note: String, for contact: Contact) { contactStore.setNote(note, for: contact) }
+    func note(for contact: Contact) -> String { contactStore.note(for: contact) }
+    func hasNote(for contact: Contact) -> Bool { contactStore.hasNote(for: contact) }
 
-    func contactStatus(for contact: Contact) -> ContactStatus {
-        let now = Date().timeIntervalSince1970
-        let lastSeen = TimeInterval(contact.lastAdvert)
+    // MARK: - Forwarding: Drafts → MessageStoreManager
 
-        // Also check messages for most recent activity
-        var latest = lastSeen
-        if let msgs = messagesByContact[contact.publicKeyPrefix] {
-            for msg in msgs {
-                if msg.isOutgoing && msg.status == .delivered {
-                    latest = max(latest, msg.timestamp.timeIntervalSince1970)
-                }
-                if !msg.isOutgoing {
-                    latest = max(latest, msg.timestamp.timeIntervalSince1970)
-                }
-            }
-        }
+    func saveDraft(_ text: String, for contactKey: Data) { messageStoreManager.saveDraft(text, for: contactKey) }
+    func loadDraft(for contactKey: Data) -> String { messageStoreManager.loadDraft(for: contactKey) }
+    func hasDraft(for contactKey: Data) -> Bool { messageStoreManager.hasDraft(for: contactKey) }
 
-        guard latest > 1_000_000_000 else { return .offline }
-        let elapsed = now - latest
+    // MARK: - Forwarding: Groups → ContactStore
 
-        if contact.type == .repeater || contact.type == .room {
-            if elapsed < 6 * 3600 { return .active }
-            if elapsed < 12 * 3600 { return .recent }
-            if elapsed < 48 * 3600 { return .stale }
-            return .offline
-        } else {
-            if elapsed < 1 * 3600 { return .active }
-            if elapsed < 6 * 3600 { return .recent }
-            if elapsed < 24 * 3600 { return .stale }
-            return .offline
-        }
-    }
+    func loadContactGroupsFromiCloud() { contactStore.loadContactGroupsFromiCloud() }
+    func addContactGroup(name: String, emoji: String) { contactStore.addContactGroup(name: name, emoji: emoji) }
+    func deleteContactGroup(_ group: ContactGroup) { contactStore.deleteContactGroup(group) }
+    func addContactToGroup(_ contact: Contact, group: ContactGroup) { contactStore.addContactToGroup(contact, group: group) }
+    func removeContactFromGroup(_ contact: Contact, group: ContactGroup) { contactStore.removeContactFromGroup(contact, group: group) }
+    func contactsInGroup(_ group: ContactGroup) -> [Contact] { contactStore.contactsInGroup(group) }
 
-    func contactStatusColor(for contact: Contact) -> Color {
-        switch contactStatus(for: contact) {
-        case .active: return .green
-        case .recent: return .yellow
-        case .stale: return .gray
-        case .offline: return .red
-        }
-    }
+    // MARK: - Forwarding: Channel Notify → ChannelStore
 
-    func channelSenderDisplayName(_ rawSenderName: String) -> String {
-        if let contact = contacts.first(where: { $0.name == rawSenderName }) {
-            return displayName(for: contact)
-        }
-        return rawSenderName
-    }
+    typealias ChannelNotifyMode = ChannelStore.ChannelNotifyMode
 
-    // MARK: - Contact Notes (iCloud synced)
-
-    @Published private var contactNotes: [String: String] = [:]
-
-    func loadContactNotesFromiCloud() {
-        guard let data = iCloudStore.data(forKey: "contactNotes"),
-              let decoded = try? JSONDecoder().decode([String: String].self, from: data) else { return }
-        contactNotes = decoded
-    }
-
-    private func saveContactNotesToiCloud() {
-        if let data = try? JSONEncoder().encode(contactNotes) {
-            iCloudStore.set(data, forKey: "contactNotes")
-            iCloudStore.synchronize()
-        }
-    }
-
-    func setNote(_ note: String, for contact: Contact) {
-        let key = contact.publicKey.map { String(format: "%02x", $0) }.joined()
-        if note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            contactNotes.removeValue(forKey: key)
-        } else {
-            contactNotes[key] = note
-        }
-        saveContactNotesToiCloud()
-    }
-
-    func note(for contact: Contact) -> String {
-        let key = contact.publicKey.map { String(format: "%02x", $0) }.joined()
-        return contactNotes[key] ?? ""
-    }
-
-    func hasNote(for contact: Contact) -> Bool {
-        let key = contact.publicKey.map { String(format: "%02x", $0) }.joined()
-        return contactNotes[key] != nil && !contactNotes[key]!.isEmpty
-    }
-
-    // MARK: - Message Drafts (iCloud synced)
-
-    func saveDraft(_ text: String, for contactKey: Data) {
-        let key = "draft.\(contactKey.map { String(format: "%02x", $0) }.joined())"
-        if text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            iCloudStore.removeObject(forKey: key)
-        } else {
-            iCloudStore.set(text, forKey: key)
-        }
-        iCloudStore.synchronize()
-    }
-
-    func loadDraft(for contactKey: Data) -> String {
-        let key = "draft.\(contactKey.map { String(format: "%02x", $0) }.joined())"
-        return iCloudStore.string(forKey: key) ?? ""
-    }
-
-    func hasDraft(for contactKey: Data) -> Bool {
-        let key = "draft.\(contactKey.map { String(format: "%02x", $0) }.joined())"
-        if let draft = iCloudStore.string(forKey: key), !draft.isEmpty {
-            return true
-        }
-        return false
-    }
-
-    // MARK: - Contact Groups (iCloud synced)
-
-    @Published var contactGroups: [ContactGroup] = []
-
-    struct ContactGroup: Codable, Identifiable {
-        let id: UUID
-        var name: String
-        var emoji: String
-        var memberPubkeys: [String] // publicKey hex strings
-
-        init(id: UUID = UUID(), name: String, emoji: String = "", memberPubkeys: [String] = []) {
-            self.id = id
-            self.name = name
-            self.emoji = emoji
-            self.memberPubkeys = memberPubkeys
-        }
-    }
-
-    func loadContactGroupsFromiCloud() {
-        guard let data = iCloudStore.data(forKey: "contactGroups"),
-              let decoded = try? JSONDecoder().decode([ContactGroup].self, from: data) else { return }
-        contactGroups = decoded
-    }
-
-    private func saveContactGroupsToiCloud() {
-        if let data = try? JSONEncoder().encode(contactGroups) {
-            iCloudStore.set(data, forKey: "contactGroups")
-            iCloudStore.synchronize()
-        }
-    }
-
-    func addContactGroup(name: String, emoji: String) {
-        contactGroups.append(ContactGroup(name: name, emoji: emoji))
-        saveContactGroupsToiCloud()
-    }
-
-    func deleteContactGroup(_ group: ContactGroup) {
-        contactGroups.removeAll { $0.id == group.id }
-        saveContactGroupsToiCloud()
-    }
-
-    func addContactToGroup(_ contact: Contact, group: ContactGroup) {
-        let pubkeyHex = contact.publicKey.map { String(format: "%02x", $0) }.joined()
-        if let idx = contactGroups.firstIndex(where: { $0.id == group.id }) {
-            if !contactGroups[idx].memberPubkeys.contains(pubkeyHex) {
-                contactGroups[idx].memberPubkeys.append(pubkeyHex)
-                saveContactGroupsToiCloud()
-            }
-        }
-    }
-
-    func removeContactFromGroup(_ contact: Contact, group: ContactGroup) {
-        let pubkeyHex = contact.publicKey.map { String(format: "%02x", $0) }.joined()
-        if let idx = contactGroups.firstIndex(where: { $0.id == group.id }) {
-            contactGroups[idx].memberPubkeys.removeAll { $0 == pubkeyHex }
-            saveContactGroupsToiCloud()
-        }
-    }
-
-    func contactsInGroup(_ group: ContactGroup) -> [Contact] {
-        contacts.filter { contact in
-            let hex = contact.publicKey.map { String(format: "%02x", $0) }.joined()
-            return group.memberPubkeys.contains(hex)
-        }
-    }
-
-    // MARK: - Channel Notification Modes (iCloud synced)
-
-    enum ChannelNotifyMode: String {
-        case all = "all"
-        case mentionsOnly = "mentions"
-        case muted = "muted"
-    }
-
-    func channelNotifyMode(for channelName: String) -> ChannelNotifyMode {
-        let key = "channel.notify.\(channelName)"
-        let raw = iCloudStore.string(forKey: key) ?? "all"
-        return ChannelNotifyMode(rawValue: raw) ?? .all
-    }
-
-    func setChannelNotifyMode(_ mode: ChannelNotifyMode, for channelName: String) {
-        let key = "channel.notify.\(channelName)"
-        iCloudStore.set(mode.rawValue, forKey: key)
-        iCloudStore.synchronize()
-    }
+    func channelNotifyMode(for channelName: String) -> ChannelNotifyMode { channelStore.channelNotifyMode(for: channelName) }
+    func setChannelNotifyMode(_ mode: ChannelNotifyMode, for channelName: String) { channelStore.setChannelNotifyMode(mode, for: channelName) }
 
     // MARK: - Battery Calibration (per-device, iCloud synced)
 
@@ -453,26 +333,10 @@ final class MeshCoreViewModel: ObservableObject {
         saveBatteryCalibration(cal)
     }
 
-    // MARK: - Spotlight Indexing
+    // MARK: - Forwarding: Spotlight → ContactStore
 
     #if canImport(CoreSpotlight)
-    func indexContactsForSpotlight() {
-        var items: [CSSearchableItem] = []
-        for contact in contacts {
-            let attrs = CSSearchableItemAttributeSet(contentType: .contact)
-            attrs.displayName = displayName(for: contact)
-            attrs.contentDescription = "MeshCore \(contact.type == .repeater ? "repeater" : contact.type == .room ? "room server" : "contact")"
-            let pubkeyHex = contact.publicKey.map { String(format: "%02x", $0) }.joined()
-            let item = CSSearchableItem(
-                uniqueIdentifier: "meshcore.contact.\(pubkeyHex)",
-                domainIdentifier: "com.mbedworth.meshcore.contacts",
-                attributeSet: attrs
-            )
-            item.expirationDate = .distantFuture
-            items.append(item)
-        }
-        CSSearchableIndex.default().indexSearchableItems(items)
-    }
+    func indexContactsForSpotlight() { contactStore.indexContactsForSpotlight() }
 
     func navigateToContact(pubkeyHex: String) {
         if let contact = contacts.first(where: {
@@ -483,268 +347,261 @@ final class MeshCoreViewModel: ObservableObject {
     }
     #endif
 
-    // MARK: - Path Hash Resolution
+    // MARK: - Forwarding: Path Hash → ContactStore
 
-    /// Resolve a path hop hash to a known contact/repeater name.
-    func contactNameForHash(_ hashHex: String) -> String? {
-        let hashBytes = Data(stride(from: 0, to: hashHex.count, by: 2).compactMap { i in
-            let start = hashHex.index(hashHex.startIndex, offsetBy: i)
-            let end = hashHex.index(start, offsetBy: min(2, hashHex.distance(from: start, to: hashHex.endIndex)))
-            return UInt8(hashHex[start..<end], radix: 16)
-        })
-        guard !hashBytes.isEmpty else { return nil }
-        for contact in contacts where contact.type == .repeater {
-            if contact.publicKeyPrefix.prefix(hashBytes.count) == hashBytes {
-                return displayName(for: contact)
-            }
-        }
-        return nil
+    func contactNameForHash(_ hashHex: String) -> String? { contactStore.contactNameForHash(hashHex) }
+
+    // Remote sessions — forwarded from RemoteSessionManager
+    var remoteSessions: [Data: RemoteDeviceSession] {
+        remoteSessionManager.remoteSessions
     }
-
-    /// Active remote management sessions keyed by contact public key prefix.
-    /// Not @Published — sessions are ObservableObjects whose changes are
-    /// forwarded to the ViewModel via objectWillChange so the contact list updates.
-    private(set) var remoteSessions: [Data: RemoteDeviceSession] = [:]
-
-    /// Cancellables for forwarding session objectWillChange to ViewModel.
-    private var sessionCancellables: [Data: AnyCancellable] = [:]
-
-    /// Whether any remote management session is currently logged in.
     var hasActiveManagementSession: Bool {
-        remoteSessions.values.contains { session in
-            if case .loggedIn = session.loginState { return true }
-            return false
-        }
+        remoteSessionManager.hasActiveManagementSession
     }
 
     /// Last error message received from the device (shown as alert).
     @Published var lastErrorMessage: String?
 
-    /// BLE status message for error states (Bluetooth off, permission denied, etc.)
-    @Published var bleStatusMessage: String?
+    /// BLE status message — forwarded from ConnectionManager.
+    var bleStatusMessage: String? {
+        get { connectionManager.bleStatusMessage }
+        set { connectionManager.bleStatusMessage = newValue }
+    }
 
-    let bleManager = BLEManager()
-    let wifiManager = WiFiConnectionManager()
+    // Transport managers — forwarded from ConnectionManager
+    var bleManager: BLEManager { connectionManager.bleManager }
+    var wifiManager: WiFiConnectionManager { connectionManager.wifiManager }
     #if os(macOS) || targetEnvironment(macCatalyst)
-    let usbManager = USBSerialManager()
-    @Published var usbCLIOutput: [USBTerminalLine] = []
-    /// Session for managing a USB CLI-connected device (repeater/room/sensor).
-    @Published var usbDeviceSession: RemoteDeviceSession?
-    /// Synthetic contact for the USB-connected CLI device.
-    var usbDeviceContact: Contact?
-    /// Whether the USB device is CLI-connected and has a management session.
+    var usbManager: USBSerialManager { connectionManager.usbManager }
+    var usbCLIOutput: [USBTerminalLine] {
+        get { remoteSessionManager.usbCLIOutput }
+        set { remoteSessionManager.usbCLIOutput = newValue }
+    }
+    var usbDeviceSession: RemoteDeviceSession? {
+        get { remoteSessionManager.usbDeviceSession }
+        set { remoteSessionManager.usbDeviceSession = newValue }
+    }
+    var usbDeviceContact: Contact? {
+        get { remoteSessionManager.usbDeviceContact }
+        set { remoteSessionManager.usbDeviceContact = newValue }
+    }
     var isUSBCLIConnected: Bool {
-        usbManager.isConnected && usbManager.detectedMode == .cli && usbDeviceSession != nil
+        connectionManager.isUSBCLIMode && remoteSessionManager.isUSBCLIConnected
     }
     #endif
     private var cancellables = Set<AnyCancellable>()
-    private let messageStore = MessageStore()
+    // messageStore, pendingACKs, pendingChannelEcho, isSyncingMessages -> moved to MessageStoreManager
+    // pendingAutoScan, scanRetryCount, maxScanRetries, scanRetryTask -> moved to ConnectionManager
 
-    /// Maps expected ACK code → message ID for delivery tracking.
-    private var pendingACKs: [UInt32: (contactKeyHash: Data, messageID: UUID)] = [:]
-
-    /// Tracks the most recent outgoing channel message for 0x88-based echo detection.
-    /// When LOG_RX_DATA (0x88) arrives within 30s of a channel send, a repeater forwarded it.
-    private var pendingChannelEcho: (id: UUID, channelKey: Data, sent: Date)?
-
-    /// Whether we're currently syncing queued messages.
-    private var isSyncingMessages = false
-
-    /// Whether an auto-scan has been requested (waiting for BLE poweredOn).
-    private var pendingAutoScan = false
-
-    /// Number of auto-scan retry attempts remaining.
-    @Published var scanRetryCount: Int = 0
-    private let maxScanRetries = 3
-    private var scanRetryTask: Task<Void, Never>?
+    /// Scan retry count — forwarded from ConnectionManager.
+    var scanRetryCount: Int {
+        get { connectionManager.scanRetryCount }
+        set { connectionManager.scanRetryCount = newValue }
+    }
 
     /// Whether the app is currently in the background (for local notifications).
-    var isInBackground = false
+    var isInBackground: Bool {
+        get { connectionManager.isInBackground }
+        set { connectionManager.isInBackground = newValue }
+    }
 
-    /// Login timeout task — cancelled when login succeeds or fails.
-    private var loginTimeoutTask: Task<Void, Never>?
+    // Login, timeouts, network tools state -> moved to RemoteSessionManager
+    // contactSyncDebounceTask -> moved to ContactStore
 
-    /// Debounce task for incremental contact sync (coalesces rapid advert/path pushes).
-    private var contactSyncDebounceTask: Task<Void, Never>?
-
-    /// Pending login credentials (stored between login request and success/failure response).
-    private var pendingLoginPassword: String?
-    private var pendingLoginRememberPassword: Bool = false
-
-    /// Timeout tasks for network tool requests — cancelled when response arrives.
-    private var traceTimeoutTask: Task<Void, Never>?
-    private var statusTimeoutTask: Task<Void, Never>?
-    private var telemetryTimeoutTask: Task<Void, Never>?
-    private var pathTimeoutTask: Task<Void, Never>?
-    private var discoverTimeoutTask: Task<Void, Never>?
-
-    /// Last contacts sync lastmod — for incremental sync.
-    private var lastContactsSync: UInt32 = 0
-
-    /// Expected contact count from CONTACTS_START (for logging).
-    private var expectedContactCount: UInt32 = 0
-
-    /// Accumulates contacts during a sync before replacing the list.
-    private var incomingContacts: [Contact] = []
-
-    /// Whether a contact sync is currently in progress (prevents clobbering displayed contacts).
-    private var isSyncingContacts = false
-
-    /// Whether the current contact sync is incremental (merge) or full (replace).
-    private var isIncrementalContactSync = false
-
-    /// Channels reported by the device.
-    @Published var channels: [MeshChannel] = []
-
-    /// Incoming channels buffer during sync.
-    private var incomingChannels: [MeshChannel] = []
-
-    /// Whether channel sync is in progress.
-    @Published var isSyncingChannels = false
-    private var hasCompletedInitialChannelSync = false
-
-    /// Pending contacts discovered via PUSH_CODE_NEW_ADVERT (manual_add_contacts mode).
-    @Published var pendingNewContacts: [Contact] = []
-
-    /// Discovered nodes from the discover feature.
-    @Published var discoveredNodes: [DiscoveredNode] = []
-
-    /// Whether a discover scan is in progress.
-    @Published var isDiscovering = false
-
-    /// Whether CMD_SEND_CONTROL_DATA is unsupported on this firmware (remembered per session).
-    private var discoverUnsupported = false
-
-    /// Informational message shown in the Discover view (e.g. fallback notice).
-    @Published var discoverFallbackMessage: String?
-
-    /// Most recent trace route result.
-    @Published var lastTraceResult: TraceResult?
-
-    /// Most recent telemetry readings keyed by contact key prefix.
-    @Published var telemetryByContact: [Data: [TelemetryReading]] = [:]
-
-    /// Most recent status info keyed by contact key prefix.
-    @Published var statusByContact: [Data: RemoteStatusInfo] = [:]
-
-    /// Advert path info keyed by contact key prefix.
-    @Published var advertPathByContact: [Data: AdvertPathInfo] = [:]
-
-    /// Allowed repeat frequency ranges.
-    @Published var allowedRepeatFreqRanges: [FrequencyRange] = []
-
-    /// Active trace route tag for correlating responses.
-    @Published private(set) var pendingTraceTag: UInt32?
-    private var pendingTraceContact: Contact?
-    @Published var detailContactForTrace: Contact?
-
-    /// Contact key for which we're awaiting an advert path response.
-    @Published private(set) var pendingAdvertPathKey: Data?
-
-    /// Contact key for which we're awaiting a status response.
-    @Published private(set) var pendingStatusKey: Data?
-
-    /// Contact key for which we're awaiting a telemetry response.
-    @Published private(set) var pendingTelemetryKey: Data?
+    // Network tools — forwarded from RemoteSessionManager
+    var discoveredNodes: [DiscoveredNode] {
+        get { remoteSessionManager.discoveredNodes }
+        set { remoteSessionManager.discoveredNodes = newValue }
+    }
+    var isDiscovering: Bool {
+        get { remoteSessionManager.isDiscovering }
+        set { remoteSessionManager.isDiscovering = newValue }
+    }
+    var discoverFallbackMessage: String? {
+        get { remoteSessionManager.discoverFallbackMessage }
+        set { remoteSessionManager.discoverFallbackMessage = newValue }
+    }
+    var lastTraceResult: TraceResult? {
+        get { remoteSessionManager.lastTraceResult }
+        set { remoteSessionManager.lastTraceResult = newValue }
+    }
+    var telemetryByContact: [Data: [TelemetryReading]] {
+        get { remoteSessionManager.telemetryByContact }
+        set { remoteSessionManager.telemetryByContact = newValue }
+    }
+    var statusByContact: [Data: RemoteStatusInfo] {
+        get { remoteSessionManager.statusByContact }
+        set { remoteSessionManager.statusByContact = newValue }
+    }
+    var advertPathByContact: [Data: AdvertPathInfo] {
+        get { remoteSessionManager.advertPathByContact }
+        set { remoteSessionManager.advertPathByContact = newValue }
+    }
+    var allowedRepeatFreqRanges: [FrequencyRange] {
+        get { remoteSessionManager.allowedRepeatFreqRanges }
+        set { remoteSessionManager.allowedRepeatFreqRanges = newValue }
+    }
+    var pendingTraceTag: UInt32? { remoteSessionManager.pendingTraceTag }
+    var detailContactForTrace: Contact? {
+        get { remoteSessionManager.detailContactForTrace }
+        set { remoteSessionManager.detailContactForTrace = newValue }
+    }
+    var pendingAdvertPathKey: Data? { remoteSessionManager.pendingAdvertPathKey }
+    var pendingStatusKey: Data? { remoteSessionManager.pendingStatusKey }
+    var pendingTelemetryKey: Data? { remoteSessionManager.pendingTelemetryKey }
 
     init() {
-        setupSubscriptions()
-        forwardDeviceConfigChanges()
-        loadPersistedMessages()
+        wireStoreDependencies()
+        wireConnectionCallbacks()
+        observeStores()
         requestNotificationPermissions()
-        Task { @MainActor in
-            self.loadNicknamesFromiCloud()
-            self.loadContactNotesFromiCloud()
-            self.loadContactGroupsFromiCloud()
-        }
         observeiCloudChanges()
         registerTerminationHandler()
     }
 
-    private func forwardDeviceConfigChanges() {
-        // DeviceConfig is its own ObservableObject. Views that need device config
-        // data should observe viewModel.deviceConfig directly via @ObservedObject,
-        // rather than having every change cascade through the entire ViewModel.
-        // This prevents sheet bounce and unnecessary re-renders across the app.
+    /// Wire cross-store dependencies via closures (no circular references).
+    private func wireStoreDependencies() {
+        // ContactStore dependencies
+        contactStore.sendCommand = { [weak self] data, label in self?.connectionManager.sendCommand(data, label: label) }
+        contactStore.activityDateProvider = { [weak self] key in self?.messageStoreManager.latestActivityDate(for: key) }
+        contactStore.postEventNotification = { [weak self] title, body, threadId in self?.postEventNotification(title: title, body: body, threadId: threadId) }
+
+        // ChannelStore dependencies
+        channelStore.sendCommand = { [weak self] data, label in self?.connectionManager.sendCommand(data, label: label) }
+        channelStore.clearChannelMessages = { [weak self] key in
+            self?.messageStoreManager.messagesByContact.removeValue(forKey: key)
+            self?.messageStoreManager.unreadCounts.removeValue(forKey: key)
+        }
+        channelStore.persistChannelMessages = { [weak self] key in self?.messageStoreManager.persistMessages(for: key) }
+
+        // MessageStoreManager dependencies
+        messageStoreManager.sendCommand = { [weak self] data, label in self?.connectionManager.sendCommand(data, label: label) }
+        messageStoreManager.displayNameProvider = { [weak self] key in
+            guard let self, let contact = self.contacts.first(where: { $0.publicKeyPrefix == key }) else { return "Unknown" }
+            return self.displayName(for: contact)
+        }
+        messageStoreManager.deviceNameProvider = { [weak self] in self?.deviceConfig.deviceName ?? "" }
+        messageStoreManager.radioPublicKeyHexProvider = { [weak self] in self?.deviceConfig.publicKeyHex ?? "" }
+        messageStoreManager.contactProvider = { [weak self] key in self?.contacts.first(where: { $0.publicKeyPrefix == key }) }
+        messageStoreManager.channelProvider = { [weak self] idx in self?.channels.first(where: { $0.index == idx }) }
+        messageStoreManager.channelNotifyModeProvider = { [weak self] name in self?.channelStore.channelNotifyMode(for: name) ?? .all }
+        messageStoreManager.allChannelsProvider = { [weak self] in self?.channels ?? [] }
+        messageStoreManager.resetPathForContact = { [weak self] contact in self?.contactStore.resetPath(for: contact) }
+
+        // RemoteSessionManager dependencies
+        remoteSessionManager.sendCommand = { [weak self] data, label in self?.connectionManager.sendCommand(data, label: label) }
+        remoteSessionManager.contactsProvider = { [weak self] in self?.contacts ?? [] }
+        remoteSessionManager.deviceConfigProvider = { [weak self] in self?.deviceConfig ?? DeviceConfig() }
+        remoteSessionManager.syncNextMessage = { [weak self] in self?.syncNextMessage() }
+        remoteSessionManager.showError = { [weak self] msg in self?.lastErrorMessage = msg }
+        remoteSessionManager.onStateChanged = { [weak self] in self?.objectWillChange.send() }
+        #if os(macOS) || targetEnvironment(macCatalyst)
+        remoteSessionManager.sendUSBCLI = { [weak self] cmd in self?.connectionManager.sendUSBCLI(cmd) }
+        #endif
     }
 
-    private func loadPersistedMessages() {
-        messagesByContact = messageStore.loadAllMessages()
-        // Merge any messages synced from other devices via iCloud
-        mergeMessagesFromiCloud()
+    /// Wire ConnectionManager callbacks for frame dispatch and lifecycle events.
+    private func wireConnectionCallbacks() {
+        connectionManager.onFrameReceived = { [weak self] data in
+            self?.handleReceivedData(data)
+        }
+        connectionManager.onDeviceReady = { [weak self] in
+            self?.onDeviceReady()
+        }
+        connectionManager.onUSBCLIReady = { [weak self] in
+            #if os(macOS) || targetEnvironment(macCatalyst)
+            self?.onUSBCLIReady()
+            #endif
+        }
+        connectionManager.onDisconnected = { [weak self] previousState in
+            self?.handleDisconnect(previousState: previousState)
+        }
+        #if os(macOS) || targetEnvironment(macCatalyst)
+        connectionManager.onUSBCLILineReceived = { [weak self] line in
+            self?.remoteSessionManager.handleUSBCLILine(line)
+        }
+        #endif
+    }
+
+    /// Handle disconnect cleanup — called by ConnectionManager when state → disconnected.
+    private func handleDisconnect(previousState: BLEConnectionState) {
+        remoteSessionManager.resetLoginSessions()
+        remoteSessionManager.reset()
+        self.stopAutoLocationUpdates()
+        self.deviceConfig = DeviceConfig()
+        self.contactStore.reset()
+        self.channelStore.reset()
+        self.messageStoreManager.markAllSendingAsFailed()
+        self.messageStoreManager.reset()
+
+        // Connection loss notification
+        if previousState == .connecting || previousState == .ready {
+            if self.isInBackground && NotificationPreferences.shared.notifyConnection {
+                let deviceName = self.connectedDeviceName ?? "radio"
+                self.postEventNotification(
+                    title: "Connection Lost",
+                    body: "Lost connection to \(deviceName). Attempting to reconnect...",
+                    threadId: "connection"
+                )
+            }
+        }
+    }
+
+    /// Bridge @Observable stores → ObservableObject ViewModel.
+    /// Re-registers withObservationTracking so that any store property
+    /// change fires objectWillChange on the ViewModel. Views using
+    /// @EnvironmentObject continue to work during migration.
+    private func observeStores() {
+        func trackChanges() {
+            withObservationTracking {
+                // Touch all store properties that views read via the ViewModel
+                _ = self.contactStore.contacts
+                _ = self.contactStore.pendingNewContacts
+                _ = self.contactStore.contactGroups
+                _ = self.channelStore.channels
+                _ = self.channelStore.isSyncingChannels
+                _ = self.channelStore.pendingChannelImport
+                _ = self.channelStore.showChannelImportOptions
+                _ = self.channelStore.pendingMultiChannelImport
+                _ = self.channelStore.showMultiChannelImportOptions
+                _ = self.messageStoreManager.messagesByContact
+                _ = self.messageStoreManager.unreadCounts
+                _ = self.messageStoreManager.lastExportedURL
+                // ConnectionManager properties
+                _ = self.connectionManager.isScanning
+                _ = self.connectionManager.discoveredPeripherals
+                _ = self.connectionManager.connectionState
+                _ = self.connectionManager.connectedDeviceName
+                _ = self.connectionManager.bleStatusMessage
+                _ = self.connectionManager.scanRetryCount
+                _ = self.connectionManager.requestShowScanner
+                // RemoteSessionManager properties
+                _ = self.remoteSessionManager.discoveredNodes
+                _ = self.remoteSessionManager.isDiscovering
+                _ = self.remoteSessionManager.discoverFallbackMessage
+                _ = self.remoteSessionManager.lastTraceResult
+                _ = self.remoteSessionManager.pendingTraceTag
+                _ = self.remoteSessionManager.detailContactForTrace
+                _ = self.remoteSessionManager.pendingStatusKey
+                _ = self.remoteSessionManager.pendingTelemetryKey
+                _ = self.remoteSessionManager.pendingAdvertPathKey
+                _ = self.remoteSessionManager.allowedRepeatFreqRanges
+            } onChange: {
+                Task { @MainActor [weak self] in
+                    self?.objectWillChange.send()
+                    trackChanges()
+                }
+            }
+        }
+        trackChanges()
     }
 
     private func persistMessages(for contactKeyHash: Data) {
-        if let messages = messagesByContact[contactKeyHash] {
-            messageStore.saveMessages(messages, for: contactKeyHash)
-            syncMessagesToiCloud(for: contactKeyHash)
-        }
+        messageStoreManager.persistMessages(for: contactKeyHash)
     }
 
-    // MARK: - iCloud Message Sync
-
-    /// Sync the last 50 messages per contact to iCloud, keyed by radio pubkey.
-    private func syncMessagesToiCloud(for contactKeyHash: Data) {
-        guard UserDefaults.standard.object(forKey: "iCloudSyncEnabled") == nil
-                || UserDefaults.standard.bool(forKey: "iCloudSyncEnabled") else { return }
-        let radioKey = deviceConfig.publicKeyHex
-        guard !radioKey.isEmpty else { return }
-
-        let contactHex = contactKeyHash.map { String(format: "%02x", $0) }.joined()
-        let key = "msg.\(radioKey.prefix(12)).\(contactHex)"
-
-        guard let messages = messagesByContact[contactKeyHash] else { return }
-        let recent = Array(messages.suffix(50))
-
-        if let data = try? JSONEncoder().encode(recent), data.count < 60_000 {
-            iCloudStore.set(data, forKey: key)
-            // Don't call synchronize on every message — let the system batch
-        }
-    }
-
-    /// On launch, merge iCloud messages with local messages.
-    private func mergeMessagesFromiCloud() {
-        guard UserDefaults.standard.object(forKey: "iCloudSyncEnabled") == nil
-                || UserDefaults.standard.bool(forKey: "iCloudSyncEnabled") else { return }
-
-        // We don't know the radio key yet at launch — defer to after SELF_INFO
-    }
-
-    /// Called after SELF_INFO when we know the radio's public key.
     func mergeMessagesForCurrentRadio() {
-        let radioKey = deviceConfig.publicKeyHex
-        guard !radioKey.isEmpty else { return }
-        let prefix = "msg.\(radioKey.prefix(12))."
-
-        let allKeys = iCloudStore.dictionaryRepresentation.keys
-        var mergedCount = 0
-
-        for key in allKeys where key.hasPrefix(prefix) {
-            let contactHex = String(key.dropFirst(prefix.count))
-            guard let contactKeyHash = Data(hexString: contactHex),
-                  let data = iCloudStore.data(forKey: key),
-                  let cloudMessages = try? JSONDecoder().decode([Message].self, from: data)
-            else { continue }
-
-            let localMessages = messagesByContact[contactKeyHash] ?? []
-            let localIDs = Set(localMessages.map(\.id))
-            var merged = localMessages
-
-            for msg in cloudMessages where !localIDs.contains(msg.id) {
-                merged.append(msg)
-                mergedCount += 1
-            }
-
-            if merged.count > localMessages.count {
-                merged.sort { $0.timestamp < $1.timestamp }
-                messagesByContact[contactKeyHash] = merged
-                messageStore.saveMessages(merged, for: contactKeyHash)
-            }
-        }
-
-        if mergedCount > 0 {
-            Self.logger.info("iCloud sync: merged \(mergedCount) messages from other devices")
-        }
+        messageStoreManager.mergeMessagesForCurrentRadio()
     }
 
     /// Request notification permissions on first launch.
@@ -790,92 +647,8 @@ final class MeshCoreViewModel: ObservableObject {
         sendTextMessage(text, to: contact)
     }
 
-    /// Post a local notification for an incoming message when the app is backgrounded.
-    /// Checks user notification preferences before sending.
-    private func postLocalNotification(for message: Message) {
-        guard isInBackground else { return }
+    // postLocalNotification, updateAppBadge, playHapticFeedback, playReceiveHaptic -> MessageStoreManager
 
-        // Check notification preferences (synced via iCloud)
-        let prefs = NotificationPreferences.shared
-        let isChannel = message.channelIndex != nil
-        let isRoom = contacts.first(where: { $0.publicKeyPrefix == message.contactKeyHash })?.type == .room
-
-        if isChannel {
-            guard prefs.notifyChannel else { return }
-            // Check per-channel notify mode (mentions only)
-            if let chIdx = message.channelIndex,
-               let channel = channels.first(where: { $0.index == chIdx }) {
-                let mode = channelNotifyMode(for: channel.name)
-                if mode == .muted { return }
-                if mode == .mentionsOnly {
-                    let myName = deviceConfig.deviceName.lowercased()
-                    guard !myName.isEmpty, message.text.lowercased().contains("@\(myName)") else { return }
-                }
-            }
-        } else if isRoom {
-            guard prefs.notifyRoom else { return }
-        } else {
-            guard prefs.notifyDirect else { return }
-        }
-
-        let content = UNMutableNotificationContent()
-        content.sound = .default
-
-        // Find contact name for the notification title (use nickname if set)
-        let contact = contacts.first(where: { $0.publicKeyPrefix == message.contactKeyHash })
-        let senderName = message.senderName
-            ?? contact.map { displayName(for: $0) }
-
-        if let channelIdx = message.channelIndex {
-            let channelName = channels.first(where: { $0.index == channelIdx })?.name ?? "Channel"
-            content.title = channelName
-            if let name = message.senderName, !name.isEmpty {
-                content.subtitle = name
-            }
-            // Group by channel
-            content.threadIdentifier = "channel.\(channelIdx)"
-        } else if let name = senderName {
-            content.title = name
-            // Group by contact
-            content.threadIdentifier = "dm.\(message.contactKeyHash.map { String(format: "%02x", $0) }.joined())"
-        } else {
-            content.title = "New Message"
-        }
-        content.body = message.text
-
-        // Include contact pubkey for quick reply and navigation
-        if let contact {
-            content.userInfo["contactPubkey"] = contact.publicKey.map { String(format: "%02x", $0) }.joined()
-            content.userInfo["isChannel"] = isChannel
-            if let chIdx = message.channelIndex {
-                content.userInfo["channelIndex"] = chIdx
-            }
-            #if os(iOS)
-            if !isChannel {
-                content.categoryIdentifier = "MESSAGE_CATEGORY"
-            }
-            #endif
-        }
-
-        // Include badge count
-        let totalUnread = unreadCounts.values.reduce(0, +)
-        content.badge = NSNumber(value: totalUnread)
-
-        DebugLogger.shared.log("NOTIF: posting notification for '\(message.text.prefix(30))'", level: .info)
-        let request = UNNotificationRequest(
-            identifier: message.id.uuidString,
-            content: content,
-            trigger: nil
-        )
-        let log = Self.logger
-        UNUserNotificationCenter.current().add(request) { error in
-            if let error {
-                log.warning("Failed to post notification: \(error.localizedDescription)")
-            }
-        }
-    }
-
-    /// Post a notification for a system event (not a message).
     private func postEventNotification(title: String, body: String, threadId: String = "system") {
         let content = UNMutableNotificationContent()
         content.title = title
@@ -886,279 +659,29 @@ final class MeshCoreViewModel: ObservableObject {
         UNUserNotificationCenter.current().add(request)
     }
 
-    /// Update the app icon badge to reflect total unread messages.
-    func updateAppBadge() {
-        let totalUnread = unreadCounts.values.reduce(0, +)
-        #if os(iOS)
-        Task { @MainActor in
-            try? await UNUserNotificationCenter.current().setBadgeCount(totalUnread)
-        }
-        #elseif os(macOS)
-        NSApplication.shared.dockTile.badgeLabel = totalUnread > 0 ? "\(totalUnread)" : nil
-        #endif
-    }
+    func updateAppBadge() { messageStoreManager.updateAppBadge() }
+    func playHapticFeedback() { messageStoreManager.playHapticFeedback() }
+    func playReceiveHaptic() { messageStoreManager.playReceiveHaptic() }
 
-    /// Trigger haptic feedback on message send.
-    func playHapticFeedback() {
-        #if os(iOS)
-        let generator = UIImpactFeedbackGenerator(style: .light)
-        generator.impactOccurred()
-        #elseif os(watchOS)
-        WKInterfaceDevice.current().play(.click)
-        #endif
-    }
-
-    /// Trigger notification haptic on message receive.
-    func playReceiveHaptic() {
-        #if os(iOS)
-        let generator = UINotificationFeedbackGenerator()
-        generator.notificationOccurred(.success)
-        #elseif os(watchOS)
-        WKInterfaceDevice.current().play(.notification)
-        #endif
-    }
-
-    private func setupSubscriptions() {
-        bleManager.receivedDataSubject
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] data in
-                self?.handleReceivedData(data)
-            }
-            .store(in: &cancellables)
-
-        // Background fast-path: parse PUSH_CODE_MSG_WAITING immediately on BLE queue
-        // to trigger CMD_SYNC_NEXT_MESSAGE without waiting for main thread dispatch
-        bleManager.receivedDataSubject
-            .sink { [weak self] data in
-                guard let self, data.count >= 1 else { return }
-                let code = data[0]
-                // PUSH_CODE_MSG_WAITING (0x83) — immediately request the message
-                if code == 0x83 {
-                    Self.logger.info("BG FAST-PATH: PUSH_CODE_MSG_WAITING — sending SYNC_NEXT_MESSAGE immediately")
-                    DebugLogger.shared.log("NOTIF: 0x83 received, sending SYNC_NEXT immediately", level: .rx)
-                    self.bleManager.send(data: Data([0x0A])) // CMD_SYNC_NEXT_MESSAGE
-                }
-            }
-            .store(in: &cancellables)
-
-        bleManager.$discoveredPeripherals
-            .receive(on: DispatchQueue.main)
-            .assign(to: &$discoveredPeripherals)
-
-        bleManager.$connectedDeviceName
-            .receive(on: DispatchQueue.main)
-            .assign(to: &$connectedDeviceName)
-
-        bleManager.$connectionState
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] state in
-                guard let self else { return }
-                let previousState = self.connectionState
-                self.connectionState = state
-                if state == .disconnected {
-                    // Reset all login sessions on disconnect
-                    for (_, session) in self.remoteSessions {
-                        switch session.loginState {
-                        case .loggingIn:
-                            session.loginState = .loginFailed(message: "Device disconnected during login.")
-                        case .loggedIn:
-                            session.loginState = .notLoggedIn
-                        default:
-                            break
-                        }
-                    }
-                    self.loginTimeoutTask?.cancel()
-                    self.loginTimeoutTask = nil
-                    self.traceTimeoutTask?.cancel()
-                    self.statusTimeoutTask?.cancel()
-                    self.telemetryTimeoutTask?.cancel()
-                    self.pathTimeoutTask?.cancel()
-                    self.discoverTimeoutTask?.cancel()
-                    self.contactSyncDebounceTask?.cancel()
-                    self.hasCompletedInitialChannelSync = false
-                    self.stopAutoLocationUpdates()
-                    self.deviceConfig = DeviceConfig()
-                    self.forwardDeviceConfigChanges()
-                    self.isSyncingMessages = false
-                    self.isSyncingContacts = false
-                    self.isIncrementalContactSync = false
-                    self.lastContactsSync = 0
-                    self.incomingContacts = []
-                    self.channels = []
-                    self.incomingChannels = []
-                    self.isSyncingChannels = false
-                    self.pendingNewContacts = []
-                    self.discoveredNodes = []
-                    self.isDiscovering = false
-                    self.discoverUnsupported = false
-                    self.discoverFallbackMessage = nil
-                    self.lastTraceResult = nil
-                    self.pendingTraceTag = nil
-                    self.pendingStatusKey = nil
-                    self.pendingAdvertPathKey = nil
-                    self.pendingTelemetryKey = nil
-                    self.allowedRepeatFreqRanges = []
-                    // Mark pending outgoing messages as failed
-                    for (contactKey, messages) in self.messagesByContact {
-                        var updated = messages
-                        var changed = false
-                        for i in updated.indices where updated[i].isOutgoing && updated[i].status == .sending {
-                            updated[i].status = .failed
-                            changed = true
-                        }
-                        if changed {
-                            self.messagesByContact[contactKey] = updated
-                            self.persistMessages(for: contactKey)
-                        }
-                    }
-                    self.pendingACKs.removeAll()
-
-                    // If transitioning from connecting (reconnect attempts) to disconnected,
-                    // show scanner after BLE layer starts auto-scanning
-                    if previousState == .connecting || previousState == .ready {
-                        if self.isInBackground && NotificationPreferences.shared.notifyConnection {
-                            let deviceName = self.connectedDeviceName ?? "radio"
-                            self.postEventNotification(
-                                title: "Connection Lost",
-                                body: "Lost connection to \(deviceName). Attempting to reconnect...",
-                                threadId: "connection"
-                            )
-                        }
-                        if previousState == .connecting {
-                            Task { @MainActor in
-                                try? await Task.sleep(nanoseconds: 3_000_000_000)
-                                guard self.connectionState == .disconnected else { return }
-                                self.requestShowScanner = true
-                            }
-                        }
-                    }
-                }
-                if state == .ready && previousState != .ready {
-                    if self.isInBackground && previousState == .disconnected && NotificationPreferences.shared.notifyConnection {
-                        self.postEventNotification(
-                            title: "Reconnected",
-                            body: "Connected to \(self.connectedDeviceName ?? "radio")",
-                            threadId: "connection"
-                        )
-                    }
-                    self.onDeviceReady()
-                }
-            }
-            .store(in: &cancellables)
-
-        bleManager.$isPoweredOn
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] poweredOn in
-                guard let self, poweredOn, self.pendingAutoScan else { return }
-                self.pendingAutoScan = false
-                if self.connectionState == .disconnected {
-                    self.startScanning()
-                }
-            }
-            .store(in: &cancellables)
-
-        bleManager.$bleStatusMessage
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] message in
-                self?.bleStatusMessage = message
-            }
-            .store(in: &cancellables)
-
-        // WiFi/TCP subscriptions
-        wifiManager.receivedDataSubject
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] data in
-                self?.handleReceivedData(data)
-            }
-            .store(in: &cancellables)
-
-        wifiManager.$isConnected
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] connected in
-                guard let self else { return }
-                if connected {
-                    Self.logger.info("WiFi connected — initializing device")
-                    self.connectionState = .ready
-                    self.connectedDeviceName = "WiFi: \(self.wifiManager.connectedHost ?? "unknown")"
-                    self.onDeviceReady()
-                } else if self.wifiManager.connectedHost != nil {
-                    // WiFi disconnected
-                    if self.connectionState == .ready {
-                        self.connectionState = .disconnected
-                        self.connectedDeviceName = nil
-                    }
-                }
-            }
-            .store(in: &cancellables)
-
-        // USB Serial subscriptions (macOS only)
-        #if os(macOS) || targetEnvironment(macCatalyst)
-        usbManager.receivedDataSubject
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] data in
-                self?.handleReceivedData(data)
-            }
-            .store(in: &cancellables)
-
-        usbManager.receivedLineSubject
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] line in
-                guard let self else { return }
-                self.usbCLIOutput.append(USBTerminalLine(text: line, isCommand: false))
-                // Route to USB device session if active
-                if let session = self.usbDeviceSession {
-                    session.responseReceived(line)
-                }
-            }
-            .store(in: &cancellables)
-
-        usbManager.$isConnected
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] connected in
-                guard let self else { return }
-                if connected && self.usbManager.detectedMode == .binary {
-                    self.connectionState = .ready
-                    self.connectedDeviceName = self.usbManager.connectedPort?.replacingOccurrences(of: "/dev/cu.", with: "")
-                }
-                if !connected {
-                    // Clean up USB CLI session on disconnect
-                    self.usbDeviceSession = nil
-                    self.usbDeviceContact = nil
-                }
-            }
-            .store(in: &cancellables)
-
-        usbManager.$detectedMode
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] mode in
-                guard let self else { return }
-                if mode == .binary && self.usbManager.isConnected {
-                    Self.logger.info("USB binary mode detected — initializing device")
-                    self.connectionState = .ready
-                    self.connectedDeviceName = self.usbManager.connectedPort?.replacingOccurrences(of: "/dev/cu.", with: "")
-                    self.onDeviceReady()
-                } else if mode == .cli && self.usbManager.isConnected {
-                    Self.logger.info("USB CLI mode detected — initializing management session")
-                    DebugLogger.shared.log("USB CLI: mode=.cli detected, isConnected=\(self.usbManager.isConnected), creating session", level: .info)
-                    self.connectionState = .connected
-                    self.connectedDeviceName = "USB: \(self.usbManager.connectedPort?.replacingOccurrences(of: "/dev/cu.", with: "") ?? "Serial")"
-                    self.onUSBCLIReady()
-                    DebugLogger.shared.log("USB CLI: session created, isUSBCLIConnected=\(self.isUSBCLIConnected), connectionState=\(String(describing: self.connectionState))", level: .info)
-                }
-            }
-            .store(in: &cancellables)
-        #endif
-    }
+    // setupSubscriptions removed — transport subscriptions moved to ConnectionManager.
+    // ConnectionManager callbacks are wired in wireConnectionCallbacks().
 
     private func onDeviceReady() {
         #if os(macOS) || targetEnvironment(macCatalyst)
         // USB CLI mode handles its own settings fetch — don't send binary commands
         if usbManager.isConnected && usbManager.detectedMode == .cli { return }
         #endif
+        // Reconnection notification
+        if isInBackground && NotificationPreferences.shared.notifyConnection {
+            postEventNotification(
+                title: "Reconnected",
+                body: "Connected to \(connectedDeviceName ?? "radio")",
+                threadId: "connection"
+            )
+        }
         refreshAllSettings()
         requestContacts(fullSync: true)
-        isSyncingChannels = true
-        incomingChannels = []
+        channelStore.isSyncingChannels = true
         syncNextMessage()
     }
 
@@ -1169,216 +692,60 @@ final class MeshCoreViewModel: ObservableObject {
         requestContacts(fullSync: true)
     }
 
-    // MARK: - Scanning & Connection
+    // MARK: - Scanning & Connection (forwarded to ConnectionManager)
 
-    func requestAutoScan() {
-        if bleManager.isPoweredOn {
-            if connectionState == .disconnected {
-                scanRetryCount = maxScanRetries
-                startScanning()
-            }
-        } else {
-            pendingAutoScan = true
-            scanRetryCount = maxScanRetries
-        }
+    func requestAutoScan() { connectionManager.requestAutoScan() }
+    func startScanning() { connectionManager.startScanning() }
+    func stopScanning() { connectionManager.stopScanning() }
+    func handleScanTimeout() { connectionManager.handleScanTimeout() }
+    func connect(to peripheral: DiscoveredPeripheral) { connectionManager.connect(to: peripheral) }
+
+    /// Whether the UI should present the scanner sheet — forwarded from ConnectionManager.
+    var requestShowScanner: Bool {
+        get { connectionManager.requestShowScanner }
+        set { connectionManager.requestShowScanner = newValue }
     }
 
-    func startScanning() {
-        guard bleManager.isPoweredOn else {
-            Self.logger.warning("Cannot scan — BLE not powered on, queuing for later")
-            pendingAutoScan = true
-            return
-        }
-        scanRetryTask?.cancel()
-        isScanning = true
-        bleManager.startScanning()
-    }
-
-    func stopScanning() {
-        scanRetryTask?.cancel()
-        scanRetryTask = nil
-        scanRetryCount = 0
-        isScanning = false
-        bleManager.stopScanning()
-    }
-
-    func handleScanTimeout() {
-        guard isScanning else { return }
-        if discoveredPeripherals.isEmpty && scanRetryCount > 0 {
-            scanRetryCount -= 1
-            Self.logger.info("Scan found nothing, retrying (\(self.scanRetryCount) retries left)")
-            bleManager.stopScanning()
-            scanRetryTask = Task { [weak self] in
-                try? await Task.sleep(nanoseconds: 3_000_000_000)
-                guard !Task.isCancelled else { return }
-                self?.bleManager.startScanning()
-            }
-        } else if discoveredPeripherals.isEmpty {
-            Self.logger.info("Scan retries exhausted, stopping")
-            isScanning = false
-            bleManager.stopScanning()
-        }
-    }
-
-    func connect(to peripheral: DiscoveredPeripheral) {
-        stopScanning()
-        bleManager.connect(to: peripheral.peripheral)
-    }
-
-    /// Whether the UI should present the scanner sheet (set by auto-scan after disconnect).
-    @Published var requestShowScanner = false
-
-    func connectWiFi(host: String, port: UInt16 = 5000) {
-        wifiManager.connect(host: host, port: port)
-    }
-
-    func disconnectWiFi() {
-        wifiManager.disconnect()
-    }
+    func connectWiFi(host: String, port: UInt16 = 5000) { connectionManager.connectWiFi(host: host, port: port) }
+    func disconnectWiFi() { connectionManager.disconnectWiFi() }
 
     #if os(macOS) || targetEnvironment(macCatalyst)
-    func connectUSB(port: String) {
-        usbManager.connect(to: port)
-    }
+    func connectUSB(port: String) { connectionManager.connectUSB(port: port) }
 
     func disconnectUSB() {
-        usbManager.disconnect()
-        usbDeviceSession = nil
-        usbDeviceContact = nil
-        if connectionState != .disconnected {
-            connectionState = .disconnected
-            connectedDeviceName = nil
-        }
-        // Start BLE scan after USB disconnect (same as BLE disconnect behavior)
-        DebugLogger.shared.log("USB: disconnected — starting BLE scan in 2s", level: .info)
-        Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 2_000_000_000)
-            guard self.connectionState == .disconnected else { return }
-            self.startScanning()
-        }
+        remoteSessionManager.reset()
+        connectionManager.disconnectUSB()
     }
 
     func sendUSBCLI(_ command: String) {
-        usbManager.sendCLI(command)
-        usbCLIOutput.append(USBTerminalLine(text: "> \(command)", isCommand: true))
+        connectionManager.sendUSBCLI(command)
+        remoteSessionManager.usbCLIOutput.append(USBTerminalLine(text: "> \(command)", isCommand: true))
     }
 
-    /// Called when USB CLI mode is detected — sets up management session and auto-fetches settings.
+    /// Called when USB CLI mode is detected — delegates to RemoteSessionManager.
     private func onUSBCLIReady() {
-        // Create a synthetic contact for the USB device
-        // Use a well-known fake pubkey so we can identify it
-        let usbPubKey = Data(repeating: 0xFE, count: 32)
         let portName = usbManager.connectedPort?.replacingOccurrences(of: "/dev/cu.", with: "") ?? "USB Device"
-        let contact = Contact(
-            publicKey: usbPubKey,
-            name: portName,
-            type: .repeater, // Default — will be updated after "get role" response
-            flags: 0,
-            outPathLen: 0,
-            outPath: Data(),
-            lastAdvert: UInt32(Date().timeIntervalSince1970),
-            latitude: 0,
-            longitude: 0
-        )
-        usbDeviceContact = contact
-
-        let session = RemoteDeviceSession(contact: contact)
-        session.loginState = .loggedIn(permission: .admin) // USB = physical access = full trust
-        usbDeviceSession = session
-        // Forward session changes to ViewModel — defer to next run loop
-        // to avoid "Publishing changes from within view updates" warnings
-        session.objectWillChange
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                DispatchQueue.main.async {
-                    self?.objectWillChange.send()
-                }
-            }
-            .store(in: &cancellables)
-
-        DebugLogger.shared.log("USB CLI: management session created with admin access", level: .info)
-
-        // Auto-sync clock — query first, sync if needed
-        session.commandSent("clock")
-        usbManager.sendCLI("clock")
-        usbCLIOutput.append(USBTerminalLine(text: "> clock", isCommand: true))
-
-        Task { [weak self] in
-            try? await Task.sleep(nanoseconds: 800_000_000)
+        remoteSessionManager.onUSBCLIReady(portName: portName) { [weak self] cmd in
+            self?.connectionManager.sendUSBCLI(cmd)
+        }
+        // Set ready state after clock sync
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 1_000_000_000)
             guard let self else { return }
-            let now = Int(Date().timeIntervalSince1970)
-            var needsSync = true
-            if let clockResponse = session.settings["clock"] {
-                let todayFmt = DateFormatter()
-                todayFmt.dateFormat = "d/M/yyyy"
-                todayFmt.timeZone = TimeZone(identifier: "UTC")
-                let todayStr = todayFmt.string(from: Date())
-                if clockResponse.contains(todayStr) {
-                    needsSync = false
-                    DebugLogger.shared.log("CLOCK: device has today's date, skipping sync", level: .info)
-                }
-            }
-            if needsSync {
-                let timeCmd = "time \(now)"
-                session.commandSent(timeCmd)
-                self.usbManager.sendCLI(timeCmd)
-                self.usbCLIOutput.append(USBTerminalLine(text: "> \(timeCmd)", isCommand: true))
-                DebugLogger.shared.log("CLOCK: auto-synced USB CLI device time to \(now)", level: .info)
-            }
-            // RemoteManagementView.task will trigger fetchRemoteSettings when it appears
-            self.connectionState = .ready
+            self.connectionManager.connectionState = .ready
             DebugLogger.shared.log("USB CLI: connectionState set to .ready, isUSBCLIConnected=\(self.isUSBCLIConnected)", level: .info)
         }
     }
     #endif
 
-    func disconnect() {
-        bleManager.disconnect()
-        // Auto-scan after user-initiated disconnect
-        Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 2_000_000_000)
-            guard connectionState == .disconnected else { return }
-            requestShowScanner = true
-            startScanning()
-        }
-    }
+    func disconnect() { connectionManager.disconnect() }
 
     // MARK: - Protocol Commands
 
-    /// Routine commands that don't need hex dumps in the in-app debug log.
-    private static let routineLabels: Set<String> = [
-        "GET_BATT", "GET_TIME", "GET_TUNING", "GET_CUSTOM_VARS", "GET_STATS(0)",
-        "GET_STATS(1)", "GET_STATS(2)", "GET_AUTOADD", "APP_START", "DEVICE_QUERY",
-    ]
-
+    // sendCommand routing moved to ConnectionManager.
+    // ViewModel calls connectionManager.sendCommand directly.
     private func sendCommand(_ data: Data, label: String) {
-        let verbose = !Self.routineLabels.contains(label)
-
-        if wifiManager.isConnected {
-            let hex = data.map { String(format: "%02x", $0) }.joined(separator: " ")
-            Self.logger.info("TX(WiFi) \(label) [\(data.count) bytes]: \(hex)")
-            if verbose { DebugLogger.shared.log("TX(WiFi) \(label) [\(data.count)B] \(hex)", level: .tx) }
-            wifiManager.sendFrame(data)
-            return
-        }
-        #if os(macOS) || targetEnvironment(macCatalyst)
-        if usbManager.isConnected && usbManager.detectedMode == .binary {
-            let hex = data.map { String(format: "%02x", $0) }.joined(separator: " ")
-            Self.logger.info("TX(USB) \(label) [\(data.count) bytes]: \(hex)")
-            if verbose { DebugLogger.shared.log("TX(USB) \(label) [\(data.count)B] \(hex)", level: .tx) }
-            usbManager.sendFrame(data)
-            return
-        }
-        #endif
-        guard connectionState == .ready || connectionState == .connected else {
-            Self.logger.warning("Cannot send \(label) — not connected (state: \(String(describing: self.connectionState)))")
-            DebugLogger.shared.log("TX FAIL \(label) — not connected", level: .error)
-            return
-        }
-        let hex = data.map { String(format: "%02x", $0) }.joined(separator: " ")
-        Self.logger.info("TX \(label) [\(data.count) bytes]: \(hex)")
-        if verbose { DebugLogger.shared.log("TX \(label) [\(data.count)B] \(hex)", level: .tx) }
-        bleManager.send(data: data)
+        connectionManager.sendCommand(data, label: label)
     }
 
     func sendAppStart() {
@@ -1479,23 +846,8 @@ final class MeshCoreViewModel: ObservableObject {
         return .unknown
     }
 
-    /// Request an incremental contact sync with debouncing.
-    /// Coalesces rapid-fire advert/path pushes into a single CMD_GET_CONTACTS.
-    private func requestDebouncedIncrementalSync() {
-        contactSyncDebounceTask?.cancel()
-        contactSyncDebounceTask = Task { @MainActor [weak self] in
-            try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second debounce
-            guard !Task.isCancelled, let self else { return }
-            self.requestContacts()
-        }
-    }
-
-    func requestContacts(fullSync: Bool = false) {
-        let since: UInt32 = fullSync ? 0 : lastContactsSync
-        isIncrementalContactSync = !fullSync && since > 0
-        isSyncingContacts = true
-        sendCommand(MeshCoreProtocol.buildGetContacts(since: since), label: "GET_CONTACTS(since:\(since))")
-    }
+    private func requestDebouncedIncrementalSync() { contactStore.requestDebouncedIncrementalSync() }
+    func requestContacts(fullSync: Bool = false) { contactStore.requestContacts(fullSync: fullSync) }
 
     func sendAdvertise(type: UInt8 = 0) {
         // Apply GPS fudge before advertising so the broadcast position is fudged
@@ -1513,109 +865,12 @@ final class MeshCoreViewModel: ObservableObject {
         sendCommand(MeshCoreProtocol.buildSendSelfAdvert(advertType: type), label: "SELF_ADVERT")
     }
 
-    // MARK: - Favourites
+    // MARK: - Forwarding: Favourites/Contact Mgmt → ContactStore
 
-    /// Contacts sorted with favourites first, then alphabetical.
-    var sortedContacts: [Contact] {
-        contacts.sorted { a, b in
-            if a.isFavourite != b.isFavourite {
-                return a.isFavourite
-            }
-            return a.name.localizedCaseInsensitiveCompare(b.name) == .orderedAscending
-        }
-    }
-
-    /// Toggle favourite flag on a contact and sync to the radio.
-    func toggleFavourite(for contact: Contact) {
-        var newFlags = contact.flags
-        if contact.isFavourite {
-            newFlags &= ~0x01  // Clear bit 0
-        } else {
-            newFlags |= 0x01   // Set bit 0
-        }
-
-        // Send CMD_ADD_UPDATE_CONTACT with ALL existing contact data — only flags changed
-        let frame = MeshCoreProtocol.buildAddUpdateContact(
-            publicKey: contact.publicKey,
-            type: contact.type.rawValue,
-            flags: newFlags,
-            outPathLen: contact.outPathLen,
-            outPath: contact.outPath,
-            advName: contact.name,
-            lastAdvert: contact.lastAdvert,
-            latitude: Int32(contact.latitude * 1_000_000),
-            longitude: Int32(contact.longitude * 1_000_000)
-        )
-        sendCommand(frame, label: "UPDATE_CONTACT_FLAGS")
-
-        // Optimistic local update
-        if let index = contacts.firstIndex(where: { $0.publicKeyPrefix == contact.publicKeyPrefix }) {
-            contacts[index] = contact.withFlags(newFlags)
-        }
-    }
-
-    /// Update a contact's flags byte and sync to the radio (preserves all other contact data).
-    /// Update a contact's routing path via CMD_ADD_UPDATE_CONTACT.
-    func setContactPath(_ contact: Contact, pathLen: Int8, pathData: Data) {
-        let pathHex = pathData.isEmpty ? "(empty)" : pathData.map { String(format: "%02x", $0) }.joined()
-        let mode = pathLen < 0 ? "flood" : pathLen == 0 ? "direct" : "\(pathLen) hops"
-        DebugLogger.shared.log("PATH SET: \(mode) pathLen=\(pathLen) pathHex=\(pathHex) for \(contact.name)", level: .tx)
-
-        let frame = MeshCoreProtocol.buildAddUpdateContact(
-            publicKey: contact.publicKey,
-            type: contact.type.rawValue,
-            flags: contact.flags,
-            outPathLen: pathLen,
-            outPath: pathData,
-            advName: contact.name,
-            lastAdvert: contact.lastAdvert,
-            latitude: Int32(contact.latitude * 1_000_000),
-            longitude: Int32(contact.longitude * 1_000_000)
-        )
-        sendCommand(frame, label: "SET_CONTACT_PATH(len=\(pathLen))")
-
-        // Optimistic local update
-        if let index = contacts.firstIndex(where: { $0.publicKeyPrefix == contact.publicKeyPrefix }) {
-            contacts[index] = Contact(
-                publicKey: contact.publicKey,
-                name: contact.name,
-                type: contact.type,
-                flags: contact.flags,
-                outPathLen: pathLen,
-                outPath: pathData,
-                lastAdvert: contact.lastAdvert,
-                latitude: contact.latitude,
-                longitude: contact.longitude,
-                lastmod: contact.lastmod
-            )
-        }
-
-        // Request updated contacts after a delay to verify the device accepted the path
-        Task { @MainActor [weak self] in
-            try? await Task.sleep(nanoseconds: 2_000_000_000)
-            self?.requestDebouncedIncrementalSync()
-        }
-    }
-
-    func updateContactFlags(_ contact: Contact, newFlags: UInt8) {
-        let frame = MeshCoreProtocol.buildAddUpdateContact(
-            publicKey: contact.publicKey,
-            type: contact.type.rawValue,
-            flags: newFlags,
-            outPathLen: contact.outPathLen,
-            outPath: contact.outPath,
-            advName: contact.name,
-            lastAdvert: contact.lastAdvert,
-            latitude: Int32(contact.latitude * 1_000_000),
-            longitude: Int32(contact.longitude * 1_000_000)
-        )
-        sendCommand(frame, label: "UPDATE_CONTACT_FLAGS")
-
-        // Optimistic local update
-        if let index = contacts.firstIndex(where: { $0.publicKeyPrefix == contact.publicKeyPrefix }) {
-            contacts[index] = contact.withFlags(newFlags)
-        }
-    }
+    var sortedContacts: [Contact] { contactStore.sortedContacts }
+    func toggleFavourite(for contact: Contact) { contactStore.toggleFavourite(for: contact) }
+    func setContactPath(_ contact: Contact, pathLen: Int8, pathData: Data) { contactStore.setContactPath(contact, pathLen: pathLen, pathData: pathData) }
+    func updateContactFlags(_ contact: Contact, newFlags: UInt8) { contactStore.updateContactFlags(contact, newFlags: newFlags) }
 
     func requestBattAndStorage() {
         sendCommand(MeshCoreProtocol.buildGetBattAndStorage(), label: "GET_BATT")
@@ -1788,14 +1043,10 @@ final class MeshCoreViewModel: ObservableObject {
         sendCommand(MeshCoreProtocol.buildFactoryReset(), label: "FACTORY_RESET")
     }
 
-    // MARK: - Contact Management
+    // MARK: - Forwarding: Contact Management → ContactStore
 
-    /// Remove a contact from the device. Sends CMD_REMOVE_CONTACT.
     func removeContact(_ contact: Contact) {
-        let frame = MeshCoreProtocol.buildRemoveContact(publicKey: contact.publicKey)
-        sendCommand(frame, label: "REMOVE_CONTACT")
-        // Remove locally
-        contacts.removeAll { $0.publicKeyPrefix == contact.publicKeyPrefix }
+        contactStore.removeContact(contact)
         messagesByContact.removeValue(forKey: contact.publicKeyPrefix)
         unreadCounts.removeValue(forKey: contact.publicKeyPrefix)
         if case .contact(let key) = sidebarSelection, key == contact.publicKeyPrefix {
@@ -1803,42 +1054,8 @@ final class MeshCoreViewModel: ObservableObject {
         }
     }
 
-    /// Reset the outbound path for a contact. Sends CMD_RESET_PATH.
-    /// Sets firmware path_len to 0xFF (flood). Device will auto-discover a direct path on next send.
-    func resetPath(for contact: Contact) {
-        DebugLogger.shared.log("PATH RESET: \(contact.name) — will flood until path discovered", level: .tx)
-        let frame = MeshCoreProtocol.buildResetPath(publicKey: contact.publicKey)
-        sendCommand(frame, label: "RESET_PATH")
-
-        // Optimistic local update — set to flood (0xFF = -1 signed)
-        if let index = contacts.firstIndex(where: { $0.publicKeyPrefix == contact.publicKeyPrefix }) {
-            contacts[index] = Contact(
-                publicKey: contact.publicKey,
-                name: contact.name,
-                type: contact.type,
-                flags: contact.flags,
-                outPathLen: -1,  // OUT_PATH_UNKNOWN = 0xFF
-                outPath: Data(),
-                lastAdvert: contact.lastAdvert,
-                latitude: contact.latitude,
-                longitude: contact.longitude,
-                lastmod: contact.lastmod
-            )
-        }
-
-        // Request updated contacts after a longer delay (5s) to give the firmware
-        // time to process the reset before we read back the path value
-        Task { @MainActor [weak self] in
-            try? await Task.sleep(nanoseconds: 5_000_000_000)
-            self?.requestDebouncedIncrementalSync()
-        }
-    }
-
-    /// Share a contact's advert on the mesh (zero-hop). Sends CMD_SHARE_CONTACT.
-    func shareContact(_ contact: Contact) {
-        let frame = MeshCoreProtocol.buildShareContact(publicKey: contact.publicKey)
-        sendCommand(frame, label: "SHARE_CONTACT")
-    }
+    func resetPath(for contact: Contact) { contactStore.resetPath(for: contact) }
+    func shareContact(_ contact: Contact) { contactStore.shareContact(contact) }
 
     /// Export a contact as a meshcore:// URL. Result arrives as .exportedContact response.
     func exportContact(_ contact: Contact) {
@@ -1870,451 +1087,53 @@ final class MeshCoreViewModel: ObservableObject {
         }
     }
 
-    /// Last exported contact URL (set when exportedContact response arrives).
-    @Published var lastExportedURL: String?
+    // lastExportedURL -> forwarded from messageStoreManager (computed above)
 
-    // MARK: - Channel Import
+    // MARK: - Forwarding: Channel Import → ChannelStore
 
-    /// Parsed channel data pending user confirmation (add vs replace).
-    struct PendingChannelImport {
-        let name: String
-        let secret: Data?
-    }
+    typealias PendingChannelImport = ChannelStore.PendingChannelImport
+    typealias PendingMultiChannelImport = ChannelStore.PendingMultiChannelImport
 
-    @Published var pendingChannelImport: PendingChannelImport?
-    @Published var showChannelImportOptions = false
-
-    /// Multi-channel import state.
-    struct PendingMultiChannelImport {
-        let channels: [PendingChannelImport]
-        var names: String {
-            channels.map(\.name).joined(separator: ", ")
-        }
-    }
-
-    @Published var pendingMultiChannelImport: PendingMultiChannelImport?
-    @Published var showMultiChannelImportOptions = false
-
-    /// Handle a meshcore:// URL — routes to contact or channel import.
     func handleMeshCoreURL(_ urlString: String) {
-        if urlString.hasPrefix("meshcore://channels?") {
-            // Multi-channel URL (plural)
-            if let parsed = parseMultiChannelURL(urlString) {
-                pendingMultiChannelImport = parsed
-                showMultiChannelImportOptions = true
-            }
-        } else if urlString.hasPrefix("meshcore://channel?") {
-            // Single channel URL
-            if let parsed = parseChannelURL(urlString) {
-                pendingChannelImport = parsed
-                showChannelImportOptions = true
-            }
-        } else if urlString.hasPrefix("meshcore://") {
+        if channelStore.handleChannelURL(urlString) { return }
+        if urlString.hasPrefix("meshcore://") {
             importContact(url: urlString)
         }
     }
 
-    /// Parse a meshcore://channel?name=NAME&secret=HEX URL.
-    private func parseChannelURL(_ urlString: String) -> PendingChannelImport? {
-        guard let components = URLComponents(string: urlString),
-              let nameItem = components.queryItems?.first(where: { $0.name == "name" }),
-              let name = nameItem.value, !name.isEmpty else { return nil }
+    func importChannelAdd(_ data: PendingChannelImport) { channelStore.importChannelAdd(data, maxChannels: deviceConfig.maxChannels) }
+    func importChannelReplaceAll(_ data: PendingChannelImport) { channelStore.importChannelReplaceAll(data) }
+    func importMultiChannelsAdd(_ data: PendingMultiChannelImport) { channelStore.importMultiChannelsAdd(data, maxChannels: deviceConfig.maxChannels) }
+    func importMultiChannelsReplace(_ data: PendingMultiChannelImport) { channelStore.importMultiChannelsReplace(data, maxChannels: deviceConfig.maxChannels) }
 
-        var secret: Data?
-        if let secretHex = components.queryItems?.first(where: { $0.name == "secret" })?.value,
-           !secretHex.isEmpty {
-            secret = Data(hexString: secretHex)
-        }
-        return PendingChannelImport(name: name, secret: secret)
-    }
+    // MARK: - Forwarding: Messaging → MessageStoreManager
 
-    /// Parse a meshcore://channels?data=BASE64_JSON URL containing multiple channels.
-    private func parseMultiChannelURL(_ urlString: String) -> PendingMultiChannelImport? {
-        guard let components = URLComponents(string: urlString),
-              let dataItem = components.queryItems?.first(where: { $0.name == "data" }),
-              let base64 = dataItem.value,
-              let jsonData = Data(base64Encoded: base64),
-              let array = try? JSONSerialization.jsonObject(with: jsonData) as? [[String: String]] else {
-            return nil
-        }
-
-        var parsed: [PendingChannelImport] = []
-        for item in array {
-            guard let name = item["name"], !name.isEmpty else { continue }
-            let secretHex = item["secret"] ?? ""
-            let secret: Data? = secretHex.isEmpty ? nil : Data(hexString: secretHex)
-            parsed.append(PendingChannelImport(name: name, secret: secret))
-        }
-        guard !parsed.isEmpty else { return nil }
-        return PendingMultiChannelImport(channels: parsed)
-    }
-
-    /// Add a channel to the next available slot.
-    func importChannelAdd(_ data: PendingChannelImport) {
-        let usedIndices = Set(channels.map(\.index))
-        var nextSlot: UInt8 = 1
-        while usedIndices.contains(nextSlot) && nextSlot < deviceConfig.maxChannels {
-            nextSlot += 1
-        }
-        setChannel(index: nextSlot, name: data.name, secret: data.secret)
-    }
-
-    /// Replace all non-public channels, then add this one at slot 1.
-    func importChannelReplaceAll(_ data: PendingChannelImport) {
-        // Clear all non-public channels
-        for channel in channels where channel.index != 0 {
-            setChannel(index: channel.index, name: "", secret: nil)
-        }
-        // Add the new channel at slot 1
-        setChannel(index: 1, name: data.name, secret: data.secret)
-    }
-
-    /// Add multiple channels to the next available slots.
-    func importMultiChannelsAdd(_ data: PendingMultiChannelImport) {
-        var usedIndices = Set(channels.map(\.index))
-        for channel in data.channels {
-            var nextSlot: UInt8 = 1
-            while usedIndices.contains(nextSlot) && nextSlot < deviceConfig.maxChannels {
-                nextSlot += 1
-            }
-            guard nextSlot < deviceConfig.maxChannels else { break }
-            setChannel(index: nextSlot, name: channel.name, secret: channel.secret)
-            usedIndices.insert(nextSlot)
-        }
-    }
-
-    /// Replace all non-public channels, then add the imported channels.
-    func importMultiChannelsReplace(_ data: PendingMultiChannelImport) {
-        // Clear all non-public channels
-        for channel in channels where channel.index != 0 {
-            setChannel(index: channel.index, name: "", secret: nil)
-        }
-        // Add each imported channel starting at slot 1
-        for (i, channel) in data.channels.enumerated() {
-            let slot = UInt8(i + 1)
-            guard slot < deviceConfig.maxChannels else { break }
-            setChannel(index: slot, name: channel.name, secret: channel.secret)
-        }
-    }
-
-    // MARK: - Messaging
-
-    func messages(for contact: Contact) -> [Message] {
-        messagesByContact[contact.publicKeyPrefix] ?? []
-    }
-
-    func unreadCount(for contact: Contact) -> Int {
-        unreadCounts[contact.publicKeyPrefix] ?? 0
-    }
-
-    func markAsRead(_ contact: Contact) {
-        markAsRead(contactKey: contact.publicKeyPrefix)
-    }
-
-    func markAsRead(contactKey: Data) {
-        unreadCounts[contactKey] = 0
-        updateAppBadge()
-        let key = "lastRead.\(contactKey.map { String(format: "%02x", $0) }.joined())"
-        iCloudStore.set(Date().timeIntervalSince1970, forKey: key)
-        iCloudStore.synchronize()
-    }
-
-    /// Returns the index of the first unread incoming message for a contact.
-    func firstUnreadIndex(in messages: [Message], for contactKey: Data) -> Int? {
-        let key = "lastRead.\(contactKey.map { String(format: "%02x", $0) }.joined())"
-        let lastRead = iCloudStore.double(forKey: key)
-        guard lastRead > 0 else { return nil }
-        let lastReadDate = Date(timeIntervalSince1970: lastRead)
-        return messages.firstIndex { $0.timestamp > lastReadDate && !$0.isOutgoing }
-    }
-
-    /// Returns the last-read timestamp for a contact.
-    func lastReadTimestamp(for contactKey: Data) -> Date? {
-        let key = "lastRead.\(contactKey.map { String(format: "%02x", $0) }.joined())"
-        let ts = iCloudStore.double(forKey: key)
-        guard ts > 0 else { return nil }
-        return Date(timeIntervalSince1970: ts)
-    }
-
-    func sendTextMessage(_ text: String, to contact: Contact) {
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return }
-
-        // Add message to array BEFORE sending — prevents race where response arrives before message is stored
-        let outgoing = Message(
-            contactKeyHash: contact.publicKeyPrefix,
-            text: trimmed,
-            timestamp: Date(),
-            isOutgoing: true,
-            status: .sending
-        )
-        messagesByContact[contact.publicKeyPrefix, default: []].append(outgoing)
-        persistMessages(for: contact.publicKeyPrefix)
-
-        let frame = MeshCoreProtocol.buildSendTextMessage(
-            text: trimmed,
-            recipientKeyHash: contact.publicKeyPrefix
-        )
-        Self.logger.info("DM SEND: to=\(contact.name) key=\(contact.publicKeyPrefix.map { String(format: "%02x", $0) }.joined())")
-        DebugLogger.shared.log("DM SEND: to='\(contact.name)' '\(text.prefix(40))'", level: .tx)
-        sendCommand(frame, label: "SEND_TXT")
-    }
-
-    func sendChannelMessage(_ text: String, channelIndex: UInt8 = 0) {
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return }
-
-        let frame = MeshCoreProtocol.buildSendChannelMessage(
-            text: trimmed,
-            channelIndex: channelIndex
-        )
-        Self.logger.info("CHANNEL TX: [\(frame.count) bytes] \(frame.map { String(format: "%02X", $0) }.joined(separator: " "))")
-        let connDesc = String(describing: self.connectionState)
-        Self.logger.info("CHANNEL TX: cmd=0x\(String(format: "%02X", frame[0])) txtType=\(frame[1]) chIdx=\(frame[2]) text='\(trimmed)' connState=\(connDesc)")
-        let frameHex = frame.map { String(format: "%02X", $0) }.joined(separator: " ")
-        DebugLogger.shared.log("CH TX: ch=\(frame[2]) [\(frame.count)B] \(frameHex)", level: .tx)
-        DebugLogger.shared.log("CH TX: text='\(trimmed)'", level: .tx)
-        sendCommand(frame, label: "SEND_CHANNEL_TXT")
-        Self.logger.info("CHANNEL TX: frame sent, awaiting RESP_CODE_OK (0x00) or RESP_CODE_ERR (0x01)")
-
-        let channelKey = Data([channelIndex])
-        let outgoing = Message(
-            contactKeyHash: channelKey,
-            text: trimmed,
-            timestamp: Date(),
-            isOutgoing: true,
-            status: .sent,  // Channel messages are fire-and-forget — mark sent immediately
-            channelIndex: channelIndex
-        )
-        messagesByContact[channelKey, default: []].append(outgoing)
-        persistMessages(for: channelKey)
-
-        // Echo detection always active — 0x88 timing correlation.
-        // The firmware does NOT deliver our own channel messages back as 0x11.
-        // Instead, 0x88 fires when any repeater forwards a packet after our send.
-        pendingChannelEcho = (id: outgoing.id, channelKey: channelKey, sent: Date())
-        DebugLogger.shared.log("ECHO: armed pending echo for ch=\(channelIndex)", level: .info)
-    }
+    func messages(for contact: Contact) -> [Message] { messageStoreManager.messages(for: contact) }
+    func unreadCount(for contact: Contact) -> Int { messageStoreManager.unreadCount(for: contact) }
+    func markAsRead(_ contact: Contact) { messageStoreManager.markAsRead(contact) }
+    func markAsRead(contactKey: Data) { messageStoreManager.markAsRead(contactKey: contactKey) }
+    func firstUnreadIndex(in messages: [Message], for contactKey: Data) -> Int? { messageStoreManager.firstUnreadIndex(in: messages, for: contactKey) }
+    func lastReadTimestamp(for contactKey: Data) -> Date? { messageStoreManager.lastReadTimestamp(for: contactKey) }
+    func sendTextMessage(_ text: String, to contact: Contact) { messageStoreManager.sendTextMessage(text, to: contact) }
+    func sendChannelMessage(_ text: String, channelIndex: UInt8 = 0) { messageStoreManager.sendChannelMessage(text, channelIndex: channelIndex) }
 
     func syncNextMessage() {
         #if os(macOS) || targetEnvironment(macCatalyst)
         guard !isUSBCLIConnected else { return }
         #endif
-        isSyncingMessages = true
-        sendCommand(MeshCoreProtocol.buildSyncNextMessage(), label: "SYNC_NEXT_MSG")
+        messageStoreManager.syncNextMessage()
     }
 
     // MARK: - Remote Management
 
-    /// Get or create a remote management session for a contact.
-    /// Not @Published so this is safe to call during view body evaluation.
-    /// Changes to session @Published properties are forwarded to the ViewModel
-    /// so the contact list re-renders (badges, lock icons, etc.).
-    func remoteSession(for contact: Contact) -> RemoteDeviceSession {
-        #if os(macOS) || targetEnvironment(macCatalyst)
-        // USB CLI device uses its dedicated session, not the remote sessions dict
-        if let usbContact = usbDeviceContact, contact.publicKey == usbContact.publicKey,
-           let session = usbDeviceSession {
-            return session
-        }
-        #endif
-        let key = contact.publicKeyPrefix
-        if let existing = remoteSessions[key] {
-            return existing
-        }
-        let session = RemoteDeviceSession(contact: contact)
-        remoteSessions[key] = session
-        // Forward session changes to ViewModel so contact list updates
-        sessionCancellables[key] = session.objectWillChange
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                DispatchQueue.main.async {
-                    self?.objectWillChange.send()
-                }
-            }
-        return session
-    }
+    // MARK: - Remote Management (forwarded to RemoteSessionManager)
 
-    /// Login to a remote device (repeater/room server).
-    func loginToRemoteDevice(_ contact: Contact, password: String, remember: Bool = true) {
-        let session = remoteSession(for: contact)
-        // Guard against double-sends if already logging in
-        if case .loggingIn = session.loginState { return }
-        session.loginState = .loggingIn
-        pendingLoginPassword = password
-        pendingLoginRememberPassword = remember
-        let frame = MeshCoreProtocol.buildSendLogin(
-            recipientPublicKey: contact.publicKey,
-            password: password
-        )
-        sendCommand(frame, label: "SEND_LOGIN")
-    }
-
-    /// Send a CLI command to a remote device. Polls for response after a delay.
-    func sendCLICommand(_ command: String, to contact: Contact) {
-        let trimmed = command.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return }
-
-        #if os(macOS) || targetEnvironment(macCatalyst)
-        // Route through USB serial if this is the USB device contact
-        if let usbContact = usbDeviceContact, contact.publicKey == usbContact.publicKey,
-           let session = usbDeviceSession {
-            session.commandSent(trimmed)
-            usbManager.sendCLI(trimmed)
-            usbCLIOutput.append(USBTerminalLine(text: "> \(trimmed)", isCommand: true))
-            DebugLogger.shared.log("USB CLI TX: \(trimmed)", level: .tx)
-            return
-        }
-        #endif
-
-        let session = remoteSession(for: contact)
-        let cmdIndex = session.commandSent(trimmed)
-
-        // GPS-specific logging
-        if trimmed.hasPrefix("gps") {
-            Self.logger.info("REMOTE GPS: Sending '\(trimmed)' to \(contact.name)")
-        }
-
-        let frame = MeshCoreProtocol.buildSendCLICommand(
-            command: trimmed,
-            recipientKeyHash: contact.publicKeyPrefix
-        )
-        sendCommand(frame, label: "CLI_CMD")
-
-        // Poll for response after a short delay — CLI responses go through the offline message queue
-        Task { [weak self] in
-            try? await Task.sleep(nanoseconds: 500_000_000) // 500ms
-            guard let self else { return }
-            self.syncNextMessage()
-
-            // Timeout: if no response after 8 seconds, mark as timed out
-            try? await Task.sleep(nanoseconds: 8_000_000_000)
-            guard !Task.isCancelled else { return }
-            session.timeoutCommand(at: cmdIndex)
-
-            // Session expiry detection: if 3+ consecutive commands timed out,
-            // the remote session has likely expired on the server side
-            let recentHistory = session.cliHistory.suffix(3)
-            if recentHistory.count >= 3,
-               recentHistory.allSatisfy({ $0.response == "(no response)" }),
-               case .loggedIn = session.loginState {
-                session.loginState = .loginFailed(
-                    message: "Session may have expired \u{2014} please login again."
-                )
-                session.cliHistory = []
-                session.settings = [:]
-                session.hasLoadedFullSettings = false
-                session.isFetchingSettings = false
-                session.isWaitingForResponse = false
-            }
-        }
-    }
-
-    /// Log out from a remote device session.
-    /// Clears all cached state so re-login starts fresh with a new password.
-    func logoutFromRemoteDevice(_ contact: Contact) {
-        let session = remoteSession(for: contact)
-        // Mark all pending CLI commands as timed out
-        for i in session.cliHistory.indices where !session.cliHistory[i].isComplete {
-            session.cliHistory[i].response = "(session ended)"
-        }
-        session.loginState = .notLoggedIn
-        session.cliHistory = []
-        session.settings = [:]
-        session.isFetchingSettings = false
-        session.hasLoadedFullSettings = false
-        session.isWaitingForResponse = false
-        session.fetchReceivedCount = 0
-        session.fetchTotalCount = 0
-    }
-
-    /// Request status from a remote device.
-    func requestRemoteStatus(_ contact: Contact) {
-        let frame = MeshCoreProtocol.buildSendStatusReq(
-            recipientPublicKey: contact.publicKey
-        )
-        sendCommand(frame, label: "STATUS_REQ")
-    }
-
-    /// Fetch all settings from a remote device sequentially.
-    /// Called automatically after login and when management screen opens.
-    func fetchRemoteSettings(for contact: Contact) {
-        let session = remoteSession(for: contact)
-        // Skip if already fetching (prevents race between auto-fetch and .task)
-        guard !session.isFetchingSettings else {
-            Self.logger.info("REMOTE MGMT: Settings fetch already in progress, skipping duplicate for \(contact.name)")
-            return
-        }
-        session.isFetchingSettings = true
-        session.fetchReceivedCount = 0
-
-        let commands = [
-            "ver", "clock",
-            "get radio", "get tx", "get repeat",
-            "get af", "get rxdelay", "get txdelay", "get direct.txdelay",
-            "get flood.max", "get int.thresh", "get agc.reset.interval",
-            "get name", "get lat", "get lon", "get owner.info",
-            "get advert.interval", "get flood.advert.interval", "get multi.acks",
-            "get allow.read.only",
-            "get adc.multiplier",
-            "get loop.detect", "get path.hash.mode",
-            "get role", "get public.key", "get guest.password",
-            "powersaving", "gps", "gps advert",
-        ]
-
-        session.fetchTotalCount = commands.count
-        Self.logger.info("REMOTE MGMT: Fetching \(commands.count) settings for \(contact.name) (sequential)")
-
-        Task { [weak self] in
-            for (index, command) in commands.enumerated() {
-                guard let self else { return }
-                await self.fetchRemoteSetting(command: command, contact: contact, session: session)
-                session.fetchReceivedCount = index + 1
-            }
-            session.isFetchingSettings = false
-            session.hasLoadedFullSettings = true
-            Self.logger.info("REMOTE MGMT: Finished fetching settings for \(contact.name), received \(session.fetchReceivedCount)/\(commands.count)")
-        }
-    }
-
-    /// Send a single CLI command and wait for its response (response-driven, no fixed delays).
-    private func fetchRemoteSetting(command: String, contact: Contact, session: RemoteDeviceSession) async {
-        let cmdIndex: Int
-
-        #if os(macOS) || targetEnvironment(macCatalyst)
-        // USB CLI: send plain text through serial, responses arrive via receivedLineSubject
-        if let usbContact = usbDeviceContact, contact.publicKey == usbContact.publicKey {
-            cmdIndex = session.commandSent(command)
-            usbManager.sendCLI(command)
-            usbCLIOutput.append(USBTerminalLine(text: "> \(command)", isCommand: true))
-        } else {
-            cmdIndex = session.commandSent(command)
-            let frame = MeshCoreProtocol.buildSendCLICommand(
-                command: command,
-                recipientKeyHash: contact.publicKeyPrefix
-            )
-            sendCommand(frame, label: "CLI_FETCH")
-            // LoRa: poll for response after brief delay
-            try? await Task.sleep(nanoseconds: 300_000_000)
-            syncNextMessage()
-        }
-        #else
-        cmdIndex = session.commandSent(command)
-        let frame = MeshCoreProtocol.buildSendCLICommand(
-            command: command,
-            recipientKeyHash: contact.publicKeyPrefix
-        )
-        sendCommand(frame, label: "CLI_FETCH")
-        try? await Task.sleep(nanoseconds: 300_000_000)
-        syncNextMessage()
-        #endif
-
-        // Wait for this specific command's response (3s timeout)
-        let received = await session.waitForResponse(at: cmdIndex, timeout: 3.0)
-        if !received {
-            session.timeoutCommand(at: cmdIndex)
-        }
-    }
+    func remoteSession(for contact: Contact) -> RemoteDeviceSession { remoteSessionManager.remoteSession(for: contact) }
+    func loginToRemoteDevice(_ contact: Contact, password: String, remember: Bool = true) { remoteSessionManager.loginToRemoteDevice(contact, password: password, remember: remember) }
+    func sendCLICommand(_ command: String, to contact: Contact) { remoteSessionManager.sendCLICommand(command, to: contact) }
+    func logoutFromRemoteDevice(_ contact: Contact) { remoteSessionManager.logoutFromRemoteDevice(contact) }
+    func requestRemoteStatus(_ contact: Contact) { remoteSessionManager.requestRemoteStatus(contact) }
+    func fetchRemoteSettings(for contact: Contact) { remoteSessionManager.fetchRemoteSettings(for: contact) }
 
     // MARK: - Response Handling
 
@@ -2452,51 +1271,16 @@ final class MeshCoreViewModel: ObservableObject {
             deviceConfig.autoAddBitmask = bitmask
 
         case .contactsStart(let count):
-            Self.logger.info("Contacts sync starting: \(count) contacts expected")
-            DebugLogger.shared.log("Contacts sync: \(count) expected", level: .info)
-            expectedContactCount = count
-            // Clear only the buffer, never the displayed contacts
-            incomingContacts = []
+            contactStore.handleContactsStart(count: count)
 
         case .contact(let contact):
-            Self.logger.debug("Received contact: \(contact.name) type=\(contact.type.rawValue)")
-            incomingContacts.append(contact)
+            contactStore.handleContact(contact)
 
         case .endOfContacts(let lastmod):
-            Self.logger.info("Contacts sync complete: \(self.incomingContacts.count) contacts, lastmod=\(lastmod), incremental=\(self.isIncrementalContactSync)")
-            DebugLogger.shared.log("Contacts done: \(self.incomingContacts.count) synced", level: .info)
-            if isIncrementalContactSync {
-                // Incremental sync: merge only modified contacts into existing list
-                if !incomingContacts.isEmpty {
-                    var merged = contacts
-                    for incoming in incomingContacts {
-                        if let idx = merged.firstIndex(where: { $0.publicKeyPrefix == incoming.publicKeyPrefix }) {
-                            merged[idx] = incoming
-                        } else {
-                            merged.append(incoming)
-                        }
-                    }
-                    contacts = merged
-                }
-                // If 0 results, don't touch contacts — nothing changed
-            } else {
-                // Full sync: atomic swap — replace entire list at once
-                contacts = incomingContacts
-            }
-            incomingContacts = []
-            lastContactsSync = lastmod
-            isIncrementalContactSync = false
-            isSyncingContacts = false
-
-            #if canImport(CoreSpotlight)
-            indexContactsForSpotlight()
-            #endif
-
-            // Only sync channels on full sync (initial connection), not incremental
-            // (path changes, adverts, etc. don't affect channels)
-            if !hasCompletedInitialChannelSync {
+            let shouldSyncChannels = contactStore.handleEndOfContacts(lastmod: lastmod)
+            if shouldSyncChannels && !channelStore.hasCompletedInitialChannelSync {
                 syncChannels()
-                hasCompletedInitialChannelSync = true
+                channelStore.hasCompletedInitialChannelSync = true
             }
 
         case .sent(let type, let expectedACK, let suggestedTimeout):
@@ -2508,7 +1292,7 @@ final class MeshCoreViewModel: ObservableObject {
             Self.logger.info("Received direct message: \(message.text)")
             DebugLogger.shared.log("DM RX: '\(message.text.prefix(60))'", level: .rx)
             handleIncomingMessage(message)
-            if isSyncingMessages {
+            if messageStoreManager.isSyncingMessages {
                 syncNextMessage()
             }
 
@@ -2516,13 +1300,13 @@ final class MeshCoreViewModel: ObservableObject {
             Self.logger.info("CHANNEL RX: ch=\(message.channelIndex ?? 0) isOutgoing=\(message.isOutgoing) sender='\(message.senderName ?? "?")' text='\(message.text.prefix(40))'")
             DebugLogger.shared.log("CH RX: ch=\(message.channelIndex ?? 0) from='\(message.senderName ?? "?")' '\(message.text.prefix(40))'", level: .rx)
             handleIncomingMessage(message)
-            if isSyncingMessages {
+            if messageStoreManager.isSyncingMessages {
                 syncNextMessage()
             }
 
         case .noMoreMessages:
             Self.logger.debug("No more messages")
-            isSyncingMessages = false
+            messageStoreManager.isSyncingMessages = false
 
         case .sendConfirmed(let ackCode, let roundTripMs):
             Self.logger.info("PARSED SendConfirmed: ackCode=\(ackCode) roundTrip=\(roundTripMs)ms")
@@ -2553,16 +1337,7 @@ final class MeshCoreViewModel: ObservableObject {
             requestDebouncedIncrementalSync()
 
         case .newAdvert(let contact):
-            Self.logger.info("PUSH NewAdvert (manual_add): \(contact.name)")
-            DebugLogger.shared.log("PUSH NewAdvert: \(contact.name)", level: .rx)
-            // Add to pending contacts list for user approval
-            if !pendingNewContacts.contains(where: { $0.publicKeyPrefix == contact.publicKeyPrefix }) {
-                pendingNewContacts.append(contact)
-                if isInBackground && NotificationPreferences.shared.notifyNewContacts {
-                    postEventNotification(title: "New Contact Discovered", body: contact.name, threadId: "contacts")
-                }
-            }
-            // Also show as discovered node during discover scan
+            contactStore.handleNewAdvert(contact, isInBackground: isInBackground)
             if isDiscovering {
                 addAdvertAsDiscoveredNode(contact)
             }
@@ -2575,20 +1350,11 @@ final class MeshCoreViewModel: ObservableObject {
         case .traceData(let result):
             Self.logger.info("PUSH TraceData: tag=\(result.tag) hops=\(result.hops.count)")
             DebugLogger.shared.log("TRACE: \(result.hops.count) hops received", level: .rx)
-            traceTimeoutTask?.cancel()
-            lastTraceResult = result
-            pendingTraceTag = nil
-            // Auto-open contact detail to show trace result
-            if let contact = pendingTraceContact {
-                detailContactForTrace = contact
-            }
-            pendingTraceContact = nil
+            remoteSessionManager.handleTraceData(result)
 
         case .telemetryResponse(let senderKey, let readings):
             Self.logger.info("PUSH Telemetry: \(readings.count) readings from \(senderKey.prefix(6).map { String(format: "%02x", $0) }.joined())")
-            telemetryTimeoutTask?.cancel()
-            telemetryByContact[senderKey] = readings
-            if pendingTelemetryKey == senderKey { pendingTelemetryKey = nil }
+            remoteSessionManager.handleTelemetryResponse(senderKey: senderKey, readings: readings)
 
         case .controlData(let snr, let rssi, let pathLen, let payload):
             Self.logger.info("PUSH ControlData: snr=\(snr) rssi=\(rssi) pathLen=\(pathLen)")
@@ -2598,7 +1364,8 @@ final class MeshCoreViewModel: ObservableObject {
             let secretDesc = channel.secret.map { $0.map { String(format: "%02x", $0) }.joined() } ?? "none"
             Self.logger.info("Channel info: idx=\(channel.index) name='\(channel.name)' secret=\(secretDesc)")
             DebugLogger.shared.log("CH[\(channel.index)]: '\(channel.name)' secret=\(channel.secret != nil ? "\(channel.secret!.count)B" : "none")", level: .rx)
-            handleChannelInfo(channel)
+            channelStore.handleChannelInfo(channel)
+            channelStore.checkChannelSyncComplete(maxChannels: deviceConfig.maxChannels)
 
         case .exportedContact(let url):
             Self.logger.info("EXPORT RESP: url='\(url.prefix(80))' (\(url.count) chars)")
@@ -2615,7 +1382,7 @@ final class MeshCoreViewModel: ObservableObject {
 
         case .allowedRepeatFreq(let ranges):
             Self.logger.info("AllowedRepeatFreq: \(ranges.count) ranges")
-            allowedRepeatFreqRanges = ranges
+            remoteSessionManager.handleAllowedRepeatFreq(ranges)
 
         case .currentAdvert(let adData):
             Self.logger.debug("Current advert: \(adData.count) bytes")
@@ -2624,10 +1391,8 @@ final class MeshCoreViewModel: ObservableObject {
             Self.logger.debug("Raw data: \(pktData.count) bytes")
 
         case .contactDeleted(let publicKey):
-            let keyPrefix = publicKey.prefix(6)
-            let name = contacts.first(where: { $0.publicKeyPrefix == keyPrefix })?.name ?? "Unknown"
-            Self.logger.info("Contact deleted by device: \(name)")
-            contacts.removeAll { $0.publicKeyPrefix == keyPrefix }
+            let name = contacts.first(where: { $0.publicKeyPrefix == publicKey.prefix(6) })?.name ?? "Unknown"
+            contactStore.handleContactDeleted(publicKey: publicKey)
             lastErrorMessage = "Contact \"\(name)\" was removed from device to make room for new contacts."
 
         case .contactsFull(let maxContacts):
@@ -2637,31 +1402,10 @@ final class MeshCoreViewModel: ObservableObject {
 
         case .unknown(let type, let payload):
             if type == 0x88 {
-                // PUSH_CODE_LOG_RX_DATA — raw LoRa packet received by device
                 let snr = payload.count > 0 ? Int8(bitPattern: payload[0]) : 0
                 let rssi = payload.count > 1 ? Int8(bitPattern: payload[1]) : 0
                 Self.logger.debug("LOG_RX_DATA (0x88): snr=\(Float(snr)/4.0) rssi=\(rssi) rawLen=\(payload.count - 2)")
-
-                // Echo detection via 0x88 timing correlation.
-                // If a LOG_RX_DATA arrives within 30s of our channel send,
-                // a repeater forwarded our message → mark as .repeated.
-                if let pending = pendingChannelEcho {
-                    let elapsed = Date().timeIntervalSince(pending.sent)
-                    if elapsed < 30 {
-                        if var msgs = messagesByContact[pending.channelKey],
-                           let msgIdx = msgs.firstIndex(where: { $0.id == pending.id }) {
-                            Self.logger.info("ECHO: 0x88 received \(String(format: "%.1f", elapsed))s after channel send — marking as repeated")
-                            DebugLogger.shared.log("ECHO: repeated after \(String(format: "%.1f", elapsed))s (snr=\(String(format: "%.1f", Float(snr)/4.0)))", level: .info)
-                            msgs[msgIdx].status = .repeated
-                            messagesByContact[pending.channelKey] = msgs
-                            persistMessages(for: pending.channelKey)
-                        }
-                        pendingChannelEcho = nil
-                    } else {
-                        // Expired — clear stale pending echo
-                        pendingChannelEcho = nil
-                    }
-                }
+                messageStoreManager.handleLogRxData(payload)
             } else if type >= 0x80 {
                 Self.logger.debug("Ignoring push notification 0x\(String(format: "%02x", type)), \(payload.count) bytes payload")
             } else {
@@ -2672,373 +1416,42 @@ final class MeshCoreViewModel: ObservableObject {
 
     /// Handle RESP_CODE_SENT — device accepted our message. Mark as .sent and track ACK.
     private func handleSentResponse(expectedACK: UInt32, suggestedTimeoutMs: UInt32) {
-        // Check if this SENT is for a pending login attempt
-        let hasLoginPending = remoteSessions.values.contains(where: {
-            if case .loggingIn = $0.loginState { return true }
-            return false
-        })
-        if hasLoginPending {
-            let timeoutMs = UInt64(suggestedTimeoutMs) + 3000 // suggested + 3s buffer
-            loginTimeoutTask?.cancel()
-            loginTimeoutTask = Task { @MainActor [weak self] in
-                try? await Task.sleep(nanoseconds: timeoutMs * 1_000_000)
-                guard !Task.isCancelled, let self else { return }
-                for (_, session) in self.remoteSessions {
-                    if case .loggingIn = session.loginState {
-                        session.loginState = .loginFailed(
-                            message: "Login timed out \u{2014} the device did not respond. Check your password and make sure the device is in range."
-                        )
-                        break
-                    }
-                }
-            }
-        }
-
-        var matched = false
-        for (contactKey, messages) in messagesByContact {
-            if let idx = messages.lastIndex(where: { $0.isOutgoing && ($0.status == .sending || $0.status == .retrying || $0.status == .flooding) }) {
-                Self.logger.info("DM RESP_SENT: matched message \(messages[idx].id) for contact \(contactKey.map { String(format: "%02x", $0) }.joined()) → .sent, ack=\(expectedACK)")
-                messagesByContact[contactKey]![idx].status = .sent
-                messagesByContact[contactKey]![idx].expectedACK = expectedACK
-                messagesByContact[contactKey]![idx].suggestedTimeoutMs = suggestedTimeoutMs
-                pendingACKs[expectedACK] = (contactKeyHash: contactKey, messageID: messages[idx].id)
-                persistMessages(for: contactKey)
-                matched = true
-
-                let timeoutSec = max(UInt64(suggestedTimeoutMs / 1000), 30)
-                Task { [weak self] in
-                    try? await Task.sleep(nanoseconds: timeoutSec * 1_000_000_000)
-                    guard let self else { return }
-                    if self.pendingACKs[expectedACK] != nil {
-                        self.handleACKTimeout(ackCode: expectedACK)
-                    }
-                }
-                break
-            }
-        }
-        if !matched {
-            Self.logger.warning("DM RESP_SENT: NO .sending message found for ack=\(expectedACK)")
-        }
+        remoteSessionManager.handleSentResponse(expectedACK: expectedACK, suggestedTimeoutMs: suggestedTimeoutMs)
+        messageStoreManager.handleSentResponse(expectedACK: expectedACK, suggestedTimeoutMs: suggestedTimeoutMs)
     }
 
-    /// Handle PUSH_CODE_SEND_CONFIRMED — recipient ACKed our message.
     private func handleSendConfirmed(ackCode: UInt32, roundTripMs: UInt32) {
-        guard let pending = pendingACKs.removeValue(forKey: ackCode) else {
-            Self.logger.warning("DM CONFIRMED: no pending ACK for code \(ackCode)")
-            return
-        }
-
-        if var messages = messagesByContact[pending.contactKeyHash],
-           let idx = messages.firstIndex(where: { $0.id == pending.messageID }) {
-            Self.logger.info("DM CONFIRMED: message \(pending.messageID) → .delivered, roundTrip=\(roundTripMs)ms")
-            messages[idx].status = .delivered
-            messages[idx].roundTripMs = roundTripMs
-            messagesByContact[pending.contactKeyHash] = messages
-            persistMessages(for: pending.contactKeyHash)
-        }
+        messageStoreManager.handleSendConfirmed(ackCode: ackCode, roundTripMs: roundTripMs)
     }
 
-    /// Handle ACK timeout — auto-retry on direct path, then flood fallback if enabled.
-    private func handleACKTimeout(ackCode: UInt32) {
-        guard let pending = pendingACKs.removeValue(forKey: ackCode) else { return }
+    // handleACKTimeout, deleteMessage, clearAllMessages, clearAllDrafts, retryMessage -> MessageStoreManager
 
-        guard var messages = messagesByContact[pending.contactKeyHash],
-              let idx = messages.firstIndex(where: { $0.id == pending.messageID }),
-              messages[idx].status == .sent else { return }
+    func deleteMessage(_ message: Message, in contactKey: Data) { messageStoreManager.deleteMessage(message, in: contactKey) }
+    func clearAllMessages() { messageStoreManager.clearAllMessages() }
+    func clearAllDrafts() { messageStoreManager.clearAllDrafts() }
+    func retryMessage(_ message: Message) { messageStoreManager.retryMessage(message) }
 
-        let message = messages[idx]
-        let autoRetry = UserDefaults.standard.bool(forKey: "autoRetry")
-        let autoResetPath = UserDefaults.standard.bool(forKey: "autoResetPath")
-        let maxDirectRetries: UInt8 = 1  // Single direct attempt, then flood fallback (~30s)
-        let maxFloodRetries: UInt8 = 2
-
-        // Phase 1: Direct path retries (attempts 0-2 = 3 tries total)
-        if !message.didResetPath && message.attempt < maxDirectRetries - 1 {
-            if autoRetry {
-                Self.logger.info("ACK timeout for message \(pending.messageID), auto-retrying (attempt \(message.attempt + 1))")
-                messages[idx].status = .retrying
-                messages[idx].attempt += 1
-                let attempt = messages[idx].attempt
-                let contactKey = pending.contactKeyHash
-                messagesByContact[contactKey] = messages
-                persistMessages(for: contactKey)
-
-                // Re-send on direct path
-                if let channelIdx = message.channelIndex {
-                    let frame = MeshCoreProtocol.buildSendChannelMessage(
-                        text: message.text,
-                        channelIndex: channelIdx
-                    )
-                    sendCommand(frame, label: "AUTO_RETRY_CHANNEL(\(attempt))")
-                } else {
-                    let frame = MeshCoreProtocol.buildSendTextMessage(
-                        text: message.text,
-                        recipientKeyHash: contactKey,
-                        attempt: attempt
-                    )
-                    sendCommand(frame, label: "AUTO_RETRY_TXT(\(attempt))")
-                }
-                return
-            }
-        }
-
-        // Phase 2: Reset path and flood (if enabled and not already flooding)
-        if autoRetry && autoResetPath && !message.didResetPath && message.channelIndex == nil {
-            Self.logger.info("Direct retries exhausted for \(pending.messageID), resetting path and flooding")
-            messages[idx].status = .flooding
-            messages[idx].didResetPath = true
-            messages[idx].attempt = 0 // Reset attempt counter for flood phase
-            let contactKey = pending.contactKeyHash
-            messagesByContact[contactKey] = messages
-            persistMessages(for: contactKey)
-
-            // Find the contact to reset path
-            if let contact = contacts.first(where: { $0.publicKeyPrefix == contactKey }) {
-                resetPath(for: contact)
-            }
-
-            // Delay before flood send to allow path reset to take effect
-            Task { [weak self] in
-                try? await Task.sleep(nanoseconds: 500_000_000)
-                guard let self else { return }
-                let frame = MeshCoreProtocol.buildSendTextMessage(
-                    text: message.text,
-                    recipientKeyHash: contactKey,
-                    attempt: 0
-                )
-                self.sendCommand(frame, label: "FLOOD_RETRY_TXT")
-            }
-            return
-        }
-
-        // Phase 3: Flood retries (didResetPath = true, retry within flood phase)
-        if message.didResetPath && message.attempt < maxFloodRetries - 1 {
-            if autoRetry {
-                Self.logger.info("Flood retry for \(pending.messageID) (attempt \(message.attempt + 1))")
-                messages[idx].status = .flooding
-                messages[idx].attempt += 1
-                let attempt = messages[idx].attempt
-                let contactKey = pending.contactKeyHash
-                messagesByContact[contactKey] = messages
-                persistMessages(for: contactKey)
-
-                let frame = MeshCoreProtocol.buildSendTextMessage(
-                    text: message.text,
-                    recipientKeyHash: contactKey,
-                    attempt: attempt
-                )
-                sendCommand(frame, label: "FLOOD_RETRY_TXT(\(attempt))")
-                return
-            }
-        }
-
-        // All retries exhausted — mark as failed
-        Self.logger.info("All retries exhausted for message \(pending.messageID), marking as failed")
-        messages[idx].status = .failed
-        messagesByContact[pending.contactKeyHash] = messages
-        persistMessages(for: pending.contactKeyHash)
-    }
-
-    /// Delete a single message from local storage and iCloud.
-    func deleteMessage(_ message: Message, in contactKey: Data) {
-        if var messages = messagesByContact[contactKey],
-           let idx = messages.firstIndex(where: { $0.id == message.id }) {
-            messages.remove(at: idx)
-            messagesByContact[contactKey] = messages
-            persistMessages(for: contactKey)
-        }
-    }
-
-    /// Clear all messages for all contacts.
-    func clearAllMessages() {
-        messagesByContact.removeAll()
-        messageStore.deleteAllMessages()
-        unreadCounts.removeAll()
-        updateAppBadge()
-    }
-
-    /// Clear all saved message drafts from iCloud.
-    func clearAllDrafts() {
-        let store = NSUbiquitousKeyValueStore.default
-        let keys = store.dictionaryRepresentation.keys.filter { $0.hasPrefix("draft.") }
-        for key in keys {
-            store.removeObject(forKey: key)
-        }
-        store.synchronize()
-    }
-
-    /// Retry sending a failed message. Restarts the full retry flow.
-    func retryMessage(_ message: Message) {
-        guard message.isOutgoing, message.status == .failed else { return }
-        let contactKey = message.contactKeyHash
-
-        if var messages = messagesByContact[contactKey],
-           let idx = messages.firstIndex(where: { $0.id == message.id }) {
-
-            // If this is a DM that already failed, reset path and flood
-            if message.channelIndex == nil {
-                // Reset path so the device floods instead of using the stale direct route
-                if let contact = contacts.first(where: { $0.publicKeyPrefix == contactKey }) {
-                    Self.logger.info("RETRY: resetting path for \(contact.name) before flood retry")
-                    resetPath(for: contact)
-                }
-                messages[idx].status = .sending  // Must be .sending so handleSentResponse can match
-                messages[idx].attempt = 2
-                messages[idx].didResetPath = true
-                messagesByContact[contactKey] = messages
-
-                // Delay to let path reset take effect, then send as flood
-                let msgID = message.id
-                Task { [weak self] in
-                    try? await Task.sleep(nanoseconds: 500_000_000)
-                    guard let self else { return }
-                    Self.logger.info("RETRY: sending flood for \(msgID) with attempt=2")
-                    let frame = MeshCoreProtocol.buildSendTextMessage(
-                        text: message.text,
-                        recipientKeyHash: contactKey,
-                        attempt: 2
-                    )
-                    self.sendCommand(frame, label: "MANUAL_RETRY_FLOOD")
-                }
-            } else {
-                // Channel message retry — just resend
-                messages[idx].status = .sending
-                messages[idx].attempt = 0
-                messagesByContact[contactKey] = messages
-                let frame = MeshCoreProtocol.buildSendChannelMessage(
-                    text: message.text,
-                    channelIndex: message.channelIndex!
-                )
-                sendCommand(frame, label: "MANUAL_RETRY_CHANNEL")
-            }
-            persistMessages(for: contactKey)
-        }
-    }
-
-    /// Handle PUSH_CODE_ADVERT — a contact advertised on the mesh.
-    /// Update the existing contact or add a new one. No need to trigger
-    /// CMD_GET_CONTACTS — the advert itself contains the full contact data.
     private func handleAdvert(_ contact: Contact) {
-        // Update contact with fresh advert data (includes updated lastAdvert timestamp)
-        if let idx = contacts.firstIndex(where: { $0.publicKeyPrefix == contact.publicKeyPrefix }) {
-            contacts[idx] = contact
-            DebugLogger.shared.log("ADVERT: updated \(contact.name) lastAdvert=\(contact.lastAdvert)", level: .rx)
-        } else {
-            contacts.append(contact)
-            DebugLogger.shared.log("ADVERT: new contact \(contact.name) lastAdvert=\(contact.lastAdvert)", level: .rx)
-        }
-
-        // If discover is active (fallback mode), also show as discovered node
+        contactStore.handleAdvert(contact)
         if isDiscovering {
             addAdvertAsDiscoveredNode(contact)
         }
     }
 
-    /// Convert a Contact from an advert push into a DiscoveredNode for the discover list.
     private func addAdvertAsDiscoveredNode(_ contact: Contact) {
-        // Filter self-adverts
-        let selfKeyHex = deviceConfig.publicKeyHex
-        let contactKeyHex = contact.publicKeyPrefix.map { String(format: "%02x", $0) }.joined()
-        if !selfKeyHex.isEmpty && selfKeyHex.hasPrefix(contactKeyHex) { return }
-
-        let node = DiscoveredNode(
-            publicKey: Data(contact.publicKeyPrefix),
-            name: contact.name,
-            type: contact.type,
-            snr: 0,
-            rssi: 0,
-            pathLen: UInt8(clamping: contact.outPathLen),
-            latitude: contact.latitude,
-            longitude: contact.longitude
-        )
-        if let idx = discoveredNodes.firstIndex(where: { $0.publicKey == node.publicKey }) {
-            discoveredNodes[idx] = node
-        } else {
-            discoveredNodes.append(node)
-        }
+        remoteSessionManager.addAdvertAsDiscoveredNode(contact)
     }
 
-    /// Handle login success — find the session that was logging in and update it.
     private func handleLoginSuccess(permissionLevel: Int) {
-        loginTimeoutTask?.cancel()
-        loginTimeoutTask = nil
-        let permission = RemotePermission(rawValue: permissionLevel) ?? .guest
-        for (key, session) in remoteSessions {
-            if case .loggingIn = session.loginState {
-                session.loginState = .loggedIn(permission: permission)
-
-                // Save password to Keychain if user opted in
-                if pendingLoginRememberPassword, let password = pendingLoginPassword,
-                   let contact = contacts.first(where: { $0.publicKeyPrefix == key }) {
-                    let type = permission.isAdmin ? "admin" : "guest"
-                    KeychainManager.savePassword(password, forDevice: contact.publicKey, type: type)
-                }
-                pendingLoginPassword = nil
-                pendingLoginRememberPassword = false
-
-                // Sync stored messages first (room server pushes last 32 messages)
-                syncNextMessage()
-                if let contact = contacts.first(where: { $0.publicKeyPrefix == key }) {
-                    // Auto-fetch full settings after login — brief delay to let message sync start
-                    Self.logger.info("REMOTE MGMT: Login success for \(contact.name), scheduling settings fetch")
-                    Task { [weak self] in
-                        try? await Task.sleep(nanoseconds: 1_500_000_000) // 1.5s
-                        guard let self else { return }
-                        Self.logger.info("REMOTE MGMT: Starting auto-fetch settings for \(contact.name)")
-                        self.fetchRemoteSettings(for: contact)
-                    }
-                }
-                return
-            }
-        }
+        remoteSessionManager.handleLoginSuccess(permissionLevel: permissionLevel)
     }
 
-    /// Handle login failure.
     private func handleLoginFail() {
-        loginTimeoutTask?.cancel()
-        loginTimeoutTask = nil
-        for (key, session) in remoteSessions {
-            if case .loggingIn = session.loginState {
-                session.loginState = .loginFailed(message: "Login failed \u{2014} incorrect password.")
-                // Delete stale credential from Keychain
-                if let contact = contacts.first(where: { $0.publicKeyPrefix == key }) {
-                    KeychainManager.deleteAllPasswords(forDevice: contact.publicKey)
-                }
-                pendingLoginPassword = nil
-                pendingLoginRememberPassword = false
-                return
-            }
-        }
+        remoteSessionManager.handleLoginFail()
     }
 
-    /// Handle RESP_CODE_ERR — stop any pending operations and surface error to user.
     private func handleErrorResponse(code: UInt8, description: String) {
-        // Stop login spinner if a login was in progress
-        for (_, session) in remoteSessions {
-            if case .loggingIn = session.loginState {
-                loginTimeoutTask?.cancel()
-                loginTimeoutTask = nil
-                session.loginState = .loginFailed(message: description)
-                break
-            }
-        }
-
-        // If a path request was pending and got "Unsupported command", provide fallback
-        if let key = pendingAdvertPathKey {
-            pendingAdvertPathKey = nil
-            if let contact = contacts.first(where: { $0.publicKeyPrefix == key }) {
-                buildFallbackPath(for: contact)
-                return // Don't show the raw error — we handled it gracefully
-            }
-        }
-
-        // If a discover scan was in progress and got unsupported, fall back to flood advert
-        if isDiscovering && code == 1 && description.lowercased().contains("unsupported") {
-            discoverUnsupported = true
-            startDiscoverFallback()
-            return
-        }
-
+        if remoteSessionManager.handleErrorResponse(code: code, description: description) { return }
         // Friendly message for unsupported commands
         if code == 1 && description.lowercased().contains("unsupported") {
             lastErrorMessage = "This command is not supported on the current firmware version."
@@ -3047,97 +1460,19 @@ final class MeshCoreViewModel: ObservableObject {
         }
     }
 
-    /// Send a plain text message to a room server (appears in room chat, not CLI).
-    func sendRoomMessage(_ text: String, to contact: Contact) {
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return }
-
-        // Send as TXT_TYPE_PLAIN (0) — regular room chat post
-        let frame = MeshCoreProtocol.buildSendTextMessage(
-            text: trimmed,
-            recipientKeyHash: contact.publicKeyPrefix,
-            txtType: 0
-        )
-        sendCommand(frame, label: "SEND_ROOM_TXT")
-
-        let outgoing = Message(
-            contactKeyHash: contact.publicKeyPrefix,
-            text: trimmed,
-            timestamp: Date(),
-            isOutgoing: true,
-            status: .sending
-        )
-        messagesByContact[contact.publicKeyPrefix, default: []].append(outgoing)
-        persistMessages(for: contact.publicKeyPrefix)
-    }
+    func sendRoomMessage(_ text: String, to contact: Contact) { messageStoreManager.sendRoomMessage(text, to: contact) }
 
     /// Handle an incoming message (direct or channel).
     private func handleIncomingMessage(_ message: Message) {
-        let contactKey = message.contactKeyHash
+        // Route CLI responses to remote session manager first
+        if remoteSessionManager.routeIncomingMessage(message) { return }
 
-        // Check if this is from a managed device we're logged into
-        if let session = remoteSessions[contactKey], !message.isOutgoing {
-            if case .loggedIn = session.loginState {
-                // txt_type=1 (CLI_DATA) always goes to management screen
-                if message.txtType == 1 {
-                    Self.logger.info("CLI response (txtType=1) → management: '\(message.text)'")
-                    // Strip "> " prefix that room servers add to CLI responses
-                    let responseText = message.text.hasPrefix("> ")
-                        ? String(message.text.dropFirst(2))
-                        : message.text
-                    // GPS-specific logging
-                    if let pending = session.oldestPendingCommand, pending.hasPrefix("gps") {
-                        Self.logger.info("REMOTE GPS: Response: '\(responseText)'")
-                    }
-                    session.responseReceived(responseText)
-                    return
-                }
-                // txt_type=0 with pending CLI commands — might be a CLI response without the flag
-                if session.hasPendingCLICommands || session.isFetchingSettings {
-                    Self.logger.info("Routing to CLI (pending commands): '\(message.text)'")
-                    let responseText = message.text.hasPrefix("> ")
-                        ? String(message.text.dropFirst(2))
-                        : message.text
-                    session.responseReceived(responseText)
-                    return
-                }
-                // txt_type=0 with no pending CLI commands:
-                // Room servers → room chat message, fall through
-                // Repeaters → no chat, discard
-                if session.contact.type == .room {
-                    Self.logger.info("Room chat message: '\(message.text)'")
-                    // Fall through to store as normal message
-                } else {
-                    Self.logger.info("Discarding non-CLI message from repeater")
-                    return
-                }
-            }
+        // Delegate message storage, dedup, unread, haptics to store
+        messageStoreManager.isInBackground = isInBackground
+        messageStoreManager.selectedContactKey = selectedContact?.publicKeyPrefix
+        if let stored = messageStoreManager.handleIncomingMessage(message) {
+            messageStoreManager.postLocalNotification(for: stored)
         }
-
-        let existing = messagesByContact[contactKey] ?? []
-        let isDuplicate = existing.contains { msg in
-            msg.text == message.text &&
-            abs(msg.timestamp.timeIntervalSince(message.timestamp)) < 2 &&
-            msg.isOutgoing == message.isOutgoing
-        }
-        guard !isDuplicate else {
-            Self.logger.debug("Skipping duplicate message")
-            return
-        }
-
-        messagesByContact[contactKey, default: []].append(message)
-        persistMessages(for: contactKey)
-
-        if !isInBackground {
-            playReceiveHaptic()
-        }
-
-        if selectedContact?.publicKeyPrefix != contactKey {
-            unreadCounts[contactKey, default: 0] += 1
-            updateAppBadge()
-        }
-
-        postLocalNotification(for: message)
     }
 
     private func checkLoadingComplete() {
@@ -3177,445 +1512,32 @@ final class MeshCoreViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Discover
+    // MARK: - Network Tools (forwarded to RemoteSessionManager)
 
-    /// Start a discover scan. Tries CMD_SEND_CONTROL_DATA first; if unsupported,
-    /// falls back to flood advertisement and listens for PUSH_CODE_ADVERT responses.
-    func startDiscover() {
-        discoveredNodes = []
-        isDiscovering = true
-        discoverFallbackMessage = nil
+    func startDiscover() { remoteSessionManager.startDiscover() }
+    func stopDiscover() { remoteSessionManager.stopDiscover() }
+    private func handleControlData(snr: Int8, rssi: Int8, pathLen: UInt8, payload: Data) { remoteSessionManager.handleControlData(snr: snr, rssi: rssi, pathLen: pathLen, payload: payload) }
+    func traceRoute(to contact: Contact) { remoteSessionManager.traceRoute(to: contact) }
+    func requestStatus(for contact: Contact) { remoteSessionManager.requestStatus(for: contact) }
+    func requestTelemetry(for contact: Contact) { remoteSessionManager.requestTelemetry(for: contact) }
+    private func handleStatusResponse(_ info: RemoteStatusInfo) { remoteSessionManager.handleStatusResponse(info) }
+    func requestAdvertPath(for contact: Contact) { remoteSessionManager.requestAdvertPath(for: contact) }
+    private func handleAdvertPathResponse(_ info: AdvertPathInfo) { remoteSessionManager.handleAdvertPathResponse(info) }
+    func requestAllowedRepeatFreq() { remoteSessionManager.requestAllowedRepeatFreq() }
 
-        if discoverUnsupported {
-            // Already know this firmware doesn't support active discover — go straight to fallback
-            startDiscoverFallback()
-        } else {
-            let frame = MeshCoreProtocol.buildSendDiscover()
-            sendCommand(frame, label: "DISCOVER_REQ")
+    // MARK: - Forwarding: Pending Contacts → ContactStore
 
-            // Auto-stop after 30 seconds (longer to allow for fallback trigger)
-            discoverTimeoutTask?.cancel()
-            discoverTimeoutTask = Task { @MainActor [weak self] in
-                try? await Task.sleep(nanoseconds: 30_000_000_000)
-                guard !Task.isCancelled, let self, self.isDiscovering else { return }
-                self.isDiscovering = false
-            }
-        }
-    }
+    func acceptPendingContact(_ contact: Contact) { contactStore.acceptPendingContact(contact) }
+    func rejectPendingContact(_ contact: Contact) { contactStore.rejectPendingContact(contact) }
 
-    /// Stop the current discover scan.
-    func stopDiscover() {
-        discoverTimeoutTask?.cancel()
-        isDiscovering = false
-        DebugLogger.shared.log("DISCOVER: stopped by user", level: .info)
-    }
-
-    /// Fallback discover: send flood advertisement and listen for advert responses.
-    private func startDiscoverFallback() {
-        discoverFallbackMessage = "Using advertisement-based discovery (firmware does not support active discover scan)"
-        sendCommand(MeshCoreProtocol.buildSendSelfAdvert(advertType: 1), label: "FLOOD_ADVERT_DISCOVER")
-
-        // Listen for 30 seconds
-        discoverTimeoutTask?.cancel()
-        discoverTimeoutTask = Task { @MainActor [weak self] in
-            try? await Task.sleep(nanoseconds: 30_000_000_000)
-            guard !Task.isCancelled, let self, self.isDiscovering else { return }
-            self.isDiscovering = false
-        }
-    }
-
-    /// Handle PUSH_CODE_CONTROL_DATA — parse discover responses from the payload.
-    private func handleControlData(snr: Int8, rssi: Int8, pathLen: UInt8, payload: Data) {
-        // Discover response payload: sub_type(1) sender_pub_key(32) sender_type(1) sender_name(32 null-term) lat(int32) lon(int32)
-        guard payload.count >= 2 else { return }
-        let subType = payload[0]
-
-        // 0x81 = DISCOVER_RESP
-        guard subType == 0x81 else {
-            Self.logger.debug("Control data sub_type=0x\(String(format: "%02x", subType)) — not a discover response")
-            return
-        }
-
-        var offset = 1
-        let keyLen = min(32, payload.count - offset)
-        guard keyLen >= 6 else { return }
-        let publicKey = Data(payload[offset..<offset+keyLen])
-        offset += keyLen
-
-        let contactType: ContactType
-        if offset < payload.count {
-            contactType = ContactType(rawValue: payload[offset]) ?? .unknown
-            offset += 1
-        } else {
-            contactType = .unknown
-        }
-
-        let name: String
-        if offset + 32 <= payload.count {
-            let nameSlice = payload[offset..<offset+32]
-            if let nullIdx = nameSlice.firstIndex(of: 0x00) {
-                name = String(data: Data(payload[offset..<nullIdx]), encoding: .utf8) ?? ""
-            } else {
-                name = String(data: Data(nameSlice), encoding: .utf8) ?? ""
-            }
-            offset += 32
-        } else if offset < payload.count {
-            name = String(data: Data(payload[offset...]), encoding: .utf8)?
-                .trimmingCharacters(in: .controlCharacters) ?? ""
-            offset = payload.count
-        } else {
-            name = ""
-        }
-
-        var latitude: Double = 0
-        var longitude: Double = 0
-        if offset + 8 <= payload.count {
-            var latRaw: Int32 = 0
-            _ = withUnsafeMutableBytes(of: &latRaw) { dest in
-                payload.copyBytes(to: dest, from: offset..<offset+4)
-            }
-            latitude = Double(Int32(littleEndian: latRaw)) / 1_000_000.0
-            offset += 4
-            var lonRaw: Int32 = 0
-            _ = withUnsafeMutableBytes(of: &lonRaw) { dest in
-                payload.copyBytes(to: dest, from: offset..<offset+4)
-            }
-            longitude = Double(Int32(littleEndian: lonRaw)) / 1_000_000.0
-            offset += 4
-        }
-
-        // Filter out our own device (self-advert reflection)
-        let selfKeyHex = deviceConfig.publicKeyHex
-        let nodeKeyHex = publicKey.prefix(6).map { String(format: "%02x", $0) }.joined()
-        if !selfKeyHex.isEmpty && selfKeyHex.hasPrefix(nodeKeyHex) {
-            Self.logger.debug("Discover: filtered self-advert (\(name))")
-            return
-        }
-
-        // Filter out nodes with empty name and zero signal (malformed)
-        if name.isEmpty && snr == 0 && rssi == 0 {
-            Self.logger.debug("Discover: filtered zero-signal unnamed node")
-            return
-        }
-
-        let node = DiscoveredNode(
-            publicKey: publicKey,
-            name: name,
-            type: contactType,
-            snr: snr,
-            rssi: rssi,
-            pathLen: pathLen,
-            latitude: latitude,
-            longitude: longitude
-        )
-
-        if let idx = discoveredNodes.firstIndex(where: { $0.publicKey == publicKey }) {
-            discoveredNodes[idx] = node
-        } else {
-            discoveredNodes.append(node)
-        }
-
-        Self.logger.info("Discovered: '\(name)' type=\(contactType.rawValue) snr=\(snr) rssi=\(rssi)")
-    }
-
-    // MARK: - Trace Route
-
-    /// Send a trace route request to a contact.
-    func traceRoute(to contact: Contact) {
-        // Trace route only works for multi-hop paths
-        guard contact.outPathLen > 0, !contact.outPath.isEmpty else {
-            lastErrorMessage = contact.outPathLen == 0
-                ? "This contact is a direct neighbor — no route to trace."
-                : "No path known for this contact — cannot trace route."
-            return
-        }
-        let tag = UInt32.random(in: 0..<UInt32.max)
-        pendingTraceTag = tag
-        pendingTraceContact = contact
-        lastTraceResult = nil
-        // Only send the actual path bytes (outPathLen), not zero-padded data
-        let actualPathLen = Int(contact.outPathLen)
-        let pathData = contact.outPath.prefix(actualPathLen)
-        let frame = MeshCoreProtocol.buildSendTracePath(outPath: Data(pathData), tag: tag)
-        sendCommand(frame, label: "TRACE_PATH")
-
-        // Timeout after 15 seconds — cancellable when response arrives
-        traceTimeoutTask?.cancel()
-        traceTimeoutTask = Task { @MainActor [weak self] in
-            try? await Task.sleep(nanoseconds: 15_000_000_000)
-            guard !Task.isCancelled, let self, self.pendingTraceTag == tag else { return }
-            self.pendingTraceTag = nil
-            if self.lastTraceResult == nil {
-                self.lastErrorMessage = "Trace route timed out — the path may not be reachable."
-            }
-        }
-    }
-
-    // MARK: - Status & Telemetry
-
-    /// Request status from a remote device (repeater/sensor).
-    func requestStatus(for contact: Contact) {
-        // Log contextual info — status requests are best supported by repeaters, room servers, and sensors
-        switch contact.type {
-        case .chat:
-            Self.logger.info("Status request to chat contact — may not respond")
-        case .repeater:
-            Self.logger.info("Requesting status from repeater \(contact.name)")
-        case .room:
-            Self.logger.info("Requesting status from room server \(contact.name)")
-        default:
-            Self.logger.info("Requesting status from \(contact.name)")
-        }
-
-        let key = contact.publicKeyPrefix
-        pendingStatusKey = key
-        let frame = MeshCoreProtocol.buildSendStatusReq(recipientPublicKey: contact.publicKey)
-        sendCommand(frame, label: "STATUS_REQ")
-
-        // Timeout after 15 seconds — cancellable when response arrives
-        statusTimeoutTask?.cancel()
-        statusTimeoutTask = Task { @MainActor [weak self] in
-            try? await Task.sleep(nanoseconds: 15_000_000_000)
-            guard !Task.isCancelled, let self, self.pendingStatusKey == key else { return }
-            self.pendingStatusKey = nil
-            if self.statusByContact[key] == nil {
-                self.lastErrorMessage = contact.type == .chat
-                    ? "No status response — status requests are only supported by repeaters, room servers, and sensors."
-                    : "No status response — the device may be out of range or powered off."
-            }
-        }
-    }
-
-    /// Request telemetry from a sensor contact.
-    func requestTelemetry(for contact: Contact) {
-        DebugLogger.shared.log("TELEMETRY REQ: requesting from \(contact.name)", level: .tx)
-        let key = contact.publicKeyPrefix
-        pendingTelemetryKey = key
-        let frame = MeshCoreProtocol.buildSendTelemetryReq(recipientPublicKey: contact.publicKey)
-        sendCommand(frame, label: "TELEMETRY_REQ")
-
-        // Timeout after 15 seconds — cancellable when response arrives
-        telemetryTimeoutTask?.cancel()
-        telemetryTimeoutTask = Task { @MainActor [weak self] in
-            try? await Task.sleep(nanoseconds: 15_000_000_000)
-            guard !Task.isCancelled, let self, self.pendingTelemetryKey == key else { return }
-            self.pendingTelemetryKey = nil
-            if self.telemetryByContact[key] == nil {
-                // Contextual timeout message based on node type
-                switch contact.type {
-                case .chat:
-                    self.lastErrorMessage = "No telemetry response — telemetry is typically only available from sensor nodes."
-                case .room:
-                    self.lastErrorMessage = "No telemetry response — room servers don't typically support telemetry."
-                default:
-                    self.lastErrorMessage = "No telemetry response — the node may not support telemetry or is out of range."
-                }
-            }
-        }
-    }
-
-    /// Handle status response — associate with the most recently requested contact.
-    private func handleStatusResponse(_ info: RemoteStatusInfo) {
-        statusTimeoutTask?.cancel()
-        if let key = pendingStatusKey {
-            statusByContact[key] = info
-            pendingStatusKey = nil
-        }
-    }
-
-    // MARK: - Advert Path
-
-    /// Request the last known path to a contact.
-    /// Falls back to the contact's stored out_path if the firmware doesn't support the command.
-    func requestAdvertPath(for contact: Contact) {
-        pendingAdvertPathKey = contact.publicKeyPrefix
-        let frame = MeshCoreProtocol.buildGetAdvertPath(publicKey: contact.publicKey)
-        sendCommand(frame, label: "GET_ADVERT_PATH")
-
-        // Timeout after 10 seconds — fall back to stored path info, cancellable when response arrives
-        let key = contact.publicKeyPrefix
-        pathTimeoutTask?.cancel()
-        pathTimeoutTask = Task { @MainActor [weak self] in
-            try? await Task.sleep(nanoseconds: 10_000_000_000)
-            guard !Task.isCancelled, let self, self.pendingAdvertPathKey == key else { return }
-            self.pendingAdvertPathKey = nil
-            // Fall back to locally-known path from contact data
-            if self.advertPathByContact[key] == nil {
-                self.buildFallbackPath(for: contact)
-            }
-        }
-    }
-
-    /// Build path info from the contact's stored out_path when the firmware doesn't support CMD_GET_ADVERT_PATH.
-    private func buildFallbackPath(for contact: Contact) {
-        let key = contact.publicKeyPrefix
-        if contact.outPathLen > 0, !contact.outPath.isEmpty {
-            // Parse out_path into 6-byte hop hashes
-            var hops: [Data] = []
-            var offset = 0
-            while offset + 6 <= contact.outPath.count {
-                hops.append(Data(contact.outPath[offset..<offset+6]))
-                offset += 6
-            }
-            let info = AdvertPathInfo(
-                recvTimestamp: contact.lastAdvert,
-                pathLen: UInt8(hops.count),
-                pathHashes: hops
-            )
-            advertPathByContact[key] = info
-        } else if contact.outPathLen == 0 {
-            // Direct contact — show as zero-hop path
-            let info = AdvertPathInfo(recvTimestamp: contact.lastAdvert, pathLen: 0, pathHashes: [])
-            advertPathByContact[key] = info
-        } else {
-            lastErrorMessage = "No path data available for this contact."
-        }
-    }
-
-    /// Handle advert path response — associate with the most recently queried contact.
-    private func handleAdvertPathResponse(_ info: AdvertPathInfo) {
-        pathTimeoutTask?.cancel()
-        if let key = pendingAdvertPathKey {
-            advertPathByContact[key] = info
-            pendingAdvertPathKey = nil
-        }
-    }
-
-    // MARK: - Allowed Repeat Frequencies
-
-    /// Fetch allowed repeat frequency ranges.
-    func requestAllowedRepeatFreq() {
-        sendCommand(MeshCoreProtocol.buildGetAllowedRepeatFreq(), label: "GET_ALLOWED_REPEAT_FREQ")
-    }
-
-    // MARK: - Pending Contact Management
-
-    /// Accept a pending new contact (from manual_add mode).
-    func acceptPendingContact(_ contact: Contact) {
-        pendingNewContacts.removeAll { $0.publicKeyPrefix == contact.publicKeyPrefix }
-        // The contact is already in the device's table, just add locally
-        if !contacts.contains(where: { $0.publicKeyPrefix == contact.publicKeyPrefix }) {
-            contacts.append(contact)
-        }
-    }
-
-    /// Reject a pending new contact (from manual_add mode).
-    func rejectPendingContact(_ contact: Contact) {
-        pendingNewContacts.removeAll { $0.publicKeyPrefix == contact.publicKeyPrefix }
-        // Remove from device
-        let frame = MeshCoreProtocol.buildRemoveContact(publicKey: contact.publicKey)
-        sendCommand(frame, label: "REJECT_PENDING_CONTACT")
-    }
-
-    // MARK: - Channel Sync
-
-    /// Iterate through all channel slots and request info for each.
-    /// Called after contact sync completes.
-    private var channelSyncTimeoutTask: Task<Void, Never>?
+    // MARK: - Forwarding: Channel Sync → ChannelStore
 
     private func syncChannels() {
-        let maxCh = Int(deviceConfig.maxChannels)
-        guard maxCh > 0 else { return }
-        isSyncingChannels = true
-        incomingChannels = []
-
-        // Send CMD_GET_CHANNEL for each slot with small delays to avoid flooding
-        for idx in 0..<maxCh {
-            let delay = UInt64(idx) * 50_000_000 // 50ms between requests
-            Task { @MainActor in
-                try? await Task.sleep(nanoseconds: delay)
-                let frame = MeshCoreProtocol.buildGetChannel(index: UInt8(idx))
-                self.sendCommand(frame, label: "GET_CHANNEL(\(idx))")
-            }
-        }
-
-        // Timeout: if not all channels received within 10s, complete with what we have
-        channelSyncTimeoutTask?.cancel()
-        channelSyncTimeoutTask = Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 10_000_000_000)
-            guard !Task.isCancelled, self.isSyncingChannels else { return }
-            DebugLogger.shared.log("Channel sync timeout — completing with \(self.incomingChannels.count) channels", level: .warning)
-            self.finalizeChannelSync()
-        }
+        channelStore.syncChannels(maxChannels: deviceConfig.maxChannels)
     }
 
-    /// Handle RESP_CODE_CHANNEL_INFO — accumulate channel metadata.
-    /// Channel info frames arrive after contacts. Once all maxChannels are received,
-    /// we finalize the channel list.
-    private func handleChannelInfo(_ channel: MeshChannel) {
-        var ch = channel
-        // Prefer the secret from the firmware response (now correctly parsed).
-        // Fall back to in-memory or Keychain only if firmware didn't provide one.
-        if ch.secret == nil {
-            if let existing = channels.first(where: { $0.index == channel.index }) {
-                ch.secret = existing.secret
-            }
-        }
-        if ch.secret == nil, !ch.name.isEmpty {
-            ch.secret = KeychainManager.getChannelSecret(forChannelName: ch.name)
-        }
-        // Persist the device-provided secret to Keychain for backup
-        if let secret = ch.secret, !ch.name.isEmpty {
-            _ = KeychainManager.saveChannelSecret(secret, forChannelName: ch.name)
-        }
-        // Deduplicate by index — replace if already received (handles overlapping syncs)
-        if let existingIdx = incomingChannels.firstIndex(where: { $0.index == ch.index }) {
-            incomingChannels[existingIdx] = ch
-        } else {
-            incomingChannels.append(ch)
-        }
-
-        // Check if we've received all channels (maxChannels from DeviceInfo)
-        let maxCh = deviceConfig.maxChannels
-        if maxCh > 0 && incomingChannels.count >= Int(maxCh) {
-            finalizeChannelSync()
-        }
-    }
-
-    /// Finalize channel sync — atomic swap of channel list, keeping only active channels.
-    private func finalizeChannelSync() {
-        channelSyncTimeoutTask?.cancel()
-        let active = incomingChannels.filter { $0.isActive }
-        Self.logger.info("Channel sync complete: \(active.count) active channels out of \(self.incomingChannels.count) total")
-        channels = active
-        incomingChannels = []
-        isSyncingChannels = false
-    }
-
-    /// Add or update a channel on the device.
     func setChannel(index: UInt8, name: String, secret: Data? = nil) {
-        let frame = MeshCoreProtocol.buildSetChannel(index: index, name: name, secret: secret)
-        sendCommand(frame, label: "SET_CHANNEL(idx:\(index))")
-
-        // Update locally
-        if name.isEmpty {
-            // Removal — remove from display and clear stored data
-            if let existing = channels.first(where: { $0.index == index }) {
-                KeychainManager.deleteChannelSecret(forChannelName: existing.name)
-            }
-            channels.removeAll { $0.index == index }
-            messagesByContact.removeValue(forKey: Data([index]))
-            unreadCounts.removeValue(forKey: Data([index]))
-        } else {
-            // Save secret to iCloud Keychain for cross-device sync
-            if let secret, !secret.isEmpty {
-                KeychainManager.saveChannelSecret(secret, forChannelName: name)
-            }
-            // Clear old messages — new secret means old messages are from a different channel
-            let channelKey = Data([index])
-            if let existing = channels.first(where: { $0.index == index }),
-               existing.name != name || existing.secret != secret {
-                messagesByContact.removeValue(forKey: channelKey)
-                persistMessages(for: channelKey)
-                unreadCounts.removeValue(forKey: channelKey)
-            }
-            let newChannel = MeshChannel(index: index, name: name, flags: secret != nil ? 0x01 : 0x00, secret: secret)
-            if let idx = channels.firstIndex(where: { $0.index == index }) {
-                channels[idx] = newChannel
-            } else {
-                channels.append(newChannel)
-            }
-        }
+        channelStore.setChannel(index: index, name: name, secret: secret)
     }
 
     // MARK: - Binary Helpers
