@@ -1,13 +1,13 @@
-// swift-tools-version: 5.9
+// swift-tools-version: 6.0
 
 import PackageDescription
 
 let package = Package(
     name: "MeshCoreKit",
     platforms: [
-        .iOS(.v16),
-        .macOS(.v13),
-        .watchOS(.v9)
+        .iOS(.v18),
+        .macOS(.v15),
+        .watchOS(.v11)
     ],
     products: [
         .library(
@@ -18,7 +18,8 @@ let package = Package(
     targets: [
         .target(
             name: "MeshCoreKit",
-            path: "Sources/MeshCoreKit"
+            path: "Sources/MeshCoreKit",
+            swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .testTarget(
             name: "MeshCoreKitTests",
