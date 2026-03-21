@@ -249,7 +249,7 @@ struct ShareContactSheet: View {
             .onAppear {
                 viewModel.exportContact(contact)
             }
-            .onReceive(viewModel.$lastExportedURL) { url in
+            .onChange(of: viewModel.lastExportedURL) { _, url in
                 if let url, !url.isEmpty {
                     exportedURL = url
                     viewModel.lastExportedURL = nil
@@ -303,7 +303,7 @@ struct MyContactCodeSheet: View {
             .onAppear {
                 viewModel.exportSelfContact()
             }
-            .onReceive(viewModel.$lastExportedURL) { url in
+            .onChange(of: viewModel.lastExportedURL) { _, url in
                 if let url, !url.isEmpty {
                     exportedURL = url
                     viewModel.lastExportedURL = nil

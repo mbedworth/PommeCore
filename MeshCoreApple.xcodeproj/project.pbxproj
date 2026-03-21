@@ -49,6 +49,21 @@
 		KCM1ABCD0001000000000001 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = KCM1ABCD0000000000000001 /* KeychainManager.swift */; };
 		KCM1ABCD0002000000000001 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = KCM1ABCD0000000000000001 /* KeychainManager.swift */; };
 		KCM1ABCD0003000000000001 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = KCM1ABCD0000000000000001 /* KeychainManager.swift */; };
+		STO10000000100000000001 /* ContactStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = STO10000000000000000001 /* ContactStore.swift */; };
+		STO10000000100000000002 /* ContactStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = STO10000000000000000001 /* ContactStore.swift */; };
+		STO10000000100000000003 /* ContactStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = STO10000000000000000001 /* ContactStore.swift */; };
+		STO20000000100000000001 /* ChannelStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = STO20000000000000000001 /* ChannelStore.swift */; };
+		STO20000000100000000002 /* ChannelStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = STO20000000000000000001 /* ChannelStore.swift */; };
+		STO20000000100000000003 /* ChannelStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = STO20000000000000000001 /* ChannelStore.swift */; };
+		STO30000000100000000001 /* MessageStoreManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = STO30000000000000000001 /* MessageStoreManager.swift */; };
+		STO30000000100000000002 /* MessageStoreManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = STO30000000000000000001 /* MessageStoreManager.swift */; };
+		STO30000000100000000003 /* MessageStoreManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = STO30000000000000000001 /* MessageStoreManager.swift */; };
+		STO40000000100000000001 /* ConnectionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = STO40000000000000000001 /* ConnectionManager.swift */; };
+		STO40000000100000000002 /* ConnectionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = STO40000000000000000001 /* ConnectionManager.swift */; };
+		STO40000000100000000003 /* ConnectionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = STO40000000000000000001 /* ConnectionManager.swift */; };
+		STO50000000100000000001 /* RemoteSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = STO50000000000000000001 /* RemoteSessionManager.swift */; };
+		STO50000000100000000002 /* RemoteSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = STO50000000000000000001 /* RemoteSessionManager.swift */; };
+		STO50000000100000000003 /* RemoteSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = STO50000000000000000001 /* RemoteSessionManager.swift */; };
 		MAP10000000000000000001 /* MeshMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MAP10000000000000000000 /* MeshMapView.swift */; };
 		MAP10000000000000000002 /* MeshMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MAP10000000000000000000 /* MeshMapView.swift */; };
 		MAP10000000000000000003 /* MeshMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MAP10000000000000000000 /* MeshMapView.swift */; };
@@ -79,6 +94,11 @@
 		DBG10000000000000000000 /* DebugLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugLogView.swift; sourceTree = "<group>"; };
 		F6BA0593D517B1467DBC1C42 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		KCM1ABCD0000000000000001 /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
+		STO10000000000000000001 /* ContactStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactStore.swift; sourceTree = "<group>"; };
+		STO20000000000000000001 /* ChannelStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChannelStore.swift; sourceTree = "<group>"; };
+		STO30000000000000000001 /* MessageStoreManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageStoreManager.swift; sourceTree = "<group>"; };
+		STO40000000000000000001 /* ConnectionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionManager.swift; sourceTree = "<group>"; };
+		STO50000000000000000001 /* RemoteSessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteSessionManager.swift; sourceTree = "<group>"; };
 		LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteManagementView.swift; sourceTree = "<group>"; };
 		MAP10000000000000000000 /* MeshMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshMapView.swift; sourceTree = "<group>"; };
 		OBV10000000000000000000 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
@@ -150,6 +170,18 @@
 			path = ViewModels;
 			sourceTree = "<group>";
 		};
+		STO00000GRP0000000000001 /* Stores */ = {
+			isa = PBXGroup;
+			children = (
+				STO10000000000000000001 /* ContactStore.swift */,
+				STO20000000000000000001 /* ChannelStore.swift */,
+				STO30000000000000000001 /* MessageStoreManager.swift */,
+				STO40000000000000000001 /* ConnectionManager.swift */,
+				STO50000000000000000001 /* RemoteSessionManager.swift */,
+			);
+			path = Stores;
+			sourceTree = "<group>";
+		};
 		37FFAEFD4E59AD6A0C20CC49 /* Views */ = {
 			isa = PBXGroup;
 			children = (
@@ -182,6 +214,7 @@
 			children = (
 				F587E5EEE1FE6B2B210AEFE3 /* App */,
 				307D79903AB18CCBBF806BCE /* ViewModels */,
+				STO00000GRP0000000000001 /* Stores */,
 				0A6B0F647BA21A953CCB6490 /* Views */,
 				43931BD12312D05F62A9E3B3 /* Assets.xcassets */,
 			);
@@ -336,6 +369,11 @@
 				44472F77FC4CAC4A41BDD12F /* WatchChatView.swift in Sources */,
 				5WT22AMGOSQXJ90NFRN8O6TK /* RemoteManagementView.swift in Sources */,
 				KCM1ABCD0001000000000001 /* KeychainManager.swift in Sources */,
+				STO10000000100000000001 /* ContactStore.swift in Sources */,
+				STO20000000100000000001 /* ChannelStore.swift in Sources */,
+				STO30000000100000000001 /* MessageStoreManager.swift in Sources */,
+				STO40000000100000000001 /* ConnectionManager.swift in Sources */,
+				STO50000000100000000001 /* RemoteSessionManager.swift in Sources */,
 				D4E5F60718293A4BC5D6E7F8 /* ShareView.swift in Sources */,
 				OBV10000000000000000001 /* OnboardingView.swift in Sources */,
 				USB10000000000000000001 /* USBSerialView.swift in Sources */,
@@ -358,6 +396,11 @@
 				96059FF0363E830C376C23ED /* Theme.swift in Sources */,
 				XUOVAQ6Y1NIWH1G3OMK55ENV /* RemoteManagementView.swift in Sources */,
 				KCM1ABCD0002000000000001 /* KeychainManager.swift in Sources */,
+				STO10000000100000000002 /* ContactStore.swift in Sources */,
+				STO20000000100000000002 /* ChannelStore.swift in Sources */,
+				STO30000000100000000002 /* MessageStoreManager.swift in Sources */,
+				STO40000000100000000002 /* ConnectionManager.swift in Sources */,
+				STO50000000100000000002 /* RemoteSessionManager.swift in Sources */,
 				C3D4E5F60718293AB4C5D6E7 /* ShareView.swift in Sources */,
 				OBV10000000000000000002 /* OnboardingView.swift in Sources */,
 				USB10000000000000000002 /* USBSerialView.swift in Sources */,
@@ -380,6 +423,11 @@
 				FAA4FA7E3E52FCF631D55675 /* Theme.swift in Sources */,
 				CATKUXG25PTVMENJWXQZY49X /* RemoteManagementView.swift in Sources */,
 				KCM1ABCD0003000000000001 /* KeychainManager.swift in Sources */,
+				STO10000000100000000003 /* ContactStore.swift in Sources */,
+				STO20000000100000000003 /* ChannelStore.swift in Sources */,
+				STO30000000100000000003 /* MessageStoreManager.swift in Sources */,
+				STO40000000100000000003 /* ConnectionManager.swift in Sources */,
+				STO50000000100000000003 /* RemoteSessionManager.swift in Sources */,
 				B2C3D4E5F6071829A3B4C5D6 /* ShareView.swift in Sources */,
 				OBV10000000000000000003 /* OnboardingView.swift in Sources */,
 				USB10000000000000000003 /* USBSerialView.swift in Sources */,

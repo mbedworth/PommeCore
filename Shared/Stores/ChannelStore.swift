@@ -1,0 +1,276 @@
+import SwiftUI
+import os.log
+import MeshCoreKit
+
+/// Observable store for channels, sync, import/export, and notification modes.
+/// Extracted from MeshCoreViewModel to enable fine-grained view observation.
+@MainActor @Observable
+final class ChannelStore {
+    private static let logger = Logger(subsystem: "com.meshcore", category: "ChannelStore")
+
+    // MARK: - Public State
+
+    var channels: [MeshChannel] = []
+    var isSyncingChannels = false
+
+    /// Parsed channel data pending user confirmation (add vs replace).
+    struct PendingChannelImport {
+        let name: String
+        let secret: Data?
+    }
+
+    var pendingChannelImport: PendingChannelImport?
+    var showChannelImportOptions = false
+
+    /// Multi-channel import state.
+    struct PendingMultiChannelImport {
+        let channels: [PendingChannelImport]
+        var names: String {
+            channels.map(\.name).joined(separator: ", ")
+        }
+    }
+
+    var pendingMultiChannelImport: PendingMultiChannelImport?
+    var showMultiChannelImportOptions = false
+
+    // MARK: - Dependencies (set by coordinator)
+
+    /// Closure to send a command frame to the device.
+    var sendCommand: ((Data, String) -> Void)?
+
+    /// Closure to clear messages/unread when a channel is removed or replaced.
+    var clearChannelMessages: ((Data) -> Void)?
+
+    /// Closure to persist messages after clearing.
+    var persistChannelMessages: ((Data) -> Void)?
+
+    // MARK: - Private State
+
+    private let iCloudStore = NSUbiquitousKeyValueStore.default
+    private var incomingChannels: [MeshChannel] = []
+    var hasCompletedInitialChannelSync = false
+    private var channelSyncTimeoutTask: Task<Void, Never>?
+
+    // MARK: - Channel Notification Modes
+
+    enum ChannelNotifyMode: String {
+        case all = "all"
+        case mentionsOnly = "mentions"
+        case muted = "muted"
+    }
+
+    func channelNotifyMode(for channelName: String) -> ChannelNotifyMode {
+        let key = "channel.notify.\(channelName)"
+        let raw = iCloudStore.string(forKey: key) ?? "all"
+        return ChannelNotifyMode(rawValue: raw) ?? .all
+    }
+
+    func setChannelNotifyMode(_ mode: ChannelNotifyMode, for channelName: String) {
+        let key = "channel.notify.\(channelName)"
+        iCloudStore.set(mode.rawValue, forKey: key)
+        iCloudStore.synchronize()
+    }
+
+    // MARK: - Channel Sync
+
+    func syncChannels(maxChannels: UInt8) {
+        let maxCh = Int(maxChannels)
+        guard maxCh > 0 else { return }
+        isSyncingChannels = true
+        incomingChannels = []
+
+        for idx in 0..<maxCh {
+            let delay = UInt64(idx) * 50_000_000
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: delay)
+                let frame = MeshCoreProtocol.buildGetChannel(index: UInt8(idx))
+                self.sendCommand?(frame, "GET_CHANNEL(\(idx))")
+            }
+        }
+
+        channelSyncTimeoutTask?.cancel()
+        channelSyncTimeoutTask = Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 10_000_000_000)
+            guard !Task.isCancelled, self.isSyncingChannels else { return }
+            DebugLogger.shared.log("Channel sync timeout — completing with \(self.incomingChannels.count) channels", level: .warning)
+            self.finalizeChannelSync()
+        }
+    }
+
+    func handleChannelInfo(_ channel: MeshChannel) {
+        var ch = channel
+        if ch.secret == nil {
+            if let existing = channels.first(where: { $0.index == channel.index }) {
+                ch.secret = existing.secret
+            }
+        }
+        if ch.secret == nil, !ch.name.isEmpty {
+            ch.secret = KeychainManager.getChannelSecret(forChannelName: ch.name)
+        }
+        if let secret = ch.secret, !ch.name.isEmpty {
+            _ = KeychainManager.saveChannelSecret(secret, forChannelName: ch.name)
+        }
+        if let existingIdx = incomingChannels.firstIndex(where: { $0.index == ch.index }) {
+            incomingChannels[existingIdx] = ch
+        } else {
+            incomingChannels.append(ch)
+        }
+
+        // Check completion — caller provides maxChannels via syncChannels call
+        // We check against incomingChannels count vs expected from the sync call
+    }
+
+    /// Check if channel sync is complete based on maxChannels from DeviceInfo.
+    func checkChannelSyncComplete(maxChannels: UInt8) {
+        if maxChannels > 0 && incomingChannels.count >= Int(maxChannels) {
+            finalizeChannelSync()
+        }
+    }
+
+    private func finalizeChannelSync() {
+        channelSyncTimeoutTask?.cancel()
+        let active = incomingChannels.filter { $0.isActive }
+        Self.logger.info("Channel sync complete: \(active.count) active channels out of \(self.incomingChannels.count) total")
+        channels = active
+        incomingChannels = []
+        isSyncingChannels = false
+    }
+
+    // MARK: - Set Channel
+
+    func setChannel(index: UInt8, name: String, secret: Data? = nil) {
+        let frame = MeshCoreProtocol.buildSetChannel(index: index, name: name, secret: secret)
+        sendCommand?(frame, "SET_CHANNEL(idx:\(index))")
+
+        let channelKey = Data([index])
+        if name.isEmpty {
+            if let existing = channels.first(where: { $0.index == index }) {
+                KeychainManager.deleteChannelSecret(forChannelName: existing.name)
+            }
+            channels.removeAll { $0.index == index }
+            clearChannelMessages?(channelKey)
+        } else {
+            if let secret, !secret.isEmpty {
+                KeychainManager.saveChannelSecret(secret, forChannelName: name)
+            }
+            if let existing = channels.first(where: { $0.index == index }),
+               existing.name != name || existing.secret != secret {
+                clearChannelMessages?(channelKey)
+                persistChannelMessages?(channelKey)
+            }
+            let newChannel = MeshChannel(index: index, name: name, flags: secret != nil ? 0x01 : 0x00, secret: secret)
+            if let idx = channels.firstIndex(where: { $0.index == index }) {
+                channels[idx] = newChannel
+            } else {
+                channels.append(newChannel)
+            }
+        }
+    }
+
+    // MARK: - Channel Import
+
+    /// Handle a meshcore:// URL — returns true if handled as channel import.
+    func handleChannelURL(_ urlString: String) -> Bool {
+        if urlString.hasPrefix("meshcore://channels?") {
+            if let parsed = parseMultiChannelURL(urlString) {
+                pendingMultiChannelImport = parsed
+                showMultiChannelImportOptions = true
+            }
+            return true
+        } else if urlString.hasPrefix("meshcore://channel?") {
+            if let parsed = parseChannelURL(urlString) {
+                pendingChannelImport = parsed
+                showChannelImportOptions = true
+            }
+            return true
+        }
+        return false
+    }
+
+    private func parseChannelURL(_ urlString: String) -> PendingChannelImport? {
+        guard let components = URLComponents(string: urlString),
+              let nameItem = components.queryItems?.first(where: { $0.name == "name" }),
+              let name = nameItem.value, !name.isEmpty else { return nil }
+
+        var secret: Data?
+        if let secretHex = components.queryItems?.first(where: { $0.name == "secret" })?.value,
+           !secretHex.isEmpty {
+            secret = Data(hexString: secretHex)
+        }
+        return PendingChannelImport(name: name, secret: secret)
+    }
+
+    private func parseMultiChannelURL(_ urlString: String) -> PendingMultiChannelImport? {
+        guard let components = URLComponents(string: urlString),
+              let dataItem = components.queryItems?.first(where: { $0.name == "data" }),
+              let base64 = dataItem.value,
+              let jsonData = Data(base64Encoded: base64),
+              let array = try? JSONSerialization.jsonObject(with: jsonData) as? [[String: String]] else {
+            return nil
+        }
+
+        var parsed: [PendingChannelImport] = []
+        for item in array {
+            guard let name = item["name"], !name.isEmpty else { continue }
+            let secretHex = item["secret"] ?? ""
+            let secret: Data? = secretHex.isEmpty ? nil : Data(hexString: secretHex)
+            parsed.append(PendingChannelImport(name: name, secret: secret))
+        }
+        guard !parsed.isEmpty else { return nil }
+        return PendingMultiChannelImport(channels: parsed)
+    }
+
+    func importChannelAdd(_ data: PendingChannelImport, maxChannels: UInt8) {
+        let usedIndices = Set(channels.map(\.index))
+        var nextSlot: UInt8 = 1
+        while usedIndices.contains(nextSlot) && nextSlot < maxChannels {
+            nextSlot += 1
+        }
+        setChannel(index: nextSlot, name: data.name, secret: data.secret)
+    }
+
+    func importChannelReplaceAll(_ data: PendingChannelImport) {
+        for channel in channels where channel.index != 0 {
+            setChannel(index: channel.index, name: "", secret: nil)
+        }
+        setChannel(index: 1, name: data.name, secret: data.secret)
+    }
+
+    func importMultiChannelsAdd(_ data: PendingMultiChannelImport, maxChannels: UInt8) {
+        var usedIndices = Set(channels.map(\.index))
+        for channel in data.channels {
+            var nextSlot: UInt8 = 1
+            while usedIndices.contains(nextSlot) && nextSlot < maxChannels {
+                nextSlot += 1
+            }
+            guard nextSlot < maxChannels else { break }
+            setChannel(index: nextSlot, name: channel.name, secret: channel.secret)
+            usedIndices.insert(nextSlot)
+        }
+    }
+
+    func importMultiChannelsReplace(_ data: PendingMultiChannelImport, maxChannels: UInt8) {
+        for channel in channels where channel.index != 0 {
+            setChannel(index: channel.index, name: "", secret: nil)
+        }
+        for (i, channel) in data.channels.enumerated() {
+            let slot = UInt8(i + 1)
+            guard slot < maxChannels else { break }
+            setChannel(index: slot, name: channel.name, secret: channel.secret)
+        }
+    }
+
+    // MARK: - Reset
+
+    func reset() {
+        channelSyncTimeoutTask?.cancel()
+        channels = []
+        incomingChannels = []
+        isSyncingChannels = false
+        hasCompletedInitialChannelSync = false
+        pendingChannelImport = nil
+        showChannelImportOptions = false
+        pendingMultiChannelImport = nil
+        showMultiChannelImportOptions = false
+    }
+}
