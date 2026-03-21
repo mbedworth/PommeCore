@@ -491,7 +491,7 @@ private extension SettingsView {
 
 private extension SettingsView {
     var deviceInfoSection: some View {
-        DeviceInfoSection(viewModel: viewModel, deviceConfig: viewModel.deviceConfig, batteryChemistryRaw: $batteryChemistryRaw, connectedDeviceName: viewModel.connectedDeviceName)
+        DeviceInfoSection(viewModel: viewModel, batteryChemistryRaw: $batteryChemistryRaw, connectedDeviceName: viewModel.connectedDeviceName)
     }
 
 }
@@ -499,11 +499,12 @@ private extension SettingsView {
 /// Device Info section.
 /// macOS/Catalyst: NavigationLink pushes (sheets bounce on Catalyst).
 /// iOS: .sheet(item:) with isolated @State.
+/// DeviceConfig is @Observable via @Environment — SwiftUI tracks only the
+/// specific properties read in body. No cascade from ViewModel changes.
 struct DeviceInfoSection: View {
     /// Non-observed reference — used only to pass to editor sheets.
-    /// DeviceInfoSection does NOT subscribe to ViewModel changes.
     let viewModel: MeshCoreViewModel
-    @ObservedObject var deviceConfig: DeviceConfig
+    @Environment(DeviceConfig.self) private var deviceConfig
     @Binding var batteryChemistryRaw: String
     var connectedDeviceName: String?
 

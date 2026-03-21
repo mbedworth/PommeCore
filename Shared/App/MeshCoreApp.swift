@@ -28,6 +28,12 @@ struct MeshCoreApp: App {
             } else {
                 ContentView()
                     .environmentObject(viewModel)
+                    .environment(viewModel.deviceConfig)
+                    .environment(viewModel.contactStore)
+                    .environment(viewModel.channelStore)
+                    .environment(viewModel.messageStoreManager)
+                    .environment(viewModel.connectionManager)
+                    .environment(viewModel.remoteSessionManager)
                     .meshTheme()
                     #if os(iOS)
                     .onAppear { appDelegate.viewModel = viewModel }
