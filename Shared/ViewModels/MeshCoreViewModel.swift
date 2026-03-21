@@ -220,7 +220,10 @@ final class MeshCoreViewModel: ObservableObject {
         get { connectionManager.connectedDeviceName }
         set { connectionManager.connectedDeviceName = newValue }
     }
-    @Published var deviceConfig = DeviceConfig()
+    /// Device configuration — @Observable (fine-grained tracking).
+    /// Not @Published: the observeStores bridge tracks changes via @Observable.
+    /// Reference is replaced (= DeviceConfig()) on disconnect to reset all state.
+    var deviceConfig = DeviceConfig()
 
     // messagesByContact, unreadCounts -> forwarded from messageStoreManager (computed above)
 
@@ -528,7 +531,7 @@ final class MeshCoreViewModel: ObservableObject {
         remoteSessionManager.resetLoginSessions()
         remoteSessionManager.reset()
         self.stopAutoLocationUpdates()
-        self.deviceConfig = DeviceConfig()
+        self.deviceConfig.reset()
         self.contactStore.reset()
         self.channelStore.reset()
         self.messageStoreManager.markAllSendingAsFailed()
@@ -575,6 +578,17 @@ final class MeshCoreViewModel: ObservableObject {
                 _ = self.connectionManager.bleStatusMessage
                 _ = self.connectionManager.scanRetryCount
                 _ = self.connectionManager.requestShowScanner
+                // DeviceConfig properties (@Observable)
+                _ = self.deviceConfig.deviceName
+                _ = self.deviceConfig.publicKeyHex
+                _ = self.deviceConfig.batteryMillivolts
+                _ = self.deviceConfig.isLoading
+                _ = self.deviceConfig.radioFrequency
+                _ = self.deviceConfig.radioTXPower
+                _ = self.deviceConfig.blePIN
+                _ = self.deviceConfig.autoAddBitmask
+                _ = self.deviceConfig.customVars.count
+                _ = self.deviceConfig.maxChannels
                 // RemoteSessionManager properties
                 _ = self.remoteSessionManager.discoveredNodes
                 _ = self.remoteSessionManager.isDiscovering
