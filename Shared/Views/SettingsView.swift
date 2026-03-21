@@ -18,6 +18,10 @@ struct SettingsView: View {
     @State private var showMigrateSheet = false
     @State private var showConnectionHelp = false
     @State private var showPurgeOptions = false
+    #if os(macOS) || targetEnvironment(macCatalyst)
+    @State private var inspectorSheet: DeviceInfoSection.DeviceSheet?
+    @State private var showInspector = false
+    #endif
 
     private var batteryChemistry: BatteryChemistry {
         BatteryChemistry(rawValue: batteryChemistryRaw) ?? .lipo
@@ -137,10 +141,38 @@ struct SettingsView: View {
             }
         }
         .meshListStyle()
-        #if os(macOS)
+        #if os(macOS) || targetEnvironment(macCatalyst)
         .safeAreaInset(edge: .bottom) {
             Color.clear.frame(height: 40)
         }
+        // macOS/Catalyst: inspector panel replaces broken .sheet on Catalyst
+        .inspector(isPresented: $showInspector) {
+            if let sheet = inspectorSheet {
+                NavigationStack {
+                    Group {
+                        switch sheet {
+                        case .name: NameEditorSheet(viewModel: viewModel)
+                        case .radio: RadioSection(viewModel: viewModel).navigationTitle("Radio Settings")
+                        case .txPower: TxPowerEditorSheet(viewModel: viewModel)
+                        case .tuning: TuningEditorSheet(viewModel: viewModel)
+                        case .gps: GPSEditorSheet(viewModel: viewModel)
+                        case .battery: BatteryEditorSheet(viewModel: viewModel, batteryChemistryRaw: $batteryChemistryRaw)
+                        case .firmware: FirmwareDetailSheet(viewModel: viewModel)
+                        }
+                    }
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Done") {
+                                showInspector = false
+                                inspectorSheet = nil
+                            }
+                        }
+                    }
+                }
+                .meshTheme()
+            }
+        }
+        .inspectorColumnWidth(min: 300, ideal: 400, max: 500)
         #endif
         .toolbar {
             ToolbarItem(placement: .automatic) {
@@ -491,13 +523,17 @@ private extension SettingsView {
 
 private extension SettingsView {
     var deviceInfoSection: some View {
+        #if os(macOS) || targetEnvironment(macCatalyst)
+        DeviceInfoSection(viewModel: viewModel, batteryChemistryRaw: $batteryChemistryRaw, connectedDeviceName: viewModel.connectedDeviceName, inspectorSheet: $inspectorSheet, showInspector: $showInspector)
+        #else
         DeviceInfoSection(viewModel: viewModel, batteryChemistryRaw: $batteryChemistryRaw, connectedDeviceName: viewModel.connectedDeviceName)
+        #endif
     }
 
 }
 
 /// Device Info section.
-/// macOS/Catalyst: NavigationLink pushes (sheets bounce on Catalyst).
+/// macOS/Catalyst: rows set a binding that opens an inspector panel on the parent List.
 /// iOS: .sheet(item:) with isolated @State.
 /// DeviceConfig is @Observable via @Environment — SwiftUI tracks only the
 /// specific properties read in body. No cascade from ViewModel changes.
@@ -507,6 +543,12 @@ struct DeviceInfoSection: View {
     @Environment(DeviceConfig.self) private var deviceConfig
     @Binding var batteryChemistryRaw: String
     var connectedDeviceName: String?
+    #if os(macOS) || targetEnvironment(macCatalyst)
+    /// Binding to parent SettingsView — drives the inspector panel content.
+    @Binding var inspectorSheet: DeviceSheet?
+    /// Binding to parent SettingsView — shows/hides the inspector panel.
+    @Binding var showInspector: Bool
+    #endif
 
     private var config: DeviceConfig { deviceConfig }
 
@@ -610,17 +652,15 @@ struct DeviceInfoSection: View {
 
     // MARK: - Body
 
-    #if os(macOS) || targetEnvironment(macCatalyst)
-    @State private var macActiveSheet: DeviceSheet?
-    @State private var showInspector = false
-
+    // DeviceSheet enum shared between platforms
     enum DeviceSheet: Identifiable {
         case radio, txPower, tuning, name, gps, battery, firmware
         var id: String { String(describing: self) }
     }
 
-    private func showSheet(_ sheet: DeviceSheet) {
-        macActiveSheet = sheet
+    #if os(macOS) || targetEnvironment(macCatalyst)
+    private func openInspector(_ sheet: DeviceSheet) {
+        inspectorSheet = sheet
         showInspector = true
     }
     #endif
@@ -628,21 +668,21 @@ struct DeviceInfoSection: View {
     var body: some View {
         Section {
             #if os(macOS) || targetEnvironment(macCatalyst)
-            Button { showSheet(.name) } label: { nameRow }
+            Button { openInspector(.name) } label: { nameRow }
                 .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
             if config.radioFrequency > 0 {
-                Button { showSheet(.radio) } label: { radioRow }
+                Button { openInspector(.radio) } label: { radioRow }
                     .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
-                Button { showSheet(.txPower) } label: { txPowerRow }
+                Button { openInspector(.txPower) } label: { txPowerRow }
                     .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
-                Button { showSheet(.tuning) } label: { tuningRow }
+                Button { openInspector(.tuning) } label: { tuningRow }
                     .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
             }
-            Button { showSheet(.gps) } label: { gpsRow }
+            Button { openInspector(.gps) } label: { gpsRow }
                 .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
-            Button { showSheet(.battery) } label: { batteryRow }
+            Button { openInspector(.battery) } label: { batteryRow }
                 .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
-            Button { showSheet(.firmware) } label: { firmwareRow }
+            Button { openInspector(.firmware) } label: { firmwareRow }
                 .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
             #else
             iOSDeviceRows
@@ -654,47 +694,12 @@ struct DeviceInfoSection: View {
             Text("Tap any row to view or change that setting on your connected radio.")
                 .font(.caption2)
         }
-        #if os(macOS) || targetEnvironment(macCatalyst)
-        // macOS/Catalyst: .inspector replaces broken .sheet (Catalyst .sheet bounces on dismiss)
-        .inspector(isPresented: $showInspector) {
-            if let sheet = macActiveSheet {
-                NavigationStack {
-                    Group {
-                        switch sheet {
-                        case .name: NameEditorSheet(viewModel: viewModel)
-                        case .radio: RadioSection(viewModel: viewModel).navigationTitle("Radio Settings")
-                        case .txPower: TxPowerEditorSheet(viewModel: viewModel)
-                        case .tuning: TuningEditorSheet(viewModel: viewModel)
-                        case .gps: GPSEditorSheet(viewModel: viewModel)
-                        case .battery: BatteryEditorSheet(viewModel: viewModel, batteryChemistryRaw: $batteryChemistryRaw)
-                        case .firmware: FirmwareDetailSheet(viewModel: viewModel)
-                        }
-                    }
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button("Done") {
-                                showInspector = false
-                                macActiveSheet = nil
-                            }
-                        }
-                    }
-                }
-                .meshTheme()
-            }
-        }
-        .inspectorColumnWidth(min: 300, ideal: 400, max: 500)
-        #endif
     }
 
     // MARK: - iOS sheet-based rows
 
     #if !os(macOS) && !targetEnvironment(macCatalyst)
     @State private var activeSheet: DeviceSheet?
-
-    enum DeviceSheet: Identifiable {
-        case radio, txPower, tuning, name, gps, battery, firmware
-        var id: String { String(describing: self) }
-    }
 
     private var iOSDeviceRows: some View {
         Group {
