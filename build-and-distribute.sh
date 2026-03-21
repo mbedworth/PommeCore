@@ -77,7 +77,7 @@ if [[ "$TARGET" == "macos" || "$TARGET" == "all" ]]; then
     xcodebuild archive \
         -project MeshCoreApple.xcodeproj \
         -scheme "$SCHEME" \
-        -destination "generic/platform=macOS" \
+        -destination 'platform=macOS,variant=Designed for [iPad,iPhone]' \
         -archivePath "$ARCHIVE_DIR/MeshCore-macOS-$BUILD.xcarchive" \
         -allowProvisioningUpdates \
         CODE_SIGN_STYLE=Automatic \
