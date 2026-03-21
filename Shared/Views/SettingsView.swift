@@ -612,7 +612,7 @@ struct DeviceInfoSection: View {
 
     #if os(macOS) || targetEnvironment(macCatalyst)
     @State private var macActiveSheet: DeviceSheet?
-    @State private var canPresent = true
+    @State private var showInspector = false
 
     enum DeviceSheet: Identifiable {
         case radio, txPower, tuning, name, gps, battery, firmware
@@ -620,8 +620,8 @@ struct DeviceInfoSection: View {
     }
 
     private func showSheet(_ sheet: DeviceSheet) {
-        guard canPresent else { return }
         macActiveSheet = sheet
+        showInspector = true
     }
     #endif
 
@@ -655,32 +655,34 @@ struct DeviceInfoSection: View {
                 .font(.caption2)
         }
         #if os(macOS) || targetEnvironment(macCatalyst)
-        .sheet(item: $macActiveSheet, onDismiss: {
-            canPresent = false
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                canPresent = true
-            }
-        }) { sheet in
-            NavigationStack {
-                Group {
-                    switch sheet {
-                    case .name: NameEditorSheet(viewModel: viewModel)
-                    case .radio: RadioSection(viewModel: viewModel).navigationTitle("Radio Settings")
-                    case .txPower: TxPowerEditorSheet(viewModel: viewModel)
-                    case .tuning: TuningEditorSheet(viewModel: viewModel)
-                    case .gps: GPSEditorSheet(viewModel: viewModel)
-                    case .battery: BatteryEditorSheet(viewModel: viewModel, batteryChemistryRaw: $batteryChemistryRaw)
-                    case .firmware: FirmwareDetailSheet(viewModel: viewModel)
+        // macOS/Catalyst: .inspector replaces broken .sheet (Catalyst .sheet bounces on dismiss)
+        .inspector(isPresented: $showInspector) {
+            if let sheet = macActiveSheet {
+                NavigationStack {
+                    Group {
+                        switch sheet {
+                        case .name: NameEditorSheet(viewModel: viewModel)
+                        case .radio: RadioSection(viewModel: viewModel).navigationTitle("Radio Settings")
+                        case .txPower: TxPowerEditorSheet(viewModel: viewModel)
+                        case .tuning: TuningEditorSheet(viewModel: viewModel)
+                        case .gps: GPSEditorSheet(viewModel: viewModel)
+                        case .battery: BatteryEditorSheet(viewModel: viewModel, batteryChemistryRaw: $batteryChemistryRaw)
+                        case .firmware: FirmwareDetailSheet(viewModel: viewModel)
+                        }
+                    }
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Done") {
+                                showInspector = false
+                                macActiveSheet = nil
+                            }
+                        }
                     }
                 }
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button("Done") { macActiveSheet = nil }
-                    }
-                }
+                .meshTheme()
             }
-            .meshTheme()
         }
+        .inspectorColumnWidth(min: 300, ideal: 400, max: 500)
         #endif
     }
 
