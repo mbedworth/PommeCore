@@ -71,20 +71,13 @@ if [[ "$TARGET" == "ios" || "$TARGET" == "all" ]]; then
     fi
 fi
 
-# Archive macOS (Catalyst)
+# Archive macOS
 if [[ "$TARGET" == "macos" || "$TARGET" == "all" ]]; then
-    log "Detecting macOS destination..."
-    MACOS_ID=$(xcodebuild -scheme "$SCHEME" -showdestinations 2>/dev/null | grep "platform:macOS" | grep -o "id:[^,}]*" | head -1 | cut -d: -f2)
-    if [ -z "$MACOS_ID" ]; then
-        error "No macOS destination found"
-    fi
-    log "Found macOS destination: id=$MACOS_ID"
-
-    log "Archiving macOS (Designed for iPad)..."
+    log "Archiving macOS..."
     xcodebuild archive \
         -project MeshCoreApple.xcodeproj \
-        -scheme "$SCHEME" \
-        -destination "id=$MACOS_ID" \
+        -scheme "MeshCoreApple-macOS" \
+        -destination "generic/platform=macOS" \
         -archivePath "$ARCHIVE_DIR/MeshCore-macOS-$BUILD.xcarchive" \
         -allowProvisioningUpdates \
         CODE_SIGN_STYLE=Automatic \
