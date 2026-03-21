@@ -73,28 +73,17 @@ fi
 
 # Archive macOS (Catalyst)
 if [[ "$TARGET" == "macos" || "$TARGET" == "all" ]]; then
-    log "Archiving macOS (Catalyst)..."
+    log "Archiving macOS (Designed for iPad)..."
     xcodebuild archive \
         -project MeshCoreApple.xcodeproj \
         -scheme "$SCHEME" \
-        -destination "generic/platform=macOS,variant=Mac Catalyst" \
+        -destination "generic/platform=macOS" \
         -archivePath "$ARCHIVE_DIR/MeshCore-macOS-$BUILD.xcarchive" \
         -allowProvisioningUpdates \
         CODE_SIGN_STYLE=Automatic \
         2>&1 | tee /tmp/xcodebuild-macos.log | tail -20
     if [ ${PIPESTATUS[0]} -ne 0 ]; then
-        warn "Catalyst destination failed, retrying with platform=macOS..."
-        xcodebuild archive \
-            -project MeshCoreApple.xcodeproj \
-            -scheme "$SCHEME" \
-            -destination "platform=macOS" \
-            -archivePath "$ARCHIVE_DIR/MeshCore-macOS-$BUILD.xcarchive" \
-            -allowProvisioningUpdates \
-            CODE_SIGN_STYLE=Automatic \
-            2>&1 | tee /tmp/xcodebuild-macos.log | tail -20
-        if [ ${PIPESTATUS[0]} -ne 0 ]; then
-            error "macOS archive failed — check /tmp/xcodebuild-macos.log"
-        fi
+        error "macOS archive failed — check /tmp/xcodebuild-macos.log"
     fi
     log "macOS archive complete: MeshCore-macOS-$BUILD.xcarchive"
 
