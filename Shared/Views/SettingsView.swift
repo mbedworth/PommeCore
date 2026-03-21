@@ -486,7 +486,7 @@ private extension SettingsView {
 
 private extension SettingsView {
     var deviceInfoSection: some View {
-        DeviceInfoSection(batteryChemistryRaw: $batteryChemistryRaw)
+        DeviceInfoSection(deviceConfig: viewModel.deviceConfig, batteryChemistryRaw: $batteryChemistryRaw)
     }
 
 }
@@ -496,9 +496,10 @@ private extension SettingsView {
 /// iOS: .sheet(item:) with isolated @State.
 struct DeviceInfoSection: View {
     @EnvironmentObject var viewModel: MeshCoreViewModel
+    @ObservedObject var deviceConfig: DeviceConfig
     @Binding var batteryChemistryRaw: String
 
-    private var config: DeviceConfig { viewModel.deviceConfig }
+    private var config: DeviceConfig { deviceConfig }
 
     // MARK: - Row views (shared between platforms)
 

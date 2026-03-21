@@ -662,14 +662,10 @@ final class MeshCoreViewModel: ObservableObject {
     }
 
     private func forwardDeviceConfigChanges() {
-        deviceConfig.objectWillChange
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                DispatchQueue.main.async {
-                    self?.objectWillChange.send()
-                }
-            }
-            .store(in: &cancellables)
+        // DeviceConfig is its own ObservableObject. Views that need device config
+        // data should observe viewModel.deviceConfig directly via @ObservedObject,
+        // rather than having every change cascade through the entire ViewModel.
+        // This prevents sheet bounce and unnecessary re-renders across the app.
     }
 
     private func loadPersistedMessages() {
