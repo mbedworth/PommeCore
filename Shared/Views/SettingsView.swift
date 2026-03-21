@@ -486,7 +486,7 @@ private extension SettingsView {
 
 private extension SettingsView {
     var deviceInfoSection: some View {
-        DeviceInfoSection(deviceConfig: viewModel.deviceConfig, batteryChemistryRaw: $batteryChemistryRaw)
+        DeviceInfoSection(viewModel: viewModel, deviceConfig: viewModel.deviceConfig, batteryChemistryRaw: $batteryChemistryRaw, connectedDeviceName: viewModel.connectedDeviceName)
     }
 
 }
@@ -495,9 +495,12 @@ private extension SettingsView {
 /// macOS/Catalyst: NavigationLink pushes (sheets bounce on Catalyst).
 /// iOS: .sheet(item:) with isolated @State.
 struct DeviceInfoSection: View {
-    @EnvironmentObject var viewModel: MeshCoreViewModel
+    /// Non-observed reference — used only to pass to editor sheets.
+    /// DeviceInfoSection does NOT subscribe to ViewModel changes.
+    let viewModel: MeshCoreViewModel
     @ObservedObject var deviceConfig: DeviceConfig
     @Binding var batteryChemistryRaw: String
+    var connectedDeviceName: String?
 
     private var config: DeviceConfig { deviceConfig }
 
@@ -508,7 +511,7 @@ struct DeviceInfoSection: View {
             Label("Name", systemImage: "textformat")
                 .foregroundStyle(MeshTheme.accent)
             Spacer()
-            Text(config.deviceName.isEmpty ? (viewModel.connectedDeviceName ?? "\u{2014}") : config.deviceName)
+            Text(config.deviceName.isEmpty ? (connectedDeviceName ?? "\u{2014}") : config.deviceName)
                 .foregroundStyle(MeshTheme.textSecondary)
         }
     }
