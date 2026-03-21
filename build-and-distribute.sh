@@ -1,8 +1,13 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
 # MeshCoreApple Build & Distribute Script
 # Usage: ./build-and-distribute.sh [ios|macos|all] [--archive-only]
+#
+# Workflow:
+#   ./bump-build.sh              # bump build number separately
+#   git push                     # push the bump
+#   ./build-and-distribute.sh all  # archive and upload both platforms
 
 SCHEME="MeshCoreApple"
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -35,12 +40,6 @@ log "Target: $TARGET"
 # Clean build directory
 mkdir -p "$ARCHIVE_DIR" "$EXPORT_DIR"
 
-# Bump build number
-log "Bumping build number..."
-./bump-build.sh
-BUILD=$(grep "CURRENT_PROJECT_VERSION" MeshCoreApple.xcodeproj/project.pbxproj | head -1 | grep -o '[0-9]*')
-log "New build number: $BUILD"
-
 # Archive iOS
 if [[ "$TARGET" == "ios" || "$TARGET" == "all" ]]; then
     log "Archiving iOS..."
@@ -51,13 +50,11 @@ if [[ "$TARGET" == "ios" || "$TARGET" == "all" ]]; then
         -archivePath "$ARCHIVE_DIR/MeshCore-iOS-$BUILD.xcarchive" \
         -allowProvisioningUpdates \
         CODE_SIGN_STYLE=Automatic \
-        2>&1 | tail -5
-
-    if [ $? -eq 0 ]; then
-        log "iOS archive complete: MeshCore-iOS-$BUILD.xcarchive"
-    else
-        error "iOS archive failed"
+        2>&1 | tee /tmp/xcodebuild-ios.log | tail -20
+    if [ ${PIPESTATUS[0]} -ne 0 ]; then
+        error "iOS archive failed — check /tmp/xcodebuild-ios.log"
     fi
+    log "iOS archive complete: MeshCore-iOS-$BUILD.xcarchive"
 
     if [[ "$ARCHIVE_ONLY" != "--archive-only" ]]; then
         log "Uploading iOS to App Store Connect..."
@@ -66,7 +63,10 @@ if [[ "$TARGET" == "ios" || "$TARGET" == "all" ]]; then
             -exportOptionsPlist "$PROJECT_DIR/ExportOptions-AppStore.plist" \
             -exportPath "$EXPORT_DIR/iOS-$BUILD" \
             -allowProvisioningUpdates \
-            2>&1 | tail -5
+            2>&1 | tee /tmp/xcodebuild-ios-export.log | tail -20
+        if [ ${PIPESTATUS[0]} -ne 0 ]; then
+            error "iOS export failed — check /tmp/xcodebuild-ios-export.log"
+        fi
         log "iOS uploaded to App Store Connect"
     fi
 fi
@@ -81,13 +81,22 @@ if [[ "$TARGET" == "macos" || "$TARGET" == "all" ]]; then
         -archivePath "$ARCHIVE_DIR/MeshCore-macOS-$BUILD.xcarchive" \
         -allowProvisioningUpdates \
         CODE_SIGN_STYLE=Automatic \
-        2>&1 | tail -5
-
-    if [ $? -eq 0 ]; then
-        log "macOS archive complete: MeshCore-macOS-$BUILD.xcarchive"
-    else
-        error "macOS archive failed"
+        2>&1 | tee /tmp/xcodebuild-macos.log | tail -20
+    if [ ${PIPESTATUS[0]} -ne 0 ]; then
+        warn "Catalyst destination failed, retrying with platform=macOS..."
+        xcodebuild archive \
+            -project MeshCoreApple.xcodeproj \
+            -scheme "$SCHEME" \
+            -destination "platform=macOS" \
+            -archivePath "$ARCHIVE_DIR/MeshCore-macOS-$BUILD.xcarchive" \
+            -allowProvisioningUpdates \
+            CODE_SIGN_STYLE=Automatic \
+            2>&1 | tee /tmp/xcodebuild-macos.log | tail -20
+        if [ ${PIPESTATUS[0]} -ne 0 ]; then
+            error "macOS archive failed — check /tmp/xcodebuild-macos.log"
+        fi
     fi
+    log "macOS archive complete: MeshCore-macOS-$BUILD.xcarchive"
 
     if [[ "$ARCHIVE_ONLY" != "--archive-only" ]]; then
         log "Uploading macOS to App Store Connect..."
@@ -96,16 +105,13 @@ if [[ "$TARGET" == "macos" || "$TARGET" == "all" ]]; then
             -exportOptionsPlist "$PROJECT_DIR/ExportOptions-AppStore.plist" \
             -exportPath "$EXPORT_DIR/macOS-$BUILD" \
             -allowProvisioningUpdates \
-            2>&1 | tail -5
+            2>&1 | tee /tmp/xcodebuild-macos-export.log | tail -20
+        if [ ${PIPESTATUS[0]} -ne 0 ]; then
+            error "macOS export failed — check /tmp/xcodebuild-macos-export.log"
+        fi
         log "macOS uploaded to App Store Connect"
     fi
 fi
-
-# Git commit and push
-log "Committing build $BUILD..."
-git add -A
-git commit -m "build: v$VERSION build $BUILD — archive and distribute" 2>/dev/null || true
-git push
 
 log "Done! v$VERSION build $BUILD"
 log "Check App Store Connect → TestFlight for processing status"
