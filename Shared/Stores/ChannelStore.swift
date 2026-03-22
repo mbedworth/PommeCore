@@ -75,7 +75,11 @@ final class ChannelStore {
 
     func syncChannels(maxChannels: UInt8) {
         let maxCh = Int(maxChannels)
-        guard maxCh > 0 else { return }
+        guard maxCh > 0 else {
+            Self.logger.warning("syncChannels called with maxChannels=0 — skipping (DEVICE_INFO not yet received?)")
+            return
+        }
+        Self.logger.info("Channel sync: requesting indices 0..<\(maxCh) (maxChannels=\(maxChannels) from DEVICE_INFO)")
         isSyncingChannels = true
         incomingChannels = []
 
