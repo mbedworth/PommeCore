@@ -601,7 +601,7 @@ final class MeshCoreViewModel: ObservableObject {
                 _ = self.remoteSessionManager.pendingAdvertPathKey
                 _ = self.remoteSessionManager.allowedRepeatFreqRanges
             } onChange: {
-                Task { @MainActor [weak self] in
+                DispatchQueue.main.async { [weak self] in
                     self?.objectWillChange.send()
                     trackChanges()
                 }
