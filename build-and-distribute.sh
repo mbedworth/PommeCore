@@ -1,19 +1,23 @@
 #!/bin/bash
 set -euo pipefail
 
-# MeshCoreApple Build & Distribute Script
-# Usage: ./build-and-distribute.sh [ios|macos|all] [--archive-only]
+# MeshCoreApple Distribute Script
+# Archives and uploads to App Store Connect / TestFlight.
 #
-# Workflow:
-#   ./bump-build.sh              # bump build number separately
-#   git push                     # push the bump
-#   ./build-and-distribute.sh all  # archive and upload both platforms
+# MUST run scripts/bump_and_build.sh first — this script refuses to run
+# if a clean compile-check hasn't been completed for the current build number.
+#
+# Usage:
+#   ./scripts/bump_and_build.sh [build_number]   # bump, compile-check, write sentinel
+#   git add -A && git commit && git push          # commit the bump
+#   ./build-and-distribute.sh [ios|macos|all] [--archive-only]
 
 SCHEME="MeshCoreApple"
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 BUILD_DIR="$PROJECT_DIR/build"
 ARCHIVE_DIR="$BUILD_DIR/archives"
 EXPORT_DIR="$BUILD_DIR/exports"
+SENTINEL="$BUILD_DIR/last_build_success"
 
 # Colors
 GREEN='\033[0;32m'
@@ -21,18 +25,36 @@ RED='\033[0;31m'
 YELLOW='\033[0;33m'
 NC='\033[0m'
 
-log() { echo -e "${GREEN}[BUILD]${NC} $1"; }
-warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
+log()   { echo -e "${GREEN}[DIST]${NC} $1"; }
+warn()  { echo -e "${YELLOW}[WARN]${NC} $1"; }
 error() { echo -e "${RED}[ERROR]${NC} $1"; exit 1; }
+
+# --- Pre-flight: verify a clean build exists for the current build number ---
+
+cd "$PROJECT_DIR"
+VERSION=$(grep "MARKETING_VERSION" MeshCoreApple.xcodeproj/project.pbxproj | head -1 | grep -o '[0-9]*\.[0-9]*\.[0-9]*')
+BUILD=$(grep "CURRENT_PROJECT_VERSION" MeshCoreApple.xcodeproj/project.pbxproj | head -1 | grep -o '[0-9]*')
+
+if [ ! -f "$SENTINEL" ]; then
+    error "No build sentinel found. Run ./scripts/bump_and_build.sh first."
+fi
+
+SENTINEL_BUILD=$(head -1 "$SENTINEL")
+if [ "$SENTINEL_BUILD" != "$BUILD" ]; then
+    error "Sentinel is for build $SENTINEL_BUILD but project is at build $BUILD. Re-run ./scripts/bump_and_build.sh."
+fi
+
+# Stale check: sentinel must be less than 24 hours old
+SENTINEL_AGE=$(( $(date +%s) - $(stat -f %m "$SENTINEL") ))
+if [ "$SENTINEL_AGE" -gt 86400 ]; then
+    warn "Build sentinel is $(( SENTINEL_AGE / 3600 ))h old — consider re-running bump_and_build.sh for a fresh compile check."
+fi
+
+log "Pre-flight passed: clean build confirmed for v$VERSION build $BUILD"
 
 # Parse args
 TARGET="${1:-all}"
 ARCHIVE_ONLY="${2:-}"
-
-# Get version info
-cd "$PROJECT_DIR"
-VERSION=$(grep "MARKETING_VERSION" MeshCoreApple.xcodeproj/project.pbxproj | head -1 | grep -o '[0-9]*\.[0-9]*\.[0-9]*')
-BUILD=$(grep "CURRENT_PROJECT_VERSION" MeshCoreApple.xcodeproj/project.pbxproj | head -1 | grep -o '[0-9]*')
 
 log "MeshCoreApple v$VERSION build $BUILD"
 log "Target: $TARGET"
