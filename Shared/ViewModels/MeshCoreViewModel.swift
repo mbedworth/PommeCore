@@ -1466,10 +1466,16 @@ final class MeshCoreViewModel: ObservableObject {
 
     private func handleErrorResponse(code: UInt8, description: String) {
         if remoteSessionManager.handleErrorResponse(code: code, description: description) { return }
-        // Friendly message for unsupported commands
-        if code == 1 && description.lowercased().contains("unsupported") {
+        switch MeshCoreErrorCode(rawValue: code) {
+        case .unsupportedCmd:
+            // Show a friendly message — user may have triggered an unsupported feature
             lastErrorMessage = "This command is not supported on the current firmware version."
-        } else {
+        case .illegalArg:
+            // Protocol-level error (e.g. out-of-range index during init) — log only, not user-visible
+            Self.logger.warning("ERR_CODE_ILLEGAL_ARG received — likely protocol/firmware mismatch, not user-actionable")
+        case .notFound, .tableFull, .badState, .fileIOError:
+            lastErrorMessage = description
+        case nil:
             lastErrorMessage = description
         }
     }
