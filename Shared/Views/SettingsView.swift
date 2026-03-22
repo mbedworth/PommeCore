@@ -21,6 +21,9 @@ struct SettingsView: View {
     #if os(macOS) || targetEnvironment(macCatalyst)
     @State private var inspectorSheet: DeviceInfoSection.DeviceSheet?
     @State private var showInspector = false
+    @State private var showTipJarSheet = false
+    #else
+    @State private var iosDeviceSheet: DeviceInfoSection.DeviceSheet?
     #endif
 
     private var batteryChemistry: BatteryChemistry {
@@ -105,12 +108,8 @@ struct SettingsView: View {
             notificationsSection
             messageSettingsSection
 
-            // 6. Channels
-            channelsSettingsSection
-
             // 7. Privacy & Security
             privacySection
-            securitySection
 
             // 7. iCloud & Storage
             iCloudSection
@@ -141,6 +140,31 @@ struct SettingsView: View {
             }
         }
         .meshListStyle()
+        #if !os(macOS) && !targetEnvironment(macCatalyst)
+        // iOS: sheet anchored here — above the conditional DeviceInfoSection — so
+        // structural changes inside DeviceInfoSection can't auto-dismiss the sheet.
+        .sheet(item: $iosDeviceSheet) { sheet in
+            NavigationStack {
+                Group {
+                    switch sheet {
+                    case .name: NameEditorSheet(viewModel: viewModel)
+                    case .radio: RadioSection(viewModel: viewModel).navigationTitle("Radio Settings")
+                    case .txPower: TxPowerEditorSheet(viewModel: viewModel)
+                    case .tuning: TuningEditorSheet(viewModel: viewModel)
+                    case .gps: GPSEditorSheet(viewModel: viewModel)
+                    case .battery: BatteryEditorSheet(viewModel: viewModel, batteryChemistryRaw: $batteryChemistryRaw)
+                    case .firmware: FirmwareDetailSheet(viewModel: viewModel)
+                    }
+                }
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Done") { iosDeviceSheet = nil }
+                    }
+                }
+            }
+            .meshTheme()
+        }
+        #endif
         #if os(macOS) || targetEnvironment(macCatalyst)
         .safeAreaInset(edge: .bottom) {
             Color.clear.frame(height: 40)
@@ -161,7 +185,7 @@ struct SettingsView: View {
                         }
                     }
                     .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
+                        ToolbarItem(placement: .topBarTrailing) {
                             Button("Done") {
                                 showInspector = false
                                 inspectorSheet = nil
@@ -492,31 +516,6 @@ private extension SettingsView {
         )
     }
 
-    var channelsSettingsSection: some View {
-        Section {
-            if isConnected && !viewModel.channels.isEmpty {
-                Button {
-                    // Share all channels
-                } label: {
-                    HStack {
-                        Label("Share All Channels", systemImage: "square.and.arrow.up")
-                            .foregroundStyle(MeshTheme.accent)
-                        Spacer()
-                    }
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .listRowBackground(MeshTheme.surface)
-            }
-
-        } header: {
-            Text("Channels")
-                .foregroundStyle(MeshTheme.textSecondary)
-        } footer: {
-            Text("Share All sends your channel list to nearby radios so they can join.")
-                .font(.caption2)
-        }
-    }
 }
 
 // MARK: - Section 1: Device Info
@@ -526,7 +525,7 @@ private extension SettingsView {
         #if os(macOS) || targetEnvironment(macCatalyst)
         DeviceInfoSection(viewModel: viewModel, batteryChemistryRaw: $batteryChemistryRaw, connectedDeviceName: viewModel.connectedDeviceName, inspectorSheet: $inspectorSheet, showInspector: $showInspector)
         #else
-        DeviceInfoSection(viewModel: viewModel, batteryChemistryRaw: $batteryChemistryRaw, connectedDeviceName: viewModel.connectedDeviceName)
+        DeviceInfoSection(viewModel: viewModel, batteryChemistryRaw: $batteryChemistryRaw, connectedDeviceName: viewModel.connectedDeviceName, activeSheet: $iosDeviceSheet)
         #endif
     }
 
@@ -548,6 +547,9 @@ struct DeviceInfoSection: View {
     @Binding var inspectorSheet: DeviceSheet?
     /// Binding to parent SettingsView — shows/hides the inspector panel.
     @Binding var showInspector: Bool
+    #else
+    /// Binding to parent SettingsView — state lives there so sheet survives DeviceInfoSection re-renders.
+    @Binding var activeSheet: DeviceSheet?
     #endif
 
     private var config: DeviceConfig { deviceConfig }
@@ -699,8 +701,6 @@ struct DeviceInfoSection: View {
     // MARK: - iOS sheet-based rows
 
     #if !os(macOS) && !targetEnvironment(macCatalyst)
-    @State private var activeSheet: DeviceSheet?
-
     private var iOSDeviceRows: some View {
         Group {
             Button { activeSheet = .name } label: { nameRow }
@@ -720,27 +720,7 @@ struct DeviceInfoSection: View {
             Button { activeSheet = .firmware } label: { firmwareRow }
                 .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
         }
-        .sheet(item: $activeSheet) { sheet in
-            NavigationStack {
-                Group {
-                    switch sheet {
-                    case .name: NameEditorSheet(viewModel: viewModel)
-                    case .radio: RadioSection(viewModel: viewModel).navigationTitle("Radio Settings")
-                    case .txPower: TxPowerEditorSheet(viewModel: viewModel)
-                    case .tuning: TuningEditorSheet(viewModel: viewModel)
-                    case .gps: GPSEditorSheet(viewModel: viewModel)
-                    case .battery: BatteryEditorSheet(viewModel: viewModel, batteryChemistryRaw: $batteryChemistryRaw)
-                    case .firmware: FirmwareDetailSheet(viewModel: viewModel)
-                    }
-                }
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button("Done") { activeSheet = nil }
-                    }
-                }
-            }
-            .meshTheme()
-        }
+        // Sheet now lives in SettingsView (above this view) to survive structural changes here.
     }
     #endif
 
@@ -1586,11 +1566,18 @@ struct PrivacySection: View {
             }
             .listRowBackground(MeshTheme.surface)
 
+            Toggle(isOn: appLockBinding) {
+                Label("App Lock", systemImage: biometricIcon)
+                    .foregroundStyle(MeshTheme.accent)
+            }
+            .tint(MeshTheme.accent)
+            .listRowBackground(MeshTheme.surface)
+
         } header: {
             Text("Privacy & Security")
                 .foregroundStyle(MeshTheme.textSecondary)
         } footer: {
-            Text("Controls what telemetry data is shared when requested. Per-Contact mode only shares with contacts that have telemetry permission set. Position Accuracy adds a random offset to your personal device location only. Repeater and room server locations are always shared at exact coordinates for accurate mesh routing.")
+            Text("Controls what telemetry data is shared when requested. Per-Contact mode only shares with contacts that have telemetry permission set. Position Accuracy adds a random offset to your personal device location only. Repeater and room server locations are always shared at exact coordinates for accurate mesh routing. App Lock requires Face ID, Touch ID, or your device passcode to open MeshCore.")
                 .font(.caption2)
         }
 
@@ -1748,6 +1735,39 @@ struct PrivacySection: View {
             MeshCoreViewModel.regenerateLocationFudge()
         }
     }
+
+    private var appLockBinding: Binding<Bool> {
+        Binding(
+            get: { UserDefaults.standard.bool(forKey: "appLockEnabled") },
+            set: { newValue in
+                if newValue {
+                    let context = LAContext()
+                    var error: NSError?
+                    if context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &error) {
+                        UserDefaults.standard.set(true, forKey: "appLockEnabled")
+                    } else {
+                        DebugLogger.shared.log("APP LOCK: cannot enable — no auth available: \(error?.localizedDescription ?? "unknown")", level: .error)
+                    }
+                } else {
+                    UserDefaults.standard.set(false, forKey: "appLockEnabled")
+                }
+            }
+        )
+    }
+
+    private var biometricIcon: String {
+        #if os(iOS)
+        let context = LAContext()
+        _ = context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil)
+        switch context.biometryType {
+        case .faceID: return "faceid"
+        case .touchID: return "touchid"
+        default: return "lock"
+        }
+        #else
+        return "lock"
+        #endif
+    }
 }
 
 // MARK: - Section 8: Custom Variables
@@ -1886,60 +1906,6 @@ private extension SettingsView {
     }
 }
 
-// MARK: - App Security
-
-private extension SettingsView {
-    var securitySection: some View {
-        Section {
-            Toggle(isOn: appLockBinding) {
-                Label("App Lock", systemImage: biometricIcon)
-                    .foregroundStyle(MeshTheme.accent)
-            }
-            .tint(MeshTheme.accent)
-            .listRowBackground(MeshTheme.surface)
-        } header: {
-            sectionHeader("Security")
-        } footer: {
-            Text("When enabled, Face ID, Touch ID, or your device passcode is required to open MeshCore.")
-                .font(.caption2)
-        }
-    }
-
-    private var appLockBinding: Binding<Bool> {
-        Binding(
-            get: { UserDefaults.standard.bool(forKey: "appLockEnabled") },
-            set: { newValue in
-                if newValue {
-                    // Verify authentication works before enabling
-                    let context = LAContext()
-                    var error: NSError?
-                    if context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &error) {
-                        UserDefaults.standard.set(true, forKey: "appLockEnabled")
-                    } else {
-                        DebugLogger.shared.log("APP LOCK: cannot enable — no auth available: \(error?.localizedDescription ?? "unknown")", level: .error)
-                    }
-                } else {
-                    UserDefaults.standard.set(false, forKey: "appLockEnabled")
-                }
-            }
-        )
-    }
-
-    private var biometricIcon: String {
-        #if os(iOS)
-        let context = LAContext()
-        _ = context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil)
-        switch context.biometryType {
-        case .faceID: return "faceid"
-        case .touchID: return "touchid"
-        default: return "lock"
-        }
-        #else
-        return "lock"
-        #endif
-    }
-}
-
 // MARK: - Tip Jar
 
 @MainActor
@@ -1948,8 +1914,6 @@ class TipJarManager: ObservableObject {
     @Published var purchaseSuccess = false
     @Published var isLoading = false
     @Published var purchasingProductID: String?
-
-    private var hasLoaded = false
 
     struct PlaceholderTip: Identifiable {
         let id: String
@@ -1974,9 +1938,8 @@ class TipJarManager: ObservableObject {
     ]
 
     func loadProductsIfNeeded() {
-        guard !hasLoaded && !isLoading else { return }
+        guard !isLoading && products.isEmpty else { return }
         isLoading = true
-        hasLoaded = true
 
         let ids = Set(Self.productIDs)
         DebugLogger.shared.log("TIP JAR: requesting \(ids.count) products: \(ids.sorted().joined(separator: ", "))", level: .info)
@@ -2084,6 +2047,31 @@ private extension SettingsView {
 
     var tipJarSection: some View {
         Section {
+            #if os(macOS) || targetEnvironment(macCatalyst)
+            // macOS/Catalyst: sheet instead of NavigationLink — dismiss() inside a NavigationLink
+            // destination in a bare NavigationSplitView detail exits Settings entirely.
+            Button {
+                showTipJarSheet = true
+            } label: {
+                HStack {
+                    Label("Tip Jar", systemImage: "heart.fill")
+                        .foregroundStyle(MeshTheme.accent)
+                    Spacer()
+                    if tipJar.purchaseSuccess {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(MeshTheme.connected)
+                    }
+                }
+            }
+            .buttonStyle(.plain)
+            .listRowBackground(MeshTheme.surface)
+            .sheet(isPresented: $showTipJarSheet) {
+                NavigationStack {
+                    TipJarView(manager: tipJar)
+                }
+                .meshTheme()
+            }
+            #else
             NavigationLink {
                 TipJarView(manager: tipJar)
             } label: {
@@ -2098,6 +2086,7 @@ private extension SettingsView {
                 }
             }
             .listRowBackground(MeshTheme.surface)
+            #endif
         } header: {
             sectionHeader("Support")
         } footer: {
@@ -2136,9 +2125,15 @@ struct TipJarView: View {
                     ProgressView("Loading products...")
                         .padding()
                 } else if manager.products.isEmpty {
-                    Text("Products unavailable")
-                        .foregroundStyle(MeshTheme.textSecondary)
-                        .padding()
+                    VStack(spacing: 12) {
+                        Text("Products unavailable")
+                            .foregroundStyle(MeshTheme.textSecondary)
+                        Button("Try Again") {
+                            manager.loadProductsIfNeeded()
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                    .padding()
                 } else {
                     ForEach(manager.products) { product in
                         TipButton(product: product, manager: manager)
@@ -2161,8 +2156,8 @@ struct TipJarView: View {
         .navigationTitle("Tip Jar")
         #if os(macOS) || targetEnvironment(macCatalyst)
         .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Back") { dismiss() }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Done") { dismiss() }
             }
         }
         #else
