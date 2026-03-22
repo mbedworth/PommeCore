@@ -93,6 +93,9 @@ if [[ "$TARGET" == "ios" || "$TARGET" == "all" ]]; then
             -exportOptionsPlist "$PROJECT_DIR/ExportOptions-AppStore.plist" \
             -exportPath "$EXPORT_DIR/iOS-$BUILD" \
             -allowProvisioningUpdates \
+            -authenticationKeyPath "$ASC_KEY_PATH" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_KEY_ISSUER" \
             2>&1 | tee /tmp/xcodebuild-ios-export.log | tail -20
         if [ ${PIPESTATUS[0]} -ne 0 ]; then
             error "iOS export failed — check /tmp/xcodebuild-ios-export.log"
@@ -124,6 +127,9 @@ if [[ "$TARGET" == "macos" || "$TARGET" == "all" ]]; then
             -exportOptionsPlist "$PROJECT_DIR/ExportOptions-AppStore.plist" \
             -exportPath "$EXPORT_DIR/macOS-$BUILD" \
             -allowProvisioningUpdates \
+            -authenticationKeyPath "$ASC_KEY_PATH" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_KEY_ISSUER" \
             2>&1 | tee /tmp/xcodebuild-macos-export.log | tail -20
         if [ ${PIPESTATUS[0]} -ne 0 ]; then
             error "macOS export failed — check /tmp/xcodebuild-macos-export.log"
