@@ -52,6 +52,14 @@ fi
 
 log "Pre-flight passed: clean build confirmed for v$VERSION build $BUILD"
 
+# --- Pre-flight: verify App Store Connect API key exists ---
+
+ASC_KEY_PATH="$HOME/.appstoreconnect/private_keys/AuthKey_$ASC_KEY_ID.p8"
+if [[ ! -f "$ASC_KEY_PATH" ]]; then
+    error "App Store Connect API key not found at $ASC_KEY_PATH
+       Copy AuthKey_$ASC_KEY_ID.p8 there and chmod 600 it, then re-run."
+fi
+
 # Parse args
 TARGET="${1:-all}"
 ARCHIVE_ONLY="${2:-}"
