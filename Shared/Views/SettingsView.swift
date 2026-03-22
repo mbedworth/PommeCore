@@ -197,6 +197,14 @@ struct SettingsView: View {
             }
         }
         .inspectorColumnWidth(min: 300, ideal: 400, max: 500)
+        // macOS/Catalyst: Tip Jar sheet anchored at the List level (not on the row Button)
+        // so List cell reuse/re-render on sheet dismiss can't corrupt navigation state.
+        .sheet(isPresented: $showTipJarSheet) {
+            NavigationStack {
+                TipJarView(manager: tipJar)
+            }
+            .meshTheme()
+        }
         #endif
         .toolbar {
             ToolbarItem(placement: .automatic) {
@@ -1914,6 +1922,7 @@ class TipJarManager: ObservableObject {
     @Published var purchaseSuccess = false
     @Published var isLoading = false
     @Published var purchasingProductID: String?
+    @Published var lastErrorMessage: String? = nil
 
     struct PlaceholderTip: Identifiable {
         let id: String
@@ -1940,18 +1949,20 @@ class TipJarManager: ObservableObject {
     func loadProductsIfNeeded() {
         guard !isLoading && products.isEmpty else { return }
         isLoading = true
+        lastErrorMessage = nil
 
         let ids = Set(Self.productIDs)
         DebugLogger.shared.log("TIP JAR: requesting \(ids.count) products: \(ids.sorted().joined(separator: ", "))", level: .info)
 
         Task {
-            let result = await Self.fetchProducts(ids: ids)
+            let (result, fetchError) = await Self.fetchProducts(ids: ids)
             self.products = result
+            self.lastErrorMessage = fetchError
             self.isLoading = false
         }
     }
 
-    private static func fetchProducts(ids: Set<String>) async -> [Product] {
+    private static func fetchProducts(ids: Set<String>) async -> (products: [Product], error: String?) {
         do {
             let fetched = try await Product.products(for: ids)
             let sorted = fetched.sorted { $0.price < $1.price }
@@ -1965,16 +1976,23 @@ class TipJarManager: ObservableObject {
                 let retry = try await Product.products(for: ids)
                 let retrySorted = retry.sorted { $0.price < $1.price }
                 DebugLogger.shared.log("TIP JAR: retry returned \(retrySorted.count) products", level: .info)
-                return retrySorted
+                if retrySorted.isEmpty {
+                    let msg = "No products returned after retry — check App Store Connect IAP status and sandbox account"
+                    DebugLogger.shared.log("TIP JAR: \(msg)", level: .error)
+                    return ([], msg)
+                }
+                return (retrySorted, nil)
             }
-            return sorted
+            return (sorted, nil)
         } catch {
-            DebugLogger.shared.log("TIP JAR: ERROR loading — \(error.localizedDescription)", level: .error)
-            return []
+            // Log the full error type, not just localizedDescription, to distinguish
+            // StoreKitError.notAvailable / .systemError / network errors etc.
+            let msg = "StoreKit error: \(error) [\(type(of: error))]"
+            DebugLogger.shared.log("TIP JAR: ERROR — \(msg)", level: .error)
+            return ([], msg)
         }
     }
 
-    @MainActor
     func purchase(_ product: Product) async {
         DebugLogger.shared.log("TIP JAR: purchase START for \(product.id)", level: .info)
         purchasingProductID = product.id
@@ -2065,12 +2083,10 @@ private extension SettingsView {
             }
             .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
-            .sheet(isPresented: $showTipJarSheet) {
-                NavigationStack {
-                    TipJarView(manager: tipJar)
-                }
-                .meshTheme()
-            }
+            // Sheet is intentionally NOT attached here — see settingsForm for the macOS/Catalyst
+            // .sheet(isPresented: $showTipJarSheet) anchor. Attaching .sheet to a List row
+            // causes Catalyst to corrupt navigation state when the sheet closes (same class of
+            // bug as the iOS Device Info sheet — fixed by lifting to the List level).
             #else
             NavigationLink {
                 TipJarView(manager: tipJar)
@@ -2128,6 +2144,13 @@ struct TipJarView: View {
                     VStack(spacing: 12) {
                         Text("Products unavailable")
                             .foregroundStyle(MeshTheme.textSecondary)
+                        if let errorMessage = manager.lastErrorMessage {
+                            Text(errorMessage)
+                                .font(.caption)
+                                .foregroundStyle(MeshTheme.textSecondary)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal)
+                        }
                         Button("Try Again") {
                             manager.loadProductsIfNeeded()
                         }
@@ -2157,7 +2180,11 @@ struct TipJarView: View {
         #if os(macOS) || targetEnvironment(macCatalyst)
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
-                Button("Done") { dismiss() }
+                Button("Done") {
+                    // Deferred dismiss prevents Catalyst navigation state corruption
+                    // when the sheet closes and the presenting List row re-renders.
+                    DispatchQueue.main.async { dismiss() }
+                }
             }
         }
         #else
