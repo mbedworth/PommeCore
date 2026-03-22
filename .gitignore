@@ -22,3 +22,7 @@ Pods/
 *.perspectivev3
 !default.perspectivev3
 xcuserdata/
+
+# App Store Connect API credentials — never commit
+ExportOptions-AppStore.plist
+*.p8
