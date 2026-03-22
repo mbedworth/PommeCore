@@ -185,12 +185,25 @@ struct SettingsView: View {
                         }
                     }
                     .toolbar {
-                        ToolbarItem(placement: .confirmationAction) {
+                        // .topBarTrailing is available on Catalyst (iOS rendering) but NOT on
+                        // pure macOS SwiftUI. .primaryAction on macOS renders in the inspector
+                        // panel's own toolbar header rather than overflowing to the ellipsis menu.
+                        // .confirmationAction on macOS goes to the window toolbar overflow — wrong.
+                        #if targetEnvironment(macCatalyst)
+                        ToolbarItem(placement: .topBarTrailing) {
                             Button("Done") {
                                 showInspector = false
                                 inspectorSheet = nil
                             }
                         }
+                        #else
+                        ToolbarItem(placement: .primaryAction) {
+                            Button("Done") {
+                                showInspector = false
+                                inspectorSheet = nil
+                            }
+                        }
+                        #endif
                     }
                 }
                 .meshTheme()
@@ -2591,6 +2604,23 @@ struct NameEditorSheet: View {
         .navigationBarTitleDisplayMode(.inline)
         #endif
         .toolbar {
+            #if targetEnvironment(macCatalyst)
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Apply") {
+                    viewModel.setAdvertName(name)
+                    dismiss()
+                }
+                .disabled(name.isEmpty)
+            }
+            #elseif os(macOS)
+            ToolbarItem(placement: .primaryAction) {
+                Button("Apply") {
+                    viewModel.setAdvertName(name)
+                    dismiss()
+                }
+                .disabled(name.isEmpty)
+            }
+            #else
             ToolbarItem(placement: .confirmationAction) {
                 Button("Apply") {
                     viewModel.setAdvertName(name)
@@ -2598,6 +2628,7 @@ struct NameEditorSheet: View {
                 }
                 .disabled(name.isEmpty)
             }
+            #endif
         }
         .onAppear {
             name = viewModel.deviceConfig.deviceName
@@ -2756,6 +2787,25 @@ struct TuningEditorSheet: View {
         .navigationBarTitleDisplayMode(.inline)
         #endif
         .toolbar {
+            #if targetEnvironment(macCatalyst)
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Apply") {
+                    let rx = UInt32(rxDelay * 1000)
+                    let air = UInt32(airtimeFactor * 1000)
+                    viewModel.setTuningParams(rxDelayBase: rx, airtimeFactor: air)
+                    dismiss()
+                }
+            }
+            #elseif os(macOS)
+            ToolbarItem(placement: .primaryAction) {
+                Button("Apply") {
+                    let rx = UInt32(rxDelay * 1000)
+                    let air = UInt32(airtimeFactor * 1000)
+                    viewModel.setTuningParams(rxDelayBase: rx, airtimeFactor: air)
+                    dismiss()
+                }
+            }
+            #else
             ToolbarItem(placement: .confirmationAction) {
                 Button("Apply") {
                     let rx = UInt32(rxDelay * 1000)
@@ -2764,6 +2814,7 @@ struct TuningEditorSheet: View {
                     dismiss()
                 }
             }
+            #endif
         }
         .onAppear {
             rxDelay = viewModel.deviceConfig.rxDelaySeconds
