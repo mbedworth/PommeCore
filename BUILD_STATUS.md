@@ -1,10 +1,15 @@
 # MeshCoreApple — Build Status
-**Current Build:** Build 39 (v1.1.1)
+**Current Build:** Build 45 (v1.1.1)
 **Last Updated:** 2026-03-22
+
+**Build history note:** The project was at Build 40 at the start of the 2026-03-22 session.
+An erroneous bump attempted to move it from 39→40 (already current), so that commit
+was a no-op in terms of actual change. Build is now set to 45 to get ahead of any
+in-flight builds and establish a clean baseline.
 
 ---
 
-## Session Summary — Build 39
+## Session Summary — Build 40 → 45 (2026-03-22)
 
 8 bugs fixed across two Claude Code sessions. All committed.
 
