@@ -673,6 +673,12 @@ struct ContactListView: View {
                     Button { showImportSheet = true } label: {
                         Label("Paste Channel Link", systemImage: "doc.on.clipboard")
                     }
+                    if !viewModel.channels.isEmpty {
+                        Divider()
+                        Button { showShareAllChannels = true } label: {
+                            Label("Share All Channels", systemImage: "square.and.arrow.up")
+                        }
+                    }
                 } label: {
                     Image(systemName: "plus")
                         .foregroundStyle(MeshTheme.accent)
