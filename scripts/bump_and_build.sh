@@ -2,8 +2,15 @@
 # scripts/bump_and_build.sh — bump build number, compile-check both platforms, update docs
 #
 # Usage:
-#   ./scripts/bump_and_build.sh          # auto-increment build number
-#   ./scripts/bump_and_build.sh 50       # set to a specific build number
+#   ./scripts/bump_and_build.sh           # auto-increment build number
+#   ./scripts/bump_and_build.sh 50        # set to a specific build number
+#   ./scripts/bump_and_build.sh --force   # auto-increment, overwrite existing sentinel
+#   ./scripts/bump_and_build.sh 50 --force  # set specific number, overwrite existing sentinel
+#
+# Rule: one bump → one build → one distribute.
+# If a successful build sentinel already exists for the target build number, the script
+# exits with an error. Pass --force to override (e.g. after fixing a compile error without
+# re-bumping, or when re-running after a partial failure).
 #
 # On success: writes build/last_build_success with the build number.
 # On failure: exits non-zero and removes the sentinel so distribute.sh refuses to run.
@@ -25,15 +32,44 @@ log()   { echo -e "${GREEN}[BUILD]${NC} $1"; }
 warn()  { echo -e "${YELLOW}[WARN]${NC} $1"; }
 error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
-# --- 1. Bump build number ---
+# --- Parse args: optional build number and --force flag ---
+
+FORCE=0
+BUILD_ARG=""
+for arg in "$@"; do
+    if [ "$arg" = "--force" ]; then
+        FORCE=1
+    elif [[ "$arg" =~ ^[0-9]+$ ]]; then
+        BUILD_ARG="$arg"
+    fi
+done
+
+# --- 1. Determine target build number ---
 
 CURRENT=$(grep -m1 "CURRENT_PROJECT_VERSION" "$PBXPROJ" | grep -o '[0-9]*' | head -1)
 VERSION=$(grep -m1 "MARKETING_VERSION" "$PBXPROJ" | grep -o '[0-9]*\.[0-9]*\.[0-9]*')
 
-if [ -n "${1:-}" ]; then
-    NEW_BUILD="$1"
+if [ -n "$BUILD_ARG" ]; then
+    NEW_BUILD="$BUILD_ARG"
 else
     NEW_BUILD=$((CURRENT + 1))
+fi
+
+# --- 1a. Sentinel guard: refuse to rebuild a number that already succeeded ---
+
+if [ -f "$SENTINEL" ]; then
+    SENTINEL_BUILD=$(head -1 "$SENTINEL")
+    if [ "$SENTINEL_BUILD" = "$NEW_BUILD" ]; then
+        if [ "$FORCE" -eq 0 ]; then
+            echo -e "${RED}[ERROR]${NC} Build $NEW_BUILD already has a successful build sentinel ($(tail -1 "$SENTINEL"))."
+            echo -e "${RED}[ERROR]${NC} One bump → one build → one distribute. Don't rebuild a number that's ready to ship."
+            echo -e "        To override: ${YELLOW}./scripts/bump_and_build.sh $NEW_BUILD --force${NC}"
+            echo -e "        To advance:  ${YELLOW}./scripts/bump_and_build.sh${NC} (auto-increments to $((NEW_BUILD + 1)))"
+            exit 1
+        else
+            warn "--force passed — overwriting existing build $NEW_BUILD sentinel ($(tail -1 "$SENTINEL"))."
+        fi
+    fi
 fi
 
 sed -i '' "s/CURRENT_PROJECT_VERSION = $CURRENT;/CURRENT_PROJECT_VERSION = $NEW_BUILD;/g" "$PBXPROJ"
