@@ -5,6 +5,13 @@
 **Git:** Private repo on GitHub (commit and push after each major fix)
 **Last Updated:** March 14, 2026
 
+> **Session note (2026-03-22):** This file captures the original comprehensive task list from
+> March 14. A separate Build 39 bug-fix session resolved 8 UI/architecture bugs (iOS sheet
+> dismissal, macOS inspector done button, App Lock wiring, Share All Channels, Tip Jar macOS
+> presentation, Tip Jar product reload, Publishing warnings, ERR 6 alerts). See `BUILD_STATUS.md`
+> for full details. The bugs listed below are the *remaining* work from the original task list
+> and have not been triaged against the current codebase state.
+
 ---
 
 ## PRIORITY 1: BLOCKING BUGS

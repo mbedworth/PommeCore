@@ -4,9 +4,9 @@ Native SwiftUI client for [MeshCore](https://github.com/rpp0/MeshCore) LoRa mesh
 
 ## Platforms
 
-- iOS 16+
-- macOS 13+
-- watchOS 9+
+- iOS 18+
+- macOS 15+ (Sequoia)
+- watchOS 11+
 
 ## Features
 
@@ -28,11 +28,13 @@ MeshCoreApple/
 │   └── Sources/MeshCoreKit/
 │       ├── BLE/                # BLEManager, constants, background handler
 │       ├── Protocol/           # Frame parser, command builder, command codes
-│       ├── Models/             # Contact, Message, DeviceConfig, MessageStore
+│       ├── Models/             # Contact, Message, DeviceConfig (@Observable), MessageStore
 │       └── Crypto/             # MeshCore crypto utilities
 ├── Shared/                     # Multiplatform app code
 │   ├── App/                    # MeshCoreApp entry point, Theme
-│   ├── ViewModels/             # MeshCoreViewModel (central state)
+│   ├── Stores/                 # @Observable stores: ContactStore, ChannelStore,
+│   │                           #   MessageStoreManager, ConnectionManager, RemoteSessionManager
+│   ├── ViewModels/             # MeshCoreViewModel (thin coordinator, ObservableObject bridge)
 │   └── Views/                  # ContactList, Chat, Settings, RemoteManagement, Scanner
 ├── iOS/                        # iOS target resources
 ├── macOS/                      # macOS target resources
@@ -43,11 +45,11 @@ MeshCoreApple/
 
 Implements the MeshCore Companion Radio Protocol over BLE Nordic UART Service:
 - **Service UUID:** `6E400001-B5A3-F393-E0A9-E50E24DCCA9E`
-- **TX Characteristic:** `6E400002` (write)
-- **RX Characteristic:** `6E400003` (notify)
+- **RX Characteristic (app→radio):** `6E400002` (write)
+- **TX Characteristic (radio→app):** `6E400003` (notify)
 
 Binary frame encoding with command codes, response codes, and push notifications (0x80-0x8F range).
 
 ## Building
 
-Open `MeshCoreApple.xcodeproj` in Xcode 15+ and select the desired target (iOS, macOS, or watchOS).
+Open `MeshCoreApple.xcodeproj` in Xcode 16+ and select the desired target (iOS, macOS, or watchOS).
