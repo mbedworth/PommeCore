@@ -185,7 +185,7 @@ struct SettingsView: View {
                         }
                     }
                     .toolbar {
-                        ToolbarItem(placement: .topBarTrailing) {
+                        ToolbarItem(placement: .confirmationAction) {
                             Button("Done") {
                                 showInspector = false
                                 inspectorSheet = nil
@@ -2156,7 +2156,7 @@ struct TipJarView: View {
         .navigationTitle("Tip Jar")
         #if os(macOS) || targetEnvironment(macCatalyst)
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(placement: .confirmationAction) {
                 Button("Done") { dismiss() }
             }
         }
