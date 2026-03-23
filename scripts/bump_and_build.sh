@@ -46,7 +46,18 @@ done
 
 # --- 1. Determine target build number ---
 
-CURRENT=$(grep -m1 "CURRENT_PROJECT_VERSION" "$PBXPROJ" | grep -o '[0-9]*' | head -1)
+# Warn if Xcode is open — it holds project.pbxproj in memory and may write back
+# its cached version after we bump, silently reverting the build number.
+if pgrep -xq "Xcode"; then
+    warn "Xcode is running. It may overwrite project.pbxproj from its in-memory state"
+    warn "after we bump the build number, causing build number drift."
+    warn "Close Xcode before running this script to prevent that. Continuing anyway..."
+fi
+
+# Read the maximum CURRENT_PROJECT_VERSION across all entries (not just -m1).
+# If the project is in a mixed state, we want the highest value so auto-increment
+# stays ahead of all targets.
+CURRENT=$(grep "CURRENT_PROJECT_VERSION" "$PBXPROJ" | grep -o '[0-9]*' | sort -n | tail -1)
 VERSION=$(grep -m1 "MARKETING_VERSION" "$PBXPROJ" | grep -o '[0-9]*\.[0-9]*\.[0-9]*')
 
 if [ -n "$BUILD_ARG" ]; then
@@ -73,20 +84,36 @@ if [ -f "$SENTINEL" ]; then
 fi
 
 # --- 2. Bump build number in ALL targets ---
-# sed replaces every CURRENT_PROJECT_VERSION occurrence (global flag),
-# so all targets — iOS, macOS, watchOS — are updated atomically.
+# The sed pattern matches any existing numeric value, not just $CURRENT.
+# This is intentional: if the project is in a mixed state (different targets
+# at different build numbers), ALL entries are brought to $NEW_BUILD atomically
+# regardless of their starting value. Using $CURRENT as the match pattern would
+# silently leave entries at any other value untouched.
 
-sed -i '' "s/CURRENT_PROJECT_VERSION = $CURRENT;/CURRENT_PROJECT_VERSION = $NEW_BUILD;/g" "$PBXPROJ"
+sed -i '' "s/CURRENT_PROJECT_VERSION = [0-9][0-9]*/CURRENT_PROJECT_VERSION = $NEW_BUILD/g" "$PBXPROJ"
 log "Build number: $CURRENT → $NEW_BUILD (v$VERSION) — all targets"
 
-# Verify all entries were updated (sanity check)
-UPDATED_COUNT=$(grep -c "CURRENT_PROJECT_VERSION = $NEW_BUILD;" "$PBXPROJ" || true)
-OLD_REMAINING=$(grep -c "CURRENT_PROJECT_VERSION = $CURRENT;" "$PBXPROJ" 2>/dev/null || true)
-if [ "$OLD_REMAINING" -gt 0 ]; then
-    error "$OLD_REMAINING target(s) still on old build $CURRENT — sed may have missed entries"
+# --- 2a. Readback verification: every entry must equal NEW_BUILD exactly ---
+# This catches any entry the sed didn't update (format mismatch, file encoding
+# issue, entries not ending in semicolon, etc.).
+
+WRONG_ENTRIES=$(grep "CURRENT_PROJECT_VERSION" "$PBXPROJ" | grep -v "= $NEW_BUILD;")
+if [ -n "$WRONG_ENTRIES" ]; then
+    error "Build number mismatch after sed — some entries were NOT updated to $NEW_BUILD:"
+    echo "$WRONG_ENTRIES" >&2
+    error "This should not happen. Check $PBXPROJ for unexpected formatting."
     exit 1
 fi
-log "Verified: $UPDATED_COUNT entries all updated to $NEW_BUILD"
+UPDATED_COUNT=$(grep -c "CURRENT_PROJECT_VERSION = $NEW_BUILD;" "$PBXPROJ" || true)
+log "Verified: $UPDATED_COUNT entries all set to $NEW_BUILD"
+
+# Sanity: we expect exactly 6 entries (3 targets × Debug + Release).
+# Warn if the count is unexpected so we notice if targets were added/removed.
+EXPECTED_COUNT=6
+if [ "$UPDATED_COUNT" -ne "$EXPECTED_COUNT" ]; then
+    warn "Expected $EXPECTED_COUNT CURRENT_PROJECT_VERSION entries but found $UPDATED_COUNT."
+    warn "A target may have been added or removed. Verify project structure is correct."
+fi
 
 # --- 3. Update BUILD_STATUS.md ---
 
