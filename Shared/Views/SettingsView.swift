@@ -2511,10 +2511,8 @@ private struct InfoPopoverContent: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(16)
         }
-        .frame(minWidth: 240, maxWidth: 300)
-        #if os(macOS)
-        .frame(minHeight: 60)
-        #else
+        .frame(minWidth: 240, maxWidth: 300, minHeight: 60)
+        #if !os(macOS)
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
         #endif
