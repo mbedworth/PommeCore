@@ -263,13 +263,9 @@ struct LoginSection: View {
                         .foregroundStyle(MeshTheme.textPrimary)
                         .textFieldStyle(MeshTextFieldStyle())
                     #endif
+                    InfoButton(text: "Passwords are case-sensitive, max 15 characters.")
                 }
                 .listRowBackground(MeshTheme.surface)
-
-                Text("Passwords are case-sensitive, max 15 characters.")
-                    .font(.caption2)
-                    .foregroundStyle(MeshTheme.textSecondary)
-                    .listRowBackground(MeshTheme.surface)
 
                 if contact.type == .sensor {
                     HStack(spacing: 6) {
@@ -457,11 +453,7 @@ private extension RemoteManagementView {
             .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
         } header: {
-            Text("Device Info")
-                .foregroundStyle(MeshTheme.textSecondary)
-        } footer: {
-            Text("Basic device information. Tap Refresh to re-read version and clock from the device.")
-                .font(.caption2)
+            SectionInfoHeader(title: "Device Info", info: "Basic device information. Tap Refresh to re-read version and clock from the device.")
         }
     }
 }
@@ -531,12 +523,7 @@ struct RemoteRadioSection: View {
                 }
             }
         } header: {
-            Text("Radio Configuration")
-                .foregroundStyle(MeshTheme.textSecondary)
-        } footer: {
-            Text("Radio format: freq_MHz,bw_kHz,sf,cr (e.g. 910.525,62.5,7,5)")
-                .foregroundStyle(MeshTheme.textSecondary)
-                .font(.caption2)
+            SectionInfoHeader(title: "Radio Configuration", info: "Radio format: freq_MHz,bw_kHz,sf,cr (e.g. 910.525,62.5,7,5)")
         }
     }
 }
@@ -593,10 +580,8 @@ struct RemoteTimingSection: View {
                     .foregroundStyle(MeshTheme.accent)
             }
             .listRowBackground(MeshTheme.surface)
-        } footer: {
-            Text("Advanced — adjust timing parameters for mesh performance. Default values work well for most setups. Flood Max Hops supports 0\u{2013}64 (default 64).")
-                .font(.caption2)
-                .foregroundStyle(MeshTheme.textSecondary)
+        } header: {
+            SectionInfoHeader(title: "", info: "Advanced — adjust timing parameters for mesh performance. Default values work well for most setups. Flood Max Hops supports 0\u{2013}64 (default 64).")
         }
         .disabled(!canEdit)
     }
@@ -676,10 +661,8 @@ struct RemoteRoutingSection: View {
                     .foregroundStyle(MeshTheme.accent)
             }
             .listRowBackground(MeshTheme.surface)
-        } footer: {
-            Text("Loop detection rejects flood packets that appear to be in a loop (v1.14+). Path hash size controls ID/hash encoding in path headers \u{2014} higher values reduce collision risk but require v1.14+ firmware across the network.")
-                .font(.caption2)
-                .foregroundStyle(MeshTheme.textSecondary)
+        } header: {
+            SectionInfoHeader(title: "", info: "Loop detection rejects flood packets that appear to be in a loop (v1.14+). Path hash size controls ID/hash encoding in path headers \u{2014} higher values reduce collision risk but require v1.14+ firmware across the network.")
         }
         .disabled(!canEdit)
     }
@@ -797,11 +780,7 @@ struct RemoteAdvertSection: View {
                 }
             }
         } header: {
-            Text("Advertising")
-                .foregroundStyle(MeshTheme.textSecondary)
-        } footer: {
-            Text("Standard adverts are local (0-hop, 60-240 min). Flood adverts are relayed by all repeaters (min 3 hours). Minimum intervals enforced by firmware.")
-                .font(.caption2)
+            SectionInfoHeader(title: "Advertising", info: "Standard adverts are local (0-hop, 60-240 min). Flood adverts are relayed by all repeaters (min 3 hours). Minimum intervals enforced by firmware.")
         }
         .confirmationDialog("Send Advertisement", isPresented: $showAdvertOptions) {
             Button("Zero-Hop (nearby only)") {
@@ -927,12 +906,7 @@ struct RemoteSecuritySection: View {
             }
             .listRowBackground(MeshTheme.surface)
         } header: {
-            Text("Security")
-                .foregroundStyle(MeshTheme.textSecondary)
-        } footer: {
-            Text("ACL permissions: 0=Guest, 1=Read-only, 2=Read-write, 3=Admin")
-                .foregroundStyle(MeshTheme.textSecondary)
-                .font(.caption2)
+            SectionInfoHeader(title: "Security", info: "ACL permissions: 0=Guest, 1=Read-only, 2=Read-write, 3=Admin")
         }
     }
 }
@@ -1006,11 +980,7 @@ struct RemoteGPSSection: View {
             .listRowBackground(MeshTheme.surface)
             }
         } header: {
-            Text("GPS")
-                .foregroundStyle(MeshTheme.textSecondary)
-        } footer: {
-            Text("Controls whether this device includes its location in mesh advertisements. \u{2018}GPS\u{2019} uses the hardware GPS module. \u{2018}Manual\u{2019} uses the latitude and longitude values configured in the advertising section.")
-                .font(.caption2)
+            SectionInfoHeader(title: "GPS", info: "Controls whether this device includes its location in mesh advertisements. \u{2018}GPS\u{2019} uses the hardware GPS module. \u{2018}Manual\u{2019} uses the latitude and longitude values configured in the advertising section.")
         }
     }
 
@@ -1057,11 +1027,7 @@ struct RemoteRoomSection: View {
                 cliInfoRow(icon: "key", label: "Guest Password", value: guestPw)
             }
         } header: {
-            Text("Room Server")
-                .foregroundStyle(MeshTheme.textSecondary)
-        } footer: {
-            Text("Allow Read-Only lets guests read messages without a password. Disable to require authentication for all access.")
-                .font(.caption2)
+            SectionInfoHeader(title: "Room Server", info: "Allow Read-Only lets guests read messages without a password. Disable to require authentication for all access.")
         }
 
         if canEdit {
@@ -1111,11 +1077,7 @@ struct RemoteRoomSection: View {
                 .disabled(setPermPubkey.isEmpty)
                 .listRowBackground(MeshTheme.surface)
             } header: {
-                Text("Client Permissions")
-                    .foregroundStyle(MeshTheme.textSecondary)
-            } footer: {
-                Text("Set access level for a client by their public key prefix. Guest = read-only, Read-Write = can post, Admin = full control.")
-                    .font(.caption2)
+                SectionInfoHeader(title: "Client Permissions", info: "Set access level for a client by their public key prefix. Guest = read-only, Read-Write = can post, Admin = full control.")
             }
         }
     }
@@ -1178,11 +1140,7 @@ struct RemoteSensorSection: View {
             .listRowBackground(MeshTheme.surface)
             .disabled(gpioPin.isEmpty)
         } header: {
-            Text("Sensor GPIO")
-                .foregroundStyle(MeshTheme.textSecondary)
-        } footer: {
-            Text("Direct GPIO pin control. Use with caution \u{2014} incorrect operations may affect sensor readings.")
-                .font(.caption2)
+            SectionInfoHeader(title: "Sensor GPIO", info: "Direct GPIO pin control. Use with caution \u{2014} incorrect operations may affect sensor readings.")
         }
     }
 }
@@ -1260,9 +1218,6 @@ struct RemoteMaintenanceSection: View {
                     }
                     .buttonStyle(.plain)
 
-                    Text("View: USB only")
-                        .font(.caption2)
-                        .foregroundStyle(MeshTheme.textSecondary)
                 }
                 .listRowBackground(MeshTheme.surface)
 
@@ -1309,11 +1264,7 @@ struct RemoteMaintenanceSection: View {
                 }
             }
         } header: {
-            Text("Maintenance")
-                .foregroundStyle(MeshTheme.textSecondary)
-        } footer: {
-            Text("Reboot restarts the device (~30 seconds). Clear Stats resets packet counters and airtime. Log dump requires USB serial connection.")
-                .font(.caption2)
+            SectionInfoHeader(title: "Maintenance", info: "Reboot restarts the device (~30 seconds). Clear Stats resets packet counters and airtime. Log dump requires USB serial connection.")
         }
     }
 }
@@ -1395,11 +1346,7 @@ struct SerialOnlySection: View {
                 Text("Permanently erases ALL data including keys, contacts, and settings. This cannot be undone.")
             }
         } header: {
-            Text("USB Serial Commands")
-                .foregroundStyle(MeshTheme.textSecondary)
-        } footer: {
-            Text("These commands are only available via direct USB connection for security. Factory Reset cannot be undone.")
-                .font(.caption2)
+            SectionInfoHeader(title: "USB Serial Commands", info: "These commands are only available via direct USB connection for security. Factory Reset cannot be undone.")
         }
     }
 }
@@ -1469,10 +1416,8 @@ struct CLITerminalSection: View {
             .listRowBackground(MeshTheme.surface)
             }
             .listRowBackground(MeshTheme.surface)
-        } footer: {
-            Text("Send raw CLI commands to the device. Type 'help' for available commands.")
-                .foregroundStyle(MeshTheme.textSecondary)
-                .font(.caption2)
+        } header: {
+            SectionInfoHeader(title: "", info: "Send raw CLI commands to the device. Type 'help' for available commands.")
         }
     }
 
