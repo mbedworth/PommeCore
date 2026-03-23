@@ -1475,9 +1475,12 @@ struct PrivacySection: View {
 
             if config.manualAddContacts == 0 {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Auto-Add Contact Types")
-                        .font(.caption)
-                        .foregroundStyle(MeshTheme.textSecondary)
+                    HStack(spacing: 4) {
+                        Text("Auto-Add Contact Types")
+                            .font(.caption)
+                            .foregroundStyle(MeshTheme.textSecondary)
+                        InfoButton(text: "Chat = people, Repeaters extend range, Room Servers host group chats, Sensors report data.")
+                    }
                     Toggle("Chat Users", isOn: autoAddBinding(bit: 0x01))
                         .tint(MeshTheme.accent)
                     Toggle("Repeaters", isOn: autoAddBinding(bit: 0x02))
@@ -1486,9 +1489,6 @@ struct PrivacySection: View {
                         .tint(MeshTheme.accent)
                     Toggle("Sensors", isOn: autoAddBinding(bit: 0x08))
                         .tint(MeshTheme.accent)
-                    Text("Chat = people, Repeaters extend range, Room Servers host group chats, Sensors report data.")
-                        .font(.caption2)
-                        .foregroundStyle(MeshTheme.textSecondary)
                 }
                 .listRowBackground(MeshTheme.surface)
             }
@@ -2494,6 +2494,32 @@ struct SaveButton: View {
     }
 }
 
+/// Tappable ⓘ button for individual rows. Drop it at the trailing end of any HStack.
+/// Each call site supplies its own help text; state is local to each instance.
+struct InfoButton: View {
+    let text: String
+    @State private var showPopover = false
+
+    var body: some View {
+        Button {
+            showPopover = true
+        } label: {
+            Image(systemName: "info.circle")
+                .foregroundStyle(MeshTheme.textSecondary.opacity(0.75))
+        }
+        .buttonStyle(.plain)
+        .popover(isPresented: $showPopover) {
+            Text(text)
+                .font(.callout)
+                .padding()
+                .frame(maxWidth: 280)
+                #if !os(macOS)
+                .presentationCompactAdaptation(.popover)
+                #endif
+        }
+    }
+}
+
 /// Section header combining a title with a tappable ⓘ icon.
 /// Tap the icon to reveal the full help text as a popover.
 struct SectionInfoHeader: View {
@@ -2597,10 +2623,8 @@ struct NameEditorSheet: View {
                     Text("\(name.count)/31")
                         .font(.caption2)
                         .foregroundStyle(name.count > 28 ? .orange : .secondary)
+                    InfoButton(text: "TIP: Use your initials + first 4 of your public key (e.g., NMA-5abd). Max 31 characters.")
                 }
-            } footer: {
-                Text("TIP: Use your initials + first 4 of your public key (e.g., NMA-5abd). Max 31 characters.")
-                    .font(.caption2)
             }
         }
         .navigationTitle("Device Name")
@@ -2657,9 +2681,8 @@ struct FirmwareDetailSheet: View {
                 LabeledContent("Version", value: version.isEmpty ? "\u{2014}" : version)
                 LabeledContent("Build Date", value: buildDate.isEmpty ? "\u{2014}" : buildDate)
                 LabeledContent("Model", value: model.isEmpty ? "\u{2014}" : model)
-            } footer: {
-                Text("Hardware and firmware details from your radio.")
-                    .font(.caption2)
+            } header: {
+                SectionInfoHeader(title: "", info: "Hardware and firmware details from your radio.")
             }
             Section {
                 LabeledContent("Max Contacts", value: "\(maxContacts)")
@@ -2669,9 +2692,8 @@ struct FirmwareDetailSheet: View {
                 Section {
                     LabeledContent("Public Key", value: String(publicKeyHex.prefix(16)) + "...")
                         .textSelection(.enabled)
-                } footer: {
-                    Text("Long-press to copy. Share this with others to let them add you as a contact.")
-                        .font(.caption2)
+                } header: {
+                    SectionInfoHeader(title: "", info: "Long-press to copy. Share this with others to let them add you as a contact.")
                 }
             }
             Section {
@@ -2682,10 +2704,7 @@ struct FirmwareDetailSheet: View {
                 }
                 LabeledContent("Clock Status", value: "Auto-synced on connect")
             } header: {
-                Text("Time")
-            } footer: {
-                Text("Device clock is automatically synced from your phone on every connection.")
-                    .font(.caption2)
+                SectionInfoHeader(title: "Time", info: "Device clock is automatically synced from your phone on every connection.")
             }
         }
         .meshListStyle()
@@ -2721,7 +2740,12 @@ struct TxPowerEditorSheet: View {
                 HStack {
                     Text("TX Power")
                     Spacer()
+                    if saved {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(MeshTheme.connected)
+                    }
                     Text("\(Int(txPower)) dBm").fontWeight(.medium)
+                    InfoButton(text: "Higher power = more range but more battery drain. Max \(Int(maxPower)) dBm for this device.")
                 }
                 Slider(value: $txPower, in: 1...max(maxPower, 2), step: 1)
                     .tint(MeshTheme.accent)
@@ -2730,13 +2754,6 @@ struct TxPowerEditorSheet: View {
                         saved = true
                         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { saved = false }
                     }
-            } footer: {
-                if saved {
-                    Text("Saved")
-                        .foregroundStyle(MeshTheme.connected)
-                } else {
-                    Text("Higher power = more range but more battery drain. Max \(Int(maxPower)) dBm for this device.")
-                }
             }
         }
         .navigationTitle("TX Power")
@@ -2765,12 +2782,10 @@ struct TuningEditorSheet: View {
                     Text("RX Delay")
                     Spacer()
                     Text("\(String(format: "%.1f", rxDelay))s").fontWeight(.medium)
+                    InfoButton(text: "Base delay for SNR-based packet prioritization. Higher values give better-signal packets more priority. 0 = disabled.")
                 }
                 Slider(value: $rxDelay, in: 0...20, step: 0.5)
                     .tint(MeshTheme.accent)
-            } footer: {
-                Text("Base delay for SNR-based packet prioritization. Higher values give better-signal packets more priority. 0 = disabled.")
-                    .font(.caption2)
             }
 
             Section {
@@ -2778,12 +2793,10 @@ struct TuningEditorSheet: View {
                     Text("Airtime Factor")
                     Spacer()
                     Text("\(String(format: "%.1f", airtimeFactor))x").fontWeight(.medium)
+                    InfoButton(text: "Multiplier for airtime budget. Higher values allow more frequent transmissions. 0 = no limit.")
                 }
                 Slider(value: $airtimeFactor, in: 0...9, step: 0.5)
                     .tint(MeshTheme.accent)
-            } footer: {
-                Text("Multiplier for airtime budget. Higher values allow more frequent transmissions. 0 = no limit.")
-                    .font(.caption2)
             }
         }
         .navigationTitle("Tuning")
@@ -2843,9 +2856,8 @@ struct GPSEditorSheet: View {
             Section {
                 LabeledContent("Latitude", value: latitude.isEmpty ? "\u{2014}" : latitude)
                 LabeledContent("Longitude", value: longitude.isEmpty ? "\u{2014}" : longitude)
-            } footer: {
-                Text("Your radio\u{2019}s stored coordinates. These are shared with other radios when advertising.")
-                    .font(.caption2)
+            } header: {
+                SectionInfoHeader(title: "", info: "Your radio\u{2019}s stored coordinates. These are shared with other radios when advertising.")
             }
 
             #if !os(watchOS)
@@ -2885,9 +2897,8 @@ struct GPSEditorSheet: View {
                         if autoUpdateLocation { viewModel.startAutoLocationUpdates(interval: interval) }
                     }
                 }
-            } footer: {
-                Text("Set from Phone GPS copies your phone\u{2019}s coordinates to the radio. Auto-Update periodically refreshes while the app is open.")
-                    .font(.caption2)
+            } header: {
+                SectionInfoHeader(title: "", info: "Set from Phone GPS copies your phone\u{2019}s coordinates to the radio. Auto-Update periodically refreshes while the app is open.")
             }
             #endif
         }
@@ -2917,9 +2928,8 @@ struct BatteryEditorSheet: View {
             Section {
                 LabeledContent("Voltage", value: voltageText)
                 LabeledContent("Percentage", value: percentText)
-            } footer: {
-                Text("Live reading from the radio\u{2019}s battery sensor. Accuracy depends on correct chemistry selection below.")
-                    .font(.caption2)
+            } header: {
+                SectionInfoHeader(title: "", info: "Live reading from the radio\u{2019}s battery sensor. Accuracy depends on correct chemistry selection below.")
             }
             Section {
                 Picker("Battery Type", selection: $batteryChemistryRaw) {
@@ -2927,9 +2937,8 @@ struct BatteryEditorSheet: View {
                     Text("LiFePO4 (3.2V)").tag(BatteryChemistry.lifepo4.rawValue)
                     Text("Li-Ion (3.7V)").tag(BatteryChemistry.li18650.rawValue)
                 }
-            } footer: {
-                Text("Select battery chemistry for accurate percentage calculation.")
-                    .font(.caption2)
+            } header: {
+                SectionInfoHeader(title: "", info: "Select battery chemistry for accurate percentage calculation.")
             }
         }
         .navigationTitle("Battery")
