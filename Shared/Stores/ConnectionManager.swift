@@ -315,8 +315,10 @@ final class ConnectionManager {
                     self.onDeviceReady?()
                 } else if self.wifiManager.connectedHost != nil {
                     if self.connectionState == .ready {
+                        let prev = self.connectionState
                         self.connectionState = .disconnected
                         self.connectedDeviceName = nil
+                        self.onDisconnected?(prev)
                     }
                 }
             }

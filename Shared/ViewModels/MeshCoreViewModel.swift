@@ -693,9 +693,9 @@ final class MeshCoreViewModel: ObservableObject {
                 threadId: "connection"
             )
         }
+        channelStore.hasCompletedInitialChannelSync = false
         refreshAllSettings()
         requestContacts(fullSync: true)
-        channelStore.isSyncingChannels = true
         syncNextMessage()
     }
 
