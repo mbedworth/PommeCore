@@ -146,6 +146,13 @@ struct ContentView: View {
                 showRemoteManagement: $showRemoteManagement,
                 showAdvertSent: $showAdvertSent
             )
+            // Column width MUST be on the view inside the sidebar builder, not on
+            // NavigationSplitView itself — the outer position is silently ignored.
+            // ideal = first-launch default; macOS window restoration remembers any
+            // user resize automatically via WindowGroup state persistence.
+            #if os(macOS) || targetEnvironment(macCatalyst)
+            .navigationSplitViewColumnWidth(min: 220, ideal: 240, max: 400)
+            #endif
         } detail: {
             switch viewModel.sidebarSelection {
             case .publicChannel:
@@ -240,9 +247,6 @@ struct ContentView: View {
                 }
             }
         }
-        #if os(macOS) || targetEnvironment(macCatalyst)
-        .navigationSplitViewColumnWidth(min: 280, ideal: 320, max: 420)
-        #endif
         .sheet(isPresented: $showScanner) {
             NavigationStack {
                 DeviceScannerView()
