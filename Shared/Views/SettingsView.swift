@@ -2496,6 +2496,28 @@ struct SaveButton: View {
 
 /// Tappable ⓘ button for individual rows. Drop it at the trailing end of any HStack.
 /// Each call site supplies its own help text; state is local to each instance.
+/// Shared popover/sheet content for ⓘ help text.
+/// On iPhone the .popover adapts to a sheet — content sizes itself to fit all text.
+/// On iPad/macOS it shows as a real popover anchored to the button.
+private struct InfoPopoverContent: View {
+    let text: String
+
+    var body: some View {
+        ScrollView {
+            Text(text)
+                .font(.callout)
+                .lineLimit(nil)
+                .multilineTextAlignment(.leading)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding()
+                .frame(minWidth: 260, maxWidth: 320, alignment: .leading)
+        }
+        #if !os(macOS)
+        .presentationDetents([.medium, .large])
+        #endif
+    }
+}
+
 struct InfoButton: View {
     let text: String
     @State private var showPopover = false
@@ -2509,13 +2531,7 @@ struct InfoButton: View {
         }
         .buttonStyle(.plain)
         .popover(isPresented: $showPopover) {
-            Text(text)
-                .font(.callout)
-                .padding()
-                .frame(maxWidth: 280)
-                #if !os(macOS)
-                .presentationCompactAdaptation(.popover)
-                #endif
+            InfoPopoverContent(text: text)
         }
     }
 }
@@ -2544,13 +2560,7 @@ struct SectionInfoHeader: View {
             }
             .buttonStyle(.plain)
             .popover(isPresented: $showInfo) {
-                Text(info)
-                    .font(.callout)
-                    .padding()
-                    .frame(maxWidth: 280)
-                    #if !os(macOS)
-                    .presentationCompactAdaptation(.popover)
-                    #endif
+                InfoPopoverContent(text: info)
             }
         }
     }
