@@ -24,6 +24,7 @@ struct SettingsView: View {
     @State private var showTipJarSheet = false
     #else
     @State private var iosDeviceSheet: DeviceInfoSection.DeviceSheet?
+    @State private var showTipJarSheet = false
     #endif
 
     private var batteryChemistry: BatteryChemistry {
@@ -161,6 +162,13 @@ struct SettingsView: View {
                         Button("Done") { iosDeviceSheet = nil }
                     }
                 }
+            }
+            .meshTheme()
+        }
+        // iOS: Tip Jar sheet anchored at List level — same reason as iosDeviceSheet above.
+        .sheet(isPresented: $showTipJarSheet) {
+            NavigationStack {
+                TipJarView(manager: tipJar)
             }
             .meshTheme()
         }
@@ -2101,8 +2109,10 @@ private extension SettingsView {
             // causes Catalyst to corrupt navigation state when the sheet closes (same class of
             // bug as the iOS Device Info sheet — fixed by lifting to the List level).
             #else
-            NavigationLink {
-                TipJarView(manager: tipJar)
+            // iOS: sheet instead of NavigationLink — NavigationLink push in a NavigationSplitView
+            // detail column corrupts sidebar selection state on pop (same bug class as macOS).
+            Button {
+                showTipJarSheet = true
             } label: {
                 HStack {
                     Label("Tip Jar", systemImage: "heart.fill")
@@ -2114,6 +2124,7 @@ private extension SettingsView {
                     }
                 }
             }
+            .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
             #endif
         } header: {
@@ -2190,17 +2201,16 @@ struct TipJarView: View {
         }
         .background(MeshTheme.background)
         .navigationTitle("Tip Jar")
-        #if os(macOS) || targetEnvironment(macCatalyst)
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
                 Button("Done") {
-                    // Deferred dismiss prevents Catalyst navigation state corruption
-                    // when the sheet closes and the presenting List row re-renders.
+                    // Deferred dismiss prevents navigation state corruption when the sheet
+                    // closes and the presenting List row re-renders (Catalyst and iOS).
                     DispatchQueue.main.async { dismiss() }
                 }
             }
         }
-        #else
+        #if !os(macOS) && !targetEnvironment(macCatalyst)
         .navigationBarTitleDisplayMode(.inline)
         #endif
         .onAppear {
