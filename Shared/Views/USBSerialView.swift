@@ -25,7 +25,7 @@ struct USBTerminalView: View {
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
                 }
-                .onChange(of: viewModel.usbCLIOutput.count) { _ in
+                .onChange(of: viewModel.usbCLIOutput.count) {
                     if let last = viewModel.usbCLIOutput.last {
                         withAnimation(.easeOut(duration: 0.2)) {
                             proxy.scrollTo(last.id, anchor: .bottom)

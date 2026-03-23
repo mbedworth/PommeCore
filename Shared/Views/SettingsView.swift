@@ -772,7 +772,7 @@ private extension SettingsView {
             }
             .foregroundStyle(MeshTheme.accent)
             .tint(MeshTheme.accent)
-            .onChange(of: batteryChemistryRaw) { _ in
+            .onChange(of: batteryChemistryRaw) {
                 viewModel.resetBatteryCalibration()
             }
         }
@@ -1751,8 +1751,8 @@ struct PrivacySection: View {
             }
         }
         .onAppear { pinText = String(config.blePIN) }
-        .onChange(of: viewModel.deviceConfig.blePIN) { _ in pinText = String(config.blePIN) }
-        .onChange(of: locationPrivacyRadius) { _ in
+        .onChange(of: viewModel.deviceConfig.blePIN) { pinText = String(config.blePIN) }
+        .onChange(of: locationPrivacyRadius) {
             MeshCoreViewModel.regenerateLocationFudge()
         }
     }
@@ -2585,7 +2585,7 @@ struct NameEditorSheet: View {
         Form {
             Section {
                 TextField("Device Name", text: $name)
-                    .onChange(of: name) { newValue in
+                    .onChange(of: name) { _, newValue in
                         if newValue.count > 31 { name = String(newValue.prefix(31)) }
                     }
                 HStack {
@@ -2721,7 +2721,7 @@ struct TxPowerEditorSheet: View {
                 }
                 Slider(value: $txPower, in: 1...max(maxPower, 2), step: 1)
                     .tint(MeshTheme.accent)
-                    .onChange(of: txPower) { newValue in
+                    .onChange(of: txPower) { _, newValue in
                         viewModel.setRadioTXPower(UInt8(newValue))
                         saved = true
                         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { saved = false }
@@ -2864,7 +2864,7 @@ struct GPSEditorSheet: View {
                     Label("Auto-Update", systemImage: "location.fill.viewfinder")
                 }
                 .tint(MeshTheme.accent)
-                .onChange(of: autoUpdateLocation) { enabled in
+                .onChange(of: autoUpdateLocation) { _, enabled in
                     if enabled { viewModel.startAutoLocationUpdates(interval: locationUpdateInterval) }
                     else { viewModel.stopAutoLocationUpdates() }
                 }
@@ -2877,7 +2877,7 @@ struct GPSEditorSheet: View {
                         Text("1 hour").tag(3600)
                     }
                     .pickerStyle(.segmented)
-                    .onChange(of: locationUpdateInterval) { interval in
+                    .onChange(of: locationUpdateInterval) { _, interval in
                         if autoUpdateLocation { viewModel.startAutoLocationUpdates(interval: interval) }
                     }
                 }

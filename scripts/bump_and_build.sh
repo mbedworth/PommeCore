@@ -99,52 +99,54 @@ if [ -f "$BUILD_STATUS" ]; then
     log "Updated $BUILD_STATUS"
 fi
 
-# --- 4. Clean build — iOS (compile check, no signing) ---
+# --- 4. Archive — iOS (compile + link + package check, no signing) ---
+# Use 'archive' not 'build': catches missing entitlements, plist errors, and
+# any step that only runs during the archive phase (the same steps distribute uses).
 
-log "Building iOS (compile check)..."
+log "Archiving iOS (compile check)..."
 mkdir -p build
-if ! xcodebuild \
+if ! xcodebuild archive \
     -project MeshCoreApple.xcodeproj \
     -scheme MeshCoreApple \
-    -destination "generic/platform=iOS Simulator" \
-    -configuration Debug \
+    -destination "generic/platform=iOS" \
+    -configuration Release \
+    -archivePath /tmp/bump_build_ios.xcarchive \
     CODE_SIGNING_ALLOWED=NO \
-    clean build \
-    2>&1 | tee /tmp/bump_build_ios.log | grep -E "error:|warning:|BUILD SUCCEEDED|BUILD FAILED"; then
-    error "iOS build failed — check /tmp/bump_build_ios.log"
+    2>&1 | tee /tmp/bump_build_ios.log | grep -E "error:|warning:|ARCHIVE SUCCEEDED|ARCHIVE FAILED"; then
+    error "iOS archive failed — check /tmp/bump_build_ios.log"
     rm -f "$SENTINEL"
     exit 1
 fi
 
-if ! grep -q "BUILD SUCCEEDED" /tmp/bump_build_ios.log; then
-    error "iOS build failed — check /tmp/bump_build_ios.log"
+if ! grep -q "ARCHIVE SUCCEEDED" /tmp/bump_build_ios.log; then
+    error "iOS archive failed — check /tmp/bump_build_ios.log"
     rm -f "$SENTINEL"
     exit 1
 fi
-log "iOS: BUILD SUCCEEDED"
+log "iOS: ARCHIVE SUCCEEDED"
 
-# --- 5. Clean build — macOS (compile check, no signing) ---
+# --- 5. Archive — macOS (compile + link + package check, no signing) ---
 
-log "Building macOS (compile check)..."
-if ! xcodebuild \
+log "Archiving macOS (compile check)..."
+if ! xcodebuild archive \
     -project MeshCoreApple.xcodeproj \
     -scheme MeshCoreApple-macOS \
     -destination "generic/platform=macOS" \
-    -configuration Debug \
+    -configuration Release \
+    -archivePath /tmp/bump_build_macos.xcarchive \
     CODE_SIGNING_ALLOWED=NO \
-    clean build \
-    2>&1 | tee /tmp/bump_build_macos.log | grep -E "error:|warning:|BUILD SUCCEEDED|BUILD FAILED"; then
-    error "macOS build failed — check /tmp/bump_build_macos.log"
+    2>&1 | tee /tmp/bump_build_macos.log | grep -E "error:|warning:|ARCHIVE SUCCEEDED|ARCHIVE FAILED"; then
+    error "macOS archive failed — check /tmp/bump_build_macos.log"
     rm -f "$SENTINEL"
     exit 1
 fi
 
-if ! grep -q "BUILD SUCCEEDED" /tmp/bump_build_macos.log; then
-    error "macOS build failed — check /tmp/bump_build_macos.log"
+if ! grep -q "ARCHIVE SUCCEEDED" /tmp/bump_build_macos.log; then
+    error "macOS archive failed — check /tmp/bump_build_macos.log"
     rm -f "$SENTINEL"
     exit 1
 fi
-log "macOS: BUILD SUCCEEDED"
+log "macOS: ARCHIVE SUCCEEDED"
 
 # --- 6. Commit and push the bump ---
 
@@ -175,6 +177,6 @@ log "Pushed"
 printf "%s\n%s\n" "$NEW_BUILD" "$TIMESTAMP" > "$SENTINEL"
 
 echo ""
-echo -e "${GREEN}✓ Build $NEW_BUILD (v$VERSION) — compiled, committed, pushed, ready to distribute.${NC}"
+echo -e "${GREEN}✓ Build $NEW_BUILD (v$VERSION) — archived (no signing), committed, pushed, ready to distribute.${NC}"
 echo -e "  Next: ${YELLOW}./build-and-distribute.sh [ios|macos|all]${NC}"
 echo ""

@@ -48,7 +48,7 @@ struct MeshCoreApp: App {
                     #endif
             }
         }
-        .onChange(of: scenePhase) { newPhase in
+        .onChange(of: scenePhase) { _, newPhase in
             viewModel.isInBackground = (newPhase != .active)
             if newPhase == .active {
                 viewModel.updateAppBadge()
@@ -122,7 +122,7 @@ struct ContentView: View {
                     }
                 }
                 .onAppear { requestAutoScanOnce() }
-                .onChange(of: viewModel.connectionState) { newState in
+                .onChange(of: viewModel.connectionState) { _, newState in
                     handleConnectionStateChange(newState)
                 }
                 .alert("Connection Failed", isPresented: $showConnectionFailed) {
@@ -298,10 +298,10 @@ struct ContentView: View {
             }
         }
         .onAppear { requestAutoScanOnce() }
-        .onChange(of: viewModel.connectionState) { newState in
+        .onChange(of: viewModel.connectionState) { _, newState in
             handleConnectionStateChange(newState)
         }
-        .onChange(of: viewModel.requestShowScanner) { shouldShow in
+        .onChange(of: viewModel.requestShowScanner) { _, shouldShow in
             if shouldShow {
                 showScanner = true
                 viewModel.requestShowScanner = false

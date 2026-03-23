@@ -275,7 +275,7 @@ struct ChatView: View {
             #if !os(watchOS)
             .scrollDismissesKeyboard(.interactively)
             #endif
-            .onChange(of: messages.count) { _ in
+            .onChange(of: messages.count) {
                 if let last = messages.last {
                     withAnimation(.easeOut(duration: 0.2)) {
                         proxy.scrollTo(last.id, anchor: .bottom)
@@ -314,7 +314,7 @@ struct ChatView: View {
                     .background(MeshTheme.surfaceLight)
                     .clipShape(RoundedRectangle(cornerRadius: 20))
                     .foregroundStyle(MeshTheme.textPrimary)
-                    .onChange(of: messageText) { newValue in
+                    .onChange(of: messageText) { _, newValue in
                         if newValue.count > maxMessageLength {
                             messageText = String(newValue.prefix(maxMessageLength))
                         }
@@ -509,7 +509,7 @@ struct ChannelChatView: View {
             #if !os(watchOS)
             .scrollDismissesKeyboard(.interactively)
             #endif
-            .onChange(of: messages.count) { _ in
+            .onChange(of: messages.count) {
                 if let last = messages.last {
                     withAnimation(.easeOut(duration: 0.2)) {
                         proxy.scrollTo(last.id, anchor: .bottom)
@@ -584,7 +584,7 @@ struct ChannelChatView: View {
                         .background(MeshTheme.surfaceLight)
                         .clipShape(RoundedRectangle(cornerRadius: 20))
                         .foregroundStyle(MeshTheme.textPrimary)
-                        .onChange(of: messageText) { newValue in
+                        .onChange(of: messageText) { _, newValue in
                             if newValue.count > maxMessageLength {
                                 messageText = String(newValue.prefix(maxMessageLength))
                             }
@@ -811,7 +811,7 @@ struct RoomChatView: View {
             viewModel.markAsRead(contact)
         }
         // Dismiss management sheet if logged out while it's open
-        .onChange(of: isLoggedIn) { loggedIn in
+        .onChange(of: isLoggedIn) { _, loggedIn in
             if !loggedIn {
                 showManagement = false
             }
@@ -836,7 +836,7 @@ struct RoomChatView: View {
             #if !os(watchOS)
             .scrollDismissesKeyboard(.interactively)
             #endif
-            .onChange(of: messages.count) { _ in
+            .onChange(of: messages.count) {
                 if let last = messages.last {
                     withAnimation(.easeOut(duration: 0.2)) {
                         proxy.scrollTo(last.id, anchor: .bottom)
@@ -860,7 +860,7 @@ struct RoomChatView: View {
                     .background(MeshTheme.surfaceLight)
                     .clipShape(RoundedRectangle(cornerRadius: 20))
                     .foregroundStyle(MeshTheme.textPrimary)
-                    .onChange(of: messageText) { newValue in
+                    .onChange(of: messageText) { _, newValue in
                         if newValue.count > maxMessageLength {
                             messageText = String(newValue.prefix(maxMessageLength))
                         }
@@ -1821,7 +1821,7 @@ struct ChannelDetailSheet: View {
                         Text("Muted").tag("muted")
                     }
                     .pickerStyle(.segmented)
-                    .onChange(of: notifyMode) { mode in
+                    .onChange(of: notifyMode) { _, mode in
                         NSUbiquitousKeyValueStore.default.set(mode, forKey: "channel.notify.\(channelName)")
                         NSUbiquitousKeyValueStore.default.synchronize()
                     }
