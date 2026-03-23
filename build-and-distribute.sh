@@ -7,16 +7,19 @@ set -euo pipefail
 # MUST run scripts/bump_and_build.sh first — this script refuses to run
 # if a clean compile-check hasn't been completed for the current build number.
 #
+# When TARGET=all, BOTH platforms are archived before EITHER is uploaded.
+# A signing or provisioning failure on one platform will not cause a partial
+# upload of the other.
+#
 # Usage:
-#   ./scripts/bump_and_build.sh [build_number]   # bump, compile-check, write sentinel
-#   git add -A && git commit && git push          # commit the bump
+#   ./scripts/bump_and_build.sh [build_number]   # bump, compile-check, commit, push, sentinel
 #   ./build-and-distribute.sh [ios|macos|all] [--archive-only]
 
 SCHEME="MeshCoreApple"
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 BUILD_DIR="$PROJECT_DIR/build"
 # Archives go to the standard Xcode location so Organizer sees them automatically.
-# Subdirectory is today's date; xcodebuild creates it if needed.
+# Subdirectory is today's date; mkdir -p creates it if needed.
 ARCHIVE_DATE=$(date '+%Y-%m-%d')
 ARCHIVE_DIR="$HOME/Library/Developer/Xcode/Archives/$ARCHIVE_DATE"
 EXPORT_DIR="$BUILD_DIR/exports"
@@ -73,11 +76,15 @@ log "Target: $TARGET"
 # Create archive and export directories
 mkdir -p "$ARCHIVE_DIR" "$EXPORT_DIR"
 
-# Archive names match the Xcode convention so Organizer displays them cleanly.
+# Archive names — scheme-based, version+build visible at a glance in Organizer.
 IOS_ARCHIVE="$ARCHIVE_DIR/MeshCoreApple v$VERSION ($BUILD).xcarchive"
 MACOS_ARCHIVE="$ARCHIVE_DIR/MeshCoreApple-macOS v$VERSION ($BUILD).xcarchive"
 
-# Archive iOS
+# ============================================================
+# PHASE 1 — ARCHIVE (both platforms before any upload starts)
+# A failure here stops everything before any upload is attempted.
+# ============================================================
+
 if [[ "$TARGET" == "ios" || "$TARGET" == "all" ]]; then
     log "Archiving iOS..."
     xcodebuild archive \
@@ -92,27 +99,9 @@ if [[ "$TARGET" == "ios" || "$TARGET" == "all" ]]; then
         error "iOS archive failed — check /tmp/xcodebuild-ios.log"
     fi
     log "iOS archive complete → $(basename "$IOS_ARCHIVE")"
-    log "  Organizer path: $IOS_ARCHIVE"
-
-    if [[ "$ARCHIVE_ONLY" != "--archive-only" ]]; then
-        log "Uploading iOS to App Store Connect..."
-        xcodebuild -exportArchive \
-            -archivePath "$IOS_ARCHIVE" \
-            -exportOptionsPlist "$PROJECT_DIR/ExportOptions-AppStore.plist" \
-            -exportPath "$EXPORT_DIR/iOS-$BUILD" \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath "$ASC_KEY_PATH" \
-            -authenticationKeyID "$ASC_KEY_ID" \
-            -authenticationKeyIssuerID "$ASC_KEY_ISSUER" \
-            2>&1 | tee /tmp/xcodebuild-ios-export.log | tail -20
-        if [ ${PIPESTATUS[0]} -ne 0 ]; then
-            error "iOS export failed — check /tmp/xcodebuild-ios-export.log"
-        fi
-        log "iOS uploaded to App Store Connect"
-    fi
+    log "  Path: $IOS_ARCHIVE"
 fi
 
-# Archive macOS
 if [[ "$TARGET" == "macos" || "$TARGET" == "all" ]]; then
     log "Archiving macOS..."
     xcodebuild archive \
@@ -127,24 +116,57 @@ if [[ "$TARGET" == "macos" || "$TARGET" == "all" ]]; then
         error "macOS archive failed — check /tmp/xcodebuild-macos.log"
     fi
     log "macOS archive complete → $(basename "$MACOS_ARCHIVE")"
-    log "  Organizer path: $MACOS_ARCHIVE"
+    log "  Path: $MACOS_ARCHIVE"
+fi
 
-    if [[ "$ARCHIVE_ONLY" != "--archive-only" ]]; then
-        log "Uploading macOS to App Store Connect..."
-        xcodebuild -exportArchive \
-            -archivePath "$MACOS_ARCHIVE" \
-            -exportOptionsPlist "$PROJECT_DIR/ExportOptions-AppStore.plist" \
-            -exportPath "$EXPORT_DIR/macOS-$BUILD" \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath "$ASC_KEY_PATH" \
-            -authenticationKeyID "$ASC_KEY_ID" \
-            -authenticationKeyIssuerID "$ASC_KEY_ISSUER" \
-            2>&1 | tee /tmp/xcodebuild-macos-export.log | tail -20
-        if [ ${PIPESTATUS[0]} -ne 0 ]; then
-            error "macOS export failed — check /tmp/xcodebuild-macos-export.log"
-        fi
-        log "macOS uploaded to App Store Connect"
+if [[ "$TARGET" == "all" ]]; then
+    log "Both archives complete — proceeding to upload phase"
+fi
+
+# ============================================================
+# PHASE 2 — UPLOAD (skipped entirely with --archive-only)
+# Both archives exist at this point; either upload can fail
+# independently without affecting the other archive.
+# ============================================================
+
+if [[ "$ARCHIVE_ONLY" == "--archive-only" ]]; then
+    log "Archive-only mode — skipping uploads"
+    log "Done! v$VERSION build $BUILD archived. Organizer path: $ARCHIVE_DIR"
+    exit 0
+fi
+
+if [[ "$TARGET" == "ios" || "$TARGET" == "all" ]]; then
+    log "Uploading iOS to App Store Connect..."
+    xcodebuild -exportArchive \
+        -archivePath "$IOS_ARCHIVE" \
+        -exportOptionsPlist "$PROJECT_DIR/ExportOptions-AppStore.plist" \
+        -exportPath "$EXPORT_DIR/iOS-$BUILD" \
+        -allowProvisioningUpdates \
+        -authenticationKeyPath "$ASC_KEY_PATH" \
+        -authenticationKeyID "$ASC_KEY_ID" \
+        -authenticationKeyIssuerID "$ASC_KEY_ISSUER" \
+        2>&1 | tee /tmp/xcodebuild-ios-export.log | tail -20
+    if [ ${PIPESTATUS[0]} -ne 0 ]; then
+        error "iOS export failed — check /tmp/xcodebuild-ios-export.log"
     fi
+    log "iOS uploaded to App Store Connect"
+fi
+
+if [[ "$TARGET" == "macos" || "$TARGET" == "all" ]]; then
+    log "Uploading macOS to App Store Connect..."
+    xcodebuild -exportArchive \
+        -archivePath "$MACOS_ARCHIVE" \
+        -exportOptionsPlist "$PROJECT_DIR/ExportOptions-AppStore.plist" \
+        -exportPath "$EXPORT_DIR/macOS-$BUILD" \
+        -allowProvisioningUpdates \
+        -authenticationKeyPath "$ASC_KEY_PATH" \
+        -authenticationKeyID "$ASC_KEY_ID" \
+        -authenticationKeyIssuerID "$ASC_KEY_ISSUER" \
+        2>&1 | tee /tmp/xcodebuild-macos-export.log | tail -20
+    if [ ${PIPESTATUS[0]} -ne 0 ]; then
+        error "macOS export failed — check /tmp/xcodebuild-macos-export.log"
+    fi
+    log "macOS uploaded to App Store Connect"
 fi
 
 log "Done! v$VERSION build $BUILD"
