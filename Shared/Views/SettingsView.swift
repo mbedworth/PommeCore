@@ -157,7 +157,7 @@ struct SettingsView: View {
                     }
                 }
                 .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
+                    ToolbarItem(placement: .topBarLeading) {
                         Button("Done") { iosDeviceSheet = nil }
                     }
                 }
