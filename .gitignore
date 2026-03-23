@@ -26,3 +26,7 @@ xcuserdata/
 # App Store Connect API credentials — never commit
 ExportOptions-AppStore.plist
 *.p8
+
+# Build artifacts (archives go to ~/Library/Developer/Xcode/Archives/ — outside repo)
+# build/ is already ignored above; exports and logs live in /tmp or Xcode standard paths
+*.xcarchive
