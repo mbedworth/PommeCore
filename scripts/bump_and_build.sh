@@ -97,7 +97,7 @@ log "Build number: $CURRENT → $NEW_BUILD (v$VERSION) — all targets"
 # This catches any entry the sed didn't update (format mismatch, file encoding
 # issue, entries not ending in semicolon, etc.).
 
-WRONG_ENTRIES=$(grep "CURRENT_PROJECT_VERSION" "$PBXPROJ" | grep -v "= $NEW_BUILD;")
+WRONG_ENTRIES=$(grep "CURRENT_PROJECT_VERSION" "$PBXPROJ" | grep -v "= $NEW_BUILD;" || true)
 if [ -n "$WRONG_ENTRIES" ]; then
     error "Build number mismatch after sed — some entries were NOT updated to $NEW_BUILD:"
     echo "$WRONG_ENTRIES" >&2
