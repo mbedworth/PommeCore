@@ -87,13 +87,17 @@ MACOS_ARCHIVE="$ARCHIVE_DIR/MeshCoreApple-macOS v$VERSION ($BUILD).xcarchive"
 
 if [[ "$TARGET" == "ios" || "$TARGET" == "all" ]]; then
     log "Archiving iOS..."
+    # Unlock the login keychain before codesign runs so xcodebuild can access signing
+    # certificates without triggering a macOS keychain authorization event that would
+    # invalidate Xcode's GUI Apple ID session.
+    security unlock-keychain -p "" ~/Library/Keychains/login.keychain-db 2>/dev/null || true
     xcodebuild archive \
         -project MeshCoreApple.xcodeproj \
         -scheme "$SCHEME" \
         -destination "generic/platform=iOS" \
         -archivePath "$IOS_ARCHIVE" \
-        -allowProvisioningUpdates \
         CODE_SIGN_STYLE=Automatic \
+        OTHER_CODE_SIGN_FLAGS="--keychain ~/Library/Keychains/login.keychain-db" \
         2>&1 | tee /tmp/xcodebuild-ios.log | tail -20
     if [ ${PIPESTATUS[0]} -ne 0 ]; then
         error "iOS archive failed — check /tmp/xcodebuild-ios.log"
@@ -104,13 +108,14 @@ fi
 
 if [[ "$TARGET" == "macos" || "$TARGET" == "all" ]]; then
     log "Archiving macOS..."
+    security unlock-keychain -p "" ~/Library/Keychains/login.keychain-db 2>/dev/null || true
     xcodebuild archive \
         -project MeshCoreApple.xcodeproj \
         -scheme "MeshCoreApple-macOS" \
         -destination "generic/platform=macOS" \
         -archivePath "$MACOS_ARCHIVE" \
-        -allowProvisioningUpdates \
         CODE_SIGN_STYLE=Automatic \
+        OTHER_CODE_SIGN_FLAGS="--keychain ~/Library/Keychains/login.keychain-db" \
         2>&1 | tee /tmp/xcodebuild-macos.log | tail -20
     if [ ${PIPESTATUS[0]} -ne 0 ]; then
         error "macOS archive failed — check /tmp/xcodebuild-macos.log"
