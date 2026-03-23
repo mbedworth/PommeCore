@@ -2509,11 +2509,14 @@ private struct InfoPopoverContent: View {
                 .lineLimit(nil)
                 .multilineTextAlignment(.leading)
                 .fixedSize(horizontal: false, vertical: true)
-                .padding()
-                .frame(minWidth: 260, maxWidth: 320, alignment: .leading)
+                .padding(16)
         }
-        #if !os(macOS)
+        .frame(minWidth: 240, maxWidth: 300)
+        #if os(macOS)
+        .frame(minHeight: 60)
+        #else
         .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
         #endif
     }
 }
