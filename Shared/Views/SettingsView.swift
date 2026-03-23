@@ -2202,13 +2202,27 @@ struct TipJarView: View {
         .background(MeshTheme.background)
         .navigationTitle("Tip Jar")
         .toolbar {
-            ToolbarItem(placement: .confirmationAction) {
+            #if targetEnvironment(macCatalyst)
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Done") {
+                    DispatchQueue.main.async { dismiss() }
+                }
+            }
+            #elseif os(macOS)
+            ToolbarItem(placement: .primaryAction) {
+                Button("Done") {
+                    DispatchQueue.main.async { dismiss() }
+                }
+            }
+            #else
+            ToolbarItem(placement: .navigationBarTrailing) {
                 Button("Done") {
                     // Deferred dismiss prevents navigation state corruption when the sheet
                     // closes and the presenting List row re-renders (Catalyst and iOS).
                     DispatchQueue.main.async { dismiss() }
                 }
             }
+            #endif
         }
         #if !os(macOS) && !targetEnvironment(macCatalyst)
         .navigationBarTitleDisplayMode(.inline)
@@ -2631,7 +2645,7 @@ struct NameEditorSheet: View {
                 .disabled(name.isEmpty)
             }
             #else
-            ToolbarItem(placement: .confirmationAction) {
+            ToolbarItem(placement: .navigationBarTrailing) {
                 Button("Apply") {
                     viewModel.setAdvertName(name)
                     dismiss()
@@ -2816,7 +2830,7 @@ struct TuningEditorSheet: View {
                 }
             }
             #else
-            ToolbarItem(placement: .confirmationAction) {
+            ToolbarItem(placement: .navigationBarTrailing) {
                 Button("Apply") {
                     let rx = UInt32(rxDelay * 1000)
                     let air = UInt32(airtimeFactor * 1000)
