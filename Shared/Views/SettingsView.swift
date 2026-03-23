@@ -129,9 +129,8 @@ struct SettingsView: View {
                     troubleshootingSection
                 }
                 .listRowBackground(MeshTheme.surface)
-            } footer: {
-                Text("Developer and diagnostic tools. Most users won\u{2019}t need these.")
-                    .font(.caption2)
+            } header: {
+                sectionInfoHeader("", info: "Developer and diagnostic tools. Most users won\u{2019}t need these.")
             }
 
             // 9. About
@@ -253,10 +252,7 @@ private extension SettingsView {
             .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
         } header: {
-            sectionHeader("iCloud")
-        } footer: {
-            Text("Syncs nicknames, notes, channel secrets, login credentials, and recent messages between your Apple devices via iCloud. Data is encrypted by Apple in transit and at rest. Messages are stored per radio \u{2014} switching radios keeps data separate.")
-                .font(.caption2)
+            sectionInfoHeader("iCloud", info: "Syncs nicknames, notes, channel secrets, login credentials, and recent messages between your Apple devices via iCloud. Data is encrypted by Apple in transit and at rest. Messages are stored per radio \u{2014} switching radios keeps data separate.")
         }
     }
 
@@ -345,11 +341,7 @@ struct RadioDataSection: View {
                     }
                 }
             } header: {
-                Text("Radio Data")
-                    .foregroundStyle(MeshTheme.textSecondary)
-            } footer: {
-                Text("Each radio stores messages separately. If you replace a radio, use \u{2018}Migrate\u{2019} to move history to your new device.")
-                    .font(.caption2)
+                SectionInfoHeader(title: "Radio Data", info: "Each radio stores messages separately. If you replace a radio, use \u{2018}Migrate\u{2019} to move history to your new device.")
             }
             .confirmationDialog("Delete Radio Data?", isPresented: $showDeleteRadioConfirm) {
                 Button("Delete All Messages", role: .destructive) {
@@ -438,10 +430,7 @@ private extension SettingsView {
             }
             .pickerStyle(.segmented)
         } header: {
-            sectionHeader("Appearance")
-        } footer: {
-            Text("Choose how MeshCore looks. System follows your device\u{2019}s Dark Mode setting.")
-                .font(.caption2)
+            sectionInfoHeader("Appearance", info: "Choose how MeshCore looks. System follows your device\u{2019}s Dark Mode setting.")
         }
     }
 }
@@ -494,11 +483,7 @@ struct NotificationsSection: View {
             .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
         } header: {
-            Text("Notifications")
-                .foregroundStyle(MeshTheme.textSecondary)
-        } footer: {
-            Text("Choose which events trigger notifications when the app is in the background.")
-                .font(.caption2)
+            SectionInfoHeader(title: "Notifications", info: "Choose which events trigger notifications when the app is in the background.")
         }
     }
 }
@@ -523,11 +508,7 @@ private extension SettingsView {
             .listRowBackground(MeshTheme.surface)
 
         } header: {
-            Text("Message Delivery")
-                .foregroundStyle(MeshTheme.textSecondary)
-        } footer: {
-            Text("Auto Retry resends failed direct messages up to 3 times. Auto Reset Path clears the cached route and resends as flood.")
-                .font(.caption2)
+            SectionInfoHeader(title: "Message Delivery", info: "Auto Retry resends failed direct messages up to 3 times. Auto Reset Path clears the cached route and resends as flood.")
         }
     }
 
@@ -719,11 +700,7 @@ struct DeviceInfoSection: View {
             iOSDeviceRows
             #endif
         } header: {
-            Text("Device")
-                .foregroundStyle(MeshTheme.textSecondary)
-        } footer: {
-            Text("Tap any row to view or change that setting on your connected radio.")
-                .font(.caption2)
+            SectionInfoHeader(title: "Device", info: "Tap any row to view or change that setting on your connected radio.")
         }
     }
 
@@ -952,10 +929,7 @@ private extension SettingsView {
                 .listRowBackground(MeshTheme.surface)
             }
         } header: {
-            sectionHeader("Connection")
-        } footer: {
-            Text("MeshCore supports Bluetooth, WiFi, and USB Serial connections to your radio.")
-                .font(.caption2)
+            sectionInfoHeader("Connection", info: "MeshCore supports Bluetooth, WiFi, and USB Serial connections to your radio.")
         }
     }
 
@@ -1096,11 +1070,7 @@ struct RadioPresetPicker: View {
                 }
             }
         } header: {
-            Text("Radio Presets")
-                .foregroundStyle(MeshTheme.textSecondary)
-        } footer: {
-            Text("Select a preset for your region. All nodes on your mesh must use the same settings.")
-                .font(.caption2)
+            SectionInfoHeader(title: "Radio Presets", info: "Select a preset for your region. All nodes on your mesh must use the same settings.")
         }
     }
 
@@ -1349,11 +1319,7 @@ struct RadioSection: View {
                 .buttonStyle(.plain)
                 .listRowBackground(MeshTheme.surface)
         } header: {
-            Text("Radio Configuration")
-                .foregroundStyle(MeshTheme.textSecondary)
-        } footer: {
-            Text("All radios on your mesh must use the same settings. SF (Spreading Factor): higher = longer range, slower. CR (Coding Rate): higher = more error correction. BW (Bandwidth): lower = longer range. Changes require reboot.")
-                .font(.caption2)
+            SectionInfoHeader(title: "Radio Configuration", info: "All radios on your mesh must use the same settings. SF (Spreading Factor): higher = longer range, slower. CR (Coding Rate): higher = more error correction. BW (Bandwidth): lower = longer range. Changes require reboot.")
         }
         .onAppear { loadFromConfig() }
     }
@@ -1603,11 +1569,7 @@ struct PrivacySection: View {
             .listRowBackground(MeshTheme.surface)
 
         } header: {
-            Text("Privacy & Security")
-                .foregroundStyle(MeshTheme.textSecondary)
-        } footer: {
-            Text("Controls what telemetry data is shared when requested. Per-Contact mode only shares with contacts that have telemetry permission set. Position Accuracy adds a random offset to your personal device location only. Repeater and room server locations are always shared at exact coordinates for accurate mesh routing. App Lock requires Face ID, Touch ID, or your device passcode to open MeshCore.")
-                .font(.caption2)
+            SectionInfoHeader(title: "Privacy & Security", info: "Controls what telemetry data is shared when requested. Per-Contact mode only shares with contacts that have telemetry permission set. Position Accuracy adds a random offset to your personal device location only. Repeater and room server locations are always shared at exact coordinates for accurate mesh routing. App Lock requires Face ID, Touch ID, or your device passcode to open MeshCore.")
         }
 
         // Per-contact telemetry permission picker
@@ -1747,16 +1709,12 @@ struct PrivacySection: View {
                 .listRowBackground(MeshTheme.surface)
             }
         } header: {
-            Text("Bluetooth Security")
-                .foregroundStyle(MeshTheme.textSecondary)
-        } footer: {
-            if viewModel.deviceConfig.blePIN == 0 {
-                Text("This device generates a random PIN each time it starts. Check the device screen for the current PIN when pairing.")
-                    .font(.caption2)
-            } else {
-                Text("Change the BLE PIN from the default (123456) for security. After changing, forget this device in Bluetooth settings and re-pair with the new PIN.")
-                    .font(.caption2)
-            }
+            SectionInfoHeader(
+                title: "Bluetooth Security",
+                info: viewModel.deviceConfig.blePIN == 0
+                    ? "This device generates a random PIN each time it starts. Check the device screen for the current PIN when pairing."
+                    : "Change the BLE PIN from the default (123456) for security. After changing, forget this device in Bluetooth settings and re-pair with the new PIN."
+            )
         }
         .onAppear { pinText = String(config.blePIN) }
         .onChange(of: viewModel.deviceConfig.blePIN) { pinText = String(config.blePIN) }
@@ -1859,11 +1817,7 @@ struct CustomVarsSection: View {
             }
             .listRowBackground(MeshTheme.surface)
         } header: {
-            Text("Custom Variables")
-                .foregroundStyle(MeshTheme.textSecondary)
-        } footer: {
-            Text("Key-value pairs stored on the radio. Used for advanced configuration and firmware development.")
-                .font(.caption2)
+            SectionInfoHeader(title: "Custom Variables", info: "Key-value pairs stored on the radio. Used for advanced configuration and firmware development.")
         }
     }
 }
@@ -1916,9 +1870,8 @@ private extension SettingsView {
                     .foregroundStyle(MeshTheme.accent)
             }
             .listRowBackground(MeshTheme.surface)
-        } footer: {
-            Text("Live radio diagnostics. Noise Floor is background signal level (lower is better). RSSI is received signal strength. SNR is signal-to-noise ratio (higher is better).")
-                .font(.caption2)
+        } header: {
+            SectionInfoHeader(title: "", info: "Live radio diagnostics. Noise Floor is background signal level (lower is better). RSSI is received signal strength. SNR is signal-to-noise ratio (higher is better).")
         }
     }
 
@@ -2077,10 +2030,7 @@ private extension SettingsView {
                 Button("Cancel", role: .cancel) {}
             }
         } header: {
-            sectionHeader("Storage")
-        } footer: {
-            Text("Clear messages to free space. Message drafts are saved per contact.")
-                .font(.caption2)
+            sectionInfoHeader("Storage", info: "Clear messages to free space. Message drafts are saved per contact.")
         }
     }
 
@@ -2128,10 +2078,7 @@ private extension SettingsView {
             .listRowBackground(MeshTheme.surface)
             #endif
         } header: {
-            sectionHeader("Support")
-        } footer: {
-            Text("MeshCore is free with all features. Tips help fund development.")
-                .font(.caption2)
+            sectionInfoHeader("Support", info: "MeshCore is free with all features. Tips help fund development.")
         }
     }
 
@@ -2436,10 +2383,7 @@ private extension SettingsView {
             }
             .listRowBackground(MeshTheme.surface)
         } header: {
-            sectionHeader("About")
-        } footer: {
-            Text("Debug Log records connection and protocol events for troubleshooting.")
-                .font(.caption2)
+            sectionInfoHeader("About", info: "Debug Log records connection and protocol events for troubleshooting.")
         }
     }
 }
@@ -2513,11 +2457,7 @@ struct DangerZoneSection: View {
                 Text("Are you sure? This will erase all device settings, contacts, and messages. This cannot be undone.\n\nType RESET to confirm.")
             }
         } header: {
-            Text("Danger Zone")
-                .foregroundStyle(.red)
-        } footer: {
-            Text("Factory reset erases all contacts, channels, settings, and encryption keys from the device. This cannot be undone.")
-                .font(.caption2)
+            SectionInfoHeader(title: "Danger Zone", info: "Factory reset erases all contacts, channels, settings, and encryption keys from the device. This cannot be undone.", titleColor: .red)
         }
     }
 }
@@ -2554,6 +2494,42 @@ struct SaveButton: View {
     }
 }
 
+/// Section header combining a title with a tappable ⓘ icon.
+/// Tap the icon to reveal the full help text as a popover.
+struct SectionInfoHeader: View {
+    let title: String
+    let info: String
+    var titleColor: Color?
+    @State private var showInfo = false
+
+    var body: some View {
+        let color = titleColor ?? MeshTheme.textSecondary
+        HStack(spacing: 6) {
+            if !title.isEmpty {
+                Text(title)
+                    .foregroundStyle(color)
+            }
+            Spacer(minLength: 0)
+            Button {
+                showInfo = true
+            } label: {
+                Image(systemName: "info.circle")
+                    .foregroundStyle(color.opacity(0.75))
+            }
+            .buttonStyle(.plain)
+            .popover(isPresented: $showInfo) {
+                Text(info)
+                    .font(.callout)
+                    .padding()
+                    .frame(maxWidth: 280)
+                    #if !os(macOS)
+                    .presentationCompactAdaptation(.popover)
+                    #endif
+            }
+        }
+    }
+}
+
 /// Trigger saved feedback: show "Saved" for 2 seconds then revert.
 func showSaved(_ state: Binding<SaveButtonState>) {
     state.wrappedValue = .saved
@@ -2586,6 +2562,10 @@ private extension SettingsView {
     func sectionHeader(_ title: String) -> some View {
         Text(title)
             .foregroundStyle(MeshTheme.textSecondary)
+    }
+
+    func sectionInfoHeader(_ title: String, info: String) -> some View {
+        SectionInfoHeader(title: title, info: info)
     }
 
     func detectRadioPreset(freqKHz: Double, bw: Double, sf: UInt8, cr: UInt8) -> String? {
