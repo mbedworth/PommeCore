@@ -99,7 +99,7 @@ struct DebugLogView: View {
                             .id(entry.id)
                     }
                     .listStyle(.plain)
-                    .onChange(of: logger.entries.count) { _ in
+                    .onChange(of: logger.entries.count) {
                         if let last = filteredEntries.last {
                             withAnimation {
                                 proxy.scrollTo(last.id, anchor: .bottom)

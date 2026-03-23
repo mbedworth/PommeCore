@@ -155,7 +155,7 @@ struct ContactListView: View {
         .navigationDestination(for: SidebarSelection.self) { selection in
             sidebarDestinationView(for: selection)
         }
-        .onChange(of: viewModel.sidebarSelection) { selection in
+        .onChange(of: viewModel.sidebarSelection) { _, selection in
             // Mark contact as read when selected (dispatch to avoid publishing during view update)
             if case .contact(let key) = selection,
                let contact = viewModel.contacts.first(where: { $0.publicKeyPrefix == key }) {
@@ -263,7 +263,7 @@ struct ContactListView: View {
                 .environmentObject(viewModel)
                 .frame(minWidth: 360, minHeight: 400)
         }
-        .onChange(of: viewModel.detailContactForTrace?.id) { _ in
+        .onChange(of: viewModel.detailContactForTrace?.id) {
             if let contact = viewModel.detailContactForTrace {
                 detailContact = contact
                 viewModel.detailContactForTrace = nil
@@ -341,14 +341,14 @@ struct ContactListView: View {
                         #if os(watchOS)
                         TextField("Nickname", text: $nicknameText)
                             .foregroundStyle(MeshTheme.textPrimary)
-                            .onChange(of: nicknameText) { newValue in
+                            .onChange(of: nicknameText) { _, newValue in
                                 if newValue.count > 32 { nicknameText = String(newValue.prefix(32)) }
                             }
                         #else
                         TextField("Nickname", text: $nicknameText)
                             .foregroundStyle(MeshTheme.textPrimary)
                             .textFieldStyle(MeshTextFieldStyle())
-                            .onChange(of: nicknameText) { newValue in
+                            .onChange(of: nicknameText) { _, newValue in
                                 if newValue.count > 32 { nicknameText = String(newValue.prefix(32)) }
                             }
                         #endif
@@ -410,7 +410,7 @@ struct ContactListView: View {
             .meshTheme()
             .frame(minWidth: 360, minHeight: 300)
         }
-        .onChange(of: viewModel.lastExportedURL) { url in
+        .onChange(of: viewModel.lastExportedURL) { _, url in
             if let url, !url.isEmpty {
                 #if os(iOS)
                 UIPasteboard.general.string = url
