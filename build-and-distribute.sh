@@ -15,7 +15,10 @@ set -euo pipefail
 SCHEME="MeshCoreApple"
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 BUILD_DIR="$PROJECT_DIR/build"
-ARCHIVE_DIR="$BUILD_DIR/archives"
+# Archives go to the standard Xcode location so Organizer sees them automatically.
+# Subdirectory is today's date; xcodebuild creates it if needed.
+ARCHIVE_DATE=$(date '+%Y-%m-%d')
+ARCHIVE_DIR="$HOME/Library/Developer/Xcode/Archives/$ARCHIVE_DATE"
 EXPORT_DIR="$BUILD_DIR/exports"
 SENTINEL="$BUILD_DIR/last_build_success"
 
@@ -67,8 +70,12 @@ ARCHIVE_ONLY="${2:-}"
 log "MeshCoreApple v$VERSION build $BUILD"
 log "Target: $TARGET"
 
-# Clean build directory
+# Create archive and export directories
 mkdir -p "$ARCHIVE_DIR" "$EXPORT_DIR"
+
+# Archive names match the Xcode convention so Organizer displays them cleanly.
+IOS_ARCHIVE="$ARCHIVE_DIR/MeshCoreApple v$VERSION ($BUILD).xcarchive"
+MACOS_ARCHIVE="$ARCHIVE_DIR/MeshCoreApple-macOS v$VERSION ($BUILD).xcarchive"
 
 # Archive iOS
 if [[ "$TARGET" == "ios" || "$TARGET" == "all" ]]; then
@@ -77,19 +84,20 @@ if [[ "$TARGET" == "ios" || "$TARGET" == "all" ]]; then
         -project MeshCoreApple.xcodeproj \
         -scheme "$SCHEME" \
         -destination "generic/platform=iOS" \
-        -archivePath "$ARCHIVE_DIR/MeshCore-iOS-$BUILD.xcarchive" \
+        -archivePath "$IOS_ARCHIVE" \
         -allowProvisioningUpdates \
         CODE_SIGN_STYLE=Automatic \
         2>&1 | tee /tmp/xcodebuild-ios.log | tail -20
     if [ ${PIPESTATUS[0]} -ne 0 ]; then
         error "iOS archive failed — check /tmp/xcodebuild-ios.log"
     fi
-    log "iOS archive complete: MeshCore-iOS-$BUILD.xcarchive"
+    log "iOS archive complete → $(basename "$IOS_ARCHIVE")"
+    log "  Organizer path: $IOS_ARCHIVE"
 
     if [[ "$ARCHIVE_ONLY" != "--archive-only" ]]; then
         log "Uploading iOS to App Store Connect..."
         xcodebuild -exportArchive \
-            -archivePath "$ARCHIVE_DIR/MeshCore-iOS-$BUILD.xcarchive" \
+            -archivePath "$IOS_ARCHIVE" \
             -exportOptionsPlist "$PROJECT_DIR/ExportOptions-AppStore.plist" \
             -exportPath "$EXPORT_DIR/iOS-$BUILD" \
             -allowProvisioningUpdates \
@@ -111,19 +119,20 @@ if [[ "$TARGET" == "macos" || "$TARGET" == "all" ]]; then
         -project MeshCoreApple.xcodeproj \
         -scheme "MeshCoreApple-macOS" \
         -destination "generic/platform=macOS" \
-        -archivePath "$ARCHIVE_DIR/MeshCore-macOS-$BUILD.xcarchive" \
+        -archivePath "$MACOS_ARCHIVE" \
         -allowProvisioningUpdates \
         CODE_SIGN_STYLE=Automatic \
         2>&1 | tee /tmp/xcodebuild-macos.log | tail -20
     if [ ${PIPESTATUS[0]} -ne 0 ]; then
         error "macOS archive failed — check /tmp/xcodebuild-macos.log"
     fi
-    log "macOS archive complete: MeshCore-macOS-$BUILD.xcarchive"
+    log "macOS archive complete → $(basename "$MACOS_ARCHIVE")"
+    log "  Organizer path: $MACOS_ARCHIVE"
 
     if [[ "$ARCHIVE_ONLY" != "--archive-only" ]]; then
         log "Uploading macOS to App Store Connect..."
         xcodebuild -exportArchive \
-            -archivePath "$ARCHIVE_DIR/MeshCore-macOS-$BUILD.xcarchive" \
+            -archivePath "$MACOS_ARCHIVE" \
             -exportOptionsPlist "$PROJECT_DIR/ExportOptions-AppStore.plist" \
             -exportPath "$EXPORT_DIR/macOS-$BUILD" \
             -allowProvisioningUpdates \
