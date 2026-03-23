@@ -338,25 +338,24 @@ struct ContactListView: View {
             NavigationStack {
                 Form {
                     Section {
-                        #if os(watchOS)
-                        TextField("Nickname", text: $nicknameText)
-                            .foregroundStyle(MeshTheme.textPrimary)
-                            .onChange(of: nicknameText) { _, newValue in
-                                if newValue.count > 32 { nicknameText = String(newValue.prefix(32)) }
-                            }
-                        #else
-                        TextField("Nickname", text: $nicknameText)
-                            .foregroundStyle(MeshTheme.textPrimary)
-                            .textFieldStyle(MeshTextFieldStyle())
-                            .onChange(of: nicknameText) { _, newValue in
-                                if newValue.count > 32 { nicknameText = String(newValue.prefix(32)) }
-                            }
-                        #endif
                         HStack {
-                            Spacer()
+                        #if os(watchOS)
+                            TextField("Nickname", text: $nicknameText)
+                                .foregroundStyle(MeshTheme.textPrimary)
+                                .onChange(of: nicknameText) { _, newValue in
+                                    if newValue.count > 32 { nicknameText = String(newValue.prefix(32)) }
+                                }
+                        #else
+                            TextField("Nickname", text: $nicknameText)
+                                .foregroundStyle(MeshTheme.textPrimary)
+                                .textFieldStyle(MeshTextFieldStyle())
+                                .onChange(of: nicknameText) { _, newValue in
+                                    if newValue.count > 32 { nicknameText = String(newValue.prefix(32)) }
+                                }
+                        #endif
                             Text("\(nicknameText.count)/32")
-                                .font(.caption2)
-                                .foregroundStyle(nicknameText.count > 28 ? .orange : MeshTheme.textSecondary)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                         }
                     } header: {
                         Text("Custom Nickname")

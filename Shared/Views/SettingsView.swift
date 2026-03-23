@@ -2614,15 +2614,14 @@ struct NameEditorSheet: View {
     var body: some View {
         Form {
             Section {
-                TextField("Device Name", text: $name)
-                    .onChange(of: name) { _, newValue in
-                        if newValue.count > 31 { name = String(newValue.prefix(31)) }
-                    }
                 HStack {
-                    Spacer()
+                    TextField("Device Name", text: $name)
+                        .onChange(of: name) { _, newValue in
+                            if newValue.count > 31 { name = String(newValue.prefix(31)) }
+                        }
                     Text("\(name.count)/31")
-                        .font(.caption2)
-                        .foregroundStyle(name.count > 28 ? .orange : .secondary)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                     InfoButton(text: "TIP: Use your initials + first 4 of your public key (e.g., NMA-5abd). Max 31 characters.")
                 }
             }
