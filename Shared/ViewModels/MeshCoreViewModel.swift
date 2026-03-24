@@ -187,6 +187,14 @@ final class MeshCoreViewModel: ObservableObject {
 
     @Published var sidebarSelection: SidebarSelection? = nil
 
+    // MARK: - Internet Map (non-watchOS only)
+    #if !os(watchOS)
+    /// Nodes fetched from the MeshCore internet map (map.meshcore.dev).
+    @Published var internetMapNodes: [InternetMapNode] = []
+    /// Set to true before sending CMD_EXPORT_CONTACT (self) for map upload.
+    private var pendingMapUpload = false
+    #endif
+
     /// Convenience: the currently selected contact, derived from sidebarSelection.
     var selectedContact: Contact? {
         guard case .contact(let key) = sidebarSelection else { return nil }
@@ -1089,6 +1097,29 @@ final class MeshCoreViewModel: ObservableObject {
         sendCommand(frame, label: "EXPORT_SELF")
     }
 
+    // MARK: - Internet Map
+
+    #if !os(watchOS)
+    /// Fetch internet map nodes from map.meshcore.dev and update `internetMapNodes`.
+    /// Skips the network call if the cached data is less than 5 minutes old.
+    func fetchInternetMapNodes() {
+        Task {
+            MeshMapService.shared.fetchIfNeeded()
+            // Wait briefly for the async fetch to complete, then sync the result.
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            internetMapNodes = MeshMapService.shared.nodes
+        }
+    }
+
+    /// Force-refresh internet map nodes regardless of cache age.
+    func refreshInternetMapNodes() {
+        Task {
+            await MeshMapService.shared.fetch()
+            internetMapNodes = MeshMapService.shared.nodes
+        }
+    }
+    #endif
+
     /// Import a contact from a meshcore:// URL string. Sends CMD_IMPORT_CONTACT.
     /// The device will send contact data frames in response — no need to re-sync.
     func importContact(url: String) {
@@ -1223,6 +1254,18 @@ final class MeshCoreViewModel: ObservableObject {
             let epoch = UInt32(Date().timeIntervalSince1970)
             sendCommand(MeshCoreProtocol.buildSetDeviceTime(epochSeconds: epoch), label: "SET_TIME(auto)")
             DebugLogger.shared.log("CLOCK: auto-synced device time to \(epoch)", level: .info)
+
+            // Trigger map upload if opt-in is enabled and the node has a location.
+            // The device coordinates already have the GPS fudge applied (all writes
+            // go through setAdvertLatLon → fudgeLocation before reaching the device).
+            #if !os(watchOS)
+            if UserDefaults.standard.bool(forKey: "shareOnMeshMap"),
+               info.latitude != 0 || info.longitude != 0 {
+                pendingMapUpload = true
+                sendCommand(Data([0x11]), label: "EXPORT_SELF(map)")
+                DebugLogger.shared.log("MAP: triggered self-export for upload", level: .info)
+            }
+            #endif
 
         case .deviceInfo(let info):
             Self.logger.info("PARSED DeviceInfo: fwVer=\(info.firmwareVersion) buildDate='\(info.buildDate)' mfg='\(info.manufacturer)' semVer='\(info.semanticVersion)' blePIN=\(info.blePIN)")
@@ -1388,6 +1431,14 @@ final class MeshCoreViewModel: ObservableObject {
                 Self.logger.warning("EXPORT RESP: empty URL — device returned no card data")
             }
             lastExportedURL = url
+            #if !os(watchOS)
+            if pendingMapUpload {
+                pendingMapUpload = false
+                if !url.isEmpty {
+                    MeshMapService.shared.uploadNode(exportURL: url)
+                }
+            }
+            #endif
 
         case .advertPath(let info):
             Self.logger.info("AdvertPath: timestamp=\(info.recvTimestamp) pathLen=\(info.pathLen)")
