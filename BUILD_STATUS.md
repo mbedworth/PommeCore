@@ -1,11 +1,36 @@
 # MeshCoreApple — Build Status
-**Current Build:** Build 52 (v1.1.1)
-**Last Updated:** 2026-03-23 20:35
+**Current Build:** Build 54 (v1.1.1)
+**Last Updated:** 2026-03-24 12:20
 
 **Build history note:** The project was at Build 40 at the start of the 2026-03-22 session.
 An erroneous bump attempted to move it from 39→40 (already current), so that commit
 was a no-op in terms of actual change. Build is now set to 45 to get ahead of any
 in-flight builds and establish a clean baseline.
+
+---
+
+## Session Summary — Build 53 → 54 (2026-03-24)
+
+6 bugs fixed and 3 features added.
+
+### Bug Fixes
+
+| # | Bug | Fix | Files |
+|---|-----|-----|-------|
+| E-iOS | iOS Radio Settings "Done" button appeared in ellipsis overflow menu | Changed `ToolbarItem(placement: .topBarLeading)` to `.cancellationAction` | `SettingsView.swift` |
+| F | Privacy & Security toggles snapped back after tapping (Manual Add Contacts, Telemetry, Advert Location, Multi-ack) | `setOtherParams()` now does optimistic `deviceConfig` property updates before `sendCommand`, matching `setAutoAddConfig` pattern | `MeshCoreViewModel.swift` |
+| A | `autoAddConfig` response dropped `maxHops` byte | `FrameParser` enum case and handler both updated to carry and store `maxHops: UInt8` | `FrameParser.swift`, `DeviceConfig.swift`, `MeshCoreViewModel.swift` |
+| B | `outPath` buffer allocations used wrong size formula (`outPathLen * 6` → correct hash encoding) | Fixed to `hashCount * hashSize` using correct firmware bit-field extraction | `FrameParser.swift` |
+| C | macOS sidebar showed broken ellipsis toolbar with only one visible action | Replaced single `Menu` with `HStack` of 3 individual icon buttons (advert/discover/refresh) | `ContactListView.swift` |
+| D | "Share All Channels" missing from Channels section | Restored `showShareAllChannels` state + sheet; added working entry to Channels `+` Menu | `ContactListView.swift` |
+
+### Features
+
+| Feature | Description | Files |
+|---------|-------------|-------|
+| Settings gear icon | "Status" section header added to sidebar with `gearshape` button; `openSettings()` helper selects Settings in NavigationSplitView (macOS/iPad) or opens sheet (iPhone) | `ContactListView.swift` |
+| Connection bar consistency | Tap connected bar on macOS now opens Settings in the main detail pane (via `sidebarSelection = .settings`) instead of a sheet; removed "Device Settings" sidebar row | `ContactListView.swift` |
+| Onboarding Settings slide | New page 4 "Configure Your Device" added between Region(3) and Get Started(now 5); optional "Open Settings Now" CTA wired via `@AppStorage` flag | `OnboardingView.swift`, `MeshCoreApp.swift` |
 
 ---
 
