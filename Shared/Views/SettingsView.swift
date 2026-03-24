@@ -597,17 +597,6 @@ struct DeviceInfoSection: View {
         .contentShape(Rectangle())
     }
 
-    private var txPowerRow: some View {
-        HStack {
-            Label("TX Power", systemImage: "bolt.fill")
-                .foregroundStyle(MeshTheme.accent)
-            Spacer()
-            Text("\(config.radioTXPower)/\(config.maxTXPower) dBm")
-                .foregroundStyle(MeshTheme.textSecondary)
-        }
-        .contentShape(Rectangle())
-    }
-
     private var tuningRow: some View {
         HStack {
             Label("Tuning", systemImage: "tuningfork")
@@ -685,8 +674,6 @@ struct DeviceInfoSection: View {
             if config.radioFrequency > 0 {
                 Button { openInspector(.radio) } label: { radioRow }
                     .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
-                Button { openInspector(.txPower) } label: { txPowerRow }
-                    .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
                 Button { openInspector(.tuning) } label: { tuningRow }
                     .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
             }
@@ -713,8 +700,6 @@ struct DeviceInfoSection: View {
                 .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
             if config.radioFrequency > 0 {
                 Button { activeSheet = .radio } label: { radioRow }
-                    .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
-                Button { activeSheet = .txPower } label: { txPowerRow }
                     .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
                 Button { activeSheet = .tuning } label: { tuningRow }
                     .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
@@ -1026,15 +1011,10 @@ struct RadioPresetPicker: View {
 
             if selectedPresetIndex >= 0, selectedPresetIndex < radioPresets.count {
                 let preset = radioPresets[selectedPresetIndex]
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Frequency: \(String(format: "%.3f", preset.frequencyKHz / 1000)) MHz")
-                    Text("Bandwidth: \(preset.bandwidth == preset.bandwidth.rounded() ? "\(Int(preset.bandwidth)) kHz" : "\(preset.bandwidth) kHz")")
-                    Text("Spreading Factor: SF\(preset.spreadingFactor)")
-                    Text("Coding Rate: 4/\(preset.codingRate)")
-                }
-                .font(.caption)
-                .foregroundStyle(MeshTheme.textPrimary)
-                .listRowBackground(MeshTheme.surface)
+                Text("\(String(format: "%.3f", preset.frequencyKHz / 1000)) MHz · SF\(preset.spreadingFactor) · BW \(preset.bandwidth == preset.bandwidth.rounded() ? "\(Int(preset.bandwidth))" : "\(preset.bandwidth)") kHz · CR 4/\(preset.codingRate)")
+                    .font(.caption)
+                    .foregroundStyle(MeshTheme.textSecondary)
+                    .listRowBackground(MeshTheme.surface)
 
                 Button {
                     presetToConfirm = preset
@@ -1134,13 +1114,13 @@ struct RadioSection: View {
     @State private var deviceSelfType: UInt8 = 1
     @State private var showRepeatConfirm = false
     @State private var repeatMode = false
-    @State private var saveState: SaveButtonState = .idle
     @State private var initFreqKHz: Double = 0
     @State private var initBW: Double = 0
     @State private var initSF: UInt8 = 0
     @State private var initCR: UInt8 = 0
 
     var body: some View {
+        Form {
         RadioPresetPicker(
             onApply: { preset in
                 applyPreset(preset)
@@ -1272,18 +1252,6 @@ struct RadioSection: View {
                 }
             }
 
-            SaveButton(state: saveState, label: "Apply Radio Settings") {
-                let freq = UInt32((Double(freqMHz) ?? 0) * 1000)
-                let bw = UInt32(selectedBW * 1000)
-                viewModel.setRadioParams(
-                    frequency: freq, bandwidth: bw,
-                    spreadingFactor: selectedSF, codingRate: selectedCR,
-                    repeatMode: repeatMode
-                )
-                viewModel.setRadioTXPower(UInt8(txPower))
-                showSaved($saveState)
-            }
-
             if !viewModel.allowedRepeatFreqRanges.isEmpty {
                     VStack(alignment: .leading, spacing: 4) {
                         HStack {
@@ -1321,7 +1289,44 @@ struct RadioSection: View {
         } header: {
             SectionInfoHeader(title: "Radio Configuration", info: "All radios on your mesh must use the same settings. SF (Spreading Factor): higher = longer range, slower. CR (Coding Rate): higher = more error correction. BW (Bandwidth): lower = longer range. Changes require reboot.")
         }
+        } // end Form
         .onAppear { loadFromConfig() }
+        .toolbar {
+            #if targetEnvironment(macCatalyst)
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Apply") {
+                    let freq = UInt32((Double(freqMHz) ?? 0) * 1000)
+                    let bw = UInt32(selectedBW * 1000)
+                    viewModel.setRadioParams(frequency: freq, bandwidth: bw,
+                        spreadingFactor: selectedSF, codingRate: selectedCR,
+                        repeatMode: repeatMode)
+                    viewModel.setRadioTXPower(UInt8(txPower))
+                }
+            }
+            #elseif os(macOS)
+            ToolbarItem(placement: .primaryAction) {
+                Button("Apply") {
+                    let freq = UInt32((Double(freqMHz) ?? 0) * 1000)
+                    let bw = UInt32(selectedBW * 1000)
+                    viewModel.setRadioParams(frequency: freq, bandwidth: bw,
+                        spreadingFactor: selectedSF, codingRate: selectedCR,
+                        repeatMode: repeatMode)
+                    viewModel.setRadioTXPower(UInt8(txPower))
+                }
+            }
+            #else
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button("Apply") {
+                    let freq = UInt32((Double(freqMHz) ?? 0) * 1000)
+                    let bw = UInt32(selectedBW * 1000)
+                    viewModel.setRadioParams(frequency: freq, bandwidth: bw,
+                        spreadingFactor: selectedSF, codingRate: selectedCR,
+                        repeatMode: repeatMode)
+                    viewModel.setRadioTXPower(UInt8(txPower))
+                }
+            }
+            #endif
+        }
     }
 
     private func loadFromConfig() {
@@ -2156,7 +2161,7 @@ struct TipJarView: View {
                 }
             }
             #elseif os(macOS)
-            ToolbarItem(placement: .primaryAction) {
+            ToolbarItem(placement: .confirmationAction) {
                 Button("Done") {
                     DispatchQueue.main.async { dismiss() }
                 }
