@@ -1323,9 +1323,10 @@ final class MeshCoreViewModel: ObservableObject {
             deviceConfig.loadedSections.insert("stats")
             checkLoadingComplete()
 
-        case .autoAddConfig(let bitmask):
-            Self.logger.info("PARSED AutoAddConfig: bitmask=0x\(String(format: "%02x", bitmask))")
+        case .autoAddConfig(let bitmask, let maxHops):
+            Self.logger.info("PARSED AutoAddConfig: bitmask=0x\(String(format: "%02x", bitmask)) maxHops=\(maxHops)")
             deviceConfig.autoAddBitmask = bitmask
+            deviceConfig.autoAddMaxHops = maxHops
 
         case .contactsStart(let count):
             contactStore.handleContactsStart(count: count)
