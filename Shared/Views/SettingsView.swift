@@ -1374,6 +1374,7 @@ struct PrivacySection: View {
     @ObservedObject var viewModel: MeshCoreViewModel
     @State private var pinText: String = ""
     @AppStorage("locationPrivacyRadius") private var locationPrivacyRadius: Double = 0
+    @AppStorage("shareOnMeshMap") private var shareOnMeshMap: Bool = false
 
     private var config: DeviceConfig { viewModel.deviceConfig }
 
@@ -1537,6 +1538,23 @@ struct PrivacySection: View {
             }
             .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
+
+            #if !os(watchOS)
+            Toggle(isOn: $shareOnMeshMap) {
+                HStack {
+                    Image(systemName: "globe")
+                        .foregroundStyle(MeshTheme.accent)
+                        .frame(width: 24)
+                    HStack(spacing: 4) {
+                        Text("Share Location on MeshCore Map")
+                            .foregroundStyle(MeshTheme.accent)
+                        InfoButton(text: "Uploads your node's signed advert packet to map.meshcore.dev so others can see your node on the internet map. Only uploads when you have a location set. Your GPS fudge factor is applied before uploading — the map receives the fuzzed position, not your exact location.")
+                    }
+                }
+            }
+            .tint(MeshTheme.accent)
+            .listRowBackground(MeshTheme.surface)
+            #endif
 
             Toggle(isOn: multiACKBinding) {
                 HStack {
