@@ -192,25 +192,12 @@ struct SettingsView: View {
                         }
                     }
                     .toolbar {
-                        // .topBarTrailing is available on Catalyst (iOS rendering) but NOT on
-                        // pure macOS SwiftUI. .primaryAction on macOS renders in the inspector
-                        // panel's own toolbar header rather than overflowing to the ellipsis menu.
-                        // .confirmationAction on macOS goes to the window toolbar overflow — wrong.
-                        #if targetEnvironment(macCatalyst)
-                        ToolbarItem(placement: .topBarTrailing) {
+                        ToolbarItem(placement: .cancellationAction) {
                             Button("Done") {
                                 showInspector = false
                                 inspectorSheet = nil
                             }
                         }
-                        #else
-                        ToolbarItem(placement: .primaryAction) {
-                            Button("Done") {
-                                showInspector = false
-                                inspectorSheet = nil
-                            }
-                        }
-                        #endif
                     }
                 }
                 .meshTheme()
