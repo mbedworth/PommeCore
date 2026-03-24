@@ -108,6 +108,8 @@ public final class DeviceConfig {
 
     /// Auto-add bitmask: bit 0 = chat, bit 1 = repeater, bit 2 = room, bit 3 = sensor.
     public var autoAddBitmask: UInt8 = 0x0F  // default: all types
+    /// Maximum hop count for auto-add. From RESP_CODE_AUTOADD_CONFIG byte 2.
+    public var autoAddMaxHops: UInt8 = 3
 
     // MARK: - Time
 
@@ -181,6 +183,7 @@ public final class DeviceConfig {
         multiACK = 0
         blePIN = 0
         autoAddBitmask = 0x0F
+        autoAddMaxHops = 3
         deviceTimeEpoch = 0
         customVars = []
         statsBatteryMV = 0

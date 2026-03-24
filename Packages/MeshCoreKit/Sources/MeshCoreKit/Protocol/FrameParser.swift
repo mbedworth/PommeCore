@@ -43,7 +43,7 @@ public enum FrameParser {
         case allowedRepeatFreq([FrequencyRange])      // RESP_ALLOWED_REPEAT_FREQ (code 26)
         case contactDeleted(publicKey: Data)          // PUSH_CODE_CONTACT_DELETED (0x8F)
         case contactsFull(maxContacts: UInt16)        // PUSH_CODE_CONTACTS_FULL (0x90)
-        case autoAddConfig(bitmask: UInt8)            // RESP_CODE_AUTOADD_CONFIG (0x19)
+        case autoAddConfig(bitmask: UInt8, maxHops: UInt8)  // RESP_CODE_AUTOADD_CONFIG (0x19)
         case unknown(type: UInt8, payload: Data)
     }
 
@@ -212,7 +212,7 @@ public enum FrameParser {
             let bitmask = readUInt8(payload, offset: &offset)
             let maxHops = readUInt8(payload, offset: &offset)
             logger.info("AutoAddConfig: bitmask=0x\(String(format: "%02x", bitmask)) maxHops=\(maxHops) (chat=\(bitmask & 0x01 != 0), repeater=\(bitmask & 0x02 != 0), room=\(bitmask & 0x04 != 0), sensor=\(bitmask & 0x08 != 0))")
-            return .autoAddConfig(bitmask: bitmask)
+            return .autoAddConfig(bitmask: bitmask, maxHops: maxHops)
 
         case .allowedRepeatFreq:
             return parseAllowedRepeatFreq(payload)
@@ -467,11 +467,16 @@ public enum FrameParser {
         let outPathLen = Int8(bitPattern: readUInt8(data, offset: &offset))
 
         // out_path: 64 bytes of routing hashes (needed for trace route)
+        // Byte encoding: lower 6 bits = hash_count, upper 2 bits = hash_mode
+        // hash_size = (hash_mode >> 6) + 1  → 1, 2, 4, or 8 bytes per hash
+        // meaningful bytes = hash_count * hash_size
         let pathDataLen = min(64, data.count - offset)
         let outPath: Data
         if pathDataLen > 0 && outPathLen > 0 {
-            // Only store the meaningful portion: outPathLen * 6 bytes (each hop hash is 6 bytes)
-            let meaningfulLen = min(Int(outPathLen) * 6, pathDataLen)
+            let raw = UInt8(bitPattern: outPathLen)
+            let hashCount = Int(raw & 0x3F)
+            let hashSize = Int(raw >> 6) + 1
+            let meaningfulLen = min(hashCount * hashSize, pathDataLen)
             outPath = Data(data[offset..<offset+meaningfulLen])
         } else {
             outPath = Data()

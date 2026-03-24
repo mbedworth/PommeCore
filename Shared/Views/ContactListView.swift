@@ -179,7 +179,7 @@ struct ContactListView: View {
         #elseif os(macOS) || targetEnvironment(macCatalyst)
         .toolbar {
             ToolbarItem(placement: .automatic) {
-                Menu {
+                HStack(spacing: 12) {
                     Button {
                         viewModel.sendAdvertise(type: 1)
                         showAdvertSent?.wrappedValue = true
@@ -187,27 +187,28 @@ struct ContactListView: View {
                             showAdvertSent?.wrappedValue = false
                         }
                     } label: {
-                        Label(showAdvertSent?.wrappedValue == true ? "Advert Sent!" : "Send Advert",
-                              systemImage: "antenna.radiowaves.left.and.right")
+                        Image(systemName: showAdvertSent?.wrappedValue == true
+                              ? "checkmark.circle.fill" : "antenna.radiowaves.left.and.right")
+                            .foregroundStyle(showAdvertSent?.wrappedValue == true ? .green : MeshTheme.accent)
                     }
                     .disabled(viewModel.connectionState != .ready)
 
                     Button {
                         showDiscover?.wrappedValue = true
                     } label: {
-                        Label("Discover Nodes", systemImage: "binoculars.fill")
+                        Image(systemName: "binoculars.fill")
+                            .foregroundStyle(MeshTheme.accent)
                     }
                     .disabled(viewModel.connectionState != .ready)
 
                     Button {
                         viewModel.refreshAll()
                     } label: {
-                        Label("Refresh", systemImage: "arrow.clockwise")
+                        Image(systemName: "arrow.clockwise")
+                            .foregroundStyle(MeshTheme.accent)
                     }
+                    .accessibilityLabel("Refresh")
                     .disabled(viewModel.connectionState != .ready)
-                } label: {
-                    Image(systemName: "ellipsis.circle")
-                        .foregroundStyle(MeshTheme.accent)
                 }
             }
         }
