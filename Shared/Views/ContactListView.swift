@@ -682,6 +682,7 @@ struct ContactListView: View {
                     Image(systemName: "plus")
                         .foregroundStyle(MeshTheme.accent)
                 }
+                .menuIndicator(.hidden)
                 #endif
             }
         }
@@ -954,6 +955,7 @@ struct ContactListView: View {
                     Image(systemName: "plus")
                         .foregroundStyle(MeshTheme.accent)
                 }
+                .menuIndicator(.hidden)
                 Button(isSelecting ? "Done" : "Edit") {
                     isSelecting.toggle()
                     if !isSelecting { selectedContacts.removeAll() }
