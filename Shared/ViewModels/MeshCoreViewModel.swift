@@ -1035,6 +1035,12 @@ final class MeshCoreViewModel: ObservableObject {
 
     func setOtherParams(manualAddContacts: UInt8, telemetryBase: UInt8, telemetryLocation: UInt8, advertLocPolicy: UInt8, multiACK: UInt8) {
         DebugLogger.shared.log("SET_OTHER_PARAMS: manual=\(manualAddContacts) telBase=\(telemetryBase) telLoc=\(telemetryLocation) advLoc=\(advertLocPolicy) multiACK=\(multiACK)", level: .tx)
+        // Optimistic update — reflect changes immediately so computed Bindings don't snap back
+        deviceConfig.manualAddContacts = manualAddContacts
+        deviceConfig.telemetryBase = telemetryBase
+        deviceConfig.telemetryLocation = telemetryLocation
+        deviceConfig.advertLocPolicy = advertLocPolicy
+        deviceConfig.multiACK = multiACK
         sendCommand(MeshCoreProtocol.buildSetOtherParams(
             manualAddContacts: manualAddContacts, telemetryBase: telemetryBase,
             telemetryLocation: telemetryLocation, advertLocPolicy: advertLocPolicy,
@@ -1104,9 +1110,10 @@ final class MeshCoreViewModel: ObservableObject {
     /// Skips the network call if the cached data is less than 5 minutes old.
     func fetchInternetMapNodes() {
         Task {
-            MeshMapService.shared.fetchIfNeeded()
-            // Wait briefly for the async fetch to complete, then sync the result.
-            try? await Task.sleep(nanoseconds: 500_000_000)
+            // fetchIfNeeded() is async — await ensures nodes are populated before
+            // we copy them. The old 500ms sleep was a race condition that failed
+            // whenever the API response took longer than half a second.
+            await MeshMapService.shared.fetchIfNeeded()
             internetMapNodes = MeshMapService.shared.nodes
         }
     }
@@ -1436,7 +1443,16 @@ final class MeshCoreViewModel: ObservableObject {
             if pendingMapUpload {
                 pendingMapUpload = false
                 if !url.isEmpty {
-                    MeshMapService.shared.uploadNode(exportURL: url)
+                    // Convert DeviceConfig radio units → Hz for the map API:
+                    //   radioFrequency is stored in kHz → multiply by 1000 for Hz
+                    //   radioBandwidth is stored in Hz  → use directly
+                    MeshMapService.shared.uploadNode(
+                        exportURL: url,
+                        freq: Int(deviceConfig.radioFrequency) * 1000,
+                        bw:   Int(deviceConfig.radioBandwidth),
+                        sf:   Int(deviceConfig.radioSpreadingFactor),
+                        cr:   Int(deviceConfig.radioCodingRate)
+                    )
                 }
             }
             #endif

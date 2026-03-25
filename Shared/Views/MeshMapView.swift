@@ -45,36 +45,46 @@ final class MeshMapService {
 
     /// Upload the local node's signed advert to the internet map.
     ///
-    /// - Parameter exportURL: The `meshcore://hexbytes` URL returned by CMD_EXPORT_CONTACT
-    ///   (self-export, no pubkey in the frame). The hex bytes are the raw signed advert
-    ///   packet produced by the firmware. The device coordinates already have the GPS fudge
-    ///   applied before being stored, so the map receives the fuzzed position.
-    func uploadNode(exportURL: String) {
+    /// The map API (map.meshcore.dev/api/v1/uploader/node) expects a JSON body:
+    /// ```json
+    /// {
+    ///   "params": { "freq": 906000000, "bw": 250000, "sf": 9, "cr": 8 },
+    ///   "links": ["meshcore://HEXDATA"]
+    /// }
+    /// ```
+    /// Radio params convert DeviceConfig units → Hz:
+    ///   freq: radioFrequency (kHz) × 1000 → Hz
+    ///   bw:   radioBandwidth (Hz) directly
+    ///   sf:   radioSpreadingFactor (raw byte)
+    ///   cr:   radioCodingRate (raw byte, 5–8)
+    ///
+    /// - Parameters:
+    ///   - exportURL: The `meshcore://hexbytes` URL from CMD_EXPORT_CONTACT (self).
+    ///   - freq: Frequency in Hz (radioFrequency × 1000).
+    ///   - bw:   Bandwidth in Hz (radioBandwidth, already Hz).
+    ///   - sf:   Spreading factor.
+    ///   - cr:   Coding rate (5–8).
+    func uploadNode(exportURL: String, freq: Int, bw: Int, sf: Int, cr: Int) {
         guard exportURL.hasPrefix("meshcore://") else { return }
-        let hex = String(exportURL.dropFirst("meshcore://".count))
-        guard !hex.isEmpty, hex.count % 2 == 0 else { return }
+        guard !exportURL.dropFirst("meshcore://".count).isEmpty else { return }
 
-        var data = Data()
-        data.reserveCapacity(hex.count / 2)
-        var idx = hex.startIndex
-        while idx < hex.endIndex {
-            let nextIdx = hex.index(idx, offsetBy: 2)
-            if let byte = UInt8(hex[idx..<nextIdx], radix: 16) {
-                data.append(byte)
-            }
-            idx = nextIdx
-        }
-        guard !data.isEmpty else { return }
-
+        let body: [String: Any] = [
+            "params": ["freq": freq, "bw": bw, "sf": sf, "cr": cr],
+            "links": [exportURL]
+        ]
         // Fire-and-forget background upload; does not block UI.
-        Task.detached { await MeshMapService.post(data: data) }
+        Task.detached { await MeshMapService.post(body: body) }
     }
 
-    private static func post(data: Data) async {
+    private static func post(body: [String: Any]) async {
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: body) else {
+            DebugLogger.shared.log("MAP UPLOAD: failed to serialise JSON body", level: .error)
+            return
+        }
         var request = URLRequest(url: uploadURL)
         request.httpMethod = "POST"
-        request.setValue("application/octet-stream", forHTTPHeaderField: "Content-Type")
-        request.httpBody = data
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = jsonData
         request.timeoutInterval = 15
         do {
             let (_, response) = try await URLSession.shared.data(for: request)
@@ -89,9 +99,10 @@ final class MeshMapService {
     // MARK: Fetch
 
     /// Fetch internet nodes if the cached data is older than 5 minutes.
-    func fetchIfNeeded() {
+    /// Async so callers can await completion before reading `nodes`.
+    func fetchIfNeeded() async {
         guard Date().timeIntervalSince(lastFetch) > fetchInterval else { return }
-        Task { await fetch() }
+        await fetch()
     }
 
     /// Force-refresh the internet node list from map.meshcore.dev.

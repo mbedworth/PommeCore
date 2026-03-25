@@ -46,6 +46,9 @@ struct ContactListView: View {
     #if !os(watchOS)
     @State private var shareContact: Contact?
     #endif
+    #if os(iOS)
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    #endif
 
     /// Public Channel virtual contact key (channel 0).
     private let publicChannelKey = Data([0x00 as UInt8])
@@ -84,7 +87,6 @@ struct ContactListView: View {
                         : MeshTheme.surface
                 )
             }
-            settingsSection
             #endif
             #if os(macOS) || targetEnvironment(macCatalyst)
             if viewModel.isUSBCLIConnected {
@@ -151,10 +153,17 @@ struct ContactListView: View {
             viewModel.refreshAll()
         }
         .navigationTitle("MeshCore")
-        #if !os(watchOS)
+        // navigationDestination is only needed on iOS (not macOS/Catalyst) because on
+        // macOS the NavigationSplitView's detail: block drives the detail column exclusively.
+        // Leaving navigationDestination active on macOS creates a conflicting navigation
+        // stack: once the map NavigationLink pushes via navigationDestination, setting
+        // sidebarSelection = .settings has no visible effect (the pushed map view wins).
+        #if os(iOS) && !targetEnvironment(macCatalyst)
         .navigationDestination(for: SidebarSelection.self) { selection in
             sidebarDestinationView(for: selection)
         }
+        #endif
+        #if !os(watchOS)
         .onChange(of: viewModel.sidebarSelection) { _, selection in
             // Mark contact as read when selected (dispatch to avoid publishing during view update)
             if case .contact(let key) = selection,
@@ -430,6 +439,29 @@ struct ContactListView: View {
         }
     }
 
+    // MARK: - Settings Navigation
+
+    #if !os(watchOS)
+    /// Opens Settings in the most platform-appropriate way:
+    /// macOS/iPad (any size or orientation): selects Settings in the NavigationSplitView detail column.
+    /// iPhone (compact): opens Settings as a sheet.
+    ///
+    /// Note: iPad mini landscape reports .compact horizontalSizeClass but is still a split-view
+    /// layout. We detect iPad via UIDevice idiom to avoid opening a sheet on any iPad.
+    private func openSettings() {
+        #if os(macOS) || targetEnvironment(macCatalyst)
+        viewModel.sidebarSelection = .settings
+        #elseif os(iOS)
+        let isPhone = UIDevice.current.userInterfaceIdiom == .phone
+        if !isPhone || horizontalSizeClass == .regular {
+            viewModel.sidebarSelection = .settings
+        } else {
+            showSettings?.wrappedValue = true
+        }
+        #endif
+    }
+    #endif
+
     @ViewBuilder
     private var connectionSection: some View {
         Section {
@@ -439,10 +471,10 @@ struct ContactListView: View {
                     if viewModel.isUSBCLIConnected {
                         viewModel.sidebarSelection = .usbDevice
                     } else {
-                        showSettings?.wrappedValue = true
+                        openSettings()
                     }
-                    #else
-                    showSettings?.wrappedValue = true
+                    #elseif !os(watchOS)
+                    openSettings()
                     #endif
                 } else {
                     showScanner = true
@@ -532,8 +564,22 @@ struct ContactListView: View {
                 }
                 .listRowBackground(MeshTheme.surface)
             }
+        } header: {
+            #if !os(watchOS)
+            HStack {
+                Text("Status")
+                    .foregroundStyle(MeshTheme.textSecondary)
+                Spacer()
+                Button {
+                    openSettings()
+                } label: {
+                    Image(systemName: "gearshape")
+                        .foregroundStyle(MeshTheme.accent)
+                }
+                .buttonStyle(.plain)
+            }
+            #endif
         }
-        // Device info sheet removed — connection bar now opens Settings
     }
 
     private var publicChannelRow: some View {
@@ -1079,33 +1125,6 @@ struct ContactListView: View {
         }
     }
 
-    #if !os(watchOS)
-    @ViewBuilder
-    private var settingsSection: some View {
-        Section {
-            NavigationLink(value: SidebarSelection.settings) {
-                HStack(spacing: 12) {
-                    ZStack {
-                        Circle()
-                            .fill(MeshTheme.accent.opacity(0.15))
-                            .frame(width: 40, height: 40)
-                        Image(systemName: "gearshape.fill")
-                            .foregroundStyle(MeshTheme.accent)
-                    }
-                    Text("Device Settings")
-                        .font(.body)
-                        .foregroundStyle(MeshTheme.accent)
-                }
-                .contentShape(Rectangle())
-            }
-            .listRowBackground(
-                viewModel.sidebarSelection == .settings
-                    ? MeshTheme.surfaceLight
-                    : MeshTheme.surface
-            )
-        }
-    }
-    #endif
 
     @ViewBuilder
     private func contactContextMenu(for contact: Contact) -> some View {
