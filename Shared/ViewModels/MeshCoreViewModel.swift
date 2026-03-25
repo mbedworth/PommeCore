@@ -1438,9 +1438,12 @@ final class MeshCoreViewModel: ObservableObject {
             if url.isEmpty {
                 Self.logger.warning("EXPORT RESP: empty URL — device returned no card data")
             }
-            lastExportedURL = url
+
             #if !os(watchOS)
             if pendingMapUpload {
+                // Map upload export — don't trigger the "Link Copied" alert
+                // Use the URL directly for map upload without setting lastExportedURL
+                // (which would trigger the .onChange handler and show the alert)
                 pendingMapUpload = false
                 if !url.isEmpty {
                     // Convert DeviceConfig radio units → Hz for the map API:
@@ -1453,9 +1456,14 @@ final class MeshCoreViewModel: ObservableObject {
                         sf:   Int(deviceConfig.radioSpreadingFactor),
                         cr:   Int(deviceConfig.radioCodingRate)
                     )
+                    DebugLogger.shared.log("MAP UPLOAD: map upload triggered silently (no alert)", level: .info)
                 }
+                return  // Don't trigger the user-facing "Link Copied" alert for map uploads
             }
             #endif
+
+            // User-initiated export — show the "Link Copied" alert
+            lastExportedURL = url
 
         case .advertPath(let info):
             Self.logger.info("AdvertPath: timestamp=\(info.recvTimestamp) pathLen=\(info.pathLen)")

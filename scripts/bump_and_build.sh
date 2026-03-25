@@ -175,6 +175,45 @@ if ! grep -q "ARCHIVE SUCCEEDED" /tmp/bump_build_macos.log; then
 fi
 log "macOS: ARCHIVE SUCCEEDED"
 
+# --- 5a. Verify no errors and report warnings ---
+
+check_build_log() {
+    local platform=$1
+    local logfile=$2
+
+    # Check for errors (fatal)
+    ERRORS=$(grep -i "error:" "$logfile" | grep -v "^warning:" | head -20 || true)
+    if [ -n "$ERRORS" ]; then
+        error "$platform: Found compilation ERRORS:"
+        echo "$ERRORS" >&2
+        return 1
+    fi
+
+    # Check for warnings (also fatal — clean builds only)
+    WARNINGS=$(grep -i "warning:" "$logfile" | head -20 || true)
+    if [ -n "$WARNINGS" ]; then
+        error "$platform: Found compilation WARNINGS — clean builds only:"
+        echo "$WARNINGS" >&2
+        return 1
+    fi
+
+    log "$platform: Clean build ✓ (no errors or warnings)"
+    return 0
+}
+
+log "Verifying clean builds (no errors or warnings)..."
+if ! check_build_log "iOS" /tmp/bump_build_ios.log; then
+    error "iOS build is not clean — fix warnings/errors and re-run with --force"
+    rm -f "$SENTINEL"
+    exit 1
+fi
+
+if ! check_build_log "macOS" /tmp/bump_build_macos.log; then
+    error "macOS build is not clean — fix warnings/errors and re-run with --force"
+    rm -f "$SENTINEL"
+    exit 1
+fi
+
 # --- 6. Commit and push the bump ---
 
 # Remove stale git lock files before staging.
@@ -224,6 +263,6 @@ log "Pushed"
 printf "%s\n%s\n" "$NEW_BUILD" "$TIMESTAMP" > "$SENTINEL"
 
 echo ""
-echo -e "${GREEN}✓ Build $NEW_BUILD (v$VERSION) — archived (no signing), committed, pushed, ready to distribute.${NC}"
+echo -e "${GREEN}✓ Build $NEW_BUILD (v$VERSION) — clean build verified (no errors or warnings), committed, pushed, ready to distribute.${NC}"
 echo -e "  Next: ${YELLOW}./build-and-distribute.sh [ios|macos|all]${NC}"
 echo ""
