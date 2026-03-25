@@ -177,6 +177,22 @@ log "macOS: ARCHIVE SUCCEEDED"
 
 # --- 6. Commit and push the bump ---
 
+# Remove stale .git/index.lock before staging.
+# A previous crashed git process can leave this file behind, blocking all
+# subsequent git operations. We only remove it when no git process is active.
+GIT_LOCK=".git/index.lock"
+if [ -f "$GIT_LOCK" ]; then
+    if pgrep -x git > /dev/null 2>&1; then
+        error "A git process is currently running and holds $GIT_LOCK."
+        error "Wait for it to finish, then re-run this script."
+        rm -f "$SENTINEL"
+        exit 1
+    else
+        warn "Removing stale $GIT_LOCK left by a previously crashed git process."
+        rm -f "$GIT_LOCK"
+    fi
+fi
+
 log "Committing build bump..."
 git add "$PBXPROJ"
 [ -f "$BUILD_STATUS" ] && git add "$BUILD_STATUS"

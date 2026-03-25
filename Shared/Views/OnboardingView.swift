@@ -2,8 +2,10 @@ import SwiftUI
 
 struct OnboardingView: View {
     @Binding var hasCompletedOnboarding: Bool
+    /// Optional closure called when the user taps "Open Settings" on the Configure page.
+    var navigateToSettings: (() -> Void)? = nil
     @State private var currentPage = 0
-    private let lastPage = 4
+    private let lastPage = 5
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -12,7 +14,8 @@ struct OnboardingView: View {
                 connectPage.tag(1)
                 communicatePage.tag(2)
                 regionPage.tag(3)
-                getStartedPage.tag(4)
+                configurePage.tag(4)
+                getStartedPage.tag(5)
             }
             #if os(watchOS)
             .tabViewStyle(.carousel)
@@ -179,6 +182,44 @@ struct OnboardingView: View {
                 .font(.caption)
                 .foregroundStyle(MeshTheme.accent)
 
+            Spacer()
+            navigationControls
+        }
+        .padding()
+    }
+
+    private var configurePage: some View {
+        VStack(spacing: 24) {
+            Spacer()
+            Image(systemName: "gearshape.2")
+                .font(.system(size: 72))
+                .foregroundStyle(MeshTheme.accent)
+            Text("Configure Your Device")
+                .font(.title2.bold())
+                .foregroundStyle(MeshTheme.textPrimary)
+            Text("Once connected, tap the gear icon at the top of the sidebar — or tap the connection bar — to open Settings. From there you can set your radio frequency, display name, privacy options, and more.")
+                .font(.body)
+                .foregroundStyle(MeshTheme.textSecondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 32)
+            #if !os(watchOS)
+            if navigateToSettings != nil {
+                Button {
+                    withAnimation { hasCompletedOnboarding = true }
+                    navigateToSettings?()
+                } label: {
+                    Text("Open Settings Now")
+                        .font(.headline)
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(MeshTheme.accent)
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                }
+                .buttonStyle(.plain)
+                .padding(.horizontal, 40)
+            }
+            #endif
             Spacer()
             navigationControls
         }

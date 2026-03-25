@@ -157,7 +157,7 @@ struct SettingsView: View {
                     }
                 }
                 .toolbar {
-                    ToolbarItem(placement: .topBarLeading) {
+                    ToolbarItem(placement: .cancellationAction) {
                         Button("Done") { iosDeviceSheet = nil }
                     }
                 }
@@ -2513,6 +2513,18 @@ private struct InfoPopoverContent: View {
     let text: String
 
     var body: some View {
+        #if os(macOS) || targetEnvironment(macCatalyst)
+        // macOS/Catalyst: let the text determine the popover height.
+        // Using ScrollView with a fixed frame forces scrolling; fixedSize lets the
+        // popover grow to fit its content so no scrolling is required.
+        Text(text)
+            .font(.callout)
+            .lineLimit(nil)
+            .multilineTextAlignment(.leading)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(16)
+            .frame(minWidth: 240, maxWidth: 340)
+        #else
         ScrollView {
             Text(text)
                 .font(.callout)
@@ -2522,7 +2534,6 @@ private struct InfoPopoverContent: View {
                 .padding(16)
         }
         .frame(minWidth: 240, maxWidth: 300, minHeight: 60)
-        #if !os(macOS)
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
         #endif

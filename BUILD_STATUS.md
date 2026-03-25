@@ -1,6 +1,6 @@
 # MeshCoreApple — Build Status
-**Current Build:** Build 54 (v1.1.1)
-**Last Updated:** 2026-03-24 12:20
+**Current Build:** Build 55 (v1.1.1)
+**Last Updated:** 2026-03-24 22:54
 
 **Build history note:** The project was at Build 40 at the start of the 2026-03-22 session.
 An erroneous bump attempted to move it from 39→40 (already current), so that commit
@@ -53,22 +53,34 @@ in-flight builds and establish a clean baseline.
 
 ---
 
-### Pending (Bugs 9–10) — Needs Real-Device Testing
+### Resolved (Bugs 9–10 + channel off-by-one) — Confirmed in Real-Device Testing on Build 54
 
 | # | Bug | Status |
 |---|-----|--------|
-| 9 | Channel echo "Repeated" not confirmed in practice | Code is correct (verified against firmware: 0x88 LOG_RX_DATA within 30s of channel send). Needs a repeater in range to confirm the status flip. |
-| 10 | DM retry aggressiveness (1 attempt before flood) | Shortened from 3 direct retries to 1. May be too aggressive. Needs real-world testing to verify flood fallback works reliably. |
+| 9 | Channel echo "Repeated" not confirmed in practice | **RESOLVED** — confirmed working on build 54. |
+| 10 | DM retry aggressiveness (1 attempt before flood) | **RESOLVED** — flood fallback confirmed reliable on build 54. |
+| — | CMD_GET_CHANNEL loop off-by-one | **RESOLVED** — `0..<maxChannels` confirmed correct; all group channels appear. |
 
 ---
 
-### Open Verification Item
+## Session Summary — Build 54 → 55 (2026-03-24)
 
-**CMD_GET_CHANNEL loop off-by-one?** `syncChannels` fetches `0..<maxChannels` (exclusive upper bound).
-If firmware's channel table uses indices `0...maxChannels-1` (inclusive), this is correct.
-If firmware expects a request for index `maxChannels` to confirm end-of-table, the last group
-channel is silently missing. Verify on a device with `MAX_GROUP_CHANNELS > 1` by checking
-whether all configured group channels appear in the app.
+6 bugs fixed.
+
+### Bug Fixes
+
+| # | Bug | Root Cause | Fix | Files |
+|---|-----|------------|-----|-------|
+| 8 | Build script fails to commit when `.git/index.lock` exists | Stale lock file left by a previously crashed git process blocks `git add` | Added pre-commit stale lock detection: if `.git/index.lock` exists and no git process is running, removes it automatically; exits if a live git process holds it | `scripts/bump_and_build.sh` |
+| 9 | iPad mini landscape: Settings opens as sheet instead of detail pane | iPad mini landscape has `.compact` `horizontalSizeClass`; `openSettings()` was checking only size class, routing all compact layouts to a sheet | Changed to check `UIDevice.current.userInterfaceIdiom == .phone`; iPad always uses `sidebarSelection = .settings` regardless of orientation | `ContactListView.swift` |
+| 10 | Map — upload not working | Map API (`/api/v1/uploader/node`) expects JSON `{"params":{freq,bw,sf,cr},"links":["meshcore://..."]}` but code was POSTing raw binary with `Content-Type: application/octet-stream` | Rewrote `uploadNode(exportURL:)` to accept radio params; `post()` now serialises JSON; call site in ViewModel passes DeviceConfig radio values (freq×1000 for Hz, bw direct) | `MeshMapView.swift`, `MeshCoreViewModel.swift` |
+| 11 | Map — display not working (nodes never appear) | `fetchIfNeeded()` spawned a Task internally then returned immediately; `fetchInternetMapNodes()` waited only 500ms before copying `nodes`, losing the race on the 7.8MB API response | Made `fetchIfNeeded()` async; `fetchInternetMapNodes()` now awaits it before copying nodes — no sleep needed | `MeshMapView.swift`, `MeshCoreViewModel.swift` |
+| 12 | macOS: selecting map view disables gear icon and settings entry | `navigationDestination(for: SidebarSelection.self)` in `ContactListView` was active on macOS, creating a parallel navigation stack. After the map NavigationLink fired, the pushed `MeshMapView` took priority over the outer `NavigationSplitView` switch, so `sidebarSelection = .settings` had no visible effect | Guarded `navigationDestination` to iOS only (`#if os(iOS) && !targetEnvironment(macCatalyst)`); on macOS the `NavigationSplitView` `detail:` block exclusively drives the detail column | `ContactListView.swift` |
+| 13 | macOS: info/help popover bubbles fixed-size, require scrolling | `InfoPopoverContent` used `ScrollView` + `frame(minWidth:maxWidth:minHeight:)` on all platforms; macOS popovers clip to a system-imposed height when a fixed frame is set | macOS/Catalyst: removed ScrollView, applied `fixedSize(horizontal:false,vertical:true)` so popover grows to content height; iOS: unchanged (ScrollView + presentationDetents) | `SettingsView.swift` |
+
+### Open Bugs (carry forward)
+
+None — all tracked bugs resolved as of Build 55.
 
 ---
 

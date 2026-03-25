@@ -16,12 +16,17 @@ struct MeshCoreApp: App {
     #endif
 
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    /// Set by OnboardingView's "Open Settings Now" button to trigger Settings on first launch.
+    @AppStorage("openSettingsAfterOnboarding") private var openSettingsAfterOnboarding = false
 
     var body: some Scene {
         WindowGroup {
             if !hasCompletedOnboarding {
-                OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
-                    .meshTheme()
+                OnboardingView(
+                    hasCompletedOnboarding: $hasCompletedOnboarding,
+                    navigateToSettings: { openSettingsAfterOnboarding = true }
+                )
+                .meshTheme()
             } else if appLock.appLockEnabled && !appLock.isUnlocked {
                 AppLockView(appLock: appLock)
                     .meshTheme()
@@ -110,6 +115,8 @@ struct ContentView: View {
     @State private var showRemoteManagement = false
     @State private var previousConnectionState: BLEConnectionState = .disconnected
     @State private var hasRequestedAutoScan = false
+    /// Bridged from OnboardingView's "Open Settings Now" button.
+    @AppStorage("openSettingsAfterOnboarding") private var openSettingsAfterOnboarding = false
 
     var body: some View {
         #if os(watchOS)
@@ -301,7 +308,15 @@ struct ContentView: View {
                 .frame(minWidth: 360, minHeight: 400)
             }
         }
-        .onAppear { requestAutoScanOnce() }
+        .onAppear {
+            requestAutoScanOnce()
+            if openSettingsAfterOnboarding {
+                openSettingsAfterOnboarding = false
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                    showSettings = true
+                }
+            }
+        }
         .onChange(of: viewModel.connectionState) { _, newState in
             handleConnectionStateChange(newState)
         }
