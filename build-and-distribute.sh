@@ -15,7 +15,12 @@ set -euo pipefail
 # upload of the other.
 #
 # Usage:
-#   ./build-and-distribute.sh [ios|macos|all] [--archive-only]
+#   ./build-and-distribute.sh [ios|macos|all] [--archive-only|--upload-only]
+#
+# Modes:
+#   (no mode)    — archive, bump, commit, push, upload (full workflow)
+#   --archive-only  — archive only, skip bump/upload (for verification)
+#   --upload-only   — upload only, reuse existing build, skip archive/bump
 
 SCHEME="MeshCoreApple"
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -58,9 +63,22 @@ fi
 
 # Parse args
 TARGET="${1:-all}"
-ARCHIVE_ONLY="${2:-}"
+MODE="${2:-}"
 
-log "MeshCoreApple v$VERSION build $CURRENT (archiving...)"
+# Validate mode
+if [[ -n "$MODE" && "$MODE" != "--archive-only" && "$MODE" != "--upload-only" ]]; then
+    error "Unknown mode: $MODE. Use --archive-only or --upload-only"
+fi
+
+# For upload-only, we reuse existing archives (don't bump)
+if [[ "$MODE" == "--upload-only" ]]; then
+    log "Upload-only mode — reusing build $CURRENT archives"
+    SKIP_BUMP=1
+else
+    SKIP_BUMP=0
+    log "MeshCoreApple v$VERSION build $CURRENT (archiving...)"
+fi
+
 log "Target: $TARGET"
 
 # Create archive and export directories
@@ -73,7 +91,12 @@ MACOS_ARCHIVE="$ARCHIVE_DIR/MeshCoreApple-macOS v$VERSION ($CURRENT).xcarchive"
 # ============================================================
 # PHASE 1 — ARCHIVE (both platforms before any upload starts)
 # A failure here stops everything before any upload is attempted.
+# (skipped with --upload-only mode)
 # ============================================================
+
+if [[ "$SKIP_BUMP" == "1" ]]; then
+    log "Skipping archive phase (upload-only mode)"
+else
 
 if [[ "$TARGET" == "ios" || "$TARGET" == "all" ]]; then
     log "Archiving iOS..."
@@ -118,10 +141,17 @@ if [[ "$TARGET" == "all" ]]; then
     log "Both archives complete — proceeding to bump and upload phase"
 fi
 
+fi  # end SKIP_BUMP check
+
 # ============================================================
 # PHASE 1B — BUMP BUILD NUMBER (only after archiving succeeds)
 # This ensures build numbers are never wasted on failed distributions.
+# (skipped with --upload-only mode)
 # ============================================================
+
+if [[ "$SKIP_BUMP" == "1" ]]; then
+    log "Skipping bump phase (upload-only mode, reusing build $CURRENT)"
+else
 
 log "Bumping build number from $CURRENT to $NEW_BUILD..."
 sed -i '' "s/CURRENT_PROJECT_VERSION = [0-9][0-9]*/CURRENT_PROJECT_VERSION = $NEW_BUILD/g" "$PBXPROJ"
@@ -148,13 +178,15 @@ fi
 
 log "Build $NEW_BUILD bumped, committed, and pushed"
 
+fi  # end SKIP_BUMP check
+
 # ============================================================
 # PHASE 2 — UPLOAD (skipped entirely with --archive-only)
 # Both archives exist at this point; either upload can fail
 # independently without affecting the other archive.
 # ============================================================
 
-if [[ "$ARCHIVE_ONLY" == "--archive-only" ]]; then
+if [[ "$MODE" == "--archive-only" ]]; then
     log "Archive-only mode — skipping uploads"
     log "Done! v$VERSION build $CURRENT archived. Organizer path: $ARCHIVE_DIR"
     exit 0
