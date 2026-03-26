@@ -452,11 +452,21 @@ struct ContactListView: View {
         #if os(macOS) || targetEnvironment(macCatalyst)
         viewModel.sidebarSelection = .settings
         #elseif os(iOS)
-        let isPhone = UIDevice.current.userInterfaceIdiom == .phone
-        if !isPhone || horizontalSizeClass == .regular {
+        // All iPad models should use sidebar, regardless of size class.
+        // iPad mini reports .pad idiom, but horizontalSizeClass can be .compact
+        // in portrait. Use idiom-based detection instead of size class.
+        let isPad = UIDevice.current.userInterfaceIdiom == .pad
+
+        if isPad {
+            // All iPads (including iPad mini) use sidebar
             viewModel.sidebarSelection = .settings
         } else {
-            showSettings?.wrappedValue = true
+            // iPhone: use sheet in portrait/compact, sidebar in landscape/regular
+            if horizontalSizeClass == .regular {
+                viewModel.sidebarSelection = .settings
+            } else {
+                showSettings?.wrappedValue = true
+            }
         }
         #endif
     }
