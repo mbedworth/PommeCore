@@ -81,15 +81,25 @@ final class MeshMapService {
             DebugLogger.shared.log("MAP UPLOAD: failed to serialise JSON body", level: .error)
             return
         }
+
+        // Debug: log the exact JSON being sent
+        if let jsonString = String(data: jsonData, encoding: .utf8) {
+            DebugLogger.shared.log("MAP UPLOAD: sending JSON: \(jsonString.prefix(200))...", level: .info)
+        }
+
         var request = URLRequest(url: uploadURL)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = jsonData
         request.timeoutInterval = 15
         do {
-            let (_, response) = try await URLSession.shared.data(for: request)
+            let (responseData, response) = try await URLSession.shared.data(for: request)
             if let http = response as? HTTPURLResponse {
                 DebugLogger.shared.log("MAP UPLOAD: HTTP \(http.statusCode)", level: .info)
+                // On error, log response body for debugging
+                if http.statusCode != 200, let body = String(data: responseData, encoding: .utf8) {
+                    DebugLogger.shared.log("MAP UPLOAD: error response: \(body.prefix(300))", level: .info)
+                }
             }
         } catch {
             DebugLogger.shared.log("MAP UPLOAD: \(error.localizedDescription)", level: .error)
