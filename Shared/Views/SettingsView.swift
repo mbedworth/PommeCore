@@ -21,6 +21,8 @@ struct SettingsView: View {
     @State private var showPurgeOptions = false
     @State private var showDebugLog = false
     @State private var showSupportersSheet = false
+    @State private var supporterName = ""
+    @StateObject private var supportersManager = SupportersManager()
     #if os(macOS) || targetEnvironment(macCatalyst)
     @State private var inspectorSheet: DeviceInfoSection.DeviceSheet?
     @State private var showInspector = false
@@ -43,6 +45,19 @@ struct SettingsView: View {
             }
         }
         .navigationTitle("Settings")
+        .alert("Join the Supporters Wall?", isPresented: $tipJar.showSupporterNamePrompt) {
+            TextField("Display name", text: $supporterName)
+            Button("Add My Name") {
+                let name = supporterName.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !name.isEmpty else { return }
+                Task {
+                    _ = await supportersManager.addSupporter(name: name)
+                }
+            }
+            Button("No Thanks", role: .cancel) {}
+        } message: {
+            Text("Thank you for your generous tip! Enter a display name to appear on the Supporters Wall, visible to all MeshCore users.")
+        }
         .onAppear {
             if isConnected {
                 viewModel.refreshAllSettings()
@@ -2061,8 +2076,10 @@ class SupportersManager: ObservableObject {
 
     private let container = CKContainer(identifier: "iCloud.com.mbedworth.meshcore")
 
+    @MainActor
     func fetchSupporters() async {
-        await MainActor.run { isLoading = true }
+        isLoading = true
+        objectWillChange.send()
         DebugLogger.shared.log("SUPPORTERS: fetching from CloudKit public DB...", level: .info)
 
         let db = container.publicCloudDatabase
@@ -2086,13 +2103,11 @@ class SupportersManager: ObservableObject {
             }
             .sorted { $0.date > $1.date }
             DebugLogger.shared.log("SUPPORTERS: updating UI with \(fetched.count) supporters", level: .info)
-            await MainActor.run {
-                self.supporters = fetched
-                self.isLoading = false
-            }
+            self.supporters = fetched
+            self.isLoading = false
         } catch {
             DebugLogger.shared.log("SUPPORTERS: fetch error — \(error)", level: .error)
-            await MainActor.run { self.isLoading = false }
+            self.isLoading = false
         }
     }
 
@@ -2216,6 +2231,7 @@ private extension SettingsView {
                         .font(.caption)
                         .foregroundStyle(MeshTheme.textSecondary)
                 }
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
@@ -2230,9 +2246,7 @@ private extension SettingsView {
 
 struct TipJarView: View {
     @ObservedObject var manager: TipJarManager
-    @StateObject private var supportersManager = SupportersManager()
     @Environment(\.dismiss) private var dismiss
-    @State private var supporterName = ""
     @State private var showSupportersSheet = false
 
     var body: some View {
@@ -2321,19 +2335,6 @@ struct TipJarView: View {
         }
         .background(MeshTheme.background)
         .navigationTitle("Tip Jar")
-        .alert("Join the Supporters Wall?", isPresented: $manager.showSupporterNamePrompt) {
-            TextField("Display name", text: $supporterName)
-            Button("Add My Name") {
-                let name = supporterName.trimmingCharacters(in: .whitespacesAndNewlines)
-                guard !name.isEmpty else { return }
-                Task {
-                    _ = await supportersManager.addSupporter(name: name)
-                }
-            }
-            Button("No Thanks", role: .cancel) {}
-        } message: {
-            Text("Thank you for your generous tip! Enter a display name to appear on the Supporters Wall, visible to all MeshCore users.")
-        }
         .sheet(isPresented: $showSupportersSheet) {
             NavigationStack {
                 SupportersView()
@@ -2511,8 +2512,10 @@ struct SupportersView: View {
         #if !os(macOS) && !targetEnvironment(macCatalyst)
         .navigationBarTitleDisplayMode(.inline)
         #endif
-        .task {
-            await manager.fetchSupporters()
+        .onAppear {
+            Task {
+                await manager.fetchSupporters()
+            }
         }
     }
 }
