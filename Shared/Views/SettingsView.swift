@@ -1,6 +1,7 @@
 import SwiftUI
 import StoreKit
 import LocalAuthentication
+import CloudKit
 import MeshCoreKit
 #if !os(watchOS)
 import CoreLocation
@@ -18,6 +19,8 @@ struct SettingsView: View {
     @State private var showMigrateSheet = false
     @State private var showConnectionHelp = false
     @State private var showPurgeOptions = false
+    @State private var showDebugLog = false
+    @State private var showSupportersSheet = false
     #if os(macOS) || targetEnvironment(macCatalyst)
     @State private var inspectorSheet: DeviceInfoSection.DeviceSheet?
     @State private var showInspector = false
@@ -79,6 +82,18 @@ struct SettingsView: View {
             aboutSection
         }
         .meshListStyle()
+        .sheet(isPresented: $showTipJarSheet) {
+            NavigationStack {
+                TipJarView(manager: tipJar)
+            }
+            .meshTheme()
+        }
+        .sheet(isPresented: $showSupportersSheet) {
+            NavigationStack {
+                SupportersView()
+            }
+            .meshTheme()
+        }
     }
 
     // MARK: - Settings Form
@@ -171,6 +186,12 @@ struct SettingsView: View {
             }
             .meshTheme()
         }
+        .sheet(isPresented: $showSupportersSheet) {
+            NavigationStack {
+                SupportersView()
+            }
+            .meshTheme()
+        }
         #endif
         #if os(macOS) || targetEnvironment(macCatalyst)
         .safeAreaInset(edge: .bottom) {
@@ -212,7 +233,16 @@ struct SettingsView: View {
             }
             .meshTheme()
         }
+        .sheet(isPresented: $showSupportersSheet) {
+            NavigationStack {
+                SupportersView()
+            }
+            .meshTheme()
+        }
         #endif
+        // macOS/Catalyst: refresh button lives in the NavigationSplitView toolbar.
+        // iOS: add a settings-specific refresh button.
+        #if !os(macOS) && !targetEnvironment(macCatalyst)
         .toolbar {
             ToolbarItem(placement: .automatic) {
                 Button {
@@ -224,6 +254,7 @@ struct SettingsView: View {
                 .help("Refresh all settings")
             }
         }
+        #endif
     }
 }
 
@@ -1907,6 +1938,7 @@ class TipJarManager: ObservableObject {
     @Published var isLoading = false
     @Published var purchasingProductID: String?
     @Published var lastErrorMessage: String? = nil
+    @Published var showSupporterNamePrompt = false
 
     struct PlaceholderTip: Identifiable {
         let id: String
@@ -1993,6 +2025,9 @@ class TipJarManager: ObservableObject {
                     DebugLogger.shared.log("TIP JAR: verified transaction \(transaction.id)", level: .info)
                     await transaction.finish()
                     self.purchaseSuccess = true
+                    if product.id.hasSuffix(".help") {
+                        self.showSupporterNamePrompt = true
+                    }
                 case .unverified(let transaction, let error):
                     DebugLogger.shared.log("TIP JAR: unverified — \(error.localizedDescription)", level: .warning)
                     await transaction.finish()
@@ -2009,6 +2044,88 @@ class TipJarManager: ObservableObject {
         }
 
         self.purchasingProductID = nil
+    }
+}
+
+// MARK: - Supporters Wall (CloudKit)
+
+class SupportersManager: ObservableObject {
+    @Published var supporters: [Supporter] = []
+    @Published var isLoading = false
+
+    struct Supporter: Identifiable {
+        let id: String
+        let displayName: String
+        let date: Date
+    }
+
+    private let container = CKContainer(identifier: "iCloud.com.mbedworth.meshcore")
+
+    func fetchSupporters() async {
+        await MainActor.run { isLoading = true }
+        DebugLogger.shared.log("SUPPORTERS: fetching from CloudKit public DB...", level: .info)
+
+        let db = container.publicCloudDatabase
+        let query = CKQuery(recordType: "Supporter", predicate: NSPredicate(value: true))
+        query.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
+
+        do {
+            let (results, cursor) = try await db.records(matching: query)
+            DebugLogger.shared.log("SUPPORTERS: query returned \(results.count) results, cursor=\(cursor != nil)", level: .info)
+            let fetched: [Supporter] = results.compactMap { (id, result) -> Supporter? in
+                switch result {
+                case .success(let record):
+                    let name = record["displayName"] as? String ?? "(no name)"
+                    let date = record["date"] as? Date ?? record.creationDate ?? Date()
+                    DebugLogger.shared.log("SUPPORTERS: record \(id.recordName) — \(name)", level: .info)
+                    return Supporter(id: id.recordName, displayName: name, date: date)
+                case .failure(let error):
+                    DebugLogger.shared.log("SUPPORTERS: record \(id.recordName) error — \(error)", level: .error)
+                    return nil
+                }
+            }
+            .sorted { $0.date > $1.date }
+            DebugLogger.shared.log("SUPPORTERS: updating UI with \(fetched.count) supporters", level: .info)
+            await MainActor.run {
+                self.supporters = fetched
+                self.isLoading = false
+            }
+        } catch {
+            DebugLogger.shared.log("SUPPORTERS: fetch error — \(error)", level: .error)
+            await MainActor.run { self.isLoading = false }
+        }
+    }
+
+    func addSupporter(name: String) async -> Bool {
+        DebugLogger.shared.log("SUPPORTERS: saving name '\(name)' to CloudKit...", level: .info)
+
+        // Check account status first
+        do {
+            let status = try await container.accountStatus()
+            DebugLogger.shared.log("SUPPORTERS: iCloud account status = \(status.rawValue) (1=available)", level: .info)
+            guard status == .available else {
+                DebugLogger.shared.log("SUPPORTERS: iCloud not available (status \(status.rawValue)) — cannot save", level: .error)
+                return false
+            }
+        } catch {
+            DebugLogger.shared.log("SUPPORTERS: account status check failed — \(error)", level: .error)
+            return false
+        }
+
+        let db = container.publicCloudDatabase
+        let record = CKRecord(recordType: "Supporter")
+        record["displayName"] = name as CKRecordValue
+        record["date"] = Date() as CKRecordValue
+
+        do {
+            let saved = try await db.save(record)
+            DebugLogger.shared.log("SUPPORTERS: saved record \(saved.recordID.recordName) for '\(name)'", level: .info)
+            await fetchSupporters()
+            return true
+        } catch {
+            DebugLogger.shared.log("SUPPORTERS: save error — \(error)", level: .error)
+            return false
+        }
     }
 }
 
@@ -2087,8 +2204,23 @@ private extension SettingsView {
             .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
             #endif
+
+            Button {
+                showSupportersSheet = true
+            } label: {
+                HStack {
+                    Label("Supporters Wall", systemImage: "star.fill")
+                        .foregroundStyle(.yellow)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundStyle(MeshTheme.textSecondary)
+                }
+            }
+            .buttonStyle(.plain)
+            .listRowBackground(MeshTheme.surface)
         } header: {
-            sectionInfoHeader("Support", info: "MeshCore is free with all features. Tips help fund development.")
+            sectionInfoHeader("Support", info: "MeshCore is free with all features. Tips help fund development. \u{1F49A} tippers join the Supporters Wall!")
         }
     }
 
@@ -2098,7 +2230,10 @@ private extension SettingsView {
 
 struct TipJarView: View {
     @ObservedObject var manager: TipJarManager
+    @StateObject private var supportersManager = SupportersManager()
     @Environment(\.dismiss) private var dismiss
+    @State private var supporterName = ""
+    @State private var showSupportersSheet = false
 
     var body: some View {
         ScrollView {
@@ -2153,11 +2288,58 @@ struct TipJarView: View {
                     }
                     .padding()
                 }
+
+                Divider()
+                    .padding(.vertical, 8)
+
+                Button {
+                    showSupportersSheet = true
+                } label: {
+                    HStack {
+                        Image(systemName: "star.fill")
+                            .foregroundStyle(.yellow)
+                        Text("View Supporters Wall")
+                            .foregroundStyle(MeshTheme.accent)
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundStyle(MeshTheme.textSecondary)
+                    }
+                    .padding()
+                    .background(MeshTheme.surfaceLight)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+                .buttonStyle(.plain)
+
+                Text("\u{1F49A} I Want to Help! tippers can add their name to the Supporters Wall.")
+                    .font(.caption)
+                    .foregroundStyle(MeshTheme.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
             }
             .padding()
         }
         .background(MeshTheme.background)
         .navigationTitle("Tip Jar")
+        .alert("Join the Supporters Wall?", isPresented: $manager.showSupporterNamePrompt) {
+            TextField("Display name", text: $supporterName)
+            Button("Add My Name") {
+                let name = supporterName.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !name.isEmpty else { return }
+                Task {
+                    _ = await supportersManager.addSupporter(name: name)
+                }
+            }
+            Button("No Thanks", role: .cancel) {}
+        } message: {
+            Text("Thank you for your generous tip! Enter a display name to appear on the Supporters Wall, visible to all MeshCore users.")
+        }
+        .sheet(isPresented: $showSupportersSheet) {
+            NavigationStack {
+                SupportersView()
+            }
+            .meshTheme()
+        }
         .toolbar {
             #if targetEnvironment(macCatalyst)
             ToolbarItem(placement: .topBarTrailing) {
@@ -2246,6 +2428,92 @@ struct TipButton: View {
         }
         .buttonStyle(.plain)
         .disabled(manager.purchasingProductID != nil)
+    }
+}
+
+// MARK: - Supporters Wall View
+
+struct SupportersView: View {
+    @StateObject private var manager = SupportersManager()
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 16) {
+                if manager.isLoading && manager.supporters.isEmpty {
+                    ProgressView()
+                        .padding(.top, 40)
+                    Text("Loading supporters...")
+                        .foregroundStyle(MeshTheme.textSecondary)
+                } else if manager.supporters.isEmpty {
+                    Image(systemName: "heart.circle")
+                        .font(.system(size: 48))
+                        .foregroundStyle(MeshTheme.textSecondary)
+                        .padding(.top, 20)
+                    Text("No supporters yet")
+                        .font(.headline)
+                        .foregroundStyle(MeshTheme.textPrimary)
+                    Text("Be the first! Leave a \u{1F49A} I Want to Help! tip to join the wall.")
+                        .font(.subheadline)
+                        .foregroundStyle(MeshTheme.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+                } else {
+                    Text("These generous people help keep MeshCore free for everyone.")
+                        .font(.subheadline)
+                        .foregroundStyle(MeshTheme.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+
+                    ForEach(manager.supporters) { supporter in
+                        HStack {
+                            Image(systemName: "star.fill")
+                                .foregroundStyle(.yellow)
+                            Text(supporter.displayName)
+                                .font(.body)
+                                .foregroundStyle(MeshTheme.textPrimary)
+                            Spacer()
+                            Text(supporter.date, style: .date)
+                                .font(.caption)
+                                .foregroundStyle(MeshTheme.textSecondary)
+                        }
+                        .padding()
+                        .background(MeshTheme.surfaceLight)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
+                }
+            }
+            .padding()
+        }
+        .background(MeshTheme.background)
+        .navigationTitle("Supporters Wall")
+        .toolbar {
+            #if targetEnvironment(macCatalyst)
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Done") {
+                    DispatchQueue.main.async { dismiss() }
+                }
+            }
+            #elseif os(macOS)
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Done") {
+                    DispatchQueue.main.async { dismiss() }
+                }
+            }
+            #else
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button("Done") {
+                    DispatchQueue.main.async { dismiss() }
+                }
+            }
+            #endif
+        }
+        #if !os(macOS) && !targetEnvironment(macCatalyst)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
+        .task {
+            await manager.fetchSupporters()
+        }
     }
 }
 
@@ -2376,6 +2644,52 @@ private extension SettingsView {
                 .listRowBackground(MeshTheme.surface)
             }
 
+            #if os(macOS) || targetEnvironment(macCatalyst)
+            Button {
+                showDebugLog = true
+            } label: {
+                HStack {
+                    Text("Debug Log")
+                        .foregroundStyle(MeshTheme.accent)
+                    Spacer()
+                    Text("\(DebugLogger.shared.entries.count)")
+                        .font(.caption)
+                        .foregroundStyle(MeshTheme.textSecondary)
+                }
+            }
+            .buttonStyle(.plain)
+            .listRowBackground(MeshTheme.surface)
+            .sheet(isPresented: $showDebugLog) {
+                NavigationStack {
+                    DebugLogView()
+                        .toolbar {
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button("Done") { showDebugLog = false }
+                            }
+                            ToolbarItem(placement: .primaryAction) {
+                                Menu {
+                                    Button {
+                                        let text = DebugLogger.shared.exportText()
+                                        NSPasteboard.general.clearContents()
+                                        NSPasteboard.general.setString(text, forType: .string)
+                                    } label: {
+                                        Label("Copy All", systemImage: "doc.on.doc")
+                                    }
+                                    Button(role: .destructive) {
+                                        DebugLogger.shared.clear()
+                                    } label: {
+                                        Label("Clear Log", systemImage: "trash")
+                                    }
+                                } label: {
+                                    Image(systemName: "ellipsis.circle")
+                                        .foregroundStyle(MeshTheme.accent)
+                                }
+                            }
+                        }
+                }
+                .frame(minWidth: 500, minHeight: 400)
+            }
+            #else
             NavigationLink {
                 DebugLogView()
             } label: {
@@ -2392,6 +2706,7 @@ private extension SettingsView {
                 }
             }
             .listRowBackground(MeshTheme.surface)
+            #endif
         } header: {
             sectionInfoHeader("About", info: "Debug Log records connection and protocol events for troubleshooting.")
         }

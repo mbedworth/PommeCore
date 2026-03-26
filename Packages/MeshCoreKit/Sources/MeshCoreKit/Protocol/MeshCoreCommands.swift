@@ -42,6 +42,11 @@ public enum MeshCoreCommand: UInt8, Sendable {
     case setAutoAddConfig     = 0x3A  // 58 — set contact auto-add bitmask
     case getAutoAddConfig     = 0x3B  // 59 — get contact auto-add config
     case getAllowedRepeatFreq = 0x3C  // 60 — get allowed repeat frequency ranges
+
+    // Signing commands (device-side Ed25519)
+    case signStart            = 0x21  // 33 — initialize signing session
+    case signData             = 0x22  // 34 — stream data chunk to sign
+    case signFinish           = 0x23  // 35 — finalize and get Ed25519 signature
 }
 
 /// MeshCore Companion Radio Protocol — response codes received FROM the device.

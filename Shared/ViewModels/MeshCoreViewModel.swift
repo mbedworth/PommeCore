@@ -8,6 +8,7 @@ import WatchKit
 import MeshCoreKit
 #if !os(watchOS)
 import CoreLocation
+import CryptoKit
 #endif
 #if canImport(CoreSpotlight)
 import CoreSpotlight
@@ -195,6 +196,8 @@ final class MeshCoreViewModel: ObservableObject {
     @Published var isLoadingInternetNodes = false
     /// Set to true before sending CMD_EXPORT_CONTACT (self) for map upload.
     private var pendingMapUpload = false
+    /// The JSON data string awaiting device signature for map upload.
+    private var pendingMapDataJSON: String?
     #endif
 
     /// Convenience: the currently selected contact, derived from sidebarSelection.
@@ -564,6 +567,9 @@ final class MeshCoreViewModel: ObservableObject {
     /// Re-registers withObservationTracking so that any store property
     /// change fires objectWillChange on the ViewModel. Views using
     /// @EnvironmentObject continue to work during migration.
+    /// True while we are inside objectWillChange.send() to prevent re-entrant cascades.
+    private var isSendingChange = false
+
     private func observeStores() {
         func trackChanges() {
             withObservationTracking {
@@ -611,8 +617,15 @@ final class MeshCoreViewModel: ObservableObject {
                 _ = self.remoteSessionManager.pendingAdvertPathKey
                 _ = self.remoteSessionManager.allowedRepeatFreqRanges
             } onChange: {
-                DispatchQueue.main.async { [weak self] in
-                    self?.objectWillChange.send()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) { [weak self] in
+                    guard let self, !self.isSendingChange else {
+                        // Re-register tracking even if we skip the send
+                        trackChanges()
+                        return
+                    }
+                    self.isSendingChange = true
+                    self.objectWillChange.send()
+                    self.isSendingChange = false
                     trackChanges()
                 }
             }
@@ -1286,8 +1299,9 @@ final class MeshCoreViewModel: ObservableObject {
             // The device coordinates already have the GPS fudge applied (all writes
             // go through setAdvertLatLon → fudgeLocation before reaching the device).
             #if !os(watchOS)
-            if UserDefaults.standard.bool(forKey: "shareOnMeshMap"),
-               info.latitude != 0 || info.longitude != 0 {
+            let mapOptIn = UserDefaults.standard.bool(forKey: "shareOnMeshMap")
+            let hasLocation = info.latitude != 0 || info.longitude != 0
+            if mapOptIn, hasLocation {
                 pendingMapUpload = true
                 sendCommand(Data([0x11]), label: "EXPORT_SELF(map)")
                 DebugLogger.shared.log("MAP: triggered self-export for upload", level: .info)
@@ -1461,22 +1475,20 @@ final class MeshCoreViewModel: ObservableObject {
 
             #if !os(watchOS)
             if pendingMapUpload {
-                // Map upload export — don't trigger the "Link Copied" alert
-                // Use the URL directly for map upload without setting lastExportedURL
-                // (which would trigger the .onChange handler and show the alert)
+                // Map upload export — build data JSON and start device signing flow.
                 pendingMapUpload = false
-                if !url.isEmpty {
-                    // Convert DeviceConfig radio units → map API units:
-                    //   radioFrequency is stored in kHz → divide by 1000 for MHz
-                    //   radioBandwidth is stored in Hz  → divide by 1000 for kHz
-                    MeshMapService.shared.uploadNode(
-                        exportURL: url,
-                        freq: Double(deviceConfig.radioFrequency) / 1000.0,
-                        bw:   Double(deviceConfig.radioBandwidth) / 1000.0,
-                        sf:   Int(deviceConfig.radioSpreadingFactor),
-                        cr:   Int(deviceConfig.radioCodingRate)
-                    )
-                    DebugLogger.shared.log("MAP UPLOAD: map upload triggered silently (no alert)", level: .info)
+                if !url.isEmpty,
+                   let dataJSON = MeshMapService.buildDataJSON(
+                       exportURL: url,
+                       freq: Double(deviceConfig.radioFrequency) / 1000.0,
+                       bw:   Double(deviceConfig.radioBandwidth) / 1000.0,
+                       sf:   Int(deviceConfig.radioSpreadingFactor),
+                       cr:   Int(deviceConfig.radioCodingRate)
+                   ) {
+                    pendingMapDataJSON = dataJSON
+                    DebugLogger.shared.log("MAP SIGN: starting device signing for \(dataJSON.count) byte payload", level: .info)
+                    // Step 1: Initialize signing session
+                    sendCommand(MeshCoreProtocol.buildSignStart(), label: "SIGN_START(map)")
                 }
                 return  // Don't trigger the user-facing "Link Copied" alert for map uploads
             }
@@ -1509,6 +1521,46 @@ final class MeshCoreViewModel: ObservableObject {
             Self.logger.warning("Contact storage full: \(maxContacts)")
             lastErrorMessage = "Contact storage is full (\(maxContacts) contacts). New contacts cannot be added."
             postEventNotification(title: "Contact Storage Full", body: "Device has reached \(maxContacts) contacts. New contacts cannot be added.", threadId: "system")
+
+        #if !os(watchOS)
+        case .signStartResp(let maxLength):
+            // Step 2: Sign session initialized — send SHA-256 hash of the data JSON
+            guard let dataJSON = pendingMapDataJSON else {
+                DebugLogger.shared.log("MAP SIGN: signStart received but no pending data", level: .warning)
+                break
+            }
+            DebugLogger.shared.log("MAP SIGN: session ready, maxLen=\(maxLength)", level: .info)
+
+            // SHA-256 hash of the JSON string
+            guard let jsonBytes = dataJSON.data(using: .utf8) else { break }
+            let hashBytes = Data(SHA256.hash(data: jsonBytes))
+            DebugLogger.shared.log("MAP SIGN: sending \(hashBytes.count)-byte SHA-256 hash to device", level: .info)
+
+            // Send hash as sign data (32 bytes fits in one BLE chunk)
+            sendCommand(MeshCoreProtocol.buildSignData(chunk: hashBytes), label: "SIGN_DATA(map)")
+
+            // Step 3: Request signature
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+                self?.sendCommand(MeshCoreProtocol.buildSignFinish(), label: "SIGN_FINISH(map)")
+            }
+
+        case .signatureResp(let signature):
+            // Step 4: Got signature — upload to map
+            guard let dataJSON = pendingMapDataJSON else {
+                DebugLogger.shared.log("MAP SIGN: signature received but no pending data", level: .warning)
+                break
+            }
+            let sigHex = signature.map { String(format: "%02x", $0) }.joined()
+            let pubKeyHex = deviceConfig.publicKeyHex
+            DebugLogger.shared.log("MAP SIGN: got \(signature.count)-byte signature, uploading", level: .info)
+
+            pendingMapDataJSON = nil
+            MeshMapService.shared.uploadSignedNode(
+                dataJSON: dataJSON,
+                signatureHex: sigHex,
+                publicKeyHex: pubKeyHex
+            )
+        #endif
 
         case .unknown(let type, let payload):
             if type == 0x88 {

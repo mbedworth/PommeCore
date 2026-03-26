@@ -254,6 +254,46 @@ struct ContentView: View {
                 }
             }
         }
+        #if os(macOS) || targetEnvironment(macCatalyst)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    viewModel.sendAdvertise(type: 1)
+                    showAdvertSent = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                        showAdvertSent = false
+                    }
+                } label: {
+                    Image(systemName: showAdvertSent
+                        ? "checkmark.circle.fill"
+                        : "antenna.radiowaves.left.and.right")
+                        .foregroundStyle(MeshTheme.accent)
+                }
+                .disabled(viewModel.connectionState != .ready)
+                .help("Advertise")
+            }
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    showDiscover = true
+                } label: {
+                    Image(systemName: "binoculars.fill")
+                        .foregroundStyle(MeshTheme.accent)
+                }
+                .disabled(viewModel.connectionState != .ready)
+                .help("Discover")
+            }
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    viewModel.refreshAll()
+                } label: {
+                    Image(systemName: "arrow.clockwise")
+                        .foregroundStyle(MeshTheme.accent)
+                }
+                .disabled(viewModel.connectionState != .ready)
+                .help("Refresh")
+            }
+        }
+        #endif
         .sheet(isPresented: $showScanner) {
             NavigationStack {
                 DeviceScannerView()

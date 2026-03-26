@@ -49,12 +49,15 @@ struct ContactListView: View {
     #if os(iOS)
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     #endif
+    /// Local selection state decoupled from ViewModel to avoid
+    /// "Publishing changes from within view updates" when List writes to selection.
+    @State private var localSelection: SidebarSelection? = nil
 
     /// Public Channel virtual contact key (channel 0).
     private let publicChannelKey = Data([0x00 as UInt8])
 
     var body: some View {
-        List(selection: $viewModel.sidebarSelection) {
+        List(selection: $localSelection) {
             connectionSection
             channelsSection
             if !viewModel.pendingNewContacts.isEmpty {
@@ -163,13 +166,28 @@ struct ContactListView: View {
             sidebarDestinationView(for: selection)
         }
         #endif
+        // Sync local selection → ViewModel (deferred to avoid publishing during view update)
+        .onChange(of: localSelection) { _, newValue in
+            guard newValue != viewModel.sidebarSelection else { return }
+            DispatchQueue.main.async {
+                viewModel.sidebarSelection = newValue
+            }
+        }
+        // Sync ViewModel → local selection (for programmatic navigation from other code)
+        .onChange(of: viewModel.sidebarSelection) { _, newValue in
+            if localSelection != newValue {
+                localSelection = newValue
+            }
+        }
         #if !os(watchOS)
         .onChange(of: viewModel.sidebarSelection) { _, selection in
-            // Mark contact as read when selected (dispatch to avoid publishing during view update)
+            // Mark contact as read when selected — deferred past view update
             if case .contact(let key) = selection,
                let contact = viewModel.contacts.first(where: { $0.publicKeyPrefix == key }) {
                 DispatchQueue.main.async {
-                    viewModel.markAsRead(contact)
+                    Task { @MainActor in
+                        viewModel.markAsRead(contact)
+                    }
                 }
             }
         }
@@ -186,42 +204,8 @@ struct ContactListView: View {
             }
         }
         #elseif os(macOS) || targetEnvironment(macCatalyst)
-        .toolbar {
-            // ControlGroup keeps the three buttons as one atomic AppKit toolbar item
-            // so they don't get individually shuffled into the >> overflow menu.
-            ToolbarItem(placement: .automatic) {
-                ControlGroup {
-                    Button {
-                        viewModel.sendAdvertise(type: 1)
-                        showAdvertSent?.wrappedValue = true
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                            showAdvertSent?.wrappedValue = false
-                        }
-                    } label: {
-                        Label("Advertise",
-                              systemImage: showAdvertSent?.wrappedValue == true
-                                ? "checkmark.circle.fill"
-                                : "antenna.radiowaves.left.and.right")
-                    }
-                    .disabled(viewModel.connectionState != .ready)
-
-                    Button {
-                        showDiscover?.wrappedValue = true
-                    } label: {
-                        Label("Discover", systemImage: "binoculars.fill")
-                    }
-                    .disabled(viewModel.connectionState != .ready)
-
-                    Button {
-                        viewModel.refreshAll()
-                    } label: {
-                        Label("Refresh", systemImage: "arrow.clockwise")
-                    }
-                    .disabled(viewModel.connectionState != .ready)
-                }
-                .controlGroupStyle(.automatic)
-            }
-        }
+        // macOS toolbar items are added at the NavigationSplitView level in MeshCoreApp.swift
+        // to avoid being constrained to the narrow sidebar column.
         #else
         .toolbar {
             ToolbarItem(placement: .automatic) {
