@@ -469,6 +469,28 @@ public enum MeshCoreProtocol {
         return frame
     }
 
+    // MARK: - Signing (Device-Side Ed25519)
+
+    /// CMD_SIGN_START (code 0x21) — initialize device signing session.
+    /// Response: RESP_CODE_SIGN_START (0x13) with max buffer length.
+    public static func buildSignStart() -> Data {
+        Data([MeshCoreCommand.signStart.rawValue])
+    }
+
+    /// CMD_SIGN_DATA (code 0x22) — send a chunk of data to sign.
+    /// BLE max chunk: 120 bytes per frame. Send multiple frames for larger data.
+    public static func buildSignData(chunk: Data) -> Data {
+        var frame = Data([MeshCoreCommand.signData.rawValue])
+        frame.append(chunk)
+        return frame
+    }
+
+    /// CMD_SIGN_FINISH (code 0x23) — finalize and get Ed25519 signature.
+    /// Response: RESP_CODE_SIGNATURE (0x14) with 64-byte signature.
+    public static func buildSignFinish() -> Data {
+        Data([MeshCoreCommand.signFinish.rawValue])
+    }
+
     // MARK: - Helpers
 
     private static func appendUInt32(_ data: inout Data, _ value: UInt32) {

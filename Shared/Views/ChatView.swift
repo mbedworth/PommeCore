@@ -147,7 +147,7 @@ struct ChatView: View {
                     } label: {
                         Text(routeLabel)
                             .font(.caption2)
-                            .foregroundStyle(routeColor)
+                            .foregroundStyle(MeshTheme.accent)
                     }
                     .buttonStyle(.plain)
                     #endif
@@ -155,8 +155,8 @@ struct ChatView: View {
                         withAnimation { isSearching.toggle() }
                         if !isSearching { searchText = "" }
                     } label: {
-                        Image(systemName: "magnifyingglass")
-                            .foregroundStyle(isSearching ? MeshTheme.accent : MeshTheme.textSecondary)
+                        Image(systemName: isSearching ? "magnifyingglass.circle.fill" : "magnifyingglass")
+                            .foregroundStyle(MeshTheme.accent)
                     }
                     #if !os(watchOS)
                     Button {
@@ -222,9 +222,11 @@ struct ChatView: View {
             }
         }
         .onAppear {
-            viewModel.markAsRead(contact)
             if messageText.isEmpty {
                 messageText = viewModel.loadDraft(for: contact.publicKeyPrefix)
+            }
+            DispatchQueue.main.async {
+                viewModel.markAsRead(contact)
             }
         }
         .onDisappear {
@@ -283,7 +285,9 @@ struct ChatView: View {
                 }
                 // User is viewing the chat — new messages are read immediately
                 withAnimation { unreadDividerIndex = nil }
-                viewModel.markAsRead(contactKey: contact.publicKeyPrefix)
+                DispatchQueue.main.async {
+                    viewModel.markAsRead(contactKey: contact.publicKeyPrefix)
+                }
             }
             .onAppear {
                 unreadDividerIndex = viewModel.firstUnreadIndex(in: messages, for: contact.publicKeyPrefix)
@@ -454,13 +458,15 @@ struct ChannelChatView: View {
         #endif
         .onAppear {
             notifyMode = NSUbiquitousKeyValueStore.default.string(forKey: "channel.notify.\(channelName)") ?? "all"
-            // Store last-read timestamp for unread divider (iCloud synced)
-            let lastReadKey = "lastRead.\(channelKey.map { String(format: "%02x", $0) }.joined())"
-            NSUbiquitousKeyValueStore.default.set(Date().timeIntervalSince1970, forKey: lastReadKey)
-            NSUbiquitousKeyValueStore.default.synchronize()
-            viewModel.unreadCounts[channelKey] = 0
             if messageText.isEmpty {
                 messageText = viewModel.loadDraft(for: channelKey)
+            }
+            DispatchQueue.main.async {
+                // Store last-read timestamp for unread divider (iCloud synced)
+                let lastReadKey = "lastRead.\(channelKey.map { String(format: "%02x", $0) }.joined())"
+                NSUbiquitousKeyValueStore.default.set(Date().timeIntervalSince1970, forKey: lastReadKey)
+                NSUbiquitousKeyValueStore.default.synchronize()
+                viewModel.unreadCounts[channelKey] = 0
             }
         }
         .onDisappear {
@@ -517,7 +523,9 @@ struct ChannelChatView: View {
                 }
                 // User is viewing the chat — new messages are read immediately
                 withAnimation { unreadDividerIndex = nil }
-                viewModel.markAsRead(contactKey: channelKey)
+                DispatchQueue.main.async {
+                    viewModel.markAsRead(contactKey: channelKey)
+                }
             }
             .onAppear {
                 unreadDividerIndex = viewModel.firstUnreadIndex(in: messages, for: channelKey)

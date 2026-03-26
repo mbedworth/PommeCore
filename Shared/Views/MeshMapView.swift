@@ -8,32 +8,67 @@ import MeshCoreKit
 
 /// A node fetched from the MeshCore internet map (map.meshcore.dev).
 struct InternetMapNode: Identifiable, Sendable {
-    /// Stable identity derived from coordinates + name.
-    var id: String { "\(latitude),\(longitude),\(name)" }
+    /// Stable identity derived from public key (falls back to coordinates + name).
+    var id: String { publicKey.isEmpty ? "\(latitude),\(longitude),\(name)" : publicKey }
     let name: String
     let latitude: Double
     let longitude: Double
     /// Node type matching MeshCore contact types: 1=chat, 2=repeater, 3=room, 4=sensor.
     let type: Int
+    let publicKey: String
+    let lastAdvert: String
+    let radioFreq: Double
+    let radioBW: Double
+    let radioSF: Int
+    let radioCR: Int
+
+    /// Human-readable node type label.
+    var typeName: String {
+        switch type {
+        case 1: return "Chat"
+        case 2: return "Repeater"
+        case 3: return "Room"
+        case 4: return "Sensor"
+        default: return "Unknown"
+        }
+    }
+}
+
+// MARK: - NodeCluster
+
+/// A cluster of one or more internet map nodes grouped by geographic proximity.
+struct NodeCluster: Identifiable {
+    let id: String
+    let coordinate: CLLocationCoordinate2D
+    let nodes: [InternetMapNode]
+    var count: Int { nodes.count }
+    var isSingle: Bool { nodes.count == 1 }
+
+    /// Dominant node type in the cluster (for icon selection).
+    var dominantType: Int {
+        var counts = [Int: Int]()
+        for n in nodes { counts[n.type, default: 0] += 1 }
+        return counts.max(by: { $0.value < $1.value })?.key ?? 0
+    }
 }
 
 // MARK: - MeshMapService
 
-/// Handles communication with the MeshCore internet map at map.meshcore.dev.
+/// Handles communication with the MeshCore internet map at meshcore.dev.
 ///
 /// **Upload:** Receives the local node's signed advert data (from CMD_EXPORT_CONTACT
 /// for self) and POSTs it to the upload endpoint. The advert packet is already signed
 /// by the device's Ed25519 private key; no additional signing is needed in the app.
 ///
-/// **Fetch:** Downloads and MessagePack-decodes the public node list for display on
-/// the in-app map alongside local mesh contacts.
+/// **Fetch:** Downloads the JSON node list for display on the in-app map alongside
+/// local mesh contacts.
 @MainActor
 final class MeshMapService {
 
     static let shared = MeshMapService()
 
     private static let uploadURL = URL(string: "https://map.meshcore.dev/api/v1/uploader/node")!
-    private static let nodesURL  = URL(string: "https://map.meshcore.dev/api/v1/nodes?binary=1&short=1")!
+    private static let nodesURL  = URL(string: "https://map.meshcore.dev/api/v1/nodes?binary=0&short=0")!
 
     private(set) var nodes: [InternetMapNode] = []
     private var lastFetch: Date = .distantPast
@@ -43,36 +78,38 @@ final class MeshMapService {
 
     // MARK: Upload
 
-    /// Upload the local node's signed advert to the internet map.
+    /// Build the JSON data string for map upload. This is the string that gets signed.
     ///
-    /// The map API (map.meshcore.dev/api/v1/uploader/node) expects a JSON body:
-    /// ```json
-    /// {
-    ///   "params": { "freq": 906.0, "bw": 250.0, "sf": 9, "cr": 8 },
-    ///   "links": ["meshcore://HEXDATA"]
-    /// }
-    /// ```
     /// Radio params convert DeviceConfig units → API units:
-    ///   freq: radioFrequency (kHz) ÷ 1000 → MHz  (e.g. 906000 kHz → 906.0 MHz)
-    ///   bw:   radioBandwidth (Hz) ÷ 1000 → kHz   (e.g. 250000 Hz → 250.0 kHz)
-    ///   sf:   radioSpreadingFactor (raw byte)
-    ///   cr:   radioCodingRate (raw byte, 5–8)
-    ///
-    /// - Parameters:
-    ///   - exportURL: The `meshcore://hexbytes` URL from CMD_EXPORT_CONTACT (self).
-    ///   - freq: Frequency in MHz (radioFrequency ÷ 1000).
-    ///   - bw:   Bandwidth in kHz (radioBandwidth ÷ 1000).
-    ///   - sf:   Spreading factor.
-    ///   - cr:   Coding rate (5–8).
-    func uploadNode(exportURL: String, freq: Double, bw: Double, sf: Int, cr: Int) {
-        guard exportURL.hasPrefix("meshcore://") else { return }
-        guard !exportURL.dropFirst("meshcore://".count).isEmpty else { return }
-
+    ///   freq: radioFrequency (kHz) ÷ 1000 → MHz
+    ///   bw:   radioBandwidth (Hz) ÷ 1000 → kHz
+    static func buildDataJSON(exportURL: String, freq: Double, bw: Double, sf: Int, cr: Int) -> String? {
+        guard exportURL.hasPrefix("meshcore://"),
+              !exportURL.dropFirst("meshcore://".count).isEmpty else { return nil }
         let body: [String: Any] = [
             "params": ["freq": freq, "bw": bw, "sf": sf, "cr": cr],
             "links": [exportURL]
         ]
-        // Fire-and-forget background upload; does not block UI.
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: body) else { return nil }
+        return String(data: jsonData, encoding: .utf8)
+    }
+
+    /// Upload the signed node data to the internet map.
+    ///
+    /// The map API (map.meshcore.dev/api/v1/uploader/node) expects:
+    /// ```json
+    /// {
+    ///   "data": "{\"params\":{...},\"links\":[...]}",
+    ///   "signature": "hex_ed25519_signature",
+    ///   "publicKey": "hex_ed25519_public_key"
+    /// }
+    /// ```
+    func uploadSignedNode(dataJSON: String, signatureHex: String, publicKeyHex: String) {
+        let body: [String: Any] = [
+            "data": dataJSON,
+            "signature": signatureHex,
+            "publicKey": publicKeyHex
+        ]
         Task.detached { await MeshMapService.post(body: body) }
     }
 
@@ -82,15 +119,19 @@ final class MeshMapService {
             return
         }
 
+        if let json = String(data: jsonData, encoding: .utf8) {
+            DebugLogger.shared.log("MAP UPLOAD: POST \(uploadURL) — \(json.prefix(300))...", level: .info)
+        }
         var request = URLRequest(url: uploadURL)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = jsonData
         request.timeoutInterval = 15
         do {
-            let (_, response) = try await URLSession.shared.data(for: request)
+            let (data, response) = try await URLSession.shared.data(for: request)
             if let http = response as? HTTPURLResponse {
-                DebugLogger.shared.log("MAP UPLOAD: HTTP \(http.statusCode)", level: .info)
+                let respBody = String(data: data, encoding: .utf8) ?? "(no body)"
+                DebugLogger.shared.log("MAP UPLOAD: HTTP \(http.statusCode) — \(respBody)", level: .info)
             }
         } catch {
             DebugLogger.shared.log("MAP UPLOAD: \(error.localizedDescription)", level: .error)
@@ -110,12 +151,38 @@ final class MeshMapService {
     func fetch() async {
         do {
             let (data, _) = try await URLSession.shared.data(from: Self.nodesURL)
-            let decoded = MeshMapMessagePackDecoder.decodeNodes(from: data)
+            let decoded = Self.decodeJSONNodes(from: data)
             nodes = decoded
             lastFetch = Date()
             DebugLogger.shared.log("MAP FETCH: \(decoded.count) internet nodes", level: .info)
         } catch {
             DebugLogger.shared.log("MAP FETCH: \(error.localizedDescription)", level: .error)
+        }
+    }
+
+    /// Decode JSON array of node objects from the map API.
+    private static func decodeJSONNodes(from data: Data) -> [InternetMapNode] {
+        guard let array = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] else {
+            return []
+        }
+        return array.compactMap { dict -> InternetMapNode? in
+            guard let lat = dict["adv_lat"] as? Double,
+                  let lon = dict["adv_lon"] as? Double,
+                  lat != 0 || lon != 0,
+                  abs(lat) <= 90, abs(lon) <= 180 else { return nil }
+            let name = dict["adv_name"] as? String ?? "Unknown"
+            let type = dict["type"] as? Int ?? 0
+            let publicKey = dict["public_key"] as? String ?? ""
+            let lastAdvert = dict["last_advert"] as? String ?? ""
+            let params = dict["params"] as? [String: Any] ?? [:]
+            return InternetMapNode(
+                name: name, latitude: lat, longitude: lon, type: type,
+                publicKey: publicKey, lastAdvert: lastAdvert,
+                radioFreq: params["freq"] as? Double ?? 0,
+                radioBW: params["bw"] as? Double ?? 0,
+                radioSF: params["sf"] as? Int ?? 0,
+                radioCR: params["cr"] as? Int ?? 0
+            )
         }
     }
 }
@@ -330,7 +397,10 @@ enum MeshMapMessagePackDecoder {
         let name = toString(dict["name"] ?? dict["n"] ?? dict["nm"]) ?? "Unknown"
         let type = toInt(dict["type"] ?? dict["t"]) ?? 0
 
-        return InternetMapNode(name: name, latitude: finalLat, longitude: finalLon, type: type)
+        return InternetMapNode(
+            name: name, latitude: finalLat, longitude: finalLon, type: type,
+            publicKey: "", lastAdvert: "", radioFreq: 0, radioBW: 0, radioSF: 0, radioCR: 0
+        )
     }
 
     private static func toDouble(_ v: MPValue) -> Double? {
@@ -368,26 +438,57 @@ struct MeshMapView: View {
     @State private var visibleRegion: MKCoordinateRegion? = nil
     /// True once we've applied the initial 500-mile camera jump; avoids re-jumping on pans.
     @State private var hasSetInitialCamera = false
+    /// The selected cluster for the detail sheet/popover.
+    @State private var selectedCluster: NodeCluster? = nil
 
     // ~500 miles as degrees of latitude (1° ≈ 69 mi → 500 mi ÷ 69 ≈ 7.25°)
     private static let initialSpanDegrees = 7.25
+
+    /// Grid cell size in degrees for clustering. Adapts to zoom level.
+    /// At wide zoom (large span) cells are big → heavy clustering.
+    /// At close zoom (small span) cells are small → individual nodes.
+    private static let clusterThreshold: Double = 0.15
 
     private var mappableContacts: [Contact] {
         viewModel.contacts.filter { $0.latitude != 0 || $0.longitude != 0 }
     }
 
-    /// Internet nodes filtered to the currently visible region, capped at 500.
-    private var visibleInternetNodes: [InternetMapNode] {
+    /// Internet nodes clustered by geographic grid cell at the current zoom level.
+    private var clusteredNodes: [NodeCluster] {
+        guard let region = visibleRegion else { return [] }
         let all = viewModel.internetMapNodes
-        guard !all.isEmpty, let region = visibleRegion else { return [] }
+        guard !all.isEmpty else { return [] }
+
+        // Filter to visible region with padding
         let latHalf = region.span.latitudeDelta / 2
         let lonHalf = region.span.longitudeDelta / 2
         let lat = region.center.latitude
         let lon = region.center.longitude
-        let filtered = all.filter {
+        let visible = all.filter {
             abs($0.latitude - lat) <= latHalf && abs($0.longitude - lon) <= lonHalf
         }
-        return filtered.count > 500 ? Array(filtered.prefix(500)) : filtered
+
+        // Grid cell size proportional to the visible span
+        let cellSize = max(region.span.latitudeDelta, region.span.longitudeDelta) * Self.clusterThreshold
+
+        // Group nodes into grid cells
+        var grid = [String: [InternetMapNode]]()
+        for node in visible {
+            let cellX = Int(floor(node.latitude / cellSize))
+            let cellY = Int(floor(node.longitude / cellSize))
+            let key = "\(cellX),\(cellY)"
+            grid[key, default: []].append(node)
+        }
+
+        return grid.map { key, nodes in
+            let avgLat = nodes.reduce(0.0) { $0 + $1.latitude } / Double(nodes.count)
+            let avgLon = nodes.reduce(0.0) { $0 + $1.longitude } / Double(nodes.count)
+            return NodeCluster(
+                id: key,
+                coordinate: CLLocationCoordinate2D(latitude: avgLat, longitude: avgLon),
+                nodes: nodes
+            )
+        }
     }
 
     var body: some View {
@@ -420,22 +521,57 @@ struct MeshMapView: View {
                     }
                 }
 
-                // Internet map nodes — lightweight Marker (system pin, MapKit-managed).
-                // Filtered to visible region so MapKit never holds more than ~500 at once.
-                ForEach(visibleInternetNodes) { node in
-                    Marker(node.name,
-                           systemImage: internetNodeIcon(node),
-                           coordinate: CLLocationCoordinate2D(
-                               latitude: node.latitude,
-                               longitude: node.longitude
-                           ))
-                    .tint(.teal)
+                // Internet map nodes — clustered annotations
+                ForEach(clusteredNodes) { cluster in
+                    Annotation("", coordinate: cluster.coordinate) {
+                        if cluster.isSingle {
+                            // Single node — show individual marker
+                            Button {
+                                selectedCluster = cluster
+                            } label: {
+                                VStack(spacing: 2) {
+                                    Image(systemName: Self.internetNodeIcon(type: cluster.nodes[0].type))
+                                        .foregroundStyle(.white)
+                                        .font(.caption)
+                                        .frame(width: 28, height: 28)
+                                        .background(Circle().fill(Color.teal))
+                                        .shadow(radius: 2)
+                                    Text(cluster.nodes[0].name)
+                                        .font(.system(size: 9))
+                                        .foregroundStyle(MeshTheme.textSecondary)
+                                        .lineLimit(1)
+                                        .frame(maxWidth: 80)
+                                }
+                            }
+                            .buttonStyle(.plain)
+                        } else {
+                            // Cluster — show count bubble
+                            Button {
+                                selectedCluster = cluster
+                            } label: {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.teal.opacity(0.85))
+                                        .frame(width: clusterSize(cluster.count),
+                                               height: clusterSize(cluster.count))
+                                        .overlay(
+                                            Circle()
+                                                .strokeBorder(Color.white, lineWidth: 2)
+                                        )
+                                        .shadow(radius: 3)
+                                    Text(clusterLabel(cluster.count))
+                                        .font(.system(size: clusterFontSize(cluster.count), weight: .bold))
+                                        .foregroundStyle(.white)
+                                }
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
                 }
 
                 UserAnnotation()
             }
             .onMapCameraChange(frequency: .onEnd) { context in
-                // Keep visibleRegion in sync as the user pans/zooms
                 DispatchQueue.main.async {
                     visibleRegion = context.region
                 }
@@ -512,18 +648,10 @@ struct MeshMapView: View {
             }
         }
         .navigationTitle("Map")
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    viewModel.refreshInternetMapNodes()
-                } label: {
-                    Image(systemName: "arrow.clockwise")
-                }
-                .disabled(viewModel.isLoadingInternetNodes)
-                .help("Refresh internet map nodes")
-            }
-        }
         .task {
+            // Defer past the current view-update pass to avoid
+            // "Publishing changes from within view updates" warnings.
+            try? await Task.sleep(nanoseconds: 1)
             locationManager.requestPermission()
             viewModel.fetchInternetMapNodes()
         }
@@ -537,24 +665,58 @@ struct MeshMapView: View {
                     longitudeDelta: Self.initialSpanDegrees
                 )
             )
-            // Set both the camera and the filter region together so nodes appear immediately
-            cameraPosition = .region(region)
-            visibleRegion = region
+            DispatchQueue.main.async {
+                cameraPosition = .region(region)
+                visibleRegion = region
+            }
         }
-        // Also update visible region once nodes load (handles case where location
-        // arrived before the nodes were fetched)
         .onChange(of: viewModel.internetMapNodes.count) { _, count in
             guard count > 0, visibleRegion == nil,
                   let loc = locationManager.currentLocation else { return }
-            visibleRegion = MKCoordinateRegion(
+            let region = MKCoordinateRegion(
                 center: loc.coordinate,
                 span: MKCoordinateSpan(
                     latitudeDelta: Self.initialSpanDegrees,
                     longitudeDelta: Self.initialSpanDegrees
                 )
             )
+            DispatchQueue.main.async {
+                visibleRegion = region
+            }
+        }
+        .sheet(item: $selectedCluster) { cluster in
+            ClusterDetailView(cluster: cluster)
         }
     }
+
+    // MARK: - Cluster sizing
+
+    private func clusterSize(_ count: Int) -> CGFloat {
+        switch count {
+        case 1...9:    return 36
+        case 10...99:  return 42
+        case 100...999: return 50
+        default:       return 56
+        }
+    }
+
+    private func clusterFontSize(_ count: Int) -> CGFloat {
+        switch count {
+        case 1...9:    return 13
+        case 10...99:  return 12
+        case 100...999: return 11
+        default:       return 10
+        }
+    }
+
+    private func clusterLabel(_ count: Int) -> String {
+        if count >= 1000 {
+            return "\(count / 1000)k"
+        }
+        return "\(count)"
+    }
+
+    // MARK: - Icons
 
     private func contactTypeIcon(_ contact: Contact) -> String {
         switch contact.type {
@@ -577,14 +739,140 @@ struct MeshMapView: View {
     }
 
     /// SF Symbol for an internet map node based on its MeshCore node type.
-    private func internetNodeIcon(_ node: InternetMapNode) -> String {
-        switch node.type {
+    static func internetNodeIcon(type: Int) -> String {
+        switch type {
         case 1: return "person.fill"
         case 2: return "antenna.radiowaves.left.and.right"
         case 3: return "building.2.fill"
         case 4: return "sensor.fill"
         default: return "globe"
         }
+    }
+}
+
+// MARK: - ClusterDetailView
+
+/// Shows details for a tapped cluster or single internet map node.
+@available(iOS 17.0, macOS 14.0, *)
+struct ClusterDetailView: View {
+    let cluster: NodeCluster
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            List {
+                if cluster.isSingle {
+                    nodeDetailSection(cluster.nodes[0])
+                } else {
+                    Section {
+                        Text("\(cluster.count) nodes in this area")
+                            .font(.subheadline)
+                            .foregroundStyle(MeshTheme.textSecondary)
+                    }
+                    ForEach(cluster.nodes.sorted(by: { $0.name < $1.name })) { node in
+                        nodeRow(node)
+                    }
+                }
+            }
+            .navigationTitle(cluster.isSingle ? cluster.nodes[0].name : "\(cluster.count) Nodes")
+            #if !os(macOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
+                }
+            }
+        }
+        #if os(macOS)
+        .frame(minWidth: 360, minHeight: 400)
+        #endif
+    }
+
+    @ViewBuilder
+    private func nodeDetailSection(_ node: InternetMapNode) -> some View {
+        Section("Node Info") {
+            detailRow("Name", node.name)
+            detailRow("Type", node.typeName)
+            detailRow("Location", String(format: "%.5f, %.5f", node.latitude, node.longitude))
+            if !node.lastAdvert.isEmpty {
+                detailRow("Last Advert", formatDate(node.lastAdvert))
+            }
+        }
+        Section("Radio Parameters") {
+            if node.radioFreq > 0 {
+                detailRow("Frequency", String(format: "%.3f MHz", node.radioFreq))
+            }
+            if node.radioBW > 0 {
+                detailRow("Bandwidth", String(format: "%.1f kHz", node.radioBW))
+            }
+            if node.radioSF > 0 {
+                detailRow("Spreading Factor", "\(node.radioSF)")
+            }
+            if node.radioCR > 0 {
+                detailRow("Coding Rate", "\(node.radioCR)")
+            }
+        }
+        if !node.publicKey.isEmpty {
+            Section("Public Key") {
+                Text(node.publicKey)
+                    .font(.system(.caption, design: .monospaced))
+                    .foregroundStyle(MeshTheme.textSecondary)
+                    .textSelection(.enabled)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func nodeRow(_ node: InternetMapNode) -> some View {
+        NavigationLink {
+            List {
+                nodeDetailSection(node)
+            }
+            .navigationTitle(node.name)
+            #if !os(macOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: MeshMapView.internetNodeIcon(type: node.type))
+                    .foregroundStyle(.teal)
+                    .frame(width: 24)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(node.name)
+                        .font(.subheadline)
+                    Text(node.typeName)
+                        .font(.caption)
+                        .foregroundStyle(MeshTheme.textSecondary)
+                }
+                Spacer()
+                if node.radioFreq > 0 {
+                    Text(String(format: "%.1f", node.radioFreq))
+                        .font(.caption)
+                        .foregroundStyle(MeshTheme.textSecondary)
+                }
+            }
+        }
+    }
+
+    private func detailRow(_ label: String, _ value: String) -> some View {
+        HStack {
+            Text(label)
+                .foregroundStyle(MeshTheme.textSecondary)
+            Spacer()
+            Text(value)
+                .multilineTextAlignment(.trailing)
+        }
+    }
+
+    private func formatDate(_ iso: String) -> String {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        guard let date = formatter.date(from: iso) else { return iso }
+        let display = DateFormatter()
+        display.dateStyle = .medium
+        display.timeStyle = .short
+        return display.string(from: date)
     }
 }
 
@@ -617,10 +905,14 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     }
 
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-        DispatchQueue.main.async {
-            self.authorizationStatus = manager.authorizationStatus
-            if self.isAuthorized(manager.authorizationStatus) {
-                manager.requestLocation()
+        let status = manager.authorizationStatus
+        DispatchQueue.main.async { [weak self] in
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                self.authorizationStatus = status
+                if self.isAuthorized(status) {
+                    manager.requestLocation()
+                }
             }
         }
     }
@@ -635,8 +927,10 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
 
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let loc = locations.last else { return }
-        DispatchQueue.main.async {
-            self.currentLocation = loc
+        DispatchQueue.main.async { [weak self] in
+            Task { @MainActor [weak self] in
+                self?.currentLocation = loc
+            }
         }
     }
 

@@ -44,6 +44,8 @@ public enum FrameParser {
         case contactDeleted(publicKey: Data)          // PUSH_CODE_CONTACT_DELETED (0x8F)
         case contactsFull(maxContacts: UInt16)        // PUSH_CODE_CONTACTS_FULL (0x90)
         case autoAddConfig(bitmask: UInt8, maxHops: UInt8)  // RESP_CODE_AUTOADD_CONFIG (0x19)
+        case signStartResp(maxLength: UInt32)              // RESP_CODE_SIGN_START (0x13)
+        case signatureResp(signature: Data)                // RESP_CODE_SIGNATURE (0x14)
         case unknown(type: UInt8, payload: Data)
     }
 
@@ -197,12 +199,17 @@ public enum FrameParser {
             return .unknown(type: firstByte, payload: payload)
 
         case .signStart:
-            logger.info("RESP_CODE_SIGN_START: \(payload.count) bytes (not handled)")
-            return .unknown(type: firstByte, payload: payload)
+            var offset = 0
+            _ = readUInt8(payload, offset: &offset) // reserved byte
+            let maxLen = readUInt32(payload, offset: &offset)
+            logger.info("RESP_CODE_SIGN_START: maxLength=\(maxLen)")
+            return .signStartResp(maxLength: maxLen)
 
         case .signature:
-            logger.info("RESP_CODE_SIGNATURE: \(payload.count) bytes (not handled)")
-            return .unknown(type: firstByte, payload: payload)
+            // 64-byte Ed25519 signature
+            let sig = Data(payload.prefix(64))
+            logger.info("RESP_CODE_SIGNATURE: \(sig.count) bytes")
+            return .signatureResp(signature: sig)
 
         case .advertPath:
             return parseAdvertPath(payload)
