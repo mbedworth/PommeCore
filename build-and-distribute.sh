@@ -37,7 +37,7 @@ log()   { echo -e "${GREEN}[DIST]${NC} $1"; }
 warn()  { echo -e "${YELLOW}[WARN]${NC} $1"; }
 error() { echo -e "${RED}[ERROR]${NC} $1"; exit 1; }
 
-# --- Pre-flight: read current build number ---
+# --- Pre-flight: read current build number (don't bump yet) ---
 
 cd "$PROJECT_DIR"
 PBXPROJ="MeshCoreApple.xcodeproj/project.pbxproj"
@@ -45,36 +45,8 @@ VERSION=$(grep "MARKETING_VERSION" "$PBXPROJ" | head -1 | grep -o '[0-9]*\.[0-9]
 CURRENT=$(grep "CURRENT_PROJECT_VERSION" "$PBXPROJ" | grep -o '[0-9]*' | sort -n | tail -1)
 NEW_BUILD=$((CURRENT + 1))
 
-log "Pre-flight: Ready to bump from build $CURRENT → $NEW_BUILD (v$VERSION) and distribute"
-
-# --- 1. Bump build number in ALL targets ---
-
-log "Bumping build number from $CURRENT to $NEW_BUILD..."
-sed -i '' "s/CURRENT_PROJECT_VERSION = [0-9][0-9]*/CURRENT_PROJECT_VERSION = $NEW_BUILD/g" "$PBXPROJ"
-
-WRONG_ENTRIES=$(grep "CURRENT_PROJECT_VERSION" "$PBXPROJ" | grep -v "= $NEW_BUILD;" || true)
-if [ -n "$WRONG_ENTRIES" ]; then
-    error "Build number mismatch after sed — some entries were NOT updated to $NEW_BUILD"
-fi
-
-log "Verified: all CURRENT_PROJECT_VERSION entries set to $NEW_BUILD"
-
-# --- 2. Commit and push the bump ---
-
-log "Committing build bump..."
-git add "$PBXPROJ"
-if ! git commit -m "chore: bump build to $NEW_BUILD (v$VERSION)
-
-Co-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>"; then
-    error "git commit failed"
-fi
-
-log "Pushing to remote..."
-if ! git push; then
-    error "git push failed"
-fi
-
-log "Build $NEW_BUILD bumped, committed, and pushed"
+log "Pre-flight: Ready to distribute build $CURRENT (v$VERSION)"
+log "Next build number will be: $NEW_BUILD (only bumped after successful archiving)"
 
 # --- Pre-flight: verify App Store Connect API key exists ---
 
@@ -88,15 +60,15 @@ fi
 TARGET="${1:-all}"
 ARCHIVE_ONLY="${2:-}"
 
-log "MeshCoreApple v$VERSION build $BUILD"
+log "MeshCoreApple v$VERSION build $CURRENT (archiving...)"
 log "Target: $TARGET"
 
 # Create archive and export directories
 mkdir -p "$ARCHIVE_DIR" "$EXPORT_DIR"
 
 # Archive names — scheme-based, version+build visible at a glance in Organizer.
-IOS_ARCHIVE="$ARCHIVE_DIR/MeshCoreApple v$VERSION ($BUILD).xcarchive"
-MACOS_ARCHIVE="$ARCHIVE_DIR/MeshCoreApple-macOS v$VERSION ($BUILD).xcarchive"
+IOS_ARCHIVE="$ARCHIVE_DIR/MeshCoreApple v$VERSION ($CURRENT).xcarchive"
+MACOS_ARCHIVE="$ARCHIVE_DIR/MeshCoreApple-macOS v$VERSION ($CURRENT).xcarchive"
 
 # ============================================================
 # PHASE 1 — ARCHIVE (both platforms before any upload starts)
@@ -143,8 +115,38 @@ if [[ "$TARGET" == "macos" || "$TARGET" == "all" ]]; then
 fi
 
 if [[ "$TARGET" == "all" ]]; then
-    log "Both archives complete — proceeding to upload phase"
+    log "Both archives complete — proceeding to bump and upload phase"
 fi
+
+# ============================================================
+# PHASE 1B — BUMP BUILD NUMBER (only after archiving succeeds)
+# This ensures build numbers are never wasted on failed distributions.
+# ============================================================
+
+log "Bumping build number from $CURRENT to $NEW_BUILD..."
+sed -i '' "s/CURRENT_PROJECT_VERSION = [0-9][0-9]*/CURRENT_PROJECT_VERSION = $NEW_BUILD/g" "$PBXPROJ"
+
+WRONG_ENTRIES=$(grep "CURRENT_PROJECT_VERSION" "$PBXPROJ" | grep -v "= $NEW_BUILD;" || true)
+if [ -n "$WRONG_ENTRIES" ]; then
+    error "Build number mismatch after sed — some entries were NOT updated to $NEW_BUILD"
+fi
+
+log "Verified: all CURRENT_PROJECT_VERSION entries set to $NEW_BUILD"
+
+log "Committing build bump..."
+git add "$PBXPROJ"
+if ! git commit -m "chore: bump build to $NEW_BUILD (v$VERSION)
+
+Co-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>"; then
+    error "git commit failed"
+fi
+
+log "Pushing to remote..."
+if ! git push; then
+    error "git push failed"
+fi
+
+log "Build $NEW_BUILD bumped, committed, and pushed"
 
 # ============================================================
 # PHASE 2 — UPLOAD (skipped entirely with --archive-only)
@@ -154,7 +156,7 @@ fi
 
 if [[ "$ARCHIVE_ONLY" == "--archive-only" ]]; then
     log "Archive-only mode — skipping uploads"
-    log "Done! v$VERSION build $BUILD archived. Organizer path: $ARCHIVE_DIR"
+    log "Done! v$VERSION build $CURRENT archived. Organizer path: $ARCHIVE_DIR"
     exit 0
 fi
 
@@ -163,7 +165,7 @@ if [[ "$TARGET" == "ios" || "$TARGET" == "all" ]]; then
     xcodebuild -exportArchive \
         -archivePath "$IOS_ARCHIVE" \
         -exportOptionsPlist "$PROJECT_DIR/ExportOptions-AppStore.plist" \
-        -exportPath "$EXPORT_DIR/iOS-$BUILD" \
+        -exportPath "$EXPORT_DIR/iOS-$NEW_BUILD" \
         -allowProvisioningUpdates \
         -authenticationKeyPath "$ASC_KEY_PATH" \
         -authenticationKeyID "$ASC_KEY_ID" \
@@ -180,7 +182,7 @@ if [[ "$TARGET" == "macos" || "$TARGET" == "all" ]]; then
     xcodebuild -exportArchive \
         -archivePath "$MACOS_ARCHIVE" \
         -exportOptionsPlist "$PROJECT_DIR/ExportOptions-AppStore.plist" \
-        -exportPath "$EXPORT_DIR/macOS-$BUILD" \
+        -exportPath "$EXPORT_DIR/macOS-$NEW_BUILD" \
         -allowProvisioningUpdates \
         -authenticationKeyPath "$ASC_KEY_PATH" \
         -authenticationKeyID "$ASC_KEY_ID" \
@@ -192,5 +194,5 @@ if [[ "$TARGET" == "macos" || "$TARGET" == "all" ]]; then
     log "macOS uploaded to App Store Connect"
 fi
 
-log "Done! v$VERSION build $BUILD"
+log "Done! v$VERSION build $NEW_BUILD uploaded to App Store Connect"
 log "Check App Store Connect → TestFlight for processing status"
