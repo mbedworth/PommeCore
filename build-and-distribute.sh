@@ -109,6 +109,7 @@ if [[ "$TARGET" == "ios" || "$TARGET" == "all" ]]; then
         -scheme "$SCHEME" \
         -destination "generic/platform=iOS" \
         -archivePath "$IOS_ARCHIVE" \
+        -allowProvisioningUpdates \
         CODE_SIGN_STYLE=Automatic \
         OTHER_CODE_SIGN_FLAGS="--keychain ~/Library/Keychains/login.keychain-db" \
         2>&1 | tee /tmp/xcodebuild-ios.log | tail -20
@@ -127,6 +128,7 @@ if [[ "$TARGET" == "macos" || "$TARGET" == "all" ]]; then
         -scheme "MeshCoreApple-macOS" \
         -destination "generic/platform=macOS" \
         -archivePath "$MACOS_ARCHIVE" \
+        -allowProvisioningUpdates \
         CODE_SIGN_STYLE=Automatic \
         OTHER_CODE_SIGN_FLAGS="--keychain ~/Library/Keychains/login.keychain-db" \
         2>&1 | tee /tmp/xcodebuild-macos.log | tail -20
