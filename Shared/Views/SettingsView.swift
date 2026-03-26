@@ -2294,13 +2294,24 @@ struct TipJarView: View {
                 }
 
                 if manager.purchaseSuccess {
-                    HStack(spacing: 8) {
-                        Image(systemName: "checkmark.circle.fill")
+                    VStack(spacing: 12) {
+                        Image(systemName: "heart.circle.fill")
+                            .font(.system(size: 48))
                             .foregroundStyle(MeshTheme.connected)
-                        Text("Thank you for your support!")
-                            .foregroundStyle(MeshTheme.connected)
+                        Text("Thank You!")
+                            .font(.title2.bold())
+                            .foregroundStyle(MeshTheme.textPrimary)
+                        Text("Your support helps keep MeshCore free for everyone.")
+                            .font(.subheadline)
+                            .foregroundStyle(MeshTheme.textSecondary)
+                            .multilineTextAlignment(.center)
                     }
                     .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(MeshTheme.surfaceLight)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .transition(.scale.combined(with: .opacity))
+                    .animation(.easeOut(duration: 0.3), value: manager.purchaseSuccess)
                 }
 
                 Divider()
@@ -2375,6 +2386,14 @@ struct TipJarView: View {
             // Cancel any pending purchase to prevent UI freeze from stuck StoreKit overlay
             manager.purchasingProductID = nil
             DebugLogger.shared.log("TIP JAR VIEW: disappeared, cleaned up", level: .info)
+        }
+        .onChange(of: manager.purchaseSuccess) { _, success in
+            if success {
+                // Auto-dismiss after a brief pause so the user sees the thank-you message
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                    dismiss()
+                }
+            }
         }
     }
 }
