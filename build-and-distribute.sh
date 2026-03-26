@@ -2,17 +2,19 @@
 set -euo pipefail
 
 # MeshCoreApple Distribute Script
-# Archives and uploads to App Store Connect / TestFlight.
+# Bumps build number, commits, pushes, then archives and uploads to TestFlight.
 #
-# MUST run scripts/bump_and_build.sh first — this script refuses to run
-# if a clean compile-check hasn't been completed for the current build number.
+# MUST run scripts/bump_and_build.sh first to verify code compiles cleanly.
+#
+# Workflow:
+#   1. ./scripts/bump_and_build.sh          # verify code compiles (no bump yet)
+#   2. ./build-and-distribute.sh [ios|macos|all]  # bump, commit, push, archive, upload
 #
 # When TARGET=all, BOTH platforms are archived before EITHER is uploaded.
 # A signing or provisioning failure on one platform will not cause a partial
 # upload of the other.
 #
 # Usage:
-#   ./scripts/bump_and_build.sh [build_number]   # bump, compile-check, commit, push, sentinel
 #   ./build-and-distribute.sh [ios|macos|all] [--archive-only]
 
 SCHEME="MeshCoreApple"
@@ -35,28 +37,44 @@ log()   { echo -e "${GREEN}[DIST]${NC} $1"; }
 warn()  { echo -e "${YELLOW}[WARN]${NC} $1"; }
 error() { echo -e "${RED}[ERROR]${NC} $1"; exit 1; }
 
-# --- Pre-flight: verify a clean build exists for the current build number ---
+# --- Pre-flight: read current build number ---
 
 cd "$PROJECT_DIR"
-VERSION=$(grep "MARKETING_VERSION" MeshCoreApple.xcodeproj/project.pbxproj | head -1 | grep -o '[0-9]*\.[0-9]*\.[0-9]*')
-BUILD=$(grep "CURRENT_PROJECT_VERSION" MeshCoreApple.xcodeproj/project.pbxproj | head -1 | grep -o '[0-9]*')
+PBXPROJ="MeshCoreApple.xcodeproj/project.pbxproj"
+VERSION=$(grep "MARKETING_VERSION" "$PBXPROJ" | head -1 | grep -o '[0-9]*\.[0-9]*\.[0-9]*')
+CURRENT=$(grep "CURRENT_PROJECT_VERSION" "$PBXPROJ" | grep -o '[0-9]*' | sort -n | tail -1)
+NEW_BUILD=$((CURRENT + 1))
 
-if [ ! -f "$SENTINEL" ]; then
-    error "No build sentinel found. Run ./scripts/bump_and_build.sh first."
+log "Pre-flight: Ready to bump from build $CURRENT → $NEW_BUILD (v$VERSION) and distribute"
+
+# --- 1. Bump build number in ALL targets ---
+
+log "Bumping build number from $CURRENT to $NEW_BUILD..."
+sed -i '' "s/CURRENT_PROJECT_VERSION = [0-9][0-9]*/CURRENT_PROJECT_VERSION = $NEW_BUILD/g" "$PBXPROJ"
+
+WRONG_ENTRIES=$(grep "CURRENT_PROJECT_VERSION" "$PBXPROJ" | grep -v "= $NEW_BUILD;" || true)
+if [ -n "$WRONG_ENTRIES" ]; then
+    error "Build number mismatch after sed — some entries were NOT updated to $NEW_BUILD"
 fi
 
-SENTINEL_BUILD=$(head -1 "$SENTINEL")
-if [ "$SENTINEL_BUILD" != "$BUILD" ]; then
-    error "Sentinel is for build $SENTINEL_BUILD but project is at build $BUILD. Re-run ./scripts/bump_and_build.sh."
+log "Verified: all CURRENT_PROJECT_VERSION entries set to $NEW_BUILD"
+
+# --- 2. Commit and push the bump ---
+
+log "Committing build bump..."
+git add "$PBXPROJ"
+if ! git commit -m "chore: bump build to $NEW_BUILD (v$VERSION)
+
+Co-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>"; then
+    error "git commit failed"
 fi
 
-# Stale check: sentinel must be less than 24 hours old
-SENTINEL_AGE=$(( $(date +%s) - $(stat -f %m "$SENTINEL") ))
-if [ "$SENTINEL_AGE" -gt 86400 ]; then
-    warn "Build sentinel is $(( SENTINEL_AGE / 3600 ))h old — consider re-running bump_and_build.sh for a fresh compile check."
+log "Pushing to remote..."
+if ! git push; then
+    error "git push failed"
 fi
 
-log "Pre-flight passed: clean build confirmed for v$VERSION build $BUILD"
+log "Build $NEW_BUILD bumped, committed, and pushed"
 
 # --- Pre-flight: verify App Store Connect API key exists ---
 
