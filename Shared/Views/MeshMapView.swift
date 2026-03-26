@@ -48,23 +48,23 @@ final class MeshMapService {
     /// The map API (map.meshcore.dev/api/v1/uploader/node) expects a JSON body:
     /// ```json
     /// {
-    ///   "params": { "freq": 906000000, "bw": 250000, "sf": 9, "cr": 8 },
+    ///   "params": { "freq": 906.0, "bw": 250.0, "sf": 9, "cr": 8 },
     ///   "links": ["meshcore://HEXDATA"]
     /// }
     /// ```
-    /// Radio params convert DeviceConfig units → Hz:
-    ///   freq: radioFrequency (kHz) × 1000 → Hz
-    ///   bw:   radioBandwidth (Hz) directly
+    /// Radio params convert DeviceConfig units → API units:
+    ///   freq: radioFrequency (kHz) ÷ 1000 → MHz  (e.g. 906000 kHz → 906.0 MHz)
+    ///   bw:   radioBandwidth (Hz) ÷ 1000 → kHz   (e.g. 250000 Hz → 250.0 kHz)
     ///   sf:   radioSpreadingFactor (raw byte)
     ///   cr:   radioCodingRate (raw byte, 5–8)
     ///
     /// - Parameters:
     ///   - exportURL: The `meshcore://hexbytes` URL from CMD_EXPORT_CONTACT (self).
-    ///   - freq: Frequency in Hz (radioFrequency × 1000).
-    ///   - bw:   Bandwidth in Hz (radioBandwidth, already Hz).
+    ///   - freq: Frequency in MHz (radioFrequency ÷ 1000).
+    ///   - bw:   Bandwidth in kHz (radioBandwidth ÷ 1000).
     ///   - sf:   Spreading factor.
     ///   - cr:   Coding rate (5–8).
-    func uploadNode(exportURL: String, freq: Int, bw: Int, sf: Int, cr: Int) {
+    func uploadNode(exportURL: String, freq: Double, bw: Double, sf: Int, cr: Int) {
         guard exportURL.hasPrefix("meshcore://") else { return }
         guard !exportURL.dropFirst("meshcore://".count).isEmpty else { return }
 
@@ -82,11 +82,6 @@ final class MeshMapService {
             return
         }
 
-        // Debug: log the exact JSON being sent
-        if let jsonString = String(data: jsonData, encoding: .utf8) {
-            DebugLogger.shared.log("MAP UPLOAD: sending JSON: \(jsonString.prefix(200))...", level: .info)
-        }
-
         var request = URLRequest(url: uploadURL)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -96,10 +91,6 @@ final class MeshMapService {
             let (responseData, response) = try await URLSession.shared.data(for: request)
             if let http = response as? HTTPURLResponse {
                 DebugLogger.shared.log("MAP UPLOAD: HTTP \(http.statusCode)", level: .info)
-                // On error, log response body for debugging
-                if http.statusCode != 200, let body = String(data: responseData, encoding: .utf8) {
-                    DebugLogger.shared.log("MAP UPLOAD: error response: \(body.prefix(300))", level: .info)
-                }
             }
         } catch {
             DebugLogger.shared.log("MAP UPLOAD: \(error.localizedDescription)", level: .error)
@@ -243,6 +234,13 @@ enum MeshMapMessagePackDecoder {
         case 0xD1: return .int(Int64(Int16(bitPattern: try r.readUInt16())))
         case 0xD2: return .int(Int64(Int32(bitPattern: try r.readUInt32())))
         case 0xD3: return .int(Int64(bitPattern: try r.readUInt64()))
+
+        // fixext1..16 — read and discard (e.g. MessagePack Timestamps used by map API)
+        case 0xD4: _ = try r.readBytes(2);  return .null  // type(1) + data(1)
+        case 0xD5: _ = try r.readBytes(3);  return .null  // type(1) + data(2)
+        case 0xD6: _ = try r.readBytes(5);  return .null  // type(1) + data(4)
+        case 0xD7: _ = try r.readBytes(9);  return .null  // type(1) + data(8)
+        case 0xD8: _ = try r.readBytes(17); return .null  // type(1) + data(16)
 
         // str8, str16, str32
         case 0xD9: return .string(try readString(len: Int(try r.readByte()), r: &r))

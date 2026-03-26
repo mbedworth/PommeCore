@@ -1446,13 +1446,13 @@ final class MeshCoreViewModel: ObservableObject {
                 // (which would trigger the .onChange handler and show the alert)
                 pendingMapUpload = false
                 if !url.isEmpty {
-                    // Convert DeviceConfig radio units → Hz for the map API:
-                    //   radioFrequency is stored in kHz → multiply by 1000 for Hz
-                    //   radioBandwidth is stored in Hz  → use directly
+                    // Convert DeviceConfig radio units → map API units:
+                    //   radioFrequency is stored in kHz → divide by 1000 for MHz
+                    //   radioBandwidth is stored in Hz  → divide by 1000 for kHz
                     MeshMapService.shared.uploadNode(
                         exportURL: url,
-                        freq: Int(deviceConfig.radioFrequency) * 1000,
-                        bw:   Int(deviceConfig.radioBandwidth),
+                        freq: Double(deviceConfig.radioFrequency) / 1000.0,
+                        bw:   Double(deviceConfig.radioBandwidth) / 1000.0,
                         sf:   Int(deviceConfig.radioSpreadingFactor),
                         cr:   Int(deviceConfig.radioCodingRate)
                     )
