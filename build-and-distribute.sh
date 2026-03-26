@@ -226,5 +226,5 @@ if [[ "$TARGET" == "macos" || "$TARGET" == "all" ]]; then
     log "macOS uploaded to App Store Connect"
 fi
 
-log "Done! v$VERSION build $NEW_BUILD uploaded to App Store Connect"
+log "Done! v$VERSION build $CURRENT uploaded to App Store Connect (project bumped to $NEW_BUILD)"
 log "Check App Store Connect → TestFlight for processing status"
