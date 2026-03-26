@@ -187,8 +187,10 @@ struct ContactListView: View {
         }
         #elseif os(macOS) || targetEnvironment(macCatalyst)
         .toolbar {
+            // ControlGroup keeps the three buttons as one atomic AppKit toolbar item
+            // so they don't get individually shuffled into the >> overflow menu.
             ToolbarItem(placement: .automatic) {
-                HStack(spacing: 12) {
+                ControlGroup {
                     Button {
                         viewModel.sendAdvertise(type: 1)
                         showAdvertSent?.wrappedValue = true
@@ -196,29 +198,28 @@ struct ContactListView: View {
                             showAdvertSent?.wrappedValue = false
                         }
                     } label: {
-                        Image(systemName: showAdvertSent?.wrappedValue == true
-                              ? "checkmark.circle.fill" : "antenna.radiowaves.left.and.right")
-                            .foregroundStyle(showAdvertSent?.wrappedValue == true ? .green : MeshTheme.accent)
+                        Label("Advertise",
+                              systemImage: showAdvertSent?.wrappedValue == true
+                                ? "checkmark.circle.fill"
+                                : "antenna.radiowaves.left.and.right")
                     }
                     .disabled(viewModel.connectionState != .ready)
 
                     Button {
                         showDiscover?.wrappedValue = true
                     } label: {
-                        Image(systemName: "binoculars.fill")
-                            .foregroundStyle(MeshTheme.accent)
+                        Label("Discover", systemImage: "binoculars.fill")
                     }
                     .disabled(viewModel.connectionState != .ready)
 
                     Button {
                         viewModel.refreshAll()
                     } label: {
-                        Image(systemName: "arrow.clockwise")
-                            .foregroundStyle(MeshTheme.accent)
+                        Label("Refresh", systemImage: "arrow.clockwise")
                     }
-                    .accessibilityLabel("Refresh")
                     .disabled(viewModel.connectionState != .ready)
                 }
+                .controlGroupStyle(.automatic)
             }
         }
         #else

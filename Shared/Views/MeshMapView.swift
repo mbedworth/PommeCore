@@ -88,7 +88,7 @@ final class MeshMapService {
         request.httpBody = jsonData
         request.timeoutInterval = 15
         do {
-            let (responseData, response) = try await URLSession.shared.data(for: request)
+            let (_, response) = try await URLSession.shared.data(for: request)
             if let http = response as? HTTPURLResponse {
                 DebugLogger.shared.log("MAP UPLOAD: HTTP \(http.statusCode)", level: .info)
             }
@@ -362,19 +362,38 @@ enum MeshMapMessagePackDecoder {
 struct MeshMapView: View {
     @EnvironmentObject var viewModel: MeshCoreViewModel
     @StateObject private var locationManager = LocationManager()
+    @State private var cameraPosition: MapCameraPosition = .automatic
+    /// Mirrors the camera's current region. Set explicitly when we move the camera
+    /// programmatically so nodes appear without waiting for onMapCameraChange to fire.
+    @State private var visibleRegion: MKCoordinateRegion? = nil
+    /// True once we've applied the initial 500-mile camera jump; avoids re-jumping on pans.
+    @State private var hasSetInitialCamera = false
+
+    // ~500 miles as degrees of latitude (1° ≈ 69 mi → 500 mi ÷ 69 ≈ 7.25°)
+    private static let initialSpanDegrees = 7.25
 
     private var mappableContacts: [Contact] {
         viewModel.contacts.filter { $0.latitude != 0 || $0.longitude != 0 }
     }
 
-    private var internetNodes: [InternetMapNode] {
-        viewModel.internetMapNodes
+    /// Internet nodes filtered to the currently visible region, capped at 500.
+    private var visibleInternetNodes: [InternetMapNode] {
+        let all = viewModel.internetMapNodes
+        guard !all.isEmpty, let region = visibleRegion else { return [] }
+        let latHalf = region.span.latitudeDelta / 2
+        let lonHalf = region.span.longitudeDelta / 2
+        let lat = region.center.latitude
+        let lon = region.center.longitude
+        let filtered = all.filter {
+            abs($0.latitude - lat) <= latHalf && abs($0.longitude - lon) <= lonHalf
+        }
+        return filtered.count > 500 ? Array(filtered.prefix(500)) : filtered
     }
 
     var body: some View {
         ZStack {
-            Map {
-                // Local mesh contacts
+            Map(position: $cameraPosition) {
+                // Local mesh contacts — custom annotations with tap-to-navigate
                 ForEach(mappableContacts) { contact in
                     Annotation(viewModel.displayName(for: contact),
                                coordinate: CLLocationCoordinate2D(
@@ -401,29 +420,25 @@ struct MeshMapView: View {
                     }
                 }
 
-                // Internet map nodes (map.meshcore.dev) — teal markers
-                ForEach(internetNodes) { node in
-                    Annotation(node.name,
-                               coordinate: CLLocationCoordinate2D(
-                                   latitude: node.latitude,
-                                   longitude: node.longitude
-                               )) {
-                        VStack(spacing: 2) {
-                            Image(systemName: internetNodeIcon(node))
-                                .foregroundStyle(.white)
-                                .font(.caption)
-                                .padding(5)
-                                .background(Circle().fill(Color.teal.opacity(0.85)))
-                                .shadow(radius: 2)
-                            Text(node.name)
-                                .font(.caption2)
-                                .foregroundStyle(MeshTheme.textPrimary)
-                                .lineLimit(1)
-                        }
-                    }
+                // Internet map nodes — lightweight Marker (system pin, MapKit-managed).
+                // Filtered to visible region so MapKit never holds more than ~500 at once.
+                ForEach(visibleInternetNodes) { node in
+                    Marker(node.name,
+                           systemImage: internetNodeIcon(node),
+                           coordinate: CLLocationCoordinate2D(
+                               latitude: node.latitude,
+                               longitude: node.longitude
+                           ))
+                    .tint(.teal)
                 }
 
                 UserAnnotation()
+            }
+            .onMapCameraChange(frequency: .onEnd) { context in
+                // Keep visibleRegion in sync as the user pans/zooms
+                DispatchQueue.main.async {
+                    visibleRegion = context.region
+                }
             }
             .mapControls {
                 MapUserLocationButton()
@@ -433,8 +448,20 @@ struct MeshMapView: View {
 
             // Overlays
             VStack {
-                // Legend when internet nodes are present
-                if !internetNodes.isEmpty {
+                // Status bar: loading indicator or legend
+                if viewModel.isLoadingInternetNodes {
+                    HStack(spacing: 6) {
+                        ProgressView().controlSize(.mini)
+                        Text("Loading internet map…")
+                            .font(.caption2)
+                            .foregroundStyle(MeshTheme.textSecondary)
+                    }
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(.thinMaterial)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .padding(.top, 8)
+                } else if !viewModel.internetMapNodes.isEmpty {
                     HStack(spacing: 8) {
                         HStack(spacing: 4) {
                             Circle().fill(MeshTheme.accent).frame(width: 8, height: 8)
@@ -444,7 +471,7 @@ struct MeshMapView: View {
                         }
                         HStack(spacing: 4) {
                             Circle().fill(Color.teal.opacity(0.85)).frame(width: 8, height: 8)
-                            Text("Internet map (\(internetNodes.count))")
+                            Text("Internet map (\(viewModel.internetMapNodes.count))")
                                 .font(.caption2)
                                 .foregroundStyle(MeshTheme.textSecondary)
                         }
@@ -460,7 +487,7 @@ struct MeshMapView: View {
 
                 if locationManager.authorizationStatus == .denied ||
                    locationManager.authorizationStatus == .restricted {
-                    Text("Location access denied. Enable in Settings \u{2192} Privacy \u{2192} Location Services.")
+                    Text("Location access denied. Enable in Settings → Privacy → Location Services.")
                         .font(.caption)
                         .foregroundStyle(.orange)
                         .padding(8)
@@ -468,7 +495,7 @@ struct MeshMapView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 8))
                         .padding()
                 }
-                if mappableContacts.isEmpty && internetNodes.isEmpty {
+                if mappableContacts.isEmpty && viewModel.internetMapNodes.isEmpty && !viewModel.isLoadingInternetNodes {
                     VStack(spacing: 4) {
                         Text("No contacts with location data")
                             .font(.caption)
@@ -492,12 +519,40 @@ struct MeshMapView: View {
                 } label: {
                     Image(systemName: "arrow.clockwise")
                 }
+                .disabled(viewModel.isLoadingInternetNodes)
                 .help("Refresh internet map nodes")
             }
         }
-        .onAppear {
+        .task {
             locationManager.requestPermission()
             viewModel.fetchInternetMapNodes()
+        }
+        .onChange(of: locationManager.currentLocation) { _, location in
+            guard let location, !hasSetInitialCamera else { return }
+            hasSetInitialCamera = true
+            let region = MKCoordinateRegion(
+                center: location.coordinate,
+                span: MKCoordinateSpan(
+                    latitudeDelta: Self.initialSpanDegrees,
+                    longitudeDelta: Self.initialSpanDegrees
+                )
+            )
+            // Set both the camera and the filter region together so nodes appear immediately
+            cameraPosition = .region(region)
+            visibleRegion = region
+        }
+        // Also update visible region once nodes load (handles case where location
+        // arrived before the nodes were fetched)
+        .onChange(of: viewModel.internetMapNodes.count) { _, count in
+            guard count > 0, visibleRegion == nil,
+                  let loc = locationManager.currentLocation else { return }
+            visibleRegion = MKCoordinateRegion(
+                center: loc.coordinate,
+                span: MKCoordinateSpan(
+                    latitudeDelta: Self.initialSpanDegrees,
+                    longitudeDelta: Self.initialSpanDegrees
+                )
+            )
         }
     }
 
@@ -538,23 +593,55 @@ struct MeshMapView: View {
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private let manager = CLLocationManager()
     @Published var authorizationStatus: CLAuthorizationStatus = .notDetermined
+    @Published var currentLocation: CLLocation? = nil
 
     override init() {
         super.init()
         manager.delegate = self
-        manager.desiredAccuracy = kCLLocationAccuracyBest
+        manager.desiredAccuracy = kCLLocationAccuracyHundredMeters
     }
 
     func requestPermission() {
-        if manager.authorizationStatus == .notDetermined {
+        switch manager.authorizationStatus {
+        case .notDetermined:
+            #if os(macOS)
+            manager.requestAlwaysAuthorization()
+            #else
             manager.requestWhenInUseAuthorization()
+            #endif
+        default:
+            if isAuthorized(manager.authorizationStatus) {
+                manager.requestLocation()
+            }
         }
     }
 
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-        Task { @MainActor in
+        DispatchQueue.main.async {
             self.authorizationStatus = manager.authorizationStatus
+            if self.isAuthorized(manager.authorizationStatus) {
+                manager.requestLocation()
+            }
         }
+    }
+
+    private func isAuthorized(_ status: CLAuthorizationStatus) -> Bool {
+        #if os(macOS)
+        return status == .authorized || status == .authorizedAlways
+        #else
+        return status == .authorizedWhenInUse || status == .authorizedAlways
+        #endif
+    }
+
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard let loc = locations.last else { return }
+        DispatchQueue.main.async {
+            self.currentLocation = loc
+        }
+    }
+
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        // requestLocation() failure is non-fatal — map still works without location
     }
 }
 #endif

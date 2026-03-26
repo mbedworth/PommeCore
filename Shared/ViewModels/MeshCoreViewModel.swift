@@ -191,6 +191,8 @@ final class MeshCoreViewModel: ObservableObject {
     #if !os(watchOS)
     /// Nodes fetched from the MeshCore internet map (map.meshcore.dev).
     @Published var internetMapNodes: [InternetMapNode] = []
+    /// True while a map node fetch is in progress.
+    @Published var isLoadingInternetNodes = false
     /// Set to true before sending CMD_EXPORT_CONTACT (self) for map upload.
     private var pendingMapUpload = false
     #endif
@@ -943,6 +945,9 @@ final class MeshCoreViewModel: ObservableObject {
     func setAdvertName(_ name: String) {
         sendCommand(MeshCoreProtocol.buildSetAdvertName(name), label: "SET_ADVERT_NAME")
         deviceConfig.deviceName = name
+        // Re-advertise immediately so other mesh nodes see the new name without waiting
+        // for the next scheduled advert interval.
+        sendAdvertise()
     }
 
     /// Set local device's advertised location. Privacy fudge is applied here.
@@ -1109,20 +1114,35 @@ final class MeshCoreViewModel: ObservableObject {
     /// Fetch internet map nodes from map.meshcore.dev and update `internetMapNodes`.
     /// Skips the network call if the cached data is less than 5 minutes old.
     func fetchInternetMapNodes() {
-        Task {
-            // fetchIfNeeded() is async — await ensures nodes are populated before
-            // we copy them. The old 500ms sleep was a race condition that failed
-            // whenever the API response took longer than half a second.
-            await MeshMapService.shared.fetchIfNeeded()
-            internetMapNodes = MeshMapService.shared.nodes
+        guard !isLoadingInternetNodes else { return }
+        // DispatchQueue.main.async defers past the current run-loop source so
+        // @Published mutations don't fire during a SwiftUI view-update pass.
+        // Task { @MainActor in } restores actor isolation so objectWillChange
+        // fires on the main actor and SwiftUI picks up the change.
+        DispatchQueue.main.async { [weak self] in
+            guard let self, !self.isLoadingInternetNodes else { return }
+            self.isLoadingInternetNodes = true
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                await MeshMapService.shared.fetchIfNeeded()
+                self.internetMapNodes = MeshMapService.shared.nodes
+                self.isLoadingInternetNodes = false
+            }
         }
     }
 
     /// Force-refresh internet map nodes regardless of cache age.
     func refreshInternetMapNodes() {
-        Task {
-            await MeshMapService.shared.fetch()
-            internetMapNodes = MeshMapService.shared.nodes
+        guard !isLoadingInternetNodes else { return }
+        DispatchQueue.main.async { [weak self] in
+            guard let self, !self.isLoadingInternetNodes else { return }
+            self.isLoadingInternetNodes = true
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                await MeshMapService.shared.fetch()
+                self.internetMapNodes = MeshMapService.shared.nodes
+                self.isLoadingInternetNodes = false
+            }
         }
     }
     #endif
