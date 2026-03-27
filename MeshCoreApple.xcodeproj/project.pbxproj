@@ -15,11 +15,12 @@
 		49709E93735B40512587904A /* MeshCoreKit in Frameworks */ = {isa = PBXBuildFile; productRef = 98C321AB3594D357C6B0816A /* MeshCoreKit */; };
 		57D771A61E08BB1991C80DE6 /* MeshCoreApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A259126AAB80661010C6A336 /* MeshCoreApp.swift */; };
 		5EA23B098C539C2A2191CA10 /* MeshCoreViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FBBD4DD1E3CAFDF4D56504 /* MeshCoreViewModel.swift */; };
-		5WT22AMGOSQXJ90NFRN8O6TK /* RemoteManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */; };
+		'5WT22AMGOSQXJ90NFRN8O6TK' = {isa = PBXBuildFile; fileRef = LP9PDGZGN1LKSGLAB8EQ67PF; };
 		65CD1325656C00EAA6EB6050 /* MeshCoreKit in Frameworks */ = {isa = PBXBuildFile; productRef = 635A77C284788242D78AE126 /* MeshCoreKit */; };
 		68CC8A44AD061C07535707EB /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D859AE9C98610F71C2FBAAF /* SettingsView.swift */; };
 		6A8D08F2CE9D321D55C02696 /* MeshCoreViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FBBD4DD1E3CAFDF4D56504 /* MeshCoreViewModel.swift */; };
 		894905739E99B7E425A27485 /* MeshCoreApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A259126AAB80661010C6A336 /* MeshCoreApp.swift */; };
+		895D4D4DB59133B2391177FB /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 635B414AA8FC75B37367C7F5 /* PrivacyInfo.xcprivacy */; };
 		8EF971496F064F1AD761B796 /* ContactListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21606E2B959E6496D3B0230D /* ContactListView.swift */; };
 		9144822AD9EB38340AF2317E /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EFFE2BF3488F0C0647632CD /* ChatView.swift */; };
 		96059FF0363E830C376C23ED /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6BA0593D517B1467DBC1C42 /* Theme.swift */; };
@@ -27,16 +28,17 @@
 		9D7EAB7850F077EF373AC84F /* NetworkToolsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB24E21D8CDBE0500C92E469 /* NetworkToolsView.swift */; };
 		A81875C1B0A1226A9333AFCF /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6BA0593D517B1467DBC1C42 /* Theme.swift */; };
 		B2C3D4E5F6071829A3B4C5D6 /* ShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* ShareView.swift */; };
+		B5EE485BAA6AEBB5F4E8FF23 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 2EEF439B8EDC4A5408C299FB /* PrivacyInfo.xcprivacy */; };
 		C0FC54B3FE70C36D754DEEEC /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EFFE2BF3488F0C0647632CD /* ChatView.swift */; };
 		C2497AA6CDB94C882FC3C7CB /* DeviceScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2377BED4FF5A7170783BA649 /* DeviceScannerView.swift */; };
 		C3D4E5F60718293AB4C5D6E7 /* ShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* ShareView.swift */; };
 		C9CEA8D3714859C1177D7704 /* ContactListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21606E2B959E6496D3B0230D /* ContactListView.swift */; };
-		CATKUXG25PTVMENJWXQZY49X /* RemoteManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */; };
+		'CATKUXG25PTVMENJWXQZY49X' = {isa = PBXBuildFile; fileRef = LP9PDGZGN1LKSGLAB8EQ67PF; };
 		D3633106D9031C89E0589468 /* MeshCoreViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FBBD4DD1E3CAFDF4D56504 /* MeshCoreViewModel.swift */; };
 		D4E5F60718293A4BC5D6E7F8 /* ShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* ShareView.swift */; };
-		DBG10000000000000000001 /* DebugLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBG10000000000000000000 /* DebugLogView.swift */; };
-		DBG10000000000000000002 /* DebugLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBG10000000000000000000 /* DebugLogView.swift */; };
-		DBG10000000000000000003 /* DebugLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBG10000000000000000000 /* DebugLogView.swift */; };
+		'DBG10000000000000000001' = {isa = PBXBuildFile; fileRef = DBG10000000000000000000; };
+		'DBG10000000000000000002' = {isa = PBXBuildFile; fileRef = DBG10000000000000000000; };
+		'DBG10000000000000000003' = {isa = PBXBuildFile; fileRef = DBG10000000000000000000; };
 		EC8655805E2DCD03D8C9C4F6 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D859AE9C98610F71C2FBAAF /* SettingsView.swift */; };
 		EE31FC870779BB9B07A11EEE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 43931BD12312D05F62A9E3B3 /* Assets.xcassets */; };
 		F01FFE8B0B7AB2F62D296F88 /* NetworkToolsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB24E21D8CDBE0500C92E469 /* NetworkToolsView.swift */; };
@@ -46,42 +48,44 @@
 		FAA4FA7E3E52FCF631D55675 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6BA0593D517B1467DBC1C42 /* Theme.swift */; };
 		FC6474A70CF5B233AB283928 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D859AE9C98610F71C2FBAAF /* SettingsView.swift */; };
 		FE123217A6AD32B385F9ACBC /* MeshCoreKit in Frameworks */ = {isa = PBXBuildFile; productRef = FBBB0BD5BAFCC905A8DC17D3 /* MeshCoreKit */; };
-		KCM1ABCD0001000000000001 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = KCM1ABCD0000000000000001 /* KeychainManager.swift */; };
-		KCM1ABCD0002000000000001 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = KCM1ABCD0000000000000001 /* KeychainManager.swift */; };
-		KCM1ABCD0003000000000001 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = KCM1ABCD0000000000000001 /* KeychainManager.swift */; };
-		STO10000000100000000001 /* ContactStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = STO10000000000000000001 /* ContactStore.swift */; };
-		STO10000000100000000002 /* ContactStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = STO10000000000000000001 /* ContactStore.swift */; };
-		STO10000000100000000003 /* ContactStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = STO10000000000000000001 /* ContactStore.swift */; };
-		STO20000000100000000001 /* ChannelStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = STO20000000000000000001 /* ChannelStore.swift */; };
-		STO20000000100000000002 /* ChannelStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = STO20000000000000000001 /* ChannelStore.swift */; };
-		STO20000000100000000003 /* ChannelStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = STO20000000000000000001 /* ChannelStore.swift */; };
-		STO30000000100000000001 /* MessageStoreManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = STO30000000000000000001 /* MessageStoreManager.swift */; };
-		STO30000000100000000002 /* MessageStoreManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = STO30000000000000000001 /* MessageStoreManager.swift */; };
-		STO30000000100000000003 /* MessageStoreManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = STO30000000000000000001 /* MessageStoreManager.swift */; };
-		STO40000000100000000001 /* ConnectionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = STO40000000000000000001 /* ConnectionManager.swift */; };
-		STO40000000100000000002 /* ConnectionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = STO40000000000000000001 /* ConnectionManager.swift */; };
-		STO40000000100000000003 /* ConnectionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = STO40000000000000000001 /* ConnectionManager.swift */; };
-		STO50000000100000000001 /* RemoteSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = STO50000000000000000001 /* RemoteSessionManager.swift */; };
-		STO50000000100000000002 /* RemoteSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = STO50000000000000000001 /* RemoteSessionManager.swift */; };
-		STO50000000100000000003 /* RemoteSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = STO50000000000000000001 /* RemoteSessionManager.swift */; };
-		MAP10000000000000000001 /* MeshMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MAP10000000000000000000 /* MeshMapView.swift */; };
-		MAP10000000000000000002 /* MeshMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MAP10000000000000000000 /* MeshMapView.swift */; };
-		MAP10000000000000000003 /* MeshMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MAP10000000000000000000 /* MeshMapView.swift */; };
-		OBV10000000000000000001 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBV10000000000000000000 /* OnboardingView.swift */; };
-		OBV10000000000000000002 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBV10000000000000000000 /* OnboardingView.swift */; };
-		OBV10000000000000000003 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBV10000000000000000000 /* OnboardingView.swift */; };
-		USB10000000000000000001 /* USBSerialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = USB10000000000000000000 /* USBSerialView.swift */; };
-		USB10000000000000000002 /* USBSerialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = USB10000000000000000000 /* USBSerialView.swift */; };
-		USB10000000000000000003 /* USBSerialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = USB10000000000000000000 /* USBSerialView.swift */; };
-		XUOVAQ6Y1NIWH1G3OMK55ENV /* RemoteManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */; };
+		'KCM1ABCD0001000000000001' = {isa = PBXBuildFile; fileRef = KCM1ABCD0000000000000001; };
+		'KCM1ABCD0002000000000001' = {isa = PBXBuildFile; fileRef = KCM1ABCD0000000000000001; };
+		'KCM1ABCD0003000000000001' = {isa = PBXBuildFile; fileRef = KCM1ABCD0000000000000001; };
+		'MAP10000000000000000001' = {isa = PBXBuildFile; fileRef = MAP10000000000000000000; };
+		'MAP10000000000000000002' = {isa = PBXBuildFile; fileRef = MAP10000000000000000000; };
+		'MAP10000000000000000003' = {isa = PBXBuildFile; fileRef = MAP10000000000000000000; };
+		'OBV10000000000000000001' = {isa = PBXBuildFile; fileRef = OBV10000000000000000000; };
+		'OBV10000000000000000002' = {isa = PBXBuildFile; fileRef = OBV10000000000000000000; };
+		'OBV10000000000000000003' = {isa = PBXBuildFile; fileRef = OBV10000000000000000000; };
+		'STO10000000100000000001' = {isa = PBXBuildFile; fileRef = STO10000000000000000001; };
+		'STO10000000100000000002' = {isa = PBXBuildFile; fileRef = STO10000000000000000001; };
+		'STO10000000100000000003' = {isa = PBXBuildFile; fileRef = STO10000000000000000001; };
+		'STO20000000100000000001' = {isa = PBXBuildFile; fileRef = STO20000000000000000001; };
+		'STO20000000100000000002' = {isa = PBXBuildFile; fileRef = STO20000000000000000001; };
+		'STO20000000100000000003' = {isa = PBXBuildFile; fileRef = STO20000000000000000001; };
+		'STO30000000100000000001' = {isa = PBXBuildFile; fileRef = STO30000000000000000001; };
+		'STO30000000100000000002' = {isa = PBXBuildFile; fileRef = STO30000000000000000001; };
+		'STO30000000100000000003' = {isa = PBXBuildFile; fileRef = STO30000000000000000001; };
+		'STO40000000100000000001' = {isa = PBXBuildFile; fileRef = STO40000000000000000001; };
+		'STO40000000100000000002' = {isa = PBXBuildFile; fileRef = STO40000000000000000001; };
+		'STO40000000100000000003' = {isa = PBXBuildFile; fileRef = STO40000000000000000001; };
+		'STO50000000100000000001' = {isa = PBXBuildFile; fileRef = STO50000000000000000001; };
+		'STO50000000100000000002' = {isa = PBXBuildFile; fileRef = STO50000000000000000001; };
+		'STO50000000100000000003' = {isa = PBXBuildFile; fileRef = STO50000000000000000001; };
+		'USB10000000000000000001' = {isa = PBXBuildFile; fileRef = USB10000000000000000000; };
+		'USB10000000000000000002' = {isa = PBXBuildFile; fileRef = USB10000000000000000000; };
+		'USB10000000000000000003' = {isa = PBXBuildFile; fileRef = USB10000000000000000000; };
+		'XUOVAQ6Y1NIWH1G3OMK55ENV' = {isa = PBXBuildFile; fileRef = LP9PDGZGN1LKSGLAB8EQ67PF; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		21606E2B959E6496D3B0230D /* ContactListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactListView.swift; sourceTree = "<group>"; };
 		2377BED4FF5A7170783BA649 /* DeviceScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceScannerView.swift; sourceTree = "<group>"; };
+		2EEF439B8EDC4A5408C299FB /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = macOS/PrivacyInfo.xcprivacy; sourceTree = SOURCE_ROOT; };
 		43931BD12312D05F62A9E3B3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		4FECE91529DA51E24B5EE93A /* WatchChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchChatView.swift; sourceTree = "<group>"; };
 		5D859AE9C98610F71C2FBAAF /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		635B414AA8FC75B37367C7F5 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = iOS/PrivacyInfo.xcprivacy; sourceTree = SOURCE_ROOT; };
 		669B72A1B0246925F17F1F37 /* MeshCore.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MeshCore.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7EFFE2BF3488F0C0647632CD /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F60718293A4B5C /* ShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareView.swift; sourceTree = "<group>"; };
@@ -91,18 +95,18 @@
 		D2AEF5C51E98EC24A3CCA95F /* MeshCoreKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = MeshCoreKit; path = Packages/MeshCoreKit; sourceTree = SOURCE_ROOT; };
 		D4F0BB9B2578DD9861508E3D /* MeshCore Watch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "MeshCore Watch.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		DB24E21D8CDBE0500C92E469 /* NetworkToolsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkToolsView.swift; sourceTree = "<group>"; };
-		DBG10000000000000000000 /* DebugLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugLogView.swift; sourceTree = "<group>"; };
+		'DBG10000000000000000000' = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugLogView.swift; sourceTree = "<group>"; };
 		F6BA0593D517B1467DBC1C42 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
-		KCM1ABCD0000000000000001 /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
-		STO10000000000000000001 /* ContactStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactStore.swift; sourceTree = "<group>"; };
-		STO20000000000000000001 /* ChannelStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChannelStore.swift; sourceTree = "<group>"; };
-		STO30000000000000000001 /* MessageStoreManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageStoreManager.swift; sourceTree = "<group>"; };
-		STO40000000000000000001 /* ConnectionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionManager.swift; sourceTree = "<group>"; };
-		STO50000000000000000001 /* RemoteSessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteSessionManager.swift; sourceTree = "<group>"; };
-		LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteManagementView.swift; sourceTree = "<group>"; };
-		MAP10000000000000000000 /* MeshMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshMapView.swift; sourceTree = "<group>"; };
-		OBV10000000000000000000 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
-		USB10000000000000000000 /* USBSerialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = USBSerialView.swift; sourceTree = "<group>"; };
+		'KCM1ABCD0000000000000001' = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
+		'LP9PDGZGN1LKSGLAB8EQ67PF' = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteManagementView.swift; sourceTree = "<group>"; };
+		'MAP10000000000000000000' = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshMapView.swift; sourceTree = "<group>"; };
+		'OBV10000000000000000000' = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		'STO10000000000000000001' = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactStore.swift; sourceTree = "<group>"; };
+		'STO20000000000000000001' = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChannelStore.swift; sourceTree = "<group>"; };
+		'STO30000000000000000001' = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageStoreManager.swift; sourceTree = "<group>"; };
+		'STO40000000000000000001' = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionManager.swift; sourceTree = "<group>"; };
+		'STO50000000000000000001' = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteSessionManager.swift; sourceTree = "<group>"; };
+		'USB10000000000000000000' = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = USBSerialView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -140,6 +144,8 @@
 				E0B34F245C5063D4BCB4E068 /* Shared */,
 				37FFAEFD4E59AD6A0C20CC49 /* Views */,
 				725951214897A58A06E32F73 /* Products */,
+				635B414AA8FC75B37367C7F5 /* PrivacyInfo.xcprivacy */,
+				2EEF439B8EDC4A5408C299FB /* PrivacyInfo.xcprivacy */,
 			);
 			sourceTree = "<group>";
 		};
@@ -151,12 +157,12 @@
 				21606E2B959E6496D3B0230D /* ContactListView.swift */,
 				2377BED4FF5A7170783BA649 /* DeviceScannerView.swift */,
 				5D859AE9C98610F71C2FBAAF /* SettingsView.swift */,
-				LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */,
+				LP9PDGZGN1LKSGLAB8EQ67PF,
 				A1B2C3D4E5F60718293A4B5C /* ShareView.swift */,
-				OBV10000000000000000000 /* OnboardingView.swift */,
-				USB10000000000000000000 /* USBSerialView.swift */,
-				MAP10000000000000000000 /* MeshMapView.swift */,
-				DBG10000000000000000000 /* DebugLogView.swift */,
+				OBV10000000000000000000,
+				USB10000000000000000000,
+				MAP10000000000000000000,
+				DBG10000000000000000000,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -165,21 +171,9 @@
 			isa = PBXGroup;
 			children = (
 				B1FBBD4DD1E3CAFDF4D56504 /* MeshCoreViewModel.swift */,
-				KCM1ABCD0000000000000001 /* KeychainManager.swift */,
+				KCM1ABCD0000000000000001,
 			);
 			path = ViewModels;
-			sourceTree = "<group>";
-		};
-		STO00000GRP0000000000001 /* Stores */ = {
-			isa = PBXGroup;
-			children = (
-				STO10000000000000000001 /* ContactStore.swift */,
-				STO20000000000000000001 /* ChannelStore.swift */,
-				STO30000000000000000001 /* MessageStoreManager.swift */,
-				STO40000000000000000001 /* ConnectionManager.swift */,
-				STO50000000000000000001 /* RemoteSessionManager.swift */,
-			);
-			path = Stores;
 			sourceTree = "<group>";
 		};
 		37FFAEFD4E59AD6A0C20CC49 /* Views */ = {
@@ -214,7 +208,7 @@
 			children = (
 				F587E5EEE1FE6B2B210AEFE3 /* App */,
 				307D79903AB18CCBBF806BCE /* ViewModels */,
-				STO00000GRP0000000000001 /* Stores */,
+				STO00000GRP0000000000001,
 				0A6B0F647BA21A953CCB6490 /* Views */,
 				43931BD12312D05F62A9E3B3 /* Assets.xcassets */,
 			);
@@ -228,6 +222,18 @@
 				F6BA0593D517B1467DBC1C42 /* Theme.swift */,
 			);
 			path = App;
+			sourceTree = "<group>";
+		};
+		'STO00000GRP0000000000001' = {
+			isa = PBXGroup;
+			children = (
+				STO10000000000000000001,
+				STO20000000000000000001,
+				STO30000000000000000001,
+				STO40000000000000000001,
+				STO50000000000000000001,
+			);
+			path = Stores;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -340,6 +346,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F90000EB8EC8EB28EA724AC8 /* Assets.xcassets in Resources */,
+				B5EE485BAA6AEBB5F4E8FF23 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -348,6 +355,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				EE31FC870779BB9B07A11EEE /* Assets.xcassets in Resources */,
+				895D4D4DB59133B2391177FB /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -367,18 +375,18 @@
 				68CC8A44AD061C07535707EB /* SettingsView.swift in Sources */,
 				A81875C1B0A1226A9333AFCF /* Theme.swift in Sources */,
 				44472F77FC4CAC4A41BDD12F /* WatchChatView.swift in Sources */,
-				5WT22AMGOSQXJ90NFRN8O6TK /* RemoteManagementView.swift in Sources */,
-				KCM1ABCD0001000000000001 /* KeychainManager.swift in Sources */,
-				STO10000000100000000001 /* ContactStore.swift in Sources */,
-				STO20000000100000000001 /* ChannelStore.swift in Sources */,
-				STO30000000100000000001 /* MessageStoreManager.swift in Sources */,
-				STO40000000100000000001 /* ConnectionManager.swift in Sources */,
-				STO50000000100000000001 /* RemoteSessionManager.swift in Sources */,
+				5WT22AMGOSQXJ90NFRN8O6TK,
+				KCM1ABCD0001000000000001,
+				STO10000000100000000001,
+				STO20000000100000000001,
+				STO30000000100000000001,
+				STO40000000100000000001,
+				STO50000000100000000001,
 				D4E5F60718293A4BC5D6E7F8 /* ShareView.swift in Sources */,
-				OBV10000000000000000001 /* OnboardingView.swift in Sources */,
-				USB10000000000000000001 /* USBSerialView.swift in Sources */,
-				MAP10000000000000000001 /* MeshMapView.swift in Sources */,
-				DBG10000000000000000001 /* DebugLogView.swift in Sources */,
+				OBV10000000000000000001,
+				USB10000000000000000001,
+				MAP10000000000000000001,
+				DBG10000000000000000001,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -394,18 +402,18 @@
 				D3633106D9031C89E0589468 /* MeshCoreViewModel.swift in Sources */,
 				FC6474A70CF5B233AB283928 /* SettingsView.swift in Sources */,
 				96059FF0363E830C376C23ED /* Theme.swift in Sources */,
-				XUOVAQ6Y1NIWH1G3OMK55ENV /* RemoteManagementView.swift in Sources */,
-				KCM1ABCD0002000000000001 /* KeychainManager.swift in Sources */,
-				STO10000000100000000002 /* ContactStore.swift in Sources */,
-				STO20000000100000000002 /* ChannelStore.swift in Sources */,
-				STO30000000100000000002 /* MessageStoreManager.swift in Sources */,
-				STO40000000100000000002 /* ConnectionManager.swift in Sources */,
-				STO50000000100000000002 /* RemoteSessionManager.swift in Sources */,
+				XUOVAQ6Y1NIWH1G3OMK55ENV,
+				KCM1ABCD0002000000000001,
+				STO10000000100000000002,
+				STO20000000100000000002,
+				STO30000000100000000002,
+				STO40000000100000000002,
+				STO50000000100000000002,
 				C3D4E5F60718293AB4C5D6E7 /* ShareView.swift in Sources */,
-				OBV10000000000000000002 /* OnboardingView.swift in Sources */,
-				USB10000000000000000002 /* USBSerialView.swift in Sources */,
-				MAP10000000000000000002 /* MeshMapView.swift in Sources */,
-				DBG10000000000000000002 /* DebugLogView.swift in Sources */,
+				OBV10000000000000000002,
+				USB10000000000000000002,
+				MAP10000000000000000002,
+				DBG10000000000000000002,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -421,18 +429,18 @@
 				6A8D08F2CE9D321D55C02696 /* MeshCoreViewModel.swift in Sources */,
 				EC8655805E2DCD03D8C9C4F6 /* SettingsView.swift in Sources */,
 				FAA4FA7E3E52FCF631D55675 /* Theme.swift in Sources */,
-				CATKUXG25PTVMENJWXQZY49X /* RemoteManagementView.swift in Sources */,
-				KCM1ABCD0003000000000001 /* KeychainManager.swift in Sources */,
-				STO10000000100000000003 /* ContactStore.swift in Sources */,
-				STO20000000100000000003 /* ChannelStore.swift in Sources */,
-				STO30000000100000000003 /* MessageStoreManager.swift in Sources */,
-				STO40000000100000000003 /* ConnectionManager.swift in Sources */,
-				STO50000000100000000003 /* RemoteSessionManager.swift in Sources */,
+				CATKUXG25PTVMENJWXQZY49X,
+				KCM1ABCD0003000000000001,
+				STO10000000100000000003,
+				STO20000000100000000003,
+				STO30000000100000000003,
+				STO40000000100000000003,
+				STO50000000100000000003,
 				B2C3D4E5F6071829A3B4C5D6 /* ShareView.swift in Sources */,
-				OBV10000000000000000003 /* OnboardingView.swift in Sources */,
-				USB10000000000000000003 /* USBSerialView.swift in Sources */,
-				MAP10000000000000000003 /* MeshMapView.swift in Sources */,
-				DBG10000000000000000003 /* DebugLogView.swift in Sources */,
+				OBV10000000000000000003,
+				USB10000000000000000003,
+				MAP10000000000000000003,
+				DBG10000000000000000003,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -445,7 +453,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = iOS/MeshCoreApple.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 69;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = 7R925EW7AT;
 				INFOPLIST_FILE = iOS/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = MeshCore;
@@ -455,7 +463,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.1;
+				MARKETING_VERSION = 1.1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mbedworth.meshcore;
 				PRODUCT_NAME = MeshCore;
 				SDKROOT = iphoneos;
@@ -525,10 +533,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CURRENT_PROJECT_VERSION = 69;
+				CURRENT_PROJECT_VERSION = 2;
 				INFOPLIST_FILE = watchOS/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = MeshCore;
-				MARKETING_VERSION = 1.1.1;
+				MARKETING_VERSION = 1.1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mbedworth.meshcore.watchos;
 				PRODUCT_NAME = "MeshCore Watch";
 				SDKROOT = watchos;
@@ -546,7 +554,7 @@
 				CODE_SIGN_ENTITLEMENTS = "macOS/MeshCoreApple-macOS.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 69;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = 7R925EW7AT;
 				INFOPLIST_FILE = macOS/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.social-networking";
@@ -554,7 +562,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.1.1;
+				MARKETING_VERSION = 1.1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mbedworth.meshcore;
 				PRODUCT_NAME = MeshCore;
 				SDKROOT = macosx;
@@ -569,7 +577,7 @@
 				CODE_SIGN_ENTITLEMENTS = "macOS/MeshCoreApple-macOS.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 69;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = 7R925EW7AT;
 				INFOPLIST_FILE = macOS/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.social-networking";
@@ -577,7 +585,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.1.1;
+				MARKETING_VERSION = 1.1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mbedworth.meshcore;
 				PRODUCT_NAME = MeshCore;
 				SDKROOT = macosx;
@@ -591,7 +599,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = iOS/MeshCoreApple.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 69;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = 7R925EW7AT;
 				INFOPLIST_FILE = iOS/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = MeshCore;
@@ -601,7 +609,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.1;
+				MARKETING_VERSION = 1.1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mbedworth.meshcore;
 				PRODUCT_NAME = MeshCore;
 				SDKROOT = iphoneos;
@@ -678,10 +686,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CURRENT_PROJECT_VERSION = 69;
+				CURRENT_PROJECT_VERSION = 2;
 				INFOPLIST_FILE = watchOS/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = MeshCore;
-				MARKETING_VERSION = 1.1.1;
+				MARKETING_VERSION = 1.1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mbedworth.meshcore.watchos;
 				PRODUCT_NAME = "MeshCore Watch";
 				SDKROOT = watchos;
