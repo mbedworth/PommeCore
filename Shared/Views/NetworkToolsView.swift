@@ -6,6 +6,7 @@ import MeshCoreKit
 
 struct DiscoverView: View {
     @EnvironmentObject var viewModel: MeshCoreViewModel
+    @Environment(RemoteSessionManager.self) private var remoteSessionManager
     @State private var discoveryDuration: TimeInterval = 300
     @State private var timeRemaining: TimeInterval = 0
     @State private var discoveryTimer: Timer?
@@ -16,16 +17,16 @@ struct DiscoverView: View {
         List {
             Section {
                 Button {
-                    viewModel.startDiscover()
+                    remoteSessionManager.startDiscover()
                 } label: {
                     HStack {
                         Image(systemName: "magnifyingglass.circle")
                             .foregroundStyle(MeshTheme.accent)
                             .frame(width: 24)
-                        Text(viewModel.isDiscovering ? "Restart Scan" : "Start Discover")
+                        Text(remoteSessionManager.isDiscovering ? "Restart Scan" : "Start Discover")
                             .foregroundStyle(MeshTheme.accent)
                         Spacer()
-                        if viewModel.isDiscovering {
+                        if remoteSessionManager.isDiscovering {
                             ProgressView()
                                 .controlSize(.small)
                         }
@@ -35,9 +36,9 @@ struct DiscoverView: View {
                 .buttonStyle(.plain)
                 .listRowBackground(MeshTheme.surface)
 
-                if viewModel.isDiscovering || isTimedDiscovery {
+                if remoteSessionManager.isDiscovering || isTimedDiscovery {
                     Button {
-                        viewModel.stopDiscover()
+                        remoteSessionManager.stopDiscover()
                         stopTimedDiscovery()
                     } label: {
                         HStack {
@@ -60,12 +61,12 @@ struct DiscoverView: View {
                     .listRowBackground(MeshTheme.surface)
                 }
 
-                if viewModel.isDiscovering {
+                if remoteSessionManager.isDiscovering {
                     ActivityOverlay(message: "Scanning for nearby nodes...", timeout: 30)
                         .listRowBackground(MeshTheme.surface)
                 }
 
-                if let fallbackMsg = viewModel.discoverFallbackMessage {
+                if let fallbackMsg = remoteSessionManager.discoverFallbackMessage {
                     HStack(spacing: 6) {
                         Image(systemName: "info.circle")
                             .foregroundStyle(.orange)
@@ -123,7 +124,7 @@ struct DiscoverView: View {
                     .font(.caption2)
             }
 
-            if viewModel.discoveredNodes.isEmpty {
+            if remoteSessionManager.discoveredNodes.isEmpty {
                 Section {
                     HStack {
                         Spacer()
@@ -144,11 +145,11 @@ struct DiscoverView: View {
                 }
             } else {
                 Section {
-                    ForEach(viewModel.discoveredNodes) { node in
+                    ForEach(remoteSessionManager.discoveredNodes) { node in
                         discoveredNodeRow(node)
                     }
                 } header: {
-                    Text("\(viewModel.discoveredNodes.count) Node\(viewModel.discoveredNodes.count == 1 ? "" : "s") Found")
+                    Text("\(remoteSessionManager.discoveredNodes.count) Node\(remoteSessionManager.discoveredNodes.count == 1 ? "" : "s") Found")
                         .foregroundStyle(MeshTheme.textSecondary)
                 }
             }
@@ -227,7 +228,7 @@ struct DiscoverView: View {
     private func startTimedDiscovery() {
         isTimedDiscovery = true
         timeRemaining = discoveryDuration
-        viewModel.discoveredNodes = []
+        remoteSessionManager.discoveredNodes = []
         DebugLogger.shared.log("DISCOVER: started \(Int(discoveryDuration / 60))min timed discovery", level: .info)
         viewModel.sendAdvertise(type: 1) // Initial flood advert
 
@@ -544,14 +545,15 @@ struct AdvertPathView: View {
 /// Overlay sheet showing trace route, status, telemetry, or path info for a contact.
 struct ContactDetailSheet: View {
     let contact: Contact
-    @EnvironmentObject var viewModel: MeshCoreViewModel
+    @Environment(ContactStore.self) private var contactStore
+    @Environment(RemoteSessionManager.self) private var remoteSessionManager
     @Environment(\.dismiss) private var dismiss
     @State private var showPathEditor = false
 
-    private var isTracePending: Bool { viewModel.pendingTraceTag != nil }
-    private var isStatusPending: Bool { viewModel.pendingStatusKey == contact.publicKeyPrefix }
-    private var isTelemetryPending: Bool { viewModel.pendingTelemetryKey == contact.publicKeyPrefix }
-    private var isPathPending: Bool { viewModel.pendingAdvertPathKey == contact.publicKeyPrefix }
+    private var isTracePending: Bool { remoteSessionManager.pendingTraceTag != nil }
+    private var isStatusPending: Bool { remoteSessionManager.pendingStatusKey == contact.publicKeyPrefix }
+    private var isTelemetryPending: Bool { remoteSessionManager.pendingTelemetryKey == contact.publicKeyPrefix }
+    private var isPathPending: Bool { remoteSessionManager.pendingAdvertPathKey == contact.publicKeyPrefix }
 
     var body: some View {
         NavigationStack {
@@ -559,12 +561,12 @@ struct ContactDetailSheet: View {
                 VStack(spacing: 16) {
                     // Trace Route
                     if isTracePending {
-                        ActivityOverlay(message: "Tracing route to \(viewModel.displayName(for: contact))...", timeout: 15)
+                        ActivityOverlay(message: "Tracing route to \(contactStore.displayName(for: contact))...", timeout: 15)
                             .padding()
                             .background(MeshTheme.surfaceLight)
                             .clipShape(RoundedRectangle(cornerRadius: 8))
-                    } else if let trace = viewModel.lastTraceResult {
-                        TraceRouteResultView(result: trace, contactName: viewModel.displayName(for: contact))
+                    } else if let trace = remoteSessionManager.lastTraceResult {
+                        TraceRouteResultView(result: trace, contactName: contactStore.displayName(for: contact))
                     }
 
                     // Status
@@ -573,8 +575,8 @@ struct ContactDetailSheet: View {
                             .padding()
                             .background(MeshTheme.surfaceLight)
                             .clipShape(RoundedRectangle(cornerRadius: 8))
-                    } else if let status = viewModel.statusByContact[contact.publicKeyPrefix] {
-                        StatusInfoView(status: status, contactName: viewModel.displayName(for: contact))
+                    } else if let status = remoteSessionManager.statusByContact[contact.publicKeyPrefix] {
+                        StatusInfoView(status: status, contactName: contactStore.displayName(for: contact))
                     }
 
                     // Telemetry
@@ -583,8 +585,8 @@ struct ContactDetailSheet: View {
                             .padding()
                             .background(MeshTheme.surfaceLight)
                             .clipShape(RoundedRectangle(cornerRadius: 8))
-                    } else if let readings = viewModel.telemetryByContact[contact.publicKeyPrefix], !readings.isEmpty {
-                        TelemetryView(readings: readings, contactName: viewModel.displayName(for: contact))
+                    } else if let readings = remoteSessionManager.telemetryByContact[contact.publicKeyPrefix], !readings.isEmpty {
+                        TelemetryView(readings: readings, contactName: contactStore.displayName(for: contact))
                     }
 
                     // Routing Path (from contact's outPath)
@@ -592,30 +594,30 @@ struct ContactDetailSheet: View {
 
                     // Advert Path
                     if isPathPending {
-                        ActivityOverlay(message: "Loading path info for \(viewModel.displayName(for: contact))...", timeout: 10)
+                        ActivityOverlay(message: "Loading path info for \(contactStore.displayName(for: contact))...", timeout: 10)
                             .padding()
                             .background(MeshTheme.surfaceLight)
                             .clipShape(RoundedRectangle(cornerRadius: 8))
-                    } else if let path = viewModel.advertPathByContact[contact.publicKeyPrefix] {
-                        AdvertPathView(pathInfo: path, contactName: viewModel.displayName(for: contact))
+                    } else if let path = remoteSessionManager.advertPathByContact[contact.publicKeyPrefix] {
+                        AdvertPathView(pathInfo: path, contactName: contactStore.displayName(for: contact))
                     }
 
                     // Actions
                     VStack(spacing: 8) {
                         actionButton("Trace Route", icon: "point.topleft.down.to.point.bottomright.curvepath", pending: isTracePending) {
-                            viewModel.traceRoute(to: contact)
+                            remoteSessionManager.traceRoute(to: contact)
                         }
                         actionButton("Request Status", icon: "info.circle", pending: isStatusPending) {
-                            viewModel.requestStatus(for: contact)
+                            remoteSessionManager.requestStatus(for: contact)
                         }
                         actionButton("Request Telemetry", icon: "chart.line.uptrend.xyaxis", pending: isTelemetryPending) {
-                            viewModel.requestTelemetry(for: contact)
+                            remoteSessionManager.requestTelemetry(for: contact)
                         }
                         actionButton("Show Path Info", icon: "map", pending: isPathPending) {
-                            viewModel.requestAdvertPath(for: contact)
+                            remoteSessionManager.requestAdvertPath(for: contact)
                         }
                         actionButton("Reset Path", icon: "arrow.counterclockwise", pending: false) {
-                            viewModel.resetPath(for: contact)
+                            contactStore.resetPath(for: contact)
                         }
                         actionButton("Edit Path", icon: "pencil.line", pending: false) {
                             showPathEditor = true
@@ -626,7 +628,7 @@ struct ContactDetailSheet: View {
                 .padding()
             }
             .background(MeshTheme.background)
-            .navigationTitle(viewModel.displayName(for: contact))
+            .navigationTitle(contactStore.displayName(for: contact))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Done") { dismiss() }
