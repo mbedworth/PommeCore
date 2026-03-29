@@ -11,6 +11,8 @@ extension Notification.Name {
 struct ChatView: View {
     let contact: Contact
     @EnvironmentObject var viewModel: MeshCoreViewModel
+    @Environment(ContactStore.self) private var contactStore
+    @Environment(MessageStoreManager.self) private var messageStoreManager
     @State private var messageText = ""
     @State private var showNotes = false
     @State private var showContactDetail = false
@@ -21,7 +23,7 @@ struct ChatView: View {
 
     /// Live contact from ViewModel (picks up optimistic path updates).
     private var liveContact: Contact {
-        viewModel.contacts.first(where: { $0.publicKey == contact.publicKey }) ?? contact
+        contactStore.contacts.first(where: { $0.publicKey == contact.publicKey }) ?? contact
     }
     @State private var exportURL: URL?
     @State private var showExportSheet = false
@@ -29,7 +31,7 @@ struct ChatView: View {
     private let maxMessageLength = 160
 
     private var messages: [Message] {
-        viewModel.messages(for: contact)
+        messageStoreManager.messages(for: contact)
     }
 
     private var lastSeenText: String? {
@@ -43,7 +45,7 @@ struct ChatView: View {
     }
 
     private var toolbarName: (text: String, font: Font) {
-        let fullName = viewModel.displayName(for: contact)
+        let fullName = contactStore.displayName(for: contact)
         if fullName.count <= 14 { return (fullName, .headline) }
         if fullName.count <= 18 { return (fullName, .subheadline) }
         let firstName = fullName.components(separatedBy: " ").first ?? fullName
@@ -169,7 +171,7 @@ struct ChatView: View {
                     Button {
                         showNotes = true
                     } label: {
-                        Image(systemName: viewModel.hasNote(for: contact) ? "note.text" : "note.text.badge.plus")
+                        Image(systemName: contactStore.hasNote(for: contact) ? "note.text" : "note.text.badge.plus")
                             .foregroundStyle(MeshTheme.accent)
                     }
                 }
@@ -223,14 +225,14 @@ struct ChatView: View {
         }
         .onAppear {
             if messageText.isEmpty {
-                messageText = viewModel.loadDraft(for: contact.publicKeyPrefix)
+                messageText = messageStoreManager.loadDraft(for: contact.publicKeyPrefix)
             }
             DispatchQueue.main.async {
-                viewModel.markAsRead(contact)
+                messageStoreManager.markAsRead(contact)
             }
         }
         .onDisappear {
-            viewModel.saveDraft(messageText, for: contact.publicKeyPrefix)
+            messageStoreManager.saveDraft(messageText, for: contact.publicKeyPrefix)
         }
     }
 
@@ -286,11 +288,11 @@ struct ChatView: View {
                 // User is viewing the chat — new messages are read immediately
                 withAnimation { unreadDividerIndex = nil }
                 DispatchQueue.main.async {
-                    viewModel.markAsRead(contactKey: contact.publicKeyPrefix)
+                    messageStoreManager.markAsRead(contactKey: contact.publicKeyPrefix)
                 }
             }
             .onAppear {
-                unreadDividerIndex = viewModel.firstUnreadIndex(in: messages, for: contact.publicKeyPrefix)
+                unreadDividerIndex = messageStoreManager.firstUnreadIndex(in: messages, for: contact.publicKeyPrefix)
                 // Delay scroll to let LazyVStack lay out content
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     if let idx = unreadDividerIndex, idx < messages.count {
@@ -359,10 +361,10 @@ struct ChatView: View {
     }
 
     private func send() {
-        viewModel.sendTextMessage(messageText, to: contact)
-        viewModel.playHapticFeedback()
+        messageStoreManager.sendTextMessage(messageText, to: contact)
+        messageStoreManager.playHapticFeedback()
         messageText = ""
-        viewModel.saveDraft("", for: contact.publicKeyPrefix)
+        messageStoreManager.saveDraft("", for: contact.publicKeyPrefix)
     }
 
     #if !os(watchOS)
@@ -376,8 +378,8 @@ struct ChatView: View {
         let lon = location.coordinate.longitude
         let (fLat, fLon) = viewModel.fudgeLocation(lat: lat, lon: lon)
         let text = "\u{1F4CD} \(String(format: "%.6f", fLat)), \(String(format: "%.6f", fLon))"
-        viewModel.sendTextMessage(text, to: contact)
-        viewModel.playHapticFeedback()
+        messageStoreManager.sendTextMessage(text, to: contact)
+        messageStoreManager.playHapticFeedback()
         DebugLogger.shared.log("LOCATION: sent to \(contact.name)", level: .tx)
     }
     #endif
@@ -389,6 +391,9 @@ struct ChannelChatView: View {
     let channelIndex: UInt8
     let channelName: String
     @EnvironmentObject var viewModel: MeshCoreViewModel
+    @Environment(ContactStore.self) private var contactStore
+    @Environment(ChannelStore.self) private var channelStore
+    @Environment(MessageStoreManager.self) private var messageStoreManager
     @State private var messageText = ""
     @State private var unreadDividerIndex: Int?
     @State private var mentionQuery: String?
@@ -400,7 +405,7 @@ struct ChannelChatView: View {
     private var channelKey: Data { Data([channelIndex]) }
 
     private var messages: [Message] {
-        viewModel.messagesByContact[channelKey] ?? []
+        messageStoreManager.messagesByContact[channelKey] ?? []
     }
 
     var body: some View {
@@ -446,7 +451,7 @@ struct ChannelChatView: View {
                         }
                         notifyMode = next
                         if let mode = ChannelStore.ChannelNotifyMode(rawValue: next) {
-                            viewModel.setChannelNotifyMode(mode, for: channelName)
+                            channelStore.setChannelNotifyMode(mode, for: channelName)
                         }
                     } label: {
                         Image(systemName: notifyMode == "muted" ? "bell.slash" : notifyMode == "mentions" ? "at" : "bell.fill")
@@ -457,16 +462,16 @@ struct ChannelChatView: View {
         }
         #endif
         .onAppear {
-            notifyMode = viewModel.channelNotifyMode(for: channelName).rawValue
+            notifyMode = channelStore.channelNotifyMode(for: channelName).rawValue
             if messageText.isEmpty {
-                messageText = viewModel.loadDraft(for: channelKey)
+                messageText = messageStoreManager.loadDraft(for: channelKey)
             }
             DispatchQueue.main.async {
-                viewModel.markAsRead(contactKey: channelKey)
+                messageStoreManager.markAsRead(contactKey: channelKey)
             }
         }
         .onDisappear {
-            viewModel.saveDraft(messageText, for: channelKey)
+            messageStoreManager.saveDraft(messageText, for: channelKey)
         }
         .onReceive(NotificationCenter.default.publisher(for: .insertMention)) { notification in
             if let sender = notification.object as? String {
@@ -520,11 +525,11 @@ struct ChannelChatView: View {
                 // User is viewing the chat — new messages are read immediately
                 withAnimation { unreadDividerIndex = nil }
                 DispatchQueue.main.async {
-                    viewModel.markAsRead(contactKey: channelKey)
+                    messageStoreManager.markAsRead(contactKey: channelKey)
                 }
             }
             .onAppear {
-                unreadDividerIndex = viewModel.firstUnreadIndex(in: messages, for: channelKey)
+                unreadDividerIndex = messageStoreManager.firstUnreadIndex(in: messages, for: channelKey)
                 // Delay scroll to let LazyVStack lay out content
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     if let idx = unreadDividerIndex, idx < messages.count {
@@ -544,10 +549,10 @@ struct ChannelChatView: View {
     }
 
     private var mentionCandidates: [Contact] {
-        let chatContacts = viewModel.contacts.filter { $0.type == .chat }
+        let chatContacts = contactStore.contacts.filter { $0.type == .chat }
         guard let query = mentionQuery, !query.isEmpty else { return chatContacts }
         return chatContacts.filter {
-            viewModel.displayName(for: $0).localizedCaseInsensitiveContains(query)
+            contactStore.displayName(for: $0).localizedCaseInsensitiveContains(query)
         }
     }
 
@@ -564,7 +569,7 @@ struct ChannelChatView: View {
                                     Image(systemName: "person.fill")
                                         .foregroundStyle(MeshTheme.accent)
                                         .font(.caption)
-                                    Text(viewModel.displayName(for: contact))
+                                    Text(contactStore.displayName(for: contact))
                                         .foregroundStyle(MeshTheme.textPrimary)
                                     Spacer()
                                 }
@@ -642,17 +647,17 @@ struct ChannelChatView: View {
     /// Insert the selected contact's name at the current @ position.
     private func insertMention(_ contact: Contact) {
         guard let atIndex = messageText.lastIndex(of: "@") else { return }
-        let name = viewModel.displayName(for: contact)
+        let name = contactStore.displayName(for: contact)
         messageText = String(messageText[messageText.startIndex...atIndex]) + name + " "
         mentionQuery = nil
     }
 
     private func send() {
-        viewModel.sendChannelMessage(messageText, channelIndex: channelIndex)
-        viewModel.playHapticFeedback()
+        messageStoreManager.sendChannelMessage(messageText, channelIndex: channelIndex)
+        messageStoreManager.playHapticFeedback()
         messageText = ""
         mentionQuery = nil
-        viewModel.saveDraft("", for: channelKey)
+        messageStoreManager.saveDraft("", for: channelKey)
     }
 
     private func sendLocationToChannel() {
@@ -663,8 +668,8 @@ struct ChannelChatView: View {
         }
         let (fLat, fLon) = viewModel.fudgeLocation(lat: location.coordinate.latitude, lon: location.coordinate.longitude)
         let text = "\u{1F4CD} \(String(format: "%.6f", fLat)), \(String(format: "%.6f", fLon))"
-        viewModel.sendChannelMessage(text, channelIndex: channelIndex)
-        viewModel.playHapticFeedback()
+        messageStoreManager.sendChannelMessage(text, channelIndex: channelIndex)
+        messageStoreManager.playHapticFeedback()
         DebugLogger.shared.log("LOCATION: sent to channel \(channelIndex)", level: .tx)
     }
 }
@@ -674,7 +679,9 @@ struct ChannelChatView: View {
 /// Chat view for room servers — requires login, shows room messages, has gear icon for management.
 struct RoomChatView: View {
     let contact: Contact
-    @EnvironmentObject var viewModel: MeshCoreViewModel
+    @Environment(ContactStore.self) private var contactStore
+    @Environment(RemoteSessionManager.self) private var remoteSessionManager
+    @Environment(MessageStoreManager.self) private var messageStoreManager
     @ObservedObject var session: RemoteDeviceSession
     @State private var messageText = ""
     @State private var password = ""
@@ -687,7 +694,7 @@ struct RoomChatView: View {
     private var remoteAccent: Color { MeshTheme.remoteRoom }
 
     private var messages: [Message] {
-        viewModel.messages(for: contact)
+        messageStoreManager.messages(for: contact)
     }
 
     private var isLoggedIn: Bool {
@@ -732,7 +739,7 @@ struct RoomChatView: View {
                     Spacer()
                     Button {
                         showManagement = false
-                        viewModel.logoutFromRemoteDevice(contact)
+                        remoteSessionManager.logoutFromRemoteDevice(contact)
                         password = ""
                     } label: {
                         HStack(spacing: 3) {
@@ -766,7 +773,7 @@ struct RoomChatView: View {
             }
         }
         .background(MeshTheme.background)
-        .navigationTitle(viewModel.displayName(for: contact))
+        .navigationTitle(contactStore.displayName(for: contact))
         .toolbar {
             ToolbarItem(placement: .automatic) {
                 if isLoggedIn, permission.canRead {
@@ -788,7 +795,7 @@ struct RoomChatView: View {
                         Image(systemName: "wrench.and.screwdriver")
                             .foregroundStyle(remoteAccent)
                     }
-                    .help("Remote Management — \(viewModel.displayName(for: contact))")
+                    .help("Remote Management — \(contactStore.displayName(for: contact))")
                     #endif
                 }
             }
@@ -800,7 +807,6 @@ struct RoomChatView: View {
                     contact: contact,
                     session: session
                 )
-                .environmentObject(viewModel)
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
                         Button("Done") { showManagement = false }
@@ -812,7 +818,7 @@ struct RoomChatView: View {
         }
         #endif
         .onAppear {
-            viewModel.markAsRead(contact)
+            messageStoreManager.markAsRead(contact)
         }
         // Dismiss management sheet if logged out while it's open
         .onChange(of: isLoggedIn) { _, loggedIn in
@@ -1022,12 +1028,12 @@ struct RoomChatView: View {
 
     private func login() {
         guard !password.isEmpty else { return }
-        viewModel.loginToRemoteDevice(contact, password: password, remember: rememberPassword)
+        remoteSessionManager.loginToRemoteDevice(contact, password: password, remember: rememberPassword)
     }
 
     private func sendRoomMessage() {
-        viewModel.sendRoomMessage(messageText, to: contact)
-        viewModel.playHapticFeedback()
+        messageStoreManager.sendRoomMessage(messageText, to: contact)
+        messageStoreManager.playHapticFeedback()
         messageText = ""
     }
 }
