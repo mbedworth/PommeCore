@@ -4,7 +4,8 @@ import MeshCoreKit
 /// Management view for repeater and room server contacts.
 struct RemoteManagementView: View {
     let contact: Contact
-    @EnvironmentObject var viewModel: MeshCoreViewModel
+    @Environment(ContactStore.self) private var contactStore
+    @Environment(RemoteSessionManager.self) private var remoteSessionManager
     @ObservedObject var session: RemoteDeviceSession
     @State private var showLogoutConfirm = false
 
@@ -92,7 +93,7 @@ struct RemoteManagementView: View {
         .task {
             // Backup trigger: fetch settings if login auto-fetch hasn't started yet
             guard isLoggedIn, !session.hasLoadedFullSettings, !session.isFetchingSettings else { return }
-            viewModel.fetchRemoteSettings(for: contact)
+            remoteSessionManager.fetchRemoteSettings(for: contact)
         }
         .onDisappear {
             // Clean up local session state on exit.
@@ -100,10 +101,10 @@ struct RemoteManagementView: View {
             // The admin lock releases automatically via firmware session timeout.
             // Skip for USB-connected devices — session persists while USB is connected.
             #if os(macOS) || targetEnvironment(macCatalyst)
-            if contact.publicKey == viewModel.usbDeviceContact?.publicKey { return }
+            if contact.publicKey == remoteSessionManager.usbDeviceContact?.publicKey { return }
             #endif
             if isLoggedIn {
-                viewModel.logoutFromRemoteDevice(contact)
+                remoteSessionManager.logoutFromRemoteDevice(contact)
                 DebugLogger.shared.log("REMOTE: cleared local session for \(contact.name) on exit", level: .info)
             }
         }
@@ -111,7 +112,7 @@ struct RemoteManagementView: View {
             if isLoggedIn {
                 ToolbarItem(placement: .automatic) {
                     Button {
-                        viewModel.fetchRemoteSettings(for: contact)
+                        remoteSessionManager.fetchRemoteSettings(for: contact)
                     } label: {
                         Image(systemName: "arrow.clockwise")
                             .foregroundStyle(remoteAccent)
@@ -129,7 +130,7 @@ struct RemoteManagementView: View {
                 HStack(spacing: 8) {
                     Image(systemName: contact.type == .room ? "server.rack" : "antenna.radiowaves.left.and.right")
                         .foregroundStyle(remoteAccent)
-                    Text(viewModel.displayName(for: contact))
+                    Text(contactStore.displayName(for: contact))
                         .font(.headline)
                         .foregroundStyle(MeshTheme.textPrimary)
                     Spacer()
@@ -143,7 +144,7 @@ struct RemoteManagementView: View {
                 }
                 Text(isUSBDevice
                     ? "Managing via USB Serial \u{2014} direct connection, no latency."
-                    : "Managing \(viewModel.displayName(for: contact)) via LoRa \u{2014} commands travel over the mesh and may take a few seconds.")
+                    : "Managing \(contactStore.displayName(for: contact)) via LoRa \u{2014} commands travel over the mesh and may take a few seconds.")
                     .font(.caption)
                     .foregroundStyle(MeshTheme.textSecondary)
             }
@@ -170,9 +171,9 @@ struct RemoteManagementView: View {
             }
             .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
-            .confirmationDialog("Logout from \(viewModel.displayName(for: contact))?", isPresented: $showLogoutConfirm, titleVisibility: .visible) {
+            .confirmationDialog("Logout from \(contactStore.displayName(for: contact))?", isPresented: $showLogoutConfirm, titleVisibility: .visible) {
                 Button("Logout", role: .destructive) {
-                    viewModel.logoutFromRemoteDevice(contact)
+                    remoteSessionManager.logoutFromRemoteDevice(contact)
                 }
                 Button("Cancel", role: .cancel) {}
             } message: {
@@ -197,7 +198,7 @@ struct RemoteManagementView: View {
 
     private var isUSBDevice: Bool {
         #if os(macOS) || targetEnvironment(macCatalyst)
-        contact.publicKey == viewModel.usbDeviceContact?.publicKey
+        contact.publicKey == remoteSessionManager.usbDeviceContact?.publicKey
         #else
         false
         #endif
@@ -213,7 +214,7 @@ struct RemoteManagementView: View {
     }
 
     private func sendCLI(_ command: String) {
-        viewModel.sendCLICommand(command, to: contact)
+        remoteSessionManager.sendCLICommand(command, to: contact)
     }
 
     private func getValue(_ key: String) -> String {
@@ -225,14 +226,14 @@ struct RemoteManagementView: View {
 
 private extension RemoteManagementView {
     var loginSection: some View {
-        LoginSection(contact: contact, session: session, viewModel: viewModel)
+        LoginSection(contact: contact, session: session)
     }
 }
 
 struct LoginSection: View {
     let contact: Contact
     @ObservedObject var session: RemoteDeviceSession
-    @ObservedObject var viewModel: MeshCoreViewModel
+    @Environment(RemoteSessionManager.self) private var remoteSessionManager
     @State private var password = ""
 
     var body: some View {
@@ -279,7 +280,7 @@ struct LoginSection: View {
                 }
 
                 Button {
-                    viewModel.loginToRemoteDevice(contact, password: password)
+                    remoteSessionManager.loginToRemoteDevice(contact, password: password)
                 } label: {
                     HStack {
                         if case .loggingIn = session.loginState {
@@ -1273,7 +1274,7 @@ struct RemoteMaintenanceSection: View {
 
 private extension RemoteManagementView {
     var cliTerminalSection: some View {
-        CLITerminalSection(contact: contact, session: session, viewModel: viewModel)
+        CLITerminalSection(contact: contact, session: session)
     }
 
     #if os(macOS) || targetEnvironment(macCatalyst)
@@ -1355,7 +1356,7 @@ struct SerialOnlySection: View {
 struct CLITerminalSection: View {
     let contact: Contact
     @ObservedObject var session: RemoteDeviceSession
-    @ObservedObject var viewModel: MeshCoreViewModel
+    @Environment(RemoteSessionManager.self) private var remoteSessionManager
     @State private var commandText = ""
 
     var body: some View {
@@ -1422,7 +1423,7 @@ struct CLITerminalSection: View {
     }
 
     private func sendCommand() {
-        viewModel.sendCLICommand(commandText, to: contact)
+        remoteSessionManager.sendCLICommand(commandText, to: contact)
         commandText = ""
     }
 }
