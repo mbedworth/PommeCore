@@ -96,6 +96,9 @@ struct RemoteManagementView: View {
             remoteSessionManager.fetchRemoteSettings(for: contact)
         }
         .onDisappear {
+            // Cancel any in-progress settings fetch immediately
+            remoteSessionManager.cancelFetch()
+
             // Clean up local session state on exit.
             // Don't send "logout" CLI — firmware has no such command.
             // The admin lock releases automatically via firmware session timeout.
