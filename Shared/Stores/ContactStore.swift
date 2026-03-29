@@ -103,12 +103,26 @@ final class ContactStore {
     }
 
     func loadNicknamesFromiCloud() {
-        guard let data = iCloudStore.data(forKey: nicknamesKey),
-              let decoded = try? JSONDecoder().decode([String: String].self, from: data) else {
-            nicknames = [:]
+        // Try loading per-radio nicknames first
+        if let data = iCloudStore.data(forKey: nicknamesKey),
+           let decoded = try? JSONDecoder().decode([String: String].self, from: data) {
+            nicknames = decoded.mapValues { $0.count > 32 ? String($0.prefix(32)) : $0 }
             return
         }
-        nicknames = decoded.mapValues { $0.count > 32 ? String($0.prefix(32)) : $0 }
+
+        // Migrate: if per-radio key is empty but legacy global key exists, copy and delete
+        if nicknamesKey != "contactNicknames",
+           let legacyData = iCloudStore.data(forKey: "contactNicknames"),
+           let decoded = try? JSONDecoder().decode([String: String].self, from: legacyData) {
+            nicknames = decoded.mapValues { $0.count > 32 ? String($0.prefix(32)) : $0 }
+            saveNicknamesToiCloud()
+            iCloudStore.removeObject(forKey: "contactNicknames")
+            iCloudStore.synchronize()
+            DebugLogger.shared.log("NICKNAMES: migrated \(nicknames.count) from global to per-radio key", level: .info)
+            return
+        }
+
+        nicknames = [:]
     }
 
     private func saveNicknamesToiCloud() {
@@ -187,12 +201,25 @@ final class ContactStore {
     }
 
     func loadContactNotesFromiCloud() {
-        guard let data = iCloudStore.data(forKey: notesKey),
-              let decoded = try? JSONDecoder().decode([String: String].self, from: data) else {
-            contactNotes = [:]
+        if let data = iCloudStore.data(forKey: notesKey),
+           let decoded = try? JSONDecoder().decode([String: String].self, from: data) {
+            contactNotes = decoded
             return
         }
-        contactNotes = decoded
+
+        // Migrate: if per-radio key is empty but legacy global key exists, copy and delete
+        if notesKey != "contactNotes",
+           let legacyData = iCloudStore.data(forKey: "contactNotes"),
+           let decoded = try? JSONDecoder().decode([String: String].self, from: legacyData) {
+            contactNotes = decoded
+            saveContactNotesToiCloud()
+            iCloudStore.removeObject(forKey: "contactNotes")
+            iCloudStore.synchronize()
+            DebugLogger.shared.log("NOTES: migrated \(contactNotes.count) from global to per-radio key", level: .info)
+            return
+        }
+
+        contactNotes = [:]
     }
 
     private func saveContactNotesToiCloud() {
