@@ -307,8 +307,9 @@ extension BLEManager: CBCentralManagerDelegate {
                     self.connectionState = .connecting
                 }
 
-                // Timeout — don't stay stuck if peripheral never reconnects
-                bleQueue.asyncAfter(deadline: .now() + 10.0) { [weak self] in
+                // Timeout — don't stay stuck if peripheral never reconnects.
+                // 30s allows for radio BLE advert intervals up to ~20s.
+                bleQueue.asyncAfter(deadline: .now() + 30.0) { [weak self] in
                     guard let self else { return }
                     if self.connectionState != .ready && self.connectionState != .connected {
                         Self.logger.info("BLE RESTORE: timeout — giving up and scanning")
@@ -436,6 +437,28 @@ extension BLEManager: CBCentralManagerDelegate {
             }
             // CoreBluetooth will connect when the device becomes available again
             central.connect(peripheral, options: nil)
+
+            // Safety timeout — if reconnect hasn't succeeded after 60s, cancel and scan.
+            // This prevents stuck .connecting state if the radio is powered off or out of range.
+            reconnectTimeoutWork?.cancel()
+            let timeout = DispatchWorkItem { [weak self] in
+                guard let self else { return }
+                guard self.connectionState == .connecting else { return }
+                Self.logger.warning("iOS: reconnect timeout after 60s — cancelling and scanning")
+                DebugLogger.shared.log("BLE: reconnect timeout — scanning for devices", level: .warning)
+                central.cancelPeripheralConnection(peripheral)
+                self.shouldAutoReconnect = false
+                DispatchQueue.main.async {
+                    self.connectionState = .disconnected
+                    self.connectedPeripheral = nil
+                    self.connectedDeviceName = nil
+                }
+                self.bleQueue.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+                    self?.startScanning()
+                }
+            }
+            reconnectTimeoutWork = timeout
+            bleQueue.asyncAfter(deadline: .now() + 60.0, execute: timeout)
         } else {
             // User-initiated disconnect — clean up fully and auto-scan
             reconnectTimeoutWork?.cancel()
