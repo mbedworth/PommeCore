@@ -481,6 +481,7 @@ final class MeshCoreViewModel: ObservableObject {
         contactStore.sendCommand = { [weak self] data, label in self?.connectionManager.sendCommand(data, label: label) }
         contactStore.activityDateProvider = { [weak self] key in self?.messageStoreManager.latestActivityDate(for: key) }
         contactStore.postEventNotification = { [weak self] title, body, threadId in self?.postEventNotification(title: title, body: body, threadId: threadId) }
+        contactStore.radioPublicKeyHexProvider = { [weak self] in self?.deviceConfig.publicKeyHex ?? "" }
 
         // ChannelStore dependencies
         channelStore.sendCommand = { [weak self] data, label in self?.connectionManager.sendCommand(data, label: label) }
@@ -1298,6 +1299,9 @@ final class MeshCoreViewModel: ObservableObject {
             let radioPrefix = String(deviceConfig.publicKeyHex.prefix(12))
             messageStoreManager.activateForRadio(radioPrefix)
             channelStore.activateForRadio(radioPrefix)
+            // Reload nicknames/notes for this specific radio
+            contactStore.loadNicknamesFromiCloud()
+            contactStore.loadContactNotesFromiCloud()
             deviceConfig.latitude = info.latitude
             deviceConfig.longitude = info.longitude
             deviceConfig.radioFrequency = info.radioFreq
