@@ -856,10 +856,18 @@ private extension SettingsView {
                 .font(.caption)
             Button {
                 #if os(iOS)
-                UIPasteboard.general.string = config.publicKeyHex
+                UIPasteboard.general.setItems(
+                    [[UIPasteboard.typeAutomatic: config.publicKeyHex]],
+                    options: [.expirationDate: Date().addingTimeInterval(60)]
+                )
                 #elseif os(macOS)
                 NSPasteboard.general.clearContents()
                 NSPasteboard.general.setString(config.publicKeyHex, forType: .string)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 60) {
+                    if NSPasteboard.general.string(forType: .string) == config.publicKeyHex {
+                        NSPasteboard.general.clearContents()
+                    }
+                }
                 #endif
             } label: {
                 Image(systemName: "doc.on.doc")
