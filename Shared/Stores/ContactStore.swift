@@ -29,6 +29,9 @@ final class ContactStore {
     /// Closure to post an event notification.
     var postEventNotification: ((String, String, String) -> Void)?
 
+    /// Closure to get the connected radio's public key hex (for per-radio data isolation).
+    var radioPublicKeyHexProvider: (() -> String)?
+
     // MARK: - Private State
 
     private let iCloudStore = NSUbiquitousKeyValueStore.default
@@ -93,15 +96,24 @@ final class ContactStore {
         return rawSenderName
     }
 
-    private func loadNicknamesFromiCloud() {
-        guard let data = iCloudStore.data(forKey: "contactNicknames"),
-              let decoded = try? JSONDecoder().decode([String: String].self, from: data) else { return }
+    /// iCloud key for nicknames, scoped to the connected radio.
+    private var nicknamesKey: String {
+        let radioKey = radioPublicKeyHexProvider?() ?? ""
+        return radioKey.isEmpty ? "contactNicknames" : "nicknames.\(String(radioKey.prefix(12)))"
+    }
+
+    func loadNicknamesFromiCloud() {
+        guard let data = iCloudStore.data(forKey: nicknamesKey),
+              let decoded = try? JSONDecoder().decode([String: String].self, from: data) else {
+            nicknames = [:]
+            return
+        }
         nicknames = decoded.mapValues { $0.count > 32 ? String($0.prefix(32)) : $0 }
     }
 
     private func saveNicknamesToiCloud() {
         if let data = try? JSONEncoder().encode(nicknames) {
-            iCloudStore.set(data, forKey: "contactNicknames")
+            iCloudStore.set(data, forKey: nicknamesKey)
             iCloudStore.synchronize()
         }
     }
@@ -169,15 +181,23 @@ final class ContactStore {
         return contactNotes[key] != nil && !contactNotes[key]!.isEmpty
     }
 
+    private var notesKey: String {
+        let radioKey = radioPublicKeyHexProvider?() ?? ""
+        return radioKey.isEmpty ? "contactNotes" : "notes.\(String(radioKey.prefix(12)))"
+    }
+
     func loadContactNotesFromiCloud() {
-        guard let data = iCloudStore.data(forKey: "contactNotes"),
-              let decoded = try? JSONDecoder().decode([String: String].self, from: data) else { return }
+        guard let data = iCloudStore.data(forKey: notesKey),
+              let decoded = try? JSONDecoder().decode([String: String].self, from: data) else {
+            contactNotes = [:]
+            return
+        }
         contactNotes = decoded
     }
 
     private func saveContactNotesToiCloud() {
         if let data = try? JSONEncoder().encode(contactNotes) {
-            iCloudStore.set(data, forKey: "contactNotes")
+            iCloudStore.set(data, forKey: notesKey)
             iCloudStore.synchronize()
         }
     }
