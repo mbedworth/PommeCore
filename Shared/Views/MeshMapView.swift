@@ -431,6 +431,7 @@ enum MeshMapMessagePackDecoder {
 @available(iOS 17.0, macOS 14.0, *)
 struct MeshMapView: View {
     @EnvironmentObject var viewModel: MeshCoreViewModel
+    @Environment(ContactStore.self) private var contactStore
     @StateObject private var locationManager = LocationManager()
     @State private var cameraPosition: MapCameraPosition = .automatic
     /// Mirrors the camera's current region. Set explicitly when we move the camera
@@ -450,7 +451,7 @@ struct MeshMapView: View {
     private static let clusterThreshold: Double = 0.15
 
     private var mappableContacts: [Contact] {
-        viewModel.contacts.filter { $0.latitude != 0 || $0.longitude != 0 }
+        contactStore.contacts.filter { $0.latitude != 0 || $0.longitude != 0 }
     }
 
     /// Internet nodes clustered by geographic grid cell at the current zoom level.
@@ -496,7 +497,7 @@ struct MeshMapView: View {
             Map(position: $cameraPosition) {
                 // Local mesh contacts — custom annotations with tap-to-navigate
                 ForEach(mappableContacts) { contact in
-                    Annotation(viewModel.displayName(for: contact),
+                    Annotation(contactStore.displayName(for: contact),
                                coordinate: CLLocationCoordinate2D(
                                    latitude: contact.latitude,
                                    longitude: contact.longitude
@@ -511,7 +512,7 @@ struct MeshMapView: View {
                                     .padding(6)
                                     .background(Circle().fill(.background))
                                     .shadow(radius: 2)
-                                Text(viewModel.displayName(for: contact))
+                                Text(contactStore.displayName(for: contact))
                                     .font(.caption2)
                                     .foregroundStyle(MeshTheme.textPrimary)
                                     .lineLimit(1)
@@ -636,7 +637,7 @@ struct MeshMapView: View {
                         Text("No contacts with location data")
                             .font(.caption)
                             .foregroundStyle(MeshTheme.textSecondary)
-                        Text("\(viewModel.contacts.count) contacts total, \(mappableContacts.count) with coordinates")
+                        Text("\(contactStore.contacts.count) contacts total, \(mappableContacts.count) with coordinates")
                             .font(.caption2)
                             .foregroundStyle(MeshTheme.textSecondary)
                     }
