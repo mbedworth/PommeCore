@@ -9,6 +9,9 @@ import CoreLocation
 
 struct SettingsView: View {
     @EnvironmentObject var viewModel: MeshCoreViewModel
+    @Environment(DeviceConfig.self) private var deviceConfig
+    @Environment(ConnectionManager.self) private var connectionManager
+    @Environment(MessageStoreManager.self) private var messageStoreManager
     @AppStorage("batteryChemistry") private var batteryChemistryRaw: String = BatteryChemistry.lipo.rawValue
     @AppStorage("appTheme") private var appTheme: String = AppTheme.system.rawValue
     @State private var statsExpanded = false
@@ -66,7 +69,7 @@ struct SettingsView: View {
     }
 
     private var isConnected: Bool {
-        viewModel.connectionState == .ready || viewModel.connectionState == .connected
+        connectionManager.connectionState == .ready || connectionManager.connectionState == .connected
     }
 
     // MARK: - Disconnected State
@@ -151,7 +154,7 @@ struct SettingsView: View {
             Section {
                 DisclosureGroup("Advanced") {
                     if isConnected {
-                        if !viewModel.deviceConfig.customVars.isEmpty {
+                        if !deviceConfig.customVars.isEmpty {
                             customVarsSection
                         }
                         statsSection
@@ -609,9 +612,9 @@ private extension SettingsView {
 private extension SettingsView {
     var deviceInfoSection: some View {
         #if os(macOS) || targetEnvironment(macCatalyst)
-        DeviceInfoSection(viewModel: viewModel, batteryChemistryRaw: $batteryChemistryRaw, connectedDeviceName: viewModel.connectedDeviceName, inspectorSheet: $inspectorSheet, showInspector: $showInspector)
+        DeviceInfoSection(viewModel: viewModel, batteryChemistryRaw: $batteryChemistryRaw, connectedDeviceName: connectionManager.connectedDeviceName, inspectorSheet: $inspectorSheet, showInspector: $showInspector)
         #else
-        DeviceInfoSection(viewModel: viewModel, batteryChemistryRaw: $batteryChemistryRaw, connectedDeviceName: viewModel.connectedDeviceName, activeSheet: $iosDeviceSheet)
+        DeviceInfoSection(viewModel: viewModel, batteryChemistryRaw: $batteryChemistryRaw, connectedDeviceName: connectionManager.connectedDeviceName, activeSheet: $iosDeviceSheet)
         #endif
     }
 
@@ -975,7 +978,7 @@ private extension SettingsView {
             }
             .listRowBackground(MeshTheme.surface)
 
-            if viewModel.connectionState != .disconnected {
+            if connectionManager.connectionState != .disconnected {
                 Button(role: .destructive) {
                     viewModel.disconnect()
                 } label: {
@@ -995,7 +998,7 @@ private extension SettingsView {
     }
 
     var statusColor: Color {
-        switch viewModel.connectionState {
+        switch connectionManager.connectionState {
         case .ready: MeshTheme.connected
         case .connected, .connecting: MeshTheme.connecting
         case .scanning: MeshTheme.scanning
@@ -1004,7 +1007,7 @@ private extension SettingsView {
     }
 
     var connectionLabel: String {
-        switch viewModel.connectionState {
+        switch connectionManager.connectionState {
         case .ready: "Ready"
         case .connected: "Connected"
         case .connecting: "Connecting"
@@ -1180,6 +1183,8 @@ let radioPresets: [RadioPreset] = [
 
 struct RadioSection: View {
     @ObservedObject var viewModel: MeshCoreViewModel
+    @Environment(DeviceConfig.self) private var deviceConfig
+    @Environment(RemoteSessionManager.self) private var remoteSessionManager
     @Environment(\.dismiss) private var dismiss
     @State private var freqMHz: String = ""
     @State private var selectedBW: Double = 250
@@ -1319,17 +1324,17 @@ struct RadioSection: View {
                 Button("Enable") { repeatMode = true }
                 Button("Cancel", role: .cancel) {}
             } message: {
-                if viewModel.allowedRepeatFreqRanges.isEmpty {
+                if remoteSessionManager.allowedRepeatFreqRanges.isEmpty {
                     Text("Your companion radio will act as a portable repeater.\n\nThis is useful for camping, hiking, and search & rescue where repeater infrastructure doesn't exist.\n\nRepeat mode is restricted to allowed frequency ranges configured on the device.")
                 } else {
-                    let freqText = viewModel.allowedRepeatFreqRanges.map { range in
+                    let freqText = remoteSessionManager.allowedRepeatFreqRanges.map { range in
                         String(format: "%.1f\u{2013}%.1f MHz", Double(range.lowerHz) / 1_000_000, Double(range.upperHz) / 1_000_000)
                     }.joined(separator: "\n")
                     Text("Your companion radio will act as a portable repeater.\n\nAllowed frequency ranges:\n\(freqText)\n\nThis is useful for camping, hiking, and search & rescue where repeater infrastructure doesn't exist.")
                 }
             }
 
-            if !viewModel.allowedRepeatFreqRanges.isEmpty {
+            if !remoteSessionManager.allowedRepeatFreqRanges.isEmpty {
                     VStack(alignment: .leading, spacing: 4) {
                         HStack {
                             Image(systemName: "waveform.badge.magnifyingglass")
@@ -1338,7 +1343,7 @@ struct RadioSection: View {
                             Text("Allowed Repeat Frequencies")
                                 .foregroundStyle(MeshTheme.accent)
                         }
-                        ForEach(Array(viewModel.allowedRepeatFreqRanges.enumerated()), id: \.offset) { _, range in
+                        ForEach(Array(remoteSessionManager.allowedRepeatFreqRanges.enumerated()), id: \.offset) { _, range in
                             Text("\(String(format: "%.3f", Double(range.lowerHz) / 1_000_000)) \u{2013} \(String(format: "%.3f", Double(range.upperHz) / 1_000_000)) MHz")
                                 .font(.caption)
                                 .foregroundStyle(MeshTheme.textPrimary)
@@ -1349,7 +1354,7 @@ struct RadioSection: View {
                 }
 
                 Button {
-                    viewModel.requestAllowedRepeatFreq()
+                    remoteSessionManager.requestAllowedRepeatFreq()
                 } label: {
                     HStack {
                         Image(systemName: "arrow.clockwise")
@@ -1407,7 +1412,7 @@ struct RadioSection: View {
     }
 
     private func loadFromConfig() {
-        let c = viewModel.deviceConfig
+        let c = deviceConfig
         freqMHz = c.radioFrequency == 0 ? "" : String(format: "%.3f", c.frequencyMHz)
         selectedBW = nearestBW(c.bandwidthKHz)
         selectedSF = c.radioSpreadingFactor
@@ -1449,11 +1454,11 @@ private extension SettingsView {
 
 struct PrivacySection: View {
     @ObservedObject var viewModel: MeshCoreViewModel
+    @Environment(DeviceConfig.self) private var config
+    @Environment(ContactStore.self) private var contactStore
     @State private var pinText: String = ""
     @AppStorage("locationPrivacyRadius") private var locationPrivacyRadius: Double = 0
     @AppStorage("shareOnMeshMap") private var shareOnMeshMap: Bool = false
-
-    private var config: DeviceConfig { viewModel.deviceConfig }
 
     // Computed bindings that read from deviceConfig and auto-save on change
     private var manualAddBinding: Binding<Bool> {
@@ -1675,7 +1680,7 @@ struct PrivacySection: View {
         // Per-contact telemetry permission picker
         if config.telemetryBase == 1 {
             Section {
-                let chatContacts = viewModel.contacts.filter { $0.type == .chat }
+                let chatContacts = contactStore.contacts.filter { $0.type == .chat }
                 if chatContacts.isEmpty {
                     Text("No chat contacts available")
                         .foregroundStyle(MeshTheme.textSecondary)
@@ -1687,10 +1692,10 @@ struct PrivacySection: View {
                             set: { enabled in
                                 var newFlags = contact.flags
                                 if enabled { newFlags |= 0x02 } else { newFlags &= ~0x02 }
-                                viewModel.updateContactFlags(contact, newFlags: newFlags)
+                                contactStore.updateContactFlags(contact, newFlags: newFlags)
                             }
                         )) {
-                            Text(viewModel.displayName(for: contact))
+                            Text(contactStore.displayName(for: contact))
                                 .foregroundStyle(MeshTheme.textPrimary)
                         }
                         .tint(MeshTheme.accent)
@@ -1701,7 +1706,7 @@ struct PrivacySection: View {
                 Text("Contacts with Telemetry Permission")
                     .foregroundStyle(MeshTheme.textSecondary)
             } footer: {
-                let count = viewModel.contacts.filter { $0.type == .chat && $0.allowTelemetry }.count
+                let count = contactStore.contacts.filter { $0.type == .chat && $0.allowTelemetry }.count
                 Text("\(count) contact\(count == 1 ? "" : "s") can request your telemetry data.")
                     .font(.caption2)
             }
@@ -1710,7 +1715,7 @@ struct PrivacySection: View {
         // Per-contact location permission picker
         if config.telemetryLocation == 1 {
             Section {
-                let chatContacts = viewModel.contacts.filter { $0.type == .chat }
+                let chatContacts = contactStore.contacts.filter { $0.type == .chat }
                 if chatContacts.isEmpty {
                     Text("No chat contacts available")
                         .foregroundStyle(MeshTheme.textSecondary)
@@ -1722,10 +1727,10 @@ struct PrivacySection: View {
                             set: { enabled in
                                 var newFlags = contact.flags
                                 if enabled { newFlags |= 0x04 } else { newFlags &= ~0x04 }
-                                viewModel.updateContactFlags(contact, newFlags: newFlags)
+                                contactStore.updateContactFlags(contact, newFlags: newFlags)
                             }
                         )) {
-                            Text(viewModel.displayName(for: contact))
+                            Text(contactStore.displayName(for: contact))
                                 .foregroundStyle(MeshTheme.textPrimary)
                         }
                         .tint(MeshTheme.accent)
@@ -1736,7 +1741,7 @@ struct PrivacySection: View {
                 Text("Contacts with Location Permission")
                     .foregroundStyle(MeshTheme.textSecondary)
             } footer: {
-                let count = viewModel.contacts.filter { $0.type == .chat && $0.shareTelemetryLocation }.count
+                let count = contactStore.contacts.filter { $0.type == .chat && $0.shareTelemetryLocation }.count
                 Text("\(count) contact\(count == 1 ? "" : "s") will receive your location in telemetry.")
                     .font(.caption2)
             }
@@ -1744,7 +1749,7 @@ struct PrivacySection: View {
 
         // BLE PIN — adaptive based on whether device has a screen
         Section {
-            if viewModel.deviceConfig.blePIN == 0 {
+            if config.blePIN == 0 {
                 HStack {
                     Image(systemName: "lock.shield")
                         .foregroundStyle(MeshTheme.accent)
@@ -1811,13 +1816,13 @@ struct PrivacySection: View {
         } header: {
             SectionInfoHeader(
                 title: "Bluetooth Security",
-                info: viewModel.deviceConfig.blePIN == 0
+                info: config.blePIN == 0
                     ? "This device generates a random PIN each time it starts. Check the device screen for the current PIN when pairing."
                     : "Change the BLE PIN from the default (123456) for security. After changing, forget this device in Bluetooth settings and re-pair with the new PIN."
             )
         }
         .onAppear { pinText = String(config.blePIN) }
-        .onChange(of: viewModel.deviceConfig.blePIN) { pinText = String(config.blePIN) }
+        .onChange(of: config.blePIN) { pinText = String(config.blePIN) }
         .onChange(of: locationPrivacyRadius) {
             MeshCoreViewModel.regenerateLocationFudge()
         }
@@ -1867,12 +1872,13 @@ private extension SettingsView {
 
 struct CustomVarsSection: View {
     @ObservedObject var viewModel: MeshCoreViewModel
+    @Environment(DeviceConfig.self) private var deviceConfig
     @State private var newName: String = ""
     @State private var newValue: String = ""
 
     var body: some View {
         Section {
-            ForEach(Array(viewModel.deviceConfig.customVars.enumerated()), id: \.offset) { _, pair in
+            ForEach(Array(deviceConfig.customVars.enumerated()), id: \.offset) { _, pair in
                 HStack {
                     Text(pair.name)
                         .foregroundStyle(MeshTheme.textPrimary)
@@ -2227,7 +2233,7 @@ private extension SettingsView {
                     Label("Manage Storage", systemImage: "externaldrive")
                         .foregroundStyle(MeshTheme.accent)
                     Spacer()
-                    let count = viewModel.messagesByContact.values.reduce(0) { $0 + $1.count }
+                    let count = messageStoreManager.messagesByContact.values.reduce(0) { $0 + $1.count }
                     Text("\(count) messages")
                         .font(.caption)
                         .foregroundStyle(MeshTheme.textSecondary)
@@ -3025,7 +3031,7 @@ func showSaved(_ state: Binding<SaveButtonState>) {
 // MARK: - Helpers
 
 private extension SettingsView {
-    var config: DeviceConfig { viewModel.deviceConfig }
+    var config: DeviceConfig { deviceConfig }
 
     func infoRow(icon: String, label: String, value: String) -> some View {
         HStack {
@@ -3065,6 +3071,7 @@ private extension SettingsView {
 
 struct NameEditorSheet: View {
     @ObservedObject var viewModel: MeshCoreViewModel
+    @Environment(DeviceConfig.self) private var deviceConfig
     @Environment(\.dismiss) private var dismiss
     @State private var name: String = ""
 
@@ -3115,7 +3122,7 @@ struct NameEditorSheet: View {
             #endif
         }
         .onAppear {
-            name = viewModel.deviceConfig.deviceName
+            name = deviceConfig.deviceName
         }
     }
 }
@@ -3184,6 +3191,7 @@ struct FirmwareDetailSheet: View {
 
 struct TxPowerEditorSheet: View {
     @ObservedObject var viewModel: MeshCoreViewModel
+    @Environment(DeviceConfig.self) private var deviceConfig
     @Environment(\.dismiss) private var dismiss
     @State private var txPower: Double = 22
     @State private var maxPower: Double = 22
@@ -3216,8 +3224,8 @@ struct TxPowerEditorSheet: View {
         .navigationBarTitleDisplayMode(.inline)
         #endif
         .onAppear {
-            txPower = Double(viewModel.deviceConfig.radioTXPower)
-            maxPower = Double(viewModel.deviceConfig.maxTXPower)
+            txPower = Double(deviceConfig.radioTXPower)
+            maxPower = Double(deviceConfig.maxTXPower)
         }
     }
 }
@@ -3226,6 +3234,7 @@ struct TxPowerEditorSheet: View {
 
 struct TuningEditorSheet: View {
     @ObservedObject var viewModel: MeshCoreViewModel
+    @Environment(DeviceConfig.self) private var deviceConfig
     @Environment(\.dismiss) private var dismiss
     @State private var rxDelay: Double = 0
     @State private var airtimeFactor: Double = 0
@@ -3289,8 +3298,8 @@ struct TuningEditorSheet: View {
             #endif
         }
         .onAppear {
-            rxDelay = viewModel.deviceConfig.rxDelaySeconds
-            airtimeFactor = viewModel.deviceConfig.airtimeMultiplier
+            rxDelay = deviceConfig.rxDelaySeconds
+            airtimeFactor = deviceConfig.airtimeMultiplier
         }
     }
 }
@@ -3299,6 +3308,7 @@ struct TuningEditorSheet: View {
 
 struct GPSEditorSheet: View {
     @ObservedObject var viewModel: MeshCoreViewModel
+    @Environment(DeviceConfig.self) private var deviceConfig
     @Environment(\.dismiss) private var dismiss
     @State private var latitude = ""
     @State private var longitude = ""
@@ -3362,9 +3372,8 @@ struct GPSEditorSheet: View {
         .navigationBarTitleDisplayMode(.inline)
         #endif
         .onAppear {
-            let c = viewModel.deviceConfig
-            if c.latitude != 0 { latitude = String(format: "%.6f", c.latitude) }
-            if c.longitude != 0 { longitude = String(format: "%.6f", c.longitude) }
+            if deviceConfig.latitude != 0 { latitude = String(format: "%.6f", deviceConfig.latitude) }
+            if deviceConfig.longitude != 0 { longitude = String(format: "%.6f", deviceConfig.longitude) }
         }
     }
 }
