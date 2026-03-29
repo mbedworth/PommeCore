@@ -549,6 +549,7 @@ final class MeshCoreViewModel: ObservableObject {
         self.channelStore.reset()
         self.messageStoreManager.markAllSendingAsFailed()
         self.messageStoreManager.reset()
+        self.messageStoreManager.deactivate()
 
         // Connection loss notification
         if previousState == .connecting || previousState == .ready {
@@ -1275,7 +1276,9 @@ final class MeshCoreViewModel: ObservableObject {
             deviceConfig.maxTXPower = info.maxTXPower
             deviceConfig.publicKeyHex = info.publicKey.map { String(format: "%02x", $0) }.joined()
             loadBatteryCalibration()
-            mergeMessagesForCurrentRadio()
+            let radioPrefix = String(deviceConfig.publicKeyHex.prefix(12))
+            messageStoreManager.activateForRadio(radioPrefix)
+            channelStore.activateForRadio(radioPrefix)
             deviceConfig.latitude = info.latitude
             deviceConfig.longitude = info.longitude
             deviceConfig.radioFrequency = info.radioFreq

@@ -3,15 +3,87 @@ import os.log
 
 /// File-based persistent store for chat messages.
 /// Uses JSON encoding to a per-contact file in the app's documents directory.
+/// Messages are stored in per-radio subdirectories to isolate data between radios.
 public final class MessageStore {
     private static let logger = Logger(subsystem: "com.meshcore", category: "MessageStore")
 
+    private static var rootDirectory: URL {
+        let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        return docs.appendingPathComponent("MeshCoreMessages", isDirectory: true)
+    }
+
     private let directory: URL
 
+    /// Legacy initializer — points at flat root directory. Used only for migration.
     public init() {
-        let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-        directory = docs.appendingPathComponent("MeshCoreMessages", isDirectory: true)
+        directory = Self.rootDirectory
         try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+    }
+
+    /// Per-radio initializer — stores messages in a radio-specific subdirectory.
+    /// - Parameter radioPrefix: First 12 hex chars of the radio's public key.
+    public init(radioPrefix: String) {
+        directory = Self.rootDirectory.appendingPathComponent(radioPrefix, isDirectory: true)
+        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+    }
+
+    /// Migrate flat message files into a per-radio subdirectory.
+    /// Only runs if the subdirectory is empty and the root has flat `.json` files.
+    /// The first radio to connect after upgrade "claims" the existing messages.
+    @discardableResult
+    public static func migrateToPerRadioStorage(radioPrefix: String) -> Bool {
+        let root = rootDirectory
+        let radioDir = root.appendingPathComponent(radioPrefix, isDirectory: true)
+
+        // Skip if radio subdirectory already has files
+        if let existing = try? FileManager.default.contentsOfDirectory(at: radioDir, includingPropertiesForKeys: nil),
+           existing.contains(where: { $0.pathExtension == "json" }) {
+            return false
+        }
+
+        // Find flat .json files at root level (not in subdirectories)
+        guard let rootFiles = try? FileManager.default.contentsOfDirectory(at: root, includingPropertiesForKeys: [.isDirectoryKey]) else {
+            return false
+        }
+        let flatJsonFiles = rootFiles.filter { url in
+            guard url.pathExtension == "json" else { return false }
+            let isDir = (try? url.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) ?? false
+            return !isDir
+        }
+        guard !flatJsonFiles.isEmpty else { return false }
+
+        // Create subdirectory and move files
+        try? FileManager.default.createDirectory(at: radioDir, withIntermediateDirectories: true)
+        var movedCount = 0
+        for file in flatJsonFiles {
+            let dest = radioDir.appendingPathComponent(file.lastPathComponent)
+            do {
+                try FileManager.default.moveItem(at: file, to: dest)
+                movedCount += 1
+            } catch {
+                logger.error("Failed to migrate \(file.lastPathComponent): \(error.localizedDescription)")
+            }
+        }
+        if movedCount > 0 {
+            logger.info("Migrated \(movedCount) message files to radio subdirectory \(radioPrefix)")
+        }
+        return movedCount > 0
+    }
+
+    /// Returns 12-char hex subdirectory names under MeshCoreMessages/.
+    public static func knownRadioPrefixes() -> [String] {
+        let root = rootDirectory
+        guard let contents = try? FileManager.default.contentsOfDirectory(at: root, includingPropertiesForKeys: [.isDirectoryKey]) else {
+            return []
+        }
+        return contents.compactMap { url in
+            let isDir = (try? url.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) ?? false
+            guard isDir else { return nil }
+            let name = url.lastPathComponent
+            // 12-char hex string = 6 bytes of public key prefix
+            guard name.count == 12, name.allSatisfy({ $0.isHexDigit }) else { return nil }
+            return name
+        }.sorted()
     }
 
     private func fileURL(for contactKeyHash: Data) -> URL {

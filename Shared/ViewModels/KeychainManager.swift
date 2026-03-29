@@ -142,10 +142,14 @@ struct KeychainManager {
 
     private static let channelService = "com.mbedworth.meshcore.channels"
 
-    /// Channel secret account key — keyed by name only (lowercased), not index,
-    /// so the same channel works across different radios with different slot assignments.
+    /// Legacy channel secret account key — keyed by name only (no radio isolation).
     private static func channelAccount(_ name: String) -> String {
         "channel.secret.\(name.lowercased())"
+    }
+
+    /// Per-radio channel secret account key — isolated by radio public key prefix.
+    private static func channelAccount(_ name: String, radioPrefix: String) -> String {
+        "channel.secret.\(radioPrefix).\(name.lowercased())"
     }
 
     /// Save a channel secret to Keychain (syncs via iCloud when enabled).
@@ -207,6 +211,80 @@ struct KeychainManager {
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: channelService,
             kSecAttrAccount as String: channelAccount(name),
+            kSecAttrSynchronizable as String: kSecAttrSynchronizableAny
+        ]
+        #if os(macOS)
+        query[kSecUseDataProtectionKeychain as String] = true
+        #endif
+        let status = SecItemDelete(query as CFDictionary)
+        return status == errSecSuccess || status == errSecItemNotFound
+    }
+
+    // MARK: - Per-Radio Channel Secrets
+
+    /// Save a channel secret scoped to a specific radio.
+    @discardableResult
+    static func saveChannelSecret(_ secret: Data, forChannelName name: String, radioPrefix: String) -> Bool {
+        let account = channelAccount(name, radioPrefix: radioPrefix)
+
+        var deleteQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: channelService,
+            kSecAttrAccount as String: account,
+            kSecAttrSynchronizable as String: kSecAttrSynchronizableAny
+        ]
+        #if os(macOS)
+        deleteQuery[kSecUseDataProtectionKeychain as String] = true
+        #endif
+        SecItemDelete(deleteQuery as CFDictionary)
+
+        var addQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: channelService,
+            kSecAttrAccount as String: account,
+            kSecValueData as String: secret,
+            kSecAttrSynchronizable as String: Self.iCloudSyncEnabled,
+            kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlocked
+        ]
+        #if os(macOS)
+        addQuery[kSecUseDataProtectionKeychain as String] = true
+        #endif
+
+        return SecItemAdd(addQuery as CFDictionary, nil) == errSecSuccess
+    }
+
+    /// Retrieve a channel secret scoped to a specific radio, with fallback to legacy unscoped key.
+    static func getChannelSecret(forChannelName name: String, radioPrefix: String) -> Data? {
+        // Try scoped key first
+        var query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: channelService,
+            kSecAttrAccount as String: channelAccount(name, radioPrefix: radioPrefix),
+            kSecAttrSynchronizable as String: kSecAttrSynchronizableAny,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+        #if os(macOS)
+        query[kSecUseDataProtectionKeychain as String] = true
+        #endif
+
+        var result: AnyObject?
+        if SecItemCopyMatching(query as CFDictionary, &result) == errSecSuccess,
+           let data = result as? Data {
+            return data
+        }
+
+        // Fall back to legacy unscoped key
+        return getChannelSecret(forChannelName: name)
+    }
+
+    /// Delete a channel secret scoped to a specific radio.
+    @discardableResult
+    static func deleteChannelSecret(forChannelName name: String, radioPrefix: String) -> Bool {
+        var query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: channelService,
+            kSecAttrAccount as String: channelAccount(name, radioPrefix: radioPrefix),
             kSecAttrSynchronizable as String: kSecAttrSynchronizableAny
         ]
         #if os(macOS)
