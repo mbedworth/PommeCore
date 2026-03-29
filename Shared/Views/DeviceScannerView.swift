@@ -2,7 +2,7 @@ import SwiftUI
 import MeshCoreKit
 
 struct DeviceScannerView: View {
-    @EnvironmentObject var viewModel: MeshCoreViewModel
+    @Environment(ConnectionManager.self) private var connectionManager
     @Environment(\.dismiss) private var dismiss
 
     /// Tracks the scan cycle timer while the view is visible.
@@ -17,16 +17,16 @@ struct DeviceScannerView: View {
     var body: some View {
         List {
             Section {
-                if viewModel.discoveredPeripherals.isEmpty {
-                    if viewModel.isScanning {
+                if connectionManager.discoveredPeripherals.isEmpty {
+                    if connectionManager.isScanning {
                         HStack(spacing: 12) {
                             ProgressView()
                                 .tint(MeshTheme.accent)
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("Searching for MeshCore devices...")
                                     .foregroundStyle(MeshTheme.textPrimary)
-                                if viewModel.scanRetryCount < 3 && viewModel.scanRetryCount > 0 {
-                                    Text("Retry \(3 - viewModel.scanRetryCount) of 3")
+                                if connectionManager.scanRetryCount < 3 && connectionManager.scanRetryCount > 0 {
+                                    Text("Retry \(3 - connectionManager.scanRetryCount) of 3")
                                         .font(.caption)
                                         .foregroundStyle(MeshTheme.textSecondary)
                                 }
@@ -35,8 +35,8 @@ struct DeviceScannerView: View {
                         .listRowBackground(MeshTheme.surface)
                     } else {
                         Button {
-                            viewModel.scanRetryCount = 3
-                            viewModel.startScanning()
+                            connectionManager.scanRetryCount = 3
+                            connectionManager.startScanning()
                             startScanCycle()
                         } label: {
                             HStack(spacing: 12) {
@@ -58,7 +58,7 @@ struct DeviceScannerView: View {
                     }
                 } else {
                     // Show scanning indicator above the device list
-                    if viewModel.isScanning {
+                    if connectionManager.isScanning {
                         HStack(spacing: 8) {
                             ProgressView()
                                 .scaleEffect(0.7)
@@ -70,9 +70,9 @@ struct DeviceScannerView: View {
                         .listRowBackground(MeshTheme.surface)
                     }
 
-                    ForEach(viewModel.discoveredPeripherals) { peripheral in
+                    ForEach(connectionManager.discoveredPeripherals) { peripheral in
                         Button {
-                            viewModel.connect(to: peripheral)
+                            connectionManager.connect(to: peripheral)
                             dismiss()
                         } label: {
                             HStack(spacing: 12) {
@@ -106,15 +106,15 @@ struct DeviceScannerView: View {
             }
 
             Section {
-                if viewModel.wifiManager.isConnected {
+                if connectionManager.wifiManager.isConnected {
                     HStack {
                         Image(systemName: "wifi")
                             .foregroundStyle(MeshTheme.connected)
-                        Text(viewModel.wifiManager.connectedHost ?? "Connected")
+                        Text(connectionManager.wifiManager.connectedHost ?? "Connected")
                             .foregroundStyle(MeshTheme.textPrimary)
                         Spacer()
                         Button("Disconnect") {
-                            viewModel.disconnectWiFi()
+                            connectionManager.disconnectWiFi()
                         }
                         .foregroundStyle(MeshTheme.disconnected)
                     }
@@ -123,7 +123,7 @@ struct DeviceScannerView: View {
                     // Saved connections
                     ForEach(savedWiFiConnections) { saved in
                         Button {
-                            viewModel.connectWiFi(host: saved.host, port: saved.port)
+                            connectionManager.connectWiFi(host: saved.host, port: saved.port)
                             saveWiFiConnection(host: saved.host, port: saved.port)
                             dismiss()
                         } label: {
@@ -170,7 +170,7 @@ struct DeviceScannerView: View {
                             #endif
                         Button("Connect") {
                             let port = UInt16(wifiPort) ?? 5000
-                            viewModel.connectWiFi(host: wifiHost, port: port)
+                            connectionManager.connectWiFi(host: wifiHost, port: port)
                             saveWiFiConnection(host: wifiHost, port: port)
                             dismiss()
                         }
@@ -191,33 +191,33 @@ struct DeviceScannerView: View {
             #if os(macOS) || targetEnvironment(macCatalyst)
             // USB Serial section
             Section {
-                if viewModel.usbManager.isConnected {
+                if connectionManager.usbManager.isConnected {
                     HStack {
                         Image(systemName: "cable.connector")
                             .foregroundStyle(MeshTheme.connected)
-                        Text(viewModel.usbManager.connectedPort?.replacingOccurrences(of: "/dev/cu.", with: "") ?? "Connected")
+                        Text(connectionManager.usbManager.connectedPort?.replacingOccurrences(of: "/dev/cu.", with: "") ?? "Connected")
                             .foregroundStyle(MeshTheme.textPrimary)
                         Spacer()
-                        Button("Disconnect") { viewModel.disconnectUSB() }
+                        Button("Disconnect") { connectionManager.disconnectUSB() }
                             .foregroundStyle(MeshTheme.disconnected)
                     }
                     .listRowBackground(MeshTheme.surface)
                 } else {
-                    ForEach(viewModel.usbManager.availablePorts, id: \.self) { port in
+                    ForEach(connectionManager.usbManager.availablePorts, id: \.self) { port in
                         HStack {
                             Image(systemName: "cable.connector")
                                 .foregroundStyle(MeshTheme.accent)
                             Text(port.replacingOccurrences(of: "/dev/cu.", with: ""))
                                 .foregroundStyle(MeshTheme.textPrimary)
                             Spacer()
-                            Button("Connect") { viewModel.connectUSB(port: port); dismiss() }
+                            Button("Connect") { connectionManager.connectUSB(port: port); dismiss() }
                                 .buttonStyle(.borderedProminent)
                                 .tint(MeshTheme.interactiveGreen)
                         }
                         .listRowBackground(MeshTheme.surface)
                     }
 
-                    if viewModel.usbManager.availablePorts.isEmpty {
+                    if connectionManager.usbManager.availablePorts.isEmpty {
                         Text("No serial ports detected")
                             .font(.caption)
                             .foregroundStyle(MeshTheme.textSecondary)
@@ -233,7 +233,7 @@ struct DeviceScannerView: View {
                             .textFieldStyle(.roundedBorder)
                         Button("Connect") {
                             guard !manualSerialPort.isEmpty else { return }
-                            viewModel.connectUSB(port: manualSerialPort)
+                            connectionManager.connectUSB(port: manualSerialPort)
                             dismiss()
                         }
                         .buttonStyle(.borderedProminent)
@@ -243,7 +243,7 @@ struct DeviceScannerView: View {
                     .listRowBackground(MeshTheme.surface)
 
                     Button {
-                        viewModel.usbManager.scanPorts()
+                        connectionManager.usbManager.scanPorts()
                     } label: {
                         Label("Refresh Ports", systemImage: "arrow.clockwise")
                             .foregroundStyle(MeshTheme.accent)
@@ -259,24 +259,24 @@ struct DeviceScannerView: View {
                     .font(.caption2)
             }
             .onAppear {
-                viewModel.usbManager.scanPorts()
+                connectionManager.usbManager.scanPorts()
             }
             #endif
         }
         .meshListStyle()
         .navigationTitle("Scanner")
         .onAppear {
-            viewModel.startScanning()
+            connectionManager.startScanning()
             startScanCycle()
         }
         .onDisappear {
             scanCycleTask?.cancel()
             scanCycleTask = nil
-            viewModel.stopScanning()
+            connectionManager.stopScanning()
         }
     }
 
-    /// Runs a 15-second scan cycle. When the timer fires, tells the ViewModel
+    /// Runs a 15-second scan cycle. When the timer fires, tells the ConnectionManager
     /// to either retry (if no devices found) or keep scanning (if devices are visible).
     private func startScanCycle() {
         scanCycleTask?.cancel()
@@ -285,7 +285,7 @@ struct DeviceScannerView: View {
                 try? await Task.sleep(nanoseconds: 15_000_000_000) // 15s
                 guard !Task.isCancelled else { break }
                 await MainActor.run {
-                    viewModel.handleScanTimeout()
+                    connectionManager.handleScanTimeout()
                 }
             }
         }

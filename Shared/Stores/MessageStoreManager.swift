@@ -647,6 +647,10 @@ final class MessageStoreManager {
         } else if isRoom {
             guard prefs.notifyRoom else { return }
         } else {
+            // Suppress notifications from infrastructure nodes (repeaters, sensors)
+            if let contact, contact.type == .repeater || contact.type == .sensor {
+                return
+            }
             guard prefs.notifyDirect else { return }
         }
 

@@ -1207,6 +1207,7 @@ struct RadioSection: View {
                     spreadingFactor: preset.spreadingFactor, codingRate: preset.codingRate,
                     repeatMode: repeatMode
                 )
+                dismiss()
             },
             currentFreqKHz: initFreqKHz,
             currentBW: initBW,

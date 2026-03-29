@@ -349,7 +349,10 @@ final class ConnectionManager {
                     self.connectedDeviceName = self.usbManager.connectedPort?.replacingOccurrences(of: "/dev/cu.", with: "")
                 }
                 if !connected {
-                    self.onDisconnected?(self.connectionState)
+                    let previousState = self.connectionState
+                    self.connectionState = .disconnected
+                    self.connectedDeviceName = nil
+                    self.onDisconnected?(previousState)
                 }
             }
             .store(in: &cancellables)
