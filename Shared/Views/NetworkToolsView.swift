@@ -269,7 +269,8 @@ struct DiscoverView: View {
 struct TraceRouteResultView: View {
     let result: TraceResult
     let contactName: String
-    @EnvironmentObject var viewModel: MeshCoreViewModel
+    @Environment(ContactStore.self) private var contactStore
+    @Environment(ConnectionManager.self) private var connectionManager
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -291,7 +292,7 @@ struct TraceRouteResultView: View {
             } else {
                 VStack(spacing: 0) {
                     // Local device
-                    traceNode(name: viewModel.connectedDeviceName ?? "Local", isFirst: true, isLast: false, snr: nil)
+                    traceNode(name: connectionManager.connectedDeviceName ?? "Local", isFirst: true, isLast: false, snr: nil)
 
                     ForEach(Array(result.hops.enumerated()), id: \.element.id) { index, hop in
                         traceLine(snr: hop.snr)
@@ -338,9 +339,8 @@ struct TraceRouteResultView: View {
     }
 
     private func nodeName(for hash: Data) -> String {
-        // Try to match hash to a known contact (use nickname if set)
-        if let contact = viewModel.contacts.first(where: { $0.publicKeyPrefix == hash }) {
-            return viewModel.displayName(for: contact)
+        if let contact = contactStore.contacts.first(where: { $0.publicKeyPrefix == hash }) {
+            return contactStore.displayName(for: contact)
         }
         return hash.prefix(4).map { String(format: "%02X", $0) }.joined(separator: ":")
     }
@@ -471,7 +471,7 @@ struct TelemetryView: View {
 struct AdvertPathView: View {
     let pathInfo: AdvertPathInfo
     let contactName: String
-    @EnvironmentObject var viewModel: MeshCoreViewModel
+    @Environment(ContactStore.self) private var contactStore
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -527,14 +527,12 @@ struct AdvertPathView: View {
     }
 
     private func nodeName(for hash: Data) -> String {
-        // Try exact 6-byte match first
-        if let contact = viewModel.contacts.first(where: { $0.publicKeyPrefix == hash }) {
-            return viewModel.displayName(for: contact)
+        if let contact = contactStore.contacts.first(where: { $0.publicKeyPrefix == hash }) {
+            return contactStore.displayName(for: contact)
         }
-        // Try prefix match for smaller hashes (1-3 byte path hash mode)
         if hash.count < 6 {
-            if let contact = viewModel.contacts.first(where: { $0.publicKeyPrefix.prefix(hash.count) == hash }) {
-                return viewModel.displayName(for: contact)
+            if let contact = contactStore.contacts.first(where: { $0.publicKeyPrefix.prefix(hash.count) == hash }) {
+                return contactStore.displayName(for: contact)
             }
         }
         return hash.map { String(format: "%02X", $0) }.joined(separator: ":")
@@ -636,7 +634,6 @@ struct ContactDetailSheet: View {
             }
             .sheet(isPresented: $showPathEditor) {
                 ManualPathEditor(contact: contact)
-                    .environmentObject(viewModel)
             }
         }
         .meshTheme()
@@ -978,14 +975,15 @@ private extension Data {
 
 /// Shows basic info about the currently connected device.
 struct DeviceInfoPopover: View {
-    @EnvironmentObject var viewModel: MeshCoreViewModel
-
-    private var config: DeviceConfig { viewModel.deviceConfig }
+    @Environment(DeviceConfig.self) private var config
+    @Environment(ContactStore.self) private var contactStore
+    @Environment(ChannelStore.self) private var channelStore
+    @Environment(ConnectionManager.self) private var connectionManager
 
     var body: some View {
         List {
             Section {
-                infoRow("Device", value: viewModel.connectedDeviceName ?? "Unknown")
+                infoRow("Device", value: connectionManager.connectedDeviceName ?? "Unknown")
                 if !config.advertName.isEmpty {
                     infoRow("Advert Name", value: config.advertName)
                 }
@@ -1022,15 +1020,15 @@ struct DeviceInfoPopover: View {
                 infoRow("Frequency", value: String(format: "%.1f MHz", config.frequencyMHz))
                 infoRow("TX Power", value: "\(config.radioTXPower) dBm")
                 infoRow("SF/BW", value: "SF\(config.radioSpreadingFactor) / \(Int(config.bandwidthKHz)) kHz")
-                infoRow("Contacts", value: "\(viewModel.contacts.count) / \(config.maxContacts)")
-                infoRow("Channels", value: "\(viewModel.channels.count) / \(config.maxChannels)")
+                infoRow("Contacts", value: "\(contactStore.contacts.count) / \(config.maxContacts)")
+                infoRow("Channels", value: "\(channelStore.channels.count) / \(config.maxChannels)")
             } header: {
                 Text("Radio").foregroundStyle(MeshTheme.textSecondary)
             }
 
             Section {
                 Button(role: .destructive) {
-                    viewModel.disconnect()
+                    connectionManager.bleManager.disconnect()
                 } label: {
                     HStack {
                         Image(systemName: "wifi.slash")
@@ -1098,7 +1096,7 @@ struct ActivityOverlay: View {
 
 struct PathViewer: View {
     let contact: Contact
-    @EnvironmentObject var viewModel: MeshCoreViewModel
+    @Environment(ContactStore.self) private var contactStore
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -1132,7 +1130,7 @@ struct PathViewer: View {
                         Image(systemName: "arrow.right")
                             .font(.caption2)
                             .foregroundStyle(MeshTheme.textSecondary)
-                        pathNode(viewModel.displayName(for: contact), color: MeshTheme.incomingBubble)
+                        pathNode(contactStore.displayName(for: contact), color: MeshTheme.incomingBubble)
                     }
                 }
 
@@ -1158,7 +1156,6 @@ struct PathViewer: View {
 
     private func parsePathHops(from pathData: Data, pathLen: Int) -> [String] {
         guard !pathData.isEmpty, pathLen > 0 else { return [] }
-        // Infer bytes per hop from data length and hop count
         let bytesPerHop = max(1, min(3, pathData.count / pathLen))
         var hops: [String] = []
         for i in 0..<pathLen {
@@ -1175,11 +1172,10 @@ struct PathViewer: View {
         return hops
     }
 
-    /// Try to match a path hash to a known repeater name.
     private func resolvePathHash(_ hashBytes: Data) -> String? {
-        for c in viewModel.contacts where c.type == .repeater {
+        for c in contactStore.contacts where c.type == .repeater {
             if c.publicKeyPrefix.prefix(hashBytes.count) == hashBytes {
-                return viewModel.displayName(for: c)
+                return contactStore.displayName(for: c)
             }
         }
         return nil
@@ -1190,7 +1186,7 @@ struct PathViewer: View {
 
 struct ManualPathEditor: View {
     let contact: Contact
-    @EnvironmentObject var viewModel: MeshCoreViewModel
+    @Environment(ContactStore.self) private var contactStore
     @Environment(\.dismiss) private var dismiss
     @State private var pathMode = 0 // 0=auto, 1=flood, 2=manual
     @State private var selectedRepeaters: [Contact] = []
@@ -1198,7 +1194,7 @@ struct ManualPathEditor: View {
     @State private var pathApplied = false
 
     private var repeaters: [Contact] {
-        viewModel.contacts.filter { $0.type == .repeater }
+        contactStore.contacts.filter { $0.type == .repeater }
     }
 
     var body: some View {
@@ -1270,7 +1266,7 @@ struct ManualPathEditor: View {
                     HStack {
                         Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                             .foregroundStyle(isSelected ? MeshTheme.accent : MeshTheme.textSecondary)
-                        Text(viewModel.displayName(for: repeater))
+                        Text(contactStore.displayName(for: repeater))
                             .foregroundStyle(MeshTheme.textPrimary)
                     }
                 }
@@ -1287,7 +1283,7 @@ struct ManualPathEditor: View {
                     HStack {
                         Text("\(idx + 1).")
                             .foregroundStyle(MeshTheme.textSecondary)
-                        Text(viewModel.displayName(for: rep))
+                        Text(contactStore.displayName(for: rep))
                             .foregroundStyle(MeshTheme.textPrimary)
                     }
                 }
@@ -1322,14 +1318,14 @@ struct ManualPathEditor: View {
     private func applyPath() {
         switch pathMode {
         case 1: // Flood
-            viewModel.setContactPath(contact, pathLen: -1, pathData: Data())
+            contactStore.setContactPath(contact, pathLen: -1, pathData: Data())
         case 2: // Manual
             if !selectedRepeaters.isEmpty {
                 var pathData = Data()
                 for rep in selectedRepeaters {
                     pathData.append(rep.publicKeyPrefix.prefix(1)) // 1-byte hash
                 }
-                viewModel.setContactPath(contact, pathLen: Int8(selectedRepeaters.count), pathData: pathData)
+                contactStore.setContactPath(contact, pathLen: Int8(selectedRepeaters.count), pathData: pathData)
             } else if !manualPathHex.isEmpty {
                 let hexParts = manualPathHex.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
                 var pathData = Data()
@@ -1344,10 +1340,10 @@ struct ManualPathEditor: View {
                     }
                     pathData.append(bytes)
                 }
-                viewModel.setContactPath(contact, pathLen: Int8(hexParts.count), pathData: pathData)
+                contactStore.setContactPath(contact, pathLen: Int8(hexParts.count), pathData: pathData)
             }
         default: // Auto — reset path so device rediscovers
-            viewModel.resetPath(for: contact)
+            contactStore.resetPath(for: contact)
         }
     }
 }
