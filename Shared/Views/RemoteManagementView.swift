@@ -400,8 +400,16 @@ private extension RemoteManagementView {
                         #if os(macOS)
                         NSPasteboard.general.clearContents()
                         NSPasteboard.general.setString(pubkey, forType: .string)
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 60) {
+                            if NSPasteboard.general.string(forType: .string) == pubkey {
+                                NSPasteboard.general.clearContents()
+                            }
+                        }
                         #elseif !os(watchOS)
-                        UIPasteboard.general.string = pubkey
+                        UIPasteboard.general.setItems(
+                            [[UIPasteboard.typeAutomatic: pubkey]],
+                            options: [.expirationDate: Date().addingTimeInterval(60)]
+                        )
                         #endif
                     } label: {
                         Label("Copy Public Key", systemImage: "doc.on.doc")

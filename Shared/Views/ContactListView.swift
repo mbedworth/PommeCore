@@ -534,6 +534,12 @@ struct ContactListView: View {
                             Button {
                                 NSPasteboard.general.clearContents()
                                 NSPasteboard.general.setString(deviceConfig.publicKeyHex, forType: .string)
+                                // Auto-clear after 60s for security
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 60) {
+                                    if NSPasteboard.general.string(forType: .string) == deviceConfig.publicKeyHex {
+                                        NSPasteboard.general.clearContents()
+                                    }
+                                }
                             } label: {
                                 Label("Copy Public Key", systemImage: "doc.on.doc")
                             }
@@ -552,7 +558,10 @@ struct ContactListView: View {
                     }
                     if !deviceConfig.publicKeyHex.isEmpty {
                         Button {
-                            UIPasteboard.general.string = deviceConfig.publicKeyHex
+                            UIPasteboard.general.setItems(
+                                [[UIPasteboard.typeAutomatic: deviceConfig.publicKeyHex]],
+                                options: [.expirationDate: Date().addingTimeInterval(60)]
+                            )
                         } label: {
                             Label("Copy Public Key", systemImage: "doc.on.doc")
                         }
