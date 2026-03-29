@@ -1266,42 +1266,7 @@ struct ContactListView: View {
     }
 
     private func contactRow(_ contact: Contact) -> some View {
-        HStack(spacing: 12) {
-            contactIcon(for: contact)
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 6) {
-                    Text(contactStore.displayName(for: contact))
-                        .font(.body)
-                        .foregroundStyle(MeshTheme.textPrimary)
-                    loginBadge(for: contact)
-                    pathIndicator(for: contact)
-                }
-                if contactStore.nickname(for: contact) != nil {
-                    Text(contact.name)
-                        .font(.caption2)
-                        .foregroundStyle(MeshTheme.textSecondary)
-                }
-                lastMessagePreview(for: contact)
-            }
-            Spacer()
-            if messageStoreManager.hasDraft(for: contact.publicKeyPrefix) {
-                Text("Draft")
-                    .font(.caption2)
-                    .foregroundStyle(.orange)
-            }
-            if contactStore.hasNote(for: contact) {
-                Image(systemName: "note.text")
-                    .foregroundStyle(MeshTheme.textSecondary)
-                    .font(.caption)
-            }
-            if contact.isFavourite {
-                Image(systemName: "star.fill")
-                    .foregroundStyle(.yellow)
-                    .font(.caption)
-            }
-            unreadBadge(for: contact)
-        }
-        .contentShape(Rectangle())
+        ContactRowView(contact: contact)
     }
 
     /// Returns the appropriate detail view for a contact based on its type.
@@ -1369,46 +1334,6 @@ struct ContactListView: View {
     }
     #endif
 
-    @ViewBuilder
-    private func contactIcon(for contact: Contact) -> some View {
-        let isManaged = contact.type == .repeater || contact.type == .room
-        let session = isManaged ? viewModel.remoteSession(for: contact) : nil
-        let loggedIn: Bool = {
-            guard let s = session else { return false }
-            if case .loggedIn = s.loginState { return true }
-            return false
-        }()
-
-        ZStack {
-            let statusColor = contactStore.contactStatusColor(for: contact)
-            Circle()
-                .fill(statusColor.opacity(0.15))
-                .frame(width: 40, height: 40)
-            Image(systemName: contactIconName(for: contact.type))
-                .foregroundStyle(statusColor)
-
-            // Status overlay for repeaters/room servers
-            if isManaged {
-                if loggedIn {
-                    Image(systemName: "lock.open.fill")
-                        .font(.system(size: 10))
-                        .foregroundStyle(MeshTheme.connected)
-                        .offset(x: 14, y: 14)
-                } else if KeychainManager.hasPassword(forDevice: contact.publicKey) {
-                    Image(systemName: "key.fill")
-                        .font(.system(size: 10))
-                        .foregroundStyle(MeshTheme.textSecondary)
-                        .offset(x: 14, y: 14)
-                } else {
-                    Image(systemName: "lock.fill")
-                        .font(.system(size: 10))
-                        .foregroundStyle(MeshTheme.textSecondary)
-                        .offset(x: 14, y: 14)
-                }
-            }
-        }
-    }
-
     private func contactIconName(for type: ContactType) -> String {
         switch type {
         case .chat: return "person.fill"
@@ -1416,138 +1341,6 @@ struct ContactListView: View {
         case .room: return "server.rack"
         case .sensor: return "sensor.fill"
         case .unknown: return "person.fill"
-        }
-    }
-
-    @ViewBuilder
-    private func loginBadge(for contact: Contact) -> some View {
-        if contact.type == .repeater || contact.type == .room {
-            let session = viewModel.remoteSession(for: contact)
-            switch session.loginState {
-            case .loggedIn(let permission):
-                Text(permission.displayName)
-                    .font(.caption2.weight(.medium))
-                    .foregroundStyle(.black)
-                    .padding(.horizontal, 5)
-                    .padding(.vertical, 1)
-                    .background(permissionBadgeColor(permission).opacity(0.8))
-                    .clipShape(Capsule())
-            default:
-                EmptyView()
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func pathIndicator(for contact: Contact) -> some View {
-        if contact.outPathLen == 0 {
-            Text("direct")
-                .font(.caption2)
-                .foregroundStyle(MeshTheme.connected)
-        } else if contact.outPathLen > 0 {
-            let pathStr = formatPathHashes(contact.outPath, hopCount: Int(contact.outPathLen))
-            if pathStr.isEmpty {
-                Text("\(contact.outPathLen) hop\(contact.outPathLen == 1 ? "" : "s")")
-                    .font(.caption2)
-                    .foregroundStyle(MeshTheme.textSecondary)
-            } else {
-                Text(pathStr)
-                    .font(.system(.caption2, design: .monospaced))
-                    .foregroundStyle(MeshTheme.textSecondary)
-                    .lineLimit(1)
-            }
-        }
-    }
-
-    /// Format path hashes from outPath data. Each hop uses 1-3 bytes depending on path hash mode.
-    private func formatPathHashes(_ pathData: Data, hopCount: Int) -> String {
-        guard !pathData.isEmpty, hopCount > 0 else { return "" }
-        let bytesPerHop = pathData.count / hopCount
-        guard bytesPerHop >= 1 && bytesPerHop <= 3 else { return "" }
-        var hops: [String] = []
-        for i in 0..<hopCount {
-            let start = i * bytesPerHop
-            let end = min(start + bytesPerHop, pathData.count)
-            guard end <= pathData.count else { break }
-            let hash = pathData[start..<end]
-            let hexStr = hash.map { String(format: "%02X", $0) }.joined()
-            // Try to resolve to a known repeater name
-            if let name = contactStore.contactNameForHash(hexStr) {
-                hops.append(name)
-            } else {
-                hops.append(hexStr)
-            }
-        }
-        return hops.joined(separator: " \u{2192} ")
-    }
-
-    @ViewBuilder
-    private func lastMessagePreview(for contact: Contact) -> some View {
-        if (contact.type == .repeater || contact.type == .room),
-           case .loggedIn(let permission) = viewModel.remoteSession(for: contact).loginState {
-            let session = viewModel.remoteSession(for: contact)
-            if let ver = session.settings["ver"], !ver.isEmpty {
-                Text("Connected \u{2014} \(permission.displayName) \u{00B7} \(ver)")
-                    .font(.caption)
-                    .foregroundStyle(MeshTheme.connected)
-                    .lineLimit(1)
-            } else {
-                Text("Connected \u{2014} \(permission.displayName)")
-                    .font(.caption)
-                    .foregroundStyle(MeshTheme.connected)
-            }
-        } else {
-            let messages = messageStoreManager.messages(for: contact)
-            if let last = messages.last {
-                Text(last.text)
-                    .font(.caption)
-                    .foregroundStyle(MeshTheme.textSecondary)
-                    .lineLimit(1)
-            } else if let seenText = lastSeenText(for: contact) {
-                Text(seenText)
-                    .font(.caption)
-                    .foregroundStyle(MeshTheme.textSecondary)
-            } else {
-                Text("Never seen")
-                    .font(.caption)
-                    .foregroundStyle(MeshTheme.textSecondary)
-            }
-        }
-    }
-
-    /// Returns a "Seen X ago" string for valid, recent timestamps, or nil.
-    private func lastSeenText(for contact: Contact) -> String? {
-        guard contact.lastAdvert > 1_000_000_000 else { return nil }
-
-        let date = Date(timeIntervalSince1970: TimeInterval(contact.lastAdvert))
-        let now = Date()
-
-        // If more than 1 year ago, likely stale
-        if now.timeIntervalSince(date) > 365 * 24 * 60 * 60 {
-            return nil
-        }
-
-        // If in the future (clock skew), allow 5 min tolerance
-        if date > now.addingTimeInterval(300) {
-            return nil
-        }
-
-        let formatter = RelativeDateTimeFormatter()
-        formatter.unitsStyle = .abbreviated
-        return "Seen \(formatter.localizedString(for: date, relativeTo: now))"
-    }
-
-    @ViewBuilder
-    private func unreadBadge(for contact: Contact) -> some View {
-        let count = messageStoreManager.unreadCount(for: contact)
-        if count > 0 {
-            Text("\(count)")
-                .font(.caption2.weight(.bold))
-                .foregroundStyle(.black)
-                .padding(.horizontal, 6)
-                .padding(.vertical, 2)
-                .background(MeshTheme.interactiveGreen)
-                .clipShape(Capsule())
         }
     }
 
@@ -1570,12 +1363,4 @@ struct ContactListView: View {
         }
     }
 
-    private func permissionBadgeColor(_ permission: RemotePermission) -> Color {
-        switch permission {
-        case .guest: return MeshTheme.textSecondary
-        case .readOnly: return .yellow
-        case .readWrite: return .blue
-        case .admin: return MeshTheme.interactiveGreen
-        }
-    }
 }
