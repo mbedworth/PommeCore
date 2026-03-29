@@ -601,10 +601,16 @@ final class MeshCoreViewModel: ObservableObject {
                 _ = self.deviceConfig.batteryMillivolts
                 _ = self.deviceConfig.isLoading
                 _ = self.deviceConfig.radioFrequency
+                _ = self.deviceConfig.radioBandwidth
+                _ = self.deviceConfig.radioSpreadingFactor
+                _ = self.deviceConfig.radioCodingRate
+                _ = self.deviceConfig.repeatMode
                 _ = self.deviceConfig.radioTXPower
+                _ = self.deviceConfig.latitude
+                _ = self.deviceConfig.longitude
                 _ = self.deviceConfig.blePIN
                 _ = self.deviceConfig.autoAddBitmask
-                _ = self.deviceConfig.customVars.count
+                _ = self.deviceConfig.customVars
                 _ = self.deviceConfig.maxChannels
                 // RemoteSessionManager properties
                 _ = self.remoteSessionManager.discoveredNodes
@@ -970,6 +976,9 @@ final class MeshCoreViewModel: ObservableObject {
     func setAdvertLatLon(latitude: Double, longitude: Double) {
         let (fLat, fLon) = fudgeLocation(lat: latitude, lon: longitude)
         sendCommand(MeshCoreProtocol.buildSetAdvertLatLon(latitude: fLat, longitude: fLon), label: "SET_LATLON")
+        // Optimistic update — reflect changes immediately
+        deviceConfig.latitude = fLat
+        deviceConfig.longitude = fLon
     }
 
     /// Session-stable random offset for location privacy. Regenerated on app launch
@@ -1033,10 +1042,18 @@ final class MeshCoreViewModel: ObservableObject {
             spreadingFactor: spreadingFactor, codingRate: codingRate,
             repeatMode: repeatMode
         ), label: "SET_RADIO")
+        // Optimistic update — reflect changes immediately
+        deviceConfig.radioFrequency = frequency
+        deviceConfig.radioBandwidth = bandwidth
+        deviceConfig.radioSpreadingFactor = spreadingFactor
+        deviceConfig.radioCodingRate = codingRate
+        deviceConfig.repeatMode = repeatMode
     }
 
     func setRadioTXPower(_ power: UInt8) {
         sendCommand(MeshCoreProtocol.buildSetRadioTXPower(power), label: "SET_TX_POWER")
+        // Optimistic update — reflect changes immediately
+        deviceConfig.radioTXPower = power
     }
 
     func setTuningParams(rxDelayBase: UInt32, airtimeFactor: UInt32) {
@@ -1069,6 +1086,8 @@ final class MeshCoreViewModel: ObservableObject {
 
     func setDevicePIN(_ pin: UInt32) {
         sendCommand(MeshCoreProtocol.buildSetDevicePIN(pin), label: "SET_PIN")
+        // Optimistic update — reflect changes immediately
+        deviceConfig.blePIN = pin
     }
 
     func setDeviceTime(epochSeconds: UInt32) {

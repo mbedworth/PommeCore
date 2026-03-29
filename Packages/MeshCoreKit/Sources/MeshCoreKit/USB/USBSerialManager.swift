@@ -145,13 +145,14 @@ public final class USBSerialManager: ObservableObject {
 
         // Synchronous read loop on background thread — replaces DispatchSourceRead
         // which was not firing for USB CDC devices.
-        // Use fd (local, set synchronously) not isConnected (@Published, set async on main).
+        // Use fd (local, captured at connect time) for both the loop check and read calls
+        // to avoid race conditions with disconnect() setting fileDescriptor = -1.
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self else { return }
             var buffer = [UInt8](repeating: 0, count: 1024)
             DebugLogger.shared.log("USB: sync read loop started on fd=\(fd)", level: .info)
 
-            while self.fileDescriptor >= 0 {
+            while self.fileDescriptor == fd {
                 let bytesRead = read(fd, &buffer, 1024)
                 if bytesRead > 0 {
                     let data = Data(buffer[0..<bytesRead])
@@ -223,6 +224,7 @@ public final class USBSerialManager: ObservableObject {
         DebugLogger.shared.log("USB: disconnect called from:\n\(stack)", level: .warning)
 
         resolvedMode = .unknown
+        readBuffer.removeAll()
 
         if fileDescriptor >= 0 {
             close(fileDescriptor)

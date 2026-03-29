@@ -18,7 +18,7 @@ struct ContactListView: View {
     @State private var showShareConfirmation = false
     @State private var showResetConfirmation = false
     @State private var detailContact: Contact?
-    @State private var showChannelSheet = false
+    @State private var channelSheetAction: ChannelAction?
     // showDeviceInfo removed — connection bar now navigates to Settings
     #if !os(watchOS)
     @State private var channelToShareSidebar: MeshChannel?
@@ -268,13 +268,13 @@ struct ContactListView: View {
             ManualPathEditor(contact: contact)
                 .environmentObject(viewModel)
         }
-        .sheet(isPresented: $showChannelSheet) {
+        .sheet(item: $channelSheetAction) { action in
             NavigationStack {
-                ChannelManagementView()
+                ChannelManagementView(action: action)
                     .environmentObject(viewModel)
                     .toolbar {
                         ToolbarItem(placement: .cancellationAction) {
-                            Button("Done") { showChannelSheet = false }
+                            Button("Done") { channelSheetAction = nil }
                         }
                     }
             }
@@ -526,6 +526,14 @@ struct ContactListView: View {
                         Button { showMyContactCode = true } label: {
                             Label("My Contact Code", systemImage: "qrcode")
                         }
+                        if !viewModel.deviceConfig.publicKeyHex.isEmpty {
+                            Button {
+                                NSPasteboard.general.clearContents()
+                                NSPasteboard.general.setString(viewModel.deviceConfig.publicKeyHex, forType: .string)
+                            } label: {
+                                Label("Copy Public Key", systemImage: "doc.on.doc")
+                            }
+                        }
                         Button { viewModel.verifyRadioConfig() } label: {
                             Label("Verify Radio Config", systemImage: "checkmark.shield")
                         }
@@ -537,6 +545,13 @@ struct ContactListView: View {
                     #else
                     Button { showMyContactCode = true } label: {
                         Label("My Contact Code", systemImage: "qrcode")
+                    }
+                    if !viewModel.deviceConfig.publicKeyHex.isEmpty {
+                        Button {
+                            UIPasteboard.general.string = viewModel.deviceConfig.publicKeyHex
+                        } label: {
+                            Label("Copy Public Key", systemImage: "doc.on.doc")
+                        }
                     }
                     Button { viewModel.verifyRadioConfig() } label: {
                         Label("Verify Radio Config", systemImage: "checkmark.shield")
@@ -702,13 +717,13 @@ struct ContactListView: View {
                 Spacer()
                 #if !os(watchOS)
                 Menu {
-                    Button { showChannelSheet = true } label: {
+                    Button { channelSheetAction = .createPrivate } label: {
                         Label("Create Private Channel", systemImage: "lock.fill")
                     }
-                    Button { showChannelSheet = true } label: {
+                    Button { channelSheetAction = .hashtag } label: {
                         Label("Join Hashtag Channel", systemImage: "number")
                     }
-                    Button { showChannelSheet = true } label: {
+                    Button { channelSheetAction = .joinPrivate } label: {
                         Label("Join Private Channel", systemImage: "key.fill")
                     }
                     Button { showImportSheet = true } label: {

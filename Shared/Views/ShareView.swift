@@ -211,7 +211,9 @@ class QRScannerViewController: UIViewController, AVCaptureMetadataOutputObjectsD
 #if !os(watchOS)
 struct ShareContactSheet: View {
     let contact: Contact
-    @EnvironmentObject var viewModel: MeshCoreViewModel
+    @Environment(ContactStore.self) private var contactStore
+    @Environment(ConnectionManager.self) private var connectionManager
+    @Environment(MessageStoreManager.self) private var messageStoreManager
     @Environment(\.dismiss) private var dismiss
     @State private var exportedURL: String?
 
@@ -221,7 +223,7 @@ struct ShareContactSheet: View {
                 if let url = exportedURL {
                     QRCodeView(
                         content: url,
-                        label: "Share \(viewModel.displayName(for: contact))"
+                        label: "Share \(contactStore.displayName(for: contact))"
                     )
                     Text("Scan this QR code or share the link to add this contact.")
                         .font(.caption)
@@ -247,12 +249,14 @@ struct ShareContactSheet: View {
                 }
             }
             .onAppear {
-                viewModel.exportContact(contact)
+                messageStoreManager.lastExportedURL = nil
+                let frame = MeshCoreProtocol.buildExportContact(publicKey: contact.publicKey)
+                connectionManager.sendCommand(frame, label: "EXPORT_CONTACT")
             }
-            .onChange(of: viewModel.lastExportedURL) { _, url in
+            .onChange(of: messageStoreManager.lastExportedURL) { _, url in
                 if let url, !url.isEmpty {
                     exportedURL = url
-                    viewModel.lastExportedURL = nil
+                    messageStoreManager.lastExportedURL = nil
                 }
             }
         }
@@ -265,7 +269,9 @@ struct ShareContactSheet: View {
 
 #if !os(watchOS)
 struct MyContactCodeSheet: View {
-    @EnvironmentObject var viewModel: MeshCoreViewModel
+    @Environment(DeviceConfig.self) private var deviceConfig
+    @Environment(ConnectionManager.self) private var connectionManager
+    @Environment(MessageStoreManager.self) private var messageStoreManager
     @Environment(\.dismiss) private var dismiss
     @State private var exportedURL: String?
 
@@ -275,7 +281,7 @@ struct MyContactCodeSheet: View {
                 if let url = exportedURL {
                     QRCodeView(
                         content: url,
-                        label: viewModel.deviceConfig.deviceName.isEmpty ? "My Contact Code" : viewModel.deviceConfig.deviceName
+                        label: deviceConfig.deviceName.isEmpty ? "My Contact Code" : deviceConfig.deviceName
                     )
                     Text("Others can scan this QR code to add you as a contact.")
                         .font(.caption)
@@ -301,12 +307,13 @@ struct MyContactCodeSheet: View {
                 }
             }
             .onAppear {
-                viewModel.exportSelfContact()
+                messageStoreManager.lastExportedURL = nil
+                connectionManager.sendCommand(Data([0x11]), label: "EXPORT_SELF")
             }
-            .onChange(of: viewModel.lastExportedURL) { _, url in
+            .onChange(of: messageStoreManager.lastExportedURL) { _, url in
                 if let url, !url.isEmpty {
                     exportedURL = url
-                    viewModel.lastExportedURL = nil
+                    messageStoreManager.lastExportedURL = nil
                 }
             }
         }
