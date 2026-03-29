@@ -346,6 +346,9 @@ final class ContactStore {
         let frame = MeshCoreProtocol.buildRemoveContact(publicKey: contact.publicKey)
         sendCommand?(frame, "REMOVE_CONTACT")
         contacts.removeAll { $0.publicKeyPrefix == contact.publicKeyPrefix }
+        // Clean up nickname and notes for this contact
+        setNickname("", for: contact)
+        setNote("", for: contact)
     }
 
     func resetPath(for contact: Contact) {
