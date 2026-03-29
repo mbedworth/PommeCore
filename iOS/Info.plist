@@ -45,6 +45,8 @@
 			</array>
 		</dict>
 	</array>
+	<key>NSHumanReadableCopyright</key>
+	<string>Copyright © 2026 Michael Bedworth. All rights reserved.</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>UILaunchScreen</key>

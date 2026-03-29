@@ -687,7 +687,24 @@ struct ContactDetailSheet: View {
 
 // MARK: - Channel Management View
 
+enum ChannelAction: String, CaseIterable, Identifiable {
+    case hashtag = "Join Hashtag Channel"
+    case createPrivate = "Create Private Channel"
+    case joinPrivate = "Join Private Channel"
+
+    var id: String { rawValue }
+
+    var navigationTitle: String {
+        switch self {
+        case .hashtag: return "Join Hashtag Channel"
+        case .createPrivate: return "Create Private Channel"
+        case .joinPrivate: return "Join Private Channel"
+        }
+    }
+}
+
 struct ChannelManagementView: View {
+    let action: ChannelAction
     @EnvironmentObject var viewModel: MeshCoreViewModel
     @Environment(\.dismiss) private var dismiss
     #if !os(watchOS)
@@ -696,15 +713,6 @@ struct ChannelManagementView: View {
     @State private var channelToRename: MeshChannel?
     @State private var renameText = ""
 
-    enum ChannelAction: String, CaseIterable, Identifiable {
-        case hashtag = "Join Hashtag Channel"
-        case createPrivate = "Create Private Channel"
-        case joinPrivate = "Join Private Channel"
-
-        var id: String { rawValue }
-    }
-
-    @State private var selectedAction: ChannelAction = .hashtag
     @State private var channelName = ""
     @State private var secretHex = ""
     @State private var errorMessage: String?
@@ -718,18 +726,8 @@ struct ChannelManagementView: View {
     var body: some View {
         List {
             Section {
-                Picker("Action", selection: $selectedAction) {
-                    ForEach(ChannelAction.allCases) { action in
-                        Text(action.rawValue).tag(action)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .listRowBackground(MeshTheme.surface)
-            }
-
-            Section {
                 HStack {
-                    Image(systemName: "number")
+                    Image(systemName: action == .hashtag ? "number" : "lock.fill")
                         .foregroundStyle(MeshTheme.accent)
                         .frame(width: 24)
                     TextField(namePlaceholder, text: $channelName)
@@ -740,7 +738,7 @@ struct ChannelManagementView: View {
                 }
                 .listRowBackground(MeshTheme.surface)
 
-                if selectedAction == .joinPrivate {
+                if action == .joinPrivate {
                     HStack {
                         Image(systemName: "lock")
                             .foregroundStyle(MeshTheme.accent)
@@ -781,9 +779,6 @@ struct ChannelManagementView: View {
                 .buttonStyle(.plain)
                 .disabled(channelName.trimmingCharacters(in: .whitespaces).isEmpty)
                 .listRowBackground(MeshTheme.surface)
-            } header: {
-                Text("New Channel")
-                    .foregroundStyle(MeshTheme.textSecondary)
             } footer: {
                 Text(footerText)
                     .foregroundStyle(MeshTheme.textSecondary)
@@ -850,7 +845,7 @@ struct ChannelManagementView: View {
             }
         }
         .meshListStyle()
-        .navigationTitle("Channels")
+        .navigationTitle(action.navigationTitle)
         #if !os(watchOS)
         .sheet(item: $channelToShare) { channel in
             ShareChannelSheet(channel: channel)
@@ -875,7 +870,7 @@ struct ChannelManagementView: View {
     }
 
     private var namePlaceholder: String {
-        switch selectedAction {
+        switch action {
         case .hashtag: return "#channel-name"
         case .createPrivate: return "Channel name"
         case .joinPrivate: return "Channel name"
@@ -883,7 +878,7 @@ struct ChannelManagementView: View {
     }
 
     private var footerText: String {
-        switch selectedAction {
+        switch action {
         case .hashtag:
             return "Hashtag channels derive their encryption key from the channel name. Anyone who knows the name can join."
         case .createPrivate:
@@ -894,7 +889,7 @@ struct ChannelManagementView: View {
     }
 
     private var actionButtonLabel: String {
-        switch selectedAction {
+        switch action {
         case .hashtag:
             let name = channelName.trimmingCharacters(in: .whitespaces)
             let display = name.hasPrefix("#") ? name : "#\(name)"
@@ -920,7 +915,7 @@ struct ChannelManagementView: View {
         }
 
         let secret: Data
-        switch selectedAction {
+        switch action {
         case .hashtag:
             // Derive secret from channel name by hashing
             let hashName = name.hasPrefix("#") ? name : "#\(name)"

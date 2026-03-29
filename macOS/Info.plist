@@ -37,6 +37,8 @@
 	<string>MeshCore needs Bluetooth to communicate with your LoRa radio device.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>MeshCore shows your location on the mesh map and can include it in your advertisements.</string>
+	<key>NSHumanReadableCopyright</key>
+	<string>Copyright © 2026 Michael Bedworth. All rights reserved.</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 </dict>
