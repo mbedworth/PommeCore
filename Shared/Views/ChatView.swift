@@ -1035,7 +1035,8 @@ struct RoomChatView: View {
 /// Message bubble for room chat — shows sender name for incoming messages.
 struct RoomMessageBubble: View {
     let message: Message
-    @EnvironmentObject var viewModel: MeshCoreViewModel
+    @Environment(ContactStore.self) private var contactStore
+    @Environment(MessageStoreManager.self) private var messageStoreManager
 
     /// Try to extract sender name from room server message prefix.
     /// Room servers often prefix messages with "SenderName: actual message"
@@ -1067,7 +1068,7 @@ struct RoomMessageBubble: View {
 
             VStack(alignment: message.isOutgoing ? .trailing : .leading, spacing: 2) {
                 if !message.isOutgoing, let rawSender = parsed.sender {
-                    let sender = viewModel.channelSenderDisplayName(rawSender)
+                    let sender = contactStore.channelSenderDisplayName(rawSender)
                     Text(sender)
                         .font(.caption2.weight(.semibold))
                         .foregroundStyle(MeshTheme.accent)
@@ -1093,7 +1094,7 @@ struct RoomMessageBubble: View {
                             Label("Copy", systemImage: "doc.on.doc")
                         }
                         Button(role: .destructive) {
-                            viewModel.deleteMessage(message, in: message.contactKeyHash)
+                            messageStoreManager.deleteMessage(message, in: message.contactKeyHash)
                         } label: {
                             Label("Delete Message", systemImage: "trash")
                         }
@@ -1175,7 +1176,7 @@ struct RoomMessageBubble: View {
 
                 if message.status == .failed {
                     Button {
-                        viewModel.retryMessage(message)
+                        messageStoreManager.retryMessage(message)
                     } label: {
                         HStack(spacing: 4) {
                             Image(systemName: "arrow.clockwise")
@@ -1202,7 +1203,8 @@ struct RoomMessageBubble: View {
 /// Login gate for repeaters — shows management screen after login.
 struct RepeaterLoginView: View {
     let contact: Contact
-    @EnvironmentObject var viewModel: MeshCoreViewModel
+    @Environment(ContactStore.self) private var contactStore
+    @Environment(RemoteSessionManager.self) private var remoteSessionManager
     @ObservedObject var session: RemoteDeviceSession
     @State private var password = ""
     @State private var rememberPassword = true
@@ -1314,7 +1316,7 @@ struct RepeaterLoginView: View {
                 Spacer()
             }
             .background(MeshTheme.background)
-            .navigationTitle(viewModel.displayName(for: contact))
+            .navigationTitle(contactStore.displayName(for: contact))
             .onAppear {
                 if let saved = KeychainManager.getSavedPassword(forDevice: contact.publicKey) {
                     password = saved
@@ -1325,7 +1327,7 @@ struct RepeaterLoginView: View {
 
     private func login() {
         guard !password.isEmpty else { return }
-        viewModel.loginToRemoteDevice(contact, password: password, remember: rememberPassword)
+        remoteSessionManager.loginToRemoteDevice(contact, password: password, remember: rememberPassword)
     }
 }
 
@@ -1333,7 +1335,7 @@ struct RepeaterLoginView: View {
 
 struct MessageBubble: View {
     let message: Message
-    @EnvironmentObject var viewModel: MeshCoreViewModel
+    @Environment(MessageStoreManager.self) private var messageStoreManager
 
     var body: some View {
         HStack {
@@ -1360,14 +1362,14 @@ struct MessageBubble: View {
                         }
                         if message.isOutgoing && message.status == .failed {
                             Button {
-                                viewModel.retryMessage(message)
+                                messageStoreManager.retryMessage(message)
                             } label: {
                                 Label("Retry Send", systemImage: "arrow.clockwise")
                             }
                         }
                         Divider()
                         Button(role: .destructive) {
-                            viewModel.deleteMessage(message, in: message.contactKeyHash)
+                            messageStoreManager.deleteMessage(message, in: message.contactKeyHash)
                         } label: {
                             Label("Delete Message", systemImage: "trash")
                         }
@@ -1421,7 +1423,7 @@ struct MessageBubble: View {
 
                 if message.status == .failed {
                     Button {
-                        viewModel.retryMessage(message)
+                        messageStoreManager.retryMessage(message)
                     } label: {
                         HStack(spacing: 4) {
                             Image(systemName: "arrow.clockwise")
@@ -1500,13 +1502,15 @@ struct MessageBubble: View {
 
 struct ChannelMessageBubble: View {
     let message: Message
-    @EnvironmentObject var viewModel: MeshCoreViewModel
+    @Environment(ContactStore.self) private var contactStore
+    @Environment(DeviceConfig.self) private var deviceConfig
+    @Environment(MessageStoreManager.self) private var messageStoreManager
 
     private var highlightedText: Text {
         if message.text.contains("meshcore://") {
             return linkifyMeshcoreURLs(message.text)
         }
-        return highlightMentions(in: message.text, myName: viewModel.deviceConfig.deviceName)
+        return highlightMentions(in: message.text, myName: deviceConfig.deviceName)
     }
 
     var body: some View {
@@ -1515,7 +1519,7 @@ struct ChannelMessageBubble: View {
 
             VStack(alignment: message.isOutgoing ? .trailing : .leading, spacing: 2) {
                 if !message.isOutgoing, let sender = message.senderName, !sender.isEmpty {
-                    Text(viewModel.channelSenderDisplayName(sender))
+                    Text(contactStore.channelSenderDisplayName(sender))
                         .font(.caption2.weight(.semibold))
                         .foregroundStyle(MeshTheme.accent)
                         .padding(.horizontal, 4)
@@ -1549,7 +1553,7 @@ struct ChannelMessageBubble: View {
                         }
                         Divider()
                         Button(role: .destructive) {
-                            viewModel.deleteMessage(message, in: message.contactKeyHash)
+                            messageStoreManager.deleteMessage(message, in: message.contactKeyHash)
                         } label: {
                             Label("Delete Message", systemImage: "trash")
                         }
@@ -1757,7 +1761,7 @@ private func isDifferentDay(_ a: Date, _ b: Date) -> Bool {
 
 struct ContactNotesSheet: View {
     let contact: Contact
-    @EnvironmentObject var viewModel: MeshCoreViewModel
+    @Environment(ContactStore.self) private var contactStore
     @Environment(\.dismiss) private var dismiss
     @State private var noteText = ""
 
@@ -1770,7 +1774,7 @@ struct ContactNotesSheet: View {
                         .font(.body)
                 }
             }
-            .navigationTitle("Notes for \(viewModel.displayName(for: contact))")
+            .navigationTitle("Notes for \(contactStore.displayName(for: contact))")
             #if !os(macOS)
             .navigationBarTitleDisplayMode(.inline)
             #endif
@@ -1780,13 +1784,13 @@ struct ContactNotesSheet: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
-                        viewModel.setNote(noteText, for: contact)
+                        contactStore.setNote(noteText, for: contact)
                         dismiss()
                     }
                 }
             }
             .onAppear {
-                noteText = viewModel.note(for: contact)
+                noteText = contactStore.note(for: contact)
             }
         }
     }
@@ -1798,12 +1802,12 @@ struct ChannelDetailSheet: View {
     let channelIndex: UInt8
     let channelName: String
     @Binding var notifyMode: String
-    @EnvironmentObject var viewModel: MeshCoreViewModel
+    @Environment(ChannelStore.self) private var channelStore
     @Environment(\.dismiss) private var dismiss
     @State private var showRemoveConfirm = false
 
     private var channel: MeshChannel? {
-        viewModel.channels.first { $0.index == channelIndex }
+        channelStore.channels.first { $0.index == channelIndex }
     }
 
     var body: some View {
@@ -1827,7 +1831,7 @@ struct ChannelDetailSheet: View {
                     .pickerStyle(.segmented)
                     .onChange(of: notifyMode) { _, mode in
                         if let notifyMode = ChannelStore.ChannelNotifyMode(rawValue: mode) {
-                            viewModel.setChannelNotifyMode(notifyMode, for: channelName)
+                            channelStore.setChannelNotifyMode(notifyMode, for: channelName)
                         }
                     }
                 }
@@ -1854,7 +1858,7 @@ struct ChannelDetailSheet: View {
             .alert("Leave Channel?", isPresented: $showRemoveConfirm) {
                 Button("Cancel", role: .cancel) {}
                 Button("Leave", role: .destructive) {
-                    viewModel.setChannel(index: channelIndex, name: "", secret: nil)
+                    channelStore.setChannel(index: channelIndex, name: "", secret: nil)
                     dismiss()
                 }
             } message: {
