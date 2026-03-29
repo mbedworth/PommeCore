@@ -3,6 +3,10 @@ import MeshCoreKit
 
 struct ContactListView: View {
     @EnvironmentObject var viewModel: MeshCoreViewModel
+    @Environment(ContactStore.self) private var contactStore
+    @Environment(MessageStoreManager.self) private var messageStoreManager
+    @Environment(ConnectionManager.self) private var connectionManager
+    @Environment(DeviceConfig.self) private var deviceConfig
     @Binding var showScanner: Bool
     var showDiscover: Binding<Bool>? = nil
     var showSettings: Binding<Bool>? = nil
@@ -60,10 +64,10 @@ struct ContactListView: View {
         List(selection: $localSelection) {
             connectionSection
             channelsSection
-            if !viewModel.pendingNewContacts.isEmpty {
+            if !contactStore.pendingNewContacts.isEmpty {
                 pendingContactsSection
             }
-            if !viewModel.contactGroups.isEmpty {
+            if !contactStore.contactGroups.isEmpty {
                 groupsSection
             }
             contactsSection
@@ -136,7 +140,7 @@ struct ContactListView: View {
                     Text("USB Device")
                         .foregroundStyle(MeshTheme.textSecondary)
                 }
-            } else if viewModel.usbManager.isConnected && viewModel.usbManager.detectedMode == .cli {
+            } else if connectionManager.usbManager.isConnected && connectionManager.usbManager.detectedMode == .cli {
                 // Fallback: CLI connected but session not ready yet
                 Section {
                     HStack(spacing: 12) {
@@ -152,7 +156,7 @@ struct ContactListView: View {
         }
         .meshListStyle()
         .refreshable {
-            guard viewModel.connectionState == .ready else { return }
+            guard connectionManager.connectionState == .ready else { return }
             viewModel.refreshAll()
         }
         .navigationTitle("MeshCore")
@@ -183,10 +187,10 @@ struct ContactListView: View {
         .onChange(of: viewModel.sidebarSelection) { _, selection in
             // Mark contact as read when selected — deferred past view update
             if case .contact(let key) = selection,
-               let contact = viewModel.contacts.first(where: { $0.publicKeyPrefix == key }) {
+               let contact = contactStore.contacts.first(where: { $0.publicKeyPrefix == key }) {
                 DispatchQueue.main.async {
                     Task { @MainActor in
-                        viewModel.markAsRead(contact)
+                        messageStoreManager.markAsRead(contact)
                     }
                 }
             }
@@ -221,7 +225,7 @@ struct ContactListView: View {
                               ? "checkmark.circle.fill" : "antenna.radiowaves.left.and.right")
                             .foregroundStyle(showAdvertSent?.wrappedValue == true ? .green : MeshTheme.accent)
                     }
-                    .disabled(viewModel.connectionState != .ready)
+                    .disabled(connectionManager.connectionState != .ready)
 
                     Button {
                         showDiscover?.wrappedValue = true
@@ -229,7 +233,7 @@ struct ContactListView: View {
                         Image(systemName: "binoculars.fill")
                             .foregroundStyle(MeshTheme.accent)
                     }
-                    .disabled(viewModel.connectionState != .ready)
+                    .disabled(connectionManager.connectionState != .ready)
 
                     Button {
                         viewModel.refreshAll()
@@ -238,7 +242,7 @@ struct ContactListView: View {
                             .foregroundStyle(MeshTheme.accent)
                     }
                     .accessibilityLabel("Refresh")
-                    .disabled(viewModel.connectionState != .ready)
+                    .disabled(connectionManager.connectionState != .ready)
                 }
             }
         }
@@ -394,7 +398,7 @@ struct ContactListView: View {
                     ToolbarItem(placement: .confirmationAction) {
                         Button("Save") {
                             if let contact = nicknameContact {
-                                viewModel.setNickname(nicknameText.trimmingCharacters(in: .whitespaces), for: contact)
+                                contactStore.setNickname(nicknameText.trimmingCharacters(in: .whitespaces), for: contact)
                             }
                             showNicknameSheet = false
                         }
@@ -404,7 +408,7 @@ struct ContactListView: View {
             .meshTheme()
             .frame(minWidth: 360, minHeight: 300)
         }
-        .onChange(of: viewModel.lastExportedURL) { _, url in
+        .onChange(of: messageStoreManager.lastExportedURL) { _, url in
             if let url, !url.isEmpty {
                 #if os(iOS)
                 UIPasteboard.general.string = url
@@ -412,7 +416,7 @@ struct ContactListView: View {
                 NSPasteboard.general.clearContents()
                 NSPasteboard.general.setString(url, forType: .string)
                 #endif
-                viewModel.lastExportedURL = nil
+                messageStoreManager.lastExportedURL = nil
                 isExporting = false
                 showExportCopied = true
             }
@@ -461,7 +465,7 @@ struct ContactListView: View {
     private var connectionSection: some View {
         Section {
             Button {
-                if viewModel.connectionState == .ready || viewModel.connectionState == .connected {
+                if connectionManager.connectionState == .ready || connectionManager.connectionState == .connected {
                     #if os(macOS) || targetEnvironment(macCatalyst)
                     if viewModel.isUSBCLIConnected {
                         viewModel.sidebarSelection = .usbDevice
@@ -485,8 +489,8 @@ struct ContactListView: View {
                         .foregroundStyle(MeshTheme.textPrimary)
                     Spacer()
                     if let rawName = {
-                        if !viewModel.deviceConfig.deviceName.isEmpty { return viewModel.deviceConfig.deviceName }
-                        if let name = viewModel.connectedDeviceName { return name }
+                        if !deviceConfig.deviceName.isEmpty { return deviceConfig.deviceName }
+                        if let name = connectionManager.connectedDeviceName { return name }
                         #if os(macOS) || targetEnvironment(macCatalyst)
                         if let name = viewModel.usbDeviceContact?.name, viewModel.isUSBCLIConnected { return "USB: \(name)" }
                         #endif
@@ -499,8 +503,8 @@ struct ContactListView: View {
                             Text(shortName)
                                 .font(.caption)
                                 .foregroundStyle(MeshTheme.textSecondary)
-                            if viewModel.deviceConfig.batteryPercent() > 0 {
-                                Text("\u{2022} \(viewModel.deviceConfig.batteryPercent())%")
+                            if deviceConfig.batteryPercent() > 0 {
+                                Text("\u{2022} \(deviceConfig.batteryPercent())%")
                                     .font(.caption2)
                                     .foregroundStyle(MeshTheme.textSecondary)
                             }
@@ -516,7 +520,7 @@ struct ContactListView: View {
             .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
             .contextMenu {
-                if viewModel.connectionState == .ready || viewModel.connectionState == .connected {
+                if connectionManager.connectionState == .ready || connectionManager.connectionState == .connected {
                     #if os(macOS) || targetEnvironment(macCatalyst)
                     if viewModel.isUSBCLIConnected {
                         Button(role: .destructive) { viewModel.disconnectUSB() } label: {
@@ -526,10 +530,10 @@ struct ContactListView: View {
                         Button { showMyContactCode = true } label: {
                             Label("My Contact Code", systemImage: "qrcode")
                         }
-                        if !viewModel.deviceConfig.publicKeyHex.isEmpty {
+                        if !deviceConfig.publicKeyHex.isEmpty {
                             Button {
                                 NSPasteboard.general.clearContents()
-                                NSPasteboard.general.setString(viewModel.deviceConfig.publicKeyHex, forType: .string)
+                                NSPasteboard.general.setString(deviceConfig.publicKeyHex, forType: .string)
                             } label: {
                                 Label("Copy Public Key", systemImage: "doc.on.doc")
                             }
@@ -546,9 +550,9 @@ struct ContactListView: View {
                     Button { showMyContactCode = true } label: {
                         Label("My Contact Code", systemImage: "qrcode")
                     }
-                    if !viewModel.deviceConfig.publicKeyHex.isEmpty {
+                    if !deviceConfig.publicKeyHex.isEmpty {
                         Button {
-                            UIPasteboard.general.string = viewModel.deviceConfig.publicKeyHex
+                            UIPasteboard.general.string = deviceConfig.publicKeyHex
                         } label: {
                             Label("Copy Public Key", systemImage: "doc.on.doc")
                         }
@@ -564,7 +568,7 @@ struct ContactListView: View {
                 }
             }
 
-            if let bleMsg = viewModel.bleStatusMessage {
+            if let bleMsg = connectionManager.bleStatusMessage {
                 HStack(alignment: .top, spacing: 8) {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .foregroundStyle(.orange)
@@ -615,7 +619,7 @@ struct ContactListView: View {
 
     @ViewBuilder
     private var channelMessagePreview: some View {
-        let messages = viewModel.messagesByContact[publicChannelKey] ?? []
+        let messages = messageStoreManager.messagesByContact[publicChannelKey] ?? []
         if let last = messages.last {
             Text(last.text)
                 .font(.caption)
@@ -630,7 +634,7 @@ struct ContactListView: View {
 
     @ViewBuilder
     private var channelUnreadBadge: some View {
-        let count = viewModel.unreadCounts[publicChannelKey] ?? 0
+        let count = messageStoreManager.unreadCounts[publicChannelKey] ?? 0
         if count > 0 {
             Text("\(count)")
                 .font(.caption2.weight(.bold))
@@ -758,7 +762,7 @@ struct ContactListView: View {
                 Text("\(channel.channelType.displayPrefix)\(channel.name)")
                     .font(.body)
                     .foregroundStyle(MeshTheme.textPrimary)
-                let messages = viewModel.messagesByContact[Data([channel.index])] ?? []
+                let messages = messageStoreManager.messagesByContact[Data([channel.index])] ?? []
                 if let last = messages.last {
                     Text(last.text)
                         .font(.caption)
@@ -771,7 +775,7 @@ struct ContactListView: View {
                 }
             }
             Spacer()
-            let count = viewModel.unreadCounts[Data([channel.index])] ?? 0
+            let count = messageStoreManager.unreadCounts[Data([channel.index])] ?? 0
             if count > 0 {
                 Text("\(count)")
                     .font(.caption2.weight(.bold))
@@ -788,7 +792,7 @@ struct ContactListView: View {
     @ViewBuilder
     private var pendingContactsSection: some View {
         Section {
-            ForEach(viewModel.pendingNewContacts) { contact in
+            ForEach(contactStore.pendingNewContacts) { contact in
                 HStack(spacing: 12) {
                     ZStack {
                         Circle()
@@ -807,14 +811,14 @@ struct ContactListView: View {
                     }
                     Spacer()
                     Button {
-                        viewModel.acceptPendingContact(contact)
+                        contactStore.acceptPendingContact(contact)
                     } label: {
                         Image(systemName: "checkmark.circle.fill")
                             .foregroundStyle(MeshTheme.connected)
                     }
                     .buttonStyle(.plain)
                     Button {
-                        viewModel.rejectPendingContact(contact)
+                        contactStore.rejectPendingContact(contact)
                     } label: {
                         Image(systemName: "xmark.circle.fill")
                             .foregroundStyle(MeshTheme.disconnected)
@@ -832,9 +836,9 @@ struct ContactListView: View {
     @ViewBuilder
     private var groupsSection: some View {
         Section {
-            ForEach(viewModel.contactGroups) { group in
+            ForEach(contactStore.contactGroups) { group in
                 DisclosureGroup {
-                    let members = viewModel.contactsInGroup(group)
+                    let members = contactStore.contactsInGroup(group)
                     if members.isEmpty {
                         Text("No contacts in this group")
                             .font(.caption)
@@ -879,9 +883,35 @@ struct ContactListView: View {
         }
     }
 
+    private var contactsSectionHeader: some View {
+        HStack {
+            Text("Contacts")
+                .foregroundStyle(MeshTheme.textSecondary)
+            Spacer()
+            Menu {
+                Button { showImportSheet = true } label: {
+                    Label("Paste Contact Link", systemImage: "doc.on.clipboard")
+                }
+                Button { viewModel.sendAdvertise(type: 1) } label: {
+                    Label("Send Flood Advert", systemImage: "antenna.radiowaves.left.and.right")
+                }
+            } label: {
+                Image(systemName: "plus")
+                    .foregroundStyle(MeshTheme.accent)
+            }
+            .menuIndicator(.hidden)
+            Button(isSelecting ? "Done" : "Edit") {
+                isSelecting.toggle()
+                if !isSelecting { selectedContacts.removeAll() }
+            }
+            .font(.caption)
+            .foregroundStyle(MeshTheme.accent)
+        }
+    }
+
     private var contactsSection: some View {
         Section {
-            if viewModel.sortedContacts.isEmpty {
+            if contactStore.sortedContacts.isEmpty {
                 VStack(spacing: 12) {
                     Image(systemName: "person.2.slash")
                         .font(.system(size: 32))
@@ -905,7 +935,7 @@ struct ContactListView: View {
                 .padding(.vertical, 8)
                 .listRowBackground(MeshTheme.surface)
             } else {
-                ForEach(viewModel.sortedContacts) { contact in
+                ForEach(contactStore.sortedContacts) { contact in
                     #if os(watchOS)
                     NavigationLink {
                         contactDestination(contact)
@@ -943,7 +973,7 @@ struct ContactListView: View {
                     }
                     .swipeActions(edge: .leading) {
                         Button {
-                            viewModel.toggleFavourite(for: contact)
+                            contactStore.toggleFavourite(for: contact)
                         } label: {
                             Label(
                                 contact.isFavourite ? "Unfavourite" : "Favourite",
@@ -966,11 +996,11 @@ struct ContactListView: View {
             // Paste Link and Scan QR are in the contacts "+" header menu
             if isSelecting {
                 HStack {
-                    Button(selectedContacts.count == viewModel.sortedContacts.count ? "Deselect All" : "Select All") {
-                        if selectedContacts.count == viewModel.sortedContacts.count {
+                    Button(selectedContacts.count == contactStore.sortedContacts.count ? "Deselect All" : "Select All") {
+                        if selectedContacts.count == contactStore.sortedContacts.count {
                             selectedContacts.removeAll()
                         } else {
-                            selectedContacts = Set(viewModel.sortedContacts.map(\.publicKeyPrefix))
+                            selectedContacts = Set(contactStore.sortedContacts.map(\.publicKeyPrefix))
                         }
                     }
                     .font(.caption)
@@ -978,7 +1008,7 @@ struct ContactListView: View {
                     if !selectedContacts.isEmpty {
                         Button {
                             for key in selectedContacts {
-                                if let contact = viewModel.contacts.first(where: { $0.publicKeyPrefix == key }) {
+                                if let contact = contactStore.contacts.first(where: { $0.publicKeyPrefix == key }) {
                                     viewModel.exportContact(contact)
                                 }
                             }
@@ -997,35 +1027,13 @@ struct ContactListView: View {
                 .listRowBackground(MeshTheme.surface)
             }
         } header: {
-            HStack {
-                Text("Contacts")
-                    .foregroundStyle(MeshTheme.textSecondary)
-                Spacer()
-                Menu {
-                    Button { showImportSheet = true } label: {
-                        Label("Paste Contact Link", systemImage: "doc.on.clipboard")
-                    }
-                    Button { viewModel.sendAdvertise(type: 1) } label: {
-                        Label("Send Flood Advert", systemImage: "antenna.radiowaves.left.and.right")
-                    }
-                } label: {
-                    Image(systemName: "plus")
-                        .foregroundStyle(MeshTheme.accent)
-                }
-                .menuIndicator(.hidden)
-                Button(isSelecting ? "Done" : "Edit") {
-                    isSelecting.toggle()
-                    if !isSelecting { selectedContacts.removeAll() }
-                }
-                .font(.caption)
-                .foregroundStyle(MeshTheme.accent)
-            }
+            contactsSectionHeader
         }
         .confirmationDialog("Delete \(selectedContacts.count) Contact\(selectedContacts.count == 1 ? "" : "s")?", isPresented: $showBulkDeleteConfirm) {
             Button("Delete", role: .destructive) {
                 for key in selectedContacts {
-                    if let contact = viewModel.contacts.first(where: { $0.publicKeyPrefix == key }) {
-                        viewModel.removeContact(contact)
+                    if let contact = contactStore.contacts.first(where: { $0.publicKeyPrefix == key }) {
+                        contactStore.removeContact(contact)
                     }
                 }
                 selectedContacts.removeAll()
@@ -1039,7 +1047,7 @@ struct ContactListView: View {
             Button("Cancel", role: .cancel) { contactToDelete = nil }
             Button("Remove", role: .destructive) {
                 if let contact = contactToDelete {
-                    viewModel.removeContact(contact)
+                    contactStore.removeContact(contact)
                 }
                 contactToDelete = nil
             }
@@ -1141,10 +1149,10 @@ struct ContactListView: View {
         // Nickname — always first, most used
         Button {
             nicknameContact = contact
-            nicknameText = viewModel.nickname(for: contact) ?? ""
+            nicknameText = contactStore.nickname(for: contact) ?? ""
             showNicknameSheet = true
         } label: {
-            Label(viewModel.nickname(for: contact) != nil ? "Edit Nickname" : "Set Nickname",
+            Label(contactStore.nickname(for: contact) != nil ? "Edit Nickname" : "Set Nickname",
                   systemImage: "pencil")
         }
 
@@ -1195,7 +1203,7 @@ struct ContactListView: View {
         }
 
         Button {
-            viewModel.toggleFavourite(for: contact)
+            contactStore.toggleFavourite(for: contact)
         } label: {
             Label(
                 contact.isFavourite ? "Remove from Favourites" : "Add to Favourites",
@@ -1203,11 +1211,11 @@ struct ContactListView: View {
             )
         }
 
-        if !viewModel.contactGroups.isEmpty && contact.type == .chat {
+        if !contactStore.contactGroups.isEmpty && contact.type == .chat {
             Menu {
-                ForEach(viewModel.contactGroups) { group in
+                ForEach(contactStore.contactGroups) { group in
                     Button {
-                        viewModel.addContactToGroup(contact, group: group)
+                        contactStore.addContactToGroup(contact, group: group)
                     } label: {
                         Label("\(group.emoji) \(group.name)", systemImage: "plus.circle")
                     }
@@ -1224,7 +1232,7 @@ struct ContactListView: View {
         }
 
         Button {
-            viewModel.resetPath(for: contact)
+            contactStore.resetPath(for: contact)
             showResetConfirmation = true
         } label: {
             Label("Reset Path", systemImage: "arrow.counterclockwise")
@@ -1253,13 +1261,13 @@ struct ContactListView: View {
             contactIcon(for: contact)
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
-                    Text(viewModel.displayName(for: contact))
+                    Text(contactStore.displayName(for: contact))
                         .font(.body)
                         .foregroundStyle(MeshTheme.textPrimary)
                     loginBadge(for: contact)
                     pathIndicator(for: contact)
                 }
-                if viewModel.nickname(for: contact) != nil {
+                if contactStore.nickname(for: contact) != nil {
                     Text(contact.name)
                         .font(.caption2)
                         .foregroundStyle(MeshTheme.textSecondary)
@@ -1267,12 +1275,12 @@ struct ContactListView: View {
                 lastMessagePreview(for: contact)
             }
             Spacer()
-            if viewModel.hasDraft(for: contact.publicKeyPrefix) {
+            if messageStoreManager.hasDraft(for: contact.publicKeyPrefix) {
                 Text("Draft")
                     .font(.caption2)
                     .foregroundStyle(.orange)
             }
-            if viewModel.hasNote(for: contact) {
+            if contactStore.hasNote(for: contact) {
                 Image(systemName: "note.text")
                     .foregroundStyle(MeshTheme.textSecondary)
                     .font(.caption)
@@ -1303,7 +1311,7 @@ struct ContactListView: View {
             )
         default:
             ChatView(contact: contact)
-                .onAppear { viewModel.markAsRead(contact) }
+                .onAppear { messageStoreManager.markAsRead(contact) }
         }
     }
 
@@ -1321,7 +1329,7 @@ struct ContactListView: View {
                 ChannelChatView(channelIndex: index, channelName: "Channel \(index)")
             }
         case .contact(let key):
-            if let contact = viewModel.contacts.first(where: { $0.publicKeyPrefix == key }) {
+            if let contact = contactStore.contacts.first(where: { $0.publicKeyPrefix == key }) {
                 contactDestination(contact)
                     .environmentObject(viewModel)
             } else {
@@ -1363,7 +1371,7 @@ struct ContactListView: View {
         }()
 
         ZStack {
-            let statusColor = viewModel.contactStatusColor(for: contact)
+            let statusColor = contactStore.contactStatusColor(for: contact)
             Circle()
                 .fill(statusColor.opacity(0.15))
                 .frame(width: 40, height: 40)
@@ -1455,7 +1463,7 @@ struct ContactListView: View {
             let hash = pathData[start..<end]
             let hexStr = hash.map { String(format: "%02X", $0) }.joined()
             // Try to resolve to a known repeater name
-            if let name = viewModel.contactNameForHash(hexStr) {
+            if let name = contactStore.contactNameForHash(hexStr) {
                 hops.append(name)
             } else {
                 hops.append(hexStr)
@@ -1480,7 +1488,7 @@ struct ContactListView: View {
                     .foregroundStyle(MeshTheme.connected)
             }
         } else {
-            let messages = viewModel.messages(for: contact)
+            let messages = messageStoreManager.messages(for: contact)
             if let last = messages.last {
                 Text(last.text)
                     .font(.caption)
@@ -1522,7 +1530,7 @@ struct ContactListView: View {
 
     @ViewBuilder
     private func unreadBadge(for contact: Contact) -> some View {
-        let count = viewModel.unreadCount(for: contact)
+        let count = messageStoreManager.unreadCount(for: contact)
         if count > 0 {
             Text("\(count)")
                 .font(.caption2.weight(.bold))
@@ -1535,7 +1543,7 @@ struct ContactListView: View {
     }
 
     private var connectionColor: Color {
-        switch viewModel.connectionState {
+        switch connectionManager.connectionState {
         case .ready: MeshTheme.connected
         case .connected, .connecting: MeshTheme.connecting
         case .scanning: MeshTheme.scanning
@@ -1544,7 +1552,7 @@ struct ContactListView: View {
     }
 
     private var connectionLabel: String {
-        switch viewModel.connectionState {
+        switch connectionManager.connectionState {
         case .ready: "Connected"
         case .connected: "Discovering services..."
         case .connecting: "Connecting..."
