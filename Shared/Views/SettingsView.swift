@@ -314,15 +314,23 @@ struct RadioDataSection: View {
     }
 
     private var knownRadios: [String] {
+        var prefixes = Set<String>()
+
+        // Discover from iCloud message keys
         let store = NSUbiquitousKeyValueStore.default
         let allKeys = store.dictionaryRepresentation.keys
-        var prefixes = Set<String>()
         for key in allKeys where key.hasPrefix("msg.") {
             let parts = key.dropFirst(4) // remove "msg."
             if let dot = parts.firstIndex(of: ".") {
                 prefixes.insert(String(parts[parts.startIndex..<dot]))
             }
         }
+
+        // Discover from local per-radio message subdirectories
+        for prefix in MessageStore.knownRadioPrefixes() {
+            prefixes.insert(prefix)
+        }
+
         return prefixes.sorted()
     }
 
@@ -429,25 +437,60 @@ struct RadioDataSection: View {
     private func deleteRadioData(radioPrefix: String) {
         let store = NSUbiquitousKeyValueStore.default
         let allKeys = store.dictionaryRepresentation.keys
-        let radioKeys = allKeys.filter { $0.hasPrefix("msg.\(radioPrefix).") }
-        for key in radioKeys {
-            store.removeObject(forKey: key)
+
+        // Delete iCloud message keys, scoped drafts, lastRead, and channel notify keys
+        let prefixes = ["msg.\(radioPrefix).", "draft.\(radioPrefix).", "lastRead.\(radioPrefix).", "channel.notify.\(radioPrefix)."]
+        for key in allKeys {
+            if prefixes.contains(where: { key.hasPrefix($0) }) {
+                store.removeObject(forKey: key)
+            }
         }
         store.synchronize()
+
+        // Delete local per-radio message directory
+        let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let radioDir = docs.appendingPathComponent("MeshCoreMessages/\(radioPrefix)", isDirectory: true)
+        try? FileManager.default.removeItem(at: radioDir)
     }
 
     private func migrateRadioData(from oldPrefix: String, to newPrefix: String) {
         let store = NSUbiquitousKeyValueStore.default
         let allKeys = store.dictionaryRepresentation.keys
-        let oldKeys = allKeys.filter { $0.hasPrefix("msg.\(oldPrefix).") }
-        for oldKey in oldKeys {
-            let contactSuffix = oldKey.replacingOccurrences(of: "msg.\(oldPrefix).", with: "")
-            let newKey = "msg.\(newPrefix).\(contactSuffix)"
-            if let data = store.data(forKey: oldKey) {
-                store.set(data, forKey: newKey)
+
+        // Migrate iCloud KVS keys: messages, drafts, lastRead, channel notify
+        let kvsPrefixes = ["msg.", "draft.", "lastRead.", "channel.notify."]
+        for kvsPrefix in kvsPrefixes {
+            let oldFullPrefix = "\(kvsPrefix)\(oldPrefix)."
+            for oldKey in allKeys where oldKey.hasPrefix(oldFullPrefix) {
+                let suffix = String(oldKey.dropFirst(oldFullPrefix.count))
+                let newKey = "\(kvsPrefix)\(newPrefix).\(suffix)"
+                if kvsPrefix == "msg." {
+                    if let data = store.data(forKey: oldKey) {
+                        store.set(data, forKey: newKey)
+                    }
+                } else if let str = store.string(forKey: oldKey) {
+                    store.set(str, forKey: newKey)
+                } else {
+                    let val = store.double(forKey: oldKey)
+                    if val > 0 { store.set(val, forKey: newKey) }
+                }
             }
         }
         store.synchronize()
+
+        // Migrate local message files
+        let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let oldDir = docs.appendingPathComponent("MeshCoreMessages/\(oldPrefix)", isDirectory: true)
+        let newDir = docs.appendingPathComponent("MeshCoreMessages/\(newPrefix)", isDirectory: true)
+        if FileManager.default.fileExists(atPath: oldDir.path) {
+            try? FileManager.default.createDirectory(at: newDir, withIntermediateDirectories: true)
+            if let files = try? FileManager.default.contentsOfDirectory(at: oldDir, includingPropertiesForKeys: nil) {
+                for file in files where file.pathExtension == "json" {
+                    let dest = newDir.appendingPathComponent(file.lastPathComponent)
+                    try? FileManager.default.copyItem(at: file, to: dest)
+                }
+            }
+        }
     }
 }
 
@@ -1949,11 +1992,40 @@ private extension SettingsView {
 @MainActor
 class TipJarManager: ObservableObject {
     @Published var products: [Product] = []
-    @Published var purchaseSuccess = false
+    @Published var purchasedProductID: String?
     @Published var isLoading = false
     @Published var purchasingProductID: String?
     @Published var lastErrorMessage: String? = nil
     @Published var showSupporterNamePrompt = false
+
+    var purchaseSuccess: Bool { purchasedProductID != nil }
+
+    var thankYouEmoji: String {
+        guard let id = purchasedProductID else { return "" }
+        if id.hasSuffix(".decent") { return "\u{1F44B}" }
+        if id.hasSuffix(".nice") { return "\u{1F60A}" }
+        if id.hasSuffix(".great") { return "\u{1F389}" }
+        if id.hasSuffix(".help") { return "\u{1F49A}" }
+        return "\u{2764}\u{FE0F}"
+    }
+
+    var thankYouTitle: String {
+        guard let id = purchasedProductID else { return "Thank You!" }
+        if id.hasSuffix(".decent") { return "Thanks!" }
+        if id.hasSuffix(".nice") { return "You're Awesome!" }
+        if id.hasSuffix(".great") { return "Amazing, Thank You!" }
+        if id.hasSuffix(".help") { return "You're a Legend!" }
+        return "Thank You!"
+    }
+
+    var thankYouMessage: String {
+        guard let id = purchasedProductID else { return "Your support means a lot." }
+        if id.hasSuffix(".decent") { return "Every bit helps keep MeshCore free for everyone." }
+        if id.hasSuffix(".nice") { return "Your generosity helps fund new features and improvements." }
+        if id.hasSuffix(".great") { return "Seriously, thank you. People like you make MeshCore possible." }
+        if id.hasSuffix(".help") { return "You're helping build the future of off-grid communication. Check the Supporters Wall!" }
+        return "Your support means a lot."
+    }
 
     struct PlaceholderTip: Identifiable {
         let id: String
@@ -2039,7 +2111,7 @@ class TipJarManager: ObservableObject {
                 case .verified(let transaction):
                     DebugLogger.shared.log("TIP JAR: verified transaction \(transaction.id)", level: .info)
                     await transaction.finish()
-                    self.purchaseSuccess = true
+                    self.purchasedProductID = product.id
                     if product.id.hasSuffix(".help") {
                         self.showSupporterNamePrompt = true
                     }
@@ -2159,6 +2231,7 @@ private extension SettingsView {
                         .font(.caption)
                         .foregroundStyle(MeshTheme.textSecondary)
                 }
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
@@ -2193,6 +2266,7 @@ private extension SettingsView {
                             .foregroundStyle(MeshTheme.connected)
                     }
                 }
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
@@ -2215,6 +2289,7 @@ private extension SettingsView {
                             .foregroundStyle(MeshTheme.connected)
                     }
                 }
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
@@ -2250,6 +2325,7 @@ struct TipJarView: View {
     @State private var showSupportersSheet = false
 
     var body: some View {
+        ScrollViewReader { proxy in
         ScrollView {
             VStack(spacing: 16) {
                 Image(systemName: "heart.fill")
@@ -2295,13 +2371,12 @@ struct TipJarView: View {
 
                 if manager.purchaseSuccess {
                     VStack(spacing: 12) {
-                        Image(systemName: "heart.circle.fill")
+                        Text(manager.thankYouEmoji)
                             .font(.system(size: 48))
-                            .foregroundStyle(MeshTheme.connected)
-                        Text("Thank You!")
+                        Text(manager.thankYouTitle)
                             .font(.title2.bold())
                             .foregroundStyle(MeshTheme.textPrimary)
-                        Text("Your support helps keep MeshCore free for everyone.")
+                        Text(manager.thankYouMessage)
                             .font(.subheadline)
                             .foregroundStyle(MeshTheme.textSecondary)
                             .multilineTextAlignment(.center)
@@ -2311,7 +2386,7 @@ struct TipJarView: View {
                     .background(MeshTheme.surfaceLight)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .transition(.scale.combined(with: .opacity))
-                    .animation(.easeOut(duration: 0.3), value: manager.purchaseSuccess)
+                    .id("thankYou")
                 }
 
                 Divider()
@@ -2343,7 +2418,15 @@ struct TipJarView: View {
                     .padding(.horizontal)
             }
             .padding()
+            .onChange(of: manager.purchasedProductID) { _, newValue in
+                if newValue != nil {
+                    withAnimation {
+                        proxy.scrollTo("thankYou", anchor: .bottom)
+                    }
+                }
+            }
         }
+        } // ScrollViewReader
         .background(MeshTheme.background)
         .navigationTitle("Tip Jar")
         .sheet(isPresented: $showSupportersSheet) {
@@ -2387,10 +2470,10 @@ struct TipJarView: View {
             manager.purchasingProductID = nil
             DebugLogger.shared.log("TIP JAR VIEW: disappeared, cleaned up", level: .info)
         }
-        .onChange(of: manager.purchaseSuccess) { _, success in
-            if success {
-                // Auto-dismiss after a brief pause so the user sees the thank-you message
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+        .onChange(of: manager.purchasedProductID) { _, newValue in
+            if newValue != nil {
+                // Auto-dismiss after enough time to read the thank-you message
+                DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
                     dismiss()
                 }
             }
@@ -2552,6 +2635,7 @@ private extension SettingsView {
                         .foregroundStyle(MeshTheme.accent)
                     Spacer()
                 }
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
@@ -2623,6 +2707,7 @@ private extension SettingsView {
                     Image(systemName: "book.pages")
                         .foregroundStyle(MeshTheme.textSecondary)
                 }
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
@@ -2644,6 +2729,7 @@ private extension SettingsView {
                             .foregroundStyle(MeshTheme.textSecondary)
                     }
                 }
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .disabled(!isConnected || viewModel.isVerifyingConfig)
@@ -2678,6 +2764,7 @@ private extension SettingsView {
                         .font(.caption)
                         .foregroundStyle(MeshTheme.textSecondary)
                 }
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)

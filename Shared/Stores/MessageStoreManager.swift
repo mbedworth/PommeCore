@@ -60,8 +60,12 @@ final class MessageStoreManager {
 
     // MARK: - Private State
 
-    private let persistenceStore = MessageStore()
+    private var persistenceStore = MessageStore()
     private let iCloudStore = NSUbiquitousKeyValueStore.default
+
+    /// The 12-char hex prefix of the connected radio's public key.
+    /// Nil when no radio is connected. Used to scope drafts, lastRead, and file storage.
+    private(set) var radioPrefix12: String?
 
     /// Maps expected ACK code -> message tracking info.
     private var pendingACKs: [UInt32: (contactKeyHash: Data, messageID: UUID)] = [:]
@@ -75,7 +79,27 @@ final class MessageStoreManager {
     // MARK: - Init
 
     init() {
+        // Messages are NOT loaded at init — wait for activateForRadio() after SELF_INFO.
+    }
+
+    // MARK: - Per-Radio Activation
+
+    /// Activate message storage for a specific radio. Called after SELF_INFO provides the radio's public key.
+    /// Migrates flat files if needed, loads persisted messages, and merges iCloud data.
+    func activateForRadio(_ prefix: String) {
+        radioPrefix12 = prefix
+        persistenceStore = MessageStore(radioPrefix: prefix)
+        MessageStore.migrateToPerRadioStorage(radioPrefix: prefix)
         loadPersistedMessages()
+        mergeMessagesForCurrentRadio()
+    }
+
+    /// Deactivate message storage on disconnect. Clears in-memory messages so the UI shows empty state.
+    func deactivate() {
+        messagesByContact.removeAll()
+        unreadCounts.removeAll()
+        radioPrefix12 = nil
+        updateAppBadge()
     }
 
     // MARK: - Message Access
@@ -95,24 +119,37 @@ final class MessageStoreManager {
     func markAsRead(contactKey: Data) {
         unreadCounts[contactKey] = 0
         updateAppBadge()
-        let key = "lastRead.\(contactKey.map { String(format: "%02x", $0) }.joined())"
+        guard let prefix = radioPrefix12 else { return }
+        let contactHex = contactKey.map { String(format: "%02x", $0) }.joined()
+        let key = "lastRead.\(prefix).\(contactHex)"
         iCloudStore.set(Date().timeIntervalSince1970, forKey: key)
         iCloudStore.synchronize()
     }
 
     func firstUnreadIndex(in messages: [Message], for contactKey: Data) -> Int? {
-        let key = "lastRead.\(contactKey.map { String(format: "%02x", $0) }.joined())"
-        let lastRead = iCloudStore.double(forKey: key)
+        let lastRead = lastReadValue(for: contactKey)
         guard lastRead > 0 else { return nil }
         let lastReadDate = Date(timeIntervalSince1970: lastRead)
         return messages.firstIndex { $0.timestamp > lastReadDate && !$0.isOutgoing }
     }
 
     func lastReadTimestamp(for contactKey: Data) -> Date? {
-        let key = "lastRead.\(contactKey.map { String(format: "%02x", $0) }.joined())"
-        let ts = iCloudStore.double(forKey: key)
+        let ts = lastReadValue(for: contactKey)
         guard ts > 0 else { return nil }
         return Date(timeIntervalSince1970: ts)
+    }
+
+    /// Read lastRead timestamp, trying scoped key first then falling back to legacy.
+    private func lastReadValue(for contactKey: Data) -> Double {
+        let contactHex = contactKey.map { String(format: "%02x", $0) }.joined()
+        if let prefix = radioPrefix12 {
+            let scopedKey = "lastRead.\(prefix).\(contactHex)"
+            let val = iCloudStore.double(forKey: scopedKey)
+            if val > 0 { return val }
+        }
+        // Fall back to legacy unscoped key
+        let legacyKey = "lastRead.\(contactHex)"
+        return iCloudStore.double(forKey: legacyKey)
     }
 
     /// Latest activity date for a contact (for ContactStore activity status).
@@ -146,7 +183,9 @@ final class MessageStoreManager {
     // MARK: - Drafts
 
     func saveDraft(_ text: String, for contactKey: Data) {
-        let key = "draft.\(contactKey.map { String(format: "%02x", $0) }.joined())"
+        guard let prefix = radioPrefix12 else { return }
+        let contactHex = contactKey.map { String(format: "%02x", $0) }.joined()
+        let key = "draft.\(prefix).\(contactHex)"
         if text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             iCloudStore.removeObject(forKey: key)
         } else {
@@ -156,13 +195,28 @@ final class MessageStoreManager {
     }
 
     func loadDraft(for contactKey: Data) -> String {
-        let key = "draft.\(contactKey.map { String(format: "%02x", $0) }.joined())"
-        return iCloudStore.string(forKey: key) ?? ""
+        let contactHex = contactKey.map { String(format: "%02x", $0) }.joined()
+        if let prefix = radioPrefix12 {
+            let scopedKey = "draft.\(prefix).\(contactHex)"
+            if let draft = iCloudStore.string(forKey: scopedKey), !draft.isEmpty {
+                return draft
+            }
+        }
+        // Fall back to legacy unscoped key
+        let legacyKey = "draft.\(contactHex)"
+        return iCloudStore.string(forKey: legacyKey) ?? ""
     }
 
     func hasDraft(for contactKey: Data) -> Bool {
-        let key = "draft.\(contactKey.map { String(format: "%02x", $0) }.joined())"
-        if let draft = iCloudStore.string(forKey: key), !draft.isEmpty {
+        let contactHex = contactKey.map { String(format: "%02x", $0) }.joined()
+        if let prefix = radioPrefix12 {
+            let scopedKey = "draft.\(prefix).\(contactHex)"
+            if let draft = iCloudStore.string(forKey: scopedKey), !draft.isEmpty {
+                return true
+            }
+        }
+        let legacyKey = "draft.\(contactHex)"
+        if let draft = iCloudStore.string(forKey: legacyKey), !draft.isEmpty {
             return true
         }
         return false

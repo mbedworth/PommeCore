@@ -445,9 +445,9 @@ struct ChannelChatView: View {
                         default: next = "all"
                         }
                         notifyMode = next
-                        let key = "channel.notify.\(channelName)"
-                        NSUbiquitousKeyValueStore.default.set(next, forKey: key)
-                        NSUbiquitousKeyValueStore.default.synchronize()
+                        if let mode = ChannelStore.ChannelNotifyMode(rawValue: next) {
+                            viewModel.setChannelNotifyMode(mode, for: channelName)
+                        }
                     } label: {
                         Image(systemName: notifyMode == "muted" ? "bell.slash" : notifyMode == "mentions" ? "at" : "bell.fill")
                             .foregroundStyle(MeshTheme.accent)
@@ -457,16 +457,12 @@ struct ChannelChatView: View {
         }
         #endif
         .onAppear {
-            notifyMode = NSUbiquitousKeyValueStore.default.string(forKey: "channel.notify.\(channelName)") ?? "all"
+            notifyMode = viewModel.channelNotifyMode(for: channelName).rawValue
             if messageText.isEmpty {
                 messageText = viewModel.loadDraft(for: channelKey)
             }
             DispatchQueue.main.async {
-                // Store last-read timestamp for unread divider (iCloud synced)
-                let lastReadKey = "lastRead.\(channelKey.map { String(format: "%02x", $0) }.joined())"
-                NSUbiquitousKeyValueStore.default.set(Date().timeIntervalSince1970, forKey: lastReadKey)
-                NSUbiquitousKeyValueStore.default.synchronize()
-                viewModel.unreadCounts[channelKey] = 0
+                viewModel.markAsRead(contactKey: channelKey)
             }
         }
         .onDisappear {
@@ -1830,8 +1826,9 @@ struct ChannelDetailSheet: View {
                     }
                     .pickerStyle(.segmented)
                     .onChange(of: notifyMode) { _, mode in
-                        NSUbiquitousKeyValueStore.default.set(mode, forKey: "channel.notify.\(channelName)")
-                        NSUbiquitousKeyValueStore.default.synchronize()
+                        if let notifyMode = ChannelStore.ChannelNotifyMode(rawValue: mode) {
+                            viewModel.setChannelNotifyMode(notifyMode, for: channelName)
+                        }
                     }
                 }
 

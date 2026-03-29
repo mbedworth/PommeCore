@@ -51,6 +51,15 @@ final class ChannelStore {
     var hasCompletedInitialChannelSync = false
     private var channelSyncTimeoutTask: Task<Void, Never>?
 
+    /// The 12-char hex prefix of the connected radio's public key.
+    /// Used to scope channel secrets and notification modes per radio.
+    private(set) var radioPrefix12: String?
+
+    /// Activate channel store for a specific radio.
+    func activateForRadio(_ prefix: String) {
+        radioPrefix12 = prefix
+    }
+
     // MARK: - Channel Notification Modes
 
     enum ChannelNotifyMode: String {
@@ -60,13 +69,21 @@ final class ChannelStore {
     }
 
     func channelNotifyMode(for channelName: String) -> ChannelNotifyMode {
-        let key = "channel.notify.\(channelName)"
-        let raw = iCloudStore.string(forKey: key) ?? "all"
+        if let prefix = radioPrefix12 {
+            let scopedKey = "channel.notify.\(prefix).\(channelName)"
+            if let raw = iCloudStore.string(forKey: scopedKey) {
+                return ChannelNotifyMode(rawValue: raw) ?? .all
+            }
+        }
+        // Fall back to legacy unscoped key
+        let legacyKey = "channel.notify.\(channelName)"
+        let raw = iCloudStore.string(forKey: legacyKey) ?? "all"
         return ChannelNotifyMode(rawValue: raw) ?? .all
     }
 
     func setChannelNotifyMode(_ mode: ChannelNotifyMode, for channelName: String) {
-        let key = "channel.notify.\(channelName)"
+        guard let prefix = radioPrefix12 else { return }
+        let key = "channel.notify.\(prefix).\(channelName)"
         iCloudStore.set(mode.rawValue, forKey: key)
         iCloudStore.synchronize()
     }
@@ -109,10 +126,18 @@ final class ChannelStore {
             }
         }
         if ch.secret == nil, !ch.name.isEmpty {
-            ch.secret = KeychainManager.getChannelSecret(forChannelName: ch.name)
+            if let prefix = radioPrefix12 {
+                ch.secret = KeychainManager.getChannelSecret(forChannelName: ch.name, radioPrefix: prefix)
+            } else {
+                ch.secret = KeychainManager.getChannelSecret(forChannelName: ch.name)
+            }
         }
         if let secret = ch.secret, !ch.name.isEmpty {
-            _ = KeychainManager.saveChannelSecret(secret, forChannelName: ch.name)
+            if let prefix = radioPrefix12 {
+                KeychainManager.saveChannelSecret(secret, forChannelName: ch.name, radioPrefix: prefix)
+            } else {
+                KeychainManager.saveChannelSecret(secret, forChannelName: ch.name)
+            }
         }
         if let existingIdx = incomingChannels.firstIndex(where: { $0.index == ch.index }) {
             incomingChannels[existingIdx] = ch
@@ -149,13 +174,21 @@ final class ChannelStore {
         let channelKey = Data([index])
         if name.isEmpty {
             if let existing = channels.first(where: { $0.index == index }) {
-                KeychainManager.deleteChannelSecret(forChannelName: existing.name)
+                if let prefix = radioPrefix12 {
+                    KeychainManager.deleteChannelSecret(forChannelName: existing.name, radioPrefix: prefix)
+                } else {
+                    KeychainManager.deleteChannelSecret(forChannelName: existing.name)
+                }
             }
             channels.removeAll { $0.index == index }
             clearChannelMessages?(channelKey)
         } else {
             if let secret, !secret.isEmpty {
-                KeychainManager.saveChannelSecret(secret, forChannelName: name)
+                if let prefix = radioPrefix12 {
+                    KeychainManager.saveChannelSecret(secret, forChannelName: name, radioPrefix: prefix)
+                } else {
+                    KeychainManager.saveChannelSecret(secret, forChannelName: name)
+                }
             }
             if let existing = channels.first(where: { $0.index == index }),
                existing.name != name || existing.secret != secret {
@@ -276,5 +309,6 @@ final class ChannelStore {
         showChannelImportOptions = false
         pendingMultiChannelImport = nil
         showMultiChannelImportOptions = false
+        radioPrefix12 = nil
     }
 }
