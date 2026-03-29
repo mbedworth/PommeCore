@@ -182,8 +182,8 @@ struct SettingsView: View {
                     case .txPower: TxPowerEditorSheet(viewModel: viewModel)
                     case .tuning: TuningEditorSheet(viewModel: viewModel)
                     case .gps: GPSEditorSheet(viewModel: viewModel)
-                    case .battery: BatteryEditorSheet(viewModel: viewModel, batteryChemistryRaw: $batteryChemistryRaw)
-                    case .firmware: FirmwareDetailSheet(viewModel: viewModel)
+                    case .battery: BatteryEditorSheet(batteryChemistryRaw: $batteryChemistryRaw)
+                    case .firmware: FirmwareDetailSheet()
                     }
                 }
                 .toolbar {
@@ -223,8 +223,8 @@ struct SettingsView: View {
                         case .txPower: TxPowerEditorSheet(viewModel: viewModel)
                         case .tuning: TuningEditorSheet(viewModel: viewModel)
                         case .gps: GPSEditorSheet(viewModel: viewModel)
-                        case .battery: BatteryEditorSheet(viewModel: viewModel, batteryChemistryRaw: $batteryChemistryRaw)
-                        case .firmware: FirmwareDetailSheet(viewModel: viewModel)
+                        case .battery: BatteryEditorSheet(batteryChemistryRaw: $batteryChemistryRaw)
+                        case .firmware: FirmwareDetailSheet()
                         }
                     }
                     .toolbar {
@@ -297,19 +297,19 @@ private extension SettingsView {
     }
 
     var radioDataSection: some View {
-        RadioDataSection(viewModel: viewModel, radioToDelete: $radioToDelete, showDeleteRadioConfirm: $showDeleteRadioConfirm, radioToMigrate: $radioToMigrate, showMigrateSheet: $showMigrateSheet)
+        RadioDataSection(radioToDelete: $radioToDelete, showDeleteRadioConfirm: $showDeleteRadioConfirm, radioToMigrate: $radioToMigrate, showMigrateSheet: $showMigrateSheet)
     }
 }
 
 struct RadioDataSection: View {
-    @ObservedObject var viewModel: MeshCoreViewModel
+    @Environment(DeviceConfig.self) private var deviceConfig
     @Binding var radioToDelete: String?
     @Binding var showDeleteRadioConfirm: Bool
     @Binding var radioToMigrate: String?
     @Binding var showMigrateSheet: Bool
 
     private var currentRadioPrefix: String? {
-        let hex = viewModel.deviceConfig.publicKeyHex
+        let hex = deviceConfig.publicKeyHex
         return hex.isEmpty ? nil : String(hex.prefix(12))
     }
 
@@ -2827,12 +2827,12 @@ private extension SettingsView {
 
 private extension SettingsView {
     var dangerZoneSection: some View {
-        DangerZoneSection(viewModel: viewModel)
+        DangerZoneSection()
     }
 }
 
 struct DangerZoneSection: View {
-    @ObservedObject var viewModel: MeshCoreViewModel
+    @Environment(ConnectionManager.self) private var connectionManager
     @State private var showRebootConfirm = false
     @State private var showResetConfirm = false
     @State private var resetConfirmText = ""
@@ -2857,7 +2857,7 @@ struct DangerZoneSection: View {
             .alert("Reboot Device?", isPresented: $showRebootConfirm) {
                 Button("Cancel", role: .cancel) {}
                 Button("Reboot", role: .destructive) {
-                    viewModel.rebootDevice()
+                    connectionManager.sendCommand(MeshCoreProtocol.buildReboot(), label: "REBOOT")
                 }
             } message: {
                 Text("The radio will disconnect and restart. You'll need to reconnect via Bluetooth.")
@@ -2884,7 +2884,7 @@ struct DangerZoneSection: View {
                 Button("Cancel", role: .cancel) {}
                 Button("Reset", role: .destructive) {
                     if resetConfirmText == "RESET" {
-                        viewModel.factoryReset()
+                        connectionManager.sendCommand(MeshCoreProtocol.buildFactoryReset(), label: "FACTORY_RESET")
                     }
                 }
                 .disabled(resetConfirmText != "RESET")
@@ -3121,7 +3121,7 @@ struct NameEditorSheet: View {
 }
 
 struct FirmwareDetailSheet: View {
-    @ObservedObject var viewModel: MeshCoreViewModel
+    @Environment(DeviceConfig.self) private var deviceConfig
     @Environment(\.dismiss) private var dismiss
     @State private var version = ""
     @State private var buildDate = ""
@@ -3169,14 +3169,13 @@ struct FirmwareDetailSheet: View {
         .navigationBarTitleDisplayMode(.inline)
         #endif
         .onAppear {
-            let c = viewModel.deviceConfig
-            version = c.semanticVersion.isEmpty ? "v\(c.firmwareVersion)" : c.semanticVersion
-            buildDate = c.buildDate
-            model = c.manufacturer
-            maxContacts = c.maxContacts
-            maxChannels = c.maxChannels
-            publicKeyHex = c.publicKeyHex
-            clockDate = c.deviceTimeDate
+            version = deviceConfig.semanticVersion.isEmpty ? "v\(deviceConfig.firmwareVersion)" : deviceConfig.semanticVersion
+            buildDate = deviceConfig.buildDate
+            model = deviceConfig.manufacturer
+            maxContacts = deviceConfig.maxContacts
+            maxChannels = deviceConfig.maxChannels
+            publicKeyHex = deviceConfig.publicKeyHex
+            clockDate = deviceConfig.deviceTimeDate
         }
     }
 }
@@ -3373,7 +3372,7 @@ struct GPSEditorSheet: View {
 // MARK: - Battery Editor
 
 struct BatteryEditorSheet: View {
-    @ObservedObject var viewModel: MeshCoreViewModel
+    @Environment(DeviceConfig.self) private var deviceConfig
     @Environment(\.dismiss) private var dismiss
     @Binding var batteryChemistryRaw: String
     @State private var voltageText = ""
@@ -3402,8 +3401,8 @@ struct BatteryEditorSheet: View {
         .navigationBarTitleDisplayMode(.inline)
         #endif
         .onAppear {
-            let battV = String(format: "%.2f", Double(viewModel.deviceConfig.batteryMillivolts) / 1000.0)
-            let battPct = viewModel.deviceConfig.batteryPercent()
+            let battV = String(format: "%.2f", Double(deviceConfig.batteryMillivolts) / 1000.0)
+            let battPct = deviceConfig.batteryPercent()
             voltageText = "\(battV)V"
             percentText = battPct > 0 ? "\(battPct)%" : "\u{2014}"
         }
