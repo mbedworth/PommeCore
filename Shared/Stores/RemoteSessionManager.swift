@@ -95,6 +95,8 @@ final class RemoteSessionManager {
     // MARK: - Reset
 
     func reset() {
+        fetchTask?.cancel()
+        fetchTask = nil
         loginTimeoutTask?.cancel()
         loginTimeoutTask = nil
         traceTimeoutTask?.cancel()
@@ -250,12 +252,19 @@ final class RemoteSessionManager {
     }
 
     /// Fetch all settings from a remote device sequentially.
+    /// Active fetch task — stored so it can be cancelled when user navigates away.
+    private var fetchTask: Task<Void, Never>?
+
     func fetchRemoteSettings(for contact: Contact) {
         let session = remoteSession(for: contact)
         guard !session.isFetchingSettings else {
             Self.logger.info("REMOTE MGMT: Settings fetch already in progress, skipping duplicate for \(contact.name)")
             return
         }
+
+        // Cancel any previous fetch (e.g. for a different device)
+        fetchTask?.cancel()
+
         session.isFetchingSettings = true
         session.fetchReceivedCount = 0
 
@@ -274,18 +283,35 @@ final class RemoteSessionManager {
         ]
 
         session.fetchTotalCount = commands.count
-        Self.logger.info("REMOTE MGMT: Fetching \(commands.count) settings for \(contact.name) (sequential)")
+        Self.logger.info("REMOTE MGMT: Fetching \(commands.count) settings for \(contact.name) (sequential, cancellable)")
 
-        Task { [weak self] in
+        fetchTask = Task { [weak self] in
             for (index, command) in commands.enumerated() {
-                guard let self else { return }
+                guard let self, !Task.isCancelled else {
+                    Self.logger.info("REMOTE MGMT: Fetch cancelled at \(index)/\(commands.count)")
+                    session.isFetchingSettings = false
+                    return
+                }
                 await self.fetchRemoteSetting(command: command, contact: contact, session: session)
                 session.fetchReceivedCount = index + 1
+            }
+            guard !Task.isCancelled else {
+                session.isFetchingSettings = false
+                return
             }
             session.isFetchingSettings = false
             session.hasLoadedFullSettings = true
             Self.logger.info("REMOTE MGMT: Finished fetching settings for \(contact.name), received \(session.fetchReceivedCount)/\(commands.count)")
         }
+    }
+
+    /// Cancel any in-progress settings fetch. Called from onDisappear in RemoteManagementView.
+    func cancelFetch() {
+        if let task = fetchTask, !task.isCancelled {
+            task.cancel()
+            Self.logger.info("REMOTE MGMT: Fetch cancelled by user")
+        }
+        fetchTask = nil
     }
 
     /// Send a single CLI command and wait for its response.
