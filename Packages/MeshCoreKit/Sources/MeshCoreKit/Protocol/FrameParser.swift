@@ -709,12 +709,25 @@ public enum FrameParser {
         return .sendConfirmed(ackCode: ackCode, roundTripMs: roundTrip)
     }
 
-    /// PUSH_CODE_ADVERT (0x80) — new advertisement received, contains contact data.
-    /// Same binary layout as RESP_CODE_CONTACT.
+    /// PUSH_CODE_ADVERT (0x80) — known contact advertised.
+    /// Payload may be just pub_key(32 bytes) OR full contact record (148 bytes).
+    /// If only pubkey, parse as advert with pubkey only — caller must update timestamp
+    /// on existing contact rather than replacing it.
     private static func parseAdvertPush(_ data: Data) -> ParsedResponse {
-        // Advert push uses the same contact binary format
-        let contactResponse = parseContactFull(data)
-        if case .contact(let contact) = contactResponse {
+        // Full contact record (same layout as RESP_CODE_CONTACT)
+        if data.count >= 100 {
+            let contactResponse = parseContactFull(data)
+            if case .contact(let contact) = contactResponse {
+                return .advert(contact)
+            }
+        }
+        // Short form: just the 32-byte public key — build minimal contact for identification
+        if data.count >= 32 {
+            let publicKey = Data(data.prefix(32))
+            logger.info("Advert (pubkey-only): \(publicKey.prefix(6).map { String(format: "%02x", $0) }.joined())")
+            let contact = Contact(publicKey: publicKey, name: "", type: .unknown, flags: 0,
+                                  outPathLen: 0, outPath: Data(), lastAdvert: 0,
+                                  latitude: 0, longitude: 0, lastmod: 0)
             return .advert(contact)
         }
         return .unknown(type: MeshCorePushCode.advert.rawValue, payload: data)

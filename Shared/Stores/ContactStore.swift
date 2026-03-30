@@ -497,13 +497,26 @@ final class ContactStore {
     }
 
     func handleAdvert(_ contact: Contact) {
-        let c = contactWithTimestamp(contact)
-        if let idx = contacts.firstIndex(where: { $0.publicKeyPrefix == c.publicKeyPrefix }) {
-            contacts[idx] = c
-            DebugLogger.shared.log("ADVERT: updated \(c.name) lastAdvert=\(c.lastAdvert)", level: .rx)
-        } else {
+        let now = UInt32(Date().timeIntervalSince1970)
+        if let idx = contacts.firstIndex(where: { $0.publicKeyPrefix == contact.publicKeyPrefix }) {
+            if contact.name.isEmpty && contact.type == .unknown {
+                // Pubkey-only advert (0x80 short form) — update timestamp on existing contact,
+                // don't replace with skeleton data.
+                contacts[idx].lastAdvert = now
+                DebugLogger.shared.log("ADVERT: timestamp updated for \(contacts[idx].name)", level: .rx)
+            } else {
+                // Full contact advert — replace with new data
+                let c = contactWithTimestamp(contact)
+                contacts[idx] = c
+                DebugLogger.shared.log("ADVERT: updated \(c.name) lastAdvert=\(c.lastAdvert)", level: .rx)
+            }
+        } else if !contact.name.isEmpty {
+            // Only add new contacts if we have real data (not pubkey-only)
+            let c = contactWithTimestamp(contact)
             contacts.append(c)
             DebugLogger.shared.log("ADVERT: new contact \(c.name) lastAdvert=\(c.lastAdvert)", level: .rx)
+        } else {
+            DebugLogger.shared.log("ADVERT: ignoring pubkey-only for unknown contact", level: .rx)
         }
     }
 

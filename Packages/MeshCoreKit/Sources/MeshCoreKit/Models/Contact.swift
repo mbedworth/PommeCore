@@ -58,7 +58,7 @@ public struct Contact: Identifiable, Codable, Sendable, Hashable {
     public let outPathLen: Int8
 
     /// Last time this contact advertised (epoch seconds).
-    public let lastAdvert: UInt32
+    public var lastAdvert: UInt32
 
     /// Advertised latitude (degrees × 1,000,000).
     public let latitude: Double
