@@ -111,19 +111,8 @@ struct RemoteManagementView: View {
                 DebugLogger.shared.log("REMOTE: cleared local session for \(contact.name) on exit", level: .info)
             }
         }
-        .toolbar {
-            if isLoggedIn {
-                ToolbarItem(placement: .automatic) {
-                    Button {
-                        remoteSessionManager.fetchRemoteSettings(for: contact)
-                    } label: {
-                        Image(systemName: "arrow.clockwise")
-                            .foregroundStyle(remoteAccent)
-                    }
-                    .help("Refresh all settings")
-                }
-            }
-        }
+        // No toolbar refresh button — macOS NavigationSplitView has a global refresh,
+        // and "Refresh Info" exists inline in the Device Info section.
     }
 
     @ViewBuilder
@@ -1548,24 +1537,6 @@ func cliInfoRow(icon: String, label: String, value: String) -> some View {
             .foregroundStyle(MeshTheme.textPrimary)
     }
     .listRowBackground(MeshTheme.surface)
-}
-
-func cliSettingRow(icon: String, label: String, value: String) -> some View {
-    HStack {
-        Image(systemName: icon)
-            .foregroundStyle(MeshTheme.accent)
-            .frame(width: 24)
-        Text(label)
-            .foregroundStyle(MeshTheme.accent)
-        Spacer()
-        Text(value)
-            .foregroundStyle(MeshTheme.textPrimary)
-            .font(.caption)
-        Image(systemName: "arrow.clockwise")
-            .font(.caption2)
-            .foregroundStyle(MeshTheme.textSecondary)
-    }
-    .contentShape(Rectangle())
 }
 
 /// A segmented On/Off toggle for CLI boolean settings.

@@ -1083,23 +1083,6 @@ struct RoomMessageBubble: View {
                     .background(message.isOutgoing ? MeshTheme.outgoingBubble : MeshTheme.incomingBubble)
                     .foregroundStyle(MeshTheme.textOnAccent)
                     .clipShape(RoundedRectangle(cornerRadius: 18))
-                    .contextMenu {
-                        Button {
-                            #if os(macOS)
-                            NSPasteboard.general.clearContents()
-                            NSPasteboard.general.setString(parsed.text, forType: .string)
-                            #elseif !os(watchOS)
-                            UIPasteboard.general.string = parsed.text
-                            #endif
-                        } label: {
-                            Label("Copy", systemImage: "doc.on.doc")
-                        }
-                        Button(role: .destructive) {
-                            messageStoreManager.deleteMessage(message, in: message.contactKeyHash)
-                        } label: {
-                            Label("Delete Message", systemImage: "trash")
-                        }
-                    }
 
                 HStack(spacing: 4) {
                     Text(message.timestamp, style: .time)
@@ -1191,6 +1174,25 @@ struct RoomMessageBubble: View {
                         .clipShape(Capsule())
                     }
                     .buttonStyle(.plain)
+                }
+            }
+            .contentShape(Rectangle())
+            .contextMenu {
+                Button {
+                    #if os(macOS)
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(parsed.text, forType: .string)
+                    #elseif !os(watchOS)
+                    UIPasteboard.general.string = parsed.text
+                    #endif
+                } label: {
+                    Label("Copy", systemImage: "doc.on.doc")
+                }
+                Divider()
+                Button(role: .destructive) {
+                    messageStoreManager.deleteMessage(message, in: message.contactKeyHash)
+                } label: {
+                    Label("Delete Message", systemImage: "trash")
                 }
             }
 
@@ -1350,31 +1352,6 @@ struct MessageBubble: View {
                     .background(message.isOutgoing ? MeshTheme.outgoingBubble : MeshTheme.incomingBubble)
                     .foregroundStyle(MeshTheme.textOnAccent)
                     .clipShape(RoundedRectangle(cornerRadius: 18))
-                    .contextMenu {
-                        Button {
-                            #if os(macOS)
-                            NSPasteboard.general.clearContents()
-                            NSPasteboard.general.setString(message.text, forType: .string)
-                            #elseif !os(watchOS)
-                            UIPasteboard.general.string = message.text
-                            #endif
-                        } label: {
-                            Label("Copy Text", systemImage: "doc.on.doc")
-                        }
-                        if message.isOutgoing && message.status == .failed {
-                            Button {
-                                messageStoreManager.retryMessage(message)
-                            } label: {
-                                Label("Retry Send", systemImage: "arrow.clockwise")
-                            }
-                        }
-                        Divider()
-                        Button(role: .destructive) {
-                            messageStoreManager.deleteMessage(message, in: message.contactKeyHash)
-                        } label: {
-                            Label("Delete Message", systemImage: "trash")
-                        }
-                    }
 
                 HStack(spacing: 4) {
                     Text(message.timestamp, style: .time)
@@ -1438,6 +1415,32 @@ struct MessageBubble: View {
                         .clipShape(Capsule())
                     }
                     .buttonStyle(.plain)
+                }
+            }
+            .contentShape(Rectangle())
+            .contextMenu {
+                Button {
+                    #if os(macOS)
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(message.text, forType: .string)
+                    #elseif !os(watchOS)
+                    UIPasteboard.general.string = message.text
+                    #endif
+                } label: {
+                    Label("Copy Text", systemImage: "doc.on.doc")
+                }
+                if message.isOutgoing && message.status == .failed {
+                    Button {
+                        messageStoreManager.retryMessage(message)
+                    } label: {
+                        Label("Retry Send", systemImage: "arrow.clockwise")
+                    }
+                }
+                Divider()
+                Button(role: .destructive) {
+                    messageStoreManager.deleteMessage(message, in: message.contactKeyHash)
+                } label: {
+                    Label("Delete Message", systemImage: "trash")
                 }
             }
 
@@ -1533,32 +1536,6 @@ struct ChannelMessageBubble: View {
                     .background(message.isOutgoing ? MeshTheme.outgoingBubble : MeshTheme.incomingBubble)
                     .foregroundStyle(MeshTheme.textOnAccent)
                     .clipShape(RoundedRectangle(cornerRadius: 18))
-                    .contextMenu {
-                        Button {
-                            #if os(macOS)
-                            NSPasteboard.general.clearContents()
-                            NSPasteboard.general.setString(message.text, forType: .string)
-                            #elseif !os(watchOS)
-                            UIPasteboard.general.string = message.text
-                            #endif
-                        } label: {
-                            Label("Copy Text", systemImage: "doc.on.doc")
-                        }
-                        if !message.isOutgoing, let sender = message.senderName, !sender.isEmpty {
-                            Button {
-                                // Post notification to insert @mention — ChannelChatView listens
-                                NotificationCenter.default.post(name: .insertMention, object: sender)
-                            } label: {
-                                Label("@\(sender)", systemImage: "at")
-                            }
-                        }
-                        Divider()
-                        Button(role: .destructive) {
-                            messageStoreManager.deleteMessage(message, in: message.contactKeyHash)
-                        } label: {
-                            Label("Delete Message", systemImage: "trash")
-                        }
-                    }
 
                 HStack(spacing: 4) {
                     Text(message.timestamp, style: .time)
@@ -1623,6 +1600,32 @@ struct ChannelMessageBubble: View {
                     }
                 }
                 .padding(.horizontal, 4)
+            }
+            .contentShape(Rectangle())
+            .contextMenu {
+                Button {
+                    #if os(macOS)
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(message.text, forType: .string)
+                    #elseif !os(watchOS)
+                    UIPasteboard.general.string = message.text
+                    #endif
+                } label: {
+                    Label("Copy Text", systemImage: "doc.on.doc")
+                }
+                if !message.isOutgoing, let sender = message.senderName, !sender.isEmpty {
+                    Button {
+                        NotificationCenter.default.post(name: .insertMention, object: sender)
+                    } label: {
+                        Label("@\(sender)", systemImage: "at")
+                    }
+                }
+                Divider()
+                Button(role: .destructive) {
+                    messageStoreManager.deleteMessage(message, in: message.contactKeyHash)
+                } label: {
+                    Label("Delete Message", systemImage: "trash")
+                }
             }
 
             if !message.isOutgoing { Spacer(minLength: 48) }
