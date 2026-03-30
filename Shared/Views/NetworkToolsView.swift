@@ -5,7 +5,7 @@ import MeshCoreKit
 // MARK: - Discover View
 
 struct DiscoverView: View {
-    @EnvironmentObject var viewModel: MeshCoreViewModel
+    @Environment(ConnectionManager.self) private var connectionManager
     @Environment(RemoteSessionManager.self) private var remoteSessionManager
     @State private var discoveryDuration: TimeInterval = 300
     @State private var timeRemaining: TimeInterval = 0
@@ -230,12 +230,13 @@ struct DiscoverView: View {
         timeRemaining = discoveryDuration
         remoteSessionManager.discoveredNodes = []
         DebugLogger.shared.log("DISCOVER: started \(Int(discoveryDuration / 60))min timed discovery", level: .info)
-        viewModel.sendAdvertise(type: 1) // Initial flood advert
+        connectionManager.sendAdvertise(type: 1) // Initial flood advert
 
         // Re-advertise every 30 seconds
-        advertTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak viewModel] _ in
+        let cm = connectionManager
+        advertTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { _ in
             Task { @MainActor in
-                viewModel?.sendAdvertise(type: 1)
+                cm.sendAdvertise(type: 1)
             }
         }
 

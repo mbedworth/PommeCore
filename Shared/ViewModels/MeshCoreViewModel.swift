@@ -790,19 +790,7 @@ final class MeshCoreViewModel: ObservableObject {
     func requestContacts(fullSync: Bool = false) { contactStore.requestContacts(fullSync: fullSync) }
 
     func sendAdvertise(type: UInt8 = 0) {
-        // Apply GPS fudge before advertising so the broadcast position is fudged
-        #if !os(watchOS)
-        let radius = UserDefaults.standard.double(forKey: "locationPrivacyRadius")
-        if radius > 0 {
-            let locManager = CLLocationManager()
-            if let location = locManager.location {
-                let (fLat, fLon) = Self.fudgeLocation(lat: location.coordinate.latitude, lon: location.coordinate.longitude)
-                sendCommand(MeshCoreProtocol.buildSetAdvertLatLon(latitude: fLat, longitude: fLon), label: "FUDGE_LATLON")
-                DebugLogger.shared.log("ADVERT: fudged GPS applied before advert", level: .tx)
-            }
-        }
-        #endif
-        sendCommand(MeshCoreProtocol.buildSendSelfAdvert(advertType: type), label: "SELF_ADVERT")
+        connectionManager.sendAdvertise(type: type)
     }
 
     func requestBattAndStorage() {
@@ -1013,20 +1001,13 @@ final class MeshCoreViewModel: ObservableObject {
 
     /// Export a contact as a meshcore:// URL. Result arrives as .exportedContact response.
     func exportContact(_ contact: Contact) {
-        let keyHex = contact.publicKey.prefix(6).map { String(format: "%02x", $0) }.joined()
-        Self.logger.info("EXPORT: requesting export for '\(contact.name)' key=\(keyHex) fullKeyLen=\(contact.publicKey.count)")
         lastExportedURL = nil
-        let frame = MeshCoreProtocol.buildExportContact(publicKey: contact.publicKey)
-        Self.logger.info("EXPORT: frame=[\(frame.count) bytes] \(frame.map { String(format: "%02x", $0) }.joined(separator: " "))")
-        sendCommand(frame, label: "EXPORT_CONTACT")
+        connectionManager.exportContact(contact)
     }
 
-    /// Export self as a meshcore:// URL (send code byte only, no public key).
     func exportSelfContact() {
-        Self.logger.info("EXPORT: requesting self contact export (frame=[1 byte] 11)")
         lastExportedURL = nil
-        let frame = Data([0x11])  // CMD_EXPORT_CONTACT with no payload = export self
-        sendCommand(frame, label: "EXPORT_SELF")
+        connectionManager.exportSelfContact()
     }
 
     // MARK: - Internet Map

@@ -224,7 +224,7 @@ struct ContactListView: View {
             ToolbarItem(placement: .automatic) {
                 HStack(spacing: 12) {
                     Button {
-                        viewModel.sendAdvertise(type: 1)
+                        connectionManager.sendAdvertise(type: 1)
                         showAdvertSent?.wrappedValue = true
                         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                             showAdvertSent?.wrappedValue = false
@@ -910,7 +910,7 @@ struct ContactListView: View {
                 Button { showImportSheet = true } label: {
                     Label("Paste Contact Link", systemImage: "doc.on.clipboard")
                 }
-                Button { viewModel.sendAdvertise(type: 1) } label: {
+                Button { connectionManager.sendAdvertise(type: 1) } label: {
                     Label("Send Flood Advert", systemImage: "antenna.radiowaves.left.and.right")
                 }
             } label: {
@@ -941,7 +941,7 @@ struct ContactListView: View {
                         .foregroundStyle(MeshTheme.textSecondary)
                         .multilineTextAlignment(.center)
                     Button {
-                        viewModel.sendAdvertise(type: 0)
+                        connectionManager.sendAdvertise(type: 0)
                     } label: {
                         Label("Send Advertisement", systemImage: "antenna.radiowaves.left.and.right")
                     }
@@ -1027,7 +1027,7 @@ struct ContactListView: View {
                         Button {
                             for key in selectedContacts {
                                 if let contact = contactStore.contacts.first(where: { $0.publicKeyPrefix == key }) {
-                                    viewModel.exportContact(contact)
+                                    messageStoreManager.lastExportedURL = nil; connectionManager.exportContact(contact)
                                 }
                             }
                         } label: {
@@ -1080,7 +1080,10 @@ struct ContactListView: View {
             Button("Import") {
                 let url = importURLText.trimmingCharacters(in: .whitespacesAndNewlines)
                 if !url.isEmpty {
-                    viewModel.handleMeshCoreURL(url)
+                    if !channelStore.handleChannelURL(url), url.hasPrefix("meshcore://") {
+                        connectionManager.importContact(url: url)
+                        contactStore.requestContacts(fullSync: true)
+                    }
                 }
             }
         } message: {
@@ -1091,7 +1094,10 @@ struct ContactListView: View {
             NavigationStack {
                 QRScannerView { scannedURL in
                     showQRScanner = false
-                    viewModel.handleMeshCoreURL(scannedURL)
+                    if !channelStore.handleChannelURL(scannedURL), scannedURL.hasPrefix("meshcore://") {
+                        connectionManager.importContact(url: scannedURL)
+                        contactStore.requestContacts(fullSync: true)
+                    }
                 }
                 .navigationTitle("Scan QR Code")
                 #if os(iOS)
@@ -1147,12 +1153,12 @@ struct ContactListView: View {
         .confirmationDialog("Send Advertisement", isPresented: $showAdvertOptions) {
             Button("Zero-Hop (nearby only)") {
                 lastAdvertFlood = false
-                viewModel.sendAdvertise(type: 0)
+                connectionManager.sendAdvertise(type: 0)
                 showAdvertSent?.wrappedValue = true
             }
             Button("Flood (entire mesh)") {
                 lastAdvertFlood = true
-                viewModel.sendAdvertise(type: 1)
+                connectionManager.sendAdvertise(type: 1)
                 showAdvertSent?.wrappedValue = true
             }
             Button("Cancel", role: .cancel) {}
@@ -1200,7 +1206,7 @@ struct ContactListView: View {
         if contact.type == .chat {
             Button {
                 isExporting = true
-                viewModel.exportContact(contact)
+                messageStoreManager.lastExportedURL = nil; connectionManager.exportContact(contact)
             } label: {
                 Label("Share Contact", systemImage: "square.and.arrow.up")
             }

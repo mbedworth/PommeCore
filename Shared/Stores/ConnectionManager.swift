@@ -2,6 +2,9 @@ import SwiftUI
 import Combine
 import os.log
 import MeshCoreKit
+#if !os(watchOS)
+import CoreLocation
+#endif
 
 /// Observable store for transport state, scanning, connect/disconnect, and sendCommand routing.
 /// Extracted from MeshCoreViewModel to enable fine-grained view observation.
@@ -95,6 +98,46 @@ final class ConnectionManager {
         Self.logger.info("TX \(label) [\(data.count) bytes]: \(hex)")
         if verbose { DebugLogger.shared.log("TX \(label) [\(data.count)B] \(hex)", level: .tx) }
         bleManager.send(data: data)
+    }
+
+    // MARK: - Protocol Convenience Commands
+
+    /// Send a self-advert, applying GPS fudge if privacy radius is configured.
+    func sendAdvertise(type: UInt8 = 0) {
+        #if !os(watchOS)
+        let radius = UserDefaults.standard.double(forKey: "locationPrivacyRadius")
+        if radius > 0 {
+            let locManager = CLLocationManager()
+            if let location = locManager.location {
+                let (fLat, fLon) = MeshCoreViewModel.fudgeLocation(lat: location.coordinate.latitude, lon: location.coordinate.longitude)
+                sendCommand(MeshCoreProtocol.buildSetAdvertLatLon(latitude: fLat, longitude: fLon), label: "FUDGE_LATLON")
+                DebugLogger.shared.log("ADVERT: fudged GPS applied before advert", level: .tx)
+            }
+        }
+        #endif
+        sendCommand(MeshCoreProtocol.buildSendSelfAdvert(advertType: type), label: "SELF_ADVERT")
+    }
+
+    /// Import a contact from a meshcore:// URL string. Sends CMD_IMPORT_CONTACT.
+    func importContact(url: String) {
+        let frame = MeshCoreProtocol.buildImportContact(url: url)
+        sendCommand(frame, label: "IMPORT_CONTACT")
+    }
+
+    /// Export a contact as a meshcore:// URL. Result arrives as .exportedContact response.
+    func exportContact(_ contact: Contact) {
+        let keyHex = contact.publicKey.prefix(6).map { String(format: "%02x", $0) }.joined()
+        Self.logger.info("EXPORT: requesting export for '\(contact.name)' key=\(keyHex) fullKeyLen=\(contact.publicKey.count)")
+        let frame = MeshCoreProtocol.buildExportContact(publicKey: contact.publicKey)
+        Self.logger.info("EXPORT: frame=[\(frame.count) bytes] \(frame.map { String(format: "%02x", $0) }.joined(separator: " "))")
+        sendCommand(frame, label: "EXPORT_CONTACT")
+    }
+
+    /// Export self as a meshcore:// URL (send code byte only, no public key).
+    func exportSelfContact() {
+        Self.logger.info("EXPORT: requesting self contact export (frame=[1 byte] 11)")
+        let frame = Data([0x11])
+        sendCommand(frame, label: "EXPORT_SELF")
     }
 
     // MARK: - Scanning & Connection
