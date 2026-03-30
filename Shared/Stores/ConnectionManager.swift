@@ -455,6 +455,9 @@ final class ConnectionManager {
 
     #if os(macOS) || targetEnvironment(macCatalyst)
     func connectUSB(port: String) {
+        stopScanning()
+        connectionState = .connecting
+        connectedDeviceName = port.replacingOccurrences(of: "/dev/cu.", with: "")
         usbManager.connect(to: port)
     }
 

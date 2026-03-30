@@ -443,8 +443,14 @@ struct ContactListView: View {
                             Label("Verify Radio Config", systemImage: "checkmark.shield")
                         }
                         Divider()
-                        Button(role: .destructive) { connectionManager.disconnect() } label: {
-                            Label("Disconnect", systemImage: "xmark.circle")
+                        if connectionManager.usbManager.isConnected {
+                            Button(role: .destructive) { connectionManager.disconnectUSB() } label: {
+                                Label("Disconnect USB", systemImage: "cable.connector.slash")
+                            }
+                        } else {
+                            Button(role: .destructive) { connectionManager.disconnect() } label: {
+                                Label("Disconnect", systemImage: "xmark.circle")
+                            }
                         }
                     }
                     #else

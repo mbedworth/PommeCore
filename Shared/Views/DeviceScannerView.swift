@@ -266,6 +266,8 @@ struct DeviceScannerView: View {
         .meshListStyle()
         .navigationTitle("Scanner")
         .onAppear {
+            // Don't start BLE scanning if already connecting/connected via any transport
+            guard connectionManager.connectionState == .disconnected else { return }
             connectionManager.startScanning()
             startScanCycle()
         }

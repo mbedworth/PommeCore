@@ -130,7 +130,7 @@ struct SettingsView: View {
 
             // 4. Device Info (BLE/WiFi/USB Binary only — USB CLI uses RemoteManagementView)
             #if os(macOS) || targetEnvironment(macCatalyst)
-            if isConnected && !connectionManager.isUSBCLIMode && remoteSessionManager.isUSBCLIConnected {
+            if isConnected && !connectionManager.isUSBCLIMode {
                 deviceInfoSection
             }
             #else

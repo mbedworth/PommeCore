@@ -209,10 +209,13 @@ public final class USBSerialManager: ObservableObject {
             self.sendFrame(Data([0x16, 0x03]))
         }
 
-        // 10s: Final timeout
+        // 10s: Final timeout — disconnect if device never responded
         serialQueue.asyncAfter(deadline: .now() + 10.0) { [weak self] in
-            guard let self, self.detectedMode == .unknown else { return }
-            DebugLogger.shared.log("USB: ALL PROBES FAILED after 10s — device not responding. Try: 1) unplug/replug device 2) press reset button 3) check if another app has the port open", level: .error)
+            guard let self, self.detectedMode == .unknown, self.fileDescriptor >= 0 else { return }
+            DebugLogger.shared.log("USB: ALL PROBES FAILED after 10s — disconnecting. Try: 1) unplug/replug device 2) press reset button 3) check if another app has the port open", level: .error)
+            DispatchQueue.main.async {
+                self.disconnect()
+            }
         }
     }
 
