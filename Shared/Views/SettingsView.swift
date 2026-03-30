@@ -14,6 +14,7 @@ struct SettingsView: View {
     @Environment(MessageStoreManager.self) private var messageStoreManager
     @AppStorage("batteryChemistry") private var batteryChemistryRaw: String = BatteryChemistry.lipo.rawValue
     @AppStorage("appTheme") private var appTheme: String = AppTheme.system.rawValue
+    @AppStorage("maxMessagesPerContact") private var maxMessagesPerContact: Int = 500
     @State private var statsExpanded = false
     @StateObject private var tipJar = TipJarManager()
     @State private var radioToDelete: String?
@@ -2221,18 +2222,12 @@ class SupportersManager: ObservableObject {
 private extension SettingsView {
     var storageSection: some View {
         Section {
-            Picker(selection: Binding(
-                get: {
-                    let stored = UserDefaults.standard.integer(forKey: "maxMessagesPerContact")
-                    return stored > 0 ? stored : 500
-                },
-                set: { UserDefaults.standard.set($0, forKey: "maxMessagesPerContact") }
-            )) {
+            Picker(selection: $maxMessagesPerContact) {
+                Text("50").tag(50)
                 Text("100").tag(100)
-                Text("250").tag(250)
+                Text("200").tag(200)
                 Text("500").tag(500)
                 Text("1,000").tag(1000)
-                Text("2,500").tag(2500)
             } label: {
                 Label("Messages Per Contact", systemImage: "number")
             }
@@ -2853,7 +2848,6 @@ struct DangerZoneSection: View {
     @State private var showRebootConfirm = false
     @State private var showResetConfirm = false
     @State private var resetConfirmText = ""
-    @State private var showForgetBLEAlert = false
 
     var body: some View {
         Section {
@@ -2903,22 +2897,12 @@ struct DangerZoneSection: View {
                 Button("Reset", role: .destructive) {
                     if resetConfirmText == "RESET" {
                         connectionManager.sendCommand(MeshCoreProtocol.buildFactoryReset(), label: "FACTORY_RESET")
-                        // Disconnect after a short delay to let the command send
-                        Task { @MainActor in
-                            try? await Task.sleep(nanoseconds: 500_000_000)
-                            connectionManager.disconnect()
-                            showForgetBLEAlert = true
-                        }
+                        connectionManager.disconnect()
                     }
                 }
                 .disabled(resetConfirmText != "RESET")
             } message: {
-                Text("Are you sure? This will erase all device settings, contacts, and messages. This cannot be undone.\n\nType RESET to confirm.")
-            }
-            .alert("Remove Bluetooth Pairing", isPresented: $showForgetBLEAlert) {
-                Button("OK") {}
-            } message: {
-                Text("The radio has been reset. Power cycle the radio, then go to Settings \u{2192} Bluetooth, find the device, and tap \"Forget This Device\" before pairing again.")
+                Text("This will erase all device settings, contacts, and messages. This cannot be undone.\n\nAfter reset, power cycle the radio, then go to Settings \u{2192} Bluetooth and tap \"Forget This Device\" before pairing again.\n\nType RESET to confirm.")
             }
         } header: {
             SectionInfoHeader(title: "Danger Zone", info: "Factory reset erases all contacts, channels, settings, and encryption keys from the device. This cannot be undone.", titleColor: .red)

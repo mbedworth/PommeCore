@@ -86,7 +86,10 @@ final class ContactStore {
     }
 
     func displayName(for contact: Contact) -> String {
-        nickname(for: contact) ?? contact.name
+        if let nick = nickname(for: contact), !nick.isEmpty { return nick }
+        if !contact.name.isEmpty { return contact.name }
+        // Fallback for contacts with no name (e.g. factory-reset or new radios)
+        return contact.publicKey.prefix(4).map { String(format: "%02x", $0) }.joined()
     }
 
     /// Resolve a channel message sender name to a nickname if one exists.

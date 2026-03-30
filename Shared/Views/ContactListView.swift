@@ -599,9 +599,21 @@ struct ContactListView: View {
 
                     Button(role: .destructive) {
                         channelToRemove = channel
-                        showChannelRemoveConfirm = true
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            showChannelRemoveConfirm = true
+                        }
                     } label: {
                         Label("Remove Channel", systemImage: "trash")
+                    }
+                }
+                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                    Button(role: .destructive) {
+                        channelToRemove = channel
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            showChannelRemoveConfirm = true
+                        }
+                    } label: {
+                        Label("Remove", systemImage: "trash")
                     }
                 }
                 .listRowBackground(
