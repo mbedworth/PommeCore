@@ -6,10 +6,6 @@ import UserNotifications
 import WatchKit
 #endif
 import MeshCoreKit
-#if !os(watchOS)
-import CoreLocation
-import CryptoKit
-#endif
 #if canImport(CoreSpotlight)
 import CoreSpotlight
 #endif
@@ -110,10 +106,6 @@ final class MeshCoreViewModel: ObservableObject {
     /// Reference is replaced (= DeviceConfig()) on disconnect to reset all state.
     var deviceConfig = DeviceConfig()
     
-    // messagesByContact, unreadCounts -> forwarded from messageStoreManager (computed above)
-    
-    // MARK: - Contact Nicknames — forwarded to ContactStore
-    
     private let iCloudStore = NSUbiquitousKeyValueStore.default
     
     private func registerTerminationHandler() {
@@ -145,8 +137,6 @@ final class MeshCoreViewModel: ObservableObject {
         }
     }
     
-    // displayName, battery calibration removed — use stores directly
-    
     // MARK: - Spotlight Navigation
     
 #if canImport(CoreSpotlight)
@@ -161,11 +151,6 @@ final class MeshCoreViewModel: ObservableObject {
     }
 #endif
     
-    /// Last error message received from the device (shown as alert).
-    // lastErrorMessage moved to ConnectionManager
-    
-    // All forwarding properties (bleStatusMessage, transport managers, scanRetryCount,
-    // isInBackground, network tools state) removed — use stores directly.
     private var cancellables = Set<AnyCancellable>()
     
     init() {
@@ -247,7 +232,7 @@ final class MeshCoreViewModel: ObservableObject {
     private func handleDisconnect(previousState: BLEConnectionState) {
         remoteSessionManager.resetLoginSessions()
         remoteSessionManager.reset()
-        self.stopAutoLocationUpdates()
+        connectionManager.stopAutoLocationUpdates()
         self.deviceConfig.reset()
         self.contactStore.reset()
         self.channelStore.reset()
@@ -382,8 +367,8 @@ final class MeshCoreViewModel: ObservableObject {
             )
         }
         channelStore.hasCompletedInitialChannelSync = false
-        refreshAllSettings()
-        requestContacts(fullSync: true)
+        connectionManager.refreshAllSettings()
+        contactStore.requestContacts(fullSync: true)
         syncNextMessage()
     }
     
@@ -412,115 +397,36 @@ final class MeshCoreViewModel: ObservableObject {
     
     // disconnect, disconnectUSB, sendUSBCLI removed — views use stores directly
     
-    // MARK: - Protocol Commands
-    
-    // sendCommand routing moved to ConnectionManager.
-    // ViewModel calls connectionManager.sendCommand directly.
-    private func sendCommand(_ data: Data, label: String) {
-        connectionManager.sendCommand(data, label: label)
-    }
-    
-    func sendAppStart() { connectionManager.sendAppStart() }
-    func requestDeviceInfo() { connectionManager.requestDeviceInfo() }
-    
-    // verifyRadioConfig, buildConfigVerification, checkFrequencyForRegion moved to ConnectionManager
-    
-    private func requestDebouncedIncrementalSync() { contactStore.requestDebouncedIncrementalSync() }
-    func requestContacts(fullSync: Bool = false) { contactStore.requestContacts(fullSync: fullSync) }
-    
-    // sendAdvertise removed — views use ConnectionManager directly
-    
-    func requestBattAndStorage() { connectionManager.requestBattAndStorage() }
-    func requestDeviceTime() { connectionManager.requestDeviceTime() }
-    func requestTuningParams() { connectionManager.requestTuningParams() }
-    
-    func requestCustomVars() { connectionManager.requestCustomVars() }
-    func requestStats(subType: UInt8) { connectionManager.requestStats(subType: subType) }
-    func requestAutoAddConfig() { connectionManager.requestAutoAddConfig()
-    }
-    
-    func setAutoAddConfig(bitmask: UInt8) {
-        sendCommand(MeshCoreProtocol.buildSetAutoAddConfig(bitmask: bitmask), label: "SET_AUTOADD(0x\(String(format: "%02x", bitmask)))")
-        deviceConfig.autoAddBitmask = bitmask
-    }
-    
-    func refreshAllSettings() {
-        connectionManager.refreshAllSettings()
-    }
-    
-    // MARK: - Settings Commands
-    
-    func setAdvertName(_ name: String) { connectionManager.setAdvertName(name) }
-    
-    func setAdvertLatLon(latitude: Double, longitude: Double) {
-        connectionManager.setAdvertLatLon(latitude: latitude, longitude: longitude)
-    }
-    
+    // MARK: - Location Privacy
+
     /// Session-stable random offset for location privacy. Regenerated on app launch
     /// or when the privacy radius setting changes.
     private static var locationFudgeAngle: Double = Double.random(in: 0..<(2 * .pi))
     private static var locationFudgeFraction: Double = Double.random(in: 0...1)
-    
-    /// Apply a privacy offset to coordinates. The offset is consistent within a session.
+
     static func fudgeLocation(lat: Double, lon: Double) -> (Double, Double) {
         let radius = UserDefaults.standard.double(forKey: "locationPrivacyRadius")
         guard radius > 0 else { return (lat, lon) }
-        
         let distance = Self.locationFudgeFraction * radius
         let latOffset = (distance * cos(Self.locationFudgeAngle)) / 111_320.0
         let lonOffset = (distance * sin(Self.locationFudgeAngle)) / (111_320.0 * cos(lat * .pi / 180))
         return (lat + latOffset, lon + lonOffset)
     }
-    
-    /// Regenerate the location fudge offset (called when privacy radius changes).
+
     static func regenerateLocationFudge() {
         locationFudgeAngle = Double.random(in: 0..<(2 * .pi))
         locationFudgeFraction = Double.random(in: 0...1)
     }
-    
-    // MARK: - Phone GPS Auto-Update
-    
-    private var locationUpdateTimer: Timer?
-    
-    /// Start periodically syncing phone GPS to the radio.
-    func startAutoLocationUpdates(interval: Int) { connectionManager.startAutoLocationUpdates(interval: interval) }
-    func stopAutoLocationUpdates() { connectionManager.stopAutoLocationUpdates() }
-    
-    func setRadioParams(frequency: UInt32, bandwidth: UInt32, spreadingFactor: UInt8, codingRate: UInt8, repeatMode: Bool) {
-        connectionManager.setRadioParams(frequency: frequency, bandwidth: bandwidth, spreadingFactor: spreadingFactor, codingRate: codingRate, repeatMode: repeatMode)
+
+    // MARK: - Commands Used Internally
+
+    func syncNextMessage() {
+        #if os(macOS) || targetEnvironment(macCatalyst)
+        guard !(connectionManager.isUSBCLIMode && remoteSessionManager.isUSBCLIConnected) else { return }
+        #endif
+        messageStoreManager.syncNextMessage()
     }
-    
-    func setRadioTXPower(_ power: UInt8) { connectionManager.setRadioTXPower(power) }
-    
-    func setTuningParams(rxDelayBase: UInt32, airtimeFactor: UInt32) {
-        connectionManager.setTuningParams(rxDelayBase: rxDelayBase, airtimeFactor: airtimeFactor)
-    }
-    
-    func setOtherParams(manualAddContacts: UInt8, telemetryBase: UInt8, telemetryLocation: UInt8, advertLocPolicy: UInt8, multiACK: UInt8) {
-        connectionManager.setOtherParams(manualAddContacts: manualAddContacts, telemetryBase: telemetryBase, telemetryLocation: telemetryLocation, advertLocPolicy: advertLocPolicy, multiACK: multiACK)
-    }
-    
-    func setDevicePIN(_ pin: UInt32) { connectionManager.setDevicePIN(pin) }
-    
-    func setDeviceTime(epochSeconds: UInt32) {
-        sendCommand(MeshCoreProtocol.buildSetDeviceTime(epochSeconds: epochSeconds), label: "SET_TIME")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-            self?.requestDeviceTime()
-        }
-    }
-    
-    func setCustomVar(name: String, value: String) { connectionManager.setCustomVar(name: name, value: value) }
-    
-    func rebootDevice() {
-        sendCommand(MeshCoreProtocol.buildReboot(), label: "REBOOT")
-    }
-    
-    func factoryReset() {
-        sendCommand(MeshCoreProtocol.buildFactoryReset(), label: "FACTORY_RESET")
-    }
-    
-    // MARK: - Forwarding: Contact Management → ContactStore
-    
+
     func removeContact(_ contact: Contact) {
         contactStore.removeContact(contact)
         messageStoreManager.messagesByContact.removeValue(forKey: contact.publicKeyPrefix)
@@ -529,52 +435,22 @@ final class MeshCoreViewModel: ObservableObject {
             navigationStore.sidebarSelection = nil
         }
     }
-    
-    // resetPath, shareContact removed — views use stores directly
-    
-    /// Export a contact as a meshcore:// URL. Result arrives as .exportedContact response.
+
     func exportContact(_ contact: Contact) {
         messageStoreManager.lastExportedURL = nil
         connectionManager.exportContact(contact)
     }
-    
+
     func exportSelfContact() {
         messageStoreManager.lastExportedURL = nil
         connectionManager.exportSelfContact()
     }
-    
-    // MARK: - Internet Map
-    // Note: internetMapNodes/fetchInternetMapNodes moved to MeshMapView @State (view-local).
-    
-    /// Import a contact from a meshcore:// URL string. Sends CMD_IMPORT_CONTACT.
-    /// The device will send contact data frames in response — no need to re-sync.
-    func importContact(url: String) {
-        let frame = MeshCoreProtocol.buildImportContact(url: url)
-        sendCommand(frame, label: "IMPORT_CONTACT")
-        // Refresh contacts after a short delay to pick up the new import
-        Task { [weak self] in
-            try? await Task.sleep(nanoseconds: 2_000_000_000)
-            self?.requestContacts(fullSync: true)
-        }
-    }
-    
-    // lastExportedURL -> forwarded from messageStoreManager (computed above)
-    
+
     func handleMeshCoreURL(_ urlString: String) {
         if channelStore.handleChannelURL(urlString) { return }
         if urlString.hasPrefix("meshcore://") {
-            importContact(url: urlString)
+            connectionManager.importContact(url: urlString)
+            contactStore.requestContacts(fullSync: true)
         }
     }
-    
-    // Channel import / messaging forwards removed — views use stores directly
-    
-    func syncNextMessage() {
-#if os(macOS) || targetEnvironment(macCatalyst)
-        guard !(connectionManager.isUSBCLIMode && remoteSessionManager.isUSBCLIConnected) else { return }
-#endif
-        messageStoreManager.syncNextMessage()
-    }
-    
-    // Remote management forwards removed — views use RemoteSessionManager directly
 }
