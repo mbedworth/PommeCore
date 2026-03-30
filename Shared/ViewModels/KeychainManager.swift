@@ -87,8 +87,9 @@ struct KeychainManager {
         var addQuery = baseAttributes
         addQuery[kSecAttrAccount as String] = account
         addQuery[kSecValueData as String] = passwordData
-        addQuery[kSecAttrAccessible as String] = kSecAttrAccessibleWhenUnlocked
-        addQuery[kSecAttrSynchronizable as String] = Self.iCloudSyncEnabled
+        // Device login passwords are never synced — they're specific to a physical radio
+        addQuery[kSecAttrAccessible as String] = kSecAttrAccessibleWhenUnlockedThisDeviceOnly
+        addQuery[kSecAttrSynchronizable as String] = false
 
         let status = SecItemAdd(addQuery as CFDictionary, nil)
         if status == errSecSuccess {

@@ -456,11 +456,17 @@ final class ContactStore {
         DebugLogger.shared.log("Contacts done: \(self.incomingContacts.count) synced", level: .info)
         if isIncrementalContactSync {
             if !incomingContacts.isEmpty {
+                // Dictionary-based merge: O(n+m) instead of O(n*m)
+                var indexByPrefix: [Data: Int] = [:]
+                for (i, c) in contacts.enumerated() {
+                    indexByPrefix[c.publicKeyPrefix] = i
+                }
                 var merged = contacts
                 for incoming in incomingContacts {
-                    if let idx = merged.firstIndex(where: { $0.publicKeyPrefix == incoming.publicKeyPrefix }) {
+                    if let idx = indexByPrefix[incoming.publicKeyPrefix] {
                         merged[idx] = incoming
                     } else {
+                        indexByPrefix[incoming.publicKeyPrefix] = merged.count
                         merged.append(incoming)
                     }
                 }

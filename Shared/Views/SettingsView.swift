@@ -853,20 +853,7 @@ private extension SettingsView {
                 .foregroundStyle(MeshTheme.textPrimary)
                 .font(.caption)
             Button {
-                #if os(iOS)
-                UIPasteboard.general.setItems(
-                    [[UIPasteboard.typeAutomatic: config.publicKeyHex]],
-                    options: [.expirationDate: Date().addingTimeInterval(60)]
-                )
-                #elseif os(macOS)
-                NSPasteboard.general.clearContents()
-                NSPasteboard.general.setString(config.publicKeyHex, forType: .string)
-                DispatchQueue.main.asyncAfter(deadline: .now() + 60) {
-                    if NSPasteboard.general.string(forType: .string) == config.publicKeyHex {
-                        NSPasteboard.general.clearContents()
-                    }
-                }
-                #endif
+                copyToClipboard(config.publicKeyHex)
             } label: {
                 Image(systemName: "doc.on.doc")
                     .font(.caption)
@@ -2795,8 +2782,7 @@ private extension SettingsView {
                                 Menu {
                                     Button {
                                         let text = DebugLogger.shared.exportText()
-                                        NSPasteboard.general.clearContents()
-                                        NSPasteboard.general.setString(text, forType: .string)
+                                        copyToClipboard(text)
                                     } label: {
                                         Label("Copy All", systemImage: "doc.on.doc")
                                     }

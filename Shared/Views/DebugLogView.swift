@@ -151,12 +151,7 @@ struct DebugLogView: View {
 
     private func copyAll() {
         let text = logger.exportText()
-        #if os(iOS) || os(watchOS)
-        UIPasteboard.general.string = text
-        #elseif os(macOS)
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(text, forType: .string)
-        #endif
+        copyToClipboard(text)
         withAnimation {
             showCopied = true
         }

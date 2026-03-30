@@ -81,12 +81,7 @@ struct QRCodeView: View {
                 .textSelection(.enabled)
 
             Button {
-                #if os(iOS)
-                UIPasteboard.general.string = content
-                #elseif os(macOS)
-                NSPasteboard.general.clearContents()
-                NSPasteboard.general.setString(content, forType: .string)
-                #endif
+                copyToClipboard(content)
             } label: {
                 Label("Copy Link", systemImage: "doc.on.doc")
                     .foregroundStyle(MeshTheme.accent)
@@ -376,12 +371,7 @@ struct ShareChannelSheet: View {
                     VStack(spacing: 12) {
                         // Copy Link
                         Button {
-                            #if os(iOS)
-                            UIPasteboard.general.string = channelURL
-                            #elseif os(macOS)
-                            NSPasteboard.general.clearContents()
-                            NSPasteboard.general.setString(channelURL, forType: .string)
-                            #endif
+                            copyToClipboard(channelURL)
                             copiedLink = true
                             DispatchQueue.main.asyncAfter(deadline: .now() + 2) { copiedLink = false }
                         } label: {
@@ -399,12 +389,7 @@ struct ShareChannelSheet: View {
                         // Copy Secret
                         if let hex = secretHex {
                             Button {
-                                #if os(iOS)
-                                UIPasteboard.general.string = hex
-                                #elseif os(macOS)
-                                NSPasteboard.general.clearContents()
-                                NSPasteboard.general.setString(hex, forType: .string)
-                                #endif
+                                copyToClipboard(hex)
                                 copiedSecret = true
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 2) { copiedSecret = false }
                             } label: {
@@ -527,12 +512,7 @@ struct ShareAllChannelsSheet: View {
 
                     VStack(spacing: 12) {
                         Button {
-                            #if os(iOS)
-                            UIPasteboard.general.string = channelsURL
-                            #elseif os(macOS)
-                            NSPasteboard.general.clearContents()
-                            NSPasteboard.general.setString(channelsURL, forType: .string)
-                            #endif
+                            copyToClipboard(channelsURL)
                             copiedLink = true
                             DispatchQueue.main.asyncAfter(deadline: .now() + 2) { copiedLink = false }
                         } label: {

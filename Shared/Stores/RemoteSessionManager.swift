@@ -189,6 +189,18 @@ final class RemoteSessionManager {
         sendCommand?(frame, "SEND_LOGIN")
     }
 
+    /// Cancel a pending login attempt.
+    func cancelLogin(for contact: Contact) {
+        let session = remoteSession(for: contact)
+        if case .loggingIn = session.loginState {
+            session.loginState = .notLoggedIn
+            loginTimeoutTask?.cancel()
+            loginTimeoutTask = nil
+            clearPendingPassword()
+            pendingLoginRememberPassword = false
+        }
+    }
+
     /// Send a CLI command to a remote device.
     func sendCLICommand(_ command: String, to contact: Contact) {
         let trimmed = command.trimmingCharacters(in: .whitespacesAndNewlines)

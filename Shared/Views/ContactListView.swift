@@ -413,12 +413,7 @@ struct ContactListView: View {
         }
         .onChange(of: messageStoreManager.lastExportedURL) { _, url in
             if let url, !url.isEmpty {
-                #if os(iOS)
-                UIPasteboard.general.string = url
-                #elseif os(macOS)
-                NSPasteboard.general.clearContents()
-                NSPasteboard.general.setString(url, forType: .string)
-                #endif
+                copyToClipboard(url)
                 messageStoreManager.lastExportedURL = nil
                 isExporting = false
                 showExportCopied = true
@@ -535,14 +530,7 @@ struct ContactListView: View {
                         }
                         if !deviceConfig.publicKeyHex.isEmpty {
                             Button {
-                                NSPasteboard.general.clearContents()
-                                NSPasteboard.general.setString(deviceConfig.publicKeyHex, forType: .string)
-                                // Auto-clear after 60s for security
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 60) {
-                                    if NSPasteboard.general.string(forType: .string) == deviceConfig.publicKeyHex {
-                                        NSPasteboard.general.clearContents()
-                                    }
-                                }
+                                copyToClipboard(deviceConfig.publicKeyHex)
                             } label: {
                                 Label("Copy Public Key", systemImage: "doc.on.doc")
                             }
@@ -561,10 +549,7 @@ struct ContactListView: View {
                     }
                     if !deviceConfig.publicKeyHex.isEmpty {
                         Button {
-                            UIPasteboard.general.setItems(
-                                [[UIPasteboard.typeAutomatic: deviceConfig.publicKeyHex]],
-                                options: [.expirationDate: Date().addingTimeInterval(60)]
-                            )
+                            copyToClipboard(deviceConfig.publicKeyHex)
                         } label: {
                             Label("Copy Public Key", systemImage: "doc.on.doc")
                         }

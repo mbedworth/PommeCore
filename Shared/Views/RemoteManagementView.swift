@@ -271,30 +271,38 @@ struct LoginSection: View {
                     .listRowBackground(MeshTheme.surface)
                 }
 
-                Button {
-                    remoteSessionManager.loginToRemoteDevice(contact, password: password)
-                } label: {
+                if isLoggingIn {
                     HStack {
-                        if case .loggingIn = session.loginState {
-                            ProgressView()
-                                .scaleEffect(0.8)
-                                .tint(MeshTheme.accent)
-                            Text("Logging in...")
-                                .foregroundStyle(MeshTheme.textSecondary)
-                        } else {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                            .tint(MeshTheme.accent)
+                        Text("Logging in...")
+                            .foregroundStyle(MeshTheme.textSecondary)
+                        Spacer()
+                        Button("Cancel") {
+                            remoteSessionManager.cancelLogin(for: contact)
+                        }
+                        .foregroundStyle(.red)
+                    }
+                    .listRowBackground(MeshTheme.surface)
+                } else {
+                    Button {
+                        remoteSessionManager.loginToRemoteDevice(contact, password: password)
+                    } label: {
+                        HStack {
                             Image(systemName: "arrow.right.circle")
                                 .foregroundStyle(MeshTheme.accent)
                                 .frame(width: 24)
                             Text("Login")
                                 .foregroundStyle(MeshTheme.accent)
+                            Spacer()
                         }
-                        Spacer()
+                        .contentShape(Rectangle())
                     }
-                    .contentShape(Rectangle())
+                    .buttonStyle(.plain)
+                    .disabled(password.isEmpty)
+                    .listRowBackground(MeshTheme.surface)
                 }
-                .buttonStyle(.plain)
-                .disabled(password.isEmpty || isLoggingIn)
-                .listRowBackground(MeshTheme.surface)
 
                 if case .loginFailed(let msg) = session.loginState {
                     HStack(alignment: .top) {
@@ -389,20 +397,7 @@ private extension RemoteManagementView {
             .contextMenu {
                 if let pubkey = session.settings["public.key"], !pubkey.isEmpty {
                     Button {
-                        #if os(macOS)
-                        NSPasteboard.general.clearContents()
-                        NSPasteboard.general.setString(pubkey, forType: .string)
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 60) {
-                            if NSPasteboard.general.string(forType: .string) == pubkey {
-                                NSPasteboard.general.clearContents()
-                            }
-                        }
-                        #elseif !os(watchOS)
-                        UIPasteboard.general.setItems(
-                            [[UIPasteboard.typeAutomatic: pubkey]],
-                            options: [.expirationDate: Date().addingTimeInterval(60)]
-                        )
-                        #endif
+                        copyToClipboard(pubkey)
                     } label: {
                         Label("Copy Public Key", systemImage: "doc.on.doc")
                     }

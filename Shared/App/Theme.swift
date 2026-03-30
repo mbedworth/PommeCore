@@ -197,3 +197,27 @@ extension View {
         #endif
     }
 }
+
+// MARK: - Clipboard Utility
+
+/// Copy text to clipboard with auto-expiration for security.
+/// iOS: uses UIPasteboard setItems with expirationDate.
+/// macOS: uses NSPasteboard with a timed clear.
+func copyToClipboard(_ text: String, expireAfter: TimeInterval = 60) {
+    #if os(macOS)
+    NSPasteboard.general.clearContents()
+    NSPasteboard.general.setString(text, forType: .string)
+    let changeCount = NSPasteboard.general.changeCount
+    DispatchQueue.main.asyncAfter(deadline: .now() + expireAfter) {
+        // Only clear if clipboard hasn't been changed by user since our copy
+        if NSPasteboard.general.changeCount == changeCount {
+            NSPasteboard.general.clearContents()
+        }
+    }
+    #elseif !os(watchOS)
+    UIPasteboard.general.setItems(
+        [[UIPasteboard.typeAutomatic: text]],
+        options: [.expirationDate: Date().addingTimeInterval(expireAfter)]
+    )
+    #endif
+}

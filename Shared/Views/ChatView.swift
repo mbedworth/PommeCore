@@ -201,8 +201,7 @@ struct ChatView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     Button("Copy File Path") {
-                        NSPasteboard.general.clearContents()
-                        NSPasteboard.general.setString(url.path, forType: .string)
+                        copyToClipboard(url.path)
                         showExportSheet = false
                     }
                     .buttonStyle(.borderedProminent)
@@ -964,25 +963,32 @@ struct RoomChatView: View {
                     .padding(.horizontal, 32)
                 #endif
 
-                Button(action: login) {
-                    HStack {
-                        if case .loggingIn = session.loginState {
-                            ProgressView()
-                                .scaleEffect(0.8)
-                                .tint(MeshTheme.textOnAccent)
-                            Text("Logging in...")
-                        } else {
+                if isLoggingIn {
+                    HStack(spacing: 16) {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                            .tint(MeshTheme.textSecondary)
+                        Text("Logging in...")
+                            .foregroundStyle(MeshTheme.textSecondary)
+                        Button("Cancel") {
+                            remoteSessionManager.cancelLogin(for: contact)
+                        }
+                        .foregroundStyle(.red)
+                    }
+                } else {
+                    Button(action: login) {
+                        HStack {
                             Image(systemName: "arrow.right.circle")
                             Text("Login")
                         }
+                        .frame(maxWidth: 200)
+                        .padding(.vertical, 10)
+                        .background(password.isEmpty ? MeshTheme.surfaceLight : MeshTheme.interactiveGreen)
+                        .foregroundStyle(password.isEmpty ? MeshTheme.textSecondary : MeshTheme.textOnAccent)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
                     }
-                    .frame(maxWidth: 200)
-                    .padding(.vertical, 10)
-                    .background(password.isEmpty ? MeshTheme.surfaceLight : MeshTheme.interactiveGreen)
-                    .foregroundStyle(password.isEmpty ? MeshTheme.textSecondary : MeshTheme.textOnAccent)
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .disabled(password.isEmpty)
                 }
-                .disabled(password.isEmpty || isLoggingIn)
 
                 if case .loginFailed(let msg) = session.loginState {
                     HStack {
@@ -1179,12 +1185,7 @@ struct RoomMessageBubble: View {
             .contentShape(Rectangle())
             .contextMenu {
                 Button {
-                    #if os(macOS)
-                    NSPasteboard.general.clearContents()
-                    NSPasteboard.general.setString(parsed.text, forType: .string)
-                    #elseif !os(watchOS)
-                    UIPasteboard.general.string = parsed.text
-                    #endif
+                    copyToClipboard(parsed.text)
                 } label: {
                     Label("Copy", systemImage: "doc.on.doc")
                 }
@@ -1274,25 +1275,32 @@ struct RepeaterLoginView: View {
                         .padding(.horizontal, 32)
                     #endif
 
-                    Button(action: login) {
-                        HStack {
-                            if isLoggingIn {
-                                ProgressView()
-                                    .scaleEffect(0.8)
-                                    .tint(MeshTheme.textOnAccent)
-                                Text("Logging in...")
-                            } else {
+                    if isLoggingIn {
+                        HStack(spacing: 16) {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                                .tint(MeshTheme.textSecondary)
+                            Text("Logging in...")
+                                .foregroundStyle(MeshTheme.textSecondary)
+                            Button("Cancel") {
+                                remoteSessionManager.cancelLogin(for: contact)
+                            }
+                            .foregroundStyle(.red)
+                        }
+                    } else {
+                        Button(action: login) {
+                            HStack {
                                 Image(systemName: "arrow.right.circle")
                                 Text("Login")
                             }
+                            .frame(maxWidth: 200)
+                            .padding(.vertical, 10)
+                            .background(password.isEmpty ? MeshTheme.surfaceLight : MeshTheme.interactiveGreen)
+                            .foregroundStyle(password.isEmpty ? MeshTheme.textSecondary : MeshTheme.textOnAccent)
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
                         }
-                        .frame(maxWidth: 200)
-                        .padding(.vertical, 10)
-                        .background(password.isEmpty ? MeshTheme.surfaceLight : MeshTheme.interactiveGreen)
-                        .foregroundStyle(password.isEmpty ? MeshTheme.textSecondary : MeshTheme.textOnAccent)
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                        .disabled(password.isEmpty)
                     }
-                    .disabled(password.isEmpty || isLoggingIn)
 
                     if case .loginFailed(let msg) = session.loginState {
                         HStack {
@@ -1420,12 +1428,7 @@ struct MessageBubble: View {
             .contentShape(Rectangle())
             .contextMenu {
                 Button {
-                    #if os(macOS)
-                    NSPasteboard.general.clearContents()
-                    NSPasteboard.general.setString(message.text, forType: .string)
-                    #elseif !os(watchOS)
-                    UIPasteboard.general.string = message.text
-                    #endif
+                    copyToClipboard(message.text)
                 } label: {
                     Label("Copy Text", systemImage: "doc.on.doc")
                 }
@@ -1604,12 +1607,7 @@ struct ChannelMessageBubble: View {
             .contentShape(Rectangle())
             .contextMenu {
                 Button {
-                    #if os(macOS)
-                    NSPasteboard.general.clearContents()
-                    NSPasteboard.general.setString(message.text, forType: .string)
-                    #elseif !os(watchOS)
-                    UIPasteboard.general.string = message.text
-                    #endif
+                    copyToClipboard(message.text)
                 } label: {
                     Label("Copy Text", systemImage: "doc.on.doc")
                 }
