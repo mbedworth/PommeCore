@@ -109,38 +109,45 @@ struct ChatView: View {
             messageInput
         }
         .background(MeshTheme.background)
+        #if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #else
         .navigationTitle(toolbarName.text)
-        #if os(macOS)
         .navigationSubtitle(routeLabel)
         #endif
         .toolbar {
             #if os(iOS)
             ToolbarItem(placement: .principal) {
                 VStack(spacing: 1) {
-                    Button {
-                        nicknameText = contactStore.nickname(for: contact) ?? ""
-                        showNicknameSheet = true
-                    } label: {
-                        Text(toolbarName.text)
-                            .font(toolbarName.font)
-                            .foregroundStyle(MeshTheme.textPrimary)
-                            .lineLimit(1)
-                    }
-                    .buttonStyle(.plain)
+                    Text(toolbarName.text)
+                        .font(toolbarName.font)
+                        .foregroundStyle(MeshTheme.textPrimary)
+                        .lineLimit(1)
                     HStack(spacing: 4) {
-                        Button { showPathEditor = true } label: {
-                            Text(routeLabel)
-                                .font(.caption2)
-                                .foregroundStyle(routeColor)
-                        }
-                        .buttonStyle(.plain)
-
+                        Text(routeLabel)
+                            .font(.caption2)
+                            .foregroundStyle(routeColor)
                         if let lastSeen = lastSeenText {
                             Text("\u{2022}").font(.caption2).foregroundStyle(MeshTheme.textSecondary)
                             Text(lastSeen)
                                 .font(.caption2)
                                 .foregroundStyle(MeshTheme.textSecondary)
                         }
+                    }
+                }
+                .contentShape(Rectangle())
+                .contextMenu {
+                    Button {
+                        nicknameText = contactStore.nickname(for: contact) ?? ""
+                        showNicknameSheet = true
+                    } label: {
+                        Label(contactStore.nickname(for: contact) != nil ? "Edit Nickname" : "Set Nickname", systemImage: "pencil")
+                    }
+                    Button { showPathEditor = true } label: {
+                        Label("Edit Path", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
+                    }
+                    Button { showContactDetail = true } label: {
+                        Label("Contact Details", systemImage: "info.circle")
                     }
                 }
             }

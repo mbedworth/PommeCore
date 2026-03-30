@@ -602,5 +602,8 @@ final class ContactStore {
         lastContactsSync = 0
         incomingContacts = []
         pendingNewContacts = []
+        contacts = []
+        nicknames = [:]
+        contactNotes = [:]
     }
 }

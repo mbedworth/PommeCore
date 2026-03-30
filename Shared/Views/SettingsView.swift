@@ -347,7 +347,7 @@ struct RadioDataSection: View {
                             Text("Radio \(radioPrefix.prefix(8))...")
                                 .font(.body)
                                 .foregroundStyle(MeshTheme.textPrimary)
-                            Text("\(messageCountForRadio(radioPrefix)) messages synced")
+                            Text("\(messageCountForRadio(radioPrefix)) messages in iCloud")
                                 .font(.caption)
                                 .foregroundStyle(MeshTheme.textSecondary)
                         }
@@ -2259,7 +2259,7 @@ private extension SettingsView {
                 Button("Cancel", role: .cancel) {}
             }
         } header: {
-            sectionInfoHeader("Storage", info: "Maximum messages kept per contact. Oldest messages are pruned automatically.")
+            sectionInfoHeader("Storage", info: "Maximum messages stored on this device per contact. Oldest are pruned automatically. iCloud syncs the last 50 per contact separately.")
         }
     }
 
@@ -2897,12 +2897,17 @@ struct DangerZoneSection: View {
                 Button("Reset", role: .destructive) {
                     if resetConfirmText == "RESET" {
                         connectionManager.sendCommand(MeshCoreProtocol.buildFactoryReset(), label: "FACTORY_RESET")
-                        connectionManager.disconnect()
+                        connectionManager.lastErrorMessage = "Radio has been factory reset. Power cycle the radio, then go to Settings \u{2192} Bluetooth and tap \"Forget This Device\" before pairing again."
+                        // Delay disconnect to let the BLE write complete
+                        Task { @MainActor in
+                            try? await Task.sleep(nanoseconds: 1_000_000_000)
+                            connectionManager.disconnect()
+                        }
                     }
                 }
                 .disabled(resetConfirmText != "RESET")
             } message: {
-                Text("This will erase all device settings, contacts, and messages. This cannot be undone.\n\nAfter reset, power cycle the radio, then go to Settings \u{2192} Bluetooth and tap \"Forget This Device\" before pairing again.\n\nType RESET to confirm.")
+                Text("This will erase all data and cannot be undone.\n\nType RESET to confirm.")
             }
         } header: {
             SectionInfoHeader(title: "Danger Zone", info: "Factory reset erases all contacts, channels, settings, and encryption keys from the device. This cannot be undone.", titleColor: .red)
