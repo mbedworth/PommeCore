@@ -260,8 +260,7 @@ struct ContactListView: View {
             showDeleteConfirm: $showDeleteConfirm,
             selectedContacts: $selectedContacts,
             isSelecting: $isSelecting,
-            showBulkDeleteConfirm: $showBulkDeleteConfirm,
-            contactStore: contactStore
+            showBulkDeleteConfirm: $showBulkDeleteConfirm
         ))
         .alert("Contact Shared", isPresented: $showShareConfirmation) {
             Button("OK", role: .cancel) {}
@@ -1344,7 +1343,7 @@ private struct ContactDeleteAlerts: ViewModifier {
     @Binding var selectedContacts: Set<Data>
     @Binding var isSelecting: Bool
     @Binding var showBulkDeleteConfirm: Bool
-    var contactStore: ContactStore
+    @Environment(ContactStore.self) private var contactStore
 
     func body(content: Content) -> some View {
         content
@@ -1358,7 +1357,7 @@ private struct ContactDeleteAlerts: ViewModifier {
                 }
             } message: {
                 if let contact = contactToDelete {
-                    Text("Are you sure you want to remove \(contact.name)? This will delete all messages with this contact.")
+                    Text("Are you sure you want to remove \(contactStore.displayName(for: contact))? This will delete all messages with this contact.")
                 }
             }
             .confirmationDialog("Delete \(selectedContacts.count) Contact\(selectedContacts.count == 1 ? "" : "s")?", isPresented: $showBulkDeleteConfirm) {
