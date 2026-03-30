@@ -18,11 +18,19 @@ struct KeychainManager {
 
     private static let service = "com.mbedworth.meshcore.logins"
 
-    /// In-memory cache: account key → password.
+    /// In-memory cache: account key → password bytes (mutable for zeroing).
     /// Once `cacheLoaded` is true, any key NOT in `cache` has no saved password.
-    private static var cache: [String: String] = [:]
+    private static var cache: [String: ContiguousArray<UInt8>] = [:]
     private static var cacheLoaded = false
     private static let cacheLock = NSLock()
+
+    /// Zero a cache entry before removing it.
+    private static func zeroCacheEntry(forKey key: String) {
+        if var bytes = cache[key] {
+            for i in bytes.indices { bytes[i] = 0 }
+        }
+        cache.removeValue(forKey: key)
+    }
 
     private static func accountKey(publicKey: Data, type: String) -> String {
         publicKey.map { String(format: "%02x", $0) }.joined() + "." + type
@@ -56,9 +64,8 @@ struct KeychainManager {
         if status == errSecSuccess, let items = result as? [[String: Any]] {
             for item in items {
                 if let account = item[kSecAttrAccount as String] as? String,
-                   let data = item[kSecValueData as String] as? Data,
-                   let password = String(data: data, encoding: .utf8) {
-                    cache[account] = password
+                   let data = item[kSecValueData as String] as? Data {
+                    cache[account] = ContiguousArray(data)
                 }
             }
         }
@@ -86,7 +93,7 @@ struct KeychainManager {
         let status = SecItemAdd(addQuery as CFDictionary, nil)
         if status == errSecSuccess {
             cacheLock.lock()
-            cache[account] = password
+            cache[account] = ContiguousArray(passwordData)
             cacheLock.unlock()
         }
         return status == errSecSuccess
@@ -98,10 +105,11 @@ struct KeychainManager {
 
         cacheLock.lock()
         ensureCacheLoaded()
-        let password = cache[account]
+        let bytes = cache[account]
         cacheLock.unlock()
 
-        return password
+        guard let bytes else { return nil }
+        return String(bytes: bytes, encoding: .utf8)
     }
 
     /// Delete a saved password.
@@ -115,7 +123,7 @@ struct KeychainManager {
         let status = SecItemDelete(query as CFDictionary)
 
         cacheLock.lock()
-        cache.removeValue(forKey: account)
+        zeroCacheEntry(forKey: account)
         cacheLock.unlock()
 
         return status == errSecSuccess || status == errSecItemNotFound

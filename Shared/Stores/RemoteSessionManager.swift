@@ -77,8 +77,17 @@ final class RemoteSessionManager {
     private var discoverUnsupported = false
     private var pendingTraceContact: Contact?
     private var loginTimeoutTask: Task<Void, Never>?
-    private var pendingLoginPassword: String?
+    /// Password stored as mutable bytes for explicit zeroing after use.
+    private var pendingLoginPasswordBytes: ContiguousArray<UInt8>?
     private var pendingLoginRememberPassword = false
+
+    /// Zero and clear the pending login password.
+    private func clearPendingPassword() {
+        if var bytes = pendingLoginPasswordBytes {
+            for i in bytes.indices { bytes[i] = 0 }
+            pendingLoginPasswordBytes = nil
+        }
+    }
     private var traceTimeoutTask: Task<Void, Never>?
     private var statusTimeoutTask: Task<Void, Never>?
     private var telemetryTimeoutTask: Task<Void, Never>?
@@ -135,7 +144,7 @@ final class RemoteSessionManager {
         }
         loginTimeoutTask?.cancel()
         loginTimeoutTask = nil
-        pendingLoginPassword = nil
+        clearPendingPassword()
         pendingLoginRememberPassword = false
     }
 
@@ -171,7 +180,7 @@ final class RemoteSessionManager {
         let session = remoteSession(for: contact)
         if case .loggingIn = session.loginState { return }
         session.loginState = .loggingIn
-        pendingLoginPassword = password
+        pendingLoginPasswordBytes = ContiguousArray(password.utf8)
         pendingLoginRememberPassword = remember
         let frame = MeshCoreProtocol.buildSendLogin(
             recipientPublicKey: contact.publicKey,
@@ -476,12 +485,13 @@ final class RemoteSessionManager {
             if case .loggingIn = session.loginState {
                 session.loginState = .loggedIn(permission: permission)
 
-                if pendingLoginRememberPassword, let password = pendingLoginPassword,
-                   let contact = contacts.first(where: { $0.publicKeyPrefix == key }) {
+                if pendingLoginRememberPassword, let bytes = pendingLoginPasswordBytes,
+                   let contact = contacts.first(where: { $0.publicKeyPrefix == key }),
+                   let password = String(bytes: bytes, encoding: .utf8) {
                     let type = permission.isAdmin ? "admin" : "guest"
                     KeychainManager.savePassword(password, forDevice: contact.publicKey, type: type)
                 }
-                pendingLoginPassword = nil
+                clearPendingPassword()
                 pendingLoginRememberPassword = false
 
                 syncNextMessage?()
@@ -510,7 +520,7 @@ final class RemoteSessionManager {
                 if let contact = contacts.first(where: { $0.publicKeyPrefix == key }) {
                     KeychainManager.deleteAllPasswords(forDevice: contact.publicKey)
                 }
-                pendingLoginPassword = nil
+                clearPendingPassword()
                 pendingLoginRememberPassword = false
                 return
             }

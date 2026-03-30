@@ -1,5 +1,7 @@
 import Foundation
 import os.log
+import CryptoKit
+import Security
 
 /// File-based persistent store for chat messages.
 /// Uses JSON encoding to a per-contact file in the app's documents directory.
@@ -86,30 +88,115 @@ public final class MessageStore {
         }.sorted()
     }
 
+    // MARK: - Encryption
+
+    /// AES-256-GCM key for at-rest message encryption. Stored in device Keychain.
+    /// Generated once per radio directory, retrieved on subsequent launches.
+    private lazy var encryptionKey: SymmetricKey? = {
+        let tag = "com.mbedworth.meshcore.msgkey.\(directory.lastPathComponent)"
+        if let existing = Self.loadKeyFromKeychain(tag: tag) {
+            return existing
+        }
+        let key = SymmetricKey(size: .bits256)
+        if Self.saveKeyToKeychain(key, tag: tag) {
+            return key
+        }
+        Self.logger.error("ENCRYPT: Failed to create/store encryption key")
+        return nil
+    }()
+
+    private static func loadKeyFromKeychain(tag: String) -> SymmetricKey? {
+        var query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: "com.mbedworth.meshcore.encryption",
+            kSecAttrAccount as String: tag,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+        #if os(macOS)
+        query[kSecUseDataProtectionKeychain as String] = true
+        #endif
+        var result: AnyObject?
+        guard SecItemCopyMatching(query as CFDictionary, &result) == errSecSuccess,
+              let data = result as? Data else { return nil }
+        return SymmetricKey(data: data)
+    }
+
+    private static func saveKeyToKeychain(_ key: SymmetricKey, tag: String) -> Bool {
+        let keyData = key.withUnsafeBytes { Data($0) }
+        var query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: "com.mbedworth.meshcore.encryption",
+            kSecAttrAccount as String: tag,
+            kSecValueData as String: keyData,
+            kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly
+        ]
+        #if os(macOS)
+        query[kSecUseDataProtectionKeychain as String] = true
+        #endif
+        return SecItemAdd(query as CFDictionary, nil) == errSecSuccess
+    }
+
+    /// Encrypt data using AES-256-GCM. Returns nonce + ciphertext + tag.
+    private func encrypt(_ plaintext: Data) -> Data? {
+        guard let key = encryptionKey else { return nil }
+        do {
+            let sealed = try AES.GCM.seal(plaintext, using: key)
+            return sealed.combined
+        } catch {
+            Self.logger.error("ENCRYPT: \(error.localizedDescription)")
+            return nil
+        }
+    }
+
+    /// Decrypt AES-256-GCM data. Input is nonce + ciphertext + tag.
+    private func decrypt(_ combined: Data) -> Data? {
+        guard let key = encryptionKey else { return nil }
+        do {
+            let box = try AES.GCM.SealedBox(combined: combined)
+            return try AES.GCM.open(box, using: key)
+        } catch {
+            return nil // Not encrypted or wrong key — caller falls back to plaintext
+        }
+    }
+
+    // MARK: - File Paths
+
     private func fileURL(for contactKeyHash: Data) -> URL {
         let hex = contactKeyHash.map { String(format: "%02x", $0) }.joined()
         return directory.appendingPathComponent("\(hex).json")
     }
 
-    /// Load messages for a contact from disk.
+    /// Load messages for a contact from disk. Tries encrypted first, falls back to plaintext.
     public func loadMessages(for contactKeyHash: Data) -> [Message] {
         let url = fileURL(for: contactKeyHash)
         guard FileManager.default.fileExists(atPath: url.path) else { return [] }
         do {
-            let data = try Data(contentsOf: url)
-            return try JSONDecoder().decode([Message].self, from: data)
+            let raw = try Data(contentsOf: url)
+            // Try decryption first
+            if let decrypted = decrypt(raw),
+               let messages = try? JSONDecoder().decode([Message].self, from: decrypted) {
+                return messages
+            }
+            // Fall back to plaintext (pre-encryption files)
+            return try JSONDecoder().decode([Message].self, from: raw)
         } catch {
             Self.logger.error("Failed to load messages: \(error.localizedDescription)")
             return []
         }
     }
 
-    /// Save messages for a contact to disk.
+    /// Save messages for a contact to disk, encrypted with AES-256-GCM.
     public func saveMessages(_ messages: [Message], for contactKeyHash: Data) {
         let url = fileURL(for: contactKeyHash)
         do {
-            let data = try JSONEncoder().encode(messages)
-            try data.write(to: url, options: .atomic)
+            let json = try JSONEncoder().encode(messages)
+            if let encrypted = encrypt(json) {
+                try encrypted.write(to: url, options: .atomic)
+            } else {
+                // Encryption unavailable — save plaintext (shouldn't happen normally)
+                try json.write(to: url, options: .atomic)
+            }
         } catch {
             Self.logger.error("Failed to save messages: \(error.localizedDescription)")
         }
@@ -133,8 +220,8 @@ public final class MessageStore {
         for file in files where file.pathExtension == "json" {
             let hex = file.deletingPathExtension().lastPathComponent
             guard let keyHash = Data(hexString: hex) else { continue }
-            if let messages = try? JSONDecoder().decode([Message].self, from: Data(contentsOf: file)),
-               !messages.isEmpty {
+            let messages = loadMessages(for: keyHash)
+            if !messages.isEmpty {
                 result[keyHash] = messages
             }
         }
