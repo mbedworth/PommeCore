@@ -282,7 +282,7 @@ final class MeshCoreViewModel: ObservableObject {
     func nickname(for contact: Contact) -> String? { contactStore.nickname(for: contact) }
     func displayName(for contact: Contact) -> String { contactStore.displayName(for: contact) }
     func channelSenderDisplayName(_ rawSenderName: String) -> String { contactStore.channelSenderDisplayName(rawSenderName) }
-    func contactStatus(for contact: Contact) -> ContactStatus { contactStore.contactStatus(for: contact) }
+    // contactStatus removed — views use ContactStore directly
     func contactStatusColor(for contact: Contact) -> Color { contactStore.contactStatusColor(for: contact) }
 
     // MARK: - Forwarding: Notes → ContactStore
@@ -301,10 +301,9 @@ final class MeshCoreViewModel: ObservableObject {
     // MARK: - Forwarding: Groups → ContactStore
 
     func loadContactGroupsFromiCloud() { contactStore.loadContactGroupsFromiCloud() }
-    func addContactGroup(name: String, emoji: String) { contactStore.addContactGroup(name: name, emoji: emoji) }
-    func deleteContactGroup(_ group: ContactGroup) { contactStore.deleteContactGroup(group) }
+    // addContactGroup, deleteContactGroup removed — views use ContactStore directly
     func addContactToGroup(_ contact: Contact, group: ContactGroup) { contactStore.addContactToGroup(contact, group: group) }
-    func removeContactFromGroup(_ contact: Contact, group: ContactGroup) { contactStore.removeContactFromGroup(contact, group: group) }
+    // removeContactFromGroup removed — views use ContactStore directly
     func contactsInGroup(_ group: ContactGroup) -> [Contact] { contactStore.contactsInGroup(group) }
 
     // MARK: - Forwarding: Channel Notify → ChannelStore
@@ -352,7 +351,7 @@ final class MeshCoreViewModel: ObservableObject {
     // MARK: - Forwarding: Spotlight → ContactStore
 
     #if canImport(CoreSpotlight)
-    func indexContactsForSpotlight() { contactStore.indexContactsForSpotlight() }
+    // indexContactsForSpotlight removed — called directly on contactStore
 
     func navigateToContact(pubkeyHex: String) {
         if let contact = contacts.first(where: {
@@ -1122,7 +1121,7 @@ final class MeshCoreViewModel: ObservableObject {
     }
 
     func resetPath(for contact: Contact) { contactStore.resetPath(for: contact) }
-    func shareContact(_ contact: Contact) { contactStore.shareContact(contact) }
+    // shareContact removed — views use ContactStore directly
 
     /// Export a contact as a meshcore:// URL. Result arrives as .exportedContact response.
     func exportContact(_ contact: Contact) {
@@ -1219,7 +1218,7 @@ final class MeshCoreViewModel: ObservableObject {
     func markAsRead(_ contact: Contact) { messageStoreManager.markAsRead(contact) }
     func markAsRead(contactKey: Data) { messageStoreManager.markAsRead(contactKey: contactKey) }
     func firstUnreadIndex(in messages: [Message], for contactKey: Data) -> Int? { messageStoreManager.firstUnreadIndex(in: messages, for: contactKey) }
-    func lastReadTimestamp(for contactKey: Data) -> Date? { messageStoreManager.lastReadTimestamp(for: contactKey) }
+    // lastReadTimestamp removed — views use MessageStoreManager directly
     func sendTextMessage(_ text: String, to contact: Contact) { messageStoreManager.sendTextMessage(text, to: contact) }
     func sendChannelMessage(_ text: String, channelIndex: UInt8 = 0) { messageStoreManager.sendChannelMessage(text, channelIndex: channelIndex) }
 
@@ -1238,7 +1237,7 @@ final class MeshCoreViewModel: ObservableObject {
     func loginToRemoteDevice(_ contact: Contact, password: String, remember: Bool = true) { remoteSessionManager.loginToRemoteDevice(contact, password: password, remember: remember) }
     func sendCLICommand(_ command: String, to contact: Contact) { remoteSessionManager.sendCLICommand(command, to: contact) }
     func logoutFromRemoteDevice(_ contact: Contact) { remoteSessionManager.logoutFromRemoteDevice(contact) }
-    func requestRemoteStatus(_ contact: Contact) { remoteSessionManager.requestRemoteStatus(contact) }
+    // requestRemoteStatus removed — views use RemoteSessionManager directly
     func fetchRemoteSettings(for contact: Contact) { remoteSessionManager.fetchRemoteSettings(for: contact) }
 
     // MARK: - Response Handling
