@@ -69,104 +69,7 @@ struct ContactListView: View {
     #endif
 
     var body: some View {
-        List(selection: $localSelection) {
-            connectionSection
-            channelsSection
-            if !contactStore.pendingNewContacts.isEmpty {
-                pendingContactsSection
-            }
-            if !contactStore.contactGroups.isEmpty {
-                groupsSection
-            }
-            contactsSection
-            #if !os(watchOS)
-            Section {
-                NavigationLink(value: SidebarSelection.map) {
-                    HStack(spacing: 12) {
-                        ZStack {
-                            Circle()
-                                .fill(MeshTheme.accent.opacity(0.15))
-                                .frame(width: 40, height: 40)
-                            Image(systemName: "map.fill")
-                                .foregroundStyle(MeshTheme.accent)
-                        }
-                        Text("Mesh Map")
-                            .font(.body)
-                            .foregroundStyle(MeshTheme.accent)
-                    }
-                    .contentShape(Rectangle())
-                }
-                .listRowBackground(
-                    navigationStore.sidebarSelection == .map
-                        ? MeshTheme.surfaceLight
-                        : MeshTheme.surface
-                )
-            }
-            #endif
-            #if os(macOS) || targetEnvironment(macCatalyst)
-            if isUSBCLIConnected {
-                Section {
-                    NavigationLink(value: SidebarSelection.usbDevice) {
-                        HStack(spacing: 12) {
-                            ZStack {
-                                Circle()
-                                    .fill(MeshTheme.connected.opacity(0.15))
-                                    .frame(width: 40, height: 40)
-                                Image(systemName: "cable.connector")
-                                    .foregroundStyle(MeshTheme.connected)
-                            }
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(remoteSessionManager.usbDeviceContact?.name ?? "USB Device")
-                                    .font(.body)
-                                    .foregroundStyle(MeshTheme.textPrimary)
-                                Text("USB Serial \u{2022} Admin")
-                                    .font(.caption)
-                                    .foregroundStyle(MeshTheme.textSecondary)
-                            }
-                        }
-                        .contentShape(Rectangle())
-                    }
-                    .listRowBackground(MeshTheme.surface)
-
-                    NavigationLink(value: SidebarSelection.usbTerminal) {
-                        HStack(spacing: 12) {
-                            ZStack {
-                                Circle()
-                                    .fill(MeshTheme.accent.opacity(0.15))
-                                    .frame(width: 40, height: 40)
-                                Image(systemName: "terminal")
-                                    .foregroundStyle(MeshTheme.accent)
-                            }
-                            Text("USB Terminal")
-                                .font(.body)
-                                .foregroundStyle(MeshTheme.accent)
-                        }
-                        .contentShape(Rectangle())
-                    }
-                    .listRowBackground(MeshTheme.surface)
-                } header: {
-                    Text("USB Device")
-                        .foregroundStyle(MeshTheme.textSecondary)
-                }
-            } else if connectionManager.usbManager.isConnected && connectionManager.usbManager.detectedMode == .cli {
-                // Fallback: CLI connected but session not ready yet
-                Section {
-                    HStack(spacing: 12) {
-                        ProgressView()
-                            .tint(MeshTheme.accent)
-                        Text("Connecting to USB device...")
-                            .foregroundStyle(MeshTheme.textSecondary)
-                    }
-                    .listRowBackground(MeshTheme.surface)
-                }
-            }
-            #endif
-        }
-        .meshListStyle()
-        .refreshable {
-            guard connectionManager.connectionState == .ready else { return }
-            connectionManager.refreshAll(contactStore: contactStore)
-        }
+        mainList
         .navigationTitle("MeshCore")
         // navigationDestination is only needed on iOS (not macOS/Catalyst) because on
         // macOS the NavigationSplitView's detail: block drives the detail column exclusively.
@@ -255,13 +158,7 @@ struct ContactListView: View {
             }
         }
         #endif
-        .modifier(ContactDeleteAlerts(
-            contactToDelete: $contactToDelete,
-            showDeleteConfirm: $showDeleteConfirm,
-            selectedContacts: $selectedContacts,
-            isSelecting: $isSelecting,
-            showBulkDeleteConfirm: $showBulkDeleteConfirm
-        ))
+        .overlay { deleteAlertsOverlay }
         .alert("Contact Shared", isPresented: $showShareConfirmation) {
             Button("OK", role: .cancel) {}
         } message: {
@@ -968,7 +865,10 @@ struct ContactListView: View {
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                         Button(role: .destructive) {
                             contactToDelete = contact
-                            showDeleteConfirm = true
+                            // Defer alert so swipe dismissal animation completes first
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                showDeleteConfirm = true
+                            }
                         } label: {
                             Label("Delete", systemImage: "trash")
                         }
@@ -1031,8 +931,7 @@ struct ContactListView: View {
         } header: {
             contactsSectionHeader
         }
-        // Delete alerts moved to stable parent (.meshListStyle chain) to prevent
-        // ForEach re-renders from dismissing them.
+        // Delete alerts live in deleteAlertsOverlay (deferred presentation avoids swipe/context menu conflicts).
         .alert("Import from Link", isPresented: $showImportSheet) {
             TextField("meshcore:// URL", text: $importURLText)
             Button("Cancel", role: .cancel) {}
@@ -1225,7 +1124,10 @@ struct ContactListView: View {
 
         Button(role: .destructive) {
             contactToDelete = contact
-            showDeleteConfirm = true
+            // Defer alert so context menu dismissal completes first
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                showDeleteConfirm = true
+            }
         } label: {
             Label("Delete Contact", systemImage: "trash")
         }
@@ -1336,17 +1238,115 @@ struct ContactListView: View {
 
 }
 
-/// Extracted to break the type-checker chain on ContactListView.body.
-private struct ContactDeleteAlerts: ViewModifier {
-    @Binding var contactToDelete: Contact?
-    @Binding var showDeleteConfirm: Bool
-    @Binding var selectedContacts: Set<Data>
-    @Binding var isSelecting: Bool
-    @Binding var showBulkDeleteConfirm: Bool
-    @Environment(ContactStore.self) private var contactStore
+// MARK: - Main List (extracted to break type-checker chain)
+private extension ContactListView {
+    var mainList: some View {
+        List(selection: $localSelection) {
+            connectionSection
+            channelsSection
+            if !contactStore.pendingNewContacts.isEmpty {
+                pendingContactsSection
+            }
+            if !contactStore.contactGroups.isEmpty {
+                groupsSection
+            }
+            contactsSection
+            #if !os(watchOS)
+            Section {
+                NavigationLink(value: SidebarSelection.map) {
+                    HStack(spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(MeshTheme.accent.opacity(0.15))
+                                .frame(width: 40, height: 40)
+                            Image(systemName: "map.fill")
+                                .foregroundStyle(MeshTheme.accent)
+                        }
+                        Text("Mesh Map")
+                            .font(.body)
+                            .foregroundStyle(MeshTheme.accent)
+                    }
+                    .contentShape(Rectangle())
+                }
+                .listRowBackground(
+                    navigationStore.sidebarSelection == .map
+                        ? MeshTheme.surfaceLight
+                        : MeshTheme.surface
+                )
+            }
+            #endif
+            #if os(macOS) || targetEnvironment(macCatalyst)
+            if isUSBCLIConnected {
+                Section {
+                    NavigationLink(value: SidebarSelection.usbDevice) {
+                        HStack(spacing: 12) {
+                            ZStack {
+                                Circle()
+                                    .fill(MeshTheme.connected.opacity(0.15))
+                                    .frame(width: 40, height: 40)
+                                Image(systemName: "cable.connector")
+                                    .foregroundStyle(MeshTheme.connected)
+                            }
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(remoteSessionManager.usbDeviceContact?.name ?? "USB Device")
+                                    .font(.body)
+                                    .foregroundStyle(MeshTheme.textPrimary)
+                                Text("USB Serial \u{2022} Admin")
+                                    .font(.caption)
+                                    .foregroundStyle(MeshTheme.textSecondary)
+                            }
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .listRowBackground(MeshTheme.surface)
 
-    func body(content: Content) -> some View {
-        content
+                    NavigationLink(value: SidebarSelection.usbTerminal) {
+                        HStack(spacing: 12) {
+                            ZStack {
+                                Circle()
+                                    .fill(MeshTheme.accent.opacity(0.15))
+                                    .frame(width: 40, height: 40)
+                                Image(systemName: "terminal")
+                                    .foregroundStyle(MeshTheme.accent)
+                            }
+                            Text("USB Terminal")
+                                .font(.body)
+                                .foregroundStyle(MeshTheme.accent)
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .listRowBackground(MeshTheme.surface)
+                } header: {
+                    Text("USB Device")
+                        .foregroundStyle(MeshTheme.textSecondary)
+                }
+            } else if connectionManager.usbManager.isConnected && connectionManager.usbManager.detectedMode == .cli {
+                Section {
+                    HStack(spacing: 12) {
+                        ProgressView()
+                            .tint(MeshTheme.accent)
+                        Text("Connecting to USB device...")
+                            .foregroundStyle(MeshTheme.textSecondary)
+                    }
+                    .listRowBackground(MeshTheme.surface)
+                }
+            }
+            #endif
+        }
+        .meshListStyle()
+        .refreshable {
+            guard connectionManager.connectionState == .ready else { return }
+            connectionManager.refreshAll(contactStore: contactStore)
+        }
+    }
+}
+
+// MARK: - Delete Alerts (extracted to break type-checker chain)
+private extension ContactListView {
+    @ViewBuilder
+    var deleteAlertsOverlay: some View {
+        Color.clear
+            .frame(width: 0, height: 0)
             .alert("Remove Contact?", isPresented: $showDeleteConfirm) {
                 Button("Cancel", role: .cancel) { contactToDelete = nil }
                 Button("Remove", role: .destructive) {
