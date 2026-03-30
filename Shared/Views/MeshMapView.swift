@@ -432,6 +432,7 @@ enum MeshMapMessagePackDecoder {
 struct MeshMapView: View {
     @EnvironmentObject var viewModel: MeshCoreViewModel
     @Environment(ContactStore.self) private var contactStore
+    @Environment(NavigationStore.self) private var navigationStore
     @StateObject private var locationManager = LocationManager()
     @State private var cameraPosition: MapCameraPosition = .automatic
     /// Mirrors the camera's current region. Set explicitly when we move the camera
@@ -503,7 +504,7 @@ struct MeshMapView: View {
                                    longitude: contact.longitude
                                )) {
                         Button {
-                            viewModel.sidebarSelection = .contact(contact.publicKeyPrefix)
+                            navigationStore.sidebarSelection = .contact(contact.publicKeyPrefix)
                         } label: {
                             VStack(spacing: 2) {
                                 Image(systemName: contactTypeIcon(contact))

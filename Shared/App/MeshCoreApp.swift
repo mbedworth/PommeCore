@@ -162,7 +162,7 @@ struct ContentView: View {
             .navigationSplitViewColumnWidth(min: 220, ideal: 240, max: 400)
             #endif
         } detail: {
-            switch viewModel.sidebarSelection {
+            switch viewModel.navigationStore.sidebarSelection {
             case .publicChannel:
                 ChannelChatView(channelIndex: 0, channelName: "Public Channel")
             case .channel(let chIdx):

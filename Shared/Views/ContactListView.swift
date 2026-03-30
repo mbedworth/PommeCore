@@ -7,6 +7,7 @@ struct ContactListView: View {
     @Environment(MessageStoreManager.self) private var messageStoreManager
     @Environment(ConnectionManager.self) private var connectionManager
     @Environment(DeviceConfig.self) private var deviceConfig
+    @Environment(NavigationStore.self) private var navigationStore
     @Binding var showScanner: Bool
     var showDiscover: Binding<Bool>? = nil
     var showSettings: Binding<Bool>? = nil
@@ -89,7 +90,7 @@ struct ContactListView: View {
                     .contentShape(Rectangle())
                 }
                 .listRowBackground(
-                    viewModel.sidebarSelection == .map
+                    navigationStore.sidebarSelection == .map
                         ? MeshTheme.surfaceLight
                         : MeshTheme.surface
                 )
@@ -172,19 +173,19 @@ struct ContactListView: View {
         #endif
         // Sync local selection → ViewModel (deferred to avoid publishing during view update)
         .onChange(of: localSelection) { _, newValue in
-            guard newValue != viewModel.sidebarSelection else { return }
+            guard newValue != navigationStore.sidebarSelection else { return }
             DispatchQueue.main.async {
-                viewModel.sidebarSelection = newValue
+                navigationStore.sidebarSelection = newValue
             }
         }
         // Sync ViewModel → local selection (for programmatic navigation from other code)
-        .onChange(of: viewModel.sidebarSelection) { _, newValue in
+        .onChange(of: navigationStore.sidebarSelection) { _, newValue in
             if localSelection != newValue {
                 localSelection = newValue
             }
         }
         #if !os(watchOS)
-        .onChange(of: viewModel.sidebarSelection) { _, selection in
+        .onChange(of: navigationStore.sidebarSelection) { _, selection in
             // Mark contact as read when selected — deferred past view update
             if case .contact(let key) = selection,
                let contact = contactStore.contacts.first(where: { $0.publicKeyPrefix == key }) {
@@ -439,7 +440,7 @@ struct ContactListView: View {
     /// layout. We detect iPad via UIDevice idiom to avoid opening a sheet on any iPad.
     private func openSettings() {
         #if os(macOS) || targetEnvironment(macCatalyst)
-        viewModel.sidebarSelection = .settings
+        navigationStore.sidebarSelection = .settings
         #elseif os(iOS)
         // All iPad models should use sidebar, regardless of size class.
         // iPad mini reports .pad idiom, but horizontalSizeClass can be .compact
@@ -448,11 +449,11 @@ struct ContactListView: View {
 
         if isPad {
             // All iPads (including iPad mini) use sidebar
-            viewModel.sidebarSelection = .settings
+            navigationStore.sidebarSelection = .settings
         } else {
             // iPhone: use sheet in portrait/compact, sidebar in landscape/regular
             if horizontalSizeClass == .regular {
-                viewModel.sidebarSelection = .settings
+                navigationStore.sidebarSelection = .settings
             } else {
                 showSettings?.wrappedValue = true
             }
@@ -468,7 +469,7 @@ struct ContactListView: View {
                 if connectionManager.connectionState == .ready || connectionManager.connectionState == .connected {
                     #if os(macOS) || targetEnvironment(macCatalyst)
                     if viewModel.isUSBCLIConnected {
-                        viewModel.sidebarSelection = .usbDevice
+                        navigationStore.sidebarSelection = .usbDevice
                     } else {
                         openSettings()
                     }
@@ -671,7 +672,7 @@ struct ContactListView: View {
                 publicChannelRow
             }
             .listRowBackground(
-                viewModel.showPublicChannel
+                navigationStore.showPublicChannel
                     ? MeshTheme.surfaceLight
                     : MeshTheme.surface
             )
@@ -713,7 +714,7 @@ struct ContactListView: View {
                     }
                 }
                 .listRowBackground(
-                    viewModel.selectedChannelIndex == channel.index
+                    navigationStore.selectedChannelIndex == channel.index
                         ? MeshTheme.surfaceLight
                         : MeshTheme.surface
                 )
@@ -992,8 +993,8 @@ struct ContactListView: View {
                         .tint(.yellow)
                     }
                     .listRowBackground(
-                        viewModel.selectedContact?.publicKeyPrefix == contact.publicKeyPrefix
-                            && !viewModel.showPublicChannel
+                        navigationStore.selectedContactKey == contact.publicKeyPrefix
+                            && !navigationStore.showPublicChannel
                             ? MeshTheme.surfaceLight
                             : MeshTheme.surface
                     )
@@ -1168,7 +1169,7 @@ struct ContactListView: View {
         // Type-specific actions
         if contact.type == .repeater || contact.type == .room {
             Button {
-                viewModel.sidebarSelection = .contact(contact.publicKeyPrefix)
+                navigationStore.sidebarSelection = .contact(contact.publicKeyPrefix)
             } label: {
                 Label("Remote Management", systemImage: "gearshape.2")
             }
