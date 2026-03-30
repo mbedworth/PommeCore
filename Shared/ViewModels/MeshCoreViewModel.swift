@@ -86,9 +86,9 @@ final class NotificationPreferences: ObservableObject {
 final class MeshCoreViewModel: ObservableObject {
     private static let logger = Logger(subsystem: "com.meshcore", category: "ViewModel")
 
-    // MARK: - Stores (Phase 1-5 of @Observable refactor)
-    // Stores own state and logic. ViewModel forwards public API during migration.
-    // Views still use @EnvironmentObject var viewModel — Phase 7 switches to @Environment(Store.self).
+    // MARK: - Stores (@Observable, injected via .environment() in MeshCoreApp)
+    // Stores own all state and logic. ViewModel is the coordinator:
+    // wires store dependencies, dispatches incoming frames, manages lifecycle.
 
     let contactStore = ContactStore()
     let channelStore = ChannelStore()
@@ -277,10 +277,8 @@ final class MeshCoreViewModel: ObservableObject {
     private func observeStores() {
         func trackChanges() {
             withObservationTracking {
-                // Only track properties still read by views via @EnvironmentObject viewModel.
-                // Views migrated to @Environment(Store.self) observe stores directly.
-                // MeshCoreApp reads: contacts, channels, connectionState, requestShowScanner
-                // SettingsView reads: batteryCalibration (@Published, not tracked here)
+                // Only needed for WatchChatView (@EnvironmentObject viewModel).
+                // All iOS/macOS views use @Environment(Store.self) directly.
                 _ = self.contactStore.contacts
                 _ = self.channelStore.channels
                 _ = self.connectionManager.connectionState
