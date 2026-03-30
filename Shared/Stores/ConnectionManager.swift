@@ -273,6 +273,36 @@ final class ConnectionManager {
         contactStore.requestContacts(fullSync: true)
     }
 
+    // MARK: - Phone GPS Auto-Update
+
+    private var locationUpdateTimer: Timer?
+
+    func startAutoLocationUpdates(interval: Int) {
+        locationUpdateTimer?.invalidate()
+        setLocationFromPhoneGPS()
+        locationUpdateTimer = Timer.scheduledTimer(withTimeInterval: TimeInterval(interval), repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                self?.setLocationFromPhoneGPS()
+            }
+        }
+        DebugLogger.shared.log("PHONE GPS: auto-update every \(interval / 60)min", level: .info)
+    }
+
+    func stopAutoLocationUpdates() {
+        locationUpdateTimer?.invalidate()
+        locationUpdateTimer = nil
+        DebugLogger.shared.log("PHONE GPS: auto-update stopped", level: .info)
+    }
+
+    private func setLocationFromPhoneGPS() {
+        #if !os(watchOS)
+        let locManager = CLLocationManager()
+        guard let location = locManager.location else { return }
+        let (fLat, fLon) = MeshCoreViewModel.fudgeLocation(lat: location.coordinate.latitude, lon: location.coordinate.longitude)
+        setAdvertLatLon(latitude: fLat, longitude: fLon)
+        #endif
+    }
+
     // MARK: - Scanning & Connection
 
     func requestAutoScan() {

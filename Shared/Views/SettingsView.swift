@@ -64,7 +64,7 @@ struct SettingsView: View {
         }
         .onAppear {
             if isConnected {
-                viewModel.refreshAllSettings()
+                connectionManager.refreshAllSettings()
             }
         }
     }
@@ -265,7 +265,7 @@ struct SettingsView: View {
         .toolbar {
             ToolbarItem(placement: .automatic) {
                 Button {
-                    viewModel.refreshAllSettings()
+                    connectionManager.refreshAllSettings()
                 } label: {
                     Image(systemName: "arrow.clockwise")
                         .foregroundStyle(MeshTheme.accent)
@@ -1801,7 +1801,7 @@ struct PrivacySection: View {
                         connectionManager.setDevicePIN(1)
                         Task { @MainActor in
                             try? await Task.sleep(nanoseconds: 1_000_000_000)
-                            viewModel.refreshAllSettings()
+                            connectionManager.refreshAllSettings()
                         }
                     } label: {
                         Label("Randomize", systemImage: "dice")
@@ -3362,8 +3362,8 @@ struct GPSEditorSheet: View {
                 }
                 .tint(MeshTheme.accent)
                 .onChange(of: autoUpdateLocation) { _, enabled in
-                    if enabled { viewModel.startAutoLocationUpdates(interval: locationUpdateInterval) }
-                    else { viewModel.stopAutoLocationUpdates() }
+                    if enabled { connectionManager.startAutoLocationUpdates(interval: locationUpdateInterval) }
+                    else { connectionManager.stopAutoLocationUpdates() }
                 }
 
                 if autoUpdateLocation {
@@ -3375,7 +3375,7 @@ struct GPSEditorSheet: View {
                     }
                     .pickerStyle(.segmented)
                     .onChange(of: locationUpdateInterval) { _, interval in
-                        if autoUpdateLocation { viewModel.startAutoLocationUpdates(interval: interval) }
+                        if autoUpdateLocation { connectionManager.startAutoLocationUpdates(interval: interval) }
                     }
                 }
             } header: {

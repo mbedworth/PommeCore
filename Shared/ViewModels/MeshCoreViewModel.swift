@@ -735,33 +735,8 @@ final class MeshCoreViewModel: ObservableObject {
     private var locationUpdateTimer: Timer?
 
     /// Start periodically syncing phone GPS to the radio.
-    func startAutoLocationUpdates(interval: Int) {
-        locationUpdateTimer?.invalidate()
-        setLocationFromPhoneGPS()
-        locationUpdateTimer = Timer.scheduledTimer(withTimeInterval: TimeInterval(interval), repeats: true) { [weak self] _ in
-            Task { @MainActor in
-                self?.setLocationFromPhoneGPS()
-            }
-        }
-        DebugLogger.shared.log("PHONE GPS: auto-update every \(interval / 60)min", level: .info)
-    }
-
-    /// Stop periodic phone GPS syncing.
-    func stopAutoLocationUpdates() {
-        locationUpdateTimer?.invalidate()
-        locationUpdateTimer = nil
-        DebugLogger.shared.log("PHONE GPS: auto-update stopped", level: .info)
-    }
-
-    /// Send phone GPS location to radio (with fudge applied).
-    private func setLocationFromPhoneGPS() {
-        #if !os(watchOS)
-        let locManager = CLLocationManager()
-        guard let location = locManager.location else { return }
-        let (fLat, fLon) = Self.fudgeLocation(lat: location.coordinate.latitude, lon: location.coordinate.longitude)
-        setAdvertLatLon(latitude: fLat, longitude: fLon)
-        #endif
-    }
+    func startAutoLocationUpdates(interval: Int) { connectionManager.startAutoLocationUpdates(interval: interval) }
+    func stopAutoLocationUpdates() { connectionManager.stopAutoLocationUpdates() }
 
     func setRadioParams(frequency: UInt32, bandwidth: UInt32, spreadingFactor: UInt8, codingRate: UInt8, repeatMode: Bool) {
         connectionManager.setRadioParams(frequency: frequency, bandwidth: bandwidth, spreadingFactor: spreadingFactor, codingRate: codingRate, repeatMode: repeatMode)
