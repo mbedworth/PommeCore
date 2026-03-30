@@ -825,7 +825,7 @@ final class MeshCoreViewModel: ObservableObject {
         if radius > 0 {
             let locManager = CLLocationManager()
             if let location = locManager.location {
-                let (fLat, fLon) = fudgeLocation(lat: location.coordinate.latitude, lon: location.coordinate.longitude)
+                let (fLat, fLon) = Self.fudgeLocation(lat: location.coordinate.latitude, lon: location.coordinate.longitude)
                 sendCommand(MeshCoreProtocol.buildSetAdvertLatLon(latitude: fLat, longitude: fLon), label: "FUDGE_LATLON")
                 DebugLogger.shared.log("ADVERT: fudged GPS applied before advert", level: .tx)
             }
@@ -892,7 +892,7 @@ final class MeshCoreViewModel: ObservableObject {
     /// This is the ONLY path that writes coordinates to our local radio.
     /// Remote management "set lat/lon" goes to other devices and is not fudged.
     func setAdvertLatLon(latitude: Double, longitude: Double) {
-        let (fLat, fLon) = fudgeLocation(lat: latitude, lon: longitude)
+        let (fLat, fLon) = Self.fudgeLocation(lat: latitude, lon: longitude)
         sendCommand(MeshCoreProtocol.buildSetAdvertLatLon(latitude: fLat, longitude: fLon), label: "SET_LATLON")
         // Optimistic update — reflect changes immediately
         deviceConfig.latitude = fLat
@@ -905,7 +905,7 @@ final class MeshCoreViewModel: ObservableObject {
     private static var locationFudgeFraction: Double = Double.random(in: 0...1)
 
     /// Apply a privacy offset to coordinates. The offset is consistent within a session.
-    func fudgeLocation(lat: Double, lon: Double) -> (Double, Double) {
+    static func fudgeLocation(lat: Double, lon: Double) -> (Double, Double) {
         let radius = UserDefaults.standard.double(forKey: "locationPrivacyRadius")
         guard radius > 0 else { return (lat, lon) }
 
@@ -949,7 +949,7 @@ final class MeshCoreViewModel: ObservableObject {
         #if !os(watchOS)
         let locManager = CLLocationManager()
         guard let location = locManager.location else { return }
-        let (fLat, fLon) = fudgeLocation(lat: location.coordinate.latitude, lon: location.coordinate.longitude)
+        let (fLat, fLon) = Self.fudgeLocation(lat: location.coordinate.latitude, lon: location.coordinate.longitude)
         setAdvertLatLon(latitude: fLat, longitude: fLon)
         #endif
     }

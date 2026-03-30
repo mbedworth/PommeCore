@@ -10,7 +10,6 @@ extension Notification.Name {
 
 struct ChatView: View {
     let contact: Contact
-    @EnvironmentObject var viewModel: MeshCoreViewModel
     @Environment(ContactStore.self) private var contactStore
     @Environment(MessageStoreManager.self) private var messageStoreManager
     @State private var messageText = ""
@@ -182,12 +181,10 @@ struct ChatView: View {
         }
         .sheet(isPresented: $showContactDetail) {
             ContactDetailSheet(contact: liveContact)
-                .environmentObject(viewModel)
                 .frame(minWidth: 360, minHeight: 400)
         }
         .sheet(isPresented: $showPathEditor) {
             ManualPathEditor(contact: liveContact)
-                .environmentObject(viewModel)
         }
         .sheet(isPresented: $showExportSheet) {
             if let url = exportURL {
@@ -376,7 +373,7 @@ struct ChatView: View {
         }
         let lat = location.coordinate.latitude
         let lon = location.coordinate.longitude
-        let (fLat, fLon) = viewModel.fudgeLocation(lat: lat, lon: lon)
+        let (fLat, fLon) = MeshCoreViewModel.fudgeLocation(lat: lat, lon: lon)
         let text = "\u{1F4CD} \(String(format: "%.6f", fLat)), \(String(format: "%.6f", fLon))"
         messageStoreManager.sendTextMessage(text, to: contact)
         messageStoreManager.playHapticFeedback()
@@ -390,7 +387,6 @@ struct ChatView: View {
 struct ChannelChatView: View {
     let channelIndex: UInt8
     let channelName: String
-    @EnvironmentObject var viewModel: MeshCoreViewModel
     @Environment(ContactStore.self) private var contactStore
     @Environment(ChannelStore.self) private var channelStore
     @Environment(MessageStoreManager.self) private var messageStoreManager
@@ -420,7 +416,6 @@ struct ChannelChatView: View {
         #if !os(watchOS)
         .sheet(isPresented: $showChannelDetail) {
             ChannelDetailSheet(channelIndex: channelIndex, channelName: channelName, notifyMode: $notifyMode)
-                .environmentObject(viewModel)
         }
         .toolbar {
             #if os(iOS)
@@ -666,7 +661,7 @@ struct ChannelChatView: View {
             DebugLogger.shared.log("LOCATION: unavailable for channel send", level: .warning)
             return
         }
-        let (fLat, fLon) = viewModel.fudgeLocation(lat: location.coordinate.latitude, lon: location.coordinate.longitude)
+        let (fLat, fLon) = MeshCoreViewModel.fudgeLocation(lat: location.coordinate.latitude, lon: location.coordinate.longitude)
         let text = "\u{1F4CD} \(String(format: "%.6f", fLat)), \(String(format: "%.6f", fLon))"
         messageStoreManager.sendChannelMessage(text, channelIndex: channelIndex)
         messageStoreManager.playHapticFeedback()

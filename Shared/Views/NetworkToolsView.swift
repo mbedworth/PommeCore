@@ -704,7 +704,8 @@ enum ChannelAction: String, CaseIterable, Identifiable {
 
 struct ChannelManagementView: View {
     let action: ChannelAction
-    @EnvironmentObject var viewModel: MeshCoreViewModel
+    @Environment(ChannelStore.self) private var channelStore
+    @Environment(DeviceConfig.self) private var deviceConfig
     @Environment(\.dismiss) private var dismiss
     #if !os(watchOS)
     @State private var channelToShare: MeshChannel?
@@ -784,9 +785,9 @@ struct ChannelManagementView: View {
                     .font(.caption2)
             }
 
-            if !viewModel.channels.filter({ $0.index != 0 }).isEmpty {
+            if !channelStore.channels.filter({ $0.index != 0 }).isEmpty {
                 Section {
-                    ForEach(viewModel.channels.filter { $0.index != 0 }) { channel in
+                    ForEach(channelStore.channels.filter { $0.index != 0 }) { channel in
                         HStack {
                             Image(systemName: channel.channelType.iconName)
                                 .foregroundStyle(MeshTheme.accent)
@@ -859,7 +860,7 @@ struct ChannelManagementView: View {
             Button("Cancel", role: .cancel) { channelToRename = nil }
             Button("Rename") {
                 if let ch = channelToRename, !renameText.isEmpty {
-                    viewModel.setChannel(index: ch.index, name: renameText, secret: ch.secret)
+                    channelStore.setChannel(index: ch.index, name: renameText, secret: ch.secret)
                 }
                 channelToRename = nil
             }
@@ -906,8 +907,8 @@ struct ChannelManagementView: View {
         errorMessage = nil
 
         // Find first empty slot (skip slot 0 = public channel)
-        let maxCh = Int(viewModel.deviceConfig.maxChannels)
-        let usedIndices = Set(viewModel.channels.map { $0.index })
+        let maxCh = Int(deviceConfig.maxChannels)
+        let usedIndices = Set(channelStore.channels.map { $0.index })
         guard let freeSlot = (1..<maxCh).first(where: { !usedIndices.contains(UInt8($0)) }) else {
             errorMessage = "No free channel slots available."
             return
@@ -920,14 +921,14 @@ struct ChannelManagementView: View {
             let hashName = name.hasPrefix("#") ? name : "#\(name)"
             secret = deriveHashChannelSecret(hashName)
             let displayName = hashName
-            viewModel.setChannel(index: UInt8(freeSlot), name: displayName, secret: secret)
+            channelStore.setChannel(index: UInt8(freeSlot), name: displayName, secret: secret)
 
         case .createPrivate:
             // Generate random 16-byte (128-bit) secret
             var randomBytes = [UInt8](repeating: 0, count: 16)
             _ = SecRandomCopyBytes(kSecRandomDefault, 16, &randomBytes)
             secret = Data(randomBytes)
-            viewModel.setChannel(index: UInt8(freeSlot), name: name, secret: secret)
+            channelStore.setChannel(index: UInt8(freeSlot), name: name, secret: secret)
 
         case .joinPrivate:
             let hex = secretHex.trimmingCharacters(in: .whitespaces)
@@ -936,7 +937,7 @@ struct ChannelManagementView: View {
                 return
             }
             secret = parsed
-            viewModel.setChannel(index: UInt8(freeSlot), name: name, secret: secret)
+            channelStore.setChannel(index: UInt8(freeSlot), name: name, secret: secret)
         }
 
         channelName = ""
@@ -944,7 +945,7 @@ struct ChannelManagementView: View {
     }
 
     private func removeChannel(_ channel: MeshChannel) {
-        viewModel.setChannel(index: channel.index, name: "", secret: nil)
+        channelStore.setChannel(index: channel.index, name: "", secret: nil)
     }
 
     /// Derive a channel secret from a hashtag name by hashing (SHA-256).

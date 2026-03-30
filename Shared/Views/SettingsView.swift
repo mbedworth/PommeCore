@@ -3338,7 +3338,7 @@ struct GPSEditorSheet: View {
                 Button {
                     let locManager = CLLocationManager()
                     guard let location = locManager.location else { return }
-                    let (fLat, fLon) = viewModel.fudgeLocation(lat: location.coordinate.latitude, lon: location.coordinate.longitude)
+                    let (fLat, fLon) = MeshCoreViewModel.fudgeLocation(lat: location.coordinate.latitude, lon: location.coordinate.longitude)
                     latitude = String(format: "%.6f", fLat)
                     longitude = String(format: "%.6f", fLon)
                     viewModel.setAdvertLatLon(latitude: fLat, longitude: fLon)
