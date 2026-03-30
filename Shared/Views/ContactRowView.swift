@@ -6,7 +6,7 @@ struct ContactRowView: View {
     let contact: Contact
     @Environment(ContactStore.self) private var contactStore
     @Environment(MessageStoreManager.self) private var messageStoreManager
-    @EnvironmentObject var viewModel: MeshCoreViewModel
+    @Environment(RemoteSessionManager.self) private var remoteSessionManager
 
     var body: some View {
         HStack(spacing: 12) {
@@ -52,7 +52,7 @@ struct ContactRowView: View {
     @ViewBuilder
     private var contactIcon: some View {
         let isManaged = contact.type == .repeater || contact.type == .room
-        let session = isManaged ? viewModel.remoteSession(for: contact) : nil
+        let session = isManaged ? remoteSessionManager.remoteSession(for: contact) : nil
         let loggedIn: Bool = {
             guard let s = session else { return false }
             if case .loggedIn = s.loginState { return true }
@@ -91,7 +91,7 @@ struct ContactRowView: View {
     @ViewBuilder
     private var loginBadge: some View {
         if contact.type == .repeater || contact.type == .room {
-            let session = viewModel.remoteSession(for: contact)
+            let session = remoteSessionManager.remoteSession(for: contact)
             switch session.loginState {
             case .loggedIn(let permission):
                 Text(permission.displayName)
@@ -131,8 +131,8 @@ struct ContactRowView: View {
     @ViewBuilder
     private var lastMessagePreview: some View {
         if (contact.type == .repeater || contact.type == .room),
-           case .loggedIn(let permission) = viewModel.remoteSession(for: contact).loginState {
-            let session = viewModel.remoteSession(for: contact)
+           case .loggedIn(let permission) = remoteSessionManager.remoteSession(for: contact).loginState {
+            let session = remoteSessionManager.remoteSession(for: contact)
             if let ver = session.settings["ver"], !ver.isEmpty {
                 Text("Connected \u{2014} \(permission.displayName) \u{00B7} \(ver)")
                     .font(.caption)

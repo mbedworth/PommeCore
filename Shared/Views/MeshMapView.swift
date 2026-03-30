@@ -430,7 +430,6 @@ enum MeshMapMessagePackDecoder {
 
 @available(iOS 17.0, macOS 14.0, *)
 struct MeshMapView: View {
-    @EnvironmentObject var viewModel: MeshCoreViewModel
     @Environment(ContactStore.self) private var contactStore
     @Environment(NavigationStore.self) private var navigationStore
     @StateObject private var locationManager = LocationManager()
@@ -442,6 +441,9 @@ struct MeshMapView: View {
     @State private var hasSetInitialCamera = false
     /// The selected cluster for the detail sheet/popover.
     @State private var selectedCluster: NodeCluster? = nil
+    /// Internet map nodes fetched from map.meshcore.dev.
+    @State private var internetMapNodes: [InternetMapNode] = []
+    @State private var isLoadingInternetNodes = false
 
     // ~500 miles as degrees of latitude (1° ≈ 69 mi → 500 mi ÷ 69 ≈ 7.25°)
     private static let initialSpanDegrees = 7.25
@@ -458,7 +460,7 @@ struct MeshMapView: View {
     /// Internet nodes clustered by geographic grid cell at the current zoom level.
     private var clusteredNodes: [NodeCluster] {
         guard let region = visibleRegion else { return [] }
-        let all = viewModel.internetMapNodes
+        let all = internetMapNodes
         guard !all.isEmpty else { return [] }
 
         // Filter to visible region with padding
@@ -587,7 +589,7 @@ struct MeshMapView: View {
             // Overlays
             VStack {
                 // Status bar: loading indicator or legend
-                if viewModel.isLoadingInternetNodes {
+                if isLoadingInternetNodes {
                     HStack(spacing: 6) {
                         ProgressView().controlSize(.mini)
                         Text("Loading internet map…")
@@ -599,7 +601,7 @@ struct MeshMapView: View {
                     .background(.thinMaterial)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
                     .padding(.top, 8)
-                } else if !viewModel.internetMapNodes.isEmpty {
+                } else if !internetMapNodes.isEmpty {
                     HStack(spacing: 8) {
                         HStack(spacing: 4) {
                             Circle().fill(MeshTheme.accent).frame(width: 8, height: 8)
@@ -609,7 +611,7 @@ struct MeshMapView: View {
                         }
                         HStack(spacing: 4) {
                             Circle().fill(Color.teal.opacity(0.85)).frame(width: 8, height: 8)
-                            Text("Internet map (\(viewModel.internetMapNodes.count))")
+                            Text("Internet map (\(internetMapNodes.count))")
                                 .font(.caption2)
                                 .foregroundStyle(MeshTheme.textSecondary)
                         }
@@ -633,7 +635,7 @@ struct MeshMapView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 8))
                         .padding()
                 }
-                if mappableContacts.isEmpty && viewModel.internetMapNodes.isEmpty && !viewModel.isLoadingInternetNodes {
+                if mappableContacts.isEmpty && internetMapNodes.isEmpty && !isLoadingInternetNodes {
                     VStack(spacing: 4) {
                         Text("No contacts with location data")
                             .font(.caption)
@@ -655,7 +657,7 @@ struct MeshMapView: View {
             // "Publishing changes from within view updates" warnings.
             try? await Task.sleep(nanoseconds: 1)
             locationManager.requestPermission()
-            viewModel.fetchInternetMapNodes()
+            await fetchInternetMapNodes()
         }
         .onChange(of: locationManager.currentLocation) { _, location in
             guard let location, !hasSetInitialCamera else { return }
@@ -672,8 +674,8 @@ struct MeshMapView: View {
                 visibleRegion = region
             }
         }
-        .onChange(of: viewModel.internetMapNodes.count) { _, count in
-            guard count > 0, visibleRegion == nil,
+        .onChange(of: internetMapNodes.count) {
+            guard !internetMapNodes.isEmpty, visibleRegion == nil,
                   let loc = locationManager.currentLocation else { return }
             let region = MKCoordinateRegion(
                 center: loc.coordinate,
@@ -682,9 +684,7 @@ struct MeshMapView: View {
                     longitudeDelta: Self.initialSpanDegrees
                 )
             )
-            DispatchQueue.main.async {
-                visibleRegion = region
-            }
+            visibleRegion = region
         }
         .sheet(item: $selectedCluster) { cluster in
             ClusterDetailView(cluster: cluster)
@@ -749,6 +749,16 @@ struct MeshMapView: View {
         case 4: return "sensor.fill"
         default: return "globe"
         }
+    }
+
+    // MARK: - Internet Map
+
+    private func fetchInternetMapNodes() async {
+        guard !isLoadingInternetNodes else { return }
+        isLoadingInternetNodes = true
+        await MeshMapService.shared.fetchIfNeeded()
+        internetMapNodes = MeshMapService.shared.nodes
+        isLoadingInternetNodes = false
     }
 }
 

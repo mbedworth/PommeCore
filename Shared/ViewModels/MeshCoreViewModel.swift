@@ -185,8 +185,6 @@ final class MeshCoreViewModel: ObservableObject {
 
     // MARK: - Internet Map (non-watchOS only)
     #if !os(watchOS)
-    @Published var internetMapNodes: [InternetMapNode] = []
-    @Published var isLoadingInternetNodes = false
     private var pendingMapUpload = false
     private var pendingMapDataJSON: String?
     #endif
@@ -258,43 +256,7 @@ final class MeshCoreViewModel: ObservableObject {
 
     // MARK: - Forwarding: Nicknames/DisplayName/Activity → ContactStore
 
-    typealias ContactGroup = ContactStore.ContactGroup
-    typealias ContactStatus = ContactStore.ContactStatus
-
-    func setNickname(_ nickname: String, for contact: Contact) { contactStore.setNickname(nickname, for: contact) }
-    func nickname(for contact: Contact) -> String? { contactStore.nickname(for: contact) }
     func displayName(for contact: Contact) -> String { contactStore.displayName(for: contact) }
-    func channelSenderDisplayName(_ rawSenderName: String) -> String { contactStore.channelSenderDisplayName(rawSenderName) }
-    // contactStatus removed — views use ContactStore directly
-    func contactStatusColor(for contact: Contact) -> Color { contactStore.contactStatusColor(for: contact) }
-
-    // MARK: - Forwarding: Notes → ContactStore
-
-    func loadContactNotesFromiCloud() { contactStore.loadContactNotesFromiCloud() }
-    func setNote(_ note: String, for contact: Contact) { contactStore.setNote(note, for: contact) }
-    func note(for contact: Contact) -> String { contactStore.note(for: contact) }
-    func hasNote(for contact: Contact) -> Bool { contactStore.hasNote(for: contact) }
-
-    // MARK: - Forwarding: Drafts → MessageStoreManager
-
-    func saveDraft(_ text: String, for contactKey: Data) { messageStoreManager.saveDraft(text, for: contactKey) }
-    func loadDraft(for contactKey: Data) -> String { messageStoreManager.loadDraft(for: contactKey) }
-    func hasDraft(for contactKey: Data) -> Bool { messageStoreManager.hasDraft(for: contactKey) }
-
-    // MARK: - Forwarding: Groups → ContactStore
-
-    func loadContactGroupsFromiCloud() { contactStore.loadContactGroupsFromiCloud() }
-    // addContactGroup, deleteContactGroup removed — views use ContactStore directly
-    func addContactToGroup(_ contact: Contact, group: ContactGroup) { contactStore.addContactToGroup(contact, group: group) }
-    // removeContactFromGroup removed — views use ContactStore directly
-    func contactsInGroup(_ group: ContactGroup) -> [Contact] { contactStore.contactsInGroup(group) }
-
-    // MARK: - Forwarding: Channel Notify → ChannelStore
-
-    typealias ChannelNotifyMode = ChannelStore.ChannelNotifyMode
-
-    func channelNotifyMode(for channelName: String) -> ChannelNotifyMode { channelStore.channelNotifyMode(for: channelName) }
-    func setChannelNotifyMode(_ mode: ChannelNotifyMode, for channelName: String) { channelStore.setChannelNotifyMode(mode, for: channelName) }
 
     // MARK: - Battery Calibration (per-device, iCloud synced)
 
@@ -344,18 +306,6 @@ final class MeshCoreViewModel: ObservableObject {
         }
     }
     #endif
-
-    // MARK: - Forwarding: Path Hash → ContactStore
-
-    func contactNameForHash(_ hashHex: String) -> String? { contactStore.contactNameForHash(hashHex) }
-
-    // Remote sessions — forwarded from RemoteSessionManager
-    var remoteSessions: [Data: RemoteDeviceSession] {
-        remoteSessionManager.remoteSessions
-    }
-    var hasActiveManagementSession: Bool {
-        remoteSessionManager.hasActiveManagementSession
-    }
 
     /// Last error message received from the device (shown as alert).
     @Published var lastErrorMessage: String?
@@ -673,7 +623,7 @@ final class MeshCoreViewModel: ObservableObject {
             Self.logger.warning("Quick reply: contact not found for \(contactPubkeyHex)")
             return
         }
-        sendTextMessage(text, to: contact)
+        messageStoreManager.sendTextMessage(text, to: contact)
     }
 
     // postLocalNotification, updateAppBadge, playHapticFeedback, playReceiveHaptic -> MessageStoreManager
@@ -689,8 +639,6 @@ final class MeshCoreViewModel: ObservableObject {
     }
 
     func updateAppBadge() { messageStoreManager.updateAppBadge() }
-    func playHapticFeedback() { messageStoreManager.playHapticFeedback() }
-    func playReceiveHaptic() { messageStoreManager.playReceiveHaptic() }
 
     // setupSubscriptions removed — transport subscriptions moved to ConnectionManager.
     // ConnectionManager callbacks are wired in wireConnectionCallbacks().
@@ -724,10 +672,6 @@ final class MeshCoreViewModel: ObservableObject {
     // MARK: - Scanning & Connection (forwarded to ConnectionManager)
 
     func requestAutoScan() { connectionManager.requestAutoScan() }
-    func startScanning() { connectionManager.startScanning() }
-    func stopScanning() { connectionManager.stopScanning() }
-    func handleScanTimeout() { connectionManager.handleScanTimeout() }
-    func connect(to peripheral: DiscoveredPeripheral) { connectionManager.connect(to: peripheral) }
 
     /// Whether the UI should present the scanner sheet — forwarded from ConnectionManager.
     var requestShowScanner: Bool {
@@ -735,11 +679,7 @@ final class MeshCoreViewModel: ObservableObject {
         set { connectionManager.requestShowScanner = newValue }
     }
 
-    func connectWiFi(host: String, port: UInt16 = 5000) { connectionManager.connectWiFi(host: host, port: port) }
-    func disconnectWiFi() { connectionManager.disconnectWiFi() }
-
     #if os(macOS) || targetEnvironment(macCatalyst)
-    func connectUSB(port: String) { connectionManager.connectUSB(port: port) }
 
     func disconnectUSB() {
         remoteSessionManager.reset()
@@ -893,13 +833,6 @@ final class MeshCoreViewModel: ObservableObject {
         #endif
         sendCommand(MeshCoreProtocol.buildSendSelfAdvert(advertType: type), label: "SELF_ADVERT")
     }
-
-    // MARK: - Forwarding: Favourites/Contact Mgmt → ContactStore
-
-    var sortedContacts: [Contact] { contactStore.sortedContacts }
-    func toggleFavourite(for contact: Contact) { contactStore.toggleFavourite(for: contact) }
-    func setContactPath(_ contact: Contact, pathLen: Int8, pathData: Data) { contactStore.setContactPath(contact, pathLen: pathLen, pathData: pathData) }
-    func updateContactFlags(_ contact: Contact, newFlags: UInt8) { contactStore.updateContactFlags(contact, newFlags: newFlags) }
 
     func requestBattAndStorage() {
         sendCommand(MeshCoreProtocol.buildGetBattAndStorage(), label: "GET_BATT")
@@ -1105,8 +1038,7 @@ final class MeshCoreViewModel: ObservableObject {
         }
     }
 
-    func resetPath(for contact: Contact) { contactStore.resetPath(for: contact) }
-    // shareContact removed — views use ContactStore directly
+    // resetPath, shareContact removed — views use stores directly
 
     /// Export a contact as a meshcore:// URL. Result arrives as .exportedContact response.
     func exportContact(_ contact: Contact) {
@@ -1127,43 +1059,7 @@ final class MeshCoreViewModel: ObservableObject {
     }
 
     // MARK: - Internet Map
-
-    #if !os(watchOS)
-    /// Fetch internet map nodes from map.meshcore.dev and update `internetMapNodes`.
-    /// Skips the network call if the cached data is less than 5 minutes old.
-    func fetchInternetMapNodes() {
-        guard !isLoadingInternetNodes else { return }
-        // DispatchQueue.main.async defers past the current run-loop source so
-        // @Published mutations don't fire during a SwiftUI view-update pass.
-        // Task { @MainActor in } restores actor isolation so objectWillChange
-        // fires on the main actor and SwiftUI picks up the change.
-        DispatchQueue.main.async { [weak self] in
-            guard let self, !self.isLoadingInternetNodes else { return }
-            self.isLoadingInternetNodes = true
-            Task { @MainActor [weak self] in
-                guard let self else { return }
-                await MeshMapService.shared.fetchIfNeeded()
-                self.internetMapNodes = MeshMapService.shared.nodes
-                self.isLoadingInternetNodes = false
-            }
-        }
-    }
-
-    /// Force-refresh internet map nodes regardless of cache age.
-    func refreshInternetMapNodes() {
-        guard !isLoadingInternetNodes else { return }
-        DispatchQueue.main.async { [weak self] in
-            guard let self, !self.isLoadingInternetNodes else { return }
-            self.isLoadingInternetNodes = true
-            Task { @MainActor [weak self] in
-                guard let self else { return }
-                await MeshMapService.shared.fetch()
-                self.internetMapNodes = MeshMapService.shared.nodes
-                self.isLoadingInternetNodes = false
-            }
-        }
-    }
-    #endif
+    // Note: internetMapNodes/fetchInternetMapNodes moved to MeshMapView @State (view-local).
 
     /// Import a contact from a meshcore:// URL string. Sends CMD_IMPORT_CONTACT.
     /// The device will send contact data frames in response — no need to re-sync.
@@ -1196,16 +1092,7 @@ final class MeshCoreViewModel: ObservableObject {
     func importMultiChannelsAdd(_ data: PendingMultiChannelImport) { channelStore.importMultiChannelsAdd(data, maxChannels: deviceConfig.maxChannels) }
     func importMultiChannelsReplace(_ data: PendingMultiChannelImport) { channelStore.importMultiChannelsReplace(data, maxChannels: deviceConfig.maxChannels) }
 
-    // MARK: - Forwarding: Messaging → MessageStoreManager
-
-    func messages(for contact: Contact) -> [Message] { messageStoreManager.messages(for: contact) }
-    func unreadCount(for contact: Contact) -> Int { messageStoreManager.unreadCount(for: contact) }
-    func markAsRead(_ contact: Contact) { messageStoreManager.markAsRead(contact) }
-    func markAsRead(contactKey: Data) { messageStoreManager.markAsRead(contactKey: contactKey) }
-    func firstUnreadIndex(in messages: [Message], for contactKey: Data) -> Int? { messageStoreManager.firstUnreadIndex(in: messages, for: contactKey) }
-    // lastReadTimestamp removed — views use MessageStoreManager directly
-    func sendTextMessage(_ text: String, to contact: Contact) { messageStoreManager.sendTextMessage(text, to: contact) }
-    func sendChannelMessage(_ text: String, channelIndex: UInt8 = 0) { messageStoreManager.sendChannelMessage(text, channelIndex: channelIndex) }
+    // Messaging forwards removed — views use MessageStoreManager directly
 
     func syncNextMessage() {
         #if os(macOS) || targetEnvironment(macCatalyst)
@@ -1214,16 +1101,9 @@ final class MeshCoreViewModel: ObservableObject {
         messageStoreManager.syncNextMessage()
     }
 
-    // MARK: - Remote Management
-
     // MARK: - Remote Management (forwarded to RemoteSessionManager)
 
     func remoteSession(for contact: Contact) -> RemoteDeviceSession { remoteSessionManager.remoteSession(for: contact) }
-    func loginToRemoteDevice(_ contact: Contact, password: String, remember: Bool = true) { remoteSessionManager.loginToRemoteDevice(contact, password: password, remember: remember) }
-    func sendCLICommand(_ command: String, to contact: Contact) { remoteSessionManager.sendCLICommand(command, to: contact) }
-    func logoutFromRemoteDevice(_ contact: Contact) { remoteSessionManager.logoutFromRemoteDevice(contact) }
-    // requestRemoteStatus removed — views use RemoteSessionManager directly
-    func fetchRemoteSettings(for contact: Contact) { remoteSessionManager.fetchRemoteSettings(for: contact) }
 
     // MARK: - Response Handling
 
@@ -1454,7 +1334,7 @@ final class MeshCoreViewModel: ObservableObject {
         case .statusResponse(let info):
             Self.logger.info("PUSH StatusResponse: batt=\(info.batteryMV)mV uptime=\(info.uptime)")
             // Find which contact this status is for (most recent status request)
-            handleStatusResponse(info)
+            remoteSessionManager.handleStatusResponse(info)
 
         case .traceData(let result):
             Self.logger.info("PUSH TraceData: tag=\(result.tag) hops=\(result.hops.count)")
@@ -1467,7 +1347,7 @@ final class MeshCoreViewModel: ObservableObject {
 
         case .controlData(let snr, let rssi, let pathLen, let payload):
             Self.logger.info("PUSH ControlData: snr=\(snr) rssi=\(rssi) pathLen=\(pathLen)")
-            handleControlData(snr: snr, rssi: rssi, pathLen: pathLen, payload: payload)
+            remoteSessionManager.handleControlData(snr: snr, rssi: rssi, pathLen: pathLen, payload: payload)
 
         case .channelInfo(let channel):
             let secretDesc = channel.secret.map { $0.map { String(format: "%02x", $0) }.joined() } ?? "none"
@@ -1510,7 +1390,7 @@ final class MeshCoreViewModel: ObservableObject {
         case .advertPath(let info):
             Self.logger.info("AdvertPath: timestamp=\(info.recvTimestamp) pathLen=\(info.pathLen)")
             // Store for the contact that was queried
-            handleAdvertPathResponse(info)
+            remoteSessionManager.handleAdvertPathResponse(info)
 
         case .allowedRepeatFreq(let ranges):
             Self.logger.info("AllowedRepeatFreq: \(ranges.count) ranges")
@@ -1596,12 +1476,8 @@ final class MeshCoreViewModel: ObservableObject {
         messageStoreManager.handleSendConfirmed(ackCode: ackCode, roundTripMs: roundTripMs)
     }
 
-    // handleACKTimeout, deleteMessage, clearAllMessages, clearAllDrafts, retryMessage -> MessageStoreManager
-
-    func deleteMessage(_ message: Message, in contactKey: Data) { messageStoreManager.deleteMessage(message, in: contactKey) }
     func clearAllMessages() { messageStoreManager.clearAllMessages() }
     func clearAllDrafts() { messageStoreManager.clearAllDrafts() }
-    func retryMessage(_ message: Message) { messageStoreManager.retryMessage(message) }
 
     private func handleAdvert(_ contact: Contact) {
         contactStore.handleAdvert(contact)
@@ -1637,8 +1513,6 @@ final class MeshCoreViewModel: ObservableObject {
             lastErrorMessage = description
         }
     }
-
-    func sendRoomMessage(_ text: String, to contact: Contact) { messageStoreManager.sendRoomMessage(text, to: contact) }
 
     /// Handle an incoming message (direct or channel).
     private func handleIncomingMessage(_ message: Message) {
@@ -1692,21 +1566,9 @@ final class MeshCoreViewModel: ObservableObject {
 
     // MARK: - Network Tools (forwarded to RemoteSessionManager)
 
-    func startDiscover() { remoteSessionManager.startDiscover() }
-    func stopDiscover() { remoteSessionManager.stopDiscover() }
-    private func handleControlData(snr: Int8, rssi: Int8, pathLen: UInt8, payload: Data) { remoteSessionManager.handleControlData(snr: snr, rssi: rssi, pathLen: pathLen, payload: payload) }
     func traceRoute(to contact: Contact) { remoteSessionManager.traceRoute(to: contact) }
     func requestStatus(for contact: Contact) { remoteSessionManager.requestStatus(for: contact) }
     func requestTelemetry(for contact: Contact) { remoteSessionManager.requestTelemetry(for: contact) }
-    private func handleStatusResponse(_ info: RemoteStatusInfo) { remoteSessionManager.handleStatusResponse(info) }
-    func requestAdvertPath(for contact: Contact) { remoteSessionManager.requestAdvertPath(for: contact) }
-    private func handleAdvertPathResponse(_ info: AdvertPathInfo) { remoteSessionManager.handleAdvertPathResponse(info) }
-    func requestAllowedRepeatFreq() { remoteSessionManager.requestAllowedRepeatFreq() }
-
-    // MARK: - Forwarding: Pending Contacts → ContactStore
-
-    func acceptPendingContact(_ contact: Contact) { contactStore.acceptPendingContact(contact) }
-    func rejectPendingContact(_ contact: Contact) { contactStore.rejectPendingContact(contact) }
 
     // MARK: - Forwarding: Channel Sync → ChannelStore
 
