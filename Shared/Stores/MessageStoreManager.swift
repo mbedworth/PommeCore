@@ -366,7 +366,7 @@ final class MessageStoreManager {
     func handleSentResponse(expectedACK: UInt32, suggestedTimeoutMs: UInt32) {
         var matched = false
         for (contactKey, messages) in messagesByContact {
-            if let idx = messages.lastIndex(where: { $0.isOutgoing && ($0.status == .sending || $0.status == .retrying || $0.status == .flooding) }) {
+            if let idx = messages.firstIndex(where: { $0.isOutgoing && ($0.status == .sending || $0.status == .retrying || $0.status == .flooding) }) {
                 Self.logger.info("DM RESP_SENT: matched message \(messages[idx].id) → .sent, ack=\(expectedACK)")
                 messagesByContact[contactKey]![idx].status = .sent
                 messagesByContact[contactKey]![idx].expectedACK = expectedACK
