@@ -186,7 +186,11 @@ public final class MessageStore {
         }
     }
 
+    /// Whether encryption is unavailable (Keychain failure). Check this to warn user.
+    public var isEncryptionUnavailable: Bool { encryptionKey == nil }
+
     /// Save messages for a contact to disk, encrypted with AES-256-GCM.
+    /// Falls back to plaintext only if encryption key is unavailable, with a warning log.
     public func saveMessages(_ messages: [Message], for contactKeyHash: Data) {
         let url = fileURL(for: contactKeyHash)
         do {
@@ -194,7 +198,7 @@ public final class MessageStore {
             if let encrypted = encrypt(json) {
                 try encrypted.write(to: url, options: .atomic)
             } else {
-                // Encryption unavailable — save plaintext (shouldn't happen normally)
+                Self.logger.warning("ENCRYPT: Saving messages WITHOUT encryption — Keychain key unavailable. Messages are stored in plaintext.")
                 try json.write(to: url, options: .atomic)
             }
         } catch {

@@ -55,6 +55,10 @@ final class MessageStoreManager {
     /// Whether the app is currently in the background.
     var isInBackground = false
 
+    /// True if message encryption is unavailable (Keychain failure).
+    /// Views can check this to show a warning banner.
+    var isEncryptionUnavailable = false
+
     /// Currently selected contact key (to suppress unread count for visible chat).
     var selectedContactKey: Data?
 
@@ -90,12 +94,17 @@ final class MessageStoreManager {
         radioPrefix12 = prefix
         persistenceStore = MessageStore(radioPrefix: prefix)
         MessageStore.migrateToPerRadioStorage(radioPrefix: prefix)
+        isEncryptionUnavailable = persistenceStore.isEncryptionUnavailable
+        if isEncryptionUnavailable {
+            Self.logger.warning("Message encryption unavailable — Keychain key could not be created")
+        }
         loadPersistedMessages()
         mergeMessagesForCurrentRadio()
     }
 
     /// Deactivate message storage on disconnect. Clears in-memory messages so the UI shows empty state.
     func deactivate() {
+        flushDirtyMessages()
         messagesByContact.removeAll()
         unreadCounts.removeAll()
         radioPrefix12 = nil
@@ -169,14 +178,49 @@ final class MessageStoreManager {
 
     // MARK: - Persistence
 
+    /// Maximum messages stored per contact on disk. Oldest pruned on save.
+    private static let maxMessagesPerContact = 500
+
+    /// Contact keys with unsaved changes, flushed by debounce timer.
+    private var dirtyContactKeys: Set<Data> = []
+    private var persistDebounceTask: Task<Void, Never>?
+
     private func loadPersistedMessages() {
         messagesByContact = persistenceStore.loadAllMessages()
+        // Prune any contacts over the limit on load
+        for (key, msgs) in messagesByContact where msgs.count > Self.maxMessagesPerContact {
+            messagesByContact[key] = Array(msgs.suffix(Self.maxMessagesPerContact))
+        }
     }
 
+    /// Mark a contact's messages as needing persistence. Writes are coalesced
+    /// and flushed after a short delay to avoid excessive disk I/O.
     func persistMessages(for contactKeyHash: Data) {
-        if let messages = messagesByContact[contactKeyHash] {
-            persistenceStore.saveMessages(messages, for: contactKeyHash)
-            syncMessagesToiCloud(for: contactKeyHash)
+        dirtyContactKeys.insert(contactKeyHash)
+        persistDebounceTask?.cancel()
+        persistDebounceTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
+            guard !Task.isCancelled, let self else { return }
+            self.flushDirtyMessages()
+        }
+    }
+
+    /// Immediately write all dirty messages to disk.
+    func flushDirtyMessages() {
+        let keys = dirtyContactKeys
+        dirtyContactKeys.removeAll()
+        persistDebounceTask?.cancel()
+        persistDebounceTask = nil
+        for key in keys {
+            if var messages = messagesByContact[key] {
+                // Prune to limit before saving
+                if messages.count > Self.maxMessagesPerContact {
+                    messages = Array(messages.suffix(Self.maxMessagesPerContact))
+                    messagesByContact[key] = messages
+                }
+                persistenceStore.saveMessages(messages, for: key)
+                syncMessagesToiCloud(for: key)
+            }
         }
     }
 
