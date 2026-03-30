@@ -433,6 +433,7 @@ final class MeshCoreViewModel: ObservableObject {
 
     /// Wire ConnectionManager callbacks for frame dispatch and lifecycle events.
     private func wireConnectionCallbacks() {
+        connectionManager.deviceConfig = deviceConfig
         connectionManager.onFrameReceived = { [weak self] data in
             self?.handleReceivedData(data)
         }
@@ -805,13 +806,8 @@ final class MeshCoreViewModel: ObservableObject {
         sendCommand(MeshCoreProtocol.buildGetTuningParams(), label: "GET_TUNING")
     }
 
-    func requestCustomVars() {
-        sendCommand(MeshCoreProtocol.buildGetCustomVars(), label: "GET_CUSTOM_VARS")
-    }
-
-    func requestStats(subType: UInt8) {
-        sendCommand(MeshCoreProtocol.buildGetStats(subType: subType), label: "GET_STATS(\(subType))")
-    }
+    func requestCustomVars() { connectionManager.requestCustomVars() }
+    func requestStats(subType: UInt8) { connectionManager.requestStats(subType: subType) }
 
     func requestAutoAddConfig() {
         sendCommand(MeshCoreProtocol.buildGetAutoAddConfig(), label: "GET_AUTOADD")
@@ -839,23 +835,10 @@ final class MeshCoreViewModel: ObservableObject {
 
     // MARK: - Settings Commands
 
-    func setAdvertName(_ name: String) {
-        sendCommand(MeshCoreProtocol.buildSetAdvertName(name), label: "SET_ADVERT_NAME")
-        deviceConfig.deviceName = name
-        // Re-advertise immediately so other mesh nodes see the new name without waiting
-        // for the next scheduled advert interval.
-        sendAdvertise()
-    }
+    func setAdvertName(_ name: String) { connectionManager.setAdvertName(name) }
 
-    /// Set local device's advertised location. Privacy fudge is applied here.
-    /// This is the ONLY path that writes coordinates to our local radio.
-    /// Remote management "set lat/lon" goes to other devices and is not fudged.
     func setAdvertLatLon(latitude: Double, longitude: Double) {
-        let (fLat, fLon) = Self.fudgeLocation(lat: latitude, lon: longitude)
-        sendCommand(MeshCoreProtocol.buildSetAdvertLatLon(latitude: fLat, longitude: fLon), label: "SET_LATLON")
-        // Optimistic update — reflect changes immediately
-        deviceConfig.latitude = fLat
-        deviceConfig.longitude = fLon
+        connectionManager.setAdvertLatLon(latitude: latitude, longitude: longitude)
     }
 
     /// Session-stable random offset for location privacy. Regenerated on app launch
@@ -914,58 +897,20 @@ final class MeshCoreViewModel: ObservableObject {
     }
 
     func setRadioParams(frequency: UInt32, bandwidth: UInt32, spreadingFactor: UInt8, codingRate: UInt8, repeatMode: Bool) {
-        sendCommand(MeshCoreProtocol.buildSetRadioParams(
-            frequency: frequency, bandwidth: bandwidth,
-            spreadingFactor: spreadingFactor, codingRate: codingRate,
-            repeatMode: repeatMode
-        ), label: "SET_RADIO")
-        // Optimistic update — reflect changes immediately
-        deviceConfig.radioFrequency = frequency
-        deviceConfig.radioBandwidth = bandwidth
-        deviceConfig.radioSpreadingFactor = spreadingFactor
-        deviceConfig.radioCodingRate = codingRate
-        deviceConfig.repeatMode = repeatMode
+        connectionManager.setRadioParams(frequency: frequency, bandwidth: bandwidth, spreadingFactor: spreadingFactor, codingRate: codingRate, repeatMode: repeatMode)
     }
 
-    func setRadioTXPower(_ power: UInt8) {
-        sendCommand(MeshCoreProtocol.buildSetRadioTXPower(power), label: "SET_TX_POWER")
-        // Optimistic update — reflect changes immediately
-        deviceConfig.radioTXPower = power
-    }
+    func setRadioTXPower(_ power: UInt8) { connectionManager.setRadioTXPower(power) }
 
     func setTuningParams(rxDelayBase: UInt32, airtimeFactor: UInt32) {
-        Self.logger.info("TUNING SET: rxDelay=\(rxDelayBase) airtime=\(airtimeFactor)")
-        let frame = MeshCoreProtocol.buildSetTuningParams(rxDelayBase: rxDelayBase, airtimeFactor: airtimeFactor)
-        Self.logger.info("TUNING TX: [\(frame.count) bytes] \(frame.map { String(format: "%02X", $0) }.joined(separator: " "))")
-        sendCommand(frame, label: "SET_TUNING")
-        deviceConfig.rxDelayBase = rxDelayBase
-        deviceConfig.airtimeFactor = airtimeFactor
-        Task { @MainActor [weak self] in
-            try? await Task.sleep(nanoseconds: 1_000_000_000)
-            self?.requestTuningParams()
-        }
+        connectionManager.setTuningParams(rxDelayBase: rxDelayBase, airtimeFactor: airtimeFactor)
     }
 
     func setOtherParams(manualAddContacts: UInt8, telemetryBase: UInt8, telemetryLocation: UInt8, advertLocPolicy: UInt8, multiACK: UInt8) {
-        DebugLogger.shared.log("SET_OTHER_PARAMS: manual=\(manualAddContacts) telBase=\(telemetryBase) telLoc=\(telemetryLocation) advLoc=\(advertLocPolicy) multiACK=\(multiACK)", level: .tx)
-        // Optimistic update — reflect changes immediately so computed Bindings don't snap back
-        deviceConfig.manualAddContacts = manualAddContacts
-        deviceConfig.telemetryBase = telemetryBase
-        deviceConfig.telemetryLocation = telemetryLocation
-        deviceConfig.advertLocPolicy = advertLocPolicy
-        deviceConfig.multiACK = multiACK
-        sendCommand(MeshCoreProtocol.buildSetOtherParams(
-            manualAddContacts: manualAddContacts, telemetryBase: telemetryBase,
-            telemetryLocation: telemetryLocation, advertLocPolicy: advertLocPolicy,
-            multiACK: multiACK
-        ), label: "SET_OTHER_PARAMS")
+        connectionManager.setOtherParams(manualAddContacts: manualAddContacts, telemetryBase: telemetryBase, telemetryLocation: telemetryLocation, advertLocPolicy: advertLocPolicy, multiACK: multiACK)
     }
 
-    func setDevicePIN(_ pin: UInt32) {
-        sendCommand(MeshCoreProtocol.buildSetDevicePIN(pin), label: "SET_PIN")
-        // Optimistic update — reflect changes immediately
-        deviceConfig.blePIN = pin
-    }
+    func setDevicePIN(_ pin: UInt32) { connectionManager.setDevicePIN(pin) }
 
     func setDeviceTime(epochSeconds: UInt32) {
         sendCommand(MeshCoreProtocol.buildSetDeviceTime(epochSeconds: epochSeconds), label: "SET_TIME")
@@ -974,9 +919,7 @@ final class MeshCoreViewModel: ObservableObject {
         }
     }
 
-    func setCustomVar(name: String, value: String) {
-        sendCommand(MeshCoreProtocol.buildSetCustomVar(name: name, value: value), label: "SET_CUSTOM_VAR")
-    }
+    func setCustomVar(name: String, value: String) { connectionManager.setCustomVar(name: name, value: value) }
 
     func rebootDevice() {
         sendCommand(MeshCoreProtocol.buildReboot(), label: "REBOOT")

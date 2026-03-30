@@ -33,6 +33,9 @@ final class ConnectionManager {
 
     // MARK: - Dependencies (set by coordinator)
 
+    /// Reference to device config for optimistic UI updates when sending settings commands.
+    var deviceConfig: DeviceConfig?
+
     /// Called when a binary frame is received from any transport.
     var onFrameReceived: ((Data) -> Void)?
 
@@ -138,6 +141,87 @@ final class ConnectionManager {
         Self.logger.info("EXPORT: requesting self contact export (frame=[1 byte] 11)")
         let frame = Data([0x11])
         sendCommand(frame, label: "EXPORT_SELF")
+    }
+
+    // MARK: - Settings Commands
+
+    func setRadioParams(frequency: UInt32, bandwidth: UInt32, spreadingFactor: UInt8, codingRate: UInt8, repeatMode: Bool) {
+        sendCommand(MeshCoreProtocol.buildSetRadioParams(
+            frequency: frequency, bandwidth: bandwidth,
+            spreadingFactor: spreadingFactor, codingRate: codingRate,
+            repeatMode: repeatMode
+        ), label: "SET_RADIO")
+        deviceConfig?.radioFrequency = frequency
+        deviceConfig?.radioBandwidth = bandwidth
+        deviceConfig?.radioSpreadingFactor = spreadingFactor
+        deviceConfig?.radioCodingRate = codingRate
+        deviceConfig?.repeatMode = repeatMode
+    }
+
+    func setRadioTXPower(_ power: UInt8) {
+        sendCommand(MeshCoreProtocol.buildSetRadioTXPower(power), label: "SET_TX_POWER")
+        deviceConfig?.radioTXPower = power
+    }
+
+    func setTuningParams(rxDelayBase: UInt32, airtimeFactor: UInt32) {
+        let frame = MeshCoreProtocol.buildSetTuningParams(rxDelayBase: rxDelayBase, airtimeFactor: airtimeFactor)
+        sendCommand(frame, label: "SET_TUNING")
+        deviceConfig?.rxDelayBase = rxDelayBase
+        deviceConfig?.airtimeFactor = airtimeFactor
+        // Read back after firmware processes
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 1_000_000_000)
+            self?.sendCommand(MeshCoreProtocol.buildGetTuningParams(), label: "GET_TUNING")
+        }
+    }
+
+    func setOtherParams(manualAddContacts: UInt8, telemetryBase: UInt8, telemetryLocation: UInt8, advertLocPolicy: UInt8, multiACK: UInt8) {
+        DebugLogger.shared.log("SET_OTHER_PARAMS: manual=\(manualAddContacts) telBase=\(telemetryBase) telLoc=\(telemetryLocation) advLoc=\(advertLocPolicy) multiACK=\(multiACK)", level: .tx)
+        deviceConfig?.manualAddContacts = manualAddContacts
+        deviceConfig?.telemetryBase = telemetryBase
+        deviceConfig?.telemetryLocation = telemetryLocation
+        deviceConfig?.advertLocPolicy = advertLocPolicy
+        deviceConfig?.multiACK = multiACK
+        sendCommand(MeshCoreProtocol.buildSetOtherParams(
+            manualAddContacts: manualAddContacts, telemetryBase: telemetryBase,
+            telemetryLocation: telemetryLocation, advertLocPolicy: advertLocPolicy,
+            multiACK: multiACK
+        ), label: "SET_OTHER_PARAMS")
+    }
+
+    func setAdvertName(_ name: String) {
+        sendCommand(MeshCoreProtocol.buildSetAdvertName(name), label: "SET_ADVERT_NAME")
+        deviceConfig?.deviceName = name
+        sendAdvertise()
+    }
+
+    func setAdvertLatLon(latitude: Double, longitude: Double) {
+        let (fLat, fLon) = MeshCoreViewModel.fudgeLocation(lat: latitude, lon: longitude)
+        sendCommand(MeshCoreProtocol.buildSetAdvertLatLon(latitude: fLat, longitude: fLon), label: "SET_LATLON")
+        deviceConfig?.latitude = fLat
+        deviceConfig?.longitude = fLon
+    }
+
+    func setAutoAddConfig(bitmask: UInt8) {
+        sendCommand(MeshCoreProtocol.buildSetAutoAddConfig(bitmask: bitmask), label: "SET_AUTOADD(0x\(String(format: "%02x", bitmask)))")
+        deviceConfig?.autoAddBitmask = bitmask
+    }
+
+    func setDevicePIN(_ pin: UInt32) {
+        sendCommand(MeshCoreProtocol.buildSetDevicePIN(pin), label: "SET_PIN")
+        deviceConfig?.blePIN = pin
+    }
+
+    func setCustomVar(name: String, value: String) {
+        sendCommand(MeshCoreProtocol.buildSetCustomVar(name: name, value: value), label: "SET_CUSTOM_VAR")
+    }
+
+    func requestCustomVars() {
+        sendCommand(MeshCoreProtocol.buildGetCustomVars(), label: "GET_CUSTOM_VARS")
+    }
+
+    func requestStats(subType: UInt8) {
+        sendCommand(MeshCoreProtocol.buildGetStats(subType: subType), label: "GET_STATS(\(subType))")
     }
 
     // MARK: - Scanning & Connection

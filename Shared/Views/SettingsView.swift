@@ -1193,6 +1193,7 @@ let radioPresets: [RadioPreset] = [
 struct RadioSection: View {
     @ObservedObject var viewModel: MeshCoreViewModel
     @Environment(DeviceConfig.self) private var deviceConfig
+    @Environment(ConnectionManager.self) private var connectionManager
     @Environment(RemoteSessionManager.self) private var remoteSessionManager
     @Environment(\.dismiss) private var dismiss
     @State private var freqMHz: String = ""
@@ -1216,7 +1217,7 @@ struct RadioSection: View {
                 applyPreset(preset)
                 let freq = UInt32(preset.frequencyKHz)
                 let bw = UInt32(preset.bandwidth * 1000)
-                viewModel.setRadioParams(
+                connectionManager.setRadioParams(
                     frequency: freq, bandwidth: bw,
                     spreadingFactor: preset.spreadingFactor, codingRate: preset.codingRate,
                     repeatMode: repeatMode
@@ -1388,10 +1389,10 @@ struct RadioSection: View {
                 Button("Apply") {
                     let freq = UInt32((Double(freqMHz) ?? 0) * 1000)
                     let bw = UInt32(selectedBW * 1000)
-                    viewModel.setRadioParams(frequency: freq, bandwidth: bw,
+                    connectionManager.setRadioParams(frequency: freq, bandwidth: bw,
                         spreadingFactor: selectedSF, codingRate: selectedCR,
                         repeatMode: repeatMode)
-                    viewModel.setRadioTXPower(UInt8(txPower))
+                    connectionManager.setRadioTXPower(UInt8(txPower))
                 }
             }
             #elseif os(macOS)
@@ -1399,10 +1400,10 @@ struct RadioSection: View {
                 Button("Apply") {
                     let freq = UInt32((Double(freqMHz) ?? 0) * 1000)
                     let bw = UInt32(selectedBW * 1000)
-                    viewModel.setRadioParams(frequency: freq, bandwidth: bw,
+                    connectionManager.setRadioParams(frequency: freq, bandwidth: bw,
                         spreadingFactor: selectedSF, codingRate: selectedCR,
                         repeatMode: repeatMode)
-                    viewModel.setRadioTXPower(UInt8(txPower))
+                    connectionManager.setRadioTXPower(UInt8(txPower))
                 }
             }
             #else
@@ -1410,10 +1411,10 @@ struct RadioSection: View {
                 Button("Apply") {
                     let freq = UInt32((Double(freqMHz) ?? 0) * 1000)
                     let bw = UInt32(selectedBW * 1000)
-                    viewModel.setRadioParams(frequency: freq, bandwidth: bw,
+                    connectionManager.setRadioParams(frequency: freq, bandwidth: bw,
                         spreadingFactor: selectedSF, codingRate: selectedCR,
                         repeatMode: repeatMode)
-                    viewModel.setRadioTXPower(UInt8(txPower))
+                    connectionManager.setRadioTXPower(UInt8(txPower))
                 }
             }
             #endif
@@ -1464,6 +1465,7 @@ private extension SettingsView {
 struct PrivacySection: View {
     @ObservedObject var viewModel: MeshCoreViewModel
     @Environment(DeviceConfig.self) private var config
+    @Environment(ConnectionManager.self) private var connectionManager
     @Environment(ContactStore.self) private var contactStore
     @State private var pinText: String = ""
     @AppStorage("locationPrivacyRadius") private var locationPrivacyRadius: Double = 0
@@ -1474,7 +1476,7 @@ struct PrivacySection: View {
         Binding(
             get: { config.manualAddContacts != 0 },
             set: { newValue in
-                viewModel.setOtherParams(
+                connectionManager.setOtherParams(
                     manualAddContacts: newValue ? 1 : 0,
                     telemetryBase: config.telemetryBase,
                     telemetryLocation: config.telemetryLocation,
@@ -1489,7 +1491,7 @@ struct PrivacySection: View {
         Binding(
             get: { config.telemetryBase },
             set: { newValue in
-                viewModel.setOtherParams(
+                connectionManager.setOtherParams(
                     manualAddContacts: config.manualAddContacts,
                     telemetryBase: newValue,
                     telemetryLocation: config.telemetryLocation,
@@ -1504,7 +1506,7 @@ struct PrivacySection: View {
         Binding(
             get: { config.telemetryLocation },
             set: { newValue in
-                viewModel.setOtherParams(
+                connectionManager.setOtherParams(
                     manualAddContacts: config.manualAddContacts,
                     telemetryBase: config.telemetryBase,
                     telemetryLocation: newValue,
@@ -1519,7 +1521,7 @@ struct PrivacySection: View {
         Binding(
             get: { config.advertLocPolicy != 0 },
             set: { newValue in
-                viewModel.setOtherParams(
+                connectionManager.setOtherParams(
                     manualAddContacts: config.manualAddContacts,
                     telemetryBase: config.telemetryBase,
                     telemetryLocation: config.telemetryLocation,
@@ -1534,7 +1536,7 @@ struct PrivacySection: View {
         Binding(
             get: { config.multiACK != 0 },
             set: { newValue in
-                viewModel.setOtherParams(
+                connectionManager.setOtherParams(
                     manualAddContacts: config.manualAddContacts,
                     telemetryBase: config.telemetryBase,
                     telemetryLocation: config.telemetryLocation,
@@ -1551,7 +1553,7 @@ struct PrivacySection: View {
             set: { enabled in
                 var bm = config.autoAddBitmask
                 if enabled { bm |= bit } else { bm &= ~bit }
-                viewModel.setAutoAddConfig(bitmask: bm)
+                connectionManager.setAutoAddConfig(bitmask: bm)
             }
         )
     }
@@ -1796,7 +1798,7 @@ struct PrivacySection: View {
 
                 HStack {
                     Button {
-                        viewModel.setDevicePIN(1)
+                        connectionManager.setDevicePIN(1)
                         Task { @MainActor in
                             try? await Task.sleep(nanoseconds: 1_000_000_000)
                             viewModel.refreshAllSettings()
@@ -1811,7 +1813,7 @@ struct PrivacySection: View {
 
                     Button {
                         if let pin = UInt32(pinText) {
-                            viewModel.setDevicePIN(pin)
+                            connectionManager.setDevicePIN(pin)
                         }
                     } label: {
                         Text("Apply")
@@ -1882,6 +1884,7 @@ private extension SettingsView {
 struct CustomVarsSection: View {
     @ObservedObject var viewModel: MeshCoreViewModel
     @Environment(DeviceConfig.self) private var deviceConfig
+    @Environment(ConnectionManager.self) private var connectionManager
     @State private var newName: String = ""
     @State private var newValue: String = ""
 
@@ -1916,12 +1919,12 @@ struct CustomVarsSection: View {
                 #endif
                 Button {
                     guard !newName.isEmpty else { return }
-                    viewModel.setCustomVar(name: newName, value: newValue)
+                    connectionManager.setCustomVar(name: newName, value: newValue)
                     newName = ""
                     newValue = ""
                     Task {
                         try? await Task.sleep(nanoseconds: 500_000_000)
-                        viewModel.requestCustomVars()
+                        connectionManager.requestCustomVars()
                     }
                 } label: {
                     Image(systemName: "plus.circle.fill")
@@ -1965,9 +1968,9 @@ private extension SettingsView {
                 infoRow(icon: "arrow.down.right", label: "Recv Direct", value: "\(config.statsRecvDirect)")
 
                 Button {
-                    viewModel.requestStats(subType: 0)
-                    viewModel.requestStats(subType: 1)
-                    viewModel.requestStats(subType: 2)
+                    connectionManager.requestStats(subType: 0)
+                    connectionManager.requestStats(subType: 1)
+                    connectionManager.requestStats(subType: 2)
                 } label: {
                     HStack {
                         Image(systemName: "arrow.clockwise")
@@ -3081,6 +3084,7 @@ private extension SettingsView {
 struct NameEditorSheet: View {
     @ObservedObject var viewModel: MeshCoreViewModel
     @Environment(DeviceConfig.self) private var deviceConfig
+    @Environment(ConnectionManager.self) private var connectionManager
     @Environment(\.dismiss) private var dismiss
     @State private var name: String = ""
 
@@ -3107,7 +3111,7 @@ struct NameEditorSheet: View {
             #if targetEnvironment(macCatalyst)
             ToolbarItem(placement: .topBarTrailing) {
                 Button("Apply") {
-                    viewModel.setAdvertName(name)
+                    connectionManager.setAdvertName(name)
                     dismiss()
                 }
                 .disabled(name.isEmpty)
@@ -3115,7 +3119,7 @@ struct NameEditorSheet: View {
             #elseif os(macOS)
             ToolbarItem(placement: .primaryAction) {
                 Button("Apply") {
-                    viewModel.setAdvertName(name)
+                    connectionManager.setAdvertName(name)
                     dismiss()
                 }
                 .disabled(name.isEmpty)
@@ -3123,7 +3127,7 @@ struct NameEditorSheet: View {
             #else
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button("Apply") {
-                    viewModel.setAdvertName(name)
+                    connectionManager.setAdvertName(name)
                     dismiss()
                 }
                 .disabled(name.isEmpty)
@@ -3201,6 +3205,7 @@ struct FirmwareDetailSheet: View {
 struct TxPowerEditorSheet: View {
     @ObservedObject var viewModel: MeshCoreViewModel
     @Environment(DeviceConfig.self) private var deviceConfig
+    @Environment(ConnectionManager.self) private var connectionManager
     @Environment(\.dismiss) private var dismiss
     @State private var txPower: Double = 22
     @State private var maxPower: Double = 22
@@ -3222,7 +3227,7 @@ struct TxPowerEditorSheet: View {
                 Slider(value: $txPower, in: 1...max(maxPower, 2), step: 1)
                     .tint(MeshTheme.accent)
                     .onChange(of: txPower) { _, newValue in
-                        viewModel.setRadioTXPower(UInt8(newValue))
+                        connectionManager.setRadioTXPower(UInt8(newValue))
                         saved = true
                         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { saved = false }
                     }
@@ -3244,6 +3249,7 @@ struct TxPowerEditorSheet: View {
 struct TuningEditorSheet: View {
     @ObservedObject var viewModel: MeshCoreViewModel
     @Environment(DeviceConfig.self) private var deviceConfig
+    @Environment(ConnectionManager.self) private var connectionManager
     @Environment(\.dismiss) private var dismiss
     @State private var rxDelay: Double = 0
     @State private var airtimeFactor: Double = 0
@@ -3282,7 +3288,7 @@ struct TuningEditorSheet: View {
                 Button("Apply") {
                     let rx = UInt32(rxDelay * 1000)
                     let air = UInt32(airtimeFactor * 1000)
-                    viewModel.setTuningParams(rxDelayBase: rx, airtimeFactor: air)
+                    connectionManager.setTuningParams(rxDelayBase: rx, airtimeFactor: air)
                     dismiss()
                 }
             }
@@ -3291,7 +3297,7 @@ struct TuningEditorSheet: View {
                 Button("Apply") {
                     let rx = UInt32(rxDelay * 1000)
                     let air = UInt32(airtimeFactor * 1000)
-                    viewModel.setTuningParams(rxDelayBase: rx, airtimeFactor: air)
+                    connectionManager.setTuningParams(rxDelayBase: rx, airtimeFactor: air)
                     dismiss()
                 }
             }
@@ -3300,7 +3306,7 @@ struct TuningEditorSheet: View {
                 Button("Apply") {
                     let rx = UInt32(rxDelay * 1000)
                     let air = UInt32(airtimeFactor * 1000)
-                    viewModel.setTuningParams(rxDelayBase: rx, airtimeFactor: air)
+                    connectionManager.setTuningParams(rxDelayBase: rx, airtimeFactor: air)
                     dismiss()
                 }
             }
@@ -3318,6 +3324,7 @@ struct TuningEditorSheet: View {
 struct GPSEditorSheet: View {
     @ObservedObject var viewModel: MeshCoreViewModel
     @Environment(DeviceConfig.self) private var deviceConfig
+    @Environment(ConnectionManager.self) private var connectionManager
     @Environment(\.dismiss) private var dismiss
     @State private var latitude = ""
     @State private var longitude = ""
@@ -3342,7 +3349,7 @@ struct GPSEditorSheet: View {
                     let (fLat, fLon) = MeshCoreViewModel.fudgeLocation(lat: location.coordinate.latitude, lon: location.coordinate.longitude)
                     latitude = String(format: "%.6f", fLat)
                     longitude = String(format: "%.6f", fLon)
-                    viewModel.setAdvertLatLon(latitude: fLat, longitude: fLon)
+                    connectionManager.setAdvertLatLon(latitude: fLat, longitude: fLon)
                     gpsSyncFeedback = true
                     DispatchQueue.main.asyncAfter(deadline: .now() + 2) { gpsSyncFeedback = false }
                 } label: {
