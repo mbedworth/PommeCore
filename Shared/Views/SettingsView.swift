@@ -974,7 +974,17 @@ private extension SettingsView {
 
             if connectionManager.connectionState != .disconnected {
                 Button(role: .destructive) {
+                    #if os(macOS) || targetEnvironment(macCatalyst)
+                    if connectionManager.usbManager.isConnected {
+                        connectionManager.disconnectUSB()
+                    } else if connectionManager.wifiManager.isConnected {
+                        connectionManager.disconnectWiFi()
+                    } else {
+                        connectionManager.disconnect()
+                    }
+                    #else
                     connectionManager.disconnect()
+                    #endif
                 } label: {
                     HStack {
                         Image(systemName: "xmark.circle")
