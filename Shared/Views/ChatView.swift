@@ -15,6 +15,8 @@ struct ChatView: View {
     @State private var messageText = ""
     @State private var showNotes = false
     @State private var showContactDetail = false
+    @State private var showNicknameSheet = false
+    @State private var nicknameText = ""
     @State private var unreadDividerIndex: Int?
     @State private var isSearching = false
     @State private var searchText = ""
@@ -115,7 +117,10 @@ struct ChatView: View {
             #if os(iOS)
             ToolbarItem(placement: .principal) {
                 VStack(spacing: 1) {
-                    Button { showContactDetail = true } label: {
+                    Button {
+                        nicknameText = contactStore.nickname(for: contact) ?? ""
+                        showNicknameSheet = true
+                    } label: {
                         Text(toolbarName.text)
                             .font(toolbarName.font)
                             .foregroundStyle(MeshTheme.textPrimary)
@@ -178,6 +183,15 @@ struct ChatView: View {
         }
         .sheet(isPresented: $showNotes) {
             ContactNotesSheet(contact: contact)
+        }
+        .alert("Set Nickname", isPresented: $showNicknameSheet) {
+            TextField("Nickname", text: $nicknameText)
+            Button("Cancel", role: .cancel) {}
+            Button("Save") {
+                contactStore.setNickname(nicknameText.trimmingCharacters(in: .whitespaces), for: contact)
+            }
+        } message: {
+            Text("Set a local nickname for \(contact.name.isEmpty ? "this contact" : contact.name). This is only visible to you.")
         }
         .sheet(isPresented: $showContactDetail) {
             ContactDetailSheet(contact: liveContact)

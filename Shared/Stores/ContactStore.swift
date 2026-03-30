@@ -52,8 +52,8 @@ final class ContactStore {
     // MARK: - Init
 
     init() {
-        loadNicknamesFromiCloud()
-        loadContactNotesFromiCloud()
+        // Don't load nicknames/notes at init — radio pubkey isn't known yet.
+        // They are loaded in handleSelfInfo when the radio connects.
         loadContactGroupsFromiCloud()
         observeiCloudChanges()
     }
@@ -110,26 +110,11 @@ final class ContactStore {
     }
 
     func loadNicknamesFromiCloud() {
-        // Try loading per-radio nicknames first
         if let data = iCloudStore.data(forKey: nicknamesKey),
            let decoded = try? JSONDecoder().decode([String: String].self, from: data) {
             nicknames = decoded
                 .filter { !$0.value.isEmpty }
                 .mapValues { $0.count > 32 ? String($0.prefix(32)) : $0 }
-            return
-        }
-
-        // Migrate: if per-radio key is empty but legacy global key exists, copy and delete
-        if nicknamesKey != "contactNicknames",
-           let legacyData = iCloudStore.data(forKey: "contactNicknames"),
-           let decoded = try? JSONDecoder().decode([String: String].self, from: legacyData) {
-            nicknames = decoded
-                .filter { !$0.value.isEmpty }
-                .mapValues { $0.count > 32 ? String($0.prefix(32)) : $0 }
-            saveNicknamesToiCloud()
-            iCloudStore.removeObject(forKey: "contactNicknames")
-            iCloudStore.synchronize()
-            DebugLogger.shared.log("NICKNAMES: migrated \(nicknames.count) from global to per-radio key", level: .info)
             return
         }
 
@@ -216,18 +201,6 @@ final class ContactStore {
         if let data = iCloudStore.data(forKey: notesKey),
            let decoded = try? JSONDecoder().decode([String: String].self, from: data) {
             contactNotes = decoded
-            return
-        }
-
-        // Migrate: if per-radio key is empty but legacy global key exists, copy and delete
-        if notesKey != "contactNotes",
-           let legacyData = iCloudStore.data(forKey: "contactNotes"),
-           let decoded = try? JSONDecoder().decode([String: String].self, from: legacyData) {
-            contactNotes = decoded
-            saveContactNotesToiCloud()
-            iCloudStore.removeObject(forKey: "contactNotes")
-            iCloudStore.synchronize()
-            DebugLogger.shared.log("NOTES: migrated \(contactNotes.count) from global to per-radio key", level: .info)
             return
         }
 
@@ -610,8 +583,11 @@ final class ContactStore {
             queue: .main
         ) { [weak self] _ in
             Task { @MainActor in
-                self?.loadNicknamesFromiCloud()
-                self?.loadContactNotesFromiCloud()
+                // Only reload nicknames/notes if a radio is connected (key is scoped)
+                if let radioKey = self?.radioPublicKeyHexProvider?(), !radioKey.isEmpty {
+                    self?.loadNicknamesFromiCloud()
+                    self?.loadContactNotesFromiCloud()
+                }
                 self?.loadContactGroupsFromiCloud()
             }
         }

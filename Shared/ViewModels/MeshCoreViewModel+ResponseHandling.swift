@@ -342,6 +342,11 @@ extension MeshCoreViewModel {
 
     func handleIncomingMessage(_ message: Message) {
         if remoteSessionManager.routeIncomingMessage(message) { return }
+        // Suppress stray messages from infrastructure nodes (late CLI responses after navigating away)
+        if let contact = contactStore.contacts.first(where: { $0.publicKeyPrefix == message.contactKeyHash }),
+           contact.type == .repeater || contact.type == .sensor {
+            return
+        }
         messageStoreManager.isInBackground = connectionManager.isInBackground
         if case .contact(let key) = navigationStore.sidebarSelection {
             messageStoreManager.selectedContactKey = key
