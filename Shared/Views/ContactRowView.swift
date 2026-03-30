@@ -171,8 +171,13 @@ struct ContactRowView: View {
     // MARK: - Helpers
 
     private var lastSeenText: String? {
-        guard contact.lastAdvert > 1_000_000_000 else { return nil }
-        let date = Date(timeIntervalSince1970: TimeInterval(contact.lastAdvert))
+        var latest = TimeInterval(contact.lastAdvert)
+        // Also consider last received message as a "seen" event
+        if let activityDate = messageStoreManager.latestActivityDate(for: contact.publicKeyPrefix) {
+            latest = max(latest, activityDate.timeIntervalSince1970)
+        }
+        guard latest > 1_000_000_000 else { return nil }
+        let date = Date(timeIntervalSince1970: latest)
         let now = Date()
         if now.timeIntervalSince(date) > 365 * 24 * 60 * 60 { return nil }
         if date > now.addingTimeInterval(300) { return nil }
