@@ -81,7 +81,8 @@ final class ContactStore {
 
     func nickname(for contact: Contact) -> String? {
         let key = contact.publicKey.map { String(format: "%02x", $0) }.joined()
-        return nicknames[key]
+        guard let value = nicknames[key], !value.isEmpty else { return nil }
+        return value
     }
 
     func displayName(for contact: Contact) -> String {
@@ -106,7 +107,9 @@ final class ContactStore {
         // Try loading per-radio nicknames first
         if let data = iCloudStore.data(forKey: nicknamesKey),
            let decoded = try? JSONDecoder().decode([String: String].self, from: data) {
-            nicknames = decoded.mapValues { $0.count > 32 ? String($0.prefix(32)) : $0 }
+            nicknames = decoded
+                .filter { !$0.value.isEmpty }
+                .mapValues { $0.count > 32 ? String($0.prefix(32)) : $0 }
             return
         }
 
@@ -114,7 +117,9 @@ final class ContactStore {
         if nicknamesKey != "contactNicknames",
            let legacyData = iCloudStore.data(forKey: "contactNicknames"),
            let decoded = try? JSONDecoder().decode([String: String].self, from: legacyData) {
-            nicknames = decoded.mapValues { $0.count > 32 ? String($0.prefix(32)) : $0 }
+            nicknames = decoded
+                .filter { !$0.value.isEmpty }
+                .mapValues { $0.count > 32 ? String($0.prefix(32)) : $0 }
             saveNicknamesToiCloud()
             iCloudStore.removeObject(forKey: "contactNicknames")
             iCloudStore.synchronize()
@@ -126,7 +131,8 @@ final class ContactStore {
     }
 
     private func saveNicknamesToiCloud() {
-        if let data = try? JSONEncoder().encode(nicknames) {
+        let cleaned = nicknames.filter { !$0.value.isEmpty }
+        if let data = try? JSONEncoder().encode(cleaned) {
             iCloudStore.set(data, forKey: nicknamesKey)
             iCloudStore.synchronize()
         }

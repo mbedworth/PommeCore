@@ -255,6 +255,14 @@ struct ContactListView: View {
             }
         }
         #endif
+        .modifier(ContactDeleteAlerts(
+            contactToDelete: $contactToDelete,
+            showDeleteConfirm: $showDeleteConfirm,
+            selectedContacts: $selectedContacts,
+            isSelecting: $isSelecting,
+            showBulkDeleteConfirm: $showBulkDeleteConfirm,
+            contactStore: contactStore
+        ))
         .alert("Contact Shared", isPresented: $showShareConfirmation) {
             Button("OK", role: .cancel) {}
         } message: {
@@ -1024,33 +1032,8 @@ struct ContactListView: View {
         } header: {
             contactsSectionHeader
         }
-        .confirmationDialog("Delete \(selectedContacts.count) Contact\(selectedContacts.count == 1 ? "" : "s")?", isPresented: $showBulkDeleteConfirm) {
-            Button("Delete", role: .destructive) {
-                for key in selectedContacts {
-                    if let contact = contactStore.contacts.first(where: { $0.publicKeyPrefix == key }) {
-                        contactStore.removeContact(contact)
-                    }
-                }
-                selectedContacts.removeAll()
-                isSelecting = false
-            }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("This will remove the selected contacts from the device. This cannot be undone.")
-        }
-        .alert("Remove Contact?", isPresented: $showDeleteConfirm) {
-            Button("Cancel", role: .cancel) { contactToDelete = nil }
-            Button("Remove", role: .destructive) {
-                if let contact = contactToDelete {
-                    contactStore.removeContact(contact)
-                }
-                contactToDelete = nil
-            }
-        } message: {
-            if let contact = contactToDelete {
-                Text("Are you sure you want to remove \(contact.name)? This will delete all messages with this contact.")
-            }
-        }
+        // Delete alerts moved to stable parent (.meshListStyle chain) to prevent
+        // ForEach re-renders from dismissing them.
         .alert("Import from Link", isPresented: $showImportSheet) {
             TextField("meshcore:// URL", text: $importURLText)
             Button("Cancel", role: .cancel) {}
@@ -1352,4 +1335,45 @@ struct ContactListView: View {
         }
     }
 
+}
+
+/// Extracted to break the type-checker chain on ContactListView.body.
+private struct ContactDeleteAlerts: ViewModifier {
+    @Binding var contactToDelete: Contact?
+    @Binding var showDeleteConfirm: Bool
+    @Binding var selectedContacts: Set<Data>
+    @Binding var isSelecting: Bool
+    @Binding var showBulkDeleteConfirm: Bool
+    var contactStore: ContactStore
+
+    func body(content: Content) -> some View {
+        content
+            .alert("Remove Contact?", isPresented: $showDeleteConfirm) {
+                Button("Cancel", role: .cancel) { contactToDelete = nil }
+                Button("Remove", role: .destructive) {
+                    if let contact = contactToDelete {
+                        contactStore.removeContact(contact)
+                    }
+                    contactToDelete = nil
+                }
+            } message: {
+                if let contact = contactToDelete {
+                    Text("Are you sure you want to remove \(contact.name)? This will delete all messages with this contact.")
+                }
+            }
+            .confirmationDialog("Delete \(selectedContacts.count) Contact\(selectedContacts.count == 1 ? "" : "s")?", isPresented: $showBulkDeleteConfirm) {
+                Button("Delete", role: .destructive) {
+                    for key in selectedContacts {
+                        if let contact = contactStore.contacts.first(where: { $0.publicKeyPrefix == key }) {
+                            contactStore.removeContact(contact)
+                        }
+                    }
+                    selectedContacts.removeAll()
+                    isSelecting = false
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("This will remove the selected contacts from the device. This cannot be undone.")
+            }
+    }
 }

@@ -179,7 +179,11 @@ final class MessageStoreManager {
     // MARK: - Persistence
 
     /// Maximum messages stored per contact on disk. Oldest pruned on save.
-    private static let maxMessagesPerContact = 500
+    /// User-configurable via Settings > Storage.
+    var maxMessagesPerContact: Int {
+        let stored = UserDefaults.standard.integer(forKey: "maxMessagesPerContact")
+        return stored > 0 ? stored : 500
+    }
 
     /// Contact keys with unsaved changes, flushed by debounce timer.
     private var dirtyContactKeys: Set<Data> = []
@@ -188,8 +192,8 @@ final class MessageStoreManager {
     private func loadPersistedMessages() {
         messagesByContact = persistenceStore.loadAllMessages()
         // Prune any contacts over the limit on load
-        for (key, msgs) in messagesByContact where msgs.count > Self.maxMessagesPerContact {
-            messagesByContact[key] = Array(msgs.suffix(Self.maxMessagesPerContact))
+        for (key, msgs) in messagesByContact where msgs.count > self.maxMessagesPerContact {
+            messagesByContact[key] = Array(msgs.suffix(self.maxMessagesPerContact))
         }
     }
 
@@ -214,8 +218,8 @@ final class MessageStoreManager {
         for key in keys {
             if var messages = messagesByContact[key] {
                 // Prune to limit before saving
-                if messages.count > Self.maxMessagesPerContact {
-                    messages = Array(messages.suffix(Self.maxMessagesPerContact))
+                if messages.count > self.maxMessagesPerContact {
+                    messages = Array(messages.suffix(self.maxMessagesPerContact))
                     messagesByContact[key] = messages
                 }
                 persistenceStore.saveMessages(messages, for: key)

@@ -1206,6 +1206,11 @@ struct RadioSection: View {
                     spreadingFactor: preset.spreadingFactor, codingRate: preset.codingRate,
                     repeatMode: repeatMode
                 )
+                // Radio params require reboot to take effect
+                Task { @MainActor in
+                    try? await Task.sleep(nanoseconds: 500_000_000)
+                    connectionManager.sendCommand(MeshCoreProtocol.buildReboot(), label: "REBOOT")
+                }
                 dismiss()
             },
             currentFreqKHz: initFreqKHz,
@@ -1370,36 +1375,15 @@ struct RadioSection: View {
         .toolbar {
             #if targetEnvironment(macCatalyst)
             ToolbarItem(placement: .topBarTrailing) {
-                Button("Apply") {
-                    let freq = UInt32((Double(freqMHz) ?? 0) * 1000)
-                    let bw = UInt32(selectedBW * 1000)
-                    connectionManager.setRadioParams(frequency: freq, bandwidth: bw,
-                        spreadingFactor: selectedSF, codingRate: selectedCR,
-                        repeatMode: repeatMode)
-                    connectionManager.setRadioTXPower(UInt8(txPower))
-                }
+                Button("Apply & Reboot") { applyRadioAndReboot() }
             }
             #elseif os(macOS)
             ToolbarItem(placement: .primaryAction) {
-                Button("Apply") {
-                    let freq = UInt32((Double(freqMHz) ?? 0) * 1000)
-                    let bw = UInt32(selectedBW * 1000)
-                    connectionManager.setRadioParams(frequency: freq, bandwidth: bw,
-                        spreadingFactor: selectedSF, codingRate: selectedCR,
-                        repeatMode: repeatMode)
-                    connectionManager.setRadioTXPower(UInt8(txPower))
-                }
+                Button("Apply & Reboot") { applyRadioAndReboot() }
             }
             #else
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button("Apply") {
-                    let freq = UInt32((Double(freqMHz) ?? 0) * 1000)
-                    let bw = UInt32(selectedBW * 1000)
-                    connectionManager.setRadioParams(frequency: freq, bandwidth: bw,
-                        spreadingFactor: selectedSF, codingRate: selectedCR,
-                        repeatMode: repeatMode)
-                    connectionManager.setRadioTXPower(UInt8(txPower))
-                }
+                Button("Apply & Reboot") { applyRadioAndReboot() }
             }
             #endif
         }
@@ -1419,6 +1403,21 @@ struct RadioSection: View {
         initBW = c.bandwidthKHz
         initSF = c.radioSpreadingFactor
         initCR = c.radioCodingRate
+    }
+
+    private func applyRadioAndReboot() {
+        let freq = UInt32((Double(freqMHz) ?? 0) * 1000)
+        let bw = UInt32(selectedBW * 1000)
+        connectionManager.setRadioParams(frequency: freq, bandwidth: bw,
+            spreadingFactor: selectedSF, codingRate: selectedCR,
+            repeatMode: repeatMode)
+        connectionManager.setRadioTXPower(UInt8(txPower))
+        // Radio params require reboot to take effect
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            connectionManager.sendCommand(MeshCoreProtocol.buildReboot(), label: "REBOOT")
+        }
+        dismiss()
     }
 
     private func nearestBW(_ kHz: Double) -> Double {
@@ -2222,6 +2221,23 @@ class SupportersManager: ObservableObject {
 private extension SettingsView {
     var storageSection: some View {
         Section {
+            Picker(selection: Binding(
+                get: {
+                    let stored = UserDefaults.standard.integer(forKey: "maxMessagesPerContact")
+                    return stored > 0 ? stored : 500
+                },
+                set: { UserDefaults.standard.set($0, forKey: "maxMessagesPerContact") }
+            )) {
+                Text("100").tag(100)
+                Text("250").tag(250)
+                Text("500").tag(500)
+                Text("1,000").tag(1000)
+                Text("2,500").tag(2500)
+            } label: {
+                Label("Messages Per Contact", systemImage: "number")
+            }
+            .listRowBackground(MeshTheme.surface)
+
             Button {
                 showPurgeOptions = true
             } label: {
@@ -2248,7 +2264,7 @@ private extension SettingsView {
                 Button("Cancel", role: .cancel) {}
             }
         } header: {
-            sectionInfoHeader("Storage", info: "Clear messages to free space. Message drafts are saved per contact.")
+            sectionInfoHeader("Storage", info: "Maximum messages kept per contact. Oldest messages are pruned automatically.")
         }
     }
 
@@ -2837,6 +2853,7 @@ struct DangerZoneSection: View {
     @State private var showRebootConfirm = false
     @State private var showResetConfirm = false
     @State private var resetConfirmText = ""
+    @State private var showForgetBLEAlert = false
 
     var body: some View {
         Section {
@@ -2886,11 +2903,22 @@ struct DangerZoneSection: View {
                 Button("Reset", role: .destructive) {
                     if resetConfirmText == "RESET" {
                         connectionManager.sendCommand(MeshCoreProtocol.buildFactoryReset(), label: "FACTORY_RESET")
+                        // Disconnect after a short delay to let the command send
+                        Task { @MainActor in
+                            try? await Task.sleep(nanoseconds: 500_000_000)
+                            connectionManager.disconnect()
+                            showForgetBLEAlert = true
+                        }
                     }
                 }
                 .disabled(resetConfirmText != "RESET")
             } message: {
                 Text("Are you sure? This will erase all device settings, contacts, and messages. This cannot be undone.\n\nType RESET to confirm.")
+            }
+            .alert("Remove Bluetooth Pairing", isPresented: $showForgetBLEAlert) {
+                Button("OK") {}
+            } message: {
+                Text("The radio has been reset. Power cycle the radio, then go to Settings \u{2192} Bluetooth, find the device, and tap \"Forget This Device\" before pairing again.")
             }
         } header: {
             SectionInfoHeader(title: "Danger Zone", info: "Factory reset erases all contacts, channels, settings, and encryption keys from the device. This cannot be undone.", titleColor: .red)
