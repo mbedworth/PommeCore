@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		B2C3D4E5F6A7B8C9D0E1F2A3 /* ContactRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E1F2 /* ContactRowView.swift */; };
+		F2A3B4C5D6E7F8A9B0C1D2E3 /* NavigationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1F2A3B4C5D6E7F8A9B0C1D2 /* NavigationStore.swift */; };
+		A3B4C5D6E7F8A9B0C1D2E3F4 /* NavigationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1F2A3B4C5D6E7F8A9B0C1D2 /* NavigationStore.swift */; };
+		B4C5D6E7F8A9B0C1D2E3F4A5 /* NavigationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1F2A3B4C5D6E7F8A9B0C1D2 /* NavigationStore.swift */; };
 		038B76DA3EB2B884787888BE /* ContactListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21606E2B959E6496D3B0230D /* ContactListView.swift */; };
 		18B6F45B61F3581FB64D1DB0 /* DeviceScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2377BED4FF5A7170783BA649 /* DeviceScannerView.swift */; };
 		309F59A4C45F0C74C7632AAF /* NetworkToolsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB24E21D8CDBE0500C92E469 /* NetworkToolsView.swift */; };
@@ -83,6 +86,7 @@
 
 /* Begin PBXFileReference section */
 		A1B2C3D4E5F6A7B8C9D0E1F2 /* ContactRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactRowView.swift; sourceTree = "<group>"; };
+		E1F2A3B4C5D6E7F8A9B0C1D2 /* NavigationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationStore.swift; sourceTree = "<group>"; };
 		21606E2B959E6496D3B0230D /* ContactListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactListView.swift; sourceTree = "<group>"; };
 		2377BED4FF5A7170783BA649 /* DeviceScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceScannerView.swift; sourceTree = "<group>"; };
 		2EEF439B8EDC4A5408C299FB /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = macOS/PrivacyInfo.xcprivacy; sourceTree = SOURCE_ROOT; };
@@ -237,6 +241,7 @@
 				STO30000000000000000001,
 				STO40000000000000000001,
 				STO50000000000000000001,
+				E1F2A3B4C5D6E7F8A9B0C1D2,
 			);
 			path = Stores;
 			sourceTree = "<group>";
@@ -375,6 +380,7 @@
 				309F59A4C45F0C74C7632AAF /* NetworkToolsView.swift in Sources */,
 				038B76DA3EB2B884787888BE /* ContactListView.swift in Sources */,
 				B2C3D4E5F6A7B8C9D0E1F2A3 /* ContactRowView.swift in Sources */,
+				F2A3B4C5D6E7F8A9B0C1D2E3 /* NavigationStore.swift in Sources */,
 				C2497AA6CDB94C882FC3C7CB /* DeviceScannerView.swift in Sources */,
 				894905739E99B7E425A27485 /* MeshCoreApp.swift in Sources */,
 				5EA23B098C539C2A2191CA10 /* MeshCoreViewModel.swift in Sources */,
@@ -404,6 +410,7 @@
 				9D7EAB7850F077EF373AC84F /* NetworkToolsView.swift in Sources */,
 				C9CEA8D3714859C1177D7704 /* ContactListView.swift in Sources */,
 				D4E5F6A7B8C9D0E1F2A3B4C5 /* ContactRowView.swift in Sources */,
+				B4C5D6E7F8A9B0C1D2E3F4A5 /* NavigationStore.swift in Sources */,
 				18B6F45B61F3581FB64D1DB0 /* DeviceScannerView.swift in Sources */,
 				F466BDEE333B5D296E925DA5 /* MeshCoreApp.swift in Sources */,
 				D3633106D9031C89E0589468 /* MeshCoreViewModel.swift in Sources */,
@@ -432,6 +439,7 @@
 				F01FFE8B0B7AB2F62D296F88 /* NetworkToolsView.swift in Sources */,
 				8EF971496F064F1AD761B796 /* ContactListView.swift in Sources */,
 				C3D4E5F6A7B8C9D0E1F2A3B4 /* ContactRowView.swift in Sources */,
+				A3B4C5D6E7F8A9B0C1D2E3F4 /* NavigationStore.swift in Sources */,
 				9A92FFC5BE2A781BEC80720C /* DeviceScannerView.swift in Sources */,
 				57D771A61E08BB1991C80DE6 /* MeshCoreApp.swift in Sources */,
 				6A8D08F2CE9D321D55C02696 /* MeshCoreViewModel.swift in Sources */,

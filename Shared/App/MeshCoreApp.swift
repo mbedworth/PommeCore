@@ -39,6 +39,7 @@ struct MeshCoreApp: App {
                     .environment(viewModel.messageStoreManager)
                     .environment(viewModel.connectionManager)
                     .environment(viewModel.remoteSessionManager)
+                    .environment(viewModel.navigationStore)
                     .meshTheme()
                     #if os(iOS)
                     .onAppear { appDelegate.viewModel = viewModel }

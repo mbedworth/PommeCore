@@ -94,19 +94,7 @@ final class NotificationPreferences: ObservableObject {
 }
 
 /// Unified sidebar selection for NavigationSplitView.
-/// On compact (iPhone), this drives the push navigation.
-/// On regular width (iPad/Mac), this drives the detail pane.
-enum SidebarSelection: Hashable {
-    case publicChannel
-    case channel(UInt8)
-    case contact(Data) // publicKeyPrefix
-    case settings
-    case map
-    #if os(macOS) || targetEnvironment(macCatalyst)
-    case usbTerminal
-    case usbDevice
-    #endif
-}
+// SidebarSelection enum moved to NavigationStore.swift
 
 @MainActor
 final class MeshCoreViewModel: ObservableObject {
@@ -121,6 +109,7 @@ final class MeshCoreViewModel: ObservableObject {
     let messageStoreManager = MessageStoreManager()
     let connectionManager = ConnectionManager()
     let remoteSessionManager = RemoteSessionManager()
+    let navigationStore = NavigationStore()
 
     // MARK: - Forwarded State (computed, delegates to stores)
     // These replace the old @Published properties. The bridge in observeStores()
@@ -186,17 +175,19 @@ final class MeshCoreViewModel: ObservableObject {
         set { channelStore.showMultiChannelImportOptions = newValue }
     }
 
-    @Published var sidebarSelection: SidebarSelection? = nil
+    /// Sidebar selection — delegates to NavigationStore. Views should prefer
+    /// @Environment(NavigationStore.self) for reads, but this forwarding property
+    /// remains for backward compatibility during incremental migration.
+    var sidebarSelection: SidebarSelection? {
+        get { navigationStore.sidebarSelection }
+        set { navigationStore.sidebarSelection = newValue }
+    }
 
     // MARK: - Internet Map (non-watchOS only)
     #if !os(watchOS)
-    /// Nodes fetched from the MeshCore internet map (map.meshcore.dev).
     @Published var internetMapNodes: [InternetMapNode] = []
-    /// True while a map node fetch is in progress.
     @Published var isLoadingInternetNodes = false
-    /// Set to true before sending CMD_EXPORT_CONTACT (self) for map upload.
     private var pendingMapUpload = false
-    /// The JSON data string awaiting device signature for map upload.
     private var pendingMapDataJSON: String?
     #endif
 
@@ -206,17 +197,9 @@ final class MeshCoreViewModel: ObservableObject {
         return contacts.first { $0.publicKeyPrefix == key }
     }
 
-    /// Convenience: whether the public channel is selected.
-    var showPublicChannel: Bool {
-        if case .publicChannel = sidebarSelection { return true }
-        return false
-    }
-
-    /// Convenience: the currently selected channel index (non-public).
-    var selectedChannelIndex: UInt8? {
-        if case .channel(let idx) = sidebarSelection { return idx }
-        return nil
-    }
+    /// Forwarding convenience properties — delegate to NavigationStore.
+    var showPublicChannel: Bool { navigationStore.showPublicChannel }
+    var selectedChannelIndex: UInt8? { navigationStore.selectedChannelIndex }
     // Connection state — forwarded from ConnectionManager
     var isScanning: Bool {
         get { connectionManager.isScanning }
@@ -623,6 +606,8 @@ final class MeshCoreViewModel: ObservableObject {
                 _ = self.remoteSessionManager.pendingTelemetryKey
                 _ = self.remoteSessionManager.pendingAdvertPathKey
                 _ = self.remoteSessionManager.allowedRepeatFreqRanges
+                // NavigationStore
+                _ = self.navigationStore.sidebarSelection
             } onChange: {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) { [weak self] in
                     guard let self, !self.isSendingChange else {
