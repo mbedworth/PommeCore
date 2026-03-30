@@ -22,6 +22,8 @@ final class ConnectionManager {
     var scanRetryCount: Int = 0
     var requestShowScanner = false
     var isInBackground = false
+    /// Last error message from device — displayed as an alert in ContentView.
+    var lastErrorMessage: String?
 
     // MARK: - Transport Managers
 
@@ -222,6 +224,53 @@ final class ConnectionManager {
 
     func requestStats(subType: UInt8) {
         sendCommand(MeshCoreProtocol.buildGetStats(subType: subType), label: "GET_STATS(\(subType))")
+    }
+
+    func requestDeviceInfo() {
+        sendCommand(MeshCoreProtocol.buildDeviceQuery(), label: "DEVICE_QUERY")
+    }
+
+    func requestBattAndStorage() {
+        sendCommand(MeshCoreProtocol.buildGetBattAndStorage(), label: "GET_BATT")
+    }
+
+    func requestDeviceTime() {
+        sendCommand(MeshCoreProtocol.buildGetDeviceTime(), label: "GET_TIME")
+    }
+
+    func requestTuningParams() {
+        sendCommand(MeshCoreProtocol.buildGetTuningParams(), label: "GET_TUNING")
+    }
+
+    func requestAutoAddConfig() {
+        sendCommand(MeshCoreProtocol.buildGetAutoAddConfig(), label: "GET_AUTOADD")
+    }
+
+    func sendAppStart() {
+        sendCommand(MeshCoreProtocol.buildAppStart(), label: "APP_START")
+    }
+
+    /// Refresh all device settings by sending all request commands.
+    func refreshAllSettings() {
+        deviceConfig?.isLoading = true
+        deviceConfig?.loadedSections = []
+        requestDeviceInfo()
+        sendAppStart()
+        requestBattAndStorage()
+        requestDeviceTime()
+        requestTuningParams()
+        requestCustomVars()
+        requestStats(subType: 0)
+        requestStats(subType: 1)
+        requestStats(subType: 2)
+        requestAutoAddConfig()
+    }
+
+    /// Refresh contacts, channels, and all settings.
+    func refreshAll(contactStore: ContactStore) {
+        guard connectionState == .ready else { return }
+        refreshAllSettings()
+        contactStore.requestContacts(fullSync: true)
     }
 
     // MARK: - Scanning & Connection

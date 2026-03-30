@@ -166,7 +166,7 @@ struct ContactListView: View {
         .meshListStyle()
         .refreshable {
             guard connectionManager.connectionState == .ready else { return }
-            viewModel.refreshAll()
+            connectionManager.refreshAll(contactStore: contactStore)
         }
         .navigationTitle("MeshCore")
         // navigationDestination is only needed on iOS (not macOS/Catalyst) because on
@@ -245,7 +245,7 @@ struct ContactListView: View {
                     .disabled(connectionManager.connectionState != .ready)
 
                     Button {
-                        viewModel.refreshAll()
+                        connectionManager.refreshAll(contactStore: contactStore)
                     } label: {
                         Image(systemName: "arrow.clockwise")
                             .foregroundStyle(MeshTheme.accent)

@@ -145,9 +145,9 @@ struct ContentView: View {
                     Text("Could not connect to the device. Would you like to scan again?")
                 }
                 .alert("Device Error", isPresented: showErrorBinding) {
-                    Button("OK", role: .cancel) { viewModel.lastErrorMessage = nil }
+                    Button("OK", role: .cancel) { connectionManager.lastErrorMessage = nil }
                 } message: {
-                    Text(viewModel.lastErrorMessage ?? "Unknown error")
+                    Text(connectionManager.lastErrorMessage ?? "Unknown error")
                 }
         }
         #else
@@ -289,7 +289,7 @@ struct ContentView: View {
             }
             ToolbarItem(placement: .primaryAction) {
                 Button {
-                    viewModel.refreshAll()
+                    connectionManager.refreshAll(contactStore: contactStore)
                 } label: {
                     Image(systemName: "arrow.clockwise")
                         .foregroundStyle(MeshTheme.accent)
@@ -375,9 +375,9 @@ struct ContentView: View {
             Text("Could not connect to the device. Would you like to scan again?")
         }
         .alert("Device Error", isPresented: showErrorBinding) {
-            Button("OK", role: .cancel) { viewModel.lastErrorMessage = nil }
+            Button("OK", role: .cancel) { connectionManager.lastErrorMessage = nil }
         } message: {
-            Text(viewModel.lastErrorMessage ?? "Unknown error")
+            Text(connectionManager.lastErrorMessage ?? "Unknown error")
         }
         .alert("Advertisement Sent", isPresented: $showAdvertSent) {
             Button("OK", role: .cancel) { }
@@ -386,8 +386,10 @@ struct ContentView: View {
         }
         .onOpenURL { url in
             let urlString = url.absoluteString
-            if urlString.hasPrefix("meshcore://") {
-                viewModel.handleMeshCoreURL(urlString)
+            if !channelStore.handleChannelURL(urlString),
+               urlString.hasPrefix("meshcore://") {
+                connectionManager.importContact(url: urlString)
+                contactStore.requestContacts(fullSync: true)
             }
         }
         #endif
@@ -425,8 +427,8 @@ struct ContentView: View {
 
     private var showErrorBinding: Binding<Bool> {
         Binding(
-            get: { viewModel.lastErrorMessage != nil },
-            set: { if !$0 { viewModel.lastErrorMessage = nil } }
+            get: { connectionManager.lastErrorMessage != nil },
+            set: { if !$0 { connectionManager.lastErrorMessage = nil } }
         )
     }
 

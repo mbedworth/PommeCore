@@ -239,7 +239,7 @@ final class MeshCoreViewModel: ObservableObject {
     #endif
 
     /// Last error message received from the device (shown as alert).
-    @Published var lastErrorMessage: String?
+    // lastErrorMessage moved to ConnectionManager
 
     /// BLE status message — forwarded from ConnectionManager.
     var bleStatusMessage: String? {
@@ -373,7 +373,7 @@ final class MeshCoreViewModel: ObservableObject {
         remoteSessionManager.contactsProvider = { [weak self] in self?.contacts ?? [] }
         remoteSessionManager.deviceConfigProvider = { [weak self] in self?.deviceConfig ?? DeviceConfig() }
         remoteSessionManager.syncNextMessage = { [weak self] in self?.syncNextMessage() }
-        remoteSessionManager.showError = { [weak self] msg in self?.lastErrorMessage = msg }
+        remoteSessionManager.showError = { [weak self] msg in self?.connectionManager.lastErrorMessage = msg }
         remoteSessionManager.onStateChanged = { [weak self] in self?.objectWillChange.send() }
         #if os(macOS) || targetEnvironment(macCatalyst)
         remoteSessionManager.sendUSBCLI = { [weak self] cmd in self?.connectionManager.sendUSBCLI(cmd) }
@@ -551,11 +551,8 @@ final class MeshCoreViewModel: ObservableObject {
         syncNextMessage()
     }
 
-    /// Manually refresh contacts, channels, and settings from the device.
     func refreshAll() {
-        guard connectionState == .ready else { return }
-        refreshAllSettings()
-        requestContacts(fullSync: true)
+        connectionManager.refreshAll(contactStore: contactStore)
     }
 
     // Scanning & connection forwards removed — views use ConnectionManager directly
@@ -587,13 +584,8 @@ final class MeshCoreViewModel: ObservableObject {
         connectionManager.sendCommand(data, label: label)
     }
 
-    func sendAppStart() {
-        sendCommand(MeshCoreProtocol.buildAppStart(), label: "APP_START")
-    }
-
-    func requestDeviceInfo() {
-        sendCommand(MeshCoreProtocol.buildDeviceQuery(), label: "DEVICE_QUERY")
-    }
+    func sendAppStart() { connectionManager.sendAppStart() }
+    func requestDeviceInfo() { connectionManager.requestDeviceInfo() }
 
     /// Verify radio configuration by requesting all parameters and logging them to DebugLogger.
     /// Used to diagnose potential config corruption from malformed frames.
@@ -690,23 +682,13 @@ final class MeshCoreViewModel: ObservableObject {
 
     // sendAdvertise removed — views use ConnectionManager directly
 
-    func requestBattAndStorage() {
-        sendCommand(MeshCoreProtocol.buildGetBattAndStorage(), label: "GET_BATT")
-    }
-
-    func requestDeviceTime() {
-        sendCommand(MeshCoreProtocol.buildGetDeviceTime(), label: "GET_TIME")
-    }
-
-    func requestTuningParams() {
-        sendCommand(MeshCoreProtocol.buildGetTuningParams(), label: "GET_TUNING")
-    }
+    func requestBattAndStorage() { connectionManager.requestBattAndStorage() }
+    func requestDeviceTime() { connectionManager.requestDeviceTime() }
+    func requestTuningParams() { connectionManager.requestTuningParams() }
 
     func requestCustomVars() { connectionManager.requestCustomVars() }
     func requestStats(subType: UInt8) { connectionManager.requestStats(subType: subType) }
-
-    func requestAutoAddConfig() {
-        sendCommand(MeshCoreProtocol.buildGetAutoAddConfig(), label: "GET_AUTOADD")
+    func requestAutoAddConfig() { connectionManager.requestAutoAddConfig()
     }
 
     func setAutoAddConfig(bitmask: UInt8) {
@@ -715,18 +697,7 @@ final class MeshCoreViewModel: ObservableObject {
     }
 
     func refreshAllSettings() {
-        deviceConfig.isLoading = true
-        deviceConfig.loadedSections = []
-        requestDeviceInfo()
-        sendAppStart()
-        requestBattAndStorage()
-        requestDeviceTime()
-        requestTuningParams()
-        requestCustomVars()
-        requestStats(subType: 0)
-        requestStats(subType: 1)
-        requestStats(subType: 2)
-        requestAutoAddConfig()
+        connectionManager.refreshAllSettings()
     }
 
     // MARK: - Settings Commands
@@ -1184,11 +1155,11 @@ final class MeshCoreViewModel: ObservableObject {
         case .contactDeleted(let publicKey):
             let name = contacts.first(where: { $0.publicKeyPrefix == publicKey.prefix(6) })?.name ?? "Unknown"
             contactStore.handleContactDeleted(publicKey: publicKey)
-            lastErrorMessage = "Contact \"\(name)\" was removed from device to make room for new contacts."
+            connectionManager.lastErrorMessage = "Contact \"\(name)\" was removed from device to make room for new contacts."
 
         case .contactsFull(let maxContacts):
             Self.logger.warning("Contact storage full: \(maxContacts)")
-            lastErrorMessage = "Contact storage is full (\(maxContacts) contacts). New contacts cannot be added."
+            connectionManager.lastErrorMessage = "Contact storage is full (\(maxContacts) contacts). New contacts cannot be added."
             postEventNotification(title: "Contact Storage Full", body: "Device has reached \(maxContacts) contacts. New contacts cannot be added.", threadId: "system")
 
         #if !os(watchOS)
@@ -1281,14 +1252,14 @@ final class MeshCoreViewModel: ObservableObject {
         switch MeshCoreErrorCode(rawValue: code) {
         case .unsupportedCmd:
             // Show a friendly message — user may have triggered an unsupported feature
-            lastErrorMessage = "This command is not supported on the current firmware version."
+            connectionManager.lastErrorMessage = "This command is not supported on the current firmware version."
         case .illegalArg:
             // Protocol-level error (e.g. out-of-range index during init) — log only, not user-visible
             Self.logger.warning("ERR_CODE_ILLEGAL_ARG received — likely protocol/firmware mismatch, not user-actionable")
         case .notFound, .tableFull, .badState, .fileIOError:
-            lastErrorMessage = description
+            connectionManager.lastErrorMessage = description
         case nil:
-            lastErrorMessage = description
+            connectionManager.lastErrorMessage = description
         }
     }
 
