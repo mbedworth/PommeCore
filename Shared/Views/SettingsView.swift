@@ -8,7 +8,6 @@ import CoreLocation
 #endif
 
 struct SettingsView: View {
-    @EnvironmentObject var viewModel: MeshCoreViewModel
     @Environment(DeviceConfig.self) private var deviceConfig
     @Environment(ConnectionManager.self) private var connectionManager
     @Environment(RemoteSessionManager.self) private var remoteSessionManager
@@ -181,11 +180,11 @@ struct SettingsView: View {
             NavigationStack {
                 Group {
                     switch sheet {
-                    case .name: NameEditorSheet(viewModel: viewModel)
-                    case .radio: RadioSection(viewModel: viewModel).navigationTitle("Radio Settings")
-                    case .txPower: TxPowerEditorSheet(viewModel: viewModel)
-                    case .tuning: TuningEditorSheet(viewModel: viewModel)
-                    case .gps: GPSEditorSheet(viewModel: viewModel)
+                    case .name: NameEditorSheet()
+                    case .radio: RadioSection().navigationTitle("Radio Settings")
+                    case .txPower: TxPowerEditorSheet()
+                    case .tuning: TuningEditorSheet()
+                    case .gps: GPSEditorSheet()
                     case .battery: BatteryEditorSheet(batteryChemistryRaw: $batteryChemistryRaw)
                     case .firmware: FirmwareDetailSheet()
                     }
@@ -222,11 +221,11 @@ struct SettingsView: View {
                 NavigationStack {
                     Group {
                         switch sheet {
-                        case .name: NameEditorSheet(viewModel: viewModel)
-                        case .radio: RadioSection(viewModel: viewModel).navigationTitle("Radio Settings")
-                        case .txPower: TxPowerEditorSheet(viewModel: viewModel)
-                        case .tuning: TuningEditorSheet(viewModel: viewModel)
-                        case .gps: GPSEditorSheet(viewModel: viewModel)
+                        case .name: NameEditorSheet()
+                        case .radio: RadioSection().navigationTitle("Radio Settings")
+                        case .txPower: TxPowerEditorSheet()
+                        case .tuning: TuningEditorSheet()
+                        case .gps: GPSEditorSheet()
                         case .battery: BatteryEditorSheet(batteryChemistryRaw: $batteryChemistryRaw)
                         case .firmware: FirmwareDetailSheet()
                         }
@@ -613,9 +612,9 @@ private extension SettingsView {
 private extension SettingsView {
     var deviceInfoSection: some View {
         #if os(macOS) || targetEnvironment(macCatalyst)
-        DeviceInfoSection(viewModel: viewModel, batteryChemistryRaw: $batteryChemistryRaw, connectedDeviceName: connectionManager.connectedDeviceName, inspectorSheet: $inspectorSheet, showInspector: $showInspector)
+        DeviceInfoSection(batteryChemistryRaw: $batteryChemistryRaw, connectedDeviceName: connectionManager.connectedDeviceName, inspectorSheet: $inspectorSheet, showInspector: $showInspector)
         #else
-        DeviceInfoSection(viewModel: viewModel, batteryChemistryRaw: $batteryChemistryRaw, connectedDeviceName: connectionManager.connectedDeviceName, activeSheet: $iosDeviceSheet)
+        DeviceInfoSection(batteryChemistryRaw: $batteryChemistryRaw, connectedDeviceName: connectionManager.connectedDeviceName, activeSheet: $iosDeviceSheet)
         #endif
     }
 
@@ -627,8 +626,6 @@ private extension SettingsView {
 /// DeviceConfig is @Observable via @Environment — SwiftUI tracks only the
 /// specific properties read in body. No cascade from ViewModel changes.
 struct DeviceInfoSection: View {
-    /// Non-observed reference — used only to pass to editor sheets.
-    let viewModel: MeshCoreViewModel
     @Environment(DeviceConfig.self) private var deviceConfig
     @Binding var batteryChemistryRaw: String
     var connectedDeviceName: String?
@@ -823,7 +820,7 @@ private extension SettingsView {
             .foregroundStyle(MeshTheme.accent)
             .tint(MeshTheme.accent)
             .onChange(of: batteryChemistryRaw) {
-                viewModel.resetBatteryCalibration()
+                deviceConfig.resetBatteryCalibration()
             }
         }
         .listRowBackground(MeshTheme.surface)
@@ -832,7 +829,7 @@ private extension SettingsView {
     var statsBatteryDisplay: String {
         guard config.statsBatteryMV != 0 else { return "\u{2014}" }
         let mv = Int(config.statsBatteryMV)
-        if let cal = viewModel.batteryCalibration {
+        if let cal = deviceConfig.batteryCalibration {
             let correctedMV = Int(Double(mv) * cal.correctionFactor)
             let v = Double(correctedMV) / 1000.0
             let pct = batteryChemistry.profile.percentage(forMillivolts: correctedMV)
@@ -882,7 +879,7 @@ private extension SettingsView {
     }
 
     var correctedBatteryPercent: Int {
-        if let cal = viewModel.batteryCalibration {
+        if let cal = deviceConfig.batteryCalibration {
             let correctedMV = cal.correctedMillivolts(config.batteryMillivolts)
             return batteryChemistry.profile.percentage(forMillivolts: correctedMV)
         }
@@ -890,7 +887,7 @@ private extension SettingsView {
     }
 
     var correctedBatteryVoltage: Double {
-        if let cal = viewModel.batteryCalibration {
+        if let cal = deviceConfig.batteryCalibration {
             return cal.correctedVoltage(config.batteryVoltage)
         }
         return config.batteryVoltage
@@ -917,7 +914,7 @@ private extension SettingsView {
 
     var batteryCalibrationsRows: some View {
         Group {
-            if let cal = viewModel.batteryCalibration, config.batteryMillivolts > 0 {
+            if let cal = deviceConfig.batteryCalibration, config.batteryMillivolts > 0 {
                 HStack {
                     Image(systemName: "tuningfork")
                         .foregroundStyle(MeshTheme.accent)
@@ -934,7 +931,7 @@ private extension SettingsView {
                 .listRowBackground(MeshTheme.surface)
 
                 Button {
-                    viewModel.resetBatteryCalibration()
+                    deviceConfig.resetBatteryCalibration()
                 } label: {
                     HStack {
                         Image(systemName: "arrow.counterclockwise")
@@ -1191,7 +1188,7 @@ let radioPresets: [RadioPreset] = [
 ]
 
 struct RadioSection: View {
-    @ObservedObject var viewModel: MeshCoreViewModel
+
     @Environment(DeviceConfig.self) private var deviceConfig
     @Environment(ConnectionManager.self) private var connectionManager
     @Environment(RemoteSessionManager.self) private var remoteSessionManager
@@ -1458,12 +1455,12 @@ struct RadioSection: View {
 
 private extension SettingsView {
     var privacySection: some View {
-        PrivacySection(viewModel: viewModel)
+        PrivacySection()
     }
 }
 
 struct PrivacySection: View {
-    @ObservedObject var viewModel: MeshCoreViewModel
+
     @Environment(DeviceConfig.self) private var config
     @Environment(ConnectionManager.self) private var connectionManager
     @Environment(ContactStore.self) private var contactStore
@@ -1877,12 +1874,12 @@ struct PrivacySection: View {
 
 private extension SettingsView {
     var customVarsSection: some View {
-        CustomVarsSection(viewModel: viewModel)
+        CustomVarsSection()
     }
 }
 
 struct CustomVarsSection: View {
-    @ObservedObject var viewModel: MeshCoreViewModel
+
     @Environment(DeviceConfig.self) private var deviceConfig
     @Environment(ConnectionManager.self) private var connectionManager
     @State private var newName: String = ""
@@ -2732,13 +2729,13 @@ private extension SettingsView {
             .listRowBackground(MeshTheme.surface)
 
             Button {
-                viewModel.verifyRadioConfig()
+                connectionManager.verifyRadioConfig()
             } label: {
                 HStack {
                     Text("Verify Radio Config")
                         .foregroundStyle(MeshTheme.accent)
                     Spacer()
-                    if viewModel.isVerifyingConfig {
+                    if connectionManager.isVerifyingConfig {
                         ProgressView()
                             #if !os(watchOS)
                             .controlSize(.small)
@@ -2751,10 +2748,10 @@ private extension SettingsView {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .disabled(!isConnected || viewModel.isVerifyingConfig)
+            .disabled(!isConnected || connectionManager.isVerifyingConfig)
             .listRowBackground(MeshTheme.surface)
 
-            if let result = viewModel.lastConfigVerification {
+            if let result = connectionManager.lastConfigVerification {
                 VStack(alignment: .leading, spacing: 6) {
                     LabeledContent("Firmware", value: result.firmware)
                     LabeledContent("Frequency", value: result.frequency)
@@ -3082,7 +3079,7 @@ private extension SettingsView {
 // MARK: - Editor Sheets
 
 struct NameEditorSheet: View {
-    @ObservedObject var viewModel: MeshCoreViewModel
+
     @Environment(DeviceConfig.self) private var deviceConfig
     @Environment(ConnectionManager.self) private var connectionManager
     @Environment(\.dismiss) private var dismiss
@@ -3203,7 +3200,7 @@ struct FirmwareDetailSheet: View {
 // MARK: - TX Power Editor
 
 struct TxPowerEditorSheet: View {
-    @ObservedObject var viewModel: MeshCoreViewModel
+
     @Environment(DeviceConfig.self) private var deviceConfig
     @Environment(ConnectionManager.self) private var connectionManager
     @Environment(\.dismiss) private var dismiss
@@ -3247,7 +3244,7 @@ struct TxPowerEditorSheet: View {
 // MARK: - Tuning Editor
 
 struct TuningEditorSheet: View {
-    @ObservedObject var viewModel: MeshCoreViewModel
+
     @Environment(DeviceConfig.self) private var deviceConfig
     @Environment(ConnectionManager.self) private var connectionManager
     @Environment(\.dismiss) private var dismiss
@@ -3322,7 +3319,7 @@ struct TuningEditorSheet: View {
 // MARK: - GPS Editor
 
 struct GPSEditorSheet: View {
-    @ObservedObject var viewModel: MeshCoreViewModel
+
     @Environment(DeviceConfig.self) private var deviceConfig
     @Environment(ConnectionManager.self) private var connectionManager
     @Environment(\.dismiss) private var dismiss

@@ -107,7 +107,6 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
 #endif
 
 struct ContentView: View {
-    @EnvironmentObject var viewModel: MeshCoreViewModel
     @Environment(ContactStore.self) private var contactStore
     @Environment(ChannelStore.self) private var channelStore
     @Environment(MessageStoreManager.self) private var messageStoreManager
@@ -197,7 +196,6 @@ struct ContentView: View {
                 }
             case .settings:
                 SettingsView()
-                    .environmentObject(viewModel)
             #if !os(watchOS)
             case .map:
                 if #available(iOS 17.0, macOS 14.0, *) {
@@ -314,7 +312,6 @@ struct ContentView: View {
         .sheet(isPresented: $showSettings) {
             NavigationStack {
                 SettingsView()
-                    .environmentObject(viewModel)
                     .toolbar {
                         ToolbarItem(placement: .cancellationAction) {
                             Button("Done") { showSettings = false }

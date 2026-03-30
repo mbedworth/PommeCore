@@ -28,21 +28,7 @@ var iCloudSyncEnabled: Bool {
     UserDefaults.standard.object(forKey: "iCloudSyncEnabled") == nil ? true : UserDefaults.standard.bool(forKey: "iCloudSyncEnabled")
 }
 
-/// Radio config verification result.
-struct RadioConfigVerification: Identifiable {
-    let id = UUID()
-    let frequency: String
-    let bandwidth: String
-    let spreadingFactor: Int
-    let codingRate: Int
-    let txPower: String
-    let battery: String
-    let firmware: String
-    let regionCheck: RegionCheck
-    let regionMessage: String
-}
-enum RegionCheck { case pass, warning, fail }
-enum RadioRegion { case americas, europe, japan, india, unknown }
+// RadioConfigVerification, RegionCheck, RadioRegion moved to ConnectionManager
 
 /// Notification preferences synced via iCloud key-value store (when enabled).
 @MainActor
@@ -189,40 +175,7 @@ final class MeshCoreViewModel: ObservableObject {
 
     func displayName(for contact: Contact) -> String { contactStore.displayName(for: contact) }
 
-    // MARK: - Battery Calibration (per-device, iCloud synced)
-
-    @Published var batteryCalibration: BatteryCalibration?
-
-    func loadBatteryCalibration() {
-        let key = "battery.cal.\(deviceConfig.publicKeyHex)"
-        guard let data = iCloudStore.data(forKey: key),
-              let cal = try? JSONDecoder().decode(BatteryCalibration.self, from: data) else { return }
-        batteryCalibration = cal
-    }
-
-    func saveBatteryCalibration(_ cal: BatteryCalibration) {
-        let key = "battery.cal.\(deviceConfig.publicKeyHex)"
-        if let data = try? JSONEncoder().encode(cal) {
-            iCloudStore.set(data, forKey: key)
-            iCloudStore.synchronize()
-        }
-    }
-
-    func resetBatteryCalibration() {
-        let key = "battery.cal.\(deviceConfig.publicKeyHex)"
-        iCloudStore.removeObject(forKey: key)
-        iCloudStore.synchronize()
-        batteryCalibration = nil
-    }
-
-    func updateBatteryCalibration(rawMillivolts: UInt16, chemistry: BatteryChemistry) {
-        let rawVoltage = Double(rawMillivolts) / 1000.0
-        var cal = batteryCalibration ?? BatteryCalibration(chemistry: chemistry.rawValue)
-        cal.chemistry = chemistry.rawValue
-        cal.updateWithReading(rawVoltage, theoreticalMax: chemistry.theoreticalMax)
-        batteryCalibration = cal
-        saveBatteryCalibration(cal)
-    }
+    // Battery calibration moved to DeviceConfig
 
     // MARK: - Forwarding: Spotlight → ContactStore
 
@@ -587,95 +540,7 @@ final class MeshCoreViewModel: ObservableObject {
     func sendAppStart() { connectionManager.sendAppStart() }
     func requestDeviceInfo() { connectionManager.requestDeviceInfo() }
 
-    /// Verify radio configuration by requesting all parameters and logging them to DebugLogger.
-    /// Used to diagnose potential config corruption from malformed frames.
-    @Published var isVerifyingConfig = false
-
-    func verifyRadioConfig() {
-        DebugLogger.shared.log("=== RADIO CONFIG VERIFICATION START ===", level: .info)
-        isVerifyingConfig = true
-
-        // Request device info (firmware, model)
-        DebugLogger.shared.log("Requesting DEVICE_QUERY...", level: .tx)
-        requestDeviceInfo()
-
-        // Request self info (radio params, name, pubkey)
-        DebugLogger.shared.log("Requesting APP_START for SELF_INFO...", level: .tx)
-        sendAppStart()
-
-        // Request tuning params
-        DebugLogger.shared.log("Requesting GET_TUNING_PARAMS...", level: .tx)
-        requestTuningParams()
-
-        // Request battery/storage
-        DebugLogger.shared.log("Requesting GET_BATT_AND_STORAGE...", level: .tx)
-        requestBattAndStorage()
-
-        // Request device time
-        DebugLogger.shared.log("Requesting GET_DEVICE_TIME...", level: .tx)
-        requestDeviceTime()
-
-        // Collect results after responses arrive
-        Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 3_000_000_000)
-            DebugLogger.shared.log("=== RADIO CONFIG VERIFICATION COMPLETE ===", level: .info)
-            self.isVerifyingConfig = false
-            self.lastConfigVerification = buildConfigVerification()
-        }
-    }
-
-    /// Last radio config verification result for display.
-    @Published var lastConfigVerification: RadioConfigVerification?
-
-    private func buildConfigVerification() -> RadioConfigVerification {
-        let c = deviceConfig
-        let freqMHz = Double(c.radioFrequency) / 1000.0
-        let bwKHz = Double(c.radioBandwidth) / 1000.0
-        let battV = String(format: "%.2fV", Double(c.batteryMillivolts) / 1000.0)
-        let battPct = c.batteryPercent()
-        let (regionCheck, regionMsg) = checkFrequencyForRegion(freqHz: c.radioFrequency)
-        return RadioConfigVerification(
-            frequency: String(format: "%.3f MHz", freqMHz),
-            bandwidth: String(format: "%.1f kHz", bwKHz),
-            spreadingFactor: Int(c.radioSpreadingFactor),
-            codingRate: Int(c.radioCodingRate),
-            txPower: "\(c.radioTXPower)/\(c.maxTXPower) dBm",
-            battery: battPct > 0 ? "\(battV) (\(battPct)%)" : battV,
-            firmware: c.semanticVersion.isEmpty ? "v\(c.firmwareVersion)" : c.semanticVersion,
-            regionCheck: regionCheck,
-            regionMessage: regionMsg
-        )
-    }
-
-    private func checkFrequencyForRegion(freqHz: UInt32) -> (RegionCheck, String) {
-        let freqMHz = Double(freqHz) / 1000.0
-        // Use device coordinates if available, otherwise check frequency bands directly
-        let lat = deviceConfig.latitude
-        let lon = deviceConfig.longitude
-        let region = (lat != 0 || lon != 0) ? regionFromCoordinates(lat: lat, lon: lon) : .unknown
-
-        if freqMHz >= 902 && freqMHz <= 928 {
-            return region == .europe ? (.fail, "Frequency \(String(format: "%.3f", freqMHz)) MHz is Americas band but GPS shows Europe") :
-                (.pass, "Frequency \(String(format: "%.3f", freqMHz)) MHz — Americas band (902-928 MHz)")
-        } else if freqMHz >= 863 && freqMHz <= 870 {
-            return region == .americas ? (.fail, "Frequency \(String(format: "%.3f", freqMHz)) MHz is EU band but GPS shows Americas") :
-                (.pass, "Frequency \(String(format: "%.3f", freqMHz)) MHz — Europe band (863-870 MHz)")
-        } else if freqMHz >= 920 && freqMHz <= 928 {
-            return (.pass, "Frequency \(String(format: "%.3f", freqMHz)) MHz — Japan band (920-928 MHz)")
-        } else if freqMHz >= 865 && freqMHz <= 867 {
-            return (.pass, "Frequency \(String(format: "%.3f", freqMHz)) MHz — India band (865-867 MHz)")
-        }
-        return (.warning, "Frequency \(String(format: "%.3f", freqMHz)) MHz — verify manually for your region")
-    }
-
-    private func regionFromCoordinates(lat: Double, lon: Double) -> RadioRegion {
-        if lat >= -60 && lat <= 72 && lon >= -170 && lon <= -30 { return .americas }
-        if lat >= -48 && lat <= -10 && lon >= 110 && lon <= 180 { return .americas }
-        if lat >= 35 && lat <= 72 && lon >= -10 && lon <= 40 { return .europe }
-        if lat >= 24 && lat <= 46 && lon >= 122 && lon <= 154 { return .japan }
-        if lat >= 6 && lat <= 36 && lon >= 68 && lon <= 98 { return .india }
-        return .unknown
-    }
+    // verifyRadioConfig, buildConfigVerification, checkFrequencyForRegion moved to ConnectionManager
 
     private func requestDebouncedIncrementalSync() { contactStore.requestDebouncedIncrementalSync() }
     func requestContacts(fullSync: Bool = false) { contactStore.requestContacts(fullSync: fullSync) }
@@ -884,7 +749,7 @@ final class MeshCoreViewModel: ObservableObject {
             deviceConfig.radioTXPower = info.txPower
             deviceConfig.maxTXPower = info.maxTXPower
             deviceConfig.publicKeyHex = info.publicKey.map { String(format: "%02x", $0) }.joined()
-            loadBatteryCalibration()
+            deviceConfig.loadBatteryCalibration()
             let radioPrefix = String(deviceConfig.publicKeyHex.prefix(12))
             messageStoreManager.activateForRadio(radioPrefix)
             channelStore.activateForRadio(radioPrefix)
@@ -942,7 +807,7 @@ final class MeshCoreViewModel: ObservableObject {
             deviceConfig.batteryMillivolts = info.batteryMV
             let chemRaw = UserDefaults.standard.string(forKey: "batteryChemistry") ?? BatteryChemistry.lipo.rawValue
             let chem = BatteryChemistry(rawValue: chemRaw) ?? .lipo
-            updateBatteryCalibration(rawMillivolts: info.batteryMV, chemistry: chem)
+            deviceConfig.updateBatteryCalibration(rawMillivolts: info.batteryMV, chemistry: chem)
             deviceConfig.loadedSections.insert("battAndStorage")
             checkLoadingComplete()
 

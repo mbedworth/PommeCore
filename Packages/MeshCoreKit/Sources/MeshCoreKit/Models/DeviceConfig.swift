@@ -203,6 +203,7 @@ public final class DeviceConfig {
         statsRecvDirect = 0
         isLoading = false
         loadedSections = []
+        batteryCalibration = nil
     }
 
     public var batteryVoltage: Double {
@@ -233,5 +234,43 @@ public final class DeviceConfig {
     public var deviceTimeDate: Date? {
         guard deviceTimeEpoch > 0 else { return nil }
         return Date(timeIntervalSince1970: TimeInterval(deviceTimeEpoch))
+    }
+
+    // MARK: - Battery Calibration (per-device, iCloud synced)
+
+    public var batteryCalibration: BatteryCalibration?
+
+    public func loadBatteryCalibration() {
+        let key = "battery.cal.\(publicKeyHex)"
+        let store = NSUbiquitousKeyValueStore.default
+        guard let data = store.data(forKey: key),
+              let cal = try? JSONDecoder().decode(BatteryCalibration.self, from: data) else { return }
+        batteryCalibration = cal
+    }
+
+    public func saveBatteryCalibration(_ cal: BatteryCalibration) {
+        let key = "battery.cal.\(publicKeyHex)"
+        let store = NSUbiquitousKeyValueStore.default
+        if let data = try? JSONEncoder().encode(cal) {
+            store.set(data, forKey: key)
+            store.synchronize()
+        }
+    }
+
+    public func resetBatteryCalibration() {
+        let key = "battery.cal.\(publicKeyHex)"
+        let store = NSUbiquitousKeyValueStore.default
+        store.removeObject(forKey: key)
+        store.synchronize()
+        batteryCalibration = nil
+    }
+
+    public func updateBatteryCalibration(rawMillivolts: UInt16, chemistry: BatteryChemistry) {
+        let rawVoltage = Double(rawMillivolts) / 1000.0
+        var cal = batteryCalibration ?? BatteryCalibration(chemistry: chemistry.rawValue)
+        cal.chemistry = chemistry.rawValue
+        cal.updateWithReading(rawVoltage, theoreticalMax: chemistry.theoreticalMax)
+        batteryCalibration = cal
+        saveBatteryCalibration(cal)
     }
 }

@@ -2,7 +2,6 @@ import SwiftUI
 import MeshCoreKit
 
 struct ContactListView: View {
-    @EnvironmentObject var viewModel: MeshCoreViewModel
     @Environment(ContactStore.self) private var contactStore
     @Environment(ChannelStore.self) private var channelStore
     @Environment(MessageStoreManager.self) private var messageStoreManager
@@ -268,7 +267,6 @@ struct ContactListView: View {
         }
         .sheet(item: $detailContact) { contact in
             ContactDetailSheet(contact: contact)
-                .environmentObject(viewModel)
                 .frame(minWidth: 360, minHeight: 400)
         }
         .onChange(of: remoteSessionManager.detailContactForTrace?.id) {
@@ -279,13 +277,11 @@ struct ContactListView: View {
         }
         .sheet(item: $pathEditorContact) { contact in
             ManualPathEditor(contact: contact)
-                .environmentObject(viewModel)
         }
         .sheet(item: $channelSheetAction) { action in
             NavigationStack {
                 ChannelManagementView(action: action)
-                    .environmentObject(viewModel)
-                    .toolbar {
+                        .toolbar {
                         ToolbarItem(placement: .cancellationAction) {
                             Button("Done") { channelSheetAction = nil }
                         }
@@ -333,12 +329,10 @@ struct ContactListView: View {
         }
         .sheet(isPresented: $showMyContactCode) {
             MyContactCodeSheet()
-                .environmentObject(viewModel)
                 .frame(minWidth: 360, minHeight: 400)
         }
         .sheet(item: $shareContact) { contact in
             ShareContactSheet(contact: contact)
-                .environmentObject(viewModel)
                 .frame(minWidth: 360, minHeight: 400)
         }
         #endif
@@ -553,7 +547,7 @@ struct ContactListView: View {
                                 Label("Copy Public Key", systemImage: "doc.on.doc")
                             }
                         }
-                        Button { viewModel.verifyRadioConfig() } label: {
+                        Button { connectionManager.verifyRadioConfig() } label: {
                             Label("Verify Radio Config", systemImage: "checkmark.shield")
                         }
                         Divider()
@@ -575,7 +569,7 @@ struct ContactListView: View {
                             Label("Copy Public Key", systemImage: "doc.on.doc")
                         }
                     }
-                    Button { viewModel.verifyRadioConfig() } label: {
+                    Button { connectionManager.verifyRadioConfig() } label: {
                         Label("Verify Radio Config", systemImage: "checkmark.shield")
                     }
                     Divider()
@@ -867,8 +861,7 @@ struct ContactListView: View {
                             #if os(watchOS)
                             NavigationLink {
                                 contactDestination(contact)
-                                    .environmentObject(viewModel)
-                            } label: {
+                                                } label: {
                                 contactRow(contact)
                             }
                             .listRowBackground(MeshTheme.surface)
@@ -957,8 +950,7 @@ struct ContactListView: View {
                     #if os(watchOS)
                     NavigationLink {
                         contactDestination(contact)
-                            .environmentObject(viewModel)
-                    } label: {
+                                } label: {
                         contactRow(contact)
                     }
                     .listRowBackground(MeshTheme.surface)
@@ -1320,13 +1312,11 @@ struct ContactListView: View {
         case .contact(let key):
             if let contact = contactStore.contacts.first(where: { $0.publicKeyPrefix == key }) {
                 contactDestination(contact)
-                    .environmentObject(viewModel)
-            } else {
+                } else {
                 Text("Contact not found")
             }
         case .settings:
             SettingsView()
-                .environmentObject(viewModel)
         case .map:
             if #available(iOS 17.0, macOS 14.0, *) {
                 MeshMapView()
@@ -1339,8 +1329,7 @@ struct ContactListView: View {
         case .usbDevice:
             if let contact = remoteSessionManager.usbDeviceContact, let session = remoteSessionManager.usbDeviceSession {
                 RemoteManagementView(contact: contact, session: session)
-                    .environmentObject(viewModel)
-            } else {
+                } else {
                 Text("USB device not connected")
                     .foregroundStyle(MeshTheme.textSecondary)
             }

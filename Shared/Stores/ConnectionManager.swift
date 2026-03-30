@@ -6,6 +6,23 @@ import MeshCoreKit
 import CoreLocation
 #endif
 
+// MARK: - Radio Config Verification Types
+
+struct RadioConfigVerification: Identifiable {
+    let id = UUID()
+    let frequency: String
+    let bandwidth: String
+    let spreadingFactor: Int
+    let codingRate: Int
+    let txPower: String
+    let battery: String
+    let firmware: String
+    let regionCheck: RegionCheck
+    let regionMessage: String
+}
+enum RegionCheck { case pass, warning, fail }
+enum RadioRegion { case americas, europe, japan, india, unknown }
+
 /// Observable store for transport state, scanning, connect/disconnect, and sendCommand routing.
 /// Extracted from MeshCoreViewModel to enable fine-grained view observation.
 @MainActor @Observable
@@ -24,6 +41,10 @@ final class ConnectionManager {
     var isInBackground = false
     /// Last error message from device — displayed as an alert in ContentView.
     var lastErrorMessage: String?
+
+    /// Radio config verification state.
+    var isVerifyingConfig = false
+    var lastConfigVerification: RadioConfigVerification?
 
     // MARK: - Transport Managers
 
@@ -271,6 +292,71 @@ final class ConnectionManager {
         guard connectionState == .ready else { return }
         refreshAllSettings()
         contactStore.requestContacts(fullSync: true)
+    }
+
+    // MARK: - Radio Config Verification
+
+    func verifyRadioConfig() {
+        DebugLogger.shared.log("=== RADIO CONFIG VERIFICATION START ===", level: .info)
+        isVerifyingConfig = true
+        requestDeviceInfo()
+        sendAppStart()
+        requestTuningParams()
+        requestBattAndStorage()
+        requestDeviceTime()
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 3_000_000_000)
+            guard let self else { return }
+            DebugLogger.shared.log("=== RADIO CONFIG VERIFICATION COMPLETE ===", level: .info)
+            self.isVerifyingConfig = false
+            self.lastConfigVerification = self.buildConfigVerification()
+        }
+    }
+
+    private func buildConfigVerification() -> RadioConfigVerification {
+        guard let c = deviceConfig else { return RadioConfigVerification(frequency: "?", bandwidth: "?", spreadingFactor: 0, codingRate: 0, txPower: "?", battery: "?", firmware: "?", regionCheck: .warning, regionMessage: "No device config") }
+        let freqMHz = Double(c.radioFrequency) / 1000.0
+        let bwKHz = Double(c.radioBandwidth) / 1000.0
+        let battV = String(format: "%.2fV", Double(c.batteryMillivolts) / 1000.0)
+        let battPct = c.batteryPercent()
+        let (regionCheck, regionMsg) = checkFrequencyForRegion(freqHz: c.radioFrequency, lat: c.latitude, lon: c.longitude)
+        return RadioConfigVerification(
+            frequency: String(format: "%.3f MHz", freqMHz),
+            bandwidth: String(format: "%.1f kHz", bwKHz),
+            spreadingFactor: Int(c.radioSpreadingFactor),
+            codingRate: Int(c.radioCodingRate),
+            txPower: "\(c.radioTXPower)/\(c.maxTXPower) dBm",
+            battery: battPct > 0 ? "\(battV) (\(battPct)%)" : battV,
+            firmware: c.semanticVersion.isEmpty ? "v\(c.firmwareVersion)" : c.semanticVersion,
+            regionCheck: regionCheck,
+            regionMessage: regionMsg
+        )
+    }
+
+    private func checkFrequencyForRegion(freqHz: UInt32, lat: Double, lon: Double) -> (RegionCheck, String) {
+        let freqMHz = Double(freqHz) / 1000.0
+        let region = (lat != 0 || lon != 0) ? regionFromCoordinates(lat: lat, lon: lon) : .unknown
+        if freqMHz >= 902 && freqMHz <= 928 {
+            return region == .europe ? (.fail, "Frequency \(String(format: "%.3f", freqMHz)) MHz is Americas band but GPS shows Europe") :
+                (.pass, "Frequency \(String(format: "%.3f", freqMHz)) MHz — Americas band (902-928 MHz)")
+        } else if freqMHz >= 863 && freqMHz <= 870 {
+            return region == .americas ? (.fail, "Frequency \(String(format: "%.3f", freqMHz)) MHz is EU band but GPS shows Americas") :
+                (.pass, "Frequency \(String(format: "%.3f", freqMHz)) MHz — Europe band (863-870 MHz)")
+        } else if freqMHz >= 920 && freqMHz <= 928 {
+            return (.pass, "Frequency \(String(format: "%.3f", freqMHz)) MHz — Japan band (920-928 MHz)")
+        } else if freqMHz >= 865 && freqMHz <= 867 {
+            return (.pass, "Frequency \(String(format: "%.3f", freqMHz)) MHz — India band (865-867 MHz)")
+        }
+        return (.warning, "Frequency \(String(format: "%.3f", freqMHz)) MHz — verify manually for your region")
+    }
+
+    private func regionFromCoordinates(lat: Double, lon: Double) -> RadioRegion {
+        if lat >= -60 && lat <= 72 && lon >= -170 && lon <= -30 { return .americas }
+        if lat >= -48 && lat <= -10 && lon >= 110 && lon <= 180 { return .americas }
+        if lat >= 35 && lat <= 72 && lon >= -10 && lon <= 40 { return .europe }
+        if lat >= 24 && lat <= 46 && lon >= 122 && lon <= 154 { return .japan }
+        if lat >= 6 && lat <= 36 && lon >= 68 && lon <= 98 { return .india }
+        return .unknown
     }
 
     // MARK: - Phone GPS Auto-Update
