@@ -662,17 +662,6 @@ final class MeshCoreViewModel: ObservableObject {
     }
 
     #if os(macOS) || targetEnvironment(macCatalyst)
-
-    func disconnectUSB() {
-        remoteSessionManager.reset()
-        connectionManager.disconnectUSB()
-    }
-
-    func sendUSBCLI(_ command: String) {
-        connectionManager.sendUSBCLI(command)
-        remoteSessionManager.usbCLIOutput.append(USBTerminalLine(text: "> \(command)", isCommand: true))
-    }
-
     /// Called when USB CLI mode is detected — delegates to RemoteSessionManager.
     private func onUSBCLIReady() {
         let portName = usbManager.connectedPort?.replacingOccurrences(of: "/dev/cu.", with: "") ?? "USB Device"
@@ -689,7 +678,7 @@ final class MeshCoreViewModel: ObservableObject {
     }
     #endif
 
-    func disconnect() { connectionManager.disconnect() }
+    // disconnect, disconnectUSB, sendUSBCLI removed — views use stores directly
 
     // MARK: - Protocol Commands
 
@@ -1448,8 +1437,7 @@ final class MeshCoreViewModel: ObservableObject {
         messageStoreManager.handleSendConfirmed(ackCode: ackCode, roundTripMs: roundTripMs)
     }
 
-    func clearAllMessages() { messageStoreManager.clearAllMessages() }
-    func clearAllDrafts() { messageStoreManager.clearAllDrafts() }
+    // clearAllMessages, clearAllDrafts removed — views use MessageStoreManager directly
 
     private func handleAdvert(_ contact: Contact) {
         contactStore.handleAdvert(contact)

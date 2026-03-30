@@ -532,7 +532,7 @@ struct ContactListView: View {
                 if connectionManager.connectionState == .ready || connectionManager.connectionState == .connected {
                     #if os(macOS) || targetEnvironment(macCatalyst)
                     if isUSBCLIConnected {
-                        Button(role: .destructive) { viewModel.disconnectUSB() } label: {
+                        Button(role: .destructive) { remoteSessionManager.reset(); connectionManager.disconnectUSB() } label: {
                             Label("Disconnect USB", systemImage: "cable.connector.slash")
                         }
                     } else {
@@ -557,7 +557,7 @@ struct ContactListView: View {
                             Label("Verify Radio Config", systemImage: "checkmark.shield")
                         }
                         Divider()
-                        Button(role: .destructive) { viewModel.disconnect() } label: {
+                        Button(role: .destructive) { connectionManager.disconnect() } label: {
                             Label("Disconnect", systemImage: "xmark.circle")
                         }
                     }
@@ -579,7 +579,7 @@ struct ContactListView: View {
                         Label("Verify Radio Config", systemImage: "checkmark.shield")
                     }
                     Divider()
-                    Button(role: .destructive) { viewModel.disconnect() } label: {
+                    Button(role: .destructive) { connectionManager.disconnect() } label: {
                         Label("Disconnect", systemImage: "xmark.circle")
                     }
                     #endif

@@ -11,6 +11,7 @@ struct SettingsView: View {
     @EnvironmentObject var viewModel: MeshCoreViewModel
     @Environment(DeviceConfig.self) private var deviceConfig
     @Environment(ConnectionManager.self) private var connectionManager
+    @Environment(RemoteSessionManager.self) private var remoteSessionManager
     @Environment(MessageStoreManager.self) private var messageStoreManager
     @AppStorage("batteryChemistry") private var batteryChemistryRaw: String = BatteryChemistry.lipo.rawValue
     @AppStorage("appTheme") private var appTheme: String = AppTheme.system.rawValue
@@ -129,7 +130,7 @@ struct SettingsView: View {
 
             // 4. Device Info (BLE/WiFi/USB Binary only — USB CLI uses RemoteManagementView)
             #if os(macOS) || targetEnvironment(macCatalyst)
-            if isConnected && !viewModel.isUSBCLIConnected {
+            if isConnected && !connectionManager.isUSBCLIMode && remoteSessionManager.isUSBCLIConnected {
                 deviceInfoSection
             }
             #else
@@ -988,7 +989,7 @@ private extension SettingsView {
 
             if connectionManager.connectionState != .disconnected {
                 Button(role: .destructive) {
-                    viewModel.disconnect()
+                    connectionManager.disconnect()
                 } label: {
                     HStack {
                         Image(systemName: "xmark.circle")
@@ -2252,10 +2253,10 @@ private extension SettingsView {
             .listRowBackground(MeshTheme.surface)
             .confirmationDialog("Manage Storage", isPresented: $showPurgeOptions) {
                 Button("Clear All Messages", role: .destructive) {
-                    viewModel.clearAllMessages()
+                    messageStoreManager.clearAllMessages()
                 }
                 Button("Clear Message Drafts") {
-                    viewModel.clearAllDrafts()
+                    messageStoreManager.clearAllDrafts()
                 }
                 Button("Cancel", role: .cancel) {}
             }
