@@ -371,7 +371,7 @@ final class MeshCoreViewModel: ObservableObject {
 
         // Connection loss notification
         if previousState == .connecting || previousState == .ready {
-            if self.isInBackground && NotificationPreferences.shared.notifyConnection {
+            if self.connectionManager.isInBackground && NotificationPreferences.shared.notifyConnection {
                 let deviceName = self.connectionManager.connectedDeviceName ?? "radio"
                 self.postEventNotification(
                     title: "Connection Lost",
@@ -383,9 +383,8 @@ final class MeshCoreViewModel: ObservableObject {
     }
 
     /// Bridge @Observable stores → ObservableObject ViewModel.
-    /// Re-registers withObservationTracking so that any store property
-    /// change fires objectWillChange on the ViewModel. Views using
-    /// @EnvironmentObject continue to work during migration.
+    /// Only needed for WatchChatView (the sole remaining @EnvironmentObject consumer).
+    /// All iOS/macOS views use @Environment(Store.self) directly.
     /// True while we are inside objectWillChange.send() to prevent re-entrant cascades.
     private var isSendingChange = false
 
