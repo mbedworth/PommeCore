@@ -19,12 +19,12 @@ struct ContactRowView: View {
                     loginBadge
                     pathIndicator
                 }
-                if contactStore.nickname(for: contact) != nil {
+                if contactStore.nickname(for: contact) != nil, !contact.name.isEmpty {
                     Text(contact.name)
                         .font(.caption2)
                         .foregroundStyle(MeshTheme.textSecondary)
                 }
-                lastMessagePreview
+                lastSeenLine
             }
             Spacer()
             if messageStoreManager.hasDraft(for: contact.publicKeyPrefix) {
@@ -129,7 +129,7 @@ struct ContactRowView: View {
     }
 
     @ViewBuilder
-    private var lastMessagePreview: some View {
+    private var lastSeenLine: some View {
         if (contact.type == .repeater || contact.type == .room),
            case .loggedIn(let permission) = remoteSessionManager.remoteSession(for: contact).loginState {
             let session = remoteSessionManager.remoteSession(for: contact)
@@ -143,22 +143,14 @@ struct ContactRowView: View {
                     .font(.caption)
                     .foregroundStyle(MeshTheme.connected)
             }
+        } else if let seenText = lastSeenText {
+            Text(seenText)
+                .font(.caption)
+                .foregroundStyle(MeshTheme.textSecondary)
         } else {
-            let messages = messageStoreManager.messages(for: contact)
-            if let last = messages.last {
-                Text(last.text)
-                    .font(.caption)
-                    .foregroundStyle(MeshTheme.textSecondary)
-                    .lineLimit(1)
-            } else if let seenText = lastSeenText {
-                Text(seenText)
-                    .font(.caption)
-                    .foregroundStyle(MeshTheme.textSecondary)
-            } else {
-                Text("Never seen")
-                    .font(.caption)
-                    .foregroundStyle(MeshTheme.textSecondary)
-            }
+            Text("Never seen")
+                .font(.caption)
+                .foregroundStyle(MeshTheme.textSecondary)
         }
     }
 

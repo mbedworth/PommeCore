@@ -206,6 +206,12 @@ public final class MessageStore {
         }
     }
 
+    /// Delete messages for a single contact from disk.
+    public func deleteMessages(for contactKeyHash: Data) {
+        let url = fileURL(for: contactKeyHash)
+        try? FileManager.default.removeItem(at: url)
+    }
+
     /// Delete all message files from disk.
     public func deleteAllMessages() {
         guard let files = try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)

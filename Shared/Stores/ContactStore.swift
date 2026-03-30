@@ -26,6 +26,9 @@ final class ContactStore {
     /// Closure to get latest activity date for a contact (checks messages).
     var activityDateProvider: ((Data) -> Date?)?
 
+    /// Closure to clear messages when a contact is deleted.
+    var clearMessagesForContact: ((Data) -> Void)?
+
     /// Closure to post an event notification.
     var postEventNotification: ((String, String, String) -> Void)?
 
@@ -355,9 +358,10 @@ final class ContactStore {
         let frame = MeshCoreProtocol.buildRemoveContact(publicKey: contact.publicKey)
         sendCommand?(frame, "REMOVE_CONTACT")
         contacts.removeAll { $0.publicKeyPrefix == contact.publicKeyPrefix }
-        // Clean up nickname and notes for this contact
+        // Clean up all local data for this contact
         setNickname("", for: contact)
         setNote("", for: contact)
+        clearMessagesForContact?(contact.publicKeyPrefix)
     }
 
     func resetPath(for contact: Contact) {
@@ -455,8 +459,9 @@ final class ContactStore {
     }
 
     func handleContact(_ contact: Contact) {
-        Self.logger.debug("Received contact: \(contact.name) type=\(contact.type.rawValue)")
-        incomingContacts.append(contact)
+        let c = contactWithTimestamp(contact)
+        Self.logger.debug("Received contact: \(c.name) type=\(c.type.rawValue)")
+        incomingContacts.append(c)
     }
 
     /// Finalize contact sync. Returns true if channel sync should be triggered.
@@ -497,23 +502,37 @@ final class ContactStore {
         return wasFullSync
     }
 
+    /// Ensure lastAdvert is set — if firmware sends 0, stamp with current time.
+    private func contactWithTimestamp(_ contact: Contact) -> Contact {
+        guard contact.lastAdvert < 1_000_000_000 else { return contact }
+        let now = UInt32(Date().timeIntervalSince1970)
+        return Contact(
+            publicKey: contact.publicKey, name: contact.name, type: contact.type,
+            flags: contact.flags, outPathLen: contact.outPathLen, outPath: contact.outPath,
+            lastAdvert: now, latitude: contact.latitude, longitude: contact.longitude,
+            lastmod: contact.lastmod
+        )
+    }
+
     func handleAdvert(_ contact: Contact) {
-        if let idx = contacts.firstIndex(where: { $0.publicKeyPrefix == contact.publicKeyPrefix }) {
-            contacts[idx] = contact
-            DebugLogger.shared.log("ADVERT: updated \(contact.name) lastAdvert=\(contact.lastAdvert)", level: .rx)
+        let c = contactWithTimestamp(contact)
+        if let idx = contacts.firstIndex(where: { $0.publicKeyPrefix == c.publicKeyPrefix }) {
+            contacts[idx] = c
+            DebugLogger.shared.log("ADVERT: updated \(c.name) lastAdvert=\(c.lastAdvert)", level: .rx)
         } else {
-            contacts.append(contact)
-            DebugLogger.shared.log("ADVERT: new contact \(contact.name) lastAdvert=\(contact.lastAdvert)", level: .rx)
+            contacts.append(c)
+            DebugLogger.shared.log("ADVERT: new contact \(c.name) lastAdvert=\(c.lastAdvert)", level: .rx)
         }
     }
 
     func handleNewAdvert(_ contact: Contact, isInBackground: Bool) {
-        Self.logger.info("PUSH NewAdvert (manual_add): \(contact.name)")
-        DebugLogger.shared.log("PUSH NewAdvert: \(contact.name)", level: .rx)
-        if !pendingNewContacts.contains(where: { $0.publicKeyPrefix == contact.publicKeyPrefix }) {
-            pendingNewContacts.append(contact)
+        let c = contactWithTimestamp(contact)
+        Self.logger.info("PUSH NewAdvert (manual_add): \(c.name)")
+        DebugLogger.shared.log("PUSH NewAdvert: \(c.name)", level: .rx)
+        if !pendingNewContacts.contains(where: { $0.publicKeyPrefix == c.publicKeyPrefix }) {
+            pendingNewContacts.append(c)
             if isInBackground && NotificationPreferences.shared.notifyNewContacts {
-                postEventNotification?("New Contact Discovered", contact.name, "contacts")
+                postEventNotification?("New Contact Discovered", c.name, "contacts")
             }
         }
     }

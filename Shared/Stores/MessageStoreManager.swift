@@ -555,6 +555,13 @@ final class MessageStoreManager {
         }
     }
 
+    func clearMessages(for contactKey: Data) {
+        messagesByContact.removeValue(forKey: contactKey)
+        unreadCounts.removeValue(forKey: contactKey)
+        persistenceStore.deleteMessages(for: contactKey)
+        updateAppBadge()
+    }
+
     func clearAllMessages() {
         messagesByContact.removeAll()
         persistenceStore.deleteAllMessages()
