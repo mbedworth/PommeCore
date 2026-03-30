@@ -92,12 +92,12 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         Task { @MainActor in
             if let isChannel = userInfo["isChannel"] as? Bool, isChannel,
                let chIdx = userInfo["channelIndex"] as? UInt8 {
-                viewModel?.sidebarSelection = chIdx == 0 ? .publicChannel : .channel(chIdx)
+                viewModel?.navigationStore.sidebarSelection = chIdx == 0 ? .publicChannel : .channel(chIdx)
             } else if let pubkeyHex = userInfo["contactPubkey"] as? String {
                 if let contact = viewModel?.contacts.first(where: {
                     $0.publicKey.map { String(format: "%02x", $0) }.joined() == pubkeyHex
                 }) {
-                    viewModel?.sidebarSelection = .contact(contact.publicKeyPrefix)
+                    viewModel?.navigationStore.sidebarSelection = .contact(contact.publicKeyPrefix)
                 }
             }
         }

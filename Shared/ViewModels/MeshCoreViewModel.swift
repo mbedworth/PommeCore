@@ -120,50 +120,16 @@ final class MeshCoreViewModel: ObservableObject {
         set { contactStore.contacts = newValue }
     }
 
-    var pendingNewContacts: [Contact] {
-        get { contactStore.pendingNewContacts }
-        set { contactStore.pendingNewContacts = newValue }
-    }
-
-    var contactGroups: [ContactStore.ContactGroup] {
-        get { contactStore.contactGroups }
-        set { contactStore.contactGroups = newValue }
-    }
+    // pendingNewContacts, contactGroups removed — views use ContactStore directly
 
     var channels: [MeshChannel] {
         get { channelStore.channels }
         set { channelStore.channels = newValue }
     }
 
-    var isSyncingChannels: Bool {
-        get { channelStore.isSyncingChannels }
-        set { channelStore.isSyncingChannels = newValue }
-    }
+    // isSyncingChannels removed — views use ChannelStore directly
 
-    var messagesByContact: [Data: [Message]] {
-        get { messageStoreManager.messagesByContact }
-        set { messageStoreManager.messagesByContact = newValue }
-    }
-
-    var unreadCounts: [Data: Int] {
-        get { messageStoreManager.unreadCounts }
-        set { messageStoreManager.unreadCounts = newValue }
-    }
-
-    var lastExportedURL: String? {
-        get { messageStoreManager.lastExportedURL }
-        set { messageStoreManager.lastExportedURL = newValue }
-    }
-
-    // Channel import properties removed — views use ChannelStore directly
-
-    /// Sidebar selection — delegates to NavigationStore. Views should prefer
-    /// @Environment(NavigationStore.self) for reads, but this forwarding property
-    /// remains for backward compatibility during incremental migration.
-    var sidebarSelection: SidebarSelection? {
-        get { navigationStore.sidebarSelection }
-        set { navigationStore.sidebarSelection = newValue }
-    }
+    // messagesByContact, unreadCounts, lastExportedURL, sidebarSelection removed — use stores directly
 
     // MARK: - Internet Map (non-watchOS only)
     #if !os(watchOS)
@@ -171,31 +137,14 @@ final class MeshCoreViewModel: ObservableObject {
     private var pendingMapDataJSON: String?
     #endif
 
-    /// Convenience: the currently selected contact, derived from sidebarSelection.
-    var selectedContact: Contact? {
-        guard case .contact(let key) = sidebarSelection else { return nil }
-        return contacts.first { $0.publicKeyPrefix == key }
-    }
 
-    /// Forwarding convenience properties — delegate to NavigationStore.
-    var showPublicChannel: Bool { navigationStore.showPublicChannel }
-    var selectedChannelIndex: UInt8? { navigationStore.selectedChannelIndex }
-    // Connection state — forwarded from ConnectionManager
-    var isScanning: Bool {
-        get { connectionManager.isScanning }
-        set { connectionManager.isScanning = newValue }
-    }
-    var discoveredPeripherals: [DiscoveredPeripheral] {
-        connectionManager.discoveredPeripherals
-    }
+
+    // isScanning, discoveredPeripherals removed — views use ConnectionManager directly
     var connectionState: BLEConnectionState {
         get { connectionManager.connectionState }
         set { connectionManager.connectionState = newValue }
     }
-    var connectedDeviceName: String? {
-        get { connectionManager.connectedDeviceName }
-        set { connectionManager.connectedDeviceName = newValue }
-    }
+    // connectedDeviceName removed — use connectionManager.connectedDeviceName directly
     /// Device configuration — @Observable (fine-grained tracking).
     /// Not @Published: the observeStores bridge tracks changes via @Observable.
     /// Reference is replaced (= DeviceConfig()) on disconnect to reset all state.
@@ -284,7 +233,7 @@ final class MeshCoreViewModel: ObservableObject {
         if let contact = contacts.first(where: {
             $0.publicKey.map { String(format: "%02x", $0) }.joined() == pubkeyHex
         }) {
-            sidebarSelection = .contact(contact.publicKeyPrefix)
+            navigationStore.sidebarSelection = .contact(contact.publicKeyPrefix)
         }
     }
     #endif
@@ -470,7 +419,7 @@ final class MeshCoreViewModel: ObservableObject {
         // Connection loss notification
         if previousState == .connecting || previousState == .ready {
             if self.isInBackground && NotificationPreferences.shared.notifyConnection {
-                let deviceName = self.connectedDeviceName ?? "radio"
+                let deviceName = self.connectionManager.connectedDeviceName ?? "radio"
                 self.postEventNotification(
                     title: "Connection Lost",
                     body: "Lost connection to \(deviceName). Attempting to reconnect...",
@@ -490,57 +439,14 @@ final class MeshCoreViewModel: ObservableObject {
     private func observeStores() {
         func trackChanges() {
             withObservationTracking {
-                // Touch all store properties that views read via the ViewModel
+                // Only track properties still read by views via @EnvironmentObject viewModel.
+                // Views migrated to @Environment(Store.self) observe stores directly.
+                // MeshCoreApp reads: contacts, channels, connectionState, requestShowScanner
+                // SettingsView reads: batteryCalibration (@Published, not tracked here)
                 _ = self.contactStore.contacts
-                _ = self.contactStore.pendingNewContacts
-                _ = self.contactStore.contactGroups
                 _ = self.channelStore.channels
-                _ = self.channelStore.isSyncingChannels
-                _ = self.channelStore.pendingChannelImport
-                _ = self.channelStore.showChannelImportOptions
-                _ = self.channelStore.pendingMultiChannelImport
-                _ = self.channelStore.showMultiChannelImportOptions
-                _ = self.messageStoreManager.messagesByContact
-                _ = self.messageStoreManager.unreadCounts
-                _ = self.messageStoreManager.lastExportedURL
-                // ConnectionManager properties
-                _ = self.connectionManager.isScanning
-                _ = self.connectionManager.discoveredPeripherals
                 _ = self.connectionManager.connectionState
-                _ = self.connectionManager.connectedDeviceName
-                _ = self.connectionManager.bleStatusMessage
-                _ = self.connectionManager.scanRetryCount
                 _ = self.connectionManager.requestShowScanner
-                // DeviceConfig properties (@Observable)
-                _ = self.deviceConfig.deviceName
-                _ = self.deviceConfig.publicKeyHex
-                _ = self.deviceConfig.batteryMillivolts
-                _ = self.deviceConfig.isLoading
-                _ = self.deviceConfig.radioFrequency
-                _ = self.deviceConfig.radioBandwidth
-                _ = self.deviceConfig.radioSpreadingFactor
-                _ = self.deviceConfig.radioCodingRate
-                _ = self.deviceConfig.repeatMode
-                _ = self.deviceConfig.radioTXPower
-                _ = self.deviceConfig.latitude
-                _ = self.deviceConfig.longitude
-                _ = self.deviceConfig.blePIN
-                _ = self.deviceConfig.autoAddBitmask
-                _ = self.deviceConfig.customVars
-                _ = self.deviceConfig.maxChannels
-                // RemoteSessionManager properties
-                _ = self.remoteSessionManager.discoveredNodes
-                _ = self.remoteSessionManager.isDiscovering
-                _ = self.remoteSessionManager.discoverFallbackMessage
-                _ = self.remoteSessionManager.lastTraceResult
-                _ = self.remoteSessionManager.pendingTraceTag
-                _ = self.remoteSessionManager.detailContactForTrace
-                _ = self.remoteSessionManager.pendingStatusKey
-                _ = self.remoteSessionManager.pendingTelemetryKey
-                _ = self.remoteSessionManager.pendingAdvertPathKey
-                _ = self.remoteSessionManager.allowedRepeatFreqRanges
-                // NavigationStore
-                _ = self.navigationStore.sidebarSelection
             } onChange: {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) { [weak self] in
                     guard let self, !self.isSendingChange else {
@@ -635,7 +541,7 @@ final class MeshCoreViewModel: ObservableObject {
         if isInBackground && NotificationPreferences.shared.notifyConnection {
             postEventNotification(
                 title: "Reconnected",
-                body: "Connected to \(connectedDeviceName ?? "radio")",
+                body: "Connected to \(connectionManager.connectedDeviceName ?? "radio")",
                 threadId: "connection"
             )
         }
@@ -933,10 +839,10 @@ final class MeshCoreViewModel: ObservableObject {
 
     func removeContact(_ contact: Contact) {
         contactStore.removeContact(contact)
-        messagesByContact.removeValue(forKey: contact.publicKeyPrefix)
-        unreadCounts.removeValue(forKey: contact.publicKeyPrefix)
-        if case .contact(let key) = sidebarSelection, key == contact.publicKeyPrefix {
-            sidebarSelection = nil
+        messageStoreManager.messagesByContact.removeValue(forKey: contact.publicKeyPrefix)
+        messageStoreManager.unreadCounts.removeValue(forKey: contact.publicKeyPrefix)
+        if case .contact(let key) = navigationStore.sidebarSelection, key == contact.publicKeyPrefix {
+            navigationStore.sidebarSelection = nil
         }
     }
 
@@ -944,12 +850,12 @@ final class MeshCoreViewModel: ObservableObject {
 
     /// Export a contact as a meshcore:// URL. Result arrives as .exportedContact response.
     func exportContact(_ contact: Contact) {
-        lastExportedURL = nil
+        messageStoreManager.lastExportedURL = nil
         connectionManager.exportContact(contact)
     }
 
     func exportSelfContact() {
-        lastExportedURL = nil
+        messageStoreManager.lastExportedURL = nil
         connectionManager.exportSelfContact()
     }
 
@@ -1270,7 +1176,7 @@ final class MeshCoreViewModel: ObservableObject {
             #endif
 
             // User-initiated export — show the "Link Copied" alert
-            lastExportedURL = url
+            messageStoreManager.lastExportedURL = url
 
         case .advertPath(let info):
             Self.logger.info("AdvertPath: timestamp=\(info.recvTimestamp) pathLen=\(info.pathLen)")
@@ -1405,7 +1311,11 @@ final class MeshCoreViewModel: ObservableObject {
 
         // Delegate message storage, dedup, unread, haptics to store
         messageStoreManager.isInBackground = isInBackground
-        messageStoreManager.selectedContactKey = selectedContact?.publicKeyPrefix
+        if case .contact(let key) = navigationStore.sidebarSelection {
+            messageStoreManager.selectedContactKey = key
+        } else {
+            messageStoreManager.selectedContactKey = nil
+        }
         if let stored = messageStoreManager.handleIncomingMessage(message) {
             messageStoreManager.postLocalNotification(for: stored)
         }
