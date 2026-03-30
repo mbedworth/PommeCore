@@ -137,15 +137,20 @@ final class ConnectionManager {
 
     // MARK: - Protocol Convenience Commands
 
-    /// Send a self-advert, applying GPS fudge if privacy radius is configured.
+    /// Send a self-advert. If device is sharing location in adverts (advertLocPolicy == 1),
+    /// updates the device's coordinates from the phone's GPS first. Applies privacy fudge
+    /// if a privacy radius is configured.
     func sendAdvertise(type: UInt8 = 0) {
         #if !os(watchOS)
-        let radius = UserDefaults.standard.double(forKey: "locationPrivacyRadius")
-        if radius > 0 {
-            if let location = SharedLocation.manager.location {
+        if deviceConfig?.advertLocPolicy == 1, let location = SharedLocation.manager.location {
+            let radius = UserDefaults.standard.double(forKey: "locationPrivacyRadius")
+            if radius > 0 {
                 let (fLat, fLon) = MeshCoreViewModel.fudgeLocation(lat: location.coordinate.latitude, lon: location.coordinate.longitude)
                 sendCommand(MeshCoreProtocol.buildSetAdvertLatLon(latitude: fLat, longitude: fLon), label: "FUDGE_LATLON")
                 DebugLogger.shared.log("ADVERT: fudged GPS applied before advert", level: .tx)
+            } else {
+                sendCommand(MeshCoreProtocol.buildSetAdvertLatLon(latitude: location.coordinate.latitude, longitude: location.coordinate.longitude), label: "SET_LATLON")
+                DebugLogger.shared.log("ADVERT: phone GPS applied before advert", level: .tx)
             }
         }
         #endif
