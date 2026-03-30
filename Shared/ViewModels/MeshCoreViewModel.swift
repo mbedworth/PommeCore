@@ -527,7 +527,7 @@ final class MeshCoreViewModel: ObservableObject {
         UNUserNotificationCenter.current().add(request)
     }
 
-    func updateAppBadge() { messageStoreManager.updateAppBadge() }
+    // updateAppBadge removed — views use MessageStoreManager directly
 
     // setupSubscriptions removed — transport subscriptions moved to ConnectionManager.
     // ConnectionManager callbacks are wired in wireConnectionCallbacks().
@@ -558,15 +558,7 @@ final class MeshCoreViewModel: ObservableObject {
         requestContacts(fullSync: true)
     }
 
-    // MARK: - Scanning & Connection (forwarded to ConnectionManager)
-
-    func requestAutoScan() { connectionManager.requestAutoScan() }
-
-    /// Whether the UI should present the scanner sheet — forwarded from ConnectionManager.
-    var requestShowScanner: Bool {
-        get { connectionManager.requestShowScanner }
-        set { connectionManager.requestShowScanner = newValue }
-    }
+    // Scanning & connection forwards removed — views use ConnectionManager directly
 
     #if os(macOS) || targetEnvironment(macCatalyst)
     /// Called when USB CLI mode is detected — delegates to RemoteSessionManager.
@@ -696,9 +688,7 @@ final class MeshCoreViewModel: ObservableObject {
     private func requestDebouncedIncrementalSync() { contactStore.requestDebouncedIncrementalSync() }
     func requestContacts(fullSync: Bool = false) { contactStore.requestContacts(fullSync: fullSync) }
 
-    func sendAdvertise(type: UInt8 = 0) {
-        connectionManager.sendAdvertise(type: type)
-    }
+    // sendAdvertise removed — views use ConnectionManager directly
 
     func requestBattAndStorage() {
         sendCommand(MeshCoreProtocol.buildGetBattAndStorage(), label: "GET_BATT")
@@ -892,9 +882,7 @@ final class MeshCoreViewModel: ObservableObject {
         messageStoreManager.syncNextMessage()
     }
 
-    // MARK: - Remote Management (forwarded to RemoteSessionManager)
-
-    func remoteSession(for contact: Contact) -> RemoteDeviceSession { remoteSessionManager.remoteSession(for: contact) }
+    // Remote management forwards removed — views use RemoteSessionManager directly
 
     // MARK: - Response Handling
 

@@ -55,9 +55,9 @@ struct MeshCoreApp: App {
             }
         }
         .onChange(of: scenePhase) { _, newPhase in
-            viewModel.isInBackground = (newPhase != .active)
+            viewModel.connectionManager.isInBackground = (newPhase != .active)
             if newPhase == .active {
-                viewModel.updateAppBadge()
+                viewModel.messageStoreManager.updateAppBadge()
                 // Authentication is handled by AppLockView.onAppear — don't duplicate here
             }
             if newPhase == .background && appLock.appLockEnabled {
@@ -108,6 +108,12 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
 
 struct ContentView: View {
     @EnvironmentObject var viewModel: MeshCoreViewModel
+    @Environment(ContactStore.self) private var contactStore
+    @Environment(ChannelStore.self) private var channelStore
+    @Environment(MessageStoreManager.self) private var messageStoreManager
+    @Environment(ConnectionManager.self) private var connectionManager
+    @Environment(RemoteSessionManager.self) private var remoteSessionManager
+    @Environment(NavigationStore.self) private var navigationStore
     @State private var showScanner = false
     @State private var showSettings = false
     @State private var showDiscover = false
@@ -126,11 +132,10 @@ struct ContentView: View {
                 .sheet(isPresented: $showScanner) {
                     NavigationStack {
                         DeviceScannerView()
-                            .environmentObject(viewModel)
                     }
                 }
                 .onAppear { requestAutoScanOnce() }
-                .onChange(of: viewModel.connectionState) { _, newState in
+                .onChange(of: connectionManager.connectionState) { _, newState in
                     handleConnectionStateChange(newState)
                 }
                 .alert("Connection Failed", isPresented: $showConnectionFailed) {
@@ -162,27 +167,27 @@ struct ContentView: View {
             .navigationSplitViewColumnWidth(min: 220, ideal: 240, max: 400)
             #endif
         } detail: {
-            switch viewModel.navigationStore.sidebarSelection {
+            switch navigationStore.sidebarSelection {
             case .publicChannel:
                 ChannelChatView(channelIndex: 0, channelName: "Public Channel")
             case .channel(let chIdx):
-                if let channel = viewModel.channels.first(where: { $0.index == chIdx }) {
+                if let channel = channelStore.channels.first(where: { $0.index == chIdx }) {
                     ChannelChatView(channelIndex: channel.index, channelName: channel.name)
                 } else {
                     ChannelChatView(channelIndex: chIdx, channelName: "Channel \(chIdx)")
                 }
             case .contact(let key):
-                if let contact = viewModel.contacts.first(where: { $0.publicKeyPrefix == key }) {
+                if let contact = contactStore.contacts.first(where: { $0.publicKeyPrefix == key }) {
                     switch contact.type {
                     case .room:
                         RoomChatView(
                             contact: contact,
-                            session: viewModel.remoteSession(for: contact)
+                            session: remoteSessionManager.remoteSession(for: contact)
                         )
                     case .repeater:
                         RepeaterLoginView(
                             contact: contact,
-                            session: viewModel.remoteSession(for: contact)
+                            session: remoteSessionManager.remoteSession(for: contact)
                         )
                     default:
                         ChatView(contact: contact)
@@ -205,16 +210,15 @@ struct ContentView: View {
             case .usbTerminal:
                 USBTerminalView()
             case .usbDevice:
-                if let contact = viewModel.usbDeviceContact, let session = viewModel.usbDeviceSession {
+                if let contact = remoteSessionManager.usbDeviceContact, let session = remoteSessionManager.usbDeviceSession {
                     RemoteManagementView(contact: contact, session: session)
-                        .environmentObject(viewModel)
                 } else {
                     Text("USB device not connected")
                         .foregroundStyle(MeshTheme.textSecondary)
                 }
             #endif
             case nil:
-                if viewModel.connectionState == .disconnected {
+                if connectionManager.connectionState == .disconnected {
                     VStack(spacing: 16) {
                         Image(systemName: "antenna.radiowaves.left.and.right.slash")
                             .font(.system(size: 48))
@@ -259,7 +263,7 @@ struct ContentView: View {
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button {
-                    viewModel.sendAdvertise(type: 1)
+                    connectionManager.sendAdvertise(type: 1)
                     showAdvertSent = true
                     DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                         showAdvertSent = false
@@ -270,7 +274,7 @@ struct ContentView: View {
                         : "antenna.radiowaves.left.and.right")
                         .foregroundStyle(MeshTheme.accent)
                 }
-                .disabled(viewModel.connectionState != .ready)
+                .disabled(connectionManager.connectionState != .ready)
                 .help("Advertise")
             }
             ToolbarItem(placement: .primaryAction) {
@@ -280,7 +284,7 @@ struct ContentView: View {
                     Image(systemName: "binoculars.fill")
                         .foregroundStyle(MeshTheme.accent)
                 }
-                .disabled(viewModel.connectionState != .ready)
+                .disabled(connectionManager.connectionState != .ready)
                 .help("Discover")
             }
             ToolbarItem(placement: .primaryAction) {
@@ -290,7 +294,7 @@ struct ContentView: View {
                     Image(systemName: "arrow.clockwise")
                         .foregroundStyle(MeshTheme.accent)
                 }
-                .disabled(viewModel.connectionState != .ready)
+                .disabled(connectionManager.connectionState != .ready)
                 .help("Refresh")
             }
         }
@@ -298,7 +302,6 @@ struct ContentView: View {
         .sheet(isPresented: $showScanner) {
             NavigationStack {
                 DeviceScannerView()
-                    .environmentObject(viewModel)
                     .toolbar {
                         ToolbarItem(placement: .cancellationAction) {
                             Button("Done") { showScanner = false }
@@ -324,7 +327,6 @@ struct ContentView: View {
         .sheet(isPresented: $showDiscover) {
             NavigationStack {
                 DiscoverView()
-                    .environmentObject(viewModel)
                     .toolbar {
                         ToolbarItem(placement: .cancellationAction) {
                             Button("Done") { showDiscover = false }
@@ -338,7 +340,6 @@ struct ContentView: View {
             if let (contact, session) = activeManagementTarget {
                 NavigationStack {
                     RemoteManagementView(contact: contact, session: session)
-                        .environmentObject(viewModel)
                         .toolbar {
                             ToolbarItem(placement: .cancellationAction) {
                                 Button("Done") { showRemoteManagement = false }
@@ -358,13 +359,13 @@ struct ContentView: View {
                 }
             }
         }
-        .onChange(of: viewModel.connectionState) { _, newState in
+        .onChange(of: connectionManager.connectionState) { _, newState in
             handleConnectionStateChange(newState)
         }
-        .onChange(of: viewModel.requestShowScanner) { _, shouldShow in
+        .onChange(of: connectionManager.requestShowScanner) { _, shouldShow in
             if shouldShow {
                 showScanner = true
-                viewModel.requestShowScanner = false
+                connectionManager.requestShowScanner = false
             }
         }
         .alert("Connection Failed", isPresented: $showConnectionFailed) {
@@ -399,22 +400,22 @@ struct ContentView: View {
         hasRequestedAutoScan = true
 
         // If already connected (e.g. state restoration), don't show scanner
-        if viewModel.connectionState == .ready || viewModel.connectionState == .connected {
+        if connectionManager.connectionState == .ready || connectionManager.connectionState == .connected {
             return
         }
         // If reconnecting via state restoration, don't interrupt
-        if viewModel.connectionState == .connecting {
+        if connectionManager.connectionState == .connecting {
             return
         }
 
         showScanner = true
-        viewModel.requestAutoScan()
+        connectionManager.requestAutoScan()
     }
 
     /// Find the first logged-in remote management target for the toolbar wrench button.
     private var activeManagementTarget: (Contact, RemoteDeviceSession)? {
-        for contact in viewModel.contacts where contact.type == .repeater || contact.type == .room {
-            let session = viewModel.remoteSession(for: contact)
+        for contact in contactStore.contacts where contact.type == .repeater || contact.type == .room {
+            let session = remoteSessionManager.remoteSession(for: contact)
             if case .loggedIn = session.loginState {
                 return (contact, session)
             }
