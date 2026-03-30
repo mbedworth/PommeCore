@@ -4,8 +4,10 @@ import MeshCoreKit
 struct ContactListView: View {
     @EnvironmentObject var viewModel: MeshCoreViewModel
     @Environment(ContactStore.self) private var contactStore
+    @Environment(ChannelStore.self) private var channelStore
     @Environment(MessageStoreManager.self) private var messageStoreManager
     @Environment(ConnectionManager.self) private var connectionManager
+    @Environment(RemoteSessionManager.self) private var remoteSessionManager
     @Environment(DeviceConfig.self) private var deviceConfig
     @Environment(NavigationStore.self) private var navigationStore
     @Binding var showScanner: Bool
@@ -61,6 +63,12 @@ struct ContactListView: View {
     /// Public Channel virtual contact key (channel 0).
     private let publicChannelKey = Data([0x00 as UInt8])
 
+    #if os(macOS) || targetEnvironment(macCatalyst)
+    private var isUSBCLIConnected: Bool {
+        connectionManager.isUSBCLIMode && remoteSessionManager.isUSBCLIConnected
+    }
+    #endif
+
     var body: some View {
         List(selection: $localSelection) {
             connectionSection
@@ -97,7 +105,7 @@ struct ContactListView: View {
             }
             #endif
             #if os(macOS) || targetEnvironment(macCatalyst)
-            if viewModel.isUSBCLIConnected {
+            if isUSBCLIConnected {
                 Section {
                     NavigationLink(value: SidebarSelection.usbDevice) {
                         HStack(spacing: 12) {
@@ -109,7 +117,7 @@ struct ContactListView: View {
                                     .foregroundStyle(MeshTheme.connected)
                             }
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(viewModel.usbDeviceContact?.name ?? "USB Device")
+                                Text(remoteSessionManager.usbDeviceContact?.name ?? "USB Device")
                                     .font(.body)
                                     .foregroundStyle(MeshTheme.textPrimary)
                                 Text("USB Serial \u{2022} Admin")
@@ -263,10 +271,10 @@ struct ContactListView: View {
                 .environmentObject(viewModel)
                 .frame(minWidth: 360, minHeight: 400)
         }
-        .onChange(of: viewModel.detailContactForTrace?.id) {
-            if let contact = viewModel.detailContactForTrace {
+        .onChange(of: remoteSessionManager.detailContactForTrace?.id) {
+            if let contact = remoteSessionManager.detailContactForTrace {
                 detailContact = contact
-                viewModel.detailContactForTrace = nil
+                remoteSessionManager.detailContactForTrace = nil
             }
         }
         .sheet(item: $pathEditorContact) { contact in
@@ -292,7 +300,7 @@ struct ContactListView: View {
                 .frame(minWidth: 360, minHeight: 400)
         }
         .sheet(isPresented: $showShareAllChannels) {
-            ShareAllChannelsSheet(channels: viewModel.channels)
+            ShareAllChannelsSheet(channels: channelStore.channels)
                 .frame(minWidth: 360, minHeight: 400)
         }
         .alert("Rename Channel", isPresented: Binding(
@@ -303,7 +311,7 @@ struct ContactListView: View {
             Button("Cancel", role: .cancel) { channelToRenameSidebar = nil }
             Button("Rename") {
                 if let ch = channelToRenameSidebar, !channelRenameText.isEmpty {
-                    viewModel.setChannel(index: ch.index, name: channelRenameText, secret: ch.secret)
+                    channelStore.setChannel(index: ch.index, name: channelRenameText, secret: ch.secret)
                 }
                 channelToRenameSidebar = nil
             }
@@ -314,7 +322,7 @@ struct ContactListView: View {
             Button("Cancel", role: .cancel) { channelToRemove = nil }
             Button("Remove", role: .destructive) {
                 if let ch = channelToRemove {
-                    viewModel.setChannel(index: ch.index, name: "", secret: nil)
+                    channelStore.setChannel(index: ch.index, name: "", secret: nil)
                 }
                 channelToRemove = nil
             }
@@ -468,7 +476,7 @@ struct ContactListView: View {
             Button {
                 if connectionManager.connectionState == .ready || connectionManager.connectionState == .connected {
                     #if os(macOS) || targetEnvironment(macCatalyst)
-                    if viewModel.isUSBCLIConnected {
+                    if isUSBCLIConnected {
                         navigationStore.sidebarSelection = .usbDevice
                     } else {
                         openSettings()
@@ -493,7 +501,7 @@ struct ContactListView: View {
                         if !deviceConfig.deviceName.isEmpty { return deviceConfig.deviceName }
                         if let name = connectionManager.connectedDeviceName { return name }
                         #if os(macOS) || targetEnvironment(macCatalyst)
-                        if let name = viewModel.usbDeviceContact?.name, viewModel.isUSBCLIConnected { return "USB: \(name)" }
+                        if let name = remoteSessionManager.usbDeviceContact?.name, isUSBCLIConnected { return "USB: \(name)" }
                         #endif
                         return nil as String?
                     }() {
@@ -523,7 +531,7 @@ struct ContactListView: View {
             .contextMenu {
                 if connectionManager.connectionState == .ready || connectionManager.connectionState == .connected {
                     #if os(macOS) || targetEnvironment(macCatalyst)
-                    if viewModel.isUSBCLIConnected {
+                    if isUSBCLIConnected {
                         Button(role: .destructive) { viewModel.disconnectUSB() } label: {
                             Label("Disconnect USB", systemImage: "cable.connector.slash")
                         }
@@ -678,7 +686,7 @@ struct ContactListView: View {
             )
             #endif
 
-            ForEach(viewModel.channels.filter { $0.index != 0 }) { channel in
+            ForEach(channelStore.channels.filter { $0.index != 0 }) { channel in
                 #if os(watchOS)
                 NavigationLink {
                     ChannelChatView(channelIndex: channel.index, channelName: channel.name)
@@ -724,7 +732,7 @@ struct ContactListView: View {
             HStack {
                 Text("Channels")
                     .foregroundStyle(MeshTheme.textSecondary)
-                if viewModel.isSyncingChannels {
+                if channelStore.isSyncingChannels {
                     ProgressView()
                         .controlSize(.mini)
                 }
@@ -743,7 +751,7 @@ struct ContactListView: View {
                     Button { showImportSheet = true } label: {
                         Label("Paste Channel Link", systemImage: "doc.on.clipboard")
                     }
-                    if !viewModel.channels.isEmpty {
+                    if !channelStore.channels.isEmpty {
                         Divider()
                         Button { showShareAllChannels = true } label: {
                             Label("Share All Channels", systemImage: "square.and.arrow.up")
@@ -1100,38 +1108,38 @@ struct ContactListView: View {
         #endif
         .confirmationDialog(
             "Import Channel",
-            isPresented: $viewModel.showChannelImportOptions,
-            presenting: viewModel.pendingChannelImport
+            isPresented: Bindable(channelStore).showChannelImportOptions,
+            presenting: channelStore.pendingChannelImport
         ) { data in
             Button("Add Channel") {
-                viewModel.importChannelAdd(data)
-                viewModel.pendingChannelImport = nil
+                channelStore.importChannelAdd(data, maxChannels: deviceConfig.maxChannels)
+                channelStore.pendingChannelImport = nil
             }
             Button("Replace All Channels", role: .destructive) {
-                viewModel.importChannelReplaceAll(data)
-                viewModel.pendingChannelImport = nil
+                channelStore.importChannelReplaceAll(data)
+                channelStore.pendingChannelImport = nil
             }
             Button("Cancel", role: .cancel) {
-                viewModel.pendingChannelImport = nil
+                channelStore.pendingChannelImport = nil
             }
         } message: { data in
             Text("Add \"\(data.name)\" to your channels, or replace all existing channels?")
         }
         .confirmationDialog(
-            "Import \(viewModel.pendingMultiChannelImport?.channels.count ?? 0) Channels",
-            isPresented: $viewModel.showMultiChannelImportOptions,
-            presenting: viewModel.pendingMultiChannelImport
+            "Import \(channelStore.pendingMultiChannelImport?.channels.count ?? 0) Channels",
+            isPresented: Bindable(channelStore).showMultiChannelImportOptions,
+            presenting: channelStore.pendingMultiChannelImport
         ) { data in
             Button("Add to Existing Channels") {
-                viewModel.importMultiChannelsAdd(data)
-                viewModel.pendingMultiChannelImport = nil
+                channelStore.importMultiChannelsAdd(data, maxChannels: deviceConfig.maxChannels)
+                channelStore.pendingMultiChannelImport = nil
             }
             Button("Replace All Channels", role: .destructive) {
-                viewModel.importMultiChannelsReplace(data)
-                viewModel.pendingMultiChannelImport = nil
+                channelStore.importMultiChannelsReplace(data, maxChannels: deviceConfig.maxChannels)
+                channelStore.pendingMultiChannelImport = nil
             }
             Button("Cancel", role: .cancel) {
-                viewModel.pendingMultiChannelImport = nil
+                channelStore.pendingMultiChannelImport = nil
             }
         } message: { data in
             Text("Import \(data.names)?\n\nAdd will keep your existing channels. Replace will remove all current channels first.")
@@ -1177,14 +1185,14 @@ struct ContactListView: View {
 
         if contact.type != .chat {
             Button {
-                viewModel.requestStatus(for: contact)
+                remoteSessionManager.requestStatus(for: contact)
             } label: {
                 Label("Request Status", systemImage: "antenna.radiowaves.left.and.right")
             }
         }
 
         Button {
-            viewModel.requestTelemetry(for: contact)
+            remoteSessionManager.requestTelemetry(for: contact)
         } label: {
             Label("Request Telemetry", systemImage: "gauge.with.dots.needle.bottom.50percent")
         }
@@ -1206,7 +1214,7 @@ struct ContactListView: View {
 
         if contact.outPathLen > 0 && !contact.outPath.isEmpty {
             Button {
-                viewModel.traceRoute(to: contact)
+                remoteSessionManager.traceRoute(to: contact)
             } label: {
                 Label("Trace Route", systemImage: "point.3.connected.trianglepath.dotted")
             }
@@ -1277,12 +1285,12 @@ struct ContactListView: View {
         case .room:
             RoomChatView(
                 contact: contact,
-                session: viewModel.remoteSession(for: contact)
+                session: remoteSessionManager.remoteSession(for: contact)
             )
         case .repeater:
             RepeaterLoginView(
                 contact: contact,
-                session: viewModel.remoteSession(for: contact)
+                session: remoteSessionManager.remoteSession(for: contact)
             )
         default:
             ChatView(contact: contact)
@@ -1298,7 +1306,7 @@ struct ContactListView: View {
         case .publicChannel:
             ChannelChatView(channelIndex: 0, channelName: "Public Channel")
         case .channel(let index):
-            if let channel = viewModel.channels.first(where: { $0.index == index }) {
+            if let channel = channelStore.channels.first(where: { $0.index == index }) {
                 ChannelChatView(channelIndex: channel.index, channelName: channel.name)
             } else {
                 ChannelChatView(channelIndex: index, channelName: "Channel \(index)")
@@ -1323,7 +1331,7 @@ struct ContactListView: View {
         case .usbTerminal:
             USBTerminalView()
         case .usbDevice:
-            if let contact = viewModel.usbDeviceContact, let session = viewModel.usbDeviceSession {
+            if let contact = remoteSessionManager.usbDeviceContact, let session = remoteSessionManager.usbDeviceSession {
                 RemoteManagementView(contact: contact, session: session)
                     .environmentObject(viewModel)
             } else {

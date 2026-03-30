@@ -155,25 +155,7 @@ final class MeshCoreViewModel: ObservableObject {
         set { messageStoreManager.lastExportedURL = newValue }
     }
 
-    var pendingChannelImport: ChannelStore.PendingChannelImport? {
-        get { channelStore.pendingChannelImport }
-        set { channelStore.pendingChannelImport = newValue }
-    }
-
-    var showChannelImportOptions: Bool {
-        get { channelStore.showChannelImportOptions }
-        set { channelStore.showChannelImportOptions = newValue }
-    }
-
-    var pendingMultiChannelImport: ChannelStore.PendingMultiChannelImport? {
-        get { channelStore.pendingMultiChannelImport }
-        set { channelStore.pendingMultiChannelImport = newValue }
-    }
-
-    var showMultiChannelImportOptions: Bool {
-        get { channelStore.showMultiChannelImportOptions }
-        set { channelStore.showMultiChannelImportOptions = newValue }
-    }
+    // Channel import properties removed — views use ChannelStore directly
 
     /// Sidebar selection — delegates to NavigationStore. Views should prefer
     /// @Environment(NavigationStore.self) for reads, but this forwarding property
@@ -1075,11 +1057,6 @@ final class MeshCoreViewModel: ObservableObject {
 
     // lastExportedURL -> forwarded from messageStoreManager (computed above)
 
-    // MARK: - Forwarding: Channel Import → ChannelStore
-
-    typealias PendingChannelImport = ChannelStore.PendingChannelImport
-    typealias PendingMultiChannelImport = ChannelStore.PendingMultiChannelImport
-
     func handleMeshCoreURL(_ urlString: String) {
         if channelStore.handleChannelURL(urlString) { return }
         if urlString.hasPrefix("meshcore://") {
@@ -1087,12 +1064,7 @@ final class MeshCoreViewModel: ObservableObject {
         }
     }
 
-    func importChannelAdd(_ data: PendingChannelImport) { channelStore.importChannelAdd(data, maxChannels: deviceConfig.maxChannels) }
-    func importChannelReplaceAll(_ data: PendingChannelImport) { channelStore.importChannelReplaceAll(data) }
-    func importMultiChannelsAdd(_ data: PendingMultiChannelImport) { channelStore.importMultiChannelsAdd(data, maxChannels: deviceConfig.maxChannels) }
-    func importMultiChannelsReplace(_ data: PendingMultiChannelImport) { channelStore.importMultiChannelsReplace(data, maxChannels: deviceConfig.maxChannels) }
-
-    // Messaging forwards removed — views use MessageStoreManager directly
+    // Channel import / messaging forwards removed — views use stores directly
 
     func syncNextMessage() {
         #if os(macOS) || targetEnvironment(macCatalyst)
@@ -1564,11 +1536,7 @@ final class MeshCoreViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Network Tools (forwarded to RemoteSessionManager)
-
-    func traceRoute(to contact: Contact) { remoteSessionManager.traceRoute(to: contact) }
-    func requestStatus(for contact: Contact) { remoteSessionManager.requestStatus(for: contact) }
-    func requestTelemetry(for contact: Contact) { remoteSessionManager.requestTelemetry(for: contact) }
+    // Network tools forwards removed — views use RemoteSessionManager directly
 
     // MARK: - Forwarding: Channel Sync → ChannelStore
 
@@ -1576,9 +1544,7 @@ final class MeshCoreViewModel: ObservableObject {
         channelStore.syncChannels(maxChannels: deviceConfig.maxChannels)
     }
 
-    func setChannel(index: UInt8, name: String, secret: Data? = nil) {
-        channelStore.setChannel(index: index, name: name, secret: secret)
-    }
+    // setChannel removed — views use ChannelStore directly
 
     // MARK: - Binary Helpers
 
