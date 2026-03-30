@@ -113,13 +113,14 @@ public final class USBSerialManager: ObservableObject {
             return
         }
 
-        // Configure: raw mode only, skip baud rate (native USB CDC ignores it)
+        // Configure: raw mode, VMIN=0 VTIME=2 (200ms read timeout) so reads don't block forever.
+        // This allows the read loop to check the exit condition periodically.
         var options = termios()
         tcgetattr(fd, &options)
         cfmakeraw(&options)
         options.c_cflag |= UInt(CLOCAL | CREAD)
-        options.c_cc.16 = 1  // VMIN
-        options.c_cc.17 = 0  // VTIME
+        options.c_cc.16 = 0  // VMIN — return immediately when data available
+        options.c_cc.17 = 2  // VTIME — 200ms timeout (units of 0.1s)
         tcsetattr(fd, TCSANOW, &options)
 
         DebugLogger.shared.log("USB: port opened (blocking, raw mode, no baud set)", level: .info)
@@ -160,10 +161,14 @@ public final class USBSerialManager: ObservableObject {
                     DebugLogger.shared.log("USB RX: \(bytesRead) bytes: \(hex)\(bytesRead > 40 ? "..." : "")", level: .rx)
                     self.handleReceivedData(data)
                 } else if bytesRead == 0 {
-                    DebugLogger.shared.log("USB: EOF — device disconnected", level: .warning)
-                    break
-                } else if errno != EAGAIN && errno != EWOULDBLOCK {
-                    DebugLogger.shared.log("USB: read error \(errno): \(String(cString: strerror(errno)))", level: .error)
+                    // VMIN=0/VTIME=2: bytesRead==0 means timeout (no data), not EOF.
+                    // Just loop back to check fileDescriptor == fd exit condition.
+                    continue
+                } else if errno == EAGAIN || errno == EWOULDBLOCK {
+                    continue
+                } else {
+                    // Real error (EIO, ENXIO, EBADF) — device disconnected or port closed
+                    DebugLogger.shared.log("USB: read error \(errno): \(String(cString: strerror(errno))) — device disconnected", level: .error)
                     break
                 }
             }
@@ -220,6 +225,8 @@ public final class USBSerialManager: ObservableObject {
     }
 
     /// Disconnect from the current serial port.
+    /// Sets fileDescriptor = -1 first so the read loop exits on its next VTIME cycle,
+    /// then closes the fd on a background thread to avoid blocking the main thread.
     public func disconnect() {
         guard isConnected || fileDescriptor >= 0 else { return }
 
@@ -229,9 +236,18 @@ public final class USBSerialManager: ObservableObject {
         resolvedMode = .unknown
         readBuffer.removeAll()
 
-        if fileDescriptor >= 0 {
-            close(fileDescriptor)
-            fileDescriptor = -1
+        // Capture fd and clear it immediately — the read loop checks
+        // `self.fileDescriptor == fd` every 200ms and will exit.
+        let fd = fileDescriptor
+        fileDescriptor = -1
+
+        if fd >= 0 {
+            // Close on background thread — close() on a serial fd can briefly block
+            // if the read loop hasn't exited yet.
+            DispatchQueue.global(qos: .utility).async {
+                close(fd)
+                DebugLogger.shared.log("USB: fd \(fd) closed", level: .info)
+            }
         }
 
         DispatchQueue.main.async {
