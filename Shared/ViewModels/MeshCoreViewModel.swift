@@ -97,40 +97,14 @@ final class MeshCoreViewModel: ObservableObject {
     let remoteSessionManager = RemoteSessionManager()
     let navigationStore = NavigationStore()
 
-    // MARK: - Forwarded State (computed, delegates to stores)
-    // These replace the old @Published properties. The bridge in observeStores()
-    // fires objectWillChange when any store property changes.
-
-    var contacts: [Contact] {
-        get { contactStore.contacts }
-        set { contactStore.contacts = newValue }
-    }
-
-    // pendingNewContacts, contactGroups removed — views use ContactStore directly
-
-    var channels: [MeshChannel] {
-        get { channelStore.channels }
-        set { channelStore.channels = newValue }
-    }
-
-    // isSyncingChannels removed — views use ChannelStore directly
-
-    // messagesByContact, unreadCounts, lastExportedURL, sidebarSelection removed — use stores directly
+    // All forwarding properties removed — use stores directly.
+    // contacts → contactStore.contacts, channels → channelStore.channels, etc.
 
     // MARK: - Internet Map (non-watchOS only)
     #if !os(watchOS)
     private var pendingMapUpload = false
     private var pendingMapDataJSON: String?
     #endif
-
-
-
-    // isScanning, discoveredPeripherals removed — views use ConnectionManager directly
-    var connectionState: BLEConnectionState {
-        get { connectionManager.connectionState }
-        set { connectionManager.connectionState = newValue }
-    }
-    // connectedDeviceName removed — use connectionManager.connectedDeviceName directly
     /// Device configuration — @Observable (fine-grained tracking).
     /// Not @Published: the observeStores bridge tracks changes via @Observable.
     /// Reference is replaced (= DeviceConfig()) on disconnect to reset all state.
@@ -146,13 +120,13 @@ final class MeshCoreViewModel: ObservableObject {
         #if os(iOS)
         NotificationCenter.default.addObserver(forName: UIApplication.willTerminateNotification, object: nil, queue: .main) { [weak self] _ in
             Task { @MainActor in
-                self?.bleManager.disconnectForTermination()
+                self?.connectionManager.bleManager.disconnectForTermination()
             }
         }
         #elseif os(macOS)
         NotificationCenter.default.addObserver(forName: NSApplication.willTerminateNotification, object: nil, queue: .main) { [weak self] _ in
             Task { @MainActor in
-                self?.bleManager.disconnectForTermination()
+                self?.connectionManager.bleManager.disconnectForTermination()
             }
         }
         #endif
@@ -171,19 +145,15 @@ final class MeshCoreViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Forwarding: Nicknames/DisplayName/Activity → ContactStore
+    // displayName, battery calibration removed — use stores directly
 
-    func displayName(for contact: Contact) -> String { contactStore.displayName(for: contact) }
-
-    // Battery calibration moved to DeviceConfig
-
-    // MARK: - Forwarding: Spotlight → ContactStore
+    // MARK: - Spotlight Navigation
 
     #if canImport(CoreSpotlight)
     // indexContactsForSpotlight removed — called directly on contactStore
 
     func navigateToContact(pubkeyHex: String) {
-        if let contact = contacts.first(where: {
+        if let contact = contactStore.contacts.first(where: {
             $0.publicKey.map { String(format: "%02x", $0) }.joined() == pubkeyHex
         }) {
             navigationStore.sidebarSelection = .contact(contact.publicKeyPrefix)
@@ -194,93 +164,9 @@ final class MeshCoreViewModel: ObservableObject {
     /// Last error message received from the device (shown as alert).
     // lastErrorMessage moved to ConnectionManager
 
-    /// BLE status message — forwarded from ConnectionManager.
-    var bleStatusMessage: String? {
-        get { connectionManager.bleStatusMessage }
-        set { connectionManager.bleStatusMessage = newValue }
-    }
-
-    // Transport managers — forwarded from ConnectionManager
-    var bleManager: BLEManager { connectionManager.bleManager }
-    var wifiManager: WiFiConnectionManager { connectionManager.wifiManager }
-    #if os(macOS) || targetEnvironment(macCatalyst)
-    var usbManager: USBSerialManager { connectionManager.usbManager }
-    var usbCLIOutput: [USBTerminalLine] {
-        get { remoteSessionManager.usbCLIOutput }
-        set { remoteSessionManager.usbCLIOutput = newValue }
-    }
-    var usbDeviceSession: RemoteDeviceSession? {
-        get { remoteSessionManager.usbDeviceSession }
-        set { remoteSessionManager.usbDeviceSession = newValue }
-    }
-    var usbDeviceContact: Contact? {
-        get { remoteSessionManager.usbDeviceContact }
-        set { remoteSessionManager.usbDeviceContact = newValue }
-    }
-    var isUSBCLIConnected: Bool {
-        connectionManager.isUSBCLIMode && remoteSessionManager.isUSBCLIConnected
-    }
-    #endif
+    // All forwarding properties (bleStatusMessage, transport managers, scanRetryCount,
+    // isInBackground, network tools state) removed — use stores directly.
     private var cancellables = Set<AnyCancellable>()
-    // messageStore, pendingACKs, pendingChannelEcho, isSyncingMessages -> moved to MessageStoreManager
-    // pendingAutoScan, scanRetryCount, maxScanRetries, scanRetryTask -> moved to ConnectionManager
-
-    /// Scan retry count — forwarded from ConnectionManager.
-    var scanRetryCount: Int {
-        get { connectionManager.scanRetryCount }
-        set { connectionManager.scanRetryCount = newValue }
-    }
-
-    /// Whether the app is currently in the background (for local notifications).
-    var isInBackground: Bool {
-        get { connectionManager.isInBackground }
-        set { connectionManager.isInBackground = newValue }
-    }
-
-    // Login, timeouts, network tools state -> moved to RemoteSessionManager
-    // contactSyncDebounceTask -> moved to ContactStore
-
-    // Network tools — forwarded from RemoteSessionManager
-    var discoveredNodes: [DiscoveredNode] {
-        get { remoteSessionManager.discoveredNodes }
-        set { remoteSessionManager.discoveredNodes = newValue }
-    }
-    var isDiscovering: Bool {
-        get { remoteSessionManager.isDiscovering }
-        set { remoteSessionManager.isDiscovering = newValue }
-    }
-    var discoverFallbackMessage: String? {
-        get { remoteSessionManager.discoverFallbackMessage }
-        set { remoteSessionManager.discoverFallbackMessage = newValue }
-    }
-    var lastTraceResult: TraceResult? {
-        get { remoteSessionManager.lastTraceResult }
-        set { remoteSessionManager.lastTraceResult = newValue }
-    }
-    var telemetryByContact: [Data: [TelemetryReading]] {
-        get { remoteSessionManager.telemetryByContact }
-        set { remoteSessionManager.telemetryByContact = newValue }
-    }
-    var statusByContact: [Data: RemoteStatusInfo] {
-        get { remoteSessionManager.statusByContact }
-        set { remoteSessionManager.statusByContact = newValue }
-    }
-    var advertPathByContact: [Data: AdvertPathInfo] {
-        get { remoteSessionManager.advertPathByContact }
-        set { remoteSessionManager.advertPathByContact = newValue }
-    }
-    var allowedRepeatFreqRanges: [FrequencyRange] {
-        get { remoteSessionManager.allowedRepeatFreqRanges }
-        set { remoteSessionManager.allowedRepeatFreqRanges = newValue }
-    }
-    var pendingTraceTag: UInt32? { remoteSessionManager.pendingTraceTag }
-    var detailContactForTrace: Contact? {
-        get { remoteSessionManager.detailContactForTrace }
-        set { remoteSessionManager.detailContactForTrace = newValue }
-    }
-    var pendingAdvertPathKey: Data? { remoteSessionManager.pendingAdvertPathKey }
-    var pendingStatusKey: Data? { remoteSessionManager.pendingStatusKey }
-    var pendingTelemetryKey: Data? { remoteSessionManager.pendingTelemetryKey }
 
     init() {
         wireStoreDependencies()
@@ -310,20 +196,20 @@ final class MeshCoreViewModel: ObservableObject {
         // MessageStoreManager dependencies
         messageStoreManager.sendCommand = { [weak self] data, label in self?.connectionManager.sendCommand(data, label: label) }
         messageStoreManager.displayNameProvider = { [weak self] key in
-            guard let self, let contact = self.contacts.first(where: { $0.publicKeyPrefix == key }) else { return "Unknown" }
-            return self.displayName(for: contact)
+            guard let self, let contact = self.contactStore.contacts.first(where: { $0.publicKeyPrefix == key }) else { return "Unknown" }
+            return self.contactStore.displayName(for: contact)
         }
         messageStoreManager.deviceNameProvider = { [weak self] in self?.deviceConfig.deviceName ?? "" }
         messageStoreManager.radioPublicKeyHexProvider = { [weak self] in self?.deviceConfig.publicKeyHex ?? "" }
-        messageStoreManager.contactProvider = { [weak self] key in self?.contacts.first(where: { $0.publicKeyPrefix == key }) }
-        messageStoreManager.channelProvider = { [weak self] idx in self?.channels.first(where: { $0.index == idx }) }
+        messageStoreManager.contactProvider = { [weak self] key in self?.contactStore.contacts.first(where: { $0.publicKeyPrefix == key }) }
+        messageStoreManager.channelProvider = { [weak self] idx in self?.channelStore.channels.first(where: { $0.index == idx }) }
         messageStoreManager.channelNotifyModeProvider = { [weak self] name in self?.channelStore.channelNotifyMode(for: name) ?? .all }
-        messageStoreManager.allChannelsProvider = { [weak self] in self?.channels ?? [] }
+        messageStoreManager.allChannelsProvider = { [weak self] in self?.channelStore.channels ?? [] }
         messageStoreManager.resetPathForContact = { [weak self] contact in self?.contactStore.resetPath(for: contact) }
 
         // RemoteSessionManager dependencies
         remoteSessionManager.sendCommand = { [weak self] data, label in self?.connectionManager.sendCommand(data, label: label) }
-        remoteSessionManager.contactsProvider = { [weak self] in self?.contacts ?? [] }
+        remoteSessionManager.contactsProvider = { [weak self] in self?.contactStore.contacts ?? [] }
         remoteSessionManager.deviceConfigProvider = { [weak self] in self?.deviceConfig ?? DeviceConfig() }
         remoteSessionManager.syncNextMessage = { [weak self] in self?.syncNextMessage() }
         remoteSessionManager.showError = { [weak self] msg in self?.connectionManager.lastErrorMessage = msg }
@@ -458,7 +344,7 @@ final class MeshCoreViewModel: ObservableObject {
 
     /// Handle a quick reply from a notification action.
     func handleNotificationReply(text: String, contactPubkeyHex: String) {
-        guard let contact = contacts.first(where: {
+        guard let contact = contactStore.contacts.first(where: {
             $0.publicKey.map { String(format: "%02x", $0) }.joined() == contactPubkeyHex
         }) else {
             Self.logger.warning("Quick reply: contact not found for \(contactPubkeyHex)")
@@ -487,10 +373,10 @@ final class MeshCoreViewModel: ObservableObject {
     private func onDeviceReady() {
         #if os(macOS) || targetEnvironment(macCatalyst)
         // USB CLI mode handles its own settings fetch — don't send binary commands
-        if usbManager.isConnected && usbManager.detectedMode == .cli { return }
+        if connectionManager.usbManager.isConnected && connectionManager.usbManager.detectedMode == .cli { return }
         #endif
         // Reconnection notification
-        if isInBackground && NotificationPreferences.shared.notifyConnection {
+        if connectionManager.isInBackground && NotificationPreferences.shared.notifyConnection {
             postEventNotification(
                 title: "Reconnected",
                 body: "Connected to \(connectionManager.connectedDeviceName ?? "radio")",
@@ -512,7 +398,7 @@ final class MeshCoreViewModel: ObservableObject {
     #if os(macOS) || targetEnvironment(macCatalyst)
     /// Called when USB CLI mode is detected — delegates to RemoteSessionManager.
     private func onUSBCLIReady() {
-        let portName = usbManager.connectedPort?.replacingOccurrences(of: "/dev/cu.", with: "") ?? "USB Device"
+        let portName = connectionManager.usbManager.connectedPort?.replacingOccurrences(of: "/dev/cu.", with: "") ?? "USB Device"
         remoteSessionManager.onUSBCLIReady(portName: portName) { [weak self] cmd in
             self?.connectionManager.sendUSBCLI(cmd)
         }
@@ -521,7 +407,7 @@ final class MeshCoreViewModel: ObservableObject {
             try? await Task.sleep(nanoseconds: 1_000_000_000)
             guard let self else { return }
             self.connectionManager.connectionState = .ready
-            DebugLogger.shared.log("USB CLI: connectionState set to .ready, isUSBCLIConnected=\(self.isUSBCLIConnected)", level: .info)
+            DebugLogger.shared.log("USB CLI: connectionState set to .ready", level: .info)
         }
     }
     #endif
@@ -687,7 +573,7 @@ final class MeshCoreViewModel: ObservableObject {
 
     func syncNextMessage() {
         #if os(macOS) || targetEnvironment(macCatalyst)
-        guard !isUSBCLIConnected else { return }
+        guard !(connectionManager.isUSBCLIMode && remoteSessionManager.isUSBCLIConnected) else { return }
         #endif
         messageStoreManager.syncNextMessage()
     }
@@ -915,8 +801,8 @@ final class MeshCoreViewModel: ObservableObject {
             requestDebouncedIncrementalSync()
 
         case .newAdvert(let contact):
-            contactStore.handleNewAdvert(contact, isInBackground: isInBackground)
-            if isDiscovering {
+            contactStore.handleNewAdvert(contact, isInBackground: connectionManager.isInBackground)
+            if remoteSessionManager.isDiscovering {
                 addAdvertAsDiscoveredNode(contact)
             }
 
@@ -992,7 +878,7 @@ final class MeshCoreViewModel: ObservableObject {
             Self.logger.debug("Raw data: \(pktData.count) bytes")
 
         case .contactDeleted(let publicKey):
-            let name = contacts.first(where: { $0.publicKeyPrefix == publicKey.prefix(6) })?.name ?? "Unknown"
+            let name = contactStore.contacts.first(where: { $0.publicKeyPrefix == publicKey.prefix(6) })?.name ?? "Unknown"
             contactStore.handleContactDeleted(publicKey: publicKey)
             connectionManager.lastErrorMessage = "Contact \"\(name)\" was removed from device to make room for new contacts."
 
@@ -1069,7 +955,7 @@ final class MeshCoreViewModel: ObservableObject {
 
     private func handleAdvert(_ contact: Contact) {
         contactStore.handleAdvert(contact)
-        if isDiscovering {
+        if remoteSessionManager.isDiscovering {
             addAdvertAsDiscoveredNode(contact)
         }
     }
@@ -1108,7 +994,7 @@ final class MeshCoreViewModel: ObservableObject {
         if remoteSessionManager.routeIncomingMessage(message) { return }
 
         // Delegate message storage, dedup, unread, haptics to store
-        messageStoreManager.isInBackground = isInBackground
+        messageStoreManager.isInBackground = connectionManager.isInBackground
         if case .contact(let key) = navigationStore.sidebarSelection {
             messageStoreManager.selectedContactKey = key
         } else {
