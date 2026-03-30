@@ -257,6 +257,9 @@ struct ContentView: View {
                 }
             }
         }
+        #if os(iOS)
+        .navigationSplitViewStyle(.balanced)
+        #endif
         #if os(macOS) || targetEnvironment(macCatalyst)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
