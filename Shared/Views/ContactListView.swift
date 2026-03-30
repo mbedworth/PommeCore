@@ -116,6 +116,7 @@ struct ContactListView: View {
                     Image(systemName: "antenna.radiowaves.left.and.right")
                         .foregroundStyle(MeshTheme.accent)
                 }
+                .accessibilityLabel("Scan for devices")
             }
         }
         #elseif os(macOS) || targetEnvironment(macCatalyst)
@@ -136,6 +137,7 @@ struct ContactListView: View {
                               ? "checkmark.circle.fill" : "antenna.radiowaves.left.and.right")
                             .foregroundStyle(showAdvertSent?.wrappedValue == true ? .green : MeshTheme.accent)
                     }
+                    .accessibilityLabel("Advertise")
                     .disabled(connectionManager.connectionState != .ready)
 
                     Button {
@@ -144,6 +146,7 @@ struct ContactListView: View {
                         Image(systemName: "binoculars.fill")
                             .foregroundStyle(MeshTheme.accent)
                     }
+                    .accessibilityLabel("Discover")
                     .disabled(connectionManager.connectionState != .ready)
 
                     Button {
@@ -386,6 +389,7 @@ struct ContactListView: View {
                         .fill(connectionColor)
                         .frame(width: 10, height: 10)
                         .shadow(color: connectionColor.opacity(0.6), radius: 4)
+                        .accessibilityHidden(true)
                     Text(connectionLabel)
                         .font(.subheadline)
                         .foregroundStyle(MeshTheme.textPrimary)
@@ -497,6 +501,7 @@ struct ContactListView: View {
                     Image(systemName: "gearshape")
                         .foregroundStyle(MeshTheme.accent)
                 }
+                .accessibilityLabel("Settings")
                 .buttonStyle(.plain)
             }
             #endif
@@ -662,6 +667,7 @@ struct ContactListView: View {
                     Image(systemName: "plus")
                         .foregroundStyle(MeshTheme.accent)
                 }
+                .accessibilityLabel("Add channel")
                 .menuIndicator(.hidden)
                 #endif
             }
@@ -817,6 +823,7 @@ struct ContactListView: View {
                 Image(systemName: "plus")
                     .foregroundStyle(MeshTheme.accent)
             }
+            .accessibilityLabel("Add contact")
             .menuIndicator(.hidden)
             Button(isSelecting ? "Done" : "Edit") {
                 isSelecting.toggle()

@@ -36,11 +36,13 @@ struct ContactRowView: View {
                 Image(systemName: "note.text")
                     .foregroundStyle(MeshTheme.textSecondary)
                     .font(.caption)
+                    .accessibilityLabel("Has notes")
             }
             if contact.isFavourite {
                 Image(systemName: "star.fill")
                     .foregroundStyle(.yellow)
                     .font(.caption)
+                    .accessibilityLabel("Favourite")
             }
             unreadBadge
         }
@@ -59,8 +61,9 @@ struct ContactRowView: View {
             return false
         }()
 
+        let statusColor = contactStore.contactStatusColor(for: contact)
+        let statusLabel = contactStore.contactStatusLabel(for: contact)
         ZStack {
-            let statusColor = contactStore.contactStatusColor(for: contact)
             Circle()
                 .fill(statusColor.opacity(0.15))
                 .frame(width: 40, height: 40)
@@ -86,6 +89,8 @@ struct ContactRowView: View {
                 }
             }
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(contact.type.displayName), \(statusLabel)\(loggedIn ? ", logged in" : "")")
     }
 
     @ViewBuilder

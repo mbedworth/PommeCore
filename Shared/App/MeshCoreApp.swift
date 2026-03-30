@@ -277,6 +277,8 @@ struct ContentView: View {
                 }
                 .disabled(connectionManager.connectionState != .ready)
                 .help("Advertise")
+                .accessibilityLabel("Advertise")
+                .accessibilityHint("Send an advertisement to announce your presence on the mesh")
             }
             ToolbarItem(placement: .primaryAction) {
                 Button {
@@ -287,6 +289,8 @@ struct ContentView: View {
                 }
                 .disabled(connectionManager.connectionState != .ready)
                 .help("Discover")
+                .accessibilityLabel("Discover")
+                .accessibilityHint("Find nearby mesh nodes")
             }
             ToolbarItem(placement: .primaryAction) {
                 Button {
@@ -297,6 +301,8 @@ struct ContentView: View {
                 }
                 .disabled(connectionManager.connectionState != .ready)
                 .help("Refresh")
+                .accessibilityLabel("Refresh")
+                .accessibilityHint("Sync contacts and channels from device")
             }
         }
         #endif

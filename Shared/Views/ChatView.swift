@@ -171,6 +171,7 @@ struct ChatView: View {
                         Image(systemName: isSearching ? "magnifyingglass.circle.fill" : "magnifyingglass")
                             .foregroundStyle(MeshTheme.accent)
                     }
+                    .accessibilityLabel(isSearching ? "Close search" : "Search messages")
                     #if !os(watchOS)
                     Button {
                         sendLocationAsDM()
@@ -178,6 +179,7 @@ struct ChatView: View {
                         Image(systemName: "location.fill")
                             .foregroundStyle(MeshTheme.accent)
                     }
+                    .accessibilityLabel("Send location")
                     #endif
                     Button {
                         showNotes = true
@@ -185,6 +187,7 @@ struct ChatView: View {
                         Image(systemName: contactStore.hasNote(for: contact) ? "note.text" : "note.text.badge.plus")
                             .foregroundStyle(MeshTheme.accent)
                     }
+                    .accessibilityLabel("Notes")
                 }
             }
         }
@@ -386,8 +389,7 @@ struct ChatView: View {
 
     #if !os(watchOS)
     private func sendLocationAsDM() {
-        let locManager = CLLocationManager()
-        guard let location = locManager.location else {
+        guard let location = SharedLocation.manager.location else {
             DebugLogger.shared.log("LOCATION: unavailable for send", level: .warning)
             return
         }
@@ -676,8 +678,7 @@ struct ChannelChatView: View {
     }
 
     private func sendLocationToChannel() {
-        let locManager = CLLocationManager()
-        guard let location = locManager.location else {
+        guard let location = SharedLocation.manager.location else {
             DebugLogger.shared.log("LOCATION: unavailable for channel send", level: .warning)
             return
         }
@@ -1479,10 +1480,12 @@ struct MessageBubble: View {
             Image(systemName: "clock")
                 .font(.caption2)
                 .foregroundStyle(MeshTheme.textSecondary)
+                .accessibilityLabel("Sending")
         case .sent, .repeated:
             Image(systemName: "checkmark")
                 .font(.caption2)
                 .foregroundStyle(MeshTheme.textSecondary)
+                .accessibilityLabel(message.status == .repeated ? "Sent, repeated by mesh" : "Sent")
         case .retrying:
             HStack(spacing: 2) {
                 Image(systemName: "arrow.clockwise")
@@ -1506,13 +1509,16 @@ struct MessageBubble: View {
                 Image(systemName: "checkmark.circle.fill")
                     .font(.caption2)
                     .foregroundStyle(MeshTheme.accent)
+                    .accessibilityLabel("Delivered")
                 if let rtt = message.roundTripMs, rtt > 0 {
                     Text("\u{2022}")
                         .font(.caption2)
                         .foregroundStyle(MeshTheme.accent)
+                        .accessibilityHidden(true)
                     Text(String(format: "%.1fs", Double(rtt) / 1000.0))
                         .font(.caption2)
                         .foregroundStyle(MeshTheme.accent)
+                        .accessibilityLabel("Round trip \(String(format: "%.1f", Double(rtt) / 1000.0)) seconds")
                 }
             }
         case .failed:

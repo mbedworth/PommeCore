@@ -13,6 +13,16 @@ public enum ContactType: UInt8, Codable, Sendable {
         let raw = try container.decode(UInt8.self)
         self = ContactType(rawValue: raw) ?? .unknown
     }
+
+    public var displayName: String {
+        switch self {
+        case .chat: return "Contact"
+        case .repeater: return "Repeater"
+        case .room: return "Room"
+        case .sensor: return "Sensor"
+        case .unknown: return "Unknown"
+        }
+    }
 }
 
 /// A MeshCore contact discovered on the mesh network.

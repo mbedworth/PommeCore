@@ -296,6 +296,13 @@ struct DeviceScannerView: View {
     private func signalBars(rssi: Int) -> some View {
         let strength = signalStrength(rssi: rssi)
         let color = signalColor(strength: strength)
+        let qualityLabel = switch strength {
+        case 4: "Excellent"
+        case 3: "Good"
+        case 2: "Fair"
+        case 1: "Weak"
+        default: "No signal"
+        }
         return HStack(spacing: 3) {
             HStack(spacing: 2) {
                 ForEach(0..<4) { bar in
@@ -304,11 +311,14 @@ struct DeviceScannerView: View {
                         .frame(width: 4, height: CGFloat(6 + bar * 4))
                 }
             }
+            .accessibilityHidden(true)
             Text("\(rssi) dBm")
                 .font(.caption2)
                 .foregroundStyle(color)
                 .frame(width: 52, alignment: .trailing)
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Signal: \(qualityLabel), \(rssi) dBm")
     }
 
     private func signalStrength(rssi: Int) -> Int {

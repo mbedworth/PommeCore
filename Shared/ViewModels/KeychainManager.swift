@@ -184,7 +184,7 @@ struct KeychainManager {
             kSecAttrAccount as String: account,
             kSecValueData as String: secret,
             kSecAttrSynchronizable as String: Self.iCloudSyncEnabled,
-            kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlocked
+            kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly
         ]
         #if os(macOS)
         addQuery[kSecUseDataProtectionKeychain as String] = true
@@ -253,7 +253,7 @@ struct KeychainManager {
             kSecAttrAccount as String: account,
             kSecValueData as String: secret,
             kSecAttrSynchronizable as String: Self.iCloudSyncEnabled,
-            kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlocked
+            kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly
         ]
         #if os(macOS)
         addQuery[kSecUseDataProtectionKeychain as String] = true

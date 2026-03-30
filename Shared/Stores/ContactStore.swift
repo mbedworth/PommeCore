@@ -170,6 +170,15 @@ final class ContactStore {
         }
     }
 
+    func contactStatusLabel(for contact: Contact) -> String {
+        switch contactStatus(for: contact) {
+        case .active: return "active"
+        case .recent: return "recently seen"
+        case .stale: return "stale"
+        case .offline: return "offline"
+        }
+    }
+
     // MARK: - Contact Notes
 
     func note(for contact: Contact) -> String {

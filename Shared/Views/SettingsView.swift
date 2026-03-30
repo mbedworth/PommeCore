@@ -288,9 +288,46 @@ private extension SettingsView {
             }
             .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
+
+            if iCloudSyncBinding.wrappedValue {
+                let usage = iCloudKVSUsage()
+                HStack {
+                    Text("iCloud Storage")
+                        .foregroundStyle(MeshTheme.textPrimary)
+                    Spacer()
+                    Text("\(usage.keys) keys, \(ByteCountFormatter.string(fromByteCount: Int64(usage.bytes), countStyle: .memory))")
+                        .font(.caption)
+                        .foregroundStyle(usage.bytes > 900_000 ? .red : usage.bytes > 700_000 ? .orange : MeshTheme.textSecondary)
+                }
+                .listRowBackground(MeshTheme.surface)
+                if usage.bytes > 900_000 {
+                    HStack(spacing: 6) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundStyle(.red)
+                        Text("Approaching iCloud limit (1 MB). Consider deleting old radio data below.")
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                    }
+                    .listRowBackground(MeshTheme.surface)
+                }
+            }
         } header: {
             sectionInfoHeader("iCloud", info: "Syncs nicknames, notes, channel secrets, login credentials, and recent messages between your Apple devices via iCloud. Data is encrypted by Apple in transit and at rest. Messages are stored per radio \u{2014} switching radios keeps data separate.")
         }
+    }
+
+    private func iCloudKVSUsage() -> (keys: Int, bytes: Int) {
+        let store = NSUbiquitousKeyValueStore.default
+        let dict = store.dictionaryRepresentation
+        var totalBytes = 0
+        for (key, value) in dict {
+            totalBytes += key.utf8.count
+            if let data = value as? Data { totalBytes += data.count }
+            else if let string = value as? String { totalBytes += string.utf8.count }
+            else if let array = value as? [Any] { totalBytes += MemoryLayout<Int>.size * array.count }
+            else { totalBytes += 8 }
+        }
+        return (dict.count, totalBytes)
     }
 
     private var iCloudSyncBinding: Binding<Bool> {
@@ -3354,8 +3391,7 @@ struct GPSEditorSheet: View {
             #if !os(watchOS)
             Section {
                 Button {
-                    let locManager = CLLocationManager()
-                    guard let location = locManager.location else { return }
+                    guard let location = SharedLocation.manager.location else { return }
                     let (fLat, fLon) = MeshCoreViewModel.fudgeLocation(lat: location.coordinate.latitude, lon: location.coordinate.longitude)
                     latitude = String(format: "%.6f", fLat)
                     longitude = String(format: "%.6f", fLon)

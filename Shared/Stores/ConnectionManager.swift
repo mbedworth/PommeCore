@@ -6,6 +6,14 @@ import MeshCoreKit
 import CoreLocation
 #endif
 
+#if !os(watchOS)
+/// Shared CLLocationManager — reused across all GPS operations to avoid
+/// repeated initialization overhead and redundant hardware activation.
+enum SharedLocation {
+    static let manager = CLLocationManager()
+}
+#endif
+
 // MARK: - Radio Config Verification Types
 
 struct RadioConfigVerification: Identifiable {
@@ -53,6 +61,7 @@ final class ConnectionManager {
     #if os(macOS) || targetEnvironment(macCatalyst)
     let usbManager = USBSerialManager()
     #endif
+
 
     // MARK: - Dependencies (set by coordinator)
 
@@ -133,8 +142,7 @@ final class ConnectionManager {
         #if !os(watchOS)
         let radius = UserDefaults.standard.double(forKey: "locationPrivacyRadius")
         if radius > 0 {
-            let locManager = CLLocationManager()
-            if let location = locManager.location {
+            if let location = SharedLocation.manager.location {
                 let (fLat, fLon) = MeshCoreViewModel.fudgeLocation(lat: location.coordinate.latitude, lon: location.coordinate.longitude)
                 sendCommand(MeshCoreProtocol.buildSetAdvertLatLon(latitude: fLat, longitude: fLon), label: "FUDGE_LATLON")
                 DebugLogger.shared.log("ADVERT: fudged GPS applied before advert", level: .tx)
@@ -145,7 +153,19 @@ final class ConnectionManager {
     }
 
     /// Import a contact from a meshcore:// URL string. Sends CMD_IMPORT_CONTACT.
+    /// Validates URL format, hex content, and reasonable length before sending to firmware.
     func importContact(url: String) {
+        guard url.lowercased().hasPrefix("meshcore://") else {
+            Self.logger.warning("IMPORT: rejected — not a meshcore:// URL")
+            lastErrorMessage = "Invalid contact link format."
+            return
+        }
+        let hex = String(url.dropFirst("meshcore://".count))
+        guard !hex.isEmpty, hex.count <= 512, hex.allSatisfy({ $0.isHexDigit }) else {
+            Self.logger.warning("IMPORT: rejected — invalid hex payload (len=\(hex.count))")
+            lastErrorMessage = "Invalid contact link data."
+            return
+        }
         let frame = MeshCoreProtocol.buildImportContact(url: url)
         sendCommand(frame, label: "IMPORT_CONTACT")
     }
@@ -382,8 +402,7 @@ final class ConnectionManager {
 
     private func setLocationFromPhoneGPS() {
         #if !os(watchOS)
-        let locManager = CLLocationManager()
-        guard let location = locManager.location else { return }
+        guard let location = SharedLocation.manager.location else { return }
         let (fLat, fLon) = MeshCoreViewModel.fudgeLocation(lat: location.coordinate.latitude, lon: location.coordinate.longitude)
         setAdvertLatLon(latitude: fLat, longitude: fLon)
         #endif
