@@ -488,17 +488,29 @@ final class ConnectionManager {
     }
 
     func disconnectUSB() {
-        usbManager.disconnect()
-        if connectionState != .disconnected {
-            connectionState = .disconnected
-            connectedDeviceName = nil
+        // Send reboot to reset the radio's serial state before closing the port.
+        // Without this, the radio holds stale serial state and won't respond to reconnect.
+        if usbManager.isConnected {
+            if usbManager.detectedMode == .cli {
+                usbManager.sendCLI("reboot")
+            } else if usbManager.detectedMode == .binary {
+                sendCommand(MeshCoreProtocol.buildReboot(), label: "REBOOT")
+            }
+            DebugLogger.shared.log("USB: sent reboot before disconnect", level: .tx)
         }
-        // Show scanner after USB disconnect so user can reconnect.
-        // Rescan USB ports after close(fd) completes (300ms delay in disconnect + margin).
-        DebugLogger.shared.log("USB: disconnected — showing scanner in 2s", level: .info)
+        // Delay disconnect to let the reboot command transmit
         Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            guard let self else { return }
+            self.usbManager.disconnect()
+            if self.connectionState != .disconnected {
+                self.connectionState = .disconnected
+                self.connectedDeviceName = nil
+            }
+            // Show scanner after close completes (300ms in disconnect + margin)
+            DebugLogger.shared.log("USB: disconnected — showing scanner in 2s", level: .info)
             try? await Task.sleep(nanoseconds: 2_000_000_000)
-            guard let self, self.connectionState == .disconnected else { return }
+            guard self.connectionState == .disconnected else { return }
             self.usbManager.scanPorts()
             self.requestShowScanner = true
             self.startScanning()
