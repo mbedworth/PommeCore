@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		038B76DA3EB2B884787888BE /* ContactListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21606E2B959E6496D3B0230D /* ContactListView.swift */; };
+		0F1DFA1A2F7C049A00936443 /* test.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F1DFA192F7C049500936443 /* test.swift */; };
 		0FCE4BE32F7A20E5009358D8 /* MeshCoreViewModel+ResponseHandling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FCE4BE22F7A20C3009358D8 /* MeshCoreViewModel+ResponseHandling.swift */; };
 		0FCE4BE42F7A20E5009358D8 /* MeshCoreViewModel+ResponseHandling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FCE4BE22F7A20C3009358D8 /* MeshCoreViewModel+ResponseHandling.swift */; };
 		0FCE4BE52F7A20E5009358D8 /* MeshCoreViewModel+ResponseHandling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FCE4BE22F7A20C3009358D8 /* MeshCoreViewModel+ResponseHandling.swift */; };
@@ -88,6 +89,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0F1DFA192F7C049500936443 /* test.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = test.swift; sourceTree = "<group>"; };
 		0FCE4BE22F7A20C3009358D8 /* MeshCoreViewModel+ResponseHandling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MeshCoreViewModel+ResponseHandling.swift"; sourceTree = "<group>"; };
 		21606E2B959E6496D3B0230D /* ContactListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactListView.swift; sourceTree = "<group>"; };
 		2377BED4FF5A7170783BA649 /* DeviceScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceScannerView.swift; sourceTree = "<group>"; };
@@ -158,6 +160,7 @@
 				725951214897A58A06E32F73 /* Products */,
 				635B414AA8FC75B37367C7F5 /* PrivacyInfo.xcprivacy */,
 				2EEF439B8EDC4A5408C299FB /* PrivacyInfo.xcprivacy */,
+				0F1DFA192F7C049500936443 /* test.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -455,6 +458,7 @@
 				FAA4FA7E3E52FCF631D55675 /* Theme.swift in Sources */,
 				CATKUXG25PTVMENJWXQZY49X /* RemoteManagementView.swift in Sources */,
 				KCM1ABCD0003000000000001 /* KeychainManager.swift in Sources */,
+				0F1DFA1A2F7C049A00936443 /* test.swift in Sources */,
 				STO10000000100000000003 /* ContactStore.swift in Sources */,
 				STO20000000100000000003 /* ChannelStore.swift in Sources */,
 				STO30000000100000000003 /* MessageStoreManager.swift in Sources */,
