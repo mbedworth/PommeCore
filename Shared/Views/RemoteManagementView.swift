@@ -111,6 +111,7 @@ struct RemoteManagementView: View {
                 DebugLogger.shared.log("REMOTE: cleared local session for \(contact.name) on exit", level: .info)
             }
         }
+        #if !os(macOS)
         .toolbar {
             ToolbarItem(placement: .automatic) {
                 Button {
@@ -124,6 +125,7 @@ struct RemoteManagementView: View {
                 .disabled(session.isFetchingSettings)
             }
         }
+        #endif
     }
 
     @ViewBuilder

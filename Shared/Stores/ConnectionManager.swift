@@ -491,11 +491,12 @@ final class ConnectionManager {
             connectionState = .disconnected
             connectedDeviceName = nil
         }
-        // Start BLE scan after USB disconnect (same as BLE disconnect behavior)
-        DebugLogger.shared.log("USB: disconnected — starting BLE scan in 2s", level: .info)
+        // Show scanner after USB disconnect so user can reconnect
+        DebugLogger.shared.log("USB: disconnected — showing scanner in 2s", level: .info)
         Task { @MainActor [weak self] in
             try? await Task.sleep(nanoseconds: 2_000_000_000)
             guard let self, self.connectionState == .disconnected else { return }
+            self.requestShowScanner = true
             self.startScanning()
         }
     }
