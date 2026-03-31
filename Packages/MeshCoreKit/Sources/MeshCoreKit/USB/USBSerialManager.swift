@@ -108,8 +108,15 @@ public final class USBSerialManager: ObservableObject {
         // Open WITHOUT O_NONBLOCK — some USB CDC devices don't work with it
         let fd = open(port, O_RDWR | O_NOCTTY)
         guard fd >= 0 else {
-            Self.logger.error("Failed to open \(port): \(String(cString: strerror(errno)))")
-            DebugLogger.shared.log("USB: open failed: \(String(cString: strerror(errno)))", level: .error)
+            let err = String(cString: strerror(errno))
+            Self.logger.error("Failed to open \(port): \(err)")
+            DebugLogger.shared.log("USB: open failed: \(err)", level: .error)
+            // Notify observers so connectionState can reset from .connecting
+            DispatchQueue.main.async {
+                self.isConnected = false
+                self.connectedPort = nil
+                self.detectedMode = .unknown
+            }
             return
         }
 
@@ -242,9 +249,9 @@ public final class USBSerialManager: ObservableObject {
         fileDescriptor = -1
 
         if fd >= 0 {
-            // Close on background thread — close() on a serial fd can briefly block
-            // if the read loop hasn't exited yet.
-            DispatchQueue.global(qos: .utility).async {
+            // Wait 300ms for read loop to exit (VTIME=200ms), then close.
+            // Must complete before a reconnect open() to avoid port contention.
+            DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + 0.3) {
                 close(fd)
                 DebugLogger.shared.log("USB: fd \(fd) closed", level: .info)
             }
