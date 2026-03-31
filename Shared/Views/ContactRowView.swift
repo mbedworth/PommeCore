@@ -61,8 +61,9 @@ struct ContactRowView: View {
             return false
         }()
 
-        let statusColor = contactStore.contactStatusColor(for: contact)
-        let statusLabel = contactStore.contactStatusLabel(for: contact)
+        let liveContact = contactStore.contacts.first(where: { $0.publicKeyPrefix == contact.publicKeyPrefix }) ?? contact
+        let statusColor = contactStore.contactStatusColor(for: liveContact)
+        let statusLabel = contactStore.contactStatusLabel(for: liveContact)
         ZStack {
             Circle()
                 .fill(statusColor.opacity(0.15))
@@ -176,7 +177,9 @@ struct ContactRowView: View {
     // MARK: - Helpers
 
     private var lastSeenText: String? {
-        var latest = TimeInterval(contact.lastAdvert)
+        // Read live contact from store to pick up in-place lastAdvert updates
+        let liveContact = contactStore.contacts.first(where: { $0.publicKeyPrefix == contact.publicKeyPrefix }) ?? contact
+        var latest = TimeInterval(liveContact.lastAdvert)
         // Also consider last received message as a "seen" event
         if let activityDate = messageStoreManager.latestActivityDate(for: contact.publicKeyPrefix) {
             latest = max(latest, activityDate.timeIntervalSince1970)
