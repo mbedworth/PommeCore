@@ -60,6 +60,8 @@ final class ConnectionManager {
     let wifiManager = WiFiConnectionManager()
     #if os(macOS) || targetEnvironment(macCatalyst)
     let usbManager = USBSerialManager()
+    /// USB serial ports — bridged from USBSerialManager @Published for @Observable tracking.
+    var usbAvailablePorts: [String] = []
     #endif
 
 
@@ -491,11 +493,13 @@ final class ConnectionManager {
             connectionState = .disconnected
             connectedDeviceName = nil
         }
-        // Show scanner after USB disconnect so user can reconnect
+        // Show scanner after USB disconnect so user can reconnect.
+        // Rescan USB ports after close(fd) completes (300ms delay in disconnect + margin).
         DebugLogger.shared.log("USB: disconnected — showing scanner in 2s", level: .info)
         Task { @MainActor [weak self] in
             try? await Task.sleep(nanoseconds: 2_000_000_000)
             guard let self, self.connectionState == .disconnected else { return }
+            self.usbManager.scanPorts()
             self.requestShowScanner = true
             self.startScanning()
         }
@@ -657,6 +661,13 @@ final class ConnectionManager {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] line in
                 self?.onUSBCLILineReceived?(line)
+            }
+            .store(in: &cancellables)
+
+        usbManager.$availablePorts
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] ports in
+                self?.usbAvailablePorts = ports
             }
             .store(in: &cancellables)
 

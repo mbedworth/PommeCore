@@ -203,7 +203,7 @@ struct DeviceScannerView: View {
                     }
                     .listRowBackground(MeshTheme.surface)
                 } else {
-                    ForEach(connectionManager.usbManager.availablePorts, id: \.self) { port in
+                    ForEach(connectionManager.usbAvailablePorts, id: \.self) { port in
                         HStack {
                             Image(systemName: "cable.connector")
                                 .foregroundStyle(MeshTheme.accent)
@@ -217,7 +217,7 @@ struct DeviceScannerView: View {
                         .listRowBackground(MeshTheme.surface)
                     }
 
-                    if connectionManager.usbManager.availablePorts.isEmpty {
+                    if connectionManager.usbAvailablePorts.isEmpty {
                         Text("No serial ports detected")
                             .font(.caption)
                             .foregroundStyle(MeshTheme.textSecondary)
