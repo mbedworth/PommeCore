@@ -48,6 +48,8 @@ public final class USBSerialManager: ObservableObject {
     private let serialQueue = DispatchQueue(label: "com.meshcore.serial", qos: .userInitiated)
     /// Mode flag for the background read thread (detectedMode is @Published, only safe on main).
     private var resolvedMode: DeviceMode = .unknown
+    /// True while the background read loop is active — prevents FD reuse races on reconnect.
+    private var readLoopActive = false
 
     public init() {}
 
@@ -104,6 +106,11 @@ public final class USBSerialManager: ObservableObject {
             Self.logger.warning("Already connected")
             return
         }
+        guard !readLoopActive else {
+            Self.logger.warning("Read loop still active from previous connection — try again shortly")
+            DebugLogger.shared.log("USB: connect blocked — read loop still exiting", level: .warning)
+            return
+        }
 
         // Open WITHOUT O_NONBLOCK — some USB CDC devices don't work with it
         let fd = open(port, O_RDWR | O_NOCTTY)
@@ -155,6 +162,7 @@ public final class USBSerialManager: ObservableObject {
         // which was not firing for USB CDC devices.
         // Use fd (local, captured at connect time) for both the loop check and read calls
         // to avoid race conditions with disconnect() setting fileDescriptor = -1.
+        readLoopActive = true
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self else { return }
             var buffer = [UInt8](repeating: 0, count: 1024)
@@ -180,6 +188,7 @@ public final class USBSerialManager: ObservableObject {
                 }
             }
 
+            self.readLoopActive = false
             DebugLogger.shared.log("USB: read loop ended", level: .info)
             DispatchQueue.main.async { [weak self] in
                 self?.disconnect()

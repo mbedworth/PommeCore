@@ -498,9 +498,13 @@ final class ConnectionManager {
             }
             DebugLogger.shared.log("USB: sent reboot before disconnect", level: .tx)
         }
-        // Set state immediately so UI reflects disconnect
+        // Set state immediately so UI reflects disconnect. Fire cleanup first.
+        let previousState = connectionState
         connectionState = .disconnected
         connectedDeviceName = nil
+        if previousState != .disconnected {
+            onDisconnected?(previousState)
+        }
         // Delay port close to let the reboot command transmit
         Task { @MainActor [weak self] in
             try? await Task.sleep(nanoseconds: 500_000_000)
@@ -694,7 +698,9 @@ final class ConnectionManager {
                     let previousState = self.connectionState
                     self.connectionState = .disconnected
                     self.connectedDeviceName = nil
-                    self.onDisconnected?(previousState)
+                    if previousState != .disconnected {
+                        self.onDisconnected?(previousState)
+                    }
                 }
             }
             .store(in: &cancellables)

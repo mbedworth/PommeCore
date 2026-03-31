@@ -484,6 +484,7 @@ struct RemoteRadioSection: View {
     @State private var radioParams = ""
     @State private var txPower = ""
     @State private var saveState: SaveButtonState = .idle
+    @State private var isRebooting = false
 
     /// Parse "freq_MHz,bw_kHz,sf,cr" from session settings into components for preset detection.
     private var parsedRadio: (freqKHz: Double, bw: Double, sf: UInt8, cr: UInt8) {
@@ -506,7 +507,9 @@ struct RemoteRadioSection: View {
                     let params = "\(freqMHz),\(bwStr),\(preset.spreadingFactor),\(preset.codingRate)"
                     radioParams = params
                     sendCLI("set radio \(params)")
-                    // Radio params require reboot to take effect
+                    // Radio params require reboot to take effect — guard against rapid taps
+                    guard !isRebooting else { return }
+                    isRebooting = true
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                         sendCLI("reboot")
                     }
