@@ -111,8 +111,19 @@ struct RemoteManagementView: View {
                 DebugLogger.shared.log("REMOTE: cleared local session for \(contact.name) on exit", level: .info)
             }
         }
-        // No toolbar refresh button — macOS NavigationSplitView has a global refresh,
-        // and "Refresh Info" exists inline in the Device Info section.
+        .toolbar {
+            ToolbarItem(placement: .automatic) {
+                Button {
+                    session.hasLoadedFullSettings = false
+                    remoteSessionManager.fetchRemoteSettings(for: contact)
+                } label: {
+                    Image(systemName: "arrow.clockwise")
+                        .foregroundStyle(MeshTheme.accent)
+                }
+                .accessibilityLabel("Reload settings")
+                .disabled(session.isFetchingSettings)
+            }
+        }
     }
 
     @ViewBuilder
@@ -493,6 +504,10 @@ struct RemoteRadioSection: View {
                     let params = "\(freqMHz),\(bwStr),\(preset.spreadingFactor),\(preset.codingRate)"
                     radioParams = params
                     sendCLI("set radio \(params)")
+                    // Radio params require reboot to take effect
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                        sendCLI("reboot")
+                    }
                 },
                 currentFreqKHz: parsedRadio.freqKHz,
                 currentBW: parsedRadio.bw,

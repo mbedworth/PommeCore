@@ -1341,6 +1341,27 @@ private extension ContactListView {
                         .contentShape(Rectangle())
                     }
                     .listRowBackground(MeshTheme.surface)
+
+                    Button(role: .destructive) {
+                        remoteSessionManager.reset()
+                        connectionManager.disconnectUSB()
+                    } label: {
+                        HStack(spacing: 12) {
+                            ZStack {
+                                Circle()
+                                    .fill(MeshTheme.disconnected.opacity(0.15))
+                                    .frame(width: 40, height: 40)
+                                Image(systemName: "cable.connector.slash")
+                                    .foregroundStyle(MeshTheme.disconnected)
+                            }
+                            Text("Disconnect USB")
+                                .font(.body)
+                                .foregroundStyle(MeshTheme.disconnected)
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .listRowBackground(MeshTheme.surface)
                 } header: {
                     Text("USB Device")
                         .foregroundStyle(MeshTheme.textSecondary)
