@@ -1502,33 +1502,33 @@ struct RemoteClockRow: View {
             }
             .buttonStyle(.plain)
 
-            if isClockStale {
-                HStack(spacing: 6) {
+            HStack(spacing: 6) {
+                if isClockStale {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .foregroundStyle(.orange)
                         .font(.caption)
                     Text("Clock out of sync")
                         .font(.caption)
                         .foregroundStyle(.orange)
-                    Spacer()
-                    Button {
-                        let epoch = Int(Date().timeIntervalSince1970)
-                        sendCLI("time \(epoch)")
-                        // Refresh clock after a delay
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                            sendCLI("clock")
-                        }
-                    } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: "clock.arrow.2.circlepath")
-                                .font(.caption)
-                            Text("Sync Clock")
-                                .font(.caption)
-                        }
-                        .foregroundStyle(MeshTheme.accent)
-                    }
-                    .buttonStyle(.plain)
                 }
+                Spacer()
+                Button {
+                    let epoch = Int(Date().timeIntervalSince1970)
+                    sendCLI("time \(epoch)")
+                    // Refresh clock after a delay
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                        sendCLI("clock")
+                    }
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "clock.arrow.2.circlepath")
+                            .font(.caption)
+                        Text("Sync Clock")
+                            .font(.caption)
+                    }
+                    .foregroundStyle(MeshTheme.accent)
+                }
+                .buttonStyle(.plain)
             }
         }
         .listRowBackground(MeshTheme.surface)
