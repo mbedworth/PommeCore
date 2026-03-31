@@ -1,3 +1,13 @@
+//
+//  MeshCoreCommands.swift
+//  MeshCoreKit
+//
+//  Command, response, push, and error code enums for the MeshCore protocol.
+//
+//  Created by Michael P. Bedworth on 3/13/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
+
 import Foundation
 
 /// MeshCore Companion Radio Protocol — command codes sent TO the device.

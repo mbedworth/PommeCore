@@ -1,3 +1,13 @@
+//
+//  MeshCoreViewModel.swift
+//  MeshCoreApple
+//
+//  Coordinator: store wiring, lifecycle, cross-store dependencies.
+//
+//  Created by Michael P. Bedworth on 3/13/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
+
 import SwiftUI
 import Combine
 import os.log

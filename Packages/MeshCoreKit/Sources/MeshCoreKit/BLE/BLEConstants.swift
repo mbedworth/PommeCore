@@ -1,3 +1,13 @@
+//
+//  BLEConstants.swift
+//  MeshCoreKit
+//
+//  Nordic UART service and characteristic UUIDs, BLE frame constants.
+//
+//  Created by Michael P. Bedworth on 3/13/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
+
 import CoreBluetooth
 
 /// Nordic UART Service (NUS) UUIDs used by MeshCore devices.

@@ -1,3 +1,13 @@
+//
+//  Message.swift
+//  MeshCoreKit
+//
+//  Message model: text, status, delivery tracking, and Codable persistence.
+//
+//  Created by Michael P. Bedworth on 3/13/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
+
 import Foundation
 
 /// Delivery status for outgoing messages.

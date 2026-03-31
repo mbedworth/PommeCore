@@ -1,3 +1,13 @@
+//
+//  RemoteSessionManager.swift
+//  MeshCoreApple
+//
+//  Remote CLI sessions, USB CLI management, network tools, and telemetry.
+//
+//  Created by Michael P. Bedworth on 3/20/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
+
 import SwiftUI
 import Combine
 import os.log

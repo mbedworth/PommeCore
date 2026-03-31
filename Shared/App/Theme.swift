@@ -1,3 +1,13 @@
+//
+//  Theme.swift
+//  MeshCoreApple
+//
+//  Color system, mesh theme constants, clipboard helpers, shared UI utilities.
+//
+//  Created by Michael P. Bedworth on 3/13/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
+
 import SwiftUI
 
 // MARK: - App Theme Preference

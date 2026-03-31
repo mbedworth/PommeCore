@@ -1,3 +1,13 @@
+//
+//  ChannelStore.swift
+//  MeshCoreApple
+//
+//  Channel sync, import/export, notification modes, iCloud channel preferences.
+//
+//  Created by Michael P. Bedworth on 3/20/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
+
 import SwiftUI
 import os.log
 import MeshCoreKit

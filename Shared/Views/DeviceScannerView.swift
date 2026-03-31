@@ -1,3 +1,13 @@
+//
+//  DeviceScannerView.swift
+//  MeshCoreApple
+//
+//  BLE/WiFi/USB device scanner with signal strength and saved connections.
+//
+//  Created by Michael P. Bedworth on 3/13/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
+
 import SwiftUI
 import MeshCoreKit
 

@@ -1,3 +1,13 @@
+//
+//  RemoteManagementView.swift
+//  MeshCoreApple
+//
+//  Remote admin settings for repeaters, rooms, and sensors via CLI over LoRa or USB.
+//
+//  Created by Michael P. Bedworth on 3/13/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
+
 import SwiftUI
 import MeshCoreKit
 

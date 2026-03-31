@@ -1,3 +1,13 @@
+//
+//  BLEBackgroundHandler.swift
+//  MeshCoreKit
+//
+//  CoreBluetooth state restoration and background BLE session management.
+//
+//  Created by Michael P. Bedworth on 3/13/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
+
 import CoreBluetooth
 import os.log
 

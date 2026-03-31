@@ -1,3 +1,13 @@
+//
+//  USBSerialManager.swift
+//  MeshCoreKit
+//
+//  macOS USB serial communication: port discovery, binary and CLI mode detection.
+//
+//  Created by Michael P. Bedworth on 3/16/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
+
 // USB Serial on iOS/iPadOS: NOT currently possible.
 // iOS does not expose CDC ACM serial devices to apps. The ExternalAccessory framework
 // requires MFi certification (ESP32/Heltec devices are not MFi-certified). IOKit is

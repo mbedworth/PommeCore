@@ -1,3 +1,13 @@
+//
+//  USBSerialView.swift
+//  MeshCoreApple
+//
+//  USB terminal view for raw CLI interaction with infrastructure devices.
+//
+//  Created by Michael P. Bedworth on 3/16/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
+
 #if os(macOS) || targetEnvironment(macCatalyst)
 import SwiftUI
 import MeshCoreKit

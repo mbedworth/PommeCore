@@ -1,3 +1,13 @@
+//
+//  MessageStoreManager.swift
+//  MeshCoreApple
+//
+//  Messages, ACK tracking, echo detection, drafts, unread counts, and iCloud sync.
+//
+//  Created by Michael P. Bedworth on 3/20/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
+
 import SwiftUI
 import os.log
 import UserNotifications

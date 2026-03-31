@@ -1,3 +1,13 @@
+//
+//  ContactRowView.swift
+//  MeshCoreApple
+//
+//  Single contact row: name, status indicator, path, last seen, unread badge.
+//
+//  Created by Michael P. Bedworth on 3/29/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
+
 import SwiftUI
 import MeshCoreKit
 

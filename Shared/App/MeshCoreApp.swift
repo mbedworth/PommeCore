@@ -1,3 +1,13 @@
+//
+//  MeshCoreApp.swift
+//  MeshCoreApple
+//
+//  App entry point, NavigationSplitView layout, platform-specific UI, sheet management.
+//
+//  Created by Michael P. Bedworth on 3/13/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
+
 import SwiftUI
 import UserNotifications
 import LocalAuthentication

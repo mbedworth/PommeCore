@@ -1,3 +1,13 @@
+//
+//  RemoteDeviceSession.swift
+//  MeshCoreKit
+//
+//  Remote admin session state: login, permissions, CLI settings cache.
+//
+//  Created by Michael P. Bedworth on 3/13/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
+
 import Foundation
 
 /// Permission levels for remote device management.

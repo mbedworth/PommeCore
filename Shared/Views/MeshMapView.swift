@@ -1,3 +1,13 @@
+//
+//  MeshMapView.swift
+//  MeshCoreApple
+//
+//  Internet mesh map integration with contact pins and map.meshcore.dev overlay.
+//
+//  Created by Michael P. Bedworth on 3/17/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
+
 #if !os(watchOS)
 import SwiftUI
 import MapKit

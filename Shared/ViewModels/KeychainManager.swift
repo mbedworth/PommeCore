@@ -1,3 +1,13 @@
+//
+//  KeychainManager.swift
+//  MeshCoreApple
+//
+//  Keychain read/write for passwords, channel secrets, and encryption keys.
+//
+//  Created by Michael P. Bedworth on 3/14/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
+
 import Security
 import Foundation
 

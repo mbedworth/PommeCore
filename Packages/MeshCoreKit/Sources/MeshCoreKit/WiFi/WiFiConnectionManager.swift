@@ -1,3 +1,13 @@
+//
+//  WiFiConnectionManager.swift
+//  MeshCoreKit
+//
+//  TCP socket connection to MeshCore radios over WiFi.
+//
+//  Created by Michael P. Bedworth on 3/17/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
+
 import Foundation
 import Combine
 import Network

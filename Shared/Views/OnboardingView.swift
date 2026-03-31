@@ -1,3 +1,13 @@
+//
+//  OnboardingView.swift
+//  MeshCoreApple
+//
+//  First-launch onboarding flow with connection guide and region selection.
+//
+//  Created by Michael P. Bedworth on 3/16/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
+
 import SwiftUI
 
 struct OnboardingView: View {

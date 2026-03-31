@@ -1,3 +1,13 @@
+//
+//  NetworkToolsView.swift
+//  MeshCoreApple
+//
+//  Discover neighbors, trace route, status request, telemetry, and timed discovery.
+//
+//  Created by Michael P. Bedworth on 3/14/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
+
 import SwiftUI
 import CryptoKit
 import MeshCoreKit

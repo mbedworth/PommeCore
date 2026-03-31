@@ -1,3 +1,13 @@
+//
+//  MeshCoreViewModel+ResponseHandling.swift
+//  MeshCoreApple
+//
+//  Frame dispatch from radio to stores, message handling, sync flow.
+//
+//  Created by Michael P. Bedworth on 3/29/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
+
 import Foundation
 import os.log
 import MeshCoreKit

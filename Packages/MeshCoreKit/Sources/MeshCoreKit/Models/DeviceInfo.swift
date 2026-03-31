@@ -1,3 +1,13 @@
+//
+//  DeviceInfo.swift
+//  MeshCoreKit
+//
+//  Parsed RESP_CODE_DEVICE_INFO and RESP_CODE_SELF_INFO payloads.
+//
+//  Created by Michael P. Bedworth on 3/13/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
+
 import Foundation
 
 /// Information about a connected MeshCore device.

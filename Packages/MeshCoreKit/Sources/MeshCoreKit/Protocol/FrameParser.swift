@@ -1,3 +1,13 @@
+//
+//  FrameParser.swift
+//  MeshCoreKit
+//
+//  Parses binary response and push frames from MeshCore firmware.
+//
+//  Created by Michael P. Bedworth on 3/13/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
+
 import Foundation
 import os.log
 

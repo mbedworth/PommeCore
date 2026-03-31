@@ -1,3 +1,13 @@
+//
+//  Channel.swift
+//  MeshCoreKit
+//
+//  Channel model: index, name, PSK, and Codable persistence.
+//
+//  Created by Michael P. Bedworth on 3/13/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
+
 import Foundation
 
 /// Channel type derived from flags byte.

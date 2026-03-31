@@ -1,3 +1,13 @@
+//
+//  ConnectionManager.swift
+//  MeshCoreApple
+//
+//  BLE/WiFi/USB transport, scanning, connection state, and protocol commands.
+//
+//  Created by Michael P. Bedworth on 3/20/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
+
 import SwiftUI
 import Combine
 import os.log

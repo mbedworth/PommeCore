@@ -1,3 +1,13 @@
+//
+//  BatteryProfile.swift
+//  MeshCoreKit
+//
+//  Per-device battery voltage-to-percent calibration with iCloud sync.
+//
+//  Created by Michael P. Bedworth on 3/14/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
+
 import Foundation
 
 /// Battery chemistry types supported by MeshCore devices.

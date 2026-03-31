@@ -1,3 +1,13 @@
+//
+//  ContactStore.swift
+//  MeshCoreApple
+//
+//  Contacts, nicknames, notes, groups, activity status, and Spotlight indexing.
+//
+//  Created by Michael P. Bedworth on 3/20/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
+
 import SwiftUI
 import os.log
 #if canImport(CoreSpotlight)

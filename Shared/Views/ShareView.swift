@@ -1,3 +1,13 @@
+//
+//  ShareView.swift
+//  MeshCoreApple
+//
+//  QR code generation, contact/channel sharing, and meshcore:// URL handling.
+//
+//  Created by Michael P. Bedworth on 3/16/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
+
 import SwiftUI
 import CoreImage.CIFilterBuiltins
 import MeshCoreKit

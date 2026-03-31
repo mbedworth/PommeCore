@@ -1,3 +1,13 @@
+//
+//  NavigationStore.swift
+//  MeshCoreApple
+//
+//  Sidebar selection and navigation state for split view coordination.
+//
+//  Created by Michael P. Bedworth on 3/29/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
+
 import SwiftUI
 import MeshCoreKit
 

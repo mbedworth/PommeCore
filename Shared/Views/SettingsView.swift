@@ -1,3 +1,13 @@
+//
+//  SettingsView.swift
+//  MeshCoreApple
+//
+//  Device settings, radio config, privacy, iCloud, storage, and diagnostics.
+//
+//  Created by Michael P. Bedworth on 3/13/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
+
 import SwiftUI
 import StoreKit
 import LocalAuthentication

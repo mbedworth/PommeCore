@@ -1,3 +1,13 @@
+//
+//  DebugLogView.swift
+//  MeshCoreApple
+//
+//  Debug log viewer with filtering, export, and auto-scroll.
+//
+//  Created by Michael P. Bedworth on 3/18/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
+
 import SwiftUI
 import MeshCoreKit
 
