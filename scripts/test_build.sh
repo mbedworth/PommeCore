@@ -1,18 +1,16 @@
 #!/bin/bash
-# scripts/bump_and_build.sh — compile-check both iOS and macOS platforms
+# scripts/test_build.sh — compile-check both iOS and macOS platforms
 #
 # Usage:
-#   ./scripts/bump_and_build.sh           # build current version (no bump)
-#   ./scripts/bump_and_build.sh --force   # rebuild, overwrite any prior test build
+#   ./scripts/test_build.sh           # verify code compiles cleanly
+#   ./scripts/test_build.sh --force   # rebuild even if previous build succeeded
 #
-# This script ONLY builds and verifies. It does NOT bump the build number.
+# This script ONLY builds and verifies. It does NOT change version or build number.
 #
 # Workflow:
-#   1. Run bump_and_build.sh to verify the code compiles cleanly
-#   2. When ready to distribute, run build-and-distribute.sh which:
-#      - Bumps the build number (one bump → one distribute)
-#      - Commits and pushes
-#      - Archives with signing and uploads to TestFlight
+#   1. ./scripts/test_build.sh                              # verify code compiles
+#   2. ./build-and-distribute.sh [ios|macos|all]             # TestFlight (bump build)
+#   3. ./build-and-distribute.sh [ios|macos|all] --release   # App Store (set YY.MM.R)
 #
 # On success: outputs "ready to distribute"
 # On failure: exits non-zero

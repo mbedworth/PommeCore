@@ -2,20 +2,18 @@
 set -euo pipefail
 
 # MeshCoreApple Distribute Script
-# Bumps build number, archives with signing, and uploads to TestFlight.
+# Archives and uploads to TestFlight.
+#
+# Two modes:
+#   TestFlight (default): bumps build number, archives, uploads.
+#   Release (--release):  sets version to YY.MM.R, resets build to 1, archives, uploads.
 #
 # MUST run scripts/test_build.sh first to verify code compiles cleanly.
 #
-# Workflow:
-#   1. ./scripts/test_build.sh              # verify code compiles (no bump yet)
-#   2. ./build-and-distribute.sh [ios|macos|all]  # bump, archive, upload
-#
-# The build number is bumped BEFORE archiving so the uploaded binary
-# contains the correct build number. If archiving fails, the bump is
-# rolled back automatically.
-#
 # Usage:
-#   ./build-and-distribute.sh [ios|macos|all]
+#   ./build-and-distribute.sh [ios|macos|all]              # TestFlight build
+#   ./build-and-distribute.sh [ios|macos|all] --release    # App Store release
+#   ./build-and-distribute.sh [ios|macos|all] --release 2  # Second release this month
 
 SCHEME="MeshCoreApple"
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -34,57 +32,94 @@ log()   { echo -e "${GREEN}[DIST]${NC} $1"; }
 warn()  { echo -e "${YELLOW}[WARN]${NC} $1"; }
 error() { echo -e "${RED}[ERROR]${NC} $1"; exit 1; }
 
+# --- Parse args ---
+
+TARGET="all"
+RELEASE_MODE=0
+RELEASE_NUM=1
+
+for arg in "$@"; do
+    case "$arg" in
+        ios|macos|all) TARGET="$arg" ;;
+        --release) RELEASE_MODE=1 ;;
+        [0-9]*) RELEASE_NUM="$arg" ;;
+    esac
+done
+
 # --- Pre-flight ---
 
 cd "$PROJECT_DIR"
 PBXPROJ="MeshCoreApple.xcodeproj/project.pbxproj"
-VERSION=$(grep "MARKETING_VERSION" "$PBXPROJ" | head -1 | grep -o '[0-9]*\.[0-9]*\.[0-9]*')
-CURRENT=$(grep "CURRENT_PROJECT_VERSION" "$PBXPROJ" | grep -o '[0-9]*' | sort -n | tail -1)
-NEW_BUILD=$((CURRENT + 1))
+CURRENT_VERSION=$(grep "MARKETING_VERSION" "$PBXPROJ" | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+CURRENT_BUILD=$(grep "CURRENT_PROJECT_VERSION" "$PBXPROJ" | grep -o '[0-9]*' | sort -n | tail -1)
 
 ASC_KEY_PATH="$HOME/.appstoreconnect/private_keys/AuthKey_$ASC_KEY_ID.p8"
 if [[ ! -f "$ASC_KEY_PATH" ]]; then
     error "App Store Connect API key not found at $ASC_KEY_PATH"
 fi
 
-TARGET="${1:-all}"
-log "Distributing v$VERSION: build $CURRENT → $NEW_BUILD (target: $TARGET)"
+# --- Determine version and build ---
+
+if [[ "$RELEASE_MODE" == "1" ]]; then
+    # Release mode: set version to YY.MM.R, reset build to 1
+    NEW_VERSION="$(date '+%y.%m').$RELEASE_NUM"
+    NEW_BUILD=1
+    log "RELEASE: v$CURRENT_VERSION ($CURRENT_BUILD) → v$NEW_VERSION ($NEW_BUILD) (target: $TARGET)"
+else
+    # TestFlight mode: bump build only
+    NEW_VERSION="$CURRENT_VERSION"
+    NEW_BUILD=$((CURRENT_BUILD + 1))
+    log "TestFlight: v$NEW_VERSION build $CURRENT_BUILD → $NEW_BUILD (target: $TARGET)"
+fi
 
 # Create directories
 mkdir -p "$ARCHIVE_DIR" "$EXPORT_DIR"
 
-# Archive names use the NEW build number
-IOS_ARCHIVE="$ARCHIVE_DIR/MeshCoreApple v$VERSION ($NEW_BUILD).xcarchive"
-MACOS_ARCHIVE="$ARCHIVE_DIR/MeshCoreApple-macOS v$VERSION ($NEW_BUILD).xcarchive"
+# Archive names
+IOS_ARCHIVE="$ARCHIVE_DIR/MeshCoreApple v$NEW_VERSION ($NEW_BUILD).xcarchive"
+MACOS_ARCHIVE="$ARCHIVE_DIR/MeshCoreApple-macOS v$NEW_VERSION ($NEW_BUILD).xcarchive"
 
 # ============================================================
-# PHASE 1 — BUMP BUILD NUMBER (before archiving)
-# The archive must contain the new build number so TestFlight
-# receives the correct version.
+# PHASE 1 — SET VERSION & BUILD (before archiving)
+# The archive must contain the correct values so TestFlight/
+# App Store receives them.
 # ============================================================
 
-log "Bumping build number from $CURRENT to $NEW_BUILD..."
+if [[ "$RELEASE_MODE" == "1" ]]; then
+    log "Setting version to $NEW_VERSION, build to $NEW_BUILD..."
+    sed -i '' "s/MARKETING_VERSION = [^;]*/MARKETING_VERSION = $NEW_VERSION/g" "$PBXPROJ"
+fi
+
+log "Setting build number to $NEW_BUILD..."
 sed -i '' "s/CURRENT_PROJECT_VERSION = [0-9][0-9]*/CURRENT_PROJECT_VERSION = $NEW_BUILD/g" "$PBXPROJ"
 
-WRONG_ENTRIES=$(grep "CURRENT_PROJECT_VERSION" "$PBXPROJ" | grep -v "= $NEW_BUILD;" || true)
-if [ -n "$WRONG_ENTRIES" ]; then
-    error "Build number mismatch after sed — some entries were NOT updated to $NEW_BUILD"
+# Verify
+WRONG_BUILD=$(grep "CURRENT_PROJECT_VERSION" "$PBXPROJ" | grep -v "= $NEW_BUILD;" || true)
+if [ -n "$WRONG_BUILD" ]; then
+    error "Build number mismatch — some entries were NOT updated to $NEW_BUILD"
 fi
-log "Verified: all CURRENT_PROJECT_VERSION entries set to $NEW_BUILD"
+if [[ "$RELEASE_MODE" == "1" ]]; then
+    WRONG_VER=$(grep "MARKETING_VERSION" "$PBXPROJ" | grep -v "= $NEW_VERSION;" || true)
+    if [ -n "$WRONG_VER" ]; then
+        error "Version mismatch — some entries were NOT updated to $NEW_VERSION"
+    fi
+fi
+log "Verified: version=$NEW_VERSION build=$NEW_BUILD"
 
 # ============================================================
-# PHASE 2 — ARCHIVE (with new build number)
-# If archiving fails, we roll back the bump.
+# PHASE 2 — ARCHIVE (with new version/build)
+# If archiving fails, we roll back.
 # ============================================================
 
-rollback_bump() {
-    warn "Rolling back build number to $CURRENT..."
-    sed -i '' "s/CURRENT_PROJECT_VERSION = [0-9][0-9]*/CURRENT_PROJECT_VERSION = $CURRENT/g" "$PBXPROJ"
-    error "Archive failed — build number rolled back to $CURRENT"
+rollback() {
+    warn "Rolling back to v$CURRENT_VERSION build $CURRENT_BUILD..."
+    sed -i '' "s/MARKETING_VERSION = [^;]*/MARKETING_VERSION = $CURRENT_VERSION/g" "$PBXPROJ"
+    sed -i '' "s/CURRENT_PROJECT_VERSION = [0-9][0-9]*/CURRENT_PROJECT_VERSION = $CURRENT_BUILD/g" "$PBXPROJ"
+    error "Archive failed — rolled back to v$CURRENT_VERSION ($CURRENT_BUILD)"
 }
 
 if [[ "$TARGET" == "ios" || "$TARGET" == "all" ]]; then
-    log "Archiving iOS (v$VERSION build $NEW_BUILD)..."
+    log "Archiving iOS (v$NEW_VERSION build $NEW_BUILD)..."
     security unlock-keychain -p "" ~/Library/Keychains/login.keychain-db 2>/dev/null || true
     if ! xcodebuild archive \
         -project MeshCoreApple.xcodeproj \
@@ -95,16 +130,16 @@ if [[ "$TARGET" == "ios" || "$TARGET" == "all" ]]; then
         CODE_SIGN_STYLE=Automatic \
         OTHER_CODE_SIGN_FLAGS="--keychain ~/Library/Keychains/login.keychain-db" \
         2>&1 | tee /tmp/xcodebuild-ios.log | tail -20; then
-        rollback_bump
+        rollback
     fi
     if ! grep -q "ARCHIVE SUCCEEDED" /tmp/xcodebuild-ios.log; then
-        rollback_bump
+        rollback
     fi
-    log "iOS archive complete → v$VERSION build $NEW_BUILD"
+    log "iOS archive complete → v$NEW_VERSION build $NEW_BUILD"
 fi
 
 if [[ "$TARGET" == "macos" || "$TARGET" == "all" ]]; then
-    log "Archiving macOS (v$VERSION build $NEW_BUILD)..."
+    log "Archiving macOS (v$NEW_VERSION build $NEW_BUILD)..."
     security unlock-keychain -p "" ~/Library/Keychains/login.keychain-db 2>/dev/null || true
     if ! xcodebuild archive \
         -project MeshCoreApple.xcodeproj \
@@ -115,29 +150,36 @@ if [[ "$TARGET" == "macos" || "$TARGET" == "all" ]]; then
         CODE_SIGN_STYLE=Automatic \
         OTHER_CODE_SIGN_FLAGS="--keychain ~/Library/Keychains/login.keychain-db" \
         2>&1 | tee /tmp/xcodebuild-macos.log | tail -20; then
-        rollback_bump
+        rollback
     fi
     if ! grep -q "ARCHIVE SUCCEEDED" /tmp/xcodebuild-macos.log; then
-        rollback_bump
+        rollback
     fi
-    log "macOS archive complete → v$VERSION build $NEW_BUILD"
+    log "macOS archive complete → v$NEW_VERSION build $NEW_BUILD"
 fi
 
 # ============================================================
-# PHASE 3 — COMMIT & PUSH (after successful archiving)
+# PHASE 3 — COMMIT & PUSH
 # ============================================================
 
-log "Committing build $NEW_BUILD..."
-git add "$PBXPROJ"
-git commit -m "chore: bump build to $NEW_BUILD (v$VERSION)
+if [[ "$RELEASE_MODE" == "1" ]]; then
+    COMMIT_MSG="release: v$NEW_VERSION ($NEW_BUILD)
 
+else
+    COMMIT_MSG="chore: bump build to $NEW_BUILD (v$NEW_VERSION)
+
+fi
+
+log "Committing..."
+git add "$PBXPROJ"
+git commit -m "$COMMIT_MSG"
 
 log "Pushing to remote..."
 git push
-log "Build $NEW_BUILD committed and pushed"
+log "Committed and pushed"
 
 # ============================================================
-# PHASE 4 — UPLOAD TO TESTFLIGHT
+# PHASE 4 — UPLOAD TO APP STORE CONNECT
 # ============================================================
 
 if [[ "$TARGET" == "ios" || "$TARGET" == "all" ]]; then
@@ -174,5 +216,10 @@ if [[ "$TARGET" == "macos" || "$TARGET" == "all" ]]; then
     log "macOS uploaded to App Store Connect"
 fi
 
-log "Done! v$VERSION build $NEW_BUILD uploaded to TestFlight"
-log "Check App Store Connect → TestFlight for processing status"
+if [[ "$RELEASE_MODE" == "1" ]]; then
+    log "Done! RELEASE v$NEW_VERSION ($NEW_BUILD) uploaded"
+    log "Submit in App Store Connect → App Store"
+else
+    log "Done! v$NEW_VERSION build $NEW_BUILD uploaded to TestFlight"
+    log "Check App Store Connect → TestFlight for processing status"
+fi
