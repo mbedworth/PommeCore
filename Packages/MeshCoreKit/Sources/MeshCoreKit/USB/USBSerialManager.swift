@@ -112,10 +112,10 @@ public final class USBSerialManager: ObservableObject {
             Self.logger.error("Failed to open \(port): \(err)")
             DebugLogger.shared.log("USB: open failed: \(err)", level: .error)
             // Notify observers so connectionState can reset from .connecting
-            DispatchQueue.main.async {
-                self.isConnected = false
-                self.connectedPort = nil
-                self.detectedMode = .unknown
+            DispatchQueue.main.async { [weak self] in
+                self?.isConnected = false
+                self?.connectedPort = nil
+                self?.detectedMode = .unknown
             }
             return
         }

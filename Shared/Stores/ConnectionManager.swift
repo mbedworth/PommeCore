@@ -498,15 +498,14 @@ final class ConnectionManager {
             }
             DebugLogger.shared.log("USB: sent reboot before disconnect", level: .tx)
         }
-        // Delay disconnect to let the reboot command transmit
+        // Set state immediately so UI reflects disconnect
+        connectionState = .disconnected
+        connectedDeviceName = nil
+        // Delay port close to let the reboot command transmit
         Task { @MainActor [weak self] in
             try? await Task.sleep(nanoseconds: 500_000_000)
             guard let self else { return }
             self.usbManager.disconnect()
-            if self.connectionState != .disconnected {
-                self.connectionState = .disconnected
-                self.connectedDeviceName = nil
-            }
             // Show scanner after close completes (300ms in disconnect + margin)
             DebugLogger.shared.log("USB: disconnected — showing scanner in 2s", level: .info)
             try? await Task.sleep(nanoseconds: 2_000_000_000)
