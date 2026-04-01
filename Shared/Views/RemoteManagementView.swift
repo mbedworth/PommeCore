@@ -18,6 +18,10 @@ struct RemoteManagementView: View {
     @Environment(RemoteSessionManager.self) private var remoteSessionManager
     @ObservedObject var session: RemoteDeviceSession
     @State private var showLogoutConfirm = false
+    @State private var isEditingName = false
+    @State private var editedName = ""
+    @State private var showRebootAfterRename = false
+    @State private var showPubkeyCopied = false
 
     /// Accent color — teal for room servers, amber for repeaters.
     private var remoteAccent: Color {
@@ -235,6 +239,22 @@ struct RemoteManagementView: View {
     private func getValue(_ key: String) -> String {
         session.settings[key] ?? "\u{2014}"
     }
+
+    private func commitNameEdit() {
+        let trimmed = editedName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            isEditingName = false
+            editedName = ""
+            return
+        }
+        sendCLI("set name \(trimmed)")
+        session.settings["name"] = trimmed
+        isEditingName = false
+        editedName = ""
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            showRebootAfterRename = true
+        }
+    }
 }
 
 // MARK: - Login Section
@@ -387,9 +407,39 @@ private extension RemoteManagementView {
             // Compact device info card
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
-                    Text(getValue("name").isEmpty ? contact.name : getValue("name"))
+                    if isEditingName {
+                        TextField("Device name", text: $editedName, onCommit: {
+                            commitNameEdit()
+                        })
                         .font(.headline)
                         .foregroundStyle(MeshTheme.textPrimary)
+                        .textFieldStyle(.plain)
+                        Button {
+                            commitNameEdit()
+                        } label: {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundStyle(MeshTheme.accent)
+                        }
+                        .buttonStyle(.plain)
+                        Button {
+                            isEditingName = false
+                            editedName = ""
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundStyle(MeshTheme.textSecondary)
+                        }
+                        .buttonStyle(.plain)
+                    } else {
+                        let currentName = getValue("name").isEmpty || getValue("name") == "\u{2014}" ? contact.name : getValue("name")
+                        Text(currentName)
+                            .font(.headline)
+                            .foregroundStyle(MeshTheme.textPrimary)
+                        if canEdit {
+                            Image(systemName: "pencil")
+                                .font(.caption)
+                                .foregroundStyle(MeshTheme.textSecondary)
+                        }
+                    }
                     Spacer()
                     Text(session.settings["role"] ?? (contact.type == .repeater ? "Repeater" : contact.type == .room ? "Room" : "Sensor"))
                         .font(.caption)
@@ -399,6 +449,21 @@ private extension RemoteManagementView {
                             .font(.caption)
                             .foregroundStyle(.orange)
                     }
+                }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    guard canEdit, !isEditingName else { return }
+                    let currentName = getValue("name").isEmpty || getValue("name") == "\u{2014}" ? contact.name : getValue("name")
+                    editedName = currentName
+                    isEditingName = true
+                }
+                .alert("Reboot Required", isPresented: $showRebootAfterRename) {
+                    Button("Reboot Now", role: .destructive) {
+                        sendCLI("reboot")
+                    }
+                    Button("Later", role: .cancel) {}
+                } message: {
+                    Text("The device name has been updated. A reboot is required for the change to take effect.")
                 }
                 HStack(spacing: 12) {
                     if !getValue("ver").isEmpty {
@@ -415,17 +480,32 @@ private extension RemoteManagementView {
                         .font(.caption2)
                         .foregroundStyle(MeshTheme.textSecondary)
                 }
-            }
-            .listRowBackground(MeshTheme.surface)
-            .contextMenu {
+
                 if let pubkey = session.settings["public.key"], !pubkey.isEmpty {
-                    Button {
+                    HStack(spacing: 4) {
+                        Image(systemName: showPubkeyCopied ? "checkmark" : "key")
+                            .font(.caption2)
+                            .foregroundStyle(showPubkeyCopied ? MeshTheme.interactiveGreen : MeshTheme.textSecondary)
+                        Text(showPubkeyCopied ? "Copied!" : String(pubkey.prefix(16)) + "...")
+                            .font(.caption2)
+                            .foregroundStyle(showPubkeyCopied ? MeshTheme.interactiveGreen : MeshTheme.textSecondary)
+                            .lineLimit(1)
+                        Spacer()
+                        Image(systemName: "doc.on.doc")
+                            .font(.caption2)
+                            .foregroundStyle(showPubkeyCopied ? MeshTheme.interactiveGreen : MeshTheme.accent)
+                    }
+                    .contentShape(Rectangle())
+                    .onTapGesture {
                         copyToClipboard(pubkey)
-                    } label: {
-                        Label("Copy Public Key", systemImage: "doc.on.doc")
+                        withAnimation { showPubkeyCopied = true }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                            withAnimation { showPubkeyCopied = false }
+                        }
                     }
                 }
             }
+            .listRowBackground(MeshTheme.surface)
 
             RemoteClockRow(session: session, sendCLI: sendCLI)
 
