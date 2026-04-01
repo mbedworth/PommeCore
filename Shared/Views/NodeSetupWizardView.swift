@@ -47,7 +47,7 @@ struct NodeSetupWizardView: View {
     @State private var isGeolocating = false
     @State private var geocodeError: String?
     @State private var nameApplied = false
-    #if !os(watchOS)
+    #if os(iOS)
     @State private var showMapPicker = false
     #endif
 
@@ -149,7 +149,7 @@ struct NodeSetupWizardView: View {
                 selectedRole = NodeRole.detect(selfType: deviceConfig.selfType, transport: transport)
             }
         }
-        #if !os(watchOS) && os(iOS)
+        #if os(iOS)
         .fullScreenCover(isPresented: $showMapPicker) { mapPickerContent }
         #endif
     }
@@ -231,18 +231,7 @@ struct NodeSetupWizardView: View {
     // MARK: - Step 2: Location
 
     private var locationStep: some View {
-        VStack(spacing: 20) {
-            #if !os(watchOS) && !os(iOS)
-            // macOS: show map inline to avoid sheet/Metal crash
-            if showMapPicker {
-                inlineMapPicker
-            } else {
-                locationStepContent
-            }
-            #else
-            locationStepContent
-            #endif
-        }
+        locationStepContent
     }
 
     private var locationStepContent: some View {
@@ -277,6 +266,7 @@ struct NodeSetupWizardView: View {
             .buttonStyle(.plain)
             .disabled(isGeolocating)
 
+            #if os(iOS)
             Button {
                 showMapPicker = true
             } label: {
@@ -295,6 +285,7 @@ struct NodeSetupWizardView: View {
                 )
             }
             .buttonStyle(.plain)
+            #endif
             #endif
 
             if let error = geocodeError {
@@ -357,28 +348,6 @@ struct NodeSetupWizardView: View {
             }
         }
     }
-
-    #if !os(watchOS) && !os(iOS)
-    private var inlineMapPicker: some View {
-        VStack(spacing: 12) {
-            LocationPickerMapView { codes, country in
-                locationCodes = codes
-                isoCountryCode = country
-                showMapPicker = false
-            }
-            .frame(minHeight: 400)
-            .clipShape(RoundedRectangle(cornerRadius: 10))
-
-            Button {
-                showMapPicker = false
-            } label: {
-                Text("Cancel")
-                    .foregroundStyle(MeshTheme.textSecondary)
-            }
-            .buttonStyle(.plain)
-        }
-    }
-    #endif
 
     private func locationField(label: String, value: Binding<String>, maxLength: Int) -> some View {
         HStack {
@@ -748,7 +717,7 @@ struct NodeSetupWizardView: View {
 
     // MARK: - Helpers
 
-    #if !os(watchOS)
+    #if os(iOS)
     private var mapPickerContent: some View {
         NavigationStack {
             LocationPickerMapView { codes, country in
