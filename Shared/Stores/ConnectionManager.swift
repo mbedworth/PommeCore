@@ -64,6 +64,15 @@ final class ConnectionManager {
     var isVerifyingConfig = false
     var lastConfigVerification: RadioConfigVerification?
 
+    /// Active connection transport, derived from sendCommand routing priority.
+    var activeTransport: Transport {
+        if wifiManager.isConnected { return .wifi }
+        #if os(macOS) || targetEnvironment(macCatalyst)
+        if usbManager.isConnected && usbManager.detectedMode == .binary { return .usb }
+        #endif
+        return .ble
+    }
+
     // MARK: - Transport Managers
 
     let bleManager = BLEManager()
