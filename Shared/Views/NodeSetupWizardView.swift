@@ -835,39 +835,24 @@ struct LocationPickerMapView: View {
     @State private var geocodedCodes: LocationCodes?
     @State private var isGeocoding = false
     @State private var geocodeError: String?
+    @State private var viewSize: CGSize = .zero
 
     var body: some View {
         VStack(spacing: 0) {
             ZStack {
-                Map(position: $cameraPosition) {
-                    if let pin = pinnedCoordinate {
-                        Annotation("", coordinate: pin) {
-                            Image(systemName: "mappin.circle.fill")
-                                .font(.title)
-                                .foregroundStyle(MeshTheme.accent)
-                        }
-                    }
-                    UserAnnotation()
-                }
-                .mapControls {
-                    MapUserLocationButton()
-                    MapCompass()
-                    MapScaleView()
-                }
-                .onMapCameraChange(frequency: .onEnd) { context in
-                    centerCoordinate = context.camera.centerCoordinate
-                }
-                .frame(minHeight: 300)
-
-                // Crosshair at center
-                if pinnedCoordinate == nil {
-                    Image(systemName: "plus")
-                        .font(.title2)
-                        .fontWeight(.light)
-                        .foregroundStyle(MeshTheme.accent.opacity(0.8))
-                        .allowsHitTesting(false)
+                // Defer Map creation until the view has a non-zero size.
+                // MapKit's Metal renderer crashes with CAMetalLayer width=0 height=0
+                // when the sheet initializes before layout completes on macOS/Catalyst.
+                if viewSize.width > 0 && viewSize.height > 0 {
+                    mapContent
+                } else {
+                    Color.clear
                 }
             }
+            .background(GeometryReader { geo in
+                Color.clear.onAppear { viewSize = geo.size }
+                    .onChange(of: geo.size) { _, newSize in viewSize = newSize }
+            })
 
             // Bottom panel
             VStack(spacing: 12) {
@@ -947,6 +932,38 @@ struct LocationPickerMapView: View {
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
+    }
+
+    private var mapContent: some View {
+        ZStack {
+            Map(position: $cameraPosition) {
+                if let pin = pinnedCoordinate {
+                    Annotation("", coordinate: pin) {
+                        Image(systemName: "mappin.circle.fill")
+                            .font(.title)
+                            .foregroundStyle(MeshTheme.accent)
+                    }
+                }
+                UserAnnotation()
+            }
+            .mapControls {
+                MapUserLocationButton()
+                MapCompass()
+                MapScaleView()
+            }
+            .onMapCameraChange(frequency: .onEnd) { context in
+                centerCoordinate = context.camera.centerCoordinate
+            }
+
+            // Crosshair at center
+            if pinnedCoordinate == nil {
+                Image(systemName: "plus")
+                    .font(.title2)
+                    .fontWeight(.light)
+                    .foregroundStyle(MeshTheme.accent.opacity(0.8))
+                    .allowsHitTesting(false)
+            }
+        }
     }
 
     private func codeBadge(_ label: String, _ value: String) -> some View {
