@@ -149,15 +149,8 @@ struct NodeSetupWizardView: View {
                 selectedRole = NodeRole.detect(selfType: deviceConfig.selfType, transport: transport)
             }
         }
-        #if !os(watchOS)
-        #if os(iOS)
+        #if !os(watchOS) && os(iOS)
         .fullScreenCover(isPresented: $showMapPicker) { mapPickerContent }
-        #else
-        .sheet(isPresented: $showMapPicker) {
-            mapPickerContent
-                .frame(width: 600, height: 700)
-        }
-        #endif
         #endif
     }
 
@@ -238,6 +231,21 @@ struct NodeSetupWizardView: View {
     // MARK: - Step 2: Location
 
     private var locationStep: some View {
+        VStack(spacing: 20) {
+            #if !os(watchOS) && !os(iOS)
+            // macOS: show map inline to avoid sheet/Metal crash
+            if showMapPicker {
+                inlineMapPicker
+            } else {
+                locationStepContent
+            }
+            #else
+            locationStepContent
+            #endif
+        }
+    }
+
+    private var locationStepContent: some View {
         VStack(spacing: 20) {
             stepHeader(
                 icon: "location",
@@ -349,6 +357,28 @@ struct NodeSetupWizardView: View {
             }
         }
     }
+
+    #if !os(watchOS) && !os(iOS)
+    private var inlineMapPicker: some View {
+        VStack(spacing: 12) {
+            LocationPickerMapView { codes, country in
+                locationCodes = codes
+                isoCountryCode = country
+                showMapPicker = false
+            }
+            .frame(minHeight: 400)
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+
+            Button {
+                showMapPicker = false
+            } label: {
+                Text("Cancel")
+                    .foregroundStyle(MeshTheme.textSecondary)
+            }
+            .buttonStyle(.plain)
+        }
+    }
+    #endif
 
     private func locationField(label: String, value: Binding<String>, maxLength: Int) -> some View {
         HStack {
