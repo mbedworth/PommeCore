@@ -1024,7 +1024,7 @@ struct DeviceInfoPopover: View {
                     infoRow("Last RSSI", value: "\(config.statsLastRSSI) dBm")
                 }
                 if config.statsLastSNR != 0 {
-                    infoRow("Last SNR", value: String(format: "%.1f dB", Double(config.statsLastSNR) / 4.0))
+                    infoRow("Last SNR", value: formatSNR(config.statsLastSNR))
                 }
             } header: {
                 Text("Status").foregroundStyle(MeshTheme.textSecondary)

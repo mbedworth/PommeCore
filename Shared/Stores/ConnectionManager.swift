@@ -363,13 +363,12 @@ final class ConnectionManager {
 
     private func buildConfigVerification() -> RadioConfigVerification {
         guard let c = deviceConfig else { return RadioConfigVerification(frequency: "?", bandwidth: "?", spreadingFactor: 0, codingRate: 0, txPower: "?", battery: "?", firmware: "?", regionCheck: .warning, regionMessage: "No device config") }
-        let freqMHz = Double(c.radioFrequency) / 1000.0
         let bwKHz = Double(c.radioBandwidth) / 1000.0
-        let battV = String(format: "%.2fV", Double(c.batteryMillivolts) / 1000.0)
+        let battV = formatBatteryVoltage(c.batteryMillivolts)
         let battPct = c.batteryPercent()
         let (regionCheck, regionMsg) = checkFrequencyForRegion(freqHz: c.radioFrequency, lat: c.latitude, lon: c.longitude)
         return RadioConfigVerification(
-            frequency: String(format: "%.3f MHz", freqMHz),
+            frequency: formatFrequency(Double(c.radioFrequency)),
             bandwidth: String(format: "%.1f kHz", bwKHz),
             spreadingFactor: Int(c.radioSpreadingFactor),
             codingRate: Int(c.radioCodingRate),
@@ -383,19 +382,20 @@ final class ConnectionManager {
 
     private func checkFrequencyForRegion(freqHz: UInt32, lat: Double, lon: Double) -> (RegionCheck, String) {
         let freqMHz = Double(freqHz) / 1000.0
+        let freqStr = formatFrequency(Double(freqHz))
         let region = (lat != 0 || lon != 0) ? regionFromCoordinates(lat: lat, lon: lon) : .unknown
         if freqMHz >= 902 && freqMHz <= 928 {
-            return region == .europe ? (.fail, "Frequency \(String(format: "%.3f", freqMHz)) MHz is Americas band but GPS shows Europe") :
-                (.pass, "Frequency \(String(format: "%.3f", freqMHz)) MHz — Americas band (902-928 MHz)")
+            return region == .europe ? (.fail, "Frequency \(freqStr) is Americas band but GPS shows Europe") :
+                (.pass, "Frequency \(freqStr) — Americas band (902-928 MHz)")
         } else if freqMHz >= 863 && freqMHz <= 870 {
-            return region == .americas ? (.fail, "Frequency \(String(format: "%.3f", freqMHz)) MHz is EU band but GPS shows Americas") :
-                (.pass, "Frequency \(String(format: "%.3f", freqMHz)) MHz — Europe band (863-870 MHz)")
+            return region == .americas ? (.fail, "Frequency \(freqStr) is EU band but GPS shows Americas") :
+                (.pass, "Frequency \(freqStr) — Europe band (863-870 MHz)")
         } else if freqMHz >= 920 && freqMHz <= 928 {
-            return (.pass, "Frequency \(String(format: "%.3f", freqMHz)) MHz — Japan band (920-928 MHz)")
+            return (.pass, "Frequency \(freqStr) — Japan band (920-928 MHz)")
         } else if freqMHz >= 865 && freqMHz <= 867 {
-            return (.pass, "Frequency \(String(format: "%.3f", freqMHz)) MHz — India band (865-867 MHz)")
+            return (.pass, "Frequency \(freqStr) — India band (865-867 MHz)")
         }
-        return (.warning, "Frequency \(String(format: "%.3f", freqMHz)) MHz — verify manually for your region")
+        return (.warning, "Frequency \(freqStr) — verify manually for your region")
     }
 
     private func regionFromCoordinates(lat: Double, lon: Double) -> RadioRegion {

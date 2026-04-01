@@ -323,6 +323,28 @@ struct LabelValueRow: View {
     }
 }
 
+// MARK: - Formatting Helpers
+
+/// Format raw SNR value (SNR * 4 from firmware) to human-readable dB string.
+func formatSNR<T: BinaryInteger>(_ rawSNR: T) -> String {
+    String(format: "%.1f dB", Double(Int(rawSNR)) / 4.0)
+}
+
+/// Format frequency from kHz to MHz display string.
+func formatFrequency(_ kHz: Double) -> String {
+    String(format: "%.3f MHz", kHz / 1000.0)
+}
+
+/// Format battery voltage from millivolts to volts string.
+func formatBatteryVoltage<T: BinaryInteger>(_ mV: T) -> String {
+    String(format: "%.2fV", Double(Int(mV)) / 1000.0)
+}
+
+/// Format a coordinate (latitude or longitude) to 6 decimal places.
+func formatCoordinate(_ value: Double) -> String {
+    String(format: "%.6f", value)
+}
+
 // MARK: - Clipboard Utility
 
 /// Copy text to clipboard with auto-expiration for security.

@@ -46,10 +46,10 @@ extension MeshCoreViewModel {
 
         case .selfInfo(let info):
             Self.logger.info("PARSED SelfInfo: name='\(info.name)' txPwr=\(info.txPower)/\(info.maxTXPower) freq=\(info.radioFreq) bw=\(info.radioBW) sf=\(info.radioSF) cr=\(info.radioCR) lat=\(info.latitude) lon=\(info.longitude)")
-            let freqMHz = String(format: "%.3f", Double(info.radioFreq) / 1000.0)
+            let freqStr = formatFrequency(Double(info.radioFreq))
             let bwKHz = String(format: "%.1f", Double(info.radioBW) / 1000.0)
             let keyHex = Data(info.publicKey.prefix(8)).hexCompact
-            DebugLogger.shared.log("RADIO: freq=\(freqMHz)MHz BW=\(bwKHz)kHz SF=\(info.radioSF) CR=\(info.radioCR) TX=\(info.txPower)/\(info.maxTXPower)dBm", level: .rx)
+            DebugLogger.shared.log("RADIO: freq=\(freqStr) BW=\(bwKHz)kHz SF=\(info.radioSF) CR=\(info.radioCR) TX=\(info.txPower)/\(info.maxTXPower)dBm", level: .rx)
             DebugLogger.shared.log("RADIO: name='\(info.name)' type=\(info.type) pubkey=\(keyHex)...", level: .rx)
             DebugLogger.shared.log("RADIO: lat=\(info.latitude) lon=\(info.longitude) multiACK=\(info.multiACK) advLoc=\(info.advertLocPolicy)", level: .rx)
             deviceConfig.deviceName = info.name

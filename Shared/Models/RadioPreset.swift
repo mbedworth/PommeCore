@@ -177,7 +177,7 @@ struct RadioPresetPicker: View {
 
             if selectedPresetIndex >= 0, selectedPresetIndex < filteredPresets.count {
                 let preset = filteredPresets[selectedPresetIndex]
-                Text("\(String(format: "%.3f", preset.frequencyKHz / 1000)) MHz · SF\(preset.spreadingFactor) · BW \(preset.bandwidth == preset.bandwidth.rounded() ? "\(Int(preset.bandwidth))" : "\(preset.bandwidth)") kHz · CR 4/\(preset.codingRate)")
+                Text("\(formatFrequency(preset.frequencyKHz)) · SF\(preset.spreadingFactor) · BW \(preset.bandwidth == preset.bandwidth.rounded() ? "\(Int(preset.bandwidth))" : "\(preset.bandwidth)") kHz · CR 4/\(preset.codingRate)")
                     .font(.caption)
                     .foregroundStyle(MeshTheme.textSecondary)
                     .listRowBackground(MeshTheme.surface)
@@ -211,7 +211,7 @@ struct RadioPresetPicker: View {
                     }
                 } message: {
                     if let p = presetToConfirm {
-                        Text("This will change your radio to \(String(format: "%.3f", p.frequencyKHz / 1000)) MHz, BW \(p.bandwidth == p.bandwidth.rounded() ? "\(Int(p.bandwidth))" : "\(p.bandwidth)") kHz, SF\(p.spreadingFactor), CR 4/\(p.codingRate).\n\nAll nodes on your mesh must use the same settings.")
+                        Text("This will change your radio to \(formatFrequency(p.frequencyKHz)), BW \(p.bandwidth == p.bandwidth.rounded() ? "\(Int(p.bandwidth))" : "\(p.bandwidth)") kHz, SF\(p.spreadingFactor), CR 4/\(p.codingRate).\n\nAll nodes on your mesh must use the same settings.")
                     }
                 }
             }

@@ -406,7 +406,7 @@ struct ChatView: View {
         let lat = location.coordinate.latitude
         let lon = location.coordinate.longitude
         let (fLat, fLon) = MeshCoreViewModel.fudgeLocation(lat: lat, lon: lon)
-        let text = "\u{1F4CD} \(String(format: "%.6f", fLat)), \(String(format: "%.6f", fLon))"
+        let text = "\u{1F4CD} \(formatCoordinate(fLat)), \(formatCoordinate(fLon))"
         messageStoreManager.sendTextMessage(text, to: contact)
         messageStoreManager.playHapticFeedback()
         DebugLogger.shared.log("LOCATION: sent to \(contact.name)", level: .tx)
@@ -693,7 +693,7 @@ struct ChannelChatView: View {
             return
         }
         let (fLat, fLon) = MeshCoreViewModel.fudgeLocation(lat: location.coordinate.latitude, lon: location.coordinate.longitude)
-        let text = "\u{1F4CD} \(String(format: "%.6f", fLat)), \(String(format: "%.6f", fLon))"
+        let text = "\u{1F4CD} \(formatCoordinate(fLat)), \(formatCoordinate(fLon))"
         messageStoreManager.sendChannelMessage(text, channelIndex: channelIndex)
         messageStoreManager.playHapticFeedback()
         DebugLogger.shared.log("LOCATION: sent to channel \(channelIndex)", level: .tx)
@@ -1188,7 +1188,7 @@ struct RoomMessageBubble: View {
                             Text("\u{2022}")
                                 .font(.caption2)
                                 .foregroundStyle(MeshTheme.textSecondary)
-                            Text(String(format: "%.1f dB", Double(snr) / 4.0))
+                            Text(formatSNR(snr))
                                 .font(.caption2)
                                 .foregroundStyle(MeshTheme.textSecondary)
                         }
@@ -1421,7 +1421,7 @@ struct MessageBubble: View {
                             Text("\u{2022}")
                                 .font(.caption2)
                                 .foregroundStyle(MeshTheme.textSecondary)
-                            Text(String(format: "%.1f dB", Double(snr) / 4.0))
+                            Text(formatSNR(snr))
                                 .font(.caption2)
                                 .foregroundStyle(MeshTheme.textSecondary)
                         }
@@ -1623,7 +1623,7 @@ struct ChannelMessageBubble: View {
                             Text("\u{2022}")
                                 .font(.caption2)
                                 .foregroundStyle(MeshTheme.textSecondary)
-                            Text(String(format: "%.1f dB", Double(snr) / 4.0))
+                            Text(formatSNR(snr))
                                 .font(.caption2)
                                 .foregroundStyle(MeshTheme.textSecondary)
                         }

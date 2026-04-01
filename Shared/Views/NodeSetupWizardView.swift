@@ -616,7 +616,7 @@ struct NodeSetupWizardView: View {
                                 Text(preset.name)
                                     .font(.subheadline)
                                     .fontWeight(.medium)
-                                Text("\(String(format: "%.3f", preset.frequencyKHz / 1000)) MHz \u{2022} SF\(preset.spreadingFactor) \u{2022} BW \(preset.bandwidth == preset.bandwidth.rounded() ? "\(Int(preset.bandwidth))" : "\(preset.bandwidth)") kHz")
+                                Text("\(formatFrequency(preset.frequencyKHz)) \u{2022} SF\(preset.spreadingFactor) \u{2022} BW \(preset.bandwidth == preset.bandwidth.rounded() ? "\(Int(preset.bandwidth))" : "\(preset.bandwidth)") kHz")
                                     .font(.caption)
                                     .foregroundStyle(MeshTheme.textSecondary)
                             }
@@ -796,8 +796,8 @@ struct NodeSetupWizardView: View {
             // Name and radio params must be the LAST command before reboot — nothing after.
             #if !os(watchOS)
             if let location = SharedLocation.manager.location, locationCodes != nil {
-                let lat = String(format: "%.6f", location.coordinate.latitude)
-                let lon = String(format: "%.6f", location.coordinate.longitude)
+                let lat = formatCoordinate(location.coordinate.latitude)
+                let lon = formatCoordinate(location.coordinate.longitude)
                 remote.sendCLI("set lat \(lat)")
                 remote.sendCLI("set lon \(lon)")
             }

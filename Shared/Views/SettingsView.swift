@@ -753,7 +753,7 @@ struct DeviceInfoSection: View {
     }
 
     private var radioRow: some View {
-        let freqMHz = String(format: "%.3f", Double(config.radioFrequency) / 1000.0)
+        let freqStr = formatFrequency(Double(config.radioFrequency))
         let bwKHz = String(format: "%.1f", Double(config.radioBandwidth) / 1000.0)
         let presetName = detectPreset()
         return HStack {
@@ -761,7 +761,7 @@ struct DeviceInfoSection: View {
                 .foregroundStyle(MeshTheme.accent)
             Spacer()
             VStack(alignment: .trailing, spacing: 2) {
-                Text("\(freqMHz) MHz \u{2022} \(bwKHz)kHz \u{2022} SF\(config.radioSpreadingFactor) CR\(config.radioCodingRate)")
+                Text("\(freqStr) \u{2022} \(bwKHz)kHz \u{2022} SF\(config.radioSpreadingFactor) CR\(config.radioCodingRate)")
                     .font(.caption)
                     .foregroundStyle(MeshTheme.textSecondary)
                 Text(presetName ?? "Custom")
@@ -1891,7 +1891,7 @@ private extension SettingsView {
                 // Radio
                 infoRow(icon: "waveform.badge.minus", label: "Noise Floor", value: "\(config.statsNoiseFloor) dBm")
                 infoRow(icon: "cellularbars", label: "Last RSSI", value: "\(config.statsLastRSSI) dBm")
-                infoRow(icon: "antenna.radiowaves.left.and.right", label: "Last SNR", value: String(format: "%.1f dB", Double(config.statsLastSNR) / 4.0))
+                infoRow(icon: "antenna.radiowaves.left.and.right", label: "Last SNR", value: formatSNR(config.statsLastSNR))
                 infoRow(icon: "arrow.up.circle", label: "TX Airtime", value: "\(config.statsTXAirtime) s")
                 infoRow(icon: "arrow.down.circle", label: "RX Airtime", value: "\(config.statsRXAirtime) s")
 
@@ -3287,8 +3287,8 @@ struct GPSEditorSheet: View {
                 Button {
                     guard let location = SharedLocation.manager.location else { return }
                     let (fLat, fLon) = MeshCoreViewModel.fudgeLocation(lat: location.coordinate.latitude, lon: location.coordinate.longitude)
-                    latitude = String(format: "%.6f", fLat)
-                    longitude = String(format: "%.6f", fLon)
+                    latitude = formatCoordinate(fLat)
+                    longitude = formatCoordinate(fLon)
                     connectionManager.setAdvertLatLon(latitude: fLat, longitude: fLon)
                     showFeedback($gpsSyncFeedback)
                 } label: {
@@ -3327,8 +3327,8 @@ struct GPSEditorSheet: View {
         .navigationBarTitleDisplayMode(.inline)
         #endif
         .onAppear {
-            if deviceConfig.latitude != 0 { latitude = String(format: "%.6f", deviceConfig.latitude) }
-            if deviceConfig.longitude != 0 { longitude = String(format: "%.6f", deviceConfig.longitude) }
+            if deviceConfig.latitude != 0 { latitude = formatCoordinate(deviceConfig.latitude) }
+            if deviceConfig.longitude != 0 { longitude = formatCoordinate(deviceConfig.longitude) }
         }
     }
 }
