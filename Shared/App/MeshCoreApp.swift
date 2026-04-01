@@ -121,6 +121,7 @@ struct ContentView: View {
     @Environment(ChannelStore.self) private var channelStore
     @Environment(MessageStoreManager.self) private var messageStoreManager
     @Environment(ConnectionManager.self) private var connectionManager
+    @Environment(DeviceConfig.self) private var deviceConfig
     @Environment(RemoteSessionManager.self) private var remoteSessionManager
     @Environment(NavigationStore.self) private var navigationStore
     @State private var showScanner = false
@@ -129,6 +130,7 @@ struct ContentView: View {
     @State private var showConnectionFailed = false
     @State private var showAdvertSent = false
     @State private var showRemoteManagement = false
+    @State private var showSetupWizard = false
     @State private var previousConnectionState: BLEConnectionState = .disconnected
     @State private var hasRequestedAutoScan = false
     /// Bridged from OnboardingView's "Open Settings Now" button.
@@ -366,6 +368,18 @@ struct ContentView: View {
                 .frame(minWidth: 360, minHeight: 400)
             }
         }
+        .sheet(isPresented: $showSetupWizard) {
+            NavigationStack {
+                NodeSetupWizardView()
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Done") { showSetupWizard = false }
+                        }
+                    }
+            }
+            .meshTheme()
+            .frame(minWidth: 360, minHeight: 500)
+        }
         .onAppear {
             requestAutoScanOnce()
             if openSettingsAfterOnboarding {
@@ -452,10 +466,34 @@ struct ContentView: View {
         // Auto-dismiss scanner when connection succeeds
         if newState == .ready || newState == .connected {
             showScanner = false
+            // Auto-show setup wizard on first connection with a default/unconfigured name
+            offerSetupWizardIfNeeded()
         }
         // No alert on connecting → disconnected — the auto-reconnect and
         // auto-scan flow handles this silently via status bar updates.
         previousConnectionState = newState
+    }
+
+    /// Check if device has a default name and offer the setup wizard.
+    /// Only prompts once per radio (keyed by public key prefix).
+    private func offerSetupWizardIfNeeded() {
+        // Wait for device info to populate
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            let name = deviceConfig.deviceName
+            let pubkeyPrefix = String(deviceConfig.publicKeyHex.prefix(12))
+            guard !pubkeyPrefix.isEmpty else { return }
+            let key = "hasOfferedSetupWizard_\(pubkeyPrefix)"
+            guard !UserDefaults.standard.bool(forKey: key) else { return }
+            // Check if name looks unconfigured (default firmware names)
+            let isDefault = name.isEmpty
+                || name.hasPrefix("Companion-")
+                || name.hasPrefix("MeshCore")
+                || name.count <= 4
+            if isDefault {
+                showSetupWizard = true
+            }
+            UserDefaults.standard.set(true, forKey: key)
+        }
     }
 }
 

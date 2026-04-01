@@ -45,6 +45,7 @@ struct SettingsView: View {
     @State private var iosDeviceSheet: DeviceInfoSection.DeviceSheet?
     @State private var showTipJarSheet = false
     #endif
+    @State private var showSetupWizard = false
 
     private var batteryChemistry: BatteryChemistry {
         BatteryChemistry(rawValue: batteryChemistryRaw) ?? .lipo
@@ -129,6 +130,31 @@ struct SettingsView: View {
 
     private var settingsForm: some View {
         List {
+            // 0. Node Setup Wizard (connected only)
+            if isConnected {
+                Section {
+                    Button {
+                        showSetupWizard = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "wand.and.stars")
+                                .foregroundStyle(MeshTheme.accent)
+                                .frame(width: 24)
+                            Text("Node Setup Wizard")
+                                .foregroundStyle(MeshTheme.accent)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundStyle(MeshTheme.textSecondary)
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .listRowBackground(MeshTheme.surface)
+                } header: {
+                    SectionInfoHeader(title: "Quick Setup", info: "Generate a standardized node name and configure your radio preset in one guided flow.")
+                }
+            }
+
             // 1. Appearance
             appearanceSection
 
@@ -221,6 +247,18 @@ struct SettingsView: View {
             }
             .meshTheme()
         }
+        .sheet(isPresented: $showSetupWizard) {
+            NavigationStack {
+                NodeSetupWizardView()
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Done") { showSetupWizard = false }
+                        }
+                    }
+            }
+            .meshTheme()
+            .frame(minWidth: 360, minHeight: 500)
+        }
         #endif
         #if os(macOS) || targetEnvironment(macCatalyst)
         .safeAreaInset(edge: .bottom) {
@@ -267,6 +305,18 @@ struct SettingsView: View {
                 SupportersView()
             }
             .meshTheme()
+        }
+        .sheet(isPresented: $showSetupWizard) {
+            NavigationStack {
+                NodeSetupWizardView()
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Done") { showSetupWizard = false }
+                        }
+                    }
+            }
+            .meshTheme()
+            .frame(minWidth: 360, minHeight: 500)
         }
         #endif
         // macOS/Catalyst: refresh button lives in the NavigationSplitView toolbar.
@@ -1075,162 +1125,7 @@ private extension SettingsView {
 /// Standard LoRa bandwidths in kHz
 private let loraBandwidths: [Double] = [7.8, 10.4, 15.6, 20.8, 31.25, 41.7, 62.5, 125, 250, 500]
 
-struct RadioPreset: Identifiable {
-    let id = UUID()
-    let name: String
-    let region: String
-    let frequencyKHz: Double
-    let bandwidth: Double
-    let spreadingFactor: UInt8
-    let codingRate: UInt8
-}
-
-/// Reusable radio preset picker section. Calls `onApply` with the selected preset.
-/// Auto-detects current preset from device config via inline computation.
-struct RadioPresetPicker: View {
-    let onApply: (RadioPreset) -> Void
-    var currentFreqKHz: Double = 0
-    var currentBW: Double = 0
-    var currentSF: UInt8 = 0
-    var currentCR: UInt8 = 0
-    @State private var selectedPresetIndex: Int = -1
-    @State private var presetToConfirm: RadioPreset?
-    @State private var hasAutoDetected = false
-
-    /// Computed: find matching preset index from current radio params.
-    private var detectedPresetIndex: Int {
-        guard currentFreqKHz > 0 else { return -1 }
-        for (index, p) in radioPresets.enumerated() {
-            if abs(p.frequencyKHz - currentFreqKHz) < 2.0 &&
-               abs(p.bandwidth - currentBW) < 0.5 &&
-               p.spreadingFactor == currentSF &&
-               p.codingRate == currentCR {
-                return index
-            }
-        }
-        return -1
-    }
-
-    var body: some View {
-        // Auto-detect preset on every render when values are available and user hasn't manually changed
-        let detected = detectedPresetIndex
-        let _ = {
-            if detected != selectedPresetIndex && !hasAutoDetected && detected >= 0 {
-                DispatchQueue.main.async {
-                    selectedPresetIndex = detected
-                    hasAutoDetected = true
-                    DebugLogger.shared.log("PRESET AUTO: matched '\(radioPresets[detected].name)' from freq=\(currentFreqKHz) bw=\(currentBW) sf=\(currentSF) cr=\(currentCR)", level: .info)
-                }
-            }
-        }()
-        Section {
-            HStack {
-                Image(systemName: "globe")
-                    .foregroundStyle(MeshTheme.accent)
-                    .frame(width: 24)
-                Picker("Radio Preset", selection: $selectedPresetIndex) {
-                    Text("Custom").tag(-1)
-                    ForEach(Array(radioPresets.enumerated()), id: \.offset) { index, preset in
-                        Text(preset.name).tag(index)
-                    }
-                }
-                .foregroundStyle(MeshTheme.accent)
-                .tint(MeshTheme.accent)
-            }
-            .listRowBackground(MeshTheme.surface)
-
-            if selectedPresetIndex >= 0, selectedPresetIndex < radioPresets.count {
-                let preset = radioPresets[selectedPresetIndex]
-                Text("\(String(format: "%.3f", preset.frequencyKHz / 1000)) MHz · SF\(preset.spreadingFactor) · BW \(preset.bandwidth == preset.bandwidth.rounded() ? "\(Int(preset.bandwidth))" : "\(preset.bandwidth)") kHz · CR 4/\(preset.codingRate)")
-                    .font(.caption)
-                    .foregroundStyle(MeshTheme.textSecondary)
-                    .listRowBackground(MeshTheme.surface)
-
-                Button {
-                    presetToConfirm = preset
-                } label: {
-                    HStack {
-                        Image(systemName: "checkmark.circle")
-                            .foregroundStyle(MeshTheme.accent)
-                            .frame(width: 24)
-                        Text("Apply Preset")
-                            .foregroundStyle(MeshTheme.accent)
-                        Spacer()
-                    }
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .listRowBackground(MeshTheme.surface)
-                .alert("Apply Radio Preset?", isPresented: Binding(
-                    get: { presetToConfirm != nil },
-                    set: { if !$0 { presetToConfirm = nil } }
-                )) {
-                    Button("Cancel", role: .cancel) { presetToConfirm = nil }
-                    Button("Apply") {
-                        if let p = presetToConfirm {
-                            onApply(p)
-                            selectedPresetIndex = -1
-                        }
-                        presetToConfirm = nil
-                    }
-                } message: {
-                    if let p = presetToConfirm {
-                        Text("This will change your radio to \(String(format: "%.3f", p.frequencyKHz / 1000)) MHz, BW \(p.bandwidth == p.bandwidth.rounded() ? "\(Int(p.bandwidth))" : "\(p.bandwidth)") kHz, SF\(p.spreadingFactor), CR 4/\(p.codingRate).\n\nAll nodes on your mesh must use the same settings.")
-                    }
-                }
-            }
-        } header: {
-            SectionInfoHeader(title: "Radio Presets", info: "Select a preset for your region. All nodes on your mesh must use the same settings.")
-        }
-    }
-
-}
-
-let radioPresets: [RadioPreset] = [
-    // USA / Canada
-    RadioPreset(name: "USA/Canada (Recommended)", region: "North America",
-                frequencyKHz: 910525.244, bandwidth: 62.5, spreadingFactor: 7, codingRate: 5),
-    RadioPreset(name: "USA/Canada (Legacy Wide)", region: "North America",
-                frequencyKHz: 915800.0, bandwidth: 250, spreadingFactor: 11, codingRate: 5),
-    RadioPreset(name: "USA: Texas", region: "North America",
-                frequencyKHz: 903500.0, bandwidth: 62.5, spreadingFactor: 7, codingRate: 5),
-    RadioPreset(name: "USA: Southern California", region: "North America",
-                frequencyKHz: 927875.0, bandwidth: 62.5, spreadingFactor: 7, codingRate: 8),
-
-    // Australia
-    RadioPreset(name: "Australia", region: "Australia/NZ",
-                frequencyKHz: 915800.0, bandwidth: 250, spreadingFactor: 10, codingRate: 5),
-    RadioPreset(name: "Australia: Victoria", region: "Australia/NZ",
-                frequencyKHz: 916575.0, bandwidth: 62.5, spreadingFactor: 7, codingRate: 5),
-    RadioPreset(name: "Australia: Brisbane", region: "Australia/NZ",
-                frequencyKHz: 917800.0, bandwidth: 62.5, spreadingFactor: 8, codingRate: 5),
-    RadioPreset(name: "Australia: Western Australia", region: "Australia/NZ",
-                frequencyKHz: 921500.0, bandwidth: 62.5, spreadingFactor: 7, codingRate: 5),
-
-    // New Zealand
-    RadioPreset(name: "New Zealand", region: "Australia/NZ",
-                frequencyKHz: 915800.0, bandwidth: 250, spreadingFactor: 10, codingRate: 5),
-    RadioPreset(name: "New Zealand (Narrow)", region: "Australia/NZ",
-                frequencyKHz: 916800.0, bandwidth: 62.5, spreadingFactor: 8, codingRate: 5),
-
-    // Europe / UK
-    RadioPreset(name: "Europe (Recommended)", region: "Europe",
-                frequencyKHz: 869525.0, bandwidth: 62.5, spreadingFactor: 9, codingRate: 5),
-    RadioPreset(name: "Europe (Legacy Wide)", region: "Europe",
-                frequencyKHz: 869525.0, bandwidth: 250, spreadingFactor: 11, codingRate: 5),
-    RadioPreset(name: "UK", region: "Europe",
-                frequencyKHz: 869525.0, bandwidth: 62.5, spreadingFactor: 9, codingRate: 5),
-    RadioPreset(name: "Netherlands", region: "Europe",
-                frequencyKHz: 869525.0, bandwidth: 62.5, spreadingFactor: 9, codingRate: 5),
-
-    // Asia
-    RadioPreset(name: "Thailand", region: "Asia",
-                frequencyKHz: 920000.0, bandwidth: 62.5, spreadingFactor: 7, codingRate: 5),
-    RadioPreset(name: "Japan", region: "Asia",
-                frequencyKHz: 923000.0, bandwidth: 62.5, spreadingFactor: 7, codingRate: 5),
-    RadioPreset(name: "India", region: "Asia",
-                frequencyKHz: 866000.0, bandwidth: 62.5, spreadingFactor: 7, codingRate: 5),
-]
+// RadioPreset, RadioPresetPicker, and radioPresets are in Shared/Models/RadioPreset.swift
 
 struct RadioSection: View {
 
