@@ -579,7 +579,7 @@ public enum FrameParser {
         }
 
         let timestamp = senderTimestamp > 0
-            ? Date(timeIntervalSince1970: TimeInterval(senderTimestamp))
+            ? senderTimestamp.asDate
             : Date()
 
         logger.info("ContactMsgRecvV3: snr=\(snr) pathLen=\(pathLen) txtType=\(txtType) from=\(pubkeyPrefix.hexCompact) text='\(text)'")
@@ -636,7 +636,7 @@ public enum FrameParser {
         }
 
         let timestamp = senderTimestamp > 0
-            ? Date(timeIntervalSince1970: TimeInterval(senderTimestamp))
+            ? senderTimestamp.asDate
             : Date()
 
         logger.info("ChannelMsgRecvV3: snr=\(snr) pathLen=\(pathLen) ch=\(channelIdx) sender='\(senderName)' txtType=\(txtType) text='\(text)'")
@@ -689,7 +689,7 @@ public enum FrameParser {
         }
 
         let timestamp = senderTimestamp > 0
-            ? Date(timeIntervalSince1970: TimeInterval(senderTimestamp))
+            ? senderTimestamp.asDate
             : Date()
 
         logger.info("ChannelMsgRecv(v1): ch=\(channelIdx) pathLen=\(pathLen) txtType=\(txtType) sender='\(senderName)' text='\(text)'")
@@ -771,7 +771,7 @@ public enum FrameParser {
         }
 
         let timestamp = senderTimestamp > 0
-            ? Date(timeIntervalSince1970: TimeInterval(senderTimestamp))
+            ? senderTimestamp.asDate
             : Date()
 
         let isSigned = txtType == 2

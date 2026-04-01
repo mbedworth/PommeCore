@@ -243,7 +243,7 @@ public final class DeviceConfig {
 
     public var deviceTimeDate: Date? {
         guard deviceTimeEpoch > 0 else { return nil }
-        return Date(timeIntervalSince1970: TimeInterval(deviceTimeEpoch))
+        return deviceTimeEpoch.asDate
     }
 
     // MARK: - Battery Calibration (per-device, iCloud synced)

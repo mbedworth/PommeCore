@@ -43,19 +43,19 @@ final class NotificationPreferences: ObservableObject {
     private let store = NSUbiquitousKeyValueStore.default
 
     @Published var notifyDirect: Bool {
-        didSet { store.set(notifyDirect, forKey: "notify.direct"); store.synchronize() }
+        didSet { store.setAndSync(notifyDirect, forKey: "notify.direct") }
     }
     @Published var notifyChannel: Bool {
-        didSet { store.set(notifyChannel, forKey: "notify.channel"); store.synchronize() }
+        didSet { store.setAndSync(notifyChannel, forKey: "notify.channel") }
     }
     @Published var notifyRoom: Bool {
-        didSet { store.set(notifyRoom, forKey: "notify.room"); store.synchronize() }
+        didSet { store.setAndSync(notifyRoom, forKey: "notify.room") }
     }
     @Published var notifyNewContacts: Bool {
-        didSet { store.set(notifyNewContacts, forKey: "notify.newContacts"); store.synchronize() }
+        didSet { store.setAndSync(notifyNewContacts, forKey: "notify.newContacts") }
     }
     @Published var notifyConnection: Bool {
-        didSet { store.set(notifyConnection, forKey: "notify.connection"); store.synchronize() }
+        didSet { store.setAndSync(notifyConnection, forKey: "notify.connection") }
     }
 
     private init() {

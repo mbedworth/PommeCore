@@ -79,23 +79,14 @@ final class ChannelStore {
     }
 
     func channelNotifyMode(for channelName: String) -> ChannelNotifyMode {
-        if let prefix = radioPrefix12 {
-            let scopedKey = "channel.notify.\(prefix).\(channelName)"
-            if let raw = iCloudStore.string(forKey: scopedKey) {
-                return ChannelNotifyMode(rawValue: raw) ?? .all
-            }
-        }
-        // Fall back to legacy unscoped key
-        let legacyKey = "channel.notify.\(channelName)"
-        let raw = iCloudStore.string(forKey: legacyKey) ?? "all"
+        let raw = iCloudStore.scopedString(base: "channel.notify", contactHex: channelName, radioPrefix: radioPrefix12) ?? "all"
         return ChannelNotifyMode(rawValue: raw) ?? .all
     }
 
     func setChannelNotifyMode(_ mode: ChannelNotifyMode, for channelName: String) {
         guard let prefix = radioPrefix12 else { return }
-        let key = "channel.notify.\(prefix).\(channelName)"
-        iCloudStore.set(mode.rawValue, forKey: key)
-        iCloudStore.synchronize()
+        let key = iCloudStore.scopedKey("channel.notify", contactHex: channelName, radioPrefix: prefix)
+        iCloudStore.setAndSync(mode.rawValue, forKey: key)
     }
 
     // MARK: - Channel Sync

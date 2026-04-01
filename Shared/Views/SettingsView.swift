@@ -2621,24 +2621,13 @@ private extension SettingsView {
 private extension SettingsView {
     var aboutSection: some View {
         Section {
-            HStack {
-                Text("App Version")
-                    .foregroundStyle(MeshTheme.accent)
-                Spacer()
-                Text("\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?") (\(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"))")
-                    .foregroundStyle(MeshTheme.textPrimary)
-            }
-            .listRowBackground(MeshTheme.surface)
+            LabelValueRow(
+                label: "App Version",
+                value: "\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?") (\(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"))"
+            )
 
             if isConnected, !config.semanticVersion.isEmpty {
-                HStack {
-                    Text("Firmware")
-                        .foregroundStyle(MeshTheme.accent)
-                    Spacer()
-                    Text(config.semanticVersion)
-                        .foregroundStyle(MeshTheme.textPrimary)
-                }
-                .listRowBackground(MeshTheme.surface)
+                LabelValueRow(label: "Firmware", value: config.semanticVersion)
             }
 
             Link(destination: URL(string: "https://meshcore.co")!) {
@@ -3301,8 +3290,7 @@ struct GPSEditorSheet: View {
                     latitude = String(format: "%.6f", fLat)
                     longitude = String(format: "%.6f", fLon)
                     connectionManager.setAdvertLatLon(latitude: fLat, longitude: fLon)
-                    gpsSyncFeedback = true
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) { gpsSyncFeedback = false }
+                    showFeedback($gpsSyncFeedback)
                 } label: {
                     Label(gpsSyncFeedback ? "Location Set!" : "Set from Phone GPS", systemImage: "iphone.radiowaves.left.and.right")
                         .foregroundStyle(gpsSyncFeedback ? .green : MeshTheme.accent)

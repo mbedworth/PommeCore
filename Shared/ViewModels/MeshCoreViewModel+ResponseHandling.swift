@@ -77,7 +77,7 @@ extension MeshCoreViewModel {
             deviceConfig.loadedSections.insert("selfInfo")
             checkLoadingComplete()
 
-            let epoch = UInt32(Date().timeIntervalSince1970)
+            let epoch = Date().epochUInt32
             connectionManager.sendCommand(MeshCoreProtocol.buildSetDeviceTime(epochSeconds: epoch), label: "SET_TIME(auto)")
             DebugLogger.shared.log("CLOCK: auto-synced device time to \(epoch)", level: .info)
 

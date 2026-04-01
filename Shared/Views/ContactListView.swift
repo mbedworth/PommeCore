@@ -286,13 +286,7 @@ struct ContactListView: View {
 
                     if let contact = nicknameContact {
                         Section {
-                            HStack {
-                                Text("Original Name")
-                                    .foregroundStyle(MeshTheme.accent)
-                                Spacer()
-                                Text(contact.name)
-                                    .foregroundStyle(MeshTheme.textPrimary)
-                            }
+                            LabelValueRow(label: "Original Name", value: contact.name)
                             HStack {
                                 Text("Public Key")
                                     .foregroundStyle(MeshTheme.accent)

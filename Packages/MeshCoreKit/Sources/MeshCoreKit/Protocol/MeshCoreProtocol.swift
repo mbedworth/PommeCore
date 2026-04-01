@@ -119,8 +119,7 @@ public enum MeshCoreProtocol {
         var frame = Data([MeshCoreCommand.sendTextMessage.rawValue])
         frame.append(txtType)
         frame.append(attempt)
-        let timestamp = UInt32(Date().timeIntervalSince1970)
-        appendUInt32(&frame, timestamp)
+        appendUInt32(&frame, Date().epochUInt32)
         // pubkey_prefix: first 6 bytes of recipient's public key hash
         frame.append(recipientKeyHash.prefix(6))
         if let textData = text.data(using: .utf8) {
@@ -135,8 +134,7 @@ public enum MeshCoreProtocol {
         var frame = Data([MeshCoreCommand.sendChannelMessage.rawValue])
         frame.append(0x00) // txt_type: 0 = plain text
         frame.append(channelIndex)
-        let timestamp = UInt32(Date().timeIntervalSince1970)
-        appendUInt32(&frame, timestamp)
+        appendUInt32(&frame, Date().epochUInt32)
         if let textData = text.data(using: .utf8) {
             frame.append(textData.prefix(160))
         }

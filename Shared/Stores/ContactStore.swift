@@ -120,8 +120,7 @@ final class ContactStore {
     }
 
     func loadNicknamesFromiCloud() {
-        if let data = iCloudStore.data(forKey: nicknamesKey),
-           let decoded = try? JSONDecoder().decode([String: String].self, from: data) {
+        if let decoded: [String: String] = iCloudStore.loadCodable([String: String].self, forKey: nicknamesKey) {
             nicknames = decoded
                 .filter { !$0.value.isEmpty }
                 .mapValues { $0.count > 32 ? String($0.prefix(32)) : $0 }
@@ -133,10 +132,7 @@ final class ContactStore {
 
     private func saveNicknamesToiCloud() {
         let cleaned = nicknames.filter { !$0.value.isEmpty }
-        if let data = try? JSONEncoder().encode(cleaned) {
-            iCloudStore.set(data, forKey: nicknamesKey)
-            iCloudStore.synchronize()
-        }
+        iCloudStore.saveCodable(cleaned, forKey: nicknamesKey)
     }
 
     // MARK: - Contact Activity Status
@@ -217,8 +213,7 @@ final class ContactStore {
     }
 
     func loadContactNotesFromiCloud() {
-        if let data = iCloudStore.data(forKey: notesKey),
-           let decoded = try? JSONDecoder().decode([String: String].self, from: data) {
+        if let decoded: [String: String] = iCloudStore.loadCodable([String: String].self, forKey: notesKey) {
             contactNotes = decoded
             return
         }
@@ -227,10 +222,7 @@ final class ContactStore {
     }
 
     private func saveContactNotesToiCloud() {
-        if let data = try? JSONEncoder().encode(contactNotes) {
-            iCloudStore.set(data, forKey: notesKey)
-            iCloudStore.synchronize()
-        }
+        iCloudStore.saveCodable(contactNotes, forKey: notesKey)
     }
 
     // MARK: - Contact Groups
@@ -250,16 +242,12 @@ final class ContactStore {
     }
 
     func loadContactGroupsFromiCloud() {
-        guard let data = iCloudStore.data(forKey: "contactGroups"),
-              let decoded = try? JSONDecoder().decode([ContactGroup].self, from: data) else { return }
+        guard let decoded = iCloudStore.loadCodable([ContactGroup].self, forKey: "contactGroups") else { return }
         contactGroups = decoded
     }
 
     private func saveContactGroupsToiCloud() {
-        if let data = try? JSONEncoder().encode(contactGroups) {
-            iCloudStore.set(data, forKey: "contactGroups")
-            iCloudStore.synchronize()
-        }
+        iCloudStore.saveCodable(contactGroups, forKey: "contactGroups")
     }
 
     func addContactGroup(name: String, emoji: String) {
@@ -497,7 +485,7 @@ final class ContactStore {
     /// Ensure lastAdvert is set — if firmware sends 0, stamp with current time.
     private func contactWithTimestamp(_ contact: Contact) -> Contact {
         guard contact.lastAdvert < 1_000_000_000 else { return contact }
-        let now = UInt32(Date().timeIntervalSince1970)
+        let now = Date().epochUInt32
         return Contact(
             publicKey: contact.publicKey, name: contact.name, type: contact.type,
             flags: contact.flags, outPathLen: contact.outPathLen, outPath: contact.outPath,
@@ -507,7 +495,7 @@ final class ContactStore {
     }
 
     func handleAdvert(_ contact: Contact) {
-        let now = UInt32(Date().timeIntervalSince1970)
+        let now = Date().epochUInt32
         if let idx = contacts.firstIndex(where: { $0.publicKeyPrefix == contact.publicKeyPrefix }) {
             if contact.name.isEmpty && contact.type == .unknown {
                 // Pubkey-only advert (0x80 short form) — update timestamp on existing contact,

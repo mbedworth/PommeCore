@@ -509,7 +509,7 @@ struct AdvertPathView: View {
                         Text("Received")
                             .foregroundStyle(MeshTheme.textPrimary)
                         Spacer()
-                        Text(Date(timeIntervalSince1970: TimeInterval(pathInfo.recvTimestamp)), style: .relative)
+                        Text(pathInfo.recvTimestamp.asDate, style: .relative)
                             .foregroundStyle(MeshTheme.textPrimary)
                         Text("ago")
                             .foregroundStyle(MeshTheme.textPrimary)

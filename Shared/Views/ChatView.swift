@@ -48,7 +48,7 @@ struct ChatView: View {
     private var lastSeenText: String? {
         let c = liveContact
         guard c.lastAdvert > 1_000_000_000 else { return nil }
-        let date = Date(timeIntervalSince1970: TimeInterval(c.lastAdvert))
+        let date = c.lastAdvert.asDate
         guard Date().timeIntervalSince(date) < 365 * 24 * 60 * 60 else { return nil }
         let fmt = RelativeDateTimeFormatter()
         fmt.unitsStyle = .abbreviated

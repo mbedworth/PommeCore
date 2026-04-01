@@ -528,10 +528,7 @@ private extension RemoteManagementView {
                     .contentShape(Rectangle())
                     .onTapGesture {
                         copyToClipboard(pubkey)
-                        withAnimation { showPubkeyCopied = true }
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                            withAnimation { showPubkeyCopied = false }
-                        }
+                        showFeedback($showPubkeyCopied)
                     }
                 }
             }
@@ -902,13 +899,11 @@ struct RemoteAdvertSection: View {
         .confirmationDialog("Send Advertisement", isPresented: $showAdvertOptions) {
             Button("Zero-Hop (nearby only)") {
                 sendCLI("advert.zerohop")
-                showAdvertSent = true
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2) { showAdvertSent = false }
+                showFeedback($showAdvertSent)
             }
             Button("Flood (entire mesh)") {
                 sendCLI("advert")
-                showAdvertSent = true
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2) { showAdvertSent = false }
+                showFeedback($showAdvertSent)
             }
             Button("Cancel", role: .cancel) {}
         } message: {
@@ -1052,9 +1047,8 @@ struct RemoteGPSSection: View {
             HStack(spacing: 12) {
                 Button {
                     sendCLI("gps sync")
-                    gpsSyncFeedback = true
+                    showFeedback($gpsSyncFeedback)
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1) { sendCLI("clock") }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) { gpsSyncFeedback = false }
                 } label: {
                     Label(gpsSyncFeedback ? "Clock Synced" : "Sync Time", systemImage: gpsSyncFeedback ? "checkmark.circle.fill" : "clock.arrow.2.circlepath")
                         .foregroundStyle(gpsSyncFeedback ? .green : MeshTheme.accent)
@@ -1065,12 +1059,11 @@ struct RemoteGPSSection: View {
 
                 Button {
                     sendCLI("gps setloc")
-                    gpsLocFeedback = true
+                    showFeedback($gpsLocFeedback)
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                         sendCLI("get lat")
                         sendCLI("get lon")
                     }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) { gpsLocFeedback = false }
                 } label: {
                     Label(gpsLocFeedback ? "Location Set" : "Set Location", systemImage: gpsLocFeedback ? "checkmark.circle.fill" : "mappin")
                         .foregroundStyle(gpsLocFeedback ? .green : MeshTheme.accent)
@@ -1176,9 +1169,8 @@ struct RemoteRoomSection: View {
 
                 Button {
                     sendCLI("setperm \(setPermPubkey) \(setPermLevel)")
-                    permFeedback = true
+                    showFeedback($permFeedback)
                     setPermPubkey = ""
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) { permFeedback = false }
                 } label: {
                     HStack {
                         Image(systemName: permFeedback ? "checkmark.circle.fill" : "lock.rotation")

@@ -416,7 +416,7 @@ final class RemoteSessionManager {
             flags: 0,
             outPathLen: 0,
             outPath: Data(),
-            lastAdvert: UInt32(Date().timeIntervalSince1970),
+            lastAdvert: Date().epochUInt32,
             latitude: 0,
             longitude: 0
         )

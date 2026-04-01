@@ -333,8 +333,6 @@ struct MyContactCodeSheet: View {
 struct ShareChannelSheet: View {
     let channel: MeshChannel
     @Environment(\.dismiss) private var dismiss
-    @State private var copiedLink = false
-    @State private var copiedSecret = false
     @State private var copiedQR = false
 
     private var channelURL: String {
@@ -380,39 +378,11 @@ struct ShareChannelSheet: View {
                     // Action buttons
                     VStack(spacing: 12) {
                         // Copy Link
-                        Button {
-                            copyToClipboard(channelURL)
-                            copiedLink = true
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) { copiedLink = false }
-                        } label: {
-                            HStack {
-                                Label(copiedLink ? "Copied!" : "Copy Link", systemImage: copiedLink ? "checkmark" : "doc.on.doc")
-                                    .frame(maxWidth: .infinity)
-                            }
-                            .padding(.vertical, 10)
-                            .background(MeshTheme.accent.opacity(0.1))
-                            .foregroundStyle(MeshTheme.accent)
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                        }
-                        .buttonStyle(.plain)
+                        CopyButton(text: channelURL, label: "Copy Link", icon: "doc.on.doc")
 
                         // Copy Secret
                         if let hex = secretHex {
-                            Button {
-                                copyToClipboard(hex)
-                                copiedSecret = true
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 2) { copiedSecret = false }
-                            } label: {
-                                HStack {
-                                    Label(copiedSecret ? "Copied!" : "Copy Secret", systemImage: copiedSecret ? "checkmark" : "key")
-                                        .frame(maxWidth: .infinity)
-                                }
-                                .padding(.vertical, 10)
-                                .background(MeshTheme.accent.opacity(0.1))
-                                .foregroundStyle(MeshTheme.accent)
-                                .clipShape(RoundedRectangle(cornerRadius: 10))
-                            }
-                            .buttonStyle(.plain)
+                            CopyButton(text: hex, label: "Copy Secret", icon: "key")
                         }
 
                         // Platform-specific share
@@ -434,18 +404,15 @@ struct ShareChannelSheet: View {
                                 let pasteboard = NSPasteboard.general
                                 pasteboard.clearContents()
                                 pasteboard.writeObjects([image])
-                                copiedQR = true
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 2) { copiedQR = false }
+                                showFeedback($copiedQR)
                             }
                         } label: {
-                            HStack {
-                                Label(copiedQR ? "Copied!" : "Copy QR Code", systemImage: copiedQR ? "checkmark" : "photo.on.rectangle")
-                                    .frame(maxWidth: .infinity)
-                            }
-                            .padding(.vertical, 10)
-                            .background(MeshTheme.accent.opacity(0.1))
-                            .foregroundStyle(MeshTheme.accent)
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                            Label(copiedQR ? "Copied!" : "Copy QR Code", systemImage: copiedQR ? "checkmark" : "photo.on.rectangle")
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 10)
+                                .background(MeshTheme.accent.opacity(0.1))
+                                .foregroundStyle(copiedQR ? MeshTheme.interactiveGreen : MeshTheme.accent)
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
                         }
                         .buttonStyle(.plain)
                         #endif
@@ -474,7 +441,6 @@ struct ShareChannelSheet: View {
 struct ShareAllChannelsSheet: View {
     let channels: [MeshChannel]
     @Environment(\.dismiss) private var dismiss
-    @State private var copiedLink = false
     @State private var copiedQR = false
 
     private var nonPublicChannels: [MeshChannel] {
@@ -521,21 +487,7 @@ struct ShareAllChannelsSheet: View {
                     .padding(.horizontal)
 
                     VStack(spacing: 12) {
-                        Button {
-                            copyToClipboard(channelsURL)
-                            copiedLink = true
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) { copiedLink = false }
-                        } label: {
-                            HStack {
-                                Label(copiedLink ? "Copied!" : "Copy Link", systemImage: copiedLink ? "checkmark" : "doc.on.doc")
-                                    .frame(maxWidth: .infinity)
-                            }
-                            .padding(.vertical, 10)
-                            .background(MeshTheme.accent.opacity(0.1))
-                            .foregroundStyle(MeshTheme.accent)
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                        }
-                        .buttonStyle(.plain)
+                        CopyButton(text: channelsURL, label: "Copy Link", icon: "doc.on.doc")
 
                         #if os(iOS)
                         ShareLink(item: channelsURL) {
@@ -555,18 +507,15 @@ struct ShareAllChannelsSheet: View {
                                 let pasteboard = NSPasteboard.general
                                 pasteboard.clearContents()
                                 pasteboard.writeObjects([image])
-                                copiedQR = true
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 2) { copiedQR = false }
+                                showFeedback($copiedQR)
                             }
                         } label: {
-                            HStack {
-                                Label(copiedQR ? "Copied!" : "Copy QR Code", systemImage: copiedQR ? "checkmark" : "photo.on.rectangle")
-                                    .frame(maxWidth: .infinity)
-                            }
-                            .padding(.vertical, 10)
-                            .background(MeshTheme.accent.opacity(0.1))
-                            .foregroundStyle(MeshTheme.accent)
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                            Label(copiedQR ? "Copied!" : "Copy QR Code", systemImage: copiedQR ? "checkmark" : "photo.on.rectangle")
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 10)
+                                .background(MeshTheme.accent.opacity(0.1))
+                                .foregroundStyle(copiedQR ? MeshTheme.interactiveGreen : MeshTheme.accent)
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
                         }
                         .buttonStyle(.plain)
                         #endif

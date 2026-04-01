@@ -99,7 +99,7 @@ public struct Contact: Identifiable, Codable, Sendable, Hashable {
 
     /// Last time this contact was seen on the mesh (derived from lastAdvert).
     public var lastSeen: Date {
-        lastAdvert > 0 ? Date(timeIntervalSince1970: TimeInterval(lastAdvert)) : Date.distantPast
+        lastAdvert > 0 ? lastAdvert.asDate : Date.distantPast
     }
 
     /// Return a copy with updated flags.

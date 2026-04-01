@@ -208,6 +208,121 @@ extension View {
     }
 }
 
+// MARK: - iCloud KV Store Helpers
+
+extension NSUbiquitousKeyValueStore {
+
+    /// Build a radio-scoped iCloud key. Returns scoped key if radio prefix available, else legacy key.
+    func scopedKey(_ base: String, contactHex: String, radioPrefix: String?) -> String {
+        if let prefix = radioPrefix, !prefix.isEmpty {
+            return "\(base).\(prefix).\(contactHex)"
+        }
+        return "\(base).\(contactHex)"
+    }
+
+    /// Read a string from iCloud, trying scoped key first then legacy fallback.
+    func scopedString(base: String, contactHex: String, radioPrefix: String?) -> String? {
+        if let prefix = radioPrefix, !prefix.isEmpty {
+            let key = "\(base).\(prefix).\(contactHex)"
+            if let value = string(forKey: key), !value.isEmpty {
+                return value
+            }
+        }
+        let legacyKey = "\(base).\(contactHex)"
+        let value = string(forKey: legacyKey)
+        return (value?.isEmpty == true) ? nil : value
+    }
+
+    /// Read a double from iCloud, trying scoped key first then legacy fallback.
+    func scopedDouble(base: String, contactHex: String, radioPrefix: String?) -> Double {
+        if let prefix = radioPrefix, !prefix.isEmpty {
+            let key = "\(base).\(prefix).\(contactHex)"
+            let val = double(forKey: key)
+            if val > 0 { return val }
+        }
+        let legacyKey = "\(base).\(contactHex)"
+        return double(forKey: legacyKey)
+    }
+
+    /// Save a Codable value to iCloud KV store.
+    func saveCodable<T: Encodable>(_ value: T, forKey key: String) {
+        if let data = try? JSONEncoder().encode(value) {
+            set(data, forKey: key)
+            synchronize()
+        }
+    }
+
+    /// Load a Codable value from iCloud KV store.
+    func loadCodable<T: Decodable>(_ type: T.Type, forKey key: String) -> T? {
+        guard let data = data(forKey: key) else { return nil }
+        return try? JSONDecoder().decode(type, from: data)
+    }
+
+    /// Set a value and synchronize in one call.
+    func setAndSync(_ value: Any?, forKey key: String) {
+        set(value, forKey: key)
+        synchronize()
+    }
+}
+
+// MARK: - Feedback Utility
+
+/// Set a Bool binding to true, then reset to false after a delay. Animates both transitions.
+func showFeedback(_ state: Binding<Bool>, duration: TimeInterval = 2) {
+    withAnimation { state.wrappedValue = true }
+    DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
+        withAnimation { state.wrappedValue = false }
+    }
+}
+
+// MARK: - Copy Button
+
+/// Reusable copy-to-clipboard button with timed "Copied!" feedback and consistent styling.
+struct CopyButton: View {
+    let text: String
+    let label: String
+    let icon: String
+    var copiedLabel: String = "Copied!"
+    var copiedIcon: String = "checkmark"
+    @State private var copied = false
+
+    var body: some View {
+        Button {
+            copyToClipboard(text)
+            showFeedback($copied)
+        } label: {
+            Label(copied ? copiedLabel : label, systemImage: copied ? copiedIcon : icon)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+                .background(MeshTheme.accent.opacity(0.1))
+                .foregroundStyle(copied ? MeshTheme.interactiveGreen : MeshTheme.accent)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Label-Value Row
+
+/// Reusable two-column row for displaying a label and value in a List.
+struct LabelValueRow: View {
+    let label: String
+    let value: String
+    var labelColor: Color = MeshTheme.accent
+    var valueColor: Color = MeshTheme.textPrimary
+
+    var body: some View {
+        HStack {
+            Text(label)
+                .foregroundStyle(labelColor)
+            Spacer()
+            Text(value)
+                .foregroundStyle(valueColor)
+        }
+        .listRowBackground(MeshTheme.surface)
+    }
+}
+
 // MARK: - Clipboard Utility
 
 /// Copy text to clipboard with auto-expiration for security.

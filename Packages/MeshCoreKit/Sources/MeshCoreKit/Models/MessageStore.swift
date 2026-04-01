@@ -278,3 +278,15 @@ extension Data {
         map { String(format: "%02x", $0) }.joined()
     }
 }
+
+// MARK: - Epoch Conversion Utilities
+
+extension UInt32 {
+    /// Convert epoch seconds to Date.
+    public var asDate: Date { Date(timeIntervalSince1970: TimeInterval(self)) }
+}
+
+extension Date {
+    /// Convert to UInt32 epoch seconds.
+    public var epochUInt32: UInt32 { UInt32(timeIntervalSince1970) }
+}
