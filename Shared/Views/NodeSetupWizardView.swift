@@ -835,24 +835,26 @@ struct LocationPickerMapView: View {
     @State private var geocodedCodes: LocationCodes?
     @State private var isGeocoding = false
     @State private var geocodeError: String?
-    @State private var viewSize: CGSize = .zero
+    @State private var mapReady = false
 
     var body: some View {
         VStack(spacing: 0) {
             ZStack {
-                // Defer Map creation until the view has a non-zero size.
+                // Defer Map creation until after the first layout pass.
                 // MapKit's Metal renderer crashes with CAMetalLayer width=0 height=0
                 // when the sheet initializes before layout completes on macOS/Catalyst.
-                if viewSize.width > 0 && viewSize.height > 0 {
+                if mapReady {
                     mapContent
                 } else {
-                    Color.clear
+                    ProgressView()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
-            .background(GeometryReader { geo in
-                Color.clear.onAppear { viewSize = geo.size }
-                    .onChange(of: geo.size) { _, newSize in viewSize = newSize }
-            })
+            .task {
+                // Wait for the sheet to finish its layout animation before creating the Map
+                try? await Task.sleep(nanoseconds: 300_000_000)
+                mapReady = true
+            }
 
             // Bottom panel
             VStack(spacing: 12) {
