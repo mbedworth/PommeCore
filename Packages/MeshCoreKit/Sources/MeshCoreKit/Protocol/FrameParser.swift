@@ -106,7 +106,7 @@ public enum FrameParser {
         }
 
         let payload = Data(data.dropFirst())
-        let hex = data.map { String(format: "%02x", $0) }.joined(separator: " ")
+        let hex = data.hexFormatted()
         logger.info("Parse frame [\(data.count) bytes] code=0x\(String(format: "%02x", firstByte)): \(hex)")
 
         // Check push codes first (high bit set, 0x80+ range)
@@ -157,7 +157,7 @@ public enum FrameParser {
             }
             // Firmware returns raw advert packet bytes, NOT a URL string.
             // Format as meshcore:// + hex-encoded card data.
-            let hex = payload.map { String(format: "%02x", $0) }.joined()
+            let hex = payload.hexCompact
             let url = "meshcore://\(hex)"
             logger.info("ExportedContact: \(payload.count) raw bytes → url='\(url.prefix(80))'")
             return .exportedContact(url: url)
@@ -246,7 +246,7 @@ public enum FrameParser {
         case .pathUpdated:
             // Contains 32-byte public key of the contact whose path changed
             let key = payload.count >= 32 ? Data(payload.prefix(32)) : payload
-            logger.info("PathUpdated: key=\(key.prefix(6).map { String(format: "%02x", $0) }.joined())")
+            logger.info("PathUpdated: key=\(Data(key.prefix(6)).hexCompact)")
             return .pathUpdated(publicKey: key)
 
         case .sendConfirmed:
@@ -316,7 +316,7 @@ public enum FrameParser {
 
         case .contactDeleted:
             let key = payload.count >= 32 ? Data(payload.prefix(32)) : payload
-            logger.info("ContactDeleted: key=\(key.prefix(6).map { String(format: "%02x", $0) }.joined())")
+            logger.info("ContactDeleted: key=\(Data(key.prefix(6)).hexCompact)")
             return .contactDeleted(publicKey: key)
 
         case .contactsFull:
@@ -582,7 +582,7 @@ public enum FrameParser {
             ? Date(timeIntervalSince1970: TimeInterval(senderTimestamp))
             : Date()
 
-        logger.info("ContactMsgRecvV3: snr=\(snr) pathLen=\(pathLen) txtType=\(txtType) from=\(pubkeyPrefix.map { String(format: "%02x", $0) }.joined()) text='\(text)'")
+        logger.info("ContactMsgRecvV3: snr=\(snr) pathLen=\(pathLen) txtType=\(txtType) from=\(pubkeyPrefix.hexCompact) text='\(text)'")
 
         let isSigned = txtType == 2
 
@@ -734,7 +734,7 @@ public enum FrameParser {
         // Short form: just the 32-byte public key — build minimal contact for identification
         if data.count >= 32 {
             let publicKey = Data(data.prefix(32))
-            logger.info("Advert (pubkey-only): \(publicKey.prefix(6).map { String(format: "%02x", $0) }.joined())")
+            logger.info("Advert (pubkey-only): \(Data(publicKey.prefix(6)).hexCompact)")
             let contact = Contact(publicKey: publicKey, name: "", type: .unknown, flags: 0,
                                   outPathLen: 0, outPath: Data(), lastAdvert: 0,
                                   latitude: 0, longitude: 0, lastmod: 0)
@@ -776,7 +776,7 @@ public enum FrameParser {
 
         let isSigned = txtType == 2
 
-        logger.info("ContactMsgRecv(v1): from=\(pubkeyPrefix.map { String(format: "%02x", $0) }.joined()) pathLen=\(pathLen) txtType=\(txtType) text='\(text)'")
+        logger.info("ContactMsgRecv(v1): from=\(pubkeyPrefix.hexCompact) pathLen=\(pathLen) txtType=\(txtType) text='\(text)'")
 
         let message = Message(
             senderKeyHash: pubkeyPrefix,
@@ -799,7 +799,7 @@ public enum FrameParser {
     ///   channel_idx(1) channel_name(32 null-terminated) secret(16 bytes)
     /// The firmware DOES return the 16-byte channel PSK. There is no flags byte.
     private static func parseChannelInfo(_ data: Data) -> ParsedResponse {
-        let hex = data.prefix(50).map { String(format: "%02x", $0) }.joined(separator: " ")
+        let hex = data.hexFormatted(maxBytes: 50)
         logger.info("ChannelInfo raw [\(data.count) bytes]: \(hex)")
 
         var offset = 0
@@ -813,7 +813,7 @@ public enum FrameParser {
         if remaining >= 16 {
             secret = Data(data[offset..<offset+16])
             offset += 16
-            let secretHex = secret!.map { String(format: "%02x", $0) }.joined()
+            let secretHex = secret!.hexCompact
             logger.info("ChannelInfo: idx=\(channelIdx) name='\(name)' secret=\(secretHex)")
         } else {
             logger.info("ChannelInfo: idx=\(channelIdx) name='\(name)' (no secret, \(remaining) trailing bytes)")
@@ -838,7 +838,7 @@ public enum FrameParser {
         let uptime = readUInt32(data, offset: &offset)
         let contacts = readUInt16(data, offset: &offset)
 
-        logger.info("StatusResponse: from=\(senderKey.map { String(format: "%02x", $0) }.joined()) batt=\(batteryMV)mV uptime=\(uptime) contacts=\(contacts)")
+        logger.info("StatusResponse: from=\(senderKey.hexCompact) batt=\(batteryMV)mV uptime=\(uptime) contacts=\(contacts)")
 
         let info = RemoteStatusInfo(
             batteryMV: batteryMV,
@@ -945,7 +945,7 @@ public enum FrameParser {
             }
         }
 
-        logger.info("TelemetryResponse: \(readings.count) readings from \(senderKey.map { String(format: "%02x", $0) }.joined())")
+        logger.info("TelemetryResponse: \(readings.count) readings from \(senderKey.hexCompact)")
 
         return .telemetryResponse(senderKey: senderKey, readings: readings)
     }

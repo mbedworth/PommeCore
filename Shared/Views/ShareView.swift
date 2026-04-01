@@ -340,13 +340,13 @@ struct ShareChannelSheet: View {
     private var channelURL: String {
         var url = "meshcore://channel?name=\(channel.name.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? channel.name)"
         if let secret = channel.secret {
-            url += "&secret=\(secret.map { String(format: "%02x", $0) }.joined())"
+            url += "&secret=\(secret.hexCompact)"
         }
         return url
     }
 
     private var secretHex: String? {
-        channel.secret?.map { String(format: "%02x", $0) }.joined()
+        channel.secret?.hexCompact
     }
 
     var body: some View {
@@ -484,7 +484,7 @@ struct ShareAllChannelsSheet: View {
     private var channelsURL: String {
         var list: [[String: String]] = []
         for channel in nonPublicChannels {
-            let hex = channel.secret?.map { String(format: "%02x", $0) }.joined() ?? ""
+            let hex = channel.secret?.hexCompact ?? ""
             list.append(["name": channel.name, "secret": hex])
         }
         guard let jsonData = try? JSONSerialization.data(withJSONObject: list),

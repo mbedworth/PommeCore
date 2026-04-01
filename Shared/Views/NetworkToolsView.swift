@@ -354,7 +354,7 @@ struct TraceRouteResultView: View {
         if let contact = contactStore.contacts.first(where: { $0.publicKeyPrefix == hash }) {
             return contactStore.displayName(for: contact)
         }
-        return hash.prefix(4).map { String(format: "%02X", $0) }.joined(separator: ":")
+        return Data(hash.prefix(4)).hexFormatted(separator: ":")
     }
 }
 
@@ -547,7 +547,7 @@ struct AdvertPathView: View {
                 return contactStore.displayName(for: contact)
             }
         }
-        return hash.map { String(format: "%02X", $0) }.joined(separator: ":")
+        return Data(hash).hexFormatted(separator: ":")
     }
 }
 
@@ -1180,7 +1180,7 @@ struct PathViewer: View {
             if let name = resolvePathHash(hashBytes) {
                 hops.append(name)
             } else {
-                hops.append(hashBytes.map { String(format: "%02X", $0) }.joined())
+                hops.append(Data(hashBytes).hexCompact.uppercased())
             }
         }
         return hops

@@ -10,6 +10,7 @@
 
 import Security
 import Foundation
+import MeshCoreKit
 
 /// Manages Keychain storage for MeshCore device login credentials.
 /// Passwords are stored per-device (keyed by public key) and protected with
@@ -43,7 +44,7 @@ struct KeychainManager {
     }
 
     private static func accountKey(publicKey: Data, type: String) -> String {
-        publicKey.map { String(format: "%02x", $0) }.joined() + "." + type
+        publicKey.hexCompact + "." + type
     }
 
     /// Base query attributes for searching/deleting — finds items regardless of sync state.

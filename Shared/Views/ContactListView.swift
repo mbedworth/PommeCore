@@ -297,7 +297,7 @@ struct ContactListView: View {
                                 Text("Public Key")
                                     .foregroundStyle(MeshTheme.accent)
                                 Spacer()
-                                Text(contact.publicKey.prefix(8).map { String(format: "%02x", $0) }.joined())
+                                Text(Data(contact.publicKey.prefix(8)).hexCompact)
                                     .foregroundStyle(MeshTheme.textPrimary)
                                     .font(.caption)
                             }

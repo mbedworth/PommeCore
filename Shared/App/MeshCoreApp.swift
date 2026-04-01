@@ -105,7 +105,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
                 viewModel?.navigationStore.sidebarSelection = chIdx == 0 ? .publicChannel : .channel(chIdx)
             } else if let pubkeyHex = userInfo["contactPubkey"] as? String {
                 if let contact = viewModel?.contactStore.contacts.first(where: {
-                    $0.publicKey.map { String(format: "%02x", $0) }.joined() == pubkeyHex
+                    $0.publicKey.hexCompact == pubkeyHex
                 }) {
                     viewModel?.navigationStore.sidebarSelection = .contact(contact.publicKeyPrefix)
                 }

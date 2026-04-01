@@ -22,6 +22,7 @@ struct RemoteManagementView: View {
     @State private var editedName = ""
     @State private var showRebootAfterRename = false
     @State private var showPubkeyCopied = false
+    @State private var showNameWizard = false
 
     /// Accent color — teal for room servers, amber for repeaters.
     private var remoteAccent: Color {
@@ -140,6 +141,29 @@ struct RemoteManagementView: View {
             }
         }
         #endif
+        .sheet(isPresented: $showNameWizard) {
+            NavigationStack {
+                NodeSetupWizardView(remoteContext: RemoteWizardContext(
+                    contact: contact,
+                    publicKeyHex: session.settings["public.key"] ?? "",
+                    sendCLI: { command in sendCLI(command) },
+                    currentFrequencyKHz: {
+                        // Parse frequency from "radio" setting (e.g. "906.875,62.5,7,5")
+                        guard let radio = session.settings["radio"],
+                              let freqStr = radio.split(separator: ",").first,
+                              let freqMHz = Double(freqStr) else { return nil }
+                        return freqMHz * 1000  // MHz → kHz
+                    }()
+                ))
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Done") { showNameWizard = false }
+                    }
+                }
+            }
+            .meshTheme()
+            .frame(minWidth: 360, minHeight: 500)
+        }
     }
 
     @ViewBuilder
@@ -233,6 +257,12 @@ struct RemoteManagementView: View {
     }
 
     private func sendCLI(_ command: String) {
+        #if os(macOS) || targetEnvironment(macCatalyst)
+        // For USB CLI devices, log the command being sent for debugging
+        if isUSBDevice {
+            DebugLogger.shared.log("REMOTE USB: sendCLI(\(command)) via remoteSessionManager", level: .tx)
+        }
+        #endif
         remoteSessionManager.sendCLICommand(command, to: contact)
     }
 
@@ -507,24 +537,29 @@ private extension RemoteManagementView {
             }
             .listRowBackground(MeshTheme.surface)
 
+            if canEdit {
+                HStack {
+                    Image(systemName: "wand.and.stars")
+                        .foregroundStyle(MeshTheme.accent)
+                        .frame(width: 24)
+                    Text("Name Wizard")
+                        .foregroundStyle(MeshTheme.textPrimary)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundStyle(MeshTheme.textSecondary)
+                }
+                .contentShape(Rectangle())
+                .onTapGesture { showNameWizard = true }
+                .listRowBackground(MeshTheme.surface)
+            }
+
             RemoteClockRow(session: session, sendCLI: sendCLI)
 
             if DeviceCapabilities.forContactType(contact.type).hasNeighbors {
-                Button {
+                CLICommandButton(icon: "person.3", label: "Neighbors") {
                     sendCLI("neighbors")
-                } label: {
-                    HStack {
-                        Image(systemName: "person.3")
-                            .foregroundStyle(MeshTheme.accent)
-                            .frame(width: 24)
-                        Text("Neighbors")
-                            .foregroundStyle(MeshTheme.accent)
-                        Spacer()
-                    }
-                    .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
-                .listRowBackground(MeshTheme.surface)
 
                 if let neighborsText = session.settings["neighbors"], !neighborsText.isEmpty {
                     Text(neighborsText)
@@ -534,23 +569,11 @@ private extension RemoteManagementView {
                 }
             }
 
-            Button {
+            CLICommandButton(icon: "arrow.clockwise", label: "Refresh Info") {
                 sendCLI("ver")
                 sendCLI("clock")
                 sendCLI("get bootloader.ver")
-            } label: {
-                HStack {
-                    Image(systemName: "arrow.clockwise")
-                        .foregroundStyle(MeshTheme.accent)
-                        .frame(width: 24)
-                    Text("Refresh Info")
-                        .foregroundStyle(MeshTheme.accent)
-                    Spacer()
-                }
-                .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
-            .listRowBackground(MeshTheme.surface)
         } header: {
             SectionInfoHeader(title: "Device Info", info: "Basic device information. Tap Refresh to re-read version and clock from the device.")
         }
@@ -740,21 +763,9 @@ struct RemoteRoutingSection: View {
                 }
                 .listRowBackground(MeshTheme.surface)
 
-                Button {
+                CLICommandButton(icon: "antenna.radiowaves.left.and.right", label: "Discover Neighbors") {
                     sendCLI("discover.neighbors")
-                } label: {
-                    HStack {
-                        Image(systemName: "antenna.radiowaves.left.and.right")
-                            .foregroundStyle(MeshTheme.accent)
-                            .frame(width: 24)
-                        Text("Discover Neighbors")
-                            .foregroundStyle(MeshTheme.accent)
-                        Spacer()
-                    }
-                    .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
-                .listRowBackground(MeshTheme.surface)
 
                 if let neighborsResult = session.settings["discover.neighbors"], !neighborsResult.isEmpty {
                     Text(neighborsResult)
@@ -1198,21 +1209,9 @@ struct RemoteSensorSection: View {
 
     var body: some View {
         Section {
-            Button {
+            CLICommandButton(icon: "cpu", label: "Read All GPIO Pins") {
                 sendCLI("io")
-            } label: {
-                HStack {
-                    Image(systemName: "cpu")
-                        .foregroundStyle(MeshTheme.accent)
-                        .frame(width: 24)
-                    Text("Read All GPIO Pins")
-                        .foregroundStyle(MeshTheme.accent)
-                    Spacer()
-                }
-                .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
-            .listRowBackground(MeshTheme.surface)
 
             if let ioResult = session.settings["io"], !ioResult.isEmpty {
                 Text(ioResult)
@@ -1275,42 +1274,18 @@ struct RemoteMaintenanceSection: View {
                 cliEditRow(icon: "bolt.batteryblock", label: "ADC Multiplier", text: $adcMultiplier, current: session.settings["adc.multiplier"])
 
                 if !adcMultiplier.isEmpty {
-                    Button {
+                    CLICommandButton(icon: "checkmark.circle", label: "Apply ADC Multiplier") {
                         sendCLI("set adc.multiplier \(adcMultiplier)")
                         adcMultiplier = ""
-                    } label: {
-                        HStack {
-                            Image(systemName: "checkmark.circle")
-                                .foregroundStyle(MeshTheme.accent)
-                                .frame(width: 24)
-                            Text("Apply ADC Multiplier")
-                                .foregroundStyle(MeshTheme.accent)
-                            Spacer()
-                        }
-                        .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
-                    .listRowBackground(MeshTheme.surface)
                 }
             }
 
             if permission.isAdmin {
                 // Region management
-                Button {
+                CLICommandButton(icon: "map", label: "List Regions") {
                     sendCLI("region")
-                } label: {
-                    HStack {
-                        Image(systemName: "map")
-                            .foregroundStyle(MeshTheme.accent)
-                            .frame(width: 24)
-                        Text("List Regions")
-                            .foregroundStyle(MeshTheme.accent)
-                        Spacer()
-                    }
-                    .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
-                .listRowBackground(MeshTheme.surface)
 
                 // Logging (start/stop work over BLE; log dump is serial-only)
                 HStack(spacing: 12) {
@@ -1327,21 +1302,9 @@ struct RemoteMaintenanceSection: View {
                 }
                 .listRowBackground(MeshTheme.surface)
 
-                Button {
+                CLICommandButton(icon: "chart.bar.xaxis", label: "Clear Stats", color: .orange) {
                     sendCLI("clear stats")
-                } label: {
-                    HStack {
-                        Image(systemName: "chart.bar.xaxis")
-                            .foregroundStyle(.orange)
-                            .frame(width: 24)
-                        Text("Clear Stats")
-                            .foregroundStyle(.orange)
-                        Spacer()
-                    }
-                    .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
-                .listRowBackground(MeshTheme.surface)
             }
 
             if permission.isAdmin {
@@ -1396,37 +1359,13 @@ struct SerialOnlySection: View {
 
     var body: some View {
         Section {
-            Button {
+            CLICommandButton(icon: "doc.text", label: "Dump Log to Terminal") {
                 sendCLI("log")
-            } label: {
-                HStack {
-                    Image(systemName: "doc.text")
-                        .foregroundStyle(MeshTheme.accent)
-                        .frame(width: 24)
-                    Text("Dump Log to Terminal")
-                        .foregroundStyle(MeshTheme.accent)
-                    Spacer()
-                }
-                .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
-            .listRowBackground(MeshTheme.surface)
 
-            Button {
+            CLICommandButton(icon: "key.fill", label: "View Private Key", color: .orange) {
                 sendCLI("get prv.key")
-            } label: {
-                HStack {
-                    Image(systemName: "key.fill")
-                        .foregroundStyle(.orange)
-                        .frame(width: 24)
-                    Text("View Private Key")
-                        .foregroundStyle(.orange)
-                    Spacer()
-                }
-                .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
-            .listRowBackground(MeshTheme.surface)
 
             Button {
                 showFactoryResetConfirm = true
@@ -1642,6 +1581,32 @@ func cliInfoRow(icon: String, label: String, value: String) -> some View {
             .foregroundStyle(MeshTheme.textPrimary)
     }
     .listRowBackground(MeshTheme.surface)
+}
+
+/// Reusable button row for CLI command actions in remote management.
+struct CLICommandButton: View {
+    let icon: String
+    let label: String
+    var color: Color = MeshTheme.accent
+    let action: () -> Void
+
+    var body: some View {
+        Button {
+            action()
+        } label: {
+            HStack {
+                Image(systemName: icon)
+                    .foregroundStyle(color)
+                    .frame(width: 24)
+                Text(label)
+                    .foregroundStyle(color)
+                Spacer()
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .listRowBackground(MeshTheme.surface)
+    }
 }
 
 /// A segmented On/Off toggle for CLI boolean settings.

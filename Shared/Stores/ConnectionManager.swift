@@ -81,6 +81,8 @@ final class ConnectionManager {
     let usbManager = USBSerialManager()
     /// USB serial ports — bridged from USBSerialManager @Published for @Observable tracking.
     var usbAvailablePorts: [String] = []
+    /// Last connected USB port — kept across disconnect for reconnect polling.
+    private var usbLastConnectedPort: String?
     #endif
 
 
@@ -130,7 +132,7 @@ final class ConnectionManager {
         let verbose = !Self.routineLabels.contains(label)
 
         if wifiManager.isConnected {
-            let hex = data.map { String(format: "%02x", $0) }.joined(separator: " ")
+            let hex = data.hexFormatted()
             Self.logger.info("TX(WiFi) \(label) [\(data.count) bytes]: \(hex)")
             if verbose { DebugLogger.shared.log("TX(WiFi) \(label) [\(data.count)B] \(hex)", level: .tx) }
             wifiManager.sendFrame(data)
@@ -138,7 +140,7 @@ final class ConnectionManager {
         }
         #if os(macOS) || targetEnvironment(macCatalyst)
         if usbManager.isConnected && usbManager.detectedMode == .binary {
-            let hex = data.map { String(format: "%02x", $0) }.joined(separator: " ")
+            let hex = data.hexFormatted()
             Self.logger.info("TX(USB) \(label) [\(data.count) bytes]: \(hex)")
             if verbose { DebugLogger.shared.log("TX(USB) \(label) [\(data.count)B] \(hex)", level: .tx) }
             usbManager.sendFrame(data)
@@ -150,7 +152,7 @@ final class ConnectionManager {
             DebugLogger.shared.log("TX FAIL \(label) — not connected", level: .error)
             return
         }
-        let hex = data.map { String(format: "%02x", $0) }.joined(separator: " ")
+        let hex = data.hexFormatted()
         Self.logger.info("TX \(label) [\(data.count) bytes]: \(hex)")
         if verbose { DebugLogger.shared.log("TX \(label) [\(data.count)B] \(hex)", level: .tx) }
         bleManager.send(data: data)
@@ -198,10 +200,10 @@ final class ConnectionManager {
 
     /// Export a contact as a meshcore:// URL. Result arrives as .exportedContact response.
     func exportContact(_ contact: Contact) {
-        let keyHex = contact.publicKey.prefix(6).map { String(format: "%02x", $0) }.joined()
+        let keyHex = Data(contact.publicKey.prefix(6)).hexCompact
         Self.logger.info("EXPORT: requesting export for '\(contact.name)' key=\(keyHex) fullKeyLen=\(contact.publicKey.count)")
         let frame = MeshCoreProtocol.buildExportContact(publicKey: contact.publicKey)
-        Self.logger.info("EXPORT: frame=[\(frame.count) bytes] \(frame.map { String(format: "%02x", $0) }.joined(separator: " "))")
+        Self.logger.info("EXPORT: frame=[\(frame.count) bytes] \(frame.hexFormatted())")
         sendCommand(frame, label: "EXPORT_CONTACT")
     }
 
@@ -503,19 +505,18 @@ final class ConnectionManager {
         stopScanning()
         connectionState = .connecting
         connectedDeviceName = port.replacingOccurrences(of: "/dev/cu.", with: "")
+        usbLastConnectedPort = port
         usbManager.connect(to: port)
     }
 
     func disconnectUSB() {
-        // Send reboot to reset the radio's serial state before closing the port.
+        usbLastConnectedPort = nil  // User-initiated — don't auto-reconnect
+        // Clear any pending queued commands before sending reboot.
+        usbManager.clearQueue()
+        // Reboot to reset the radio's serial state before closing the port.
         // Without this, the radio holds stale serial state and won't respond to reconnect.
         if usbManager.isConnected {
-            if usbManager.detectedMode == .cli {
-                usbManager.sendCLI("reboot")
-            } else if usbManager.detectedMode == .binary {
-                sendCommand(MeshCoreProtocol.buildReboot(), label: "REBOOT")
-            }
-            DebugLogger.shared.log("USB: sent reboot before disconnect", level: .tx)
+            sendUSBReboot()
         }
         // Set state immediately so UI reflects disconnect. Fire cleanup first.
         let previousState = connectionState
@@ -524,9 +525,9 @@ final class ConnectionManager {
         if previousState != .disconnected {
             onDisconnected?(previousState)
         }
-        // Delay port close to let the reboot command transmit
+        // Delay port close to let the reboot command transmit and process
         Task { @MainActor [weak self] in
-            try? await Task.sleep(nanoseconds: 500_000_000)
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
             guard let self else { return }
             self.usbManager.disconnect()
             // Show scanner after close completes (300ms in disconnect + margin)
@@ -541,6 +542,63 @@ final class ConnectionManager {
 
     func sendUSBCLI(_ command: String) {
         usbManager.sendCLI(command)
+    }
+
+    /// Send a reboot command via the correct USB mode (CLI text or binary frame).
+    func sendUSBReboot() {
+        if usbManager.detectedMode == .cli {
+            usbManager.sendCLI("reboot")
+        } else if usbManager.detectedMode == .binary {
+            sendCommand(MeshCoreProtocol.buildReboot(), label: "REBOOT")
+        }
+        DebugLogger.shared.log("USB: sent reboot", level: .tx)
+    }
+
+    /// Send a USB CLI command directly, bypassing the command queue.
+    /// Use only for settings fetch which has its own sequential pacing.
+    func sendUSBCLIDirect(_ command: String) {
+        usbManager.sendCLIDirect(command)
+    }
+
+    /// Poll for a USB port to reappear after device reboot, then auto-reconnect.
+    private func pollForUSBReconnect(port: String) {
+        DebugLogger.shared.log("USB: polling for \(port) to reappear (device reboot)", level: .info)
+        var attempts = 0
+        let maxAttempts = 15  // 15 × 2s = 30s max wait
+
+        func poll() {
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                // Stop if user connected to something else or initiated a new connection
+                guard self.connectionState == .disconnected else {
+                    DebugLogger.shared.log("USB: reconnect poll cancelled — state changed", level: .info)
+                    return
+                }
+                attempts += 1
+                self.usbManager.scanPorts()
+                // Small delay for scanPorts to update availablePorts
+                try? await Task.sleep(nanoseconds: 500_000_000)
+
+                if self.usbManager.availablePorts.contains(port) {
+                    DebugLogger.shared.log("USB: port \(port) reappeared after reboot — reconnecting", level: .info)
+                    self.connectUSB(port: port)
+                } else if attempts < maxAttempts {
+                    try? await Task.sleep(nanoseconds: 1_500_000_000)
+                    poll()
+                } else {
+                    DebugLogger.shared.log("USB: port \(port) did not reappear after \(maxAttempts) attempts — showing scanner", level: .warning)
+                    self.usbManager.scanPorts()
+                    self.requestShowScanner = true
+                    self.startScanning()
+                }
+            }
+        }
+
+        // Start polling after a brief delay — device needs time to begin reboot
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 3_000_000_000)
+            poll()
+        }
     }
 
     /// Whether the USB device is CLI-connected.
@@ -715,10 +773,16 @@ final class ConnectionManager {
                 }
                 if !connected {
                     let previousState = self.connectionState
+                    let lastPort = self.usbLastConnectedPort
                     self.connectionState = .disconnected
                     self.connectedDeviceName = nil
                     if previousState != .disconnected {
                         self.onDisconnected?(previousState)
+                    }
+                    // If we had a USB connection, poll for the port to reappear (device reboot)
+                    if previousState == .ready || previousState == .connected,
+                       let port = lastPort {
+                        self.pollForUSBReconnect(port: port)
                     }
                 }
             }

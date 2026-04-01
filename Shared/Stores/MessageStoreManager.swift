@@ -139,7 +139,7 @@ final class MessageStoreManager {
         unreadCounts[contactKey] = 0
         updateAppBadge()
         guard let prefix = radioPrefix12 else { return }
-        let contactHex = contactKey.map { String(format: "%02x", $0) }.joined()
+        let contactHex = contactKey.hexCompact
         let key = "lastRead.\(prefix).\(contactHex)"
         iCloudStore.set(Date().timeIntervalSince1970, forKey: key)
         iCloudStore.synchronize()
@@ -160,7 +160,7 @@ final class MessageStoreManager {
 
     /// Read lastRead timestamp, trying scoped key first then falling back to legacy.
     private func lastReadValue(for contactKey: Data) -> Double {
-        let contactHex = contactKey.map { String(format: "%02x", $0) }.joined()
+        let contactHex = contactKey.hexCompact
         if let prefix = radioPrefix12 {
             let scopedKey = "lastRead.\(prefix).\(contactHex)"
             let val = iCloudStore.double(forKey: scopedKey)
@@ -242,7 +242,7 @@ final class MessageStoreManager {
 
     func saveDraft(_ text: String, for contactKey: Data) {
         guard let prefix = radioPrefix12 else { return }
-        let contactHex = contactKey.map { String(format: "%02x", $0) }.joined()
+        let contactHex = contactKey.hexCompact
         let key = "draft.\(prefix).\(contactHex)"
         if text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             iCloudStore.removeObject(forKey: key)
@@ -253,7 +253,7 @@ final class MessageStoreManager {
     }
 
     func loadDraft(for contactKey: Data) -> String {
-        let contactHex = contactKey.map { String(format: "%02x", $0) }.joined()
+        let contactHex = contactKey.hexCompact
         if let prefix = radioPrefix12 {
             let scopedKey = "draft.\(prefix).\(contactHex)"
             if let draft = iCloudStore.string(forKey: scopedKey), !draft.isEmpty {
@@ -266,7 +266,7 @@ final class MessageStoreManager {
     }
 
     func hasDraft(for contactKey: Data) -> Bool {
-        let contactHex = contactKey.map { String(format: "%02x", $0) }.joined()
+        let contactHex = contactKey.hexCompact
         if let prefix = radioPrefix12 {
             let scopedKey = "draft.\(prefix).\(contactHex)"
             if let draft = iCloudStore.string(forKey: scopedKey), !draft.isEmpty {
@@ -309,7 +309,7 @@ final class MessageStoreManager {
             text: trimmed,
             recipientKeyHash: contact.publicKeyPrefix
         )
-        Self.logger.info("DM SEND: to=\(contact.name) key=\(contact.publicKeyPrefix.map { String(format: "%02x", $0) }.joined())")
+        Self.logger.info("DM SEND: to=\(contact.name) key=\(contact.publicKeyPrefix.hexCompact)")
         DebugLogger.shared.log("DM SEND: to='\(contact.name)' '\(text.prefix(40))'", level: .tx)
         sendCommand?(frame, "SEND_TXT")
     }
@@ -322,9 +322,8 @@ final class MessageStoreManager {
             text: trimmed,
             channelIndex: channelIndex
         )
-        Self.logger.info("CHANNEL TX: [\(frame.count) bytes] \(frame.map { String(format: "%02X", $0) }.joined(separator: " "))")
-        let frameHex = frame.map { String(format: "%02X", $0) }.joined(separator: " ")
-        DebugLogger.shared.log("CH TX: ch=\(frame[2]) [\(frame.count)B] \(frameHex)", level: .tx)
+        Self.logger.info("CHANNEL TX: [\(frame.count) bytes] \(frame.hexFormatted())")
+        DebugLogger.shared.log("CH TX: ch=\(frame[2]) [\(frame.count)B] \(frame.hexFormatted())", level: .tx)
         DebugLogger.shared.log("CH TX: text='\(trimmed)'", level: .tx)
         sendCommand?(frame, "SEND_CHANNEL_TXT")
 
@@ -641,7 +640,7 @@ final class MessageStoreManager {
         let radioKey = radioPublicKeyHexProvider?() ?? ""
         guard !radioKey.isEmpty else { return }
 
-        let contactHex = contactKeyHash.map { String(format: "%02x", $0) }.joined()
+        let contactHex = contactKeyHash.hexCompact
         let key = "msg.\(radioKey.prefix(12)).\(contactHex)"
 
         guard let messages = messagesByContact[contactKeyHash] else { return }
@@ -735,14 +734,14 @@ final class MessageStoreManager {
             content.threadIdentifier = "channel.\(channelIdx)"
         } else if let name = senderName {
             content.title = name
-            content.threadIdentifier = "dm.\(message.contactKeyHash.map { String(format: "%02x", $0) }.joined())"
+            content.threadIdentifier = "dm.\(message.contactKeyHash.hexCompact)"
         } else {
             content.title = "New Message"
         }
         content.body = message.text
 
         if let contact {
-            content.userInfo["contactPubkey"] = contact.publicKey.map { String(format: "%02x", $0) }.joined()
+            content.userInfo["contactPubkey"] = contact.publicKey.hexCompact
             content.userInfo["isChannel"] = isChannel
             if let chIdx = message.channelIndex {
                 content.userInfo["channelIndex"] = chIdx

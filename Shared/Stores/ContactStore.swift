@@ -82,7 +82,7 @@ final class ContactStore {
     // MARK: - Nicknames
 
     func setNickname(_ nickname: String, for contact: Contact) {
-        let key = contact.publicKey.map { String(format: "%02x", $0) }.joined()
+        let key = contact.publicKey.hexCompact
         let trimmed = String(nickname.prefix(32))
         if trimmed.isEmpty {
             nicknames.removeValue(forKey: key)
@@ -93,7 +93,7 @@ final class ContactStore {
     }
 
     func nickname(for contact: Contact) -> String? {
-        let key = contact.publicKey.map { String(format: "%02x", $0) }.joined()
+        let key = contact.publicKey.hexCompact
         guard let value = nicknames[key], !value.isEmpty else { return nil }
         return value
     }
@@ -102,7 +102,7 @@ final class ContactStore {
         if let nick = nickname(for: contact), !nick.isEmpty { return nick }
         if !contact.name.isEmpty { return contact.name }
         // Fallback for contacts with no name (e.g. factory-reset or new radios)
-        return contact.publicKey.prefix(4).map { String(format: "%02x", $0) }.joined()
+        return Data(contact.publicKey.prefix(4)).hexCompact
     }
 
     /// Resolve a channel message sender name to a nickname if one exists.
@@ -192,12 +192,12 @@ final class ContactStore {
     // MARK: - Contact Notes
 
     func note(for contact: Contact) -> String {
-        let key = contact.publicKey.map { String(format: "%02x", $0) }.joined()
+        let key = contact.publicKey.hexCompact
         return contactNotes[key] ?? ""
     }
 
     func setNote(_ note: String, for contact: Contact) {
-        let key = contact.publicKey.map { String(format: "%02x", $0) }.joined()
+        let key = contact.publicKey.hexCompact
         if note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             contactNotes.removeValue(forKey: key)
         } else {
@@ -207,7 +207,7 @@ final class ContactStore {
     }
 
     func hasNote(for contact: Contact) -> Bool {
-        let key = contact.publicKey.map { String(format: "%02x", $0) }.joined()
+        let key = contact.publicKey.hexCompact
         return contactNotes[key] != nil && !contactNotes[key]!.isEmpty
     }
 
@@ -273,7 +273,7 @@ final class ContactStore {
     }
 
     func addContactToGroup(_ contact: Contact, group: ContactGroup) {
-        let pubkeyHex = contact.publicKey.map { String(format: "%02x", $0) }.joined()
+        let pubkeyHex = contact.publicKey.hexCompact
         if let idx = contactGroups.firstIndex(where: { $0.id == group.id }) {
             if !contactGroups[idx].memberPubkeys.contains(pubkeyHex) {
                 contactGroups[idx].memberPubkeys.append(pubkeyHex)
@@ -283,7 +283,7 @@ final class ContactStore {
     }
 
     func removeContactFromGroup(_ contact: Contact, group: ContactGroup) {
-        let pubkeyHex = contact.publicKey.map { String(format: "%02x", $0) }.joined()
+        let pubkeyHex = contact.publicKey.hexCompact
         if let idx = contactGroups.firstIndex(where: { $0.id == group.id }) {
             contactGroups[idx].memberPubkeys.removeAll { $0 == pubkeyHex }
             saveContactGroupsToiCloud()
@@ -292,7 +292,7 @@ final class ContactStore {
 
     func contactsInGroup(_ group: ContactGroup) -> [Contact] {
         contacts.filter { contact in
-            let hex = contact.publicKey.map { String(format: "%02x", $0) }.joined()
+            let hex = contact.publicKey.hexCompact
             return group.memberPubkeys.contains(hex)
         }
     }
@@ -383,7 +383,7 @@ final class ContactStore {
     }
 
     func setContactPath(_ contact: Contact, pathLen: Int8, pathData: Data) {
-        let pathHex = pathData.isEmpty ? "(empty)" : pathData.map { String(format: "%02x", $0) }.joined()
+        let pathHex = pathData.isEmpty ? "(empty)" : pathData.hexCompact
         let mode = pathLen < 0 ? "flood" : pathLen == 0 ? "direct" : "\(pathLen) hops"
         DebugLogger.shared.log("PATH SET: \(mode) pathLen=\(pathLen) pathHex=\(pathHex) for \(contact.name)", level: .tx)
 
@@ -593,7 +593,7 @@ final class ContactStore {
             let attrs = CSSearchableItemAttributeSet(contentType: .contact)
             attrs.displayName = displayName(for: contact)
             attrs.contentDescription = "MeshCore \(contact.type == .repeater ? "repeater" : contact.type == .room ? "room server" : "contact")"
-            let pubkeyHex = contact.publicKey.map { String(format: "%02x", $0) }.joined()
+            let pubkeyHex = contact.publicKey.hexCompact
             let item = CSSearchableItem(
                 uniqueIdentifier: "meshcore.contact.\(pubkeyHex)",
                 domainIdentifier: "com.mbedworth.meshcore.contacts",

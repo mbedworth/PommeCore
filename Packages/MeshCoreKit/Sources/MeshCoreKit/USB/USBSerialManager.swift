@@ -60,6 +60,11 @@ public final class USBSerialManager: ObservableObject {
     private var resolvedMode: DeviceMode = .unknown
     /// True while the background read loop is active — prevents FD reuse races on reconnect.
     private var readLoopActive = false
+    /// CLI command queue — ensures commands are sent one at a time with proper spacing.
+    private var cliQueue: [String] = []
+    private var cliQueueProcessing = false
+    /// Minimum delay between CLI commands (milliseconds).
+    private let cliCommandDelayMs: UInt64 = 500
 
     public init() {}
 
@@ -182,8 +187,7 @@ public final class USBSerialManager: ObservableObject {
                 let bytesRead = read(fd, &buffer, 1024)
                 if bytesRead > 0 {
                     let data = Data(buffer[0..<bytesRead])
-                    let hex = data.prefix(40).map { String(format: "%02X", $0) }.joined(separator: " ")
-                    DebugLogger.shared.log("USB RX: \(bytesRead) bytes: \(hex)\(bytesRead > 40 ? "..." : "")", level: .rx)
+                    DebugLogger.shared.log("USB RX: \(bytesRead) bytes: \(data.hexFormatted(maxBytes: 40))", level: .rx)
                     self.handleReceivedData(data)
                 } else if bytesRead == 0 {
                     // VMIN=0/VTIME=2: bytesRead==0 means timeout (no data), not EOF.
@@ -205,44 +209,35 @@ public final class USBSerialManager: ObservableObject {
             }
         }
 
-        // Probe sequence with escalating approaches:
-        // 1s: Send $$ (for CLI devices)
-        serialQueue.asyncAfter(deadline: .now() + 1.0) { [weak self] in
-            guard let self, self.detectedMode == .unknown, self.fileDescriptor >= 0 else { return }
-            DebugLogger.shared.log("USB PROBE 1: sending $$ (CLI probe)", level: .tx)
-            self.probeDeviceType()
-        }
+        // Escalating probe sequence — each approach tries a different method
+        let probes: [(delay: Double, label: String, action: (USBSerialManager) -> Void)] = [
+            (1.0, "sending $$ (CLI probe)", { $0.probeDeviceType() }),
+            (3.0, "sending framed binary CMD_DEVICE_QUERY", { $0.sendFrame(Data([0x16, 0x03])) }),
+            (5.0, "sending RAW binary (no framing): 16 03", { mgr in
+                let raw = Data([0x16, 0x03])
+                raw.withUnsafeBytes { ptr in
+                    guard let base = ptr.baseAddress else { return }
+                    _ = write(mgr.fileDescriptor, base, raw.count)
+                }
+            }),
+            (7.0, "asserting DTR/RTS + framed binary probe", { mgr in
+                var modemBits: CInt = TIOCM_DTR | TIOCM_RTS
+                _ = ioctl(mgr.fileDescriptor, TIOCMBIS, &modemBits)
+                mgr.sendFrame(Data([0x16, 0x03]))
+            }),
+        ]
 
-        // 3s: Send framed binary CMD_DEVICE_QUERY: < + len + [0x16, 0x03]
-        serialQueue.asyncAfter(deadline: .now() + 3.0) { [weak self] in
-            guard let self, self.detectedMode == .unknown, self.fileDescriptor >= 0 else { return }
-            DebugLogger.shared.log("USB PROBE 2: sending framed binary CMD_DEVICE_QUERY", level: .tx)
-            self.sendFrame(Data([0x16, 0x03]))
-        }
-
-        // 5s: Send RAW binary CMD_DEVICE_QUERY without framing (in case device doesn't use <> framing)
-        serialQueue.asyncAfter(deadline: .now() + 5.0) { [weak self] in
-            guard let self, self.detectedMode == .unknown, self.fileDescriptor >= 0 else { return }
-            DebugLogger.shared.log("USB PROBE 3: sending RAW binary (no framing): 16 03", level: .tx)
-            let raw = Data([0x16, 0x03])
-            raw.withUnsafeBytes { ptr in
-                guard let base = ptr.baseAddress else { return }
-                _ = write(self.fileDescriptor, base, raw.count)
+        for (index, probe) in probes.enumerated() {
+            serialQueue.asyncAfter(deadline: .now() + probe.delay) { [weak self] in
+                guard let self, self.resolvedMode == .unknown, self.fileDescriptor >= 0 else { return }
+                DebugLogger.shared.log("USB PROBE \(index + 1): \(probe.label)", level: .tx)
+                probe.action(self)
             }
         }
 
-        // 7s: Assert DTR/RTS and try framed probe again
-        serialQueue.asyncAfter(deadline: .now() + 7.0) { [weak self] in
-            guard let self, self.detectedMode == .unknown, self.fileDescriptor >= 0 else { return }
-            DebugLogger.shared.log("USB PROBE 4: asserting DTR/RTS + framed binary probe", level: .tx)
-            var modemBits: CInt = TIOCM_DTR | TIOCM_RTS
-            _ = ioctl(self.fileDescriptor, TIOCMBIS, &modemBits)
-            self.sendFrame(Data([0x16, 0x03]))
-        }
-
-        // 10s: Final timeout — disconnect if device never responded
+        // Final timeout — disconnect if device never responded
         serialQueue.asyncAfter(deadline: .now() + 10.0) { [weak self] in
-            guard let self, self.detectedMode == .unknown, self.fileDescriptor >= 0 else { return }
+            guard let self, self.resolvedMode == .unknown, self.fileDescriptor >= 0 else { return }
             DebugLogger.shared.log("USB: ALL PROBES FAILED after 10s — disconnecting. Try: 1) unplug/replug device 2) press reset button 3) check if another app has the port open", level: .error)
             DispatchQueue.main.async {
                 self.disconnect()
@@ -261,6 +256,7 @@ public final class USBSerialManager: ObservableObject {
 
         resolvedMode = .unknown
         readBuffer.removeAll()
+        clearCLIQueue()
 
         // Capture fd and clear it immediately — the read loop checks
         // `self.fileDescriptor == fd` every 200ms and will exit.
@@ -295,8 +291,7 @@ public final class USBSerialManager: ObservableObject {
         framedData.append(Data(bytes: &length, count: 2))
         framedData.append(frame)
 
-        let txHex = framedData.map { String(format: "%02X", $0) }.joined(separator: " ")
-        DebugLogger.shared.log("USB RAW TX: \(framedData.count) bytes: \(txHex)", level: .tx)
+        DebugLogger.shared.log("USB RAW TX: \(framedData.count) bytes: \(framedData.hexFormatted())", level: .tx)
 
         serialQueue.async { [weak self] in
             guard let self, self.fileDescriptor >= 0 else { return }
@@ -308,8 +303,21 @@ public final class USBSerialManager: ObservableObject {
         }
     }
 
-    /// Send a CLI text command (terminated with newline).
+    /// Queue a CLI command for sequential execution.
+    /// Commands are sent one at a time, waiting for a response or minimum delay between each.
     public func sendCLI(_ command: String) {
+        guard fileDescriptor >= 0 else { return }
+        cliQueue.append(command)
+        processNextCLICommand()
+    }
+
+    /// Send a CLI command immediately, bypassing the queue.
+    /// Use for settings fetch (which has its own pacing) and internal probes.
+    public func sendCLIDirect(_ command: String) {
+        sendCLIImmediate(command)
+    }
+
+    private func sendCLIImmediate(_ command: String) {
         guard fileDescriptor >= 0 else { return }
         guard let data = "\(command)\r\n".data(using: .utf8) else { return }
 
@@ -321,6 +329,37 @@ public final class USBSerialManager: ObservableObject {
             }
             Self.logger.debug("TX CLI: \(command)")
         }
+    }
+
+    private func processNextCLICommand() {
+        guard !cliQueueProcessing, !cliQueue.isEmpty else { return }
+        cliQueueProcessing = true
+
+        let command = cliQueue.removeFirst()
+        let remaining = cliQueue.count
+        DebugLogger.shared.log("USB QUEUE: sending '\(command)' (\(remaining) queued)", level: .tx)
+        sendCLIImmediate(command)
+
+        // Always wait the minimum delay before sending the next command.
+        // The device needs time to process each command, even if it echoes immediately.
+        DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(Int(cliCommandDelayMs))) { [weak self] in
+            guard let self else { return }
+            self.cliQueueProcessing = false
+            if !self.cliQueue.isEmpty {
+                DebugLogger.shared.log("USB QUEUE: delay done, processing next (\(self.cliQueue.count) remaining)", level: .info)
+                self.processNextCLICommand()
+            }
+        }
+    }
+
+    /// Clear any pending queued commands (e.g. on disconnect).
+    public func clearQueue() {
+        clearCLIQueue()
+    }
+
+    private func clearCLIQueue() {
+        cliQueue.removeAll()
+        cliQueueProcessing = false
     }
 
     // MARK: - Read
@@ -357,8 +396,7 @@ public final class USBSerialManager: ObservableObject {
     private func detectMode() {
         guard !readBuffer.isEmpty else { return }
 
-        let hex = readBuffer.prefix(20).map { String(format: "%02X", $0) }.joined(separator: " ")
-        DebugLogger.shared.log("USB DETECT: \(readBuffer.count) bytes, startIndex=\(readBuffer.startIndex): \(hex)", level: .rx)
+        DebugLogger.shared.log("USB DETECT: \(readBuffer.count) bytes, startIndex=\(readBuffer.startIndex): \(Data(readBuffer.prefix(20)).hexFormatted())", level: .rx)
 
         let firstByte = readBuffer[readBuffer.startIndex]
 
@@ -418,8 +456,7 @@ public final class USBSerialManager: ObservableObject {
             let frameData = Data(readBuffer[(si + 3)..<(si + totalNeeded)])
             readBuffer.removeFirst(totalNeeded)
 
-            let hex = frameData.prefix(20).map { String(format: "%02X", $0) }.joined(separator: " ")
-            DebugLogger.shared.log("USB RX FRAME: \(frameData.count) bytes: \(hex)\(frameData.count > 20 ? "..." : "")", level: .rx)
+            DebugLogger.shared.log("USB RX FRAME: \(frameData.count) bytes: \(frameData.hexFormatted(maxBytes: 20))", level: .rx)
             Self.logger.debug("RX binary frame [\(frameData.count) bytes]")
             DispatchQueue.main.async { [weak self] in
                 self?.receivedDataSubject.send(frameData)

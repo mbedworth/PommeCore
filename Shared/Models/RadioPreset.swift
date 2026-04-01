@@ -95,6 +95,23 @@ func presetsForCountry(_ isoCountry: String) -> [RadioPreset] {
     return radioPresets.filter { $0.region == region }
 }
 
+/// Legal ISM frequency ranges by region (kHz).
+private let legalFrequencyRanges: [String: ClosedRange<Double>] = [
+    "North America": 902_000...928_000,
+    "Europe":        863_000...870_000,
+    "Australia/NZ":  915_000...928_000,
+    "Asia":          860_000...930_000,   // broad — varies by country
+]
+
+/// Check if a frequency (in kHz) is legal for a given ISO country code.
+func isFrequencyLegal(frequencyKHz: Double, forCountry isoCountry: String) -> Bool {
+    guard let region = presetRegionForCountry(isoCountry),
+          let range = legalFrequencyRanges[region] else {
+        return true  // Unknown country — don't block
+    }
+    return range.contains(frequencyKHz)
+}
+
 /// Reusable radio preset picker section. Calls `onApply` with the selected preset.
 /// Auto-detects current preset from device config via inline computation.
 struct RadioPresetPicker: View {

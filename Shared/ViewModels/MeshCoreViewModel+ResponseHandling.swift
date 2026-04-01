@@ -26,7 +26,7 @@ extension MeshCoreViewModel {
     ]
 
     func handleReceivedData(_ data: Data) {
-        let hex = data.map { String(format: "%02x", $0) }.joined(separator: " ")
+        let hex = data.hexFormatted()
         Self.logger.info("RX [\(data.count)]: \(hex)")
         let code = data.first ?? 0
         if !Self.routineResponseCodes.contains(code) {
@@ -48,7 +48,7 @@ extension MeshCoreViewModel {
             Self.logger.info("PARSED SelfInfo: name='\(info.name)' txPwr=\(info.txPower)/\(info.maxTXPower) freq=\(info.radioFreq) bw=\(info.radioBW) sf=\(info.radioSF) cr=\(info.radioCR) lat=\(info.latitude) lon=\(info.longitude)")
             let freqMHz = String(format: "%.3f", Double(info.radioFreq) / 1000.0)
             let bwKHz = String(format: "%.1f", Double(info.radioBW) / 1000.0)
-            let keyHex = info.publicKey.prefix(8).map { String(format: "%02x", $0) }.joined()
+            let keyHex = Data(info.publicKey.prefix(8)).hexCompact
             DebugLogger.shared.log("RADIO: freq=\(freqMHz)MHz BW=\(bwKHz)kHz SF=\(info.radioSF) CR=\(info.radioCR) TX=\(info.txPower)/\(info.maxTXPower)dBm", level: .rx)
             DebugLogger.shared.log("RADIO: name='\(info.name)' type=\(info.type) pubkey=\(keyHex)...", level: .rx)
             DebugLogger.shared.log("RADIO: lat=\(info.latitude) lon=\(info.longitude) multiACK=\(info.multiACK) advLoc=\(info.advertLocPolicy)", level: .rx)
@@ -56,7 +56,7 @@ extension MeshCoreViewModel {
             deviceConfig.selfType = info.type
             deviceConfig.radioTXPower = info.txPower
             deviceConfig.maxTXPower = info.maxTXPower
-            deviceConfig.publicKeyHex = info.publicKey.map { String(format: "%02x", $0) }.joined()
+            deviceConfig.publicKeyHex = info.publicKey.hexCompact
             deviceConfig.loadBatteryCalibration()
             let radioPrefix = String(deviceConfig.publicKeyHex.prefix(12))
             messageStoreManager.activateForRadio(radioPrefix)
@@ -229,7 +229,7 @@ extension MeshCoreViewModel {
             remoteSessionManager.handleTraceData(result)
 
         case .telemetryResponse(let senderKey, let readings):
-            Self.logger.info("PUSH Telemetry: \(readings.count) readings from \(senderKey.prefix(6).map { String(format: "%02x", $0) }.joined())")
+            Self.logger.info("PUSH Telemetry: \(readings.count) readings from \(Data(senderKey.prefix(6)).hexCompact)")
             remoteSessionManager.handleTelemetryResponse(senderKey: senderKey, readings: readings)
 
         case .controlData(let snr, let rssi, let pathLen, let payload):
@@ -237,7 +237,7 @@ extension MeshCoreViewModel {
             remoteSessionManager.handleControlData(snr: snr, rssi: rssi, pathLen: pathLen, payload: payload)
 
         case .channelInfo(let channel):
-            let secretDesc = channel.secret.map { $0.map { String(format: "%02x", $0) }.joined() } ?? "none"
+            let secretDesc = channel.secret.map { $0.hexCompact } ?? "none"
             Self.logger.info("Channel info: idx=\(channel.index) name='\(channel.name)' secret=\(secretDesc)")
             DebugLogger.shared.log("CH[\(channel.index)]: '\(channel.name)' secret=\(channel.secret != nil ? "\(channel.secret!.count)B" : "none")", level: .rx)
             channelStore.handleChannelInfo(channel)
@@ -313,7 +313,7 @@ extension MeshCoreViewModel {
                 DebugLogger.shared.log("MAP SIGN: signature received but no pending data", level: .warning)
                 break
             }
-            let sigHex = signature.map { String(format: "%02x", $0) }.joined()
+            let sigHex = signature.hexCompact
             let pubKeyHex = deviceConfig.publicKeyHex
             DebugLogger.shared.log("MAP SIGN: got \(signature.count)-byte signature, uploading", level: .info)
             pendingMapDataJSON = nil

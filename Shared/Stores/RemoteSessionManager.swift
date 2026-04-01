@@ -137,6 +137,8 @@ final class RemoteSessionManager {
         #if os(macOS) || targetEnvironment(macCatalyst)
         usbDeviceSession = nil
         usbDeviceContact = nil
+        usbCLIOutput.removeAll()
+        usbSessionCancellable.removeAll()
         #endif
     }
 
@@ -351,9 +353,10 @@ final class RemoteSessionManager {
 
         #if os(macOS) || targetEnvironment(macCatalyst)
         if let usbContact = usbDeviceContact, contact.publicKey == usbContact.publicKey,
-           let sendUSBCLI = sendUSBCLI {
+           let sendDirect = sendUSBCLIDirect {
+            // Use direct send (bypasses queue) — fetch has its own sequential pacing
             cmdIndex = session.commandSent(command)
-            sendUSBCLI(command)
+            sendDirect(command)
             usbCLIOutput.append(USBTerminalLine(text: "> \(command)", isCommand: true))
         } else {
             cmdIndex = session.commandSent(command)
@@ -385,8 +388,10 @@ final class RemoteSessionManager {
     // MARK: - USB CLI
 
     #if os(macOS) || targetEnvironment(macCatalyst)
-    /// Closure to send a raw CLI command through USB serial.
+    /// Closure to send a raw CLI command through USB serial (queued).
     var sendUSBCLI: ((String) -> Void)?
+    /// Closure to send a raw CLI command directly, bypassing the queue (for settings fetch).
+    var sendUSBCLIDirect: ((String) -> Void)?
 
     /// Whether the USB device is CLI-connected and has a management session.
     var isUSBCLIConnected: Bool {
@@ -660,7 +665,7 @@ final class RemoteSessionManager {
     /// Convert a Contact from an advert push into a DiscoveredNode.
     func addAdvertAsDiscoveredNode(_ contact: Contact) {
         let selfKeyHex = deviceConfigProvider?().publicKeyHex ?? ""
-        let contactKeyHex = contact.publicKeyPrefix.map { String(format: "%02x", $0) }.joined()
+        let contactKeyHex = contact.publicKeyPrefix.hexCompact
         if !selfKeyHex.isEmpty && selfKeyHex.hasPrefix(contactKeyHex) { return }
 
         let node = DiscoveredNode(
@@ -738,7 +743,7 @@ final class RemoteSessionManager {
         }
 
         let selfKeyHex = deviceConfigProvider?().publicKeyHex ?? ""
-        let nodeKeyHex = publicKey.prefix(6).map { String(format: "%02x", $0) }.joined()
+        let nodeKeyHex = Data(publicKey.prefix(6)).hexCompact
         if !selfKeyHex.isEmpty && selfKeyHex.hasPrefix(nodeKeyHex) {
             Self.logger.debug("Discover: filtered self-advert (\(name))")
             return

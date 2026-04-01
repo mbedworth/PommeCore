@@ -154,7 +154,7 @@ final class MeshCoreViewModel: ObservableObject {
     
     func navigateToContact(pubkeyHex: String) {
         if let contact = contactStore.contacts.first(where: {
-            $0.publicKey.map { String(format: "%02x", $0) }.joined() == pubkeyHex
+            $0.publicKey.hexCompact == pubkeyHex
         }) {
             navigationStore.sidebarSelection = .contact(contact.publicKeyPrefix)
         }
@@ -212,6 +212,7 @@ final class MeshCoreViewModel: ObservableObject {
         remoteSessionManager.onStateChanged = { [weak self] in self?.objectWillChange.send() }
 #if os(macOS) || targetEnvironment(macCatalyst)
         remoteSessionManager.sendUSBCLI = { [weak self] cmd in self?.connectionManager.sendUSBCLI(cmd) }
+        remoteSessionManager.sendUSBCLIDirect = { [weak self] cmd in self?.connectionManager.sendUSBCLIDirect(cmd) }
 #endif
     }
     
@@ -339,7 +340,7 @@ final class MeshCoreViewModel: ObservableObject {
     /// Handle a quick reply from a notification action.
     func handleNotificationReply(text: String, contactPubkeyHex: String) {
         guard let contact = contactStore.contacts.first(where: {
-            $0.publicKey.map { String(format: "%02x", $0) }.joined() == contactPubkeyHex
+            $0.publicKey.hexCompact == contactPubkeyHex
         }) else {
             Self.logger.warning("Quick reply: contact not found for \(contactPubkeyHex)")
             return

@@ -173,7 +173,7 @@ public final class MessageStore {
     // MARK: - File Paths
 
     private func fileURL(for contactKeyHash: Data) -> URL {
-        let hex = contactKeyHash.map { String(format: "%02x", $0) }.joined()
+        let hex = contactKeyHash.hexCompact
         return directory.appendingPathComponent("\(hex).json")
     }
 
@@ -262,5 +262,19 @@ extension Data {
             index = nextIndex
         }
         self = data
+    }
+
+    /// Format bytes as hex string: "0A 1B 2C" (space-separated, uppercase).
+    /// Use `maxBytes` to truncate long data with "..." suffix.
+    public func hexFormatted(separator: String = " ", maxBytes: Int? = nil) -> String {
+        let slice = maxBytes.map { self.prefix($0) } ?? self
+        let hex = slice.map { String(format: "%02X", $0) }.joined(separator: separator)
+        if let max = maxBytes, self.count > max { return hex + "..." }
+        return hex
+    }
+
+    /// Format bytes as compact hex string with no separator: "0a1b2c".
+    public var hexCompact: String {
+        map { String(format: "%02x", $0) }.joined()
     }
 }

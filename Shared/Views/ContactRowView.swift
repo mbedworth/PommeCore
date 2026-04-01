@@ -224,7 +224,7 @@ struct ContactRowView: View {
             let end = min(start + bytesPerHop, pathData.count)
             guard end <= pathData.count else { break }
             let hash = pathData[start..<end]
-            let hexStr = hash.map { String(format: "%02X", $0) }.joined()
+            let hexStr = Data(hash).hexCompact.uppercased()
             if let name = contactStore.contactNameForHash(hexStr) {
                 hops.append(name)
             } else {
