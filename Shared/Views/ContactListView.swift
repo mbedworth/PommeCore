@@ -62,6 +62,13 @@ struct ContactListView: View {
     #if !os(watchOS)
     @State private var shareContact: Contact?
     #endif
+    /// Single timer for all contact rows — ticks every 30s to refresh relative "last seen" text.
+    @State private var refreshTick = Date()
+    private let refreshTimer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
+    @State private var contactsExpanded = true
+    @State private var channelsExpanded = true
+    @AppStorage("contactSortByLastSeen") private var sortByLastSeen = true
+    @AppStorage("channelsFirst") private var channelsFirst = false
     #if os(iOS)
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     #endif
@@ -564,7 +571,7 @@ struct ContactListView: View {
 
     @ViewBuilder
     private var channelsSection: some View {
-        Section {
+        Section(isExpanded: $channelsExpanded) {
             // Public channel is always the first item
             #if os(watchOS)
             NavigationLink {
@@ -816,6 +823,14 @@ struct ContactListView: View {
             Text("Contacts")
                 .foregroundStyle(MeshTheme.textSecondary)
             Spacer()
+            Button {
+                sortByLastSeen.toggle()
+            } label: {
+                Image(systemName: sortByLastSeen ? "clock" : "textformat.abc")
+                    .foregroundStyle(MeshTheme.accent)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(sortByLastSeen ? "Sort alphabetically" : "Sort by last seen")
             Menu {
                 Button { showImportSheet = true } label: {
                     Label("Paste Contact Link", systemImage: "doc.on.clipboard")
@@ -839,8 +854,8 @@ struct ContactListView: View {
     }
 
     private var contactsSection: some View {
-        Section {
-            if contactStore.sortedContacts.isEmpty {
+        Section(isExpanded: $contactsExpanded) {
+            if contactStore.sortedContacts(byLastSeen: sortByLastSeen).isEmpty {
                 VStack(spacing: 12) {
                     Image(systemName: "person.2.slash")
                         .font(.system(size: 32))
@@ -864,7 +879,7 @@ struct ContactListView: View {
                 .padding(.vertical, 8)
                 .listRowBackground(MeshTheme.surface)
             } else {
-                ForEach(contactStore.sortedContacts) { contact in
+                ForEach(contactStore.sortedContacts(byLastSeen: sortByLastSeen)) { contact in
                     #if os(watchOS)
                     NavigationLink {
                         contactDestination(contact)
@@ -927,11 +942,11 @@ struct ContactListView: View {
             // Paste Link and Scan QR are in the contacts "+" header menu
             if isSelecting {
                 HStack {
-                    Button(selectedContacts.count == contactStore.sortedContacts.count ? "Deselect All" : "Select All") {
-                        if selectedContacts.count == contactStore.sortedContacts.count {
+                    Button(selectedContacts.count == contactStore.sortedContacts(byLastSeen: sortByLastSeen).count ? "Deselect All" : "Select All") {
+                        if selectedContacts.count == contactStore.sortedContacts(byLastSeen: sortByLastSeen).count {
                             selectedContacts.removeAll()
                         } else {
-                            selectedContacts = Set(contactStore.sortedContacts.map(\.publicKeyPrefix))
+                            selectedContacts = Set(contactStore.sortedContacts(byLastSeen: sortByLastSeen).map(\.publicKeyPrefix))
                         }
                     }
                     .font(.caption)
@@ -1171,7 +1186,7 @@ struct ContactListView: View {
     }
 
     private func contactRow(_ contact: Contact) -> some View {
-        ContactRowView(contact: contact)
+        ContactRowView(contact: contact, refreshTick: refreshTick)
     }
 
     /// Returns the appropriate detail view for a contact based on its type.
@@ -1272,7 +1287,9 @@ private extension ContactListView {
     var mainList: some View {
         List(selection: $localSelection) {
             connectionSection
-            channelsSection
+            if channelsFirst {
+                channelsSection
+            }
             if !contactStore.pendingNewContacts.isEmpty {
                 pendingContactsSection
             }
@@ -1280,6 +1297,9 @@ private extension ContactListView {
                 groupsSection
             }
             contactsSection
+            if !channelsFirst {
+                channelsSection
+            }
             #if !os(watchOS)
             Section {
                 NavigationLink(value: SidebarSelection.map) {
@@ -1384,6 +1404,7 @@ private extension ContactListView {
             #endif
         }
         .meshListStyle()
+        .onReceive(refreshTimer) { refreshTick = $0 }
         .refreshable {
             guard connectionManager.connectionState == .ready else { return }
             connectionManager.refreshAll(contactStore: contactStore)

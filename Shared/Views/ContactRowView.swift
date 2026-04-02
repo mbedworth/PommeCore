@@ -18,6 +18,9 @@ struct ContactRowView: View {
     @Environment(MessageStoreManager.self) private var messageStoreManager
     @Environment(RemoteSessionManager.self) private var remoteSessionManager
 
+    /// Passed from parent list — ticks every 30s to refresh relative time text.
+    var refreshTick: Date = Date()
+
     var body: some View {
         HStack(spacing: 12) {
             contactIcon
@@ -187,6 +190,8 @@ struct ContactRowView: View {
     // MARK: - Helpers
 
     private var lastSeenText: String? {
+        // Reference refreshTick so this recomputes every 30s for relative time updates
+        _ = refreshTick
         // Read live contact from store to pick up in-place lastAdvert updates
         let liveContact = contactStore.contacts.first(where: { $0.publicKeyPrefix == contact.publicKeyPrefix }) ?? contact
         var latest = TimeInterval(liveContact.lastAdvert)

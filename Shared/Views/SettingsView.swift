@@ -589,6 +589,13 @@ private extension SettingsView {
                 }
             }
             .pickerStyle(.segmented)
+
+            Toggle(isOn: AppStorage(wrappedValue: false, "channelsFirst").projectedValue) {
+                Label("Channels First", systemImage: "arrow.up.arrow.down")
+                    .foregroundStyle(MeshTheme.accent)
+            }
+            .tint(MeshTheme.accent)
+            .listRowBackground(MeshTheme.surface)
         } header: {
             sectionInfoHeader("Appearance", info: "Choose how MeshCore looks. System follows your device\u{2019}s Dark Mode setting.")
         }

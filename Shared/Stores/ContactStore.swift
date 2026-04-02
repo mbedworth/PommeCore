@@ -71,9 +71,17 @@ final class ContactStore {
     // MARK: - Sorted Contacts
 
     var sortedContacts: [Contact] {
+        sortedContacts(byLastSeen: false)
+    }
+
+    func sortedContacts(byLastSeen: Bool) -> [Contact] {
         contacts.sorted { a, b in
             if a.isFavourite != b.isFavourite {
                 return a.isFavourite
+            }
+            if byLastSeen {
+                // Most recently seen first
+                return a.lastAdvert > b.lastAdvert
             }
             return a.name.localizedCaseInsensitiveCompare(b.name) == .orderedAscending
         }
@@ -143,7 +151,11 @@ final class ContactStore {
         guard let idx = contacts.firstIndex(where: { $0.publicKeyPrefix == publicKeyPrefix }) else { return }
         let now = Date().epochUInt32
         guard contacts[idx].lastAdvert < now else { return } // already current
-        contacts[idx].lastAdvert = now
+        // Replace the full struct to ensure @Observable detects the change.
+        // In-place struct field mutation may not always trigger SwiftUI view invalidation.
+        var updated = contacts[idx]
+        updated.lastAdvert = now
+        contacts[idx] = updated
     }
 
     // MARK: - Contact Activity Status

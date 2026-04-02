@@ -38,6 +38,9 @@ struct ChatView: View {
     }
     @State private var exportURL: URL?
     @State private var showExportSheet = false
+    /// Ticks every 30s to refresh the relative "last seen" text.
+    @State private var refreshTick = Date()
+    private let refreshTimer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 
     private let maxMessageLength = 160
 
@@ -46,9 +49,14 @@ struct ChatView: View {
     }
 
     private var lastSeenText: String? {
+        _ = refreshTick // depend on timer for periodic refresh
         let c = liveContact
-        guard c.lastAdvert > 1_000_000_000 else { return nil }
-        let date = c.lastAdvert.asDate
+        var latest = TimeInterval(c.lastAdvert)
+        if let activityDate = messageStoreManager.latestActivityDate(for: contact.publicKeyPrefix) {
+            latest = max(latest, activityDate.timeIntervalSince1970)
+        }
+        guard latest > 1_000_000_000 else { return nil }
+        let date = Date(timeIntervalSince1970: latest)
         guard Date().timeIntervalSince(date) < 365 * 24 * 60 * 60 else { return nil }
         let fmt = RelativeDateTimeFormatter()
         fmt.unitsStyle = .abbreviated
@@ -119,6 +127,7 @@ struct ChatView: View {
             messageInput
         }
         .background(MeshTheme.background)
+        .onReceive(refreshTimer) { refreshTick = $0 }
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         #else
