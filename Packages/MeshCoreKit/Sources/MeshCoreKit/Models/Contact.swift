@@ -38,7 +38,13 @@ public enum ContactType: UInt8, Codable, Sendable {
 /// A MeshCore contact discovered on the mesh network.
 public struct Contact: Identifiable, Codable, Sendable, Hashable {
     public static func == (lhs: Contact, rhs: Contact) -> Bool {
-        lhs.publicKey == rhs.publicKey
+        lhs.publicKey == rhs.publicKey &&
+        lhs.flags == rhs.flags &&
+        lhs.name == rhs.name &&
+        lhs.lastAdvert == rhs.lastAdvert &&
+        lhs.outPathLen == rhs.outPathLen &&
+        lhs.latitude == rhs.latitude &&
+        lhs.longitude == rhs.longitude
     }
 
     public func hash(into hasher: inout Hasher) {

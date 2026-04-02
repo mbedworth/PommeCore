@@ -1403,7 +1403,11 @@ private extension ContactListView {
             }
             #endif
         }
+        #if os(iOS)
+        .listStyle(.sidebar)
+        #else
         .meshListStyle()
+        #endif
         .onReceive(refreshTimer) { refreshTick = $0 }
         .refreshable {
             guard connectionManager.connectionState == .ready else { return }
