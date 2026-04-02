@@ -213,6 +213,7 @@ final class MeshCoreViewModel: ObservableObject {
 #if os(macOS) || targetEnvironment(macCatalyst)
         remoteSessionManager.sendUSBCLI = { [weak self] cmd in self?.connectionManager.sendUSBCLI(cmd) }
         remoteSessionManager.sendUSBCLIDirect = { [weak self] cmd in self?.connectionManager.sendUSBCLIDirect(cmd) }
+        remoteSessionManager.sendUSBKeepalive = { [weak self] in self?.connectionManager.sendUSBKeepalive() }
 #endif
     }
     

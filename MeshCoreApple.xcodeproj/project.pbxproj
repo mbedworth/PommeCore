@@ -88,12 +88,6 @@
 		381E1F98C45D43E2D7BD8819 /* RadioPreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E616344CEDCD1ADC41548B7 /* RadioPreset.swift */; };
 		A3C4EC30F51CEF0E73260DD5 /* RadioPreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E616344CEDCD1ADC41548B7 /* RadioPreset.swift */; };
 		94C0CD2260D30DB5BF8D731C /* RadioPreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E616344CEDCD1ADC41548B7 /* RadioPreset.swift */; };
-		E2D358CE42B13DECDD9EA262 /* NodeRole.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04ACEB5DE829AB56FFE93DAD /* NodeRole.swift */; };
-		0AD3170EC522BA503F655085 /* NodeRole.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04ACEB5DE829AB56FFE93DAD /* NodeRole.swift */; };
-		77B7769CE551C2291068D9BB /* NodeRole.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04ACEB5DE829AB56FFE93DAD /* NodeRole.swift */; };
-		3D76B4FE7F0081F5AB673242 /* NodeNameBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB12D57EFBA3E254E5EBDB2B /* NodeNameBuilder.swift */; };
-		A6EA1B35CC091501A80E29D0 /* NodeNameBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB12D57EFBA3E254E5EBDB2B /* NodeNameBuilder.swift */; };
-		DCBFEDC8EAB4E33AA02CBAB9 /* NodeNameBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB12D57EFBA3E254E5EBDB2B /* NodeNameBuilder.swift */; };
 		F686EC73BF362831969DC6D5 /* NodeSetupWizardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86334BBA19C5E5E981032313 /* NodeSetupWizardView.swift */; };
 		3B5A0845138A331E632F1FA8 /* NodeSetupWizardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86334BBA19C5E5E981032313 /* NodeSetupWizardView.swift */; };
 		28A0B13C16FFEC509F16A983 /* NodeSetupWizardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86334BBA19C5E5E981032313 /* NodeSetupWizardView.swift */; };
@@ -132,8 +126,6 @@
 		STO50000000000000000001 /* RemoteSessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteSessionManager.swift; sourceTree = "<group>"; };
 		USB10000000000000000000 /* USBSerialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = USBSerialView.swift; sourceTree = "<group>"; };
 		5E616344CEDCD1ADC41548B7 /* RadioPreset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RadioPreset.swift; sourceTree = "<group>"; };
-		04ACEB5DE829AB56FFE93DAD /* NodeRole.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeRole.swift; sourceTree = "<group>"; };
-		BB12D57EFBA3E254E5EBDB2B /* NodeNameBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeNameBuilder.swift; sourceTree = "<group>"; };
 		86334BBA19C5E5E981032313 /* NodeSetupWizardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeSetupWizardView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -273,8 +265,6 @@
 			isa = PBXGroup;
 			children = (
 				5E616344CEDCD1ADC41548B7 /* RadioPreset.swift */,
-				04ACEB5DE829AB56FFE93DAD /* NodeRole.swift */,
-				BB12D57EFBA3E254E5EBDB2B /* NodeNameBuilder.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -410,8 +400,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				94C0CD2260D30DB5BF8D731C /* RadioPreset.swift in Sources */,
-				77B7769CE551C2291068D9BB /* NodeRole.swift in Sources */,
-				DCBFEDC8EAB4E33AA02CBAB9 /* NodeNameBuilder.swift in Sources */,
 				28A0B13C16FFEC509F16A983 /* NodeSetupWizardView.swift in Sources */,
 				C0FC54B3FE70C36D754DEEEC /* ChatView.swift in Sources */,
 				309F59A4C45F0C74C7632AAF /* NetworkToolsView.swift in Sources */,
@@ -445,8 +433,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				A3C4EC30F51CEF0E73260DD5 /* RadioPreset.swift in Sources */,
-				0AD3170EC522BA503F655085 /* NodeRole.swift in Sources */,
-				A6EA1B35CC091501A80E29D0 /* NodeNameBuilder.swift in Sources */,
 				3B5A0845138A331E632F1FA8 /* NodeSetupWizardView.swift in Sources */,
 				3749B94D818310AD5ACF3B87 /* ChatView.swift in Sources */,
 				9D7EAB7850F077EF373AC84F /* NetworkToolsView.swift in Sources */,
@@ -479,8 +465,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				381E1F98C45D43E2D7BD8819 /* RadioPreset.swift in Sources */,
-				E2D358CE42B13DECDD9EA262 /* NodeRole.swift in Sources */,
-				3D76B4FE7F0081F5AB673242 /* NodeNameBuilder.swift in Sources */,
 				F686EC73BF362831969DC6D5 /* NodeSetupWizardView.swift in Sources */,
 				9144822AD9EB38340AF2317E /* ChatView.swift in Sources */,
 				F01FFE8B0B7AB2F62D296F88 /* NetworkToolsView.swift in Sources */,

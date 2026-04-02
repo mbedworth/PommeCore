@@ -147,6 +147,8 @@ struct RemoteManagementView: View {
                     contact: contact,
                     publicKeyHex: session.settings["public.key"] ?? "",
                     sendCLI: { command in sendCLI(command) },
+                    currentName: session.settings["name"],
+                    onNameApplied: { newName in session.settings["name"] = newName },
                     currentFrequencyKHz: {
                         // Parse frequency from "radio" setting (e.g. "906.875,62.5,7,5")
                         guard let radio = session.settings["radio"],
@@ -1394,6 +1396,7 @@ struct CLITerminalSection: View {
     @ObservedObject var session: RemoteDeviceSession
     @Environment(RemoteSessionManager.self) private var remoteSessionManager
     @State private var commandText = ""
+    @FocusState private var isCommandFieldFocused: Bool
 
     var body: some View {
         Section {
@@ -1439,6 +1442,7 @@ struct CLITerminalSection: View {
                     .font(.system(.body, design: .monospaced))
                     .foregroundStyle(MeshTheme.textPrimary)
                     .textFieldStyle(MeshTextFieldStyle())
+                    .focused($isCommandFieldFocused)
                     .onSubmit { sendCommand() }
                 #endif
                 Button(action: sendCommand) {
@@ -1461,6 +1465,7 @@ struct CLITerminalSection: View {
     private func sendCommand() {
         remoteSessionManager.sendCLICommand(commandText, to: contact)
         commandText = ""
+        isCommandFieldFocused = true
     }
 }
 

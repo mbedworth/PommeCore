@@ -16,6 +16,9 @@ import MeshCoreKit
 import CoreLocation
 #endif
 
+/// Connection transport type.
+enum Transport { case ble, usb, wifi }
+
 #if !os(watchOS)
 /// Shared CLLocationManager — reused across all GPS operations to avoid
 /// repeated initialization overhead and redundant hardware activation.
@@ -558,6 +561,11 @@ final class ConnectionManager {
     /// Use only for settings fetch which has its own sequential pacing.
     func sendUSBCLIDirect(_ command: String) {
         usbManager.sendCLIDirect(command)
+    }
+
+    /// Send a keepalive byte to the USB serial port without triggering a CLI command.
+    func sendUSBKeepalive() {
+        usbManager.sendKeepalive()
     }
 
     /// Poll for a USB port to reappear after device reboot, then auto-reconnect.

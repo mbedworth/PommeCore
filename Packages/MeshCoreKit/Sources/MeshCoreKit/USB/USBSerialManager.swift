@@ -29,6 +29,10 @@ import os.log
 /// - **Binary (companion)**: Frames wrapped with `<` (0x3C) + length(2 LE) + payload (inbound)
 ///   and `>` (0x3E) + length(2 LE) + payload (outbound).
 /// - **CLI (repeater/room)**: Plain text commands terminated by newline.
+///
+/// Thread safety: All readBuffer and write operations are serialized on `serialQueue`.
+/// Published state is updated on main thread. The read loop runs on a background thread
+/// and dispatches received data to serialQueue for parsing.
 public final class USBSerialManager: ObservableObject {
     private static let logger = Logger(subsystem: "com.meshcore", category: "USB")
 
@@ -54,13 +58,17 @@ public final class USBSerialManager: ObservableObject {
     // MARK: - Private
 
     private var fileDescriptor: Int32 = -1
+    /// All readBuffer access MUST happen on serialQueue to prevent races between
+    /// the background read loop and main-thread disconnect/cleanup.
     private var readBuffer = Data()
     private let serialQueue = DispatchQueue(label: "com.meshcore.serial", qos: .userInitiated)
-    /// Mode flag for the background read thread (detectedMode is @Published, only safe on main).
+    /// Mode flag — accessed from serialQueue (read loop dispatches there) and main thread
+    /// (probes set it). Safe because probes check fileDescriptor first and read loop
+    /// dispatches to serialQueue before reading it.
     private var resolvedMode: DeviceMode = .unknown
     /// True while the background read loop is active — prevents FD reuse races on reconnect.
     private var readLoopActive = false
-    /// CLI command queue — ensures commands are sent one at a time with proper spacing.
+    /// CLI command queue — all access on main thread.
     private var cliQueue: [String] = []
     private var cliQueueProcessing = false
     /// Minimum delay between CLI commands (milliseconds).
@@ -155,7 +163,7 @@ public final class USBSerialManager: ObservableObject {
         DebugLogger.shared.log("USB: port opened (blocking, raw mode, no baud set)", level: .info)
 
         fileDescriptor = fd
-        readBuffer = Data()
+        serialQueue.async { self.readBuffer = Data() }
         resolvedMode = .unknown
 
         DispatchQueue.main.async {
@@ -166,17 +174,20 @@ public final class USBSerialManager: ObservableObject {
         }
 
         // Send a bare newline to flush any pending input buffer on the device
-        "\r\n".data(using: .utf8)!.withUnsafeBytes { ptr in
-            if let base = ptr.baseAddress {
-                _ = write(fd, base, 2)
+        serialQueue.async { [weak self] in
+            guard let self, self.fileDescriptor >= 0 else { return }
+            "\r\n".data(using: .utf8)!.withUnsafeBytes { ptr in
+                if let base = ptr.baseAddress {
+                    _ = write(fd, base, 2)
+                }
             }
+            DebugLogger.shared.log("USB: sent \\r\\n to flush device input buffer", level: .tx)
         }
-        DebugLogger.shared.log("USB: sent \\r\\n to flush device input buffer", level: .tx)
 
-        // Synchronous read loop on background thread — replaces DispatchSourceRead
-        // which was not firing for USB CDC devices.
+        // Synchronous read loop on background thread.
         // Use fd (local, captured at connect time) for both the loop check and read calls
         // to avoid race conditions with disconnect() setting fileDescriptor = -1.
+        // Received data is dispatched to serialQueue for thread-safe parsing.
         readLoopActive = true
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self else { return }
@@ -188,7 +199,10 @@ public final class USBSerialManager: ObservableObject {
                 if bytesRead > 0 {
                     let data = Data(buffer[0..<bytesRead])
                     DebugLogger.shared.log("USB RX: \(bytesRead) bytes: \(data.hexFormatted(maxBytes: 40))", level: .rx)
-                    self.handleReceivedData(data)
+                    // Dispatch to serialQueue for thread-safe buffer access
+                    self.serialQueue.async {
+                        self.handleReceivedData(data)
+                    }
                 } else if bytesRead == 0 {
                     // VMIN=0/VTIME=2: bytesRead==0 means timeout (no data), not EOF.
                     // Just loop back to check fileDescriptor == fd exit condition.
@@ -197,12 +211,15 @@ public final class USBSerialManager: ObservableObject {
                     continue
                 } else {
                     // Real error (EIO, ENXIO, EBADF) — device disconnected or port closed
-                    DebugLogger.shared.log("USB: read error \(errno): \(String(cString: strerror(errno))) — device disconnected", level: .error)
+                    let errMsg = "USB: read error \(errno): \(String(cString: strerror(errno))) — device disconnected"
+                    Self.logger.error("\(errMsg)")
+                    DebugLogger.shared.log(errMsg, level: .error)
                     break
                 }
             }
 
             self.readLoopActive = false
+            Self.logger.info("USB: read loop ended (fd=\(fd), current fd=\(self.fileDescriptor))")
             DebugLogger.shared.log("USB: read loop ended", level: .info)
             DispatchQueue.main.async { [weak self] in
                 self?.disconnect()
@@ -215,14 +232,20 @@ public final class USBSerialManager: ObservableObject {
             (3.0, "sending framed binary CMD_DEVICE_QUERY", { $0.sendFrame(Data([0x16, 0x03])) }),
             (5.0, "sending RAW binary (no framing): 16 03", { mgr in
                 let raw = Data([0x16, 0x03])
-                raw.withUnsafeBytes { ptr in
-                    guard let base = ptr.baseAddress else { return }
-                    _ = write(mgr.fileDescriptor, base, raw.count)
+                mgr.serialQueue.async {
+                    guard mgr.fileDescriptor >= 0 else { return }
+                    raw.withUnsafeBytes { ptr in
+                        guard let base = ptr.baseAddress else { return }
+                        _ = write(mgr.fileDescriptor, base, raw.count)
+                    }
                 }
             }),
             (7.0, "asserting DTR/RTS + framed binary probe", { mgr in
-                var modemBits: CInt = TIOCM_DTR | TIOCM_RTS
-                _ = ioctl(mgr.fileDescriptor, TIOCMBIS, &modemBits)
+                mgr.serialQueue.async {
+                    guard mgr.fileDescriptor >= 0 else { return }
+                    var modemBits: CInt = TIOCM_DTR | TIOCM_RTS
+                    _ = ioctl(mgr.fileDescriptor, TIOCMBIS, &modemBits)
+                }
                 mgr.sendFrame(Data([0x16, 0x03]))
             }),
         ]
@@ -252,16 +275,19 @@ public final class USBSerialManager: ObservableObject {
         guard isConnected || fileDescriptor >= 0 else { return }
 
         let stack = Thread.callStackSymbols.prefix(6).joined(separator: "\n")
+        Self.logger.warning("USB: disconnect called, fd=\(self.fileDescriptor)")
         DebugLogger.shared.log("USB: disconnect called from:\n\(stack)", level: .warning)
 
         resolvedMode = .unknown
-        readBuffer.removeAll()
         clearCLIQueue()
 
         // Capture fd and clear it immediately — the read loop checks
         // `self.fileDescriptor == fd` every 200ms and will exit.
         let fd = fileDescriptor
         fileDescriptor = -1
+
+        // Clear readBuffer on serialQueue to avoid racing with the read loop
+        serialQueue.async { self.readBuffer.removeAll() }
 
         if fd >= 0 {
             // Wait 300ms for read loop to exit (VTIME=200ms), then close.
@@ -285,7 +311,8 @@ public final class USBSerialManager: ObservableObject {
 
     /// Send a binary frame with USB serial framing: `<` + length(2 LE) + frame data.
     public func sendFrame(_ frame: Data) {
-        guard fileDescriptor >= 0 else { return }
+        let fd = fileDescriptor
+        guard fd >= 0 else { return }
         var framedData = Data([0x3C]) // '<' inbound marker
         var length = UInt16(frame.count).littleEndian
         framedData.append(Data(bytes: &length, count: 2))
@@ -294,10 +321,10 @@ public final class USBSerialManager: ObservableObject {
         DebugLogger.shared.log("USB RAW TX: \(framedData.count) bytes: \(framedData.hexFormatted())", level: .tx)
 
         serialQueue.async { [weak self] in
-            guard let self, self.fileDescriptor >= 0 else { return }
+            guard let self, self.fileDescriptor == fd else { return }
             framedData.withUnsafeBytes { ptr in
                 guard let base = ptr.baseAddress else { return }
-                _ = write(self.fileDescriptor, base, framedData.count)
+                _ = write(fd, base, framedData.count)
             }
             Self.logger.debug("TX [\(frame.count) bytes]")
         }
@@ -317,17 +344,34 @@ public final class USBSerialManager: ObservableObject {
         sendCLIImmediate(command)
     }
 
+    /// Send a keepalive byte to keep the serial port active without triggering a CLI command.
+    public func sendKeepalive() {
+        let fd = fileDescriptor
+        guard fd >= 0 else { return }
+        serialQueue.async { [weak self] in
+            guard let self, self.fileDescriptor == fd else { return }
+            var byte: UInt8 = 0x00
+            _ = write(fd, &byte, 1)
+        }
+    }
+
     private func sendCLIImmediate(_ command: String) {
-        guard fileDescriptor >= 0 else { return }
+        let fd = fileDescriptor
+        guard fd >= 0 else { return }
         guard let data = "\(command)\r\n".data(using: .utf8) else { return }
 
         serialQueue.async { [weak self] in
-            guard let self, self.fileDescriptor >= 0 else { return }
-            data.withUnsafeBytes { ptr in
-                guard let base = ptr.baseAddress else { return }
-                _ = write(self.fileDescriptor, base, data.count)
+            guard let self, self.fileDescriptor == fd else { return }
+            let written = data.withUnsafeBytes { ptr -> Int in
+                guard let base = ptr.baseAddress else { return -1 }
+                return write(fd, base, data.count)
             }
-            Self.logger.debug("TX CLI: \(command)")
+            if written != data.count {
+                Self.logger.error("USB TX ERROR: wrote \(written)/\(data.count) bytes, errno=\(errno)")
+                DebugLogger.shared.log("USB TX ERROR: wrote \(written)/\(data.count) bytes, errno=\(errno): \(String(cString: strerror(errno)))", level: .error)
+            }
+            Self.logger.info("TX CLI: \(command) (\(written)/\(data.count) bytes)")
+            DebugLogger.shared.log("TX CLI: \(command) (\(written) bytes written)", level: .tx)
         }
     }
 
@@ -362,9 +406,9 @@ public final class USBSerialManager: ObservableObject {
         cliQueueProcessing = false
     }
 
-    // MARK: - Read
+    // MARK: - Read (all methods called on serialQueue)
 
-    /// Called from the synchronous read loop with received data.
+    /// Called on serialQueue with received data from the read loop.
     private func handleReceivedData(_ data: Data) {
         readBuffer.append(data)
 
@@ -382,17 +426,22 @@ public final class USBSerialManager: ObservableObject {
 
     /// Send `$$` to probe if this is a CLI device or binary companion.
     private func probeDeviceType() {
-        guard fileDescriptor >= 0 else { return }
+        let fd = fileDescriptor
+        guard fd >= 0 else { return }
         // Send $$ which triggers a response on CLI devices
         let probe = "$$\r\n".data(using: .utf8)!
-        probe.withUnsafeBytes { ptr in
-            guard let base = ptr.baseAddress else { return }
-            _ = write(fileDescriptor, base, probe.count)
+        serialQueue.async { [weak self] in
+            guard let self, self.fileDescriptor == fd else { return }
+            probe.withUnsafeBytes { ptr in
+                guard let base = ptr.baseAddress else { return }
+                _ = write(fd, base, probe.count)
+            }
+            Self.logger.info("Sent probe '$$' to detect device type")
+            DebugLogger.shared.log("USB: sent probe '$$' for mode detection", level: .tx)
         }
-        Self.logger.info("Sent probe '$$' to detect device type")
-        DebugLogger.shared.log("USB: sent probe '$$' for mode detection", level: .tx)
     }
 
+    /// Called on serialQueue.
     private func detectMode() {
         guard !readBuffer.isEmpty else { return }
 
@@ -418,17 +467,23 @@ public final class USBSerialManager: ObservableObject {
             resolvedMode = .cli
             let text = String(data: readBuffer.prefix(80), encoding: .utf8) ?? "(non-UTF8)"
             DebugLogger.shared.log("USB DETECT: CLI mode — text: '\(text.prefix(50))'", level: .info)
+            // Discard probe response data — it's from the \r\n flush and $$ probe,
+            // not from real commands. Keeping it causes response misalignment.
+            readBuffer.removeAll()
+            // Also flush the kernel's serial input buffer to discard any in-flight probe data
+            if fileDescriptor >= 0 { tcflush(fileDescriptor, TCIFLUSH) }
+            DebugLogger.shared.log("USB DETECT: cleared readBuffer + kernel buffer (discarded probe data)", level: .info)
             DispatchQueue.main.async {
                 self.detectedMode = .cli
                 Self.logger.info("Detected CLI mode")
                 DebugLogger.shared.log("USB: detected CLI mode (repeater/room)", level: .info)
             }
-            parseCLILines()
         } else {
             DebugLogger.shared.log("USB DETECT: unrecognized first byte 0x\(String(format: "%02X", firstByte)), waiting for more data", level: .warning)
         }
     }
 
+    /// Called on serialQueue.
     private func parseBinaryFrames() {
         while readBuffer.count >= 3 {
             let si = readBuffer.startIndex
@@ -464,6 +519,7 @@ public final class USBSerialManager: ObservableObject {
         }
     }
 
+    /// Called on serialQueue.
     private func parseCLILines() {
         while let newlineIdx = readBuffer.firstIndex(of: 0x0A) {
             let si = readBuffer.startIndex

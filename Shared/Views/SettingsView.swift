@@ -249,7 +249,7 @@ struct SettingsView: View {
         }
         .sheet(isPresented: $showSetupWizard) {
             NavigationStack {
-                NodeSetupWizardView()
+                NodeSetupWizardView(publicKeyHex: deviceConfig.publicKeyHex)
                     .toolbar {
                         ToolbarItem(placement: .cancellationAction) {
                             Button("Done") { showSetupWizard = false }
@@ -308,7 +308,7 @@ struct SettingsView: View {
         }
         .sheet(isPresented: $showSetupWizard) {
             NavigationStack {
-                NodeSetupWizardView()
+                NodeSetupWizardView(publicKeyHex: deviceConfig.publicKeyHex)
                     .toolbar {
                         ToolbarItem(placement: .cancellationAction) {
                             Button("Done") { showSetupWizard = false }

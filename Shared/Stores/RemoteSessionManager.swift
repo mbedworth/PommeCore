@@ -40,6 +40,8 @@ final class RemoteSessionManager {
     var usbDeviceSession: RemoteDeviceSession?
     /// Synthetic contact for the USB-connected CLI device.
     var usbDeviceContact: Contact?
+    /// Keepalive timer — sends `clock` every 30s to prevent firmware USB CLI idle timeout.
+    private var usbKeepaliveTask: Task<Void, Never>?
     #endif
 
     // MARK: - Public State: Network Tools
@@ -135,6 +137,8 @@ final class RemoteSessionManager {
         pendingTelemetryKey = nil
         allowedRepeatFreqRanges = []
         #if os(macOS) || targetEnvironment(macCatalyst)
+        usbKeepaliveTask?.cancel()
+        usbKeepaliveTask = nil
         usbDeviceSession = nil
         usbDeviceContact = nil
         usbCLIOutput.removeAll()
@@ -222,6 +226,12 @@ final class RemoteSessionManager {
         if let usbContact = usbDeviceContact, contact.publicKey == usbContact.publicKey,
            let session = usbDeviceSession,
            let sendUSBCLI = sendUSBCLI {
+            // Drop command if one is already pending — firmware locks up from queued commands.
+            if session.hasPendingCLICommands {
+                DebugLogger.shared.log("USB CLI: dropped '\(trimmed)' — previous command still pending", level: .warning)
+                Self.logger.warning("USB CLI: dropped '\(trimmed)' — previous command still pending")
+                return
+            }
             session.commandSent(trimmed)
             sendUSBCLI(trimmed)
             usbCLIOutput.append(USBTerminalLine(text: "> \(trimmed)", isCommand: true))
@@ -335,6 +345,29 @@ final class RemoteSessionManager {
             session.isFetchingSettings = false
             session.hasLoadedFullSettings = true
             Self.logger.info("REMOTE MGMT: Finished fetching settings for \(contact.name), received \(session.fetchReceivedCount)/\(commands.count)")
+
+            // Auto-sync clock after fetch completes (clock value was fetched as part of the
+            // settings). Must happen after fetch, not during, to avoid response interleaving.
+            #if os(macOS) || targetEnvironment(macCatalyst)
+            if let self, self.usbDeviceContact != nil, contact.publicKey == self.usbDeviceContact?.publicKey {
+                if let clockResponse = session.settings["clock"] {
+                    let todayFmt = DateFormatter()
+                    todayFmt.dateFormat = "d/M/yyyy"
+                    todayFmt.timeZone = TimeZone(identifier: "UTC")
+                    let todayStr = todayFmt.string(from: Date())
+                    if !clockResponse.contains(todayStr) {
+                        let now = Int(Date().timeIntervalSince1970)
+                        let timeCmd = "time \(now)"
+                        await self.fetchRemoteSetting(command: timeCmd, contact: contact, session: session)
+                        // Re-read clock to confirm
+                        await self.fetchRemoteSetting(command: "clock", contact: contact, session: session)
+                        DebugLogger.shared.log("CLOCK: auto-synced USB CLI device time to \(now)", level: .info)
+                    } else {
+                        DebugLogger.shared.log("CLOCK: device has today's date, skipping sync", level: .info)
+                    }
+                }
+            }
+            #endif
         }
     }
 
@@ -353,10 +386,11 @@ final class RemoteSessionManager {
 
         #if os(macOS) || targetEnvironment(macCatalyst)
         if let usbContact = usbDeviceContact, contact.publicKey == usbContact.publicKey,
-           let sendDirect = sendUSBCLIDirect {
-            // Use direct send (bypasses queue) — fetch has its own sequential pacing
+           let sendUSBCLI = sendUSBCLI {
+            // Use queued send — the queue provides 500ms pacing between commands
+            // which the firmware requires to avoid lockup.
             cmdIndex = session.commandSent(command)
-            sendDirect(command)
+            sendUSBCLI(command)
             usbCLIOutput.append(USBTerminalLine(text: "> \(command)", isCommand: true))
         } else {
             cmdIndex = session.commandSent(command)
@@ -392,6 +426,8 @@ final class RemoteSessionManager {
     var sendUSBCLI: ((String) -> Void)?
     /// Closure to send a raw CLI command directly, bypassing the queue (for settings fetch).
     var sendUSBCLIDirect: ((String) -> Void)?
+    /// Closure to send a keepalive byte without triggering a CLI command.
+    var sendUSBKeepalive: (() -> Void)?
 
     /// Whether the USB device is CLI-connected and has a management session.
     var isUSBCLIConnected: Bool {
@@ -437,34 +473,12 @@ final class RemoteSessionManager {
 
         DebugLogger.shared.log("USB CLI: management session created with admin access", level: .info)
 
-        // Auto-sync clock
-        session.commandSent("clock")
-        sendCLI("clock")
-        usbCLIOutput.append(USBTerminalLine(text: "> clock", isCommand: true))
+        // Clock sync is handled by the settings fetch — "ver" and "clock" are the first
+        // two commands. Doing it separately here caused response interleaving with the
+        // fetch, corrupting settings. The fetch's waitForResponse ensures proper sequencing.
 
-        Task { [weak self] in
-            try? await Task.sleep(nanoseconds: 800_000_000)
-            guard let self else { return }
-            let now = Int(Date().timeIntervalSince1970)
-            var needsSync = true
-            if let clockResponse = session.settings["clock"] {
-                let todayFmt = DateFormatter()
-                todayFmt.dateFormat = "d/M/yyyy"
-                todayFmt.timeZone = TimeZone(identifier: "UTC")
-                let todayStr = todayFmt.string(from: Date())
-                if clockResponse.contains(todayStr) {
-                    needsSync = false
-                    DebugLogger.shared.log("CLOCK: device has today's date, skipping sync", level: .info)
-                }
-            }
-            if needsSync {
-                let timeCmd = "time \(now)"
-                session.commandSent(timeCmd)
-                sendCLI(timeCmd)
-                self.usbCLIOutput.append(USBTerminalLine(text: "> \(timeCmd)", isCommand: true))
-                DebugLogger.shared.log("CLOCK: auto-synced USB CLI device time to \(now)", level: .info)
-            }
-        }
+        usbKeepaliveTask?.cancel()
+        usbKeepaliveTask = nil
     }
 
     private var usbSessionCancellable = Set<AnyCancellable>()
