@@ -49,6 +49,12 @@ public struct Contact: Identifiable, Codable, Sendable, Hashable {
 
     public func hash(into hasher: inout Hasher) {
         hasher.combine(publicKey)
+        hasher.combine(flags)
+        hasher.combine(name)
+        hasher.combine(lastAdvert)
+        hasher.combine(outPathLen)
+        hasher.combine(latitude)
+        hasher.combine(longitude)
     }
     /// Use first 6 bytes of publicKey as stable ID.
     public var id: Data { publicKeyPrefix }

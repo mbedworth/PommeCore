@@ -23,6 +23,8 @@ struct MeshCoreApp: App {
     @Environment(\.scenePhase) private var scenePhase
     #if os(iOS)
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    #elseif os(macOS)
+    @NSApplicationDelegateAdaptor(MacAppDelegate.self) var macAppDelegate
     #endif
 
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
@@ -112,6 +114,19 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
             }
         }
         completionHandler()
+    }
+}
+#endif
+
+#if os(macOS)
+class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        UNUserNotificationCenter.current().delegate = self
+    }
+
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        // Show banners, badges, and sound even when the app is frontmost
+        completionHandler([.banner, .sound, .badge])
     }
 }
 #endif

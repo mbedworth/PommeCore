@@ -14,6 +14,9 @@ import MeshCoreKit
 #if !os(watchOS)
 import CryptoKit
 #endif
+#if canImport(AppKit)
+import AppKit
+#endif
 
 // MARK: - Response Handling
 // Extracted from MeshCoreViewModel — dispatches parsed frames to stores.
@@ -372,11 +375,17 @@ extension MeshCoreViewModel {
         // Touch contact activity — proves the contact is alive
         contactStore.touchContact(publicKeyPrefix: message.contactKeyHash)
         messageStoreManager.isInBackground = connectionManager.isInBackground
-        if case .contact(let key) = navigationStore.sidebarSelection {
-            messageStoreManager.selectedContactKey = key
-        } else {
-            messageStoreManager.selectedContactKey = nil
+        // Only suppress unread/notifications when the user is actively viewing the chat.
+        // On macOS, scenePhase doesn't reliably detect background — use NSApplication.isActive.
+        var userIsViewing = false
+        if case .contact(let key) = navigationStore.sidebarSelection, key == message.contactKeyHash {
+            #if os(macOS)
+            userIsViewing = NSApplication.shared.isUserViewing
+            #else
+            userIsViewing = !connectionManager.isInBackground
+            #endif
         }
+        messageStoreManager.selectedContactKey = userIsViewing ? message.contactKeyHash : nil
         if let stored = messageStoreManager.handleIncomingMessage(message) {
             messageStoreManager.postLocalNotification(for: stored)
         }

@@ -13,6 +13,9 @@ import MeshCoreKit
 #if !os(watchOS)
 import CoreLocation
 #endif
+#if canImport(AppKit)
+import AppKit
+#endif
 
 extension Notification.Name {
     static let insertMention = Notification.Name("insertMention")
@@ -22,6 +25,7 @@ struct ChatView: View {
     let contact: Contact
     @Environment(ContactStore.self) private var contactStore
     @Environment(MessageStoreManager.self) private var messageStoreManager
+    @Environment(\.scenePhase) private var scenePhase
     @State private var messageText = ""
     @State private var showNotes = false
     @State private var showContactDetail = false
@@ -324,12 +328,34 @@ struct ChatView: View {
                         proxy.scrollTo(last.id, anchor: .bottom)
                     }
                 }
-                // User is viewing the chat — new messages are read immediately
+                // Only mark as read when the user is actively viewing the chat
+                #if os(macOS)
+                guard NSApplication.shared.isUserViewing else { return }
+                #else
+                guard scenePhase == .active else { return }
+                #endif
                 withAnimation { unreadDividerIndex = nil }
                 DispatchQueue.main.async {
                     messageStoreManager.markAsRead(contactKey: contact.publicKeyPrefix)
                 }
             }
+            #if os(macOS)
+            .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification).merge(with: NotificationCenter.default.publisher(for: NSWindow.didDeminiaturizeNotification))) { _ in
+                withAnimation { unreadDividerIndex = nil }
+                DispatchQueue.main.async {
+                    messageStoreManager.markAsRead(contactKey: contact.publicKeyPrefix)
+                }
+            }
+            #else
+            .onChange(of: scenePhase) { _, newPhase in
+                if newPhase == .active {
+                    withAnimation { unreadDividerIndex = nil }
+                    DispatchQueue.main.async {
+                        messageStoreManager.markAsRead(contactKey: contact.publicKeyPrefix)
+                    }
+                }
+            }
+            #endif
             .onAppear {
                 unreadDividerIndex = messageStoreManager.firstUnreadIndex(in: messages, for: contact.publicKeyPrefix)
                 // Delay scroll to let LazyVStack lay out content
@@ -431,6 +457,7 @@ struct ChannelChatView: View {
     @Environment(ContactStore.self) private var contactStore
     @Environment(ChannelStore.self) private var channelStore
     @Environment(MessageStoreManager.self) private var messageStoreManager
+    @Environment(\.scenePhase) private var scenePhase
     @State private var messageText = ""
     @State private var unreadDividerIndex: Int?
     @State private var mentionQuery: String?
@@ -558,12 +585,34 @@ struct ChannelChatView: View {
                         proxy.scrollTo(last.id, anchor: .bottom)
                     }
                 }
-                // User is viewing the chat — new messages are read immediately
+                // Only mark as read when the user is actively viewing the chat
+                #if os(macOS)
+                guard NSApplication.shared.isUserViewing else { return }
+                #else
+                guard scenePhase == .active else { return }
+                #endif
                 withAnimation { unreadDividerIndex = nil }
                 DispatchQueue.main.async {
                     messageStoreManager.markAsRead(contactKey: channelKey)
                 }
             }
+            #if os(macOS)
+            .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification).merge(with: NotificationCenter.default.publisher(for: NSWindow.didDeminiaturizeNotification))) { _ in
+                withAnimation { unreadDividerIndex = nil }
+                DispatchQueue.main.async {
+                    messageStoreManager.markAsRead(contactKey: channelKey)
+                }
+            }
+            #else
+            .onChange(of: scenePhase) { _, newPhase in
+                if newPhase == .active {
+                    withAnimation { unreadDividerIndex = nil }
+                    DispatchQueue.main.async {
+                        messageStoreManager.markAsRead(contactKey: channelKey)
+                    }
+                }
+            }
+            #endif
             .onAppear {
                 unreadDividerIndex = messageStoreManager.firstUnreadIndex(in: messages, for: channelKey)
                 // Delay scroll to let LazyVStack lay out content
@@ -1764,7 +1813,8 @@ private func linkifyMeshcoreURLs(_ text: String) -> Text {
        let lon = Double(text[lonRange]),
        let mapsURL = URL(string: "https://maps.apple.com/?ll=\(lat),\(lon)&q=Shared%20Location") {
         var attr = AttributedString(text)
-        if let fullRange = attr.range(of: String(text[text.range(of: "\u{1F4CD}")!.lowerBound...])) {
+        if let emojiRange = text.range(of: "\u{1F4CD}"),
+           let fullRange = attr.range(of: String(text[emojiRange.lowerBound...])) {
             attr[fullRange].link = mapsURL
             attr[fullRange].foregroundColor = .accentColor
         }

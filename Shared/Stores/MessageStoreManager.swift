@@ -293,7 +293,7 @@ final class MessageStoreManager {
             channelIndex: channelIndex
         )
         Self.logger.info("CHANNEL TX: [\(frame.count) bytes] \(frame.hexFormatted())")
-        DebugLogger.shared.log("CH TX: ch=\(frame[2]) [\(frame.count)B] \(frame.hexFormatted())", level: .tx)
+        DebugLogger.shared.log("CH TX: ch=\(frame.count > 2 ? "\(frame[2])" : "?") [\(frame.count)B] \(frame.hexFormatted())", level: .tx)
         DebugLogger.shared.log("CH TX: text='\(trimmed)'", level: .tx)
         sendCommand?(frame, "SEND_CHANNEL_TXT")
 
@@ -663,7 +663,11 @@ final class MessageStoreManager {
     // MARK: - Notifications
 
     func postLocalNotification(for message: Message) {
+        #if !os(macOS)
+        // On iOS/watchOS, only post when backgrounded. On macOS, always post —
+        // the notification center suppresses banners when the app is frontmost.
         guard isInBackground else { return }
+        #endif
 
         let prefs = NotificationPreferences.shared
         let isChannel = message.channelIndex != nil
@@ -742,12 +746,13 @@ final class MessageStoreManager {
 
     func updateAppBadge() {
         let totalUnread = unreadCounts.values.reduce(0, +)
-        #if os(iOS)
+        #if os(macOS)
+        NSApplication.shared.dockTile.badgeLabel = totalUnread > 0 ? "\(totalUnread)" : nil
+        #endif
+        #if !os(watchOS)
         Task { @MainActor in
             try? await UNUserNotificationCenter.current().setBadgeCount(totalUnread)
         }
-        #elseif os(macOS)
-        NSApplication.shared.dockTile.badgeLabel = totalUnread > 0 ? "\(totalUnread)" : nil
         #endif
     }
 

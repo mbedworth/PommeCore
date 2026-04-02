@@ -1414,6 +1414,7 @@ struct PrivacySection: View {
     @Environment(ConnectionManager.self) private var connectionManager
     @Environment(ContactStore.self) private var contactStore
     @State private var pinText: String = ""
+    @State private var showBlockedContacts = false
     @AppStorage("locationPrivacyRadius") private var locationPrivacyRadius: Double = 0
     @AppStorage("shareOnMeshMap") private var shareOnMeshMap: Bool = false
 
@@ -1630,6 +1631,25 @@ struct PrivacySection: View {
             .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
 
+            #if os(macOS) || targetEnvironment(macCatalyst)
+            Button {
+                showBlockedContacts = true
+            } label: {
+                HStack {
+                    Label("Blocked Contacts", systemImage: "hand.raised")
+                        .foregroundStyle(MeshTheme.accent)
+                    Spacer()
+                    if !contactStore.blockedContacts.isEmpty {
+                        Text("\(contactStore.blockedContacts.count)")
+                            .font(.caption)
+                            .foregroundStyle(MeshTheme.textSecondary)
+                    }
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .listRowBackground(MeshTheme.surface)
+            #else
             NavigationLink {
                 BlockedContactsView()
             } label: {
@@ -1645,6 +1665,7 @@ struct PrivacySection: View {
                 }
             }
             .listRowBackground(MeshTheme.surface)
+            #endif
 
         } header: {
             SectionInfoHeader(title: "Privacy & Security", info: "Controls what telemetry data is shared when requested. Per-Contact mode only shares with contacts that have telemetry permission set. Position Accuracy adds a random offset to your personal device location only. Repeater and room server locations are always shared at exact coordinates for accurate mesh routing. App Lock requires Face ID, Touch ID, or your device passcode to open MeshCore.")
@@ -1774,7 +1795,7 @@ struct PrivacySection: View {
                     Spacer()
 
                     Button {
-                        if let pin = UInt32(pinText) {
+                        if let pin = UInt32(pinText), pin <= 999999 {
                             connectionManager.setDevicePIN(pin)
                         }
                     } label: {
@@ -1782,7 +1803,7 @@ struct PrivacySection: View {
                             .foregroundStyle(MeshTheme.accent)
                     }
                     .buttonStyle(.plain)
-                    .disabled(pinText.isEmpty || UInt32(pinText) == nil)
+                    .disabled(pinText.count > 6 || UInt32(pinText) == nil)
                 }
                 .listRowBackground(MeshTheme.surface)
             }
@@ -1799,6 +1820,20 @@ struct PrivacySection: View {
         .onChange(of: locationPrivacyRadius) {
             MeshCoreViewModel.regenerateLocationFudge()
         }
+        #if os(macOS) || targetEnvironment(macCatalyst)
+        .sheet(isPresented: $showBlockedContacts) {
+            NavigationStack {
+                BlockedContactsView()
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Done") { showBlockedContacts = false }
+                        }
+                    }
+            }
+            .meshTheme()
+            .frame(minWidth: 360, minHeight: 400)
+        }
+        #endif
     }
 
     private var appLockBinding: Binding<Bool> {

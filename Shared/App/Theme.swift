@@ -323,6 +323,17 @@ struct LabelValueRow: View {
     }
 }
 
+// MARK: - macOS Window State
+
+#if os(macOS)
+extension NSApplication {
+    /// Whether the user can see the app: active and window not miniaturized.
+    var isUserViewing: Bool {
+        isActive && !(mainWindow?.isMiniaturized ?? true)
+    }
+}
+#endif
+
 // MARK: - Formatting Helpers
 
 extension String {
