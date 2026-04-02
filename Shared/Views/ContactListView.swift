@@ -59,6 +59,10 @@ struct ContactListView: View {
     @State private var pathEditorContact: Contact?
     @State private var showExportCopied = false
     @State private var isExporting = false
+    @State private var showNewGroupSheet = false
+    @State private var newGroupName = ""
+    @State private var newGroupEmoji = ""
+    @State private var groupContactForNew: Contact?
     #if !os(watchOS)
     @State private var shareContact: Contact?
     #endif
@@ -330,7 +334,7 @@ struct ContactListView: View {
             .frame(minWidth: 360, minHeight: 300)
         }
         .onChange(of: messageStoreManager.lastExportedURL) { _, url in
-            if let url, !url.isEmpty {
+            if isExporting, let url, !url.isEmpty {
                 copyToClipboard(url)
                 messageStoreManager.lastExportedURL = nil
                 isExporting = false
@@ -811,6 +815,13 @@ struct ContactListView: View {
                     }
                 }
                 .listRowBackground(MeshTheme.surface)
+                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                    Button(role: .destructive) {
+                        contactStore.deleteContactGroup(group)
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                }
             }
         } header: {
             Text("Groups")
@@ -991,6 +1002,23 @@ struct ContactListView: View {
         } message: {
             Text("Paste a meshcore:// link to import a contact or channel.")
         }
+        .alert("New Group", isPresented: $showNewGroupSheet) {
+            TextField("Group name", text: $newGroupName)
+            TextField("Emoji (optional)", text: $newGroupEmoji)
+            Button("Cancel", role: .cancel) { newGroupName = ""; newGroupEmoji = ""; groupContactForNew = nil }
+            Button("Create") {
+                let trimmed = newGroupName.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !trimmed.isEmpty else { return }
+                contactStore.addContactGroup(name: trimmed, emoji: newGroupEmoji)
+                if let contact = groupContactForNew,
+                   let group = contactStore.contactGroups.last {
+                    contactStore.addContactToGroup(contact, group: group)
+                }
+                newGroupName = ""
+                newGroupEmoji = ""
+                groupContactForNew = nil
+            }
+        }
         #if os(iOS)
         .sheet(isPresented: $showQRScanner) {
             NavigationStack {
@@ -1137,17 +1165,29 @@ struct ContactListView: View {
             )
         }
 
-        if !contactStore.contactGroups.isEmpty && contact.type == .chat {
+        if contact.type == .chat {
             Menu {
                 ForEach(contactStore.contactGroups) { group in
+                    let isMember = group.memberPubkeys.contains(contact.publicKey.hexCompact)
                     Button {
-                        contactStore.addContactToGroup(contact, group: group)
+                        if isMember {
+                            contactStore.removeContactFromGroup(contact, group: group)
+                        } else {
+                            contactStore.addContactToGroup(contact, group: group)
+                        }
                     } label: {
-                        Label("\(group.emoji) \(group.name)", systemImage: "plus.circle")
+                        Label("\(group.emoji) \(group.name)", systemImage: isMember ? "checkmark.circle.fill" : "plus.circle")
                     }
                 }
+                if !contactStore.contactGroups.isEmpty { Divider() }
+                Button {
+                    groupContactForNew = contact
+                    showNewGroupSheet = true
+                } label: {
+                    Label("New Group…", systemImage: "folder.badge.plus")
+                }
             } label: {
-                Label("Add to Group", systemImage: "folder.badge.plus")
+                Label("Groups", systemImage: "folder")
             }
         }
 
@@ -1165,6 +1205,12 @@ struct ContactListView: View {
         }
 
         Divider()
+
+        Button(role: .destructive) {
+            contactStore.blockContact(contact)
+        } label: {
+            Label("Block Contact", systemImage: "hand.raised")
+        }
 
         Button(role: .destructive) {
             contactToDelete = contact

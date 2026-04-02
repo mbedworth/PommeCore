@@ -266,7 +266,11 @@ final class ConnectionManager {
     func setAdvertName(_ name: String) {
         sendCommand(MeshCoreProtocol.buildSetAdvertName(name), label: "SET_ADVERT_NAME")
         deviceConfig?.deviceName = name
-        sendAdvertise()
+        // Name change requires reboot to take effect (same as radio params)
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            sendCommand(MeshCoreProtocol.buildReboot(), label: "REBOOT")
+        }
     }
 
     func setAdvertLatLon(latitude: Double, longitude: Double) {

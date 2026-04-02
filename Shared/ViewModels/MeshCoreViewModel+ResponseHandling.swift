@@ -208,7 +208,13 @@ extension MeshCoreViewModel {
 
         case .advert(let contact):
             Self.logger.debug("PUSH Advert from: \(contact.name)")
-            contactStore.handleAdvert(contact)
+            // If manual add is on and this is an unknown contact, route to pending
+            let isKnown = contactStore.contacts.contains { $0.publicKeyPrefix == contact.publicKeyPrefix }
+            if !isKnown && deviceConfig.manualAddContacts != 0 {
+                contactStore.handleNewAdvert(contact, isInBackground: connectionManager.isInBackground)
+            } else {
+                contactStore.handleAdvert(contact)
+            }
             if remoteSessionManager.isDiscovering {
                 remoteSessionManager.addAdvertAsDiscoveredNode(contact)
             }
@@ -356,6 +362,8 @@ extension MeshCoreViewModel {
 
     func handleIncomingMessage(_ message: Message) {
         if remoteSessionManager.routeIncomingMessage(message) { return }
+        // Suppress messages from blocked contacts
+        if contactStore.isBlocked(publicKeyPrefix: message.contactKeyHash) { return }
         // Suppress stray messages from infrastructure nodes (late CLI responses after navigating away)
         if let contact = contactStore.contacts.first(where: { $0.publicKeyPrefix == message.contactKeyHash }),
            contact.type == .repeater || contact.type == .sensor {

@@ -325,6 +325,13 @@ struct LabelValueRow: View {
 
 // MARK: - Formatting Helpers
 
+extension String {
+    /// Strip emoji characters for sorting purposes (e.g. "🐝Mike" sorts as "Mike").
+    var strippingEmoji: String {
+        unicodeScalars.filter { !$0.properties.isEmoji || $0.properties.isASCIIHexDigit }.map(String.init).joined()
+    }
+}
+
 /// Format raw SNR value (SNR * 4 from firmware) to human-readable dB string.
 func formatSNR<T: BinaryInteger>(_ rawSNR: T) -> String {
     String(format: "%.1f dB", Double(Int(rawSNR)) / 4.0)

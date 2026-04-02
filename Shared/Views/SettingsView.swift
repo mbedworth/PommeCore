@@ -1630,6 +1630,22 @@ struct PrivacySection: View {
             .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
 
+            NavigationLink {
+                BlockedContactsView()
+            } label: {
+                HStack {
+                    Label("Blocked Contacts", systemImage: "hand.raised")
+                        .foregroundStyle(MeshTheme.accent)
+                    Spacer()
+                    if !contactStore.blockedContacts.isEmpty {
+                        Text("\(contactStore.blockedContacts.count)")
+                            .font(.caption)
+                            .foregroundStyle(MeshTheme.textSecondary)
+                    }
+                }
+            }
+            .listRowBackground(MeshTheme.surface)
+
         } header: {
             SectionInfoHeader(title: "Privacy & Security", info: "Controls what telemetry data is shared when requested. Per-Contact mode only shares with contacts that have telemetry permission set. Position Accuracy adds a random offset to your personal device location only. Repeater and room server locations are always shared at exact coordinates for accurate mesh routing. App Lock requires Face ID, Touch ID, or your device passcode to open MeshCore.")
         }
@@ -3380,5 +3396,55 @@ struct BatteryEditorSheet: View {
             voltageText = "\(battV)V"
             percentText = battPct > 0 ? "\(battPct)%" : "\u{2014}"
         }
+    }
+}
+
+// MARK: - Blocked Contacts View
+
+struct BlockedContactsView: View {
+    @Environment(ContactStore.self) private var contactStore
+
+    var body: some View {
+        List {
+            if contactStore.blockedContacts.isEmpty {
+                VStack(spacing: 12) {
+                    Image(systemName: "hand.raised.slash")
+                        .font(.system(size: 32))
+                        .foregroundStyle(MeshTheme.textSecondary)
+                    Text("No Blocked Contacts")
+                        .font(.headline)
+                    Text("Blocked contacts won't appear in your contact list and their messages will be suppressed.")
+                        .font(.caption)
+                        .foregroundStyle(MeshTheme.textSecondary)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(.vertical, 8)
+                .listRowBackground(MeshTheme.surface)
+            } else {
+                ForEach(contactStore.blockedContacts) { contact in
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(contactStore.displayName(for: contact))
+                                .foregroundStyle(MeshTheme.textPrimary)
+                            Text(contact.type.displayName)
+                                .font(.caption)
+                                .foregroundStyle(MeshTheme.textSecondary)
+                        }
+                        Spacer()
+                        Button("Unblock") {
+                            contactStore.unblockContact(contact)
+                        }
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(MeshTheme.accent)
+                    }
+                    .listRowBackground(MeshTheme.surface)
+                }
+            }
+        }
+        .meshListStyle()
+        .navigationTitle("Blocked Contacts")
+        #if !os(macOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
     }
 }

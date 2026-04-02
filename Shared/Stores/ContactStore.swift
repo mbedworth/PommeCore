@@ -59,12 +59,50 @@ final class ContactStore {
     var expectedContactCount: UInt32 = 0
     private var contactSyncDebounceTask: Task<Void, Never>?
 
+    // MARK: - Blocked Contacts
+
+    private var blockedPubkeys: Set<String> = []
+
+    func isBlocked(_ contact: Contact) -> Bool {
+        blockedPubkeys.contains(contact.publicKey.hexCompact)
+    }
+
+    func isBlocked(publicKeyPrefix: Data) -> Bool {
+        contacts.first(where: { $0.publicKeyPrefix == publicKeyPrefix })
+            .map { isBlocked($0) } ?? false
+    }
+
+    func blockContact(_ contact: Contact) {
+        blockedPubkeys.insert(contact.publicKey.hexCompact)
+        saveBlockedToiCloud()
+    }
+
+    func unblockContact(_ contact: Contact) {
+        blockedPubkeys.remove(contact.publicKey.hexCompact)
+        saveBlockedToiCloud()
+    }
+
+    var blockedContacts: [Contact] {
+        contacts.filter { isBlocked($0) }
+    }
+
+    func loadBlockedFromiCloud() {
+        if let list = iCloudStore.loadCodable([String].self, forKey: "blockedContacts") {
+            blockedPubkeys = Set(list)
+        }
+    }
+
+    private func saveBlockedToiCloud() {
+        iCloudStore.saveCodable(Array(blockedPubkeys), forKey: "blockedContacts")
+    }
+
     // MARK: - Init
 
     init() {
         // Don't load nicknames/notes at init — radio pubkey isn't known yet.
         // They are loaded in handleSelfInfo when the radio connects.
         loadContactGroupsFromiCloud()
+        loadBlockedFromiCloud()
         observeiCloudChanges()
     }
 
@@ -75,7 +113,7 @@ final class ContactStore {
     }
 
     func sortedContacts(byLastSeen: Bool) -> [Contact] {
-        contacts.sorted { a, b in
+        contacts.filter { !isBlocked($0) }.sorted { a, b in
             if a.isFavourite != b.isFavourite {
                 return a.isFavourite
             }
@@ -83,7 +121,9 @@ final class ContactStore {
                 // Most recently seen first
                 return a.lastAdvert > b.lastAdvert
             }
-            return a.name.localizedCaseInsensitiveCompare(b.name) == .orderedAscending
+            let nameA = displayName(for: a).strippingEmoji
+            let nameB = displayName(for: b).strippingEmoji
+            return nameA.localizedCaseInsensitiveCompare(nameB) == .orderedAscending
         }
     }
 
@@ -632,6 +672,7 @@ final class ContactStore {
                     self?.loadContactNotesFromiCloud()
                 }
                 self?.loadContactGroupsFromiCloud()
+                self?.loadBlockedFromiCloud()
             }
         }
     }
