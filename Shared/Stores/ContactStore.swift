@@ -135,6 +135,17 @@ final class ContactStore {
         iCloudStore.saveCodable(cleaned, forKey: nicknamesKey)
     }
 
+    // MARK: - Contact Activity Touch
+
+    /// Update a contact's lastAdvert to now. Call this on any activity that proves
+    /// the contact is alive: message received, ACK, login success, CLI response.
+    func touchContact(publicKeyPrefix: Data) {
+        guard let idx = contacts.firstIndex(where: { $0.publicKeyPrefix == publicKeyPrefix }) else { return }
+        let now = Date().epochUInt32
+        guard contacts[idx].lastAdvert < now else { return } // already current
+        contacts[idx].lastAdvert = now
+    }
+
     // MARK: - Contact Activity Status
 
     enum ContactStatus {

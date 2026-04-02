@@ -2,7 +2,7 @@
 //  NodeSetupWizardView.swift
 //  MeshCoreApple
 //
-//  Node Setup Wizard — directs users to the namer website to generate a
+//  Name Wizard — directs users to the namer website to generate a
 //  standardized node name, then lets them paste it and apply.
 //
 //  Created by Michael P. Bedworth on 4/1/26.
@@ -34,9 +34,12 @@ struct NodeSetupWizardView: View {
     /// When set, the wizard targets a remote device via CLI instead of the local connection.
     var remoteContext: RemoteWizardContext?
 
-    /// Key prefix passed in to avoid @Environment(DeviceConfig) which can cause
-    /// USB disconnects on Catalyst when the sheet dismisses.
+    /// Key prefix for local (BLE/binary) devices.
     var publicKeyHex: String = ""
+    /// Current advert name for local devices, used to skip no-op name changes.
+    var currentAdvertName: String = ""
+    /// Called to apply the name on local (BLE/binary) devices.
+    var onApplyName: ((String) -> Void)?
 
     private var isRemote: Bool { remoteContext != nil }
 
@@ -74,7 +77,7 @@ struct NodeSetupWizardView: View {
                     Image(systemName: "tag.fill")
                         .font(.system(size: 40))
                         .foregroundStyle(MeshTheme.accent)
-                    Text("Name Your Node")
+                    Text("Name Wizard")
                         .font(.title2)
                         .fontWeight(.bold)
                     Text("Use the MeshCore Node Namer to generate a standardized name for your device.")
@@ -124,71 +127,62 @@ struct NodeSetupWizardView: View {
                 .buttonStyle(.plain)
                 #endif
 
-                if isRemote {
-                    // Paste name field — remote devices only
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Paste your generated name:")
-                            .font(.subheadline)
-                            .foregroundStyle(MeshTheme.textSecondary)
-
-                        TextField("e.g. US-NC-RDU-CR-f9ac5", text: $nodeName)
-                            .textFieldStyle(.roundedBorder)
-                            #if os(iOS)
-                            .autocorrectionDisabled()
-                            .textInputAutocapitalization(.never)
-                            #endif
-                            .onChange(of: nodeName) { _, newValue in
-                                // Trim to last 24 UTF-8 bytes to prevent overflow
-                                // and keep the most recently typed characters.
-                                if newValue.utf8.count > 24 {
-                                    var trimmed = newValue
-                                    while trimmed.utf8.count > 24 {
-                                        trimmed.removeFirst()
-                                    }
-                                    nodeName = trimmed
-                                }
-                            }
-
-                        if !nodeName.isEmpty {
-                            HStack {
-                                Text("\(nameBytes) / \(24) bytes")
-                                    .font(.caption)
-                                    .fontWeight(.medium)
-                                Spacer()
-                                if nameBytes <= 24 {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .foregroundStyle(.green)
-                                } else {
-                                    Image(systemName: "exclamationmark.triangle.fill")
-                                        .foregroundStyle(.red)
-                                }
-                            }
-                            .foregroundStyle(nameBytes <= 24 ? MeshTheme.textSecondary : .red)
-                        }
-                    }
-
-                    // Apply button
-                    Button {
-                        applyName()
-                    } label: {
-                        HStack {
-                            Image(systemName: nameApplied ? "checkmark.circle.fill" : "arrow.right.circle.fill")
-                            Text(nameApplied ? "Name Applied" : "Apply Name")
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(nameApplied ? Color.green.opacity(0.2) : MeshTheme.accent)
-                        .foregroundStyle(nameApplied ? .green : .black)
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(!isNameValid || nameApplied)
-                } else {
-                    Text("Copy your key prefix, generate a name on the website, then paste it into the Name field in Settings.")
-                        .font(.caption)
+                // Paste name field
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Paste your generated name:")
+                        .font(.subheadline)
                         .foregroundStyle(MeshTheme.textSecondary)
-                        .multilineTextAlignment(.center)
+
+                    TextField("e.g. US-NC-RDU-CR-f9ac5", text: $nodeName)
+                        .textFieldStyle(.roundedBorder)
+                        #if os(iOS)
+                        .autocorrectionDisabled()
+                        .textInputAutocapitalization(.never)
+                        #endif
+                        .onChange(of: nodeName) { _, newValue in
+                            if newValue.utf8.count > 24 {
+                                var trimmed = newValue
+                                while trimmed.utf8.count > 24 {
+                                    trimmed.removeFirst()
+                                }
+                                nodeName = trimmed
+                            }
+                        }
+
+                    if !nodeName.isEmpty {
+                        HStack {
+                            Text("\(nameBytes) / 24 bytes")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                            Spacer()
+                            if nameBytes <= 24 {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(.green)
+                            } else {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .foregroundStyle(.red)
+                            }
+                        }
+                        .foregroundStyle(nameBytes <= 24 ? MeshTheme.textSecondary : .red)
+                    }
                 }
+
+                // Apply button
+                Button {
+                    applyName()
+                } label: {
+                    HStack {
+                        Image(systemName: nameApplied ? "checkmark.circle.fill" : "arrow.right.circle.fill")
+                        Text(nameApplied ? "Name Applied" : "Apply Name")
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(nameApplied ? Color.green.opacity(0.2) : MeshTheme.accent)
+                    .foregroundStyle(nameApplied ? .green : .black)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                }
+                .buttonStyle(.plain)
+                .disabled(!isNameValid || nameApplied)
             }
             .padding()
         }
@@ -196,23 +190,36 @@ struct NodeSetupWizardView: View {
         .alert("Name Updated", isPresented: $showRebootPrompt) {
             Button("OK") { dismiss() }
         } message: {
-            Text("The device name has been updated. Now set your radio preset in Settings \u{2192} Radio to match your region. Then press the physical reset button on your radio, wait for it to reboot, and unplug and replug the USB cable.")
+            Text(isRemote
+                 ? "The device name has been updated. Now set your radio preset in Settings \u{2192} Radio to match your region. Then press the physical reset button on your radio, wait for it to reboot, and unplug and replug the USB cable."
+                 : "The device name has been updated. Now set your radio preset in Settings \u{2192} Radio to match your region.")
         }
     }
 
     private func applyName() {
-        guard let remote = remoteContext else { return }
         let name = nodeName.trimmingCharacters(in: .whitespacesAndNewlines)
 
-        // Skip set name if unchanged — firmware doesn't respond, which stalls the CLI queue.
-        if remote.currentName?.lowercased() != name.lowercased() {
-            remote.sendCLI("set name \(name)")
-            remote.onNameApplied?(name)
-            withAnimation { nameApplied = true }
-            showRebootPrompt = true
+        if let remote = remoteContext {
+            // Remote (USB CLI / LoRa): send via CLI command
+            if remote.currentName?.lowercased() != name.lowercased() {
+                remote.sendCLI("set name \(name)")
+                remote.onNameApplied?(name)
+                withAnimation { nameApplied = true }
+                showRebootPrompt = true
+            } else {
+                withAnimation { nameApplied = true }
+                dismiss()
+            }
         } else {
-            withAnimation { nameApplied = true }
-            dismiss()
+            // Local (BLE / USB binary): send via binary protocol
+            if currentAdvertName.lowercased() != name.lowercased() {
+                onApplyName?(name)
+                withAnimation { nameApplied = true }
+                showRebootPrompt = true
+            } else {
+                withAnimation { nameApplied = true }
+                dismiss()
+            }
         }
     }
 }

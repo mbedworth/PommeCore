@@ -130,31 +130,6 @@ struct SettingsView: View {
 
     private var settingsForm: some View {
         List {
-            // 0. Node Setup Wizard (connected only)
-            if isConnected {
-                Section {
-                    Button {
-                        showSetupWizard = true
-                    } label: {
-                        HStack {
-                            Image(systemName: "wand.and.stars")
-                                .foregroundStyle(MeshTheme.accent)
-                                .frame(width: 24)
-                            Text("Node Setup Wizard")
-                                .foregroundStyle(MeshTheme.accent)
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .foregroundStyle(MeshTheme.textSecondary)
-                        }
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .listRowBackground(MeshTheme.surface)
-                } header: {
-                    SectionInfoHeader(title: "Quick Setup", info: "Generate a standardized node name and configure your radio preset in one guided flow.")
-                }
-            }
-
             // 1. Appearance
             appearanceSection
 
@@ -249,7 +224,11 @@ struct SettingsView: View {
         }
         .sheet(isPresented: $showSetupWizard) {
             NavigationStack {
-                NodeSetupWizardView(publicKeyHex: deviceConfig.publicKeyHex)
+                NodeSetupWizardView(
+                                publicKeyHex: deviceConfig.publicKeyHex,
+                                currentAdvertName: deviceConfig.advertName,
+                                onApplyName: { name in connectionManager.setAdvertName(name) }
+                            )
                     .toolbar {
                         ToolbarItem(placement: .cancellationAction) {
                             Button("Done") { showSetupWizard = false }
@@ -308,7 +287,11 @@ struct SettingsView: View {
         }
         .sheet(isPresented: $showSetupWizard) {
             NavigationStack {
-                NodeSetupWizardView(publicKeyHex: deviceConfig.publicKeyHex)
+                NodeSetupWizardView(
+                                publicKeyHex: deviceConfig.publicKeyHex,
+                                currentAdvertName: deviceConfig.advertName,
+                                onApplyName: { name in connectionManager.setAdvertName(name) }
+                            )
                     .toolbar {
                         ToolbarItem(placement: .cancellationAction) {
                             Button("Done") { showSetupWizard = false }
@@ -710,9 +693,9 @@ private extension SettingsView {
 private extension SettingsView {
     var deviceInfoSection: some View {
         #if os(macOS) || targetEnvironment(macCatalyst)
-        DeviceInfoSection(batteryChemistryRaw: $batteryChemistryRaw, connectedDeviceName: connectionManager.connectedDeviceName, inspectorSheet: $inspectorSheet, showInspector: $showInspector)
+        DeviceInfoSection(batteryChemistryRaw: $batteryChemistryRaw, showSetupWizard: $showSetupWizard, connectedDeviceName: connectionManager.connectedDeviceName, inspectorSheet: $inspectorSheet, showInspector: $showInspector)
         #else
-        DeviceInfoSection(batteryChemistryRaw: $batteryChemistryRaw, connectedDeviceName: connectionManager.connectedDeviceName, activeSheet: $iosDeviceSheet)
+        DeviceInfoSection(batteryChemistryRaw: $batteryChemistryRaw, showSetupWizard: $showSetupWizard, connectedDeviceName: connectionManager.connectedDeviceName, activeSheet: $iosDeviceSheet)
         #endif
     }
 
@@ -726,6 +709,7 @@ private extension SettingsView {
 struct DeviceInfoSection: View {
     @Environment(DeviceConfig.self) private var deviceConfig
     @Binding var batteryChemistryRaw: String
+    @Binding var showSetupWizard: Bool
     var connectedDeviceName: String?
     #if os(macOS) || targetEnvironment(macCatalyst)
     /// Binding to parent SettingsView — drives the inspector panel content.
@@ -747,6 +731,21 @@ struct DeviceInfoSection: View {
                 .foregroundStyle(MeshTheme.accent)
             Spacer()
             Text(config.deviceName.isEmpty ? (connectedDeviceName ?? "\u{2014}") : config.deviceName)
+                .foregroundStyle(MeshTheme.textSecondary)
+        }
+        .contentShape(Rectangle())
+    }
+
+    private var wizardRow: some View {
+        HStack {
+            Image(systemName: "wand.and.stars")
+                .foregroundStyle(MeshTheme.accent)
+                .frame(width: 24)
+            Text("Name Wizard")
+                .foregroundStyle(MeshTheme.textPrimary)
+            Spacer()
+            Image(systemName: "chevron.right")
+                .font(.caption)
                 .foregroundStyle(MeshTheme.textSecondary)
         }
         .contentShape(Rectangle())
@@ -846,6 +845,8 @@ struct DeviceInfoSection: View {
             #if os(macOS) || targetEnvironment(macCatalyst)
             Button { openInspector(.name) } label: { nameRow }
                 .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
+            Button { showSetupWizard = true } label: { wizardRow }
+                .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
             if config.radioFrequency > 0 {
                 Button { openInspector(.radio) } label: { radioRow }
                     .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
@@ -872,6 +873,8 @@ struct DeviceInfoSection: View {
     private var iOSDeviceRows: some View {
         Group {
             Button { activeSheet = .name } label: { nameRow }
+                .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
+            Button { showSetupWizard = true } label: { wizardRow }
                 .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
             if config.radioFrequency > 0 {
                 Button { activeSheet = .radio } label: { radioRow }

@@ -330,6 +330,9 @@ struct LoginSection: View {
                     SecureField("Password", text: $password)
                         .foregroundStyle(MeshTheme.textPrimary)
                         .textFieldStyle(MeshTextFieldStyle())
+                        .onChange(of: password) { _, new in
+                            if new.count > 15 { password = String(new.prefix(15)) }
+                        }
                     #endif
                     InfoButton(text: "Passwords are case-sensitive, max 15 characters.")
                 }
@@ -972,6 +975,9 @@ struct RemoteSecuritySection: View {
                     SecureField("New Admin Password", text: $adminPassword)
                         .foregroundStyle(MeshTheme.textPrimary)
                         .textFieldStyle(MeshTextFieldStyle())
+                        .onChange(of: adminPassword) { _, new in
+                            if new.count > 15 { adminPassword = String(new.prefix(15)) }
+                        }
                     #endif
                     Button {
                         guard !adminPassword.isEmpty else { return }
@@ -997,6 +1003,9 @@ struct RemoteSecuritySection: View {
                 SecureField("Guest Password", text: $guestPassword)
                     .foregroundStyle(MeshTheme.textPrimary)
                     .textFieldStyle(MeshTextFieldStyle())
+                    .onChange(of: guestPassword) { _, new in
+                        if new.count > 15 { guestPassword = String(new.prefix(15)) }
+                    }
                 #endif
                 Button {
                     guard !guestPassword.isEmpty else { return }

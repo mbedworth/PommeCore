@@ -980,6 +980,9 @@ struct RoomChatView: View {
                         .foregroundStyle(MeshTheme.textPrimary)
                         .textFieldStyle(MeshTextFieldStyle())
                         .onSubmit { login() }
+                        .onChange(of: password) { _, new in
+                            if new.count > 15 { password = String(new.prefix(15)) }
+                        }
                     #endif
                 }
                 .padding(.horizontal, 32)
@@ -1292,6 +1295,9 @@ struct RepeaterLoginView: View {
                             .foregroundStyle(MeshTheme.textPrimary)
                             .textFieldStyle(MeshTextFieldStyle())
                             .onSubmit { login() }
+                            .onChange(of: password) { _, new in
+                                if new.count > 15 { password = String(new.prefix(15)) }
+                            }
                         #endif
                     }
                     .padding(.horizontal, 32)

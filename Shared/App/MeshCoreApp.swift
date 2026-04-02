@@ -370,7 +370,11 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showSetupWizard) {
             NavigationStack {
-                NodeSetupWizardView(publicKeyHex: deviceConfig.publicKeyHex)
+                NodeSetupWizardView(
+                    publicKeyHex: deviceConfig.publicKeyHex,
+                    currentAdvertName: deviceConfig.advertName,
+                    onApplyName: { name in connectionManager.setAdvertName(name) }
+                )
                     .toolbar {
                         ToolbarItem(placement: .cancellationAction) {
                             Button("Done") { showSetupWizard = false }

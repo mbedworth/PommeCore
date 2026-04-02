@@ -516,8 +516,9 @@ final class RemoteSessionManager {
         }
     }
 
-    /// Handle login success.
-    func handleLoginSuccess(permissionLevel: Int) {
+    /// Handle login success. Returns the contact key prefix if matched, for activity tracking.
+    @discardableResult
+    func handleLoginSuccess(permissionLevel: Int) -> Data? {
         loginTimeoutTask?.cancel()
         loginTimeoutTask = nil
         let contacts = contactsProvider?() ?? []
@@ -545,9 +546,10 @@ final class RemoteSessionManager {
                         self.fetchRemoteSettings(for: contact)
                     }
                 }
-                return
+                return key
             }
         }
+        return nil
     }
 
     /// Handle login failure.
@@ -568,6 +570,9 @@ final class RemoteSessionManager {
         }
     }
 
+    /// Called to update a contact's activity timestamp when we receive proof of life.
+    var touchContact: ((Data) -> Void)?
+
     /// Handle incoming message — route CLI responses to session.
     /// Returns true if the message was consumed by a remote session.
     func routeIncomingMessage(_ message: Message) -> Bool {
@@ -575,6 +580,7 @@ final class RemoteSessionManager {
 
         guard let session = remoteSessions[contactKey], !message.isOutgoing else { return false }
         guard case .loggedIn = session.loginState else { return false }
+        touchContact?(contactKey)
 
         if message.txtType == 1 {
             Self.logger.info("CLI response (txtType=1) → management: '\(message.text)'")

@@ -188,7 +188,9 @@ extension MeshCoreViewModel {
         case .sendConfirmed(let ackCode, let roundTripMs):
             Self.logger.info("PARSED SendConfirmed: ackCode=\(ackCode) roundTrip=\(roundTripMs)ms")
             DebugLogger.shared.log("ACK confirmed: \(roundTripMs)ms", level: .rx)
-            messageStoreManager.handleSendConfirmed(ackCode: ackCode, roundTripMs: roundTripMs)
+            if let contactKey = messageStoreManager.handleSendConfirmed(ackCode: ackCode, roundTripMs: roundTripMs) {
+                contactStore.touchContact(publicKeyPrefix: contactKey)
+            }
 
         case .msgWaiting:
             Self.logger.info("PARSED MsgWaiting — syncing next message")
@@ -196,7 +198,9 @@ extension MeshCoreViewModel {
 
         case .loginSuccess(let permissionLevel):
             Self.logger.info("PUSH LoginSuccess: permissionLevel=\(permissionLevel)")
-            remoteSessionManager.handleLoginSuccess(permissionLevel: permissionLevel)
+            if let contactKey = remoteSessionManager.handleLoginSuccess(permissionLevel: permissionLevel) {
+                contactStore.touchContact(publicKeyPrefix: contactKey)
+            }
 
         case .loginFail:
             Self.logger.info("PUSH LoginFail")
@@ -357,6 +361,8 @@ extension MeshCoreViewModel {
            contact.type == .repeater || contact.type == .sensor {
             return
         }
+        // Touch contact activity — proves the contact is alive
+        contactStore.touchContact(publicKeyPrefix: message.contactKeyHash)
         messageStoreManager.isInBackground = connectionManager.isInBackground
         if case .contact(let key) = navigationStore.sidebarSelection {
             messageStoreManager.selectedContactKey = key

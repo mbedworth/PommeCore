@@ -370,10 +370,12 @@ final class MessageStoreManager {
         }
     }
 
-    func handleSendConfirmed(ackCode: UInt32, roundTripMs: UInt32) {
+    /// Returns the contact key hash if the ACK was matched, so callers can update activity.
+    @discardableResult
+    func handleSendConfirmed(ackCode: UInt32, roundTripMs: UInt32) -> Data? {
         guard let pending = pendingACKs.removeValue(forKey: ackCode) else {
             Self.logger.warning("DM CONFIRMED: no pending ACK for code \(ackCode)")
-            return
+            return nil
         }
 
         if var messages = messagesByContact[pending.contactKeyHash],
@@ -384,6 +386,7 @@ final class MessageStoreManager {
             messagesByContact[pending.contactKeyHash] = messages
             persistMessages(for: pending.contactKeyHash)
         }
+        return pending.contactKeyHash
     }
 
     private func handleACKTimeout(ackCode: UInt32) {

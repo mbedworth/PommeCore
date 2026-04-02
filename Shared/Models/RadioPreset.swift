@@ -3,7 +3,7 @@
 //  MeshCoreApple
 //
 //  Radio preset definitions and reusable picker view.
-//  Extracted from SettingsView for shared use by Settings and Node Setup Wizard.
+//  Extracted from SettingsView for shared use by Settings and Remote Management.
 //
 //  Created by Michael P. Bedworth on 3/13/26.
 //  Copyright © 2026 Michael P. Bedworth. All rights reserved.

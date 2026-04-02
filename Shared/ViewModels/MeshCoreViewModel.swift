@@ -208,6 +208,7 @@ final class MeshCoreViewModel: ObservableObject {
         remoteSessionManager.contactsProvider = { [weak self] in self?.contactStore.contacts ?? [] }
         remoteSessionManager.deviceConfigProvider = { [weak self] in self?.deviceConfig ?? DeviceConfig() }
         remoteSessionManager.syncNextMessage = { [weak self] in self?.syncNextMessage() }
+        remoteSessionManager.touchContact = { [weak self] key in self?.contactStore.touchContact(publicKeyPrefix: key) }
         remoteSessionManager.showError = { [weak self] msg in self?.connectionManager.lastErrorMessage = msg }
         remoteSessionManager.onStateChanged = { [weak self] in self?.objectWillChange.send() }
 #if os(macOS) || targetEnvironment(macCatalyst)
