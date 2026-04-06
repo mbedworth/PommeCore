@@ -381,7 +381,6 @@ struct StatusInfoView: View {
             VStack(spacing: 8) {
                 statusRow(icon: batteryIconName(for: batteryPercent), label: "Battery", value: batteryString, color: batteryColor(for: batteryPercent))
                 statusRow(icon: "clock.arrow.circlepath", label: "Uptime", value: formatUptime(status.uptime))
-                statusRow(icon: "person.2", label: "Contacts", value: "\(status.contacts)")
             }
         }
         .padding()

@@ -182,7 +182,6 @@ struct ContactRowView: View {
                         .foregroundStyle(batteryColor(for: pct))
                 }
                 Label(formatUptime(status.uptime), systemImage: "clock")
-                Label("\(status.contacts)", systemImage: "person.2")
             }
             .font(.caption2)
             .foregroundStyle(MeshTheme.textSecondary)
