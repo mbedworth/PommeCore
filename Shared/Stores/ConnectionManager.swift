@@ -500,6 +500,7 @@ final class ConnectionManager {
     }
 
     func connectWiFi(host: String, port: UInt16 = 5000) {
+        stopScanning()
         wifiManager.connect(host: host, port: port)
     }
 
@@ -681,6 +682,8 @@ final class ConnectionManager {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] state in
                 guard let self else { return }
+                // Don't let BLE state changes override an active WiFi connection
+                guard !self.wifiManager.isConnected else { return }
                 let previousState = self.connectionState
                 self.connectionState = state
 
