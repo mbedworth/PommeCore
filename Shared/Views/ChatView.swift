@@ -1172,18 +1172,20 @@ struct RoomChatView: View {
         guard !isLoggedIn, !triedDefaultLogin,
               !KeychainManager.hasPassword(forDevice: contact.publicKey) else { return }
         triedDefaultLogin = true
-        // Try admin default first
+        // Try admin default first (works on repeaters and room servers)
         password = Self.defaultAdminPassword
         usedDefaultPassword = true
         remoteSessionManager.loginToRemoteDevice(contact, password: Self.defaultAdminPassword, remember: false)
-        // If admin fails, try guest after a delay
-        Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 5_000_000_000)
-            guard !isLoggedIn else { return }
-            if case .loginFailed = session.loginState {
-                session.loginState = .notLoggedIn
-                password = Self.defaultGuestPassword
-                remoteSessionManager.loginToRemoteDevice(contact, password: Self.defaultGuestPassword, remember: false)
+        // If admin fails and this is a room server, try guest default
+        if contact.type == .room {
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 5_000_000_000)
+                guard !isLoggedIn else { return }
+                if case .loginFailed = session.loginState {
+                    session.loginState = .notLoggedIn
+                    password = Self.defaultGuestPassword
+                    remoteSessionManager.loginToRemoteDevice(contact, password: Self.defaultGuestPassword, remember: false)
+                }
             }
         }
     }
