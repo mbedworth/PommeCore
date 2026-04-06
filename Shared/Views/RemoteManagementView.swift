@@ -878,10 +878,12 @@ struct RemoteAdvertSection: View {
             if canEdit {
                 HStack(spacing: 12) {
                     SaveButton(state: saveState, label: "Save Advertising") {
-                        if !name.isEmpty { sendCLI("set name \(name)") }
+                        // Send owner.info, lat, lon BEFORE name —
+                        // "set name" must be last (firmware may restart advert system)
+                        if !ownerInfo.isEmpty { sendCLI("set owner.info \(ownerInfo)") }
                         if !lat.isEmpty { sendCLI("set lat \(lat)") }
                         if !lon.isEmpty { sendCLI("set lon \(lon)") }
-                        if !ownerInfo.isEmpty { sendCLI("set owner.info \(ownerInfo)") }
+                        if !name.isEmpty { sendCLI("set name \(name)") }
                         // Advert intervals handled via picker bindings
                         showSaved($saveState)
                     }
