@@ -772,12 +772,8 @@ struct RoomChatView: View {
     @State private var rememberPassword = true
     @State private var showManagement = false
     @State private var showContactDetail = false
-    @State private var usedDefaultPassword = false
-    @State private var triedDefaultLogin = false
 
     private let maxMessageLength = 160
-    private static let defaultAdminPassword = "password"
-    private static let defaultGuestPassword = "hello"
 
     /// Accent for remote management icon.
     private var remoteAccent: Color { MeshTheme.remoteRoom }
@@ -830,33 +826,6 @@ struct RoomChatView: View {
                 .padding(.horizontal, 16)
                 .padding(.vertical, 6)
                 .background(MeshTheme.surface)
-
-                // Security warning for default passwords
-                if usedDefaultPassword {
-                    HStack(spacing: 8) {
-                        Image(systemName: "exclamationmark.shield")
-                            .foregroundStyle(.red)
-                        Text("This device is using a default password. Change it in Remote Management \u{2192} Security.")
-                            .font(.caption)
-                            .foregroundStyle(.red)
-                        Spacer()
-                        Button {
-                            showManagement = true
-                        } label: {
-                            Text("Fix")
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 4)
-                                .background(.red)
-                                .clipShape(Capsule())
-                        }
-                        .buttonStyle(.plain)
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
-                    .background(Color.red.opacity(0.1))
-                }
 
                 messageList
                 Divider()
@@ -930,7 +899,6 @@ struct RoomChatView: View {
         #endif
         .onAppear {
             messageStoreManager.markAsRead(contact)
-            tryDefaultLoginIfNeeded()
         }
         // No onDisappear logout — firmware handles session timeout.
         // Clearing local state causes mismatch with firmware and unresponsiveness.
@@ -1079,6 +1047,32 @@ struct RoomChatView: View {
                     .font(.caption2)
                     .foregroundStyle(MeshTheme.textSecondary)
 
+                // Default password info card
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "info.circle")
+                        Text("Default Passwords")
+                            .fontWeight(.medium)
+                    }
+                    .foregroundStyle(MeshTheme.accent)
+                    Text("Admin: **password**")
+                    if contact.type == .room {
+                        Text("Guest: **hello**")
+                    }
+                    HStack(spacing: 4) {
+                        Image(systemName: "exclamationmark.shield")
+                            .foregroundStyle(.orange)
+                        Text("Change default passwords after login via Remote Management \u{2192} Security.")
+                            .foregroundStyle(.orange)
+                    }
+                }
+                .font(.caption)
+                .foregroundStyle(MeshTheme.textSecondary)
+                .padding(12)
+                .frame(maxWidth: 300, alignment: .leading)
+                .background(MeshTheme.surfaceLight)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+
                 #if !os(watchOS)
                 Toggle("Remember Password", isOn: $rememberPassword)
                     .font(.subheadline)
@@ -1161,33 +1155,7 @@ struct RoomChatView: View {
 
     private func login() {
         guard !password.isEmpty else { return }
-        // Check if the password being used is a default
-        let isDefault = password == Self.defaultAdminPassword || password == Self.defaultGuestPassword
-        if isDefault { usedDefaultPassword = true }
         remoteSessionManager.loginToRemoteDevice(contact, password: password, remember: rememberPassword)
-    }
-
-    /// Auto-try default passwords if no saved password exists and not already logged in.
-    private func tryDefaultLoginIfNeeded() {
-        guard !isLoggedIn, !triedDefaultLogin,
-              !KeychainManager.hasPassword(forDevice: contact.publicKey) else { return }
-        triedDefaultLogin = true
-        // Try admin default first (works on repeaters and room servers)
-        password = Self.defaultAdminPassword
-        usedDefaultPassword = true
-        remoteSessionManager.loginToRemoteDevice(contact, password: Self.defaultAdminPassword, remember: false)
-        // If admin fails and this is a room server, try guest default
-        if contact.type == .room {
-            Task { @MainActor in
-                try? await Task.sleep(nanoseconds: 5_000_000_000)
-                guard !isLoggedIn else { return }
-                if case .loginFailed = session.loginState {
-                    session.loginState = .notLoggedIn
-                    password = Self.defaultGuestPassword
-                    remoteSessionManager.loginToRemoteDevice(contact, password: Self.defaultGuestPassword, remember: false)
-                }
-            }
-        }
     }
 
     private func sendRoomMessage() {
