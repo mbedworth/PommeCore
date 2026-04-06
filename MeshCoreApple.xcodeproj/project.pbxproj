@@ -511,7 +511,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 26.04.1;
+				MARKETING_VERSION = 26.04.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mbedworth.meshcore;
 				PRODUCT_NAME = MeshCore;
 				SDKROOT = iphoneos;
@@ -587,7 +587,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				INFOPLIST_FILE = watchOS/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "MeshCore Apple";
-				MARKETING_VERSION = 26.04.1;
+				MARKETING_VERSION = 26.04.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mbedworth.meshcore.watchos;
 				PRODUCT_NAME = "MeshCore Watch";
 				SDKROOT = watchos;
@@ -615,7 +615,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 26.04.1;
+				MARKETING_VERSION = 26.04.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mbedworth.meshcore;
 				PRODUCT_NAME = MeshCore;
 				SDKROOT = macosx;
@@ -640,7 +640,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 26.04.1;
+				MARKETING_VERSION = 26.04.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mbedworth.meshcore;
 				PRODUCT_NAME = MeshCore;
 				SDKROOT = macosx;
@@ -664,7 +664,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 26.04.1;
+				MARKETING_VERSION = 26.04.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mbedworth.meshcore;
 				PRODUCT_NAME = MeshCore;
 				SDKROOT = iphoneos;
@@ -747,7 +747,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				INFOPLIST_FILE = watchOS/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "MeshCore Apple";
-				MARKETING_VERSION = 26.04.1;
+				MARKETING_VERSION = 26.04.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mbedworth.meshcore.watchos;
 				PRODUCT_NAME = "MeshCore Watch";
 				SDKROOT = watchos;
