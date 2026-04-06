@@ -813,7 +813,7 @@ struct RoomChatView: View {
     var body: some View {
         VStack(spacing: 0) {
             if isLoggedIn {
-                // Status bar with logout button
+                // Status bar — session persists until firmware timeout or reboot
                 HStack(spacing: 6) {
                     Image(systemName: "circle.fill")
                         .font(.system(size: 6))
@@ -822,24 +822,6 @@ struct RoomChatView: View {
                         .font(.caption)
                         .foregroundStyle(MeshTheme.textSecondary)
                     Spacer()
-                    Button {
-                        showManagement = false
-                        remoteSessionManager.logoutFromRemoteDevice(contact)
-                        password = ""
-                    } label: {
-                        HStack(spacing: 3) {
-                            Image(systemName: "rectangle.portrait.and.arrow.right")
-                                .font(.caption2)
-                            Text("Logout")
-                                .font(.caption2.weight(.medium))
-                        }
-                        .foregroundStyle(MeshTheme.textSecondary)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(MeshTheme.surfaceLight)
-                        .clipShape(Capsule())
-                    }
-                    .buttonStyle(.plain)
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 6)

@@ -17,7 +17,7 @@ struct RemoteManagementView: View {
     @Environment(ContactStore.self) private var contactStore
     @Environment(RemoteSessionManager.self) private var remoteSessionManager
     @ObservedObject var session: RemoteDeviceSession
-    @State private var showLogoutConfirm = false
+    // Session persists until firmware timeout or reboot — no manual logout
     @State private var isEditingName = false
     @State private var editedName = ""
     @State private var showRebootAfterRename = false
@@ -192,29 +192,7 @@ struct RemoteManagementView: View {
     @ViewBuilder
     private var disconnectSection: some View {
         Section {
-            Button {
-                showLogoutConfirm = true
-            } label: {
-                HStack {
-                    Image(systemName: "rectangle.portrait.and.arrow.right")
-                        .foregroundStyle(.red)
-                        .frame(width: 24)
-                    Text("Logout")
-                        .foregroundStyle(.red)
-                    Spacer()
-                }
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .listRowBackground(MeshTheme.surface)
-            .confirmationDialog("Logout from \(contactStore.displayName(for: contact))?", isPresented: $showLogoutConfirm, titleVisibility: .visible) {
-                Button("Logout", role: .destructive) {
-                    remoteSessionManager.logoutFromRemoteDevice(contact)
-                }
-                Button("Cancel", role: .cancel) {}
-            } message: {
-                Text("You will need to re-enter the password to reconnect.")
-            }
+            // No manual logout — session ends on firmware timeout, reboot, or BLE disconnect
         }
     }
 
@@ -501,8 +479,8 @@ private extension RemoteManagementView {
                 .foregroundStyle(MeshTheme.textSecondary)
 
                 // Battery and uptime from status response (auto-requested on login)
-                if let status = remoteSessionManager.statusByContact[contact.publicKeyPrefix] {
-                    HStack(spacing: 12) {
+                HStack(spacing: 12) {
+                    if let status = remoteSessionManager.statusByContact[contact.publicKeyPrefix] {
                         if status.batteryMV > 0 {
                             let pct = BatteryProfile.lipo.percentage(forMillivolts: Int(status.batteryMV))
                             Label(String(format: "%.2fV (%d%%)", Double(status.batteryMV) / 1000.0, pct),
@@ -514,9 +492,19 @@ private extension RemoteManagementView {
                         let uptimeStr = d > 0 ? "\(d)d \(h)h" : h > 0 ? "\(h)h \(m)m" : "\(m)m"
                         Label(uptimeStr, systemImage: "clock")
                     }
-                    .font(.caption)
-                    .foregroundStyle(MeshTheme.textSecondary)
+                    Spacer()
+                    Button {
+                        remoteSessionManager.requestStatus(for: contact)
+                    } label: {
+                        Image(systemName: "arrow.clockwise")
+                            .font(.caption)
+                            .foregroundStyle(MeshTheme.accent)
+                    }
+                    .buttonStyle(.plain)
+                    .help("Refresh battery and uptime")
                 }
+                .font(.caption)
+                .foregroundStyle(MeshTheme.textSecondary)
 
                 if let radio = session.settings["radio"], !radio.isEmpty {
                     let tx = session.settings["tx"] ?? ""
