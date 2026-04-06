@@ -171,6 +171,29 @@ struct ContactRowView: View {
                 .font(.caption)
                 .foregroundStyle(MeshTheme.textSecondary)
         }
+
+        // Infrastructure status summary (battery, uptime, contacts)
+        if (contact.type == .repeater || contact.type == .room || contact.type == .sensor),
+           let status = remoteSessionManager.statusByContact[contact.publicKeyPrefix] {
+            HStack(spacing: 8) {
+                if status.batteryMV > 0 {
+                    Label(String(format: "%.1fV", Double(status.batteryMV) / 1000.0), systemImage: "battery.75")
+                }
+                Label(formatUptime(status.uptime), systemImage: "clock")
+                Label("\(status.contacts)", systemImage: "person.2")
+            }
+            .font(.caption2)
+            .foregroundStyle(MeshTheme.textSecondary)
+        }
+    }
+
+    private func formatUptime(_ seconds: UInt32) -> String {
+        let d = seconds / 86400
+        let h = (seconds % 86400) / 3600
+        let m = (seconds % 3600) / 60
+        if d > 0 { return "\(d)d \(h)h" }
+        if h > 0 { return "\(h)h \(m)m" }
+        return "\(m)m"
     }
 
     @ViewBuilder

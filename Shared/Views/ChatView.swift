@@ -904,6 +904,16 @@ struct RoomChatView: View {
         .onAppear {
             messageStoreManager.markAsRead(contact)
         }
+        .onDisappear {
+            // Clear admin session when leaving repeater/room chat.
+            // Firmware handles session timeout — no logout command needed.
+            #if os(macOS) || targetEnvironment(macCatalyst)
+            if contact.publicKey == remoteSessionManager.usbDeviceContact?.publicKey { return }
+            #endif
+            if isLoggedIn {
+                remoteSessionManager.logoutFromRemoteDevice(contact)
+            }
+        }
         // Dismiss management sheet if logged out while it's open
         .onChange(of: isLoggedIn) { _, loggedIn in
             if !loggedIn {
