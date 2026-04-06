@@ -830,15 +830,23 @@ public enum FrameParser {
     /// status_data: battery_mv(uint16) uptime(uint32) contacts(uint16)
     private static func parseStatusResponse(_ data: Data) -> ParsedResponse {
         var offset = 0
+
+        // Dump raw hex for protocol debugging
+        DebugLogger.shared.log("STATUS RAW [\(data.count) bytes]: \(data.hexFormatted(maxBytes: 40))", level: .rx)
+
         _ = readUInt8(data, offset: &offset) // reserved
         let senderKey = data.count >= offset + 6 ? Data(data[offset..<offset+6]) : Data()
         offset += min(6, data.count - offset)
+
+        // Log remaining status_data bytes for layout verification
+        let statusData = data.count > offset ? Data(data[offset...]) : Data()
+        DebugLogger.shared.log("STATUS DATA [\(statusData.count) bytes] from offset \(offset): \(statusData.hexFormatted(maxBytes: 30))", level: .rx)
 
         let batteryMV = readUInt16(data, offset: &offset)
         let uptime = readUInt32(data, offset: &offset)
         let contacts = readUInt16(data, offset: &offset)
 
-        logger.info("StatusResponse: from=\(senderKey.hexCompact) batt=\(batteryMV)mV uptime=\(uptime) contacts=\(contacts)")
+        logger.info("StatusResponse: from=\(senderKey.hexCompact) batt=\(batteryMV)mV uptime=\(uptime)s contacts=\(contacts)")
 
         let info = RemoteStatusInfo(
             batteryMV: batteryMV,

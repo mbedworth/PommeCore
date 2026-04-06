@@ -650,6 +650,13 @@ struct ContactDetailSheet: View {
             }
         }
         .meshTheme()
+        .onAppear {
+            // Auto-request status for infrastructure nodes when sheet opens
+            if (contact.type == .repeater || contact.type == .room || contact.type == .sensor),
+               remoteSessionManager.statusByContact[contact.publicKeyPrefix] == nil {
+                remoteSessionManager.requestStatus(for: contact)
+            }
+        }
     }
 
     /// Contextual status request message based on contact type.

@@ -771,6 +771,7 @@ struct RoomChatView: View {
     @State private var password = ""
     @State private var rememberPassword = true
     @State private var showManagement = false
+    @State private var showContactDetail = false
 
     private let maxMessageLength = 160
 
@@ -859,6 +860,15 @@ struct RoomChatView: View {
         .background(MeshTheme.background)
         .navigationTitle(contactStore.displayName(for: contact))
         .toolbar {
+            #if !os(watchOS)
+            ToolbarItem(placement: .automatic) {
+                Button { showContactDetail = true } label: {
+                    Image(systemName: "info.circle")
+                        .foregroundStyle(MeshTheme.accent)
+                }
+                .help("Network Tools")
+            }
+            #endif
             ToolbarItem(placement: .automatic) {
                 if isLoggedIn, permission.canRead {
                     #if os(watchOS)
@@ -885,6 +895,10 @@ struct RoomChatView: View {
             }
         }
         #if !os(watchOS)
+        .sheet(isPresented: $showContactDetail) {
+            ContactDetailSheet(contact: contact)
+                .frame(minWidth: 360, minHeight: 400)
+        }
         .sheet(isPresented: $showManagement) {
             NavigationStack {
                 RemoteManagementView(
