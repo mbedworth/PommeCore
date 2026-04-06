@@ -193,6 +193,8 @@ extension MeshCoreViewModel {
             DebugLogger.shared.log("ACK confirmed: \(roundTripMs)ms", level: .rx)
             if let contactKey = messageStoreManager.handleSendConfirmed(ackCode: ackCode, roundTripMs: roundTripMs) {
                 contactStore.touchContact(publicKeyPrefix: contactKey)
+                // Firmware may have updated the path during delivery — sync to pick it up
+                contactStore.requestDebouncedIncrementalSync()
             }
 
         case .msgWaiting:
@@ -374,6 +376,13 @@ extension MeshCoreViewModel {
         }
         // Touch contact activity — proves the contact is alive
         contactStore.touchContact(publicKeyPrefix: message.contactKeyHash)
+        // Auto-reset stale routed path when contact is back in direct range
+        if let hops = message.hops, hops == 0,
+           let contact = contactStore.contacts.first(where: { $0.publicKeyPrefix == message.contactKeyHash }),
+           contact.outPathLen > 0 {
+            DebugLogger.shared.log("PATH AUTO-RESET: \(contact.name) sent direct msg but outPathLen=\(contact.outPathLen) — resetting", level: .info)
+            contactStore.resetPath(for: contact)
+        }
         messageStoreManager.isInBackground = connectionManager.isInBackground
         // Only suppress unread/notifications when the user is actively viewing the chat.
         // On macOS, scenePhase doesn't reliably detect background — use NSApplication.isActive.

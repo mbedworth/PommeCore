@@ -480,7 +480,7 @@ final class MessageStoreManager {
         let existing = messagesByContact[contactKey] ?? []
         let isDuplicate = existing.contains { msg in
             msg.text == message.text &&
-            abs(msg.timestamp.timeIntervalSince(message.timestamp)) < 2 &&
+            abs(msg.timestamp.timeIntervalSince(message.timestamp)) < 15 &&
             msg.isOutgoing == message.isOutgoing
         }
         guard !isDuplicate else {

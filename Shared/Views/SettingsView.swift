@@ -2152,6 +2152,7 @@ class TipJarManager: ObservableObject {
 
 // MARK: - Supporters Wall (CloudKit)
 
+@MainActor
 class SupportersManager: ObservableObject {
     @Published var supporters: [Supporter] = []
     @Published var isLoading = false

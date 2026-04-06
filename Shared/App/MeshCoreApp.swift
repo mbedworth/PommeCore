@@ -518,6 +518,7 @@ struct ContentView: View {
 
 // MARK: - App Lock
 
+@MainActor
 class AppLockManager: ObservableObject {
     @Published var isUnlocked = false
     @Published var authFailCount = 0

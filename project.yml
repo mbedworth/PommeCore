@@ -24,7 +24,7 @@ targets:
       path: iOS/Info.plist
       properties:
         UILaunchScreen: {}
-        CFBundleDisplayName: MeshCore
+        CFBundleDisplayName: MeshCore Apple
         UIBackgroundModes:
           - bluetooth-central
         NSBluetoothAlwaysUsageDescription: "MeshCore needs Bluetooth to communicate with your LoRa radio device."
@@ -50,7 +50,7 @@ targets:
     info:
       path: macOS/Info.plist
       properties:
-        CFBundleDisplayName: MeshCore
+        CFBundleDisplayName: MeshCore Apple
         NSBluetoothAlwaysUsageDescription: "MeshCore needs Bluetooth to communicate with your LoRa radio device."
     settings:
       base:
@@ -72,7 +72,7 @@ targets:
     info:
       path: watchOS/Info.plist
       properties:
-        CFBundleDisplayName: MeshCore
+        CFBundleDisplayName: MeshCore Apple
         UIBackgroundModes:
           - bluetooth-central
         NSBluetoothAlwaysUsageDescription: "MeshCore needs Bluetooth to communicate with your LoRa radio device."

@@ -64,19 +64,19 @@ public final class WiFiConnectionManager: ObservableObject {
             case .ready:
                 Self.logger.info("WiFi connected to \(host):\(port)")
                 DebugLogger.shared.log("WIFI: connected to \(host):\(port)", level: .info)
-                self.reconnectAttempts = 0
                 DispatchQueue.main.async {
+                    self.reconnectAttempts = 0
                     self.isConnected = true
                     self.connectedHost = host
                 }
-                self.startReceiving()
+                self.receiveLoop()
             case .failed(let error):
                 Self.logger.error("WiFi connection failed: \(error)")
                 DispatchQueue.main.async {
                     self.isConnected = false
                     self.connectedHost = nil
+                    self.attemptReconnect()
                 }
-                self.attemptReconnect()
             case .cancelled:
                 DispatchQueue.main.async {
                     self.isConnected = false
@@ -97,10 +97,8 @@ public final class WiFiConnectionManager: ObservableObject {
         connection?.cancel()
         connection = nil
         readBuffer = Data()
-        DispatchQueue.main.async {
-            self.isConnected = false
-            self.connectedHost = nil
-        }
+        isConnected = false
+        connectedHost = nil
     }
 
     private func attemptReconnect() {
@@ -115,12 +113,10 @@ public final class WiFiConnectionManager: ObservableObject {
         reconnectAttempts += 1
         DebugLogger.shared.log("WIFI: reconnect attempt \(reconnectAttempts)/\(Self.maxReconnectAttempts) to \(host):\(port)", level: .warning)
 
-        reconnectTask = Task {
+        reconnectTask = Task { @MainActor [weak self] in
             try? await Task.sleep(nanoseconds: 3_000_000_000)
-            guard !Task.isCancelled else { return }
-            await MainActor.run {
-                self.connect(host: host, port: port)
-            }
+            guard !Task.isCancelled, let self else { return }
+            self.connect(host: host, port: port)
         }
     }
 
@@ -144,7 +140,8 @@ public final class WiFiConnectionManager: ObservableObject {
 
     // MARK: - Receive
 
-    private func startReceiving() {
+    /// Runs on the WiFi queue — reads data and parses frames.
+    private func receiveLoop() {
         connection?.receive(minimumIncompleteLength: 1, maximumLength: 4096) { [weak self] data, _, isComplete, error in
             guard let self else { return }
             if let data, !data.isEmpty {
@@ -153,18 +150,31 @@ public final class WiFiConnectionManager: ObservableObject {
             }
             if isComplete || error != nil {
                 Self.logger.info("WiFi connection ended")
-                self.disconnect()
+                DispatchQueue.main.async {
+                    guard !self.isUserDisconnect else { return }
+                    self.connection?.cancel()
+                    self.connection = nil
+                    self.readBuffer = Data()
+                    self.isConnected = false
+                    self.connectedHost = nil
+                    self.attemptReconnect()
+                }
                 return
             }
-            self.startReceiving()
+            self.receiveLoop()
         }
     }
 
+    /// Parses `>` (0x3E) + length(2 LE) + payload frames from readBuffer.
+    /// Runs on the WiFi queue.
     private func parseBinaryFrames() {
         while readBuffer.count >= 3 {
-            guard readBuffer[0] == 0x3E else {
+            let si = readBuffer.startIndex
+            guard readBuffer[si] == 0x3E else {
+                // Skip garbage bytes until we find a frame marker
                 if let idx = readBuffer.firstIndex(of: 0x3E) {
-                    readBuffer.removeFirst(idx)
+                    let skip = readBuffer.distance(from: si, to: idx)
+                    readBuffer.removeFirst(skip)
                 } else {
                     readBuffer.removeAll()
                     return
@@ -174,14 +184,14 @@ public final class WiFiConnectionManager: ObservableObject {
 
             var length: UInt16 = 0
             _ = withUnsafeMutableBytes(of: &length) { dest in
-                readBuffer.copyBytes(to: dest, from: 1..<3)
+                readBuffer.copyBytes(to: dest, from: (si + 1)..<(si + 3))
             }
             length = UInt16(littleEndian: length)
 
             let totalNeeded = 3 + Int(length)
             guard readBuffer.count >= totalNeeded else { return }
 
-            let frameData = Data(readBuffer[3..<totalNeeded])
+            let frameData = Data(readBuffer[(si + 3)..<(si + totalNeeded)])
             readBuffer.removeFirst(totalNeeded)
 
             Self.logger.debug("RX WiFi frame [\(frameData.count) bytes]")

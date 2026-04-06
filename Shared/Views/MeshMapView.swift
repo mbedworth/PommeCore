@@ -900,6 +900,7 @@ struct ClusterDetailView: View {
 
 // MARK: - LocationManager
 
+@MainActor
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private let manager = CLLocationManager()
     @Published var authorizationStatus: CLAuthorizationStatus = .notDetermined
@@ -926,7 +927,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         }
     }
 
-    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+    nonisolated func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         let status = manager.authorizationStatus
         DispatchQueue.main.async { [weak self] in
             Task { @MainActor [weak self] in
@@ -947,7 +948,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         #endif
     }
 
-    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+    nonisolated func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let loc = locations.last else { return }
         DispatchQueue.main.async { [weak self] in
             Task { @MainActor [weak self] in
@@ -956,7 +957,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         }
     }
 
-    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+    nonisolated func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         // requestLocation() failure is non-fatal — map still works without location
     }
 }
