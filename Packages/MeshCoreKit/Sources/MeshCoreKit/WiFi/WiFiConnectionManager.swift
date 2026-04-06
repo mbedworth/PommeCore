@@ -30,12 +30,12 @@ public final class WiFiConnectionManager: ObservableObject {
     private let queue = DispatchQueue(label: "com.meshcore.wifi", qos: .userInitiated)
 
     /// Auto-reconnect state
-    private var lastHost: String?
-    private var lastPort: UInt16?
+    public private(set) var lastHost: String?
+    public private(set) var lastPort: UInt16?
     private var reconnectAttempts = 0
     private static let maxReconnectAttempts = 3
     private var reconnectTask: Task<Void, Never>?
-    private var isUserDisconnect = false
+    public private(set) var isUserDisconnect = false
 
     public init() {}
 

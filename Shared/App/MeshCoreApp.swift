@@ -70,6 +70,8 @@ struct MeshCoreApp: App {
             viewModel.connectionManager.isInBackground = (newPhase != .active)
             if newPhase == .active {
                 viewModel.messageStoreManager.updateAppBadge()
+                // Reconnect WiFi if it was the active transport and dropped during background
+                viewModel.connectionManager.reconnectWiFiIfNeeded()
                 // Authentication is handled by AppLockView.onAppear — don't duplicate here
             }
             if newPhase == .background && appLock.appLockEnabled {

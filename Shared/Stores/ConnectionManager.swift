@@ -508,6 +508,14 @@ final class ConnectionManager {
         wifiManager.disconnect()
     }
 
+    /// Reconnect WiFi if it was previously connected but dropped (e.g. app suspended).
+    func reconnectWiFiIfNeeded() {
+        guard let host = wifiManager.lastHost, let port = wifiManager.lastPort,
+              !wifiManager.isConnected, !wifiManager.isUserDisconnect else { return }
+        DebugLogger.shared.log("WIFI: reconnecting after foreground — \(host):\(port)", level: .info)
+        wifiManager.connect(host: host, port: port)
+    }
+
     #if os(macOS) || targetEnvironment(macCatalyst)
     func connectUSB(port: String) {
         stopScanning()
