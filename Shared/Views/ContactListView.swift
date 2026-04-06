@@ -91,7 +91,7 @@ struct ContactListView: View {
 
     var body: some View {
         mainList
-        .navigationTitle("MeshCore Apple")
+        .navigationTitle("PommeCore")
         // navigationDestination is only needed on iOS (not macOS/Catalyst) because on
         // macOS the NavigationSplitView's detail: block drives the detail column exclusively.
         // Leaving navigationDestination active on macOS creates a conflicting navigation
