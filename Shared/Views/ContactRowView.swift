@@ -177,7 +177,9 @@ struct ContactRowView: View {
            let status = remoteSessionManager.statusByContact[contact.publicKeyPrefix] {
             HStack(spacing: 8) {
                 if status.batteryMV > 0 {
-                    Label(String(format: "%.1fV", Double(status.batteryMV) / 1000.0), systemImage: "battery.75")
+                    let pct = BatteryProfile.lipo.percentage(forMillivolts: Int(status.batteryMV))
+                    Label("\(pct)%", systemImage: batteryIconName(for: pct))
+                        .foregroundStyle(batteryColor(for: pct))
                 }
                 Label(formatUptime(status.uptime), systemImage: "clock")
                 Label("\(status.contacts)", systemImage: "person.2")
@@ -194,6 +196,20 @@ struct ContactRowView: View {
         if d > 0 { return "\(d)d \(h)h" }
         if h > 0 { return "\(h)h \(m)m" }
         return "\(m)m"
+    }
+
+    private func batteryIconName(for pct: Int) -> String {
+        if pct > 75 { return "battery.100" }
+        if pct > 50 { return "battery.75" }
+        if pct > 25 { return "battery.50" }
+        if pct > 0 { return "battery.25" }
+        return "battery.0"
+    }
+
+    private func batteryColor(for pct: Int) -> Color {
+        if pct > 50 { return .green }
+        if pct > 20 { return .yellow }
+        return .red
     }
 
     @ViewBuilder

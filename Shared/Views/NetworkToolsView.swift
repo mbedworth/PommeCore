@@ -364,6 +364,10 @@ struct StatusInfoView: View {
     let status: RemoteStatusInfo
     let contactName: String
 
+    private var batteryPercent: Int {
+        BatteryProfile.lipo.percentage(forMillivolts: Int(status.batteryMV))
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
@@ -375,7 +379,7 @@ struct StatusInfoView: View {
             }
 
             VStack(spacing: 8) {
-                statusRow(icon: "battery.75", label: "Battery", value: batteryString)
+                statusRow(icon: batteryIconName(for: batteryPercent), label: "Battery", value: batteryString, color: batteryColor(for: batteryPercent))
                 statusRow(icon: "clock.arrow.circlepath", label: "Uptime", value: formatUptime(status.uptime))
                 statusRow(icon: "person.2", label: "Contacts", value: "\(status.contacts)")
             }
@@ -388,13 +392,13 @@ struct StatusInfoView: View {
     private var batteryString: String {
         let mv = Int(status.batteryMV)
         if mv == 0 { return "\u{2014}" }
-        return String(format: "%.2fV (%dmV)", Double(mv) / 1000.0, mv)
+        return String(format: "%.2fV (%d%%)", Double(mv) / 1000.0, batteryPercent)
     }
 
-    private func statusRow(icon: String, label: String, value: String) -> some View {
+    private func statusRow(icon: String, label: String, value: String, color: Color = MeshTheme.accent) -> some View {
         HStack {
             Image(systemName: icon)
-                .foregroundStyle(MeshTheme.accent)
+                .foregroundStyle(color)
                 .frame(width: 20)
             Text(label)
                 .foregroundStyle(MeshTheme.textPrimary)
@@ -413,6 +417,20 @@ struct StatusInfoView: View {
         if h > 0 { return "\(h)h \(m)m \(s)s" }
         if m > 0 { return "\(m)m \(s)s" }
         return "\(s)s"
+    }
+
+    private func batteryIconName(for pct: Int) -> String {
+        if pct > 75 { return "battery.100" }
+        if pct > 50 { return "battery.75" }
+        if pct > 25 { return "battery.50" }
+        if pct > 0 { return "battery.25" }
+        return "battery.0"
+    }
+
+    private func batteryColor(for pct: Int) -> Color {
+        if pct > 50 { return .green }
+        if pct > 20 { return .yellow }
+        return .red
     }
 }
 
