@@ -205,6 +205,11 @@ extension MeshCoreViewModel {
             Self.logger.info("PUSH LoginSuccess: permissionLevel=\(permissionLevel)")
             if let contactKey = remoteSessionManager.handleLoginSuccess(permissionLevel: permissionLevel) {
                 contactStore.touchContact(publicKeyPrefix: contactKey)
+                // Auto-request status for infrastructure devices after login (battery/uptime)
+                if let contact = contactStore.contacts.first(where: { $0.publicKeyPrefix == contactKey }),
+                   contact.type == .repeater || contact.type == .room || contact.type == .sensor {
+                    remoteSessionManager.requestStatus(for: contact)
+                }
             }
 
         case .loginFail:

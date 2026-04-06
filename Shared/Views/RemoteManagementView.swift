@@ -113,18 +113,9 @@ struct RemoteManagementView: View {
         .onDisappear {
             // Cancel any in-progress settings fetch immediately
             remoteSessionManager.cancelFetch()
-
-            // Clean up local session state on exit.
-            // Don't send "logout" CLI — firmware has no such command.
-            // The admin lock releases automatically via firmware session timeout.
-            // Skip for USB-connected devices — session persists while USB is connected.
-            #if os(macOS) || targetEnvironment(macCatalyst)
-            if contact.publicKey == remoteSessionManager.usbDeviceContact?.publicKey { return }
-            #endif
-            if isLoggedIn {
-                remoteSessionManager.logoutFromRemoteDevice(contact)
-                DebugLogger.shared.log("REMOTE: cleared local session for \(contact.name) on exit", level: .info)
-            }
+            // Session stays alive — firmware has no logout command and handles
+            // session timeout automatically. Clearing local state here causes
+            // a mismatch that makes buttons unresponsive.
         }
         #if !os(macOS)
         .toolbar {
@@ -508,6 +499,24 @@ private extension RemoteManagementView {
                 }
                 .font(.caption)
                 .foregroundStyle(MeshTheme.textSecondary)
+
+                // Battery and uptime from status response (auto-requested on login)
+                if let status = remoteSessionManager.statusByContact[contact.publicKeyPrefix] {
+                    HStack(spacing: 12) {
+                        if status.batteryMV > 0 {
+                            let pct = BatteryProfile.lipo.percentage(forMillivolts: Int(status.batteryMV))
+                            Label(String(format: "%.2fV (%d%%)", Double(status.batteryMV) / 1000.0, pct),
+                                  systemImage: pct > 75 ? "battery.100" : pct > 50 ? "battery.75" : pct > 25 ? "battery.50" : pct > 0 ? "battery.25" : "battery.0")
+                            .foregroundStyle(pct > 50 ? .green : pct > 20 ? .yellow : .red)
+                        }
+                        let u = status.uptime
+                        let d = u / 86400, h = (u % 86400) / 3600, m = (u % 3600) / 60
+                        let uptimeStr = d > 0 ? "\(d)d \(h)h" : h > 0 ? "\(h)h \(m)m" : "\(m)m"
+                        Label(uptimeStr, systemImage: "clock")
+                    }
+                    .font(.caption)
+                    .foregroundStyle(MeshTheme.textSecondary)
+                }
 
                 if let radio = session.settings["radio"], !radio.isEmpty {
                     let tx = session.settings["tx"] ?? ""

@@ -918,16 +918,8 @@ struct RoomChatView: View {
         .onAppear {
             messageStoreManager.markAsRead(contact)
         }
-        .onDisappear {
-            // Clear admin session when leaving repeater/room chat.
-            // Firmware handles session timeout — no logout command needed.
-            #if os(macOS) || targetEnvironment(macCatalyst)
-            if contact.publicKey == remoteSessionManager.usbDeviceContact?.publicKey { return }
-            #endif
-            if isLoggedIn {
-                remoteSessionManager.logoutFromRemoteDevice(contact)
-            }
-        }
+        // No onDisappear logout — firmware handles session timeout.
+        // Clearing local state causes mismatch with firmware and unresponsiveness.
         // Dismiss management sheet if logged out while it's open
         .onChange(of: isLoggedIn) { _, loggedIn in
             if !loggedIn {
@@ -1128,6 +1120,15 @@ struct RoomChatView: View {
                     .buttonStyle(.plain)
                 }
             }
+
+            #if !os(watchOS)
+            Button { showContactDetail = true } label: {
+                Label("Network Tools", systemImage: "info.circle")
+                    .font(.subheadline)
+                    .foregroundStyle(MeshTheme.accent)
+            }
+            .buttonStyle(.plain)
+            #endif
 
             Spacer()
         }
