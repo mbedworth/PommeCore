@@ -827,24 +827,33 @@ public enum FrameParser {
 
     /// PUSH_CODE_STATUS_RESPONSE (0x87) — status from a remote device.
     /// Layout: reserved(1) pub_key_prefix(6) status_data(remainder)
-    /// status_data: battery_mv(uint16) uptime(uint32) contacts(uint16)
+    /// status_data (60 bytes, firmware v1.14+):
+    ///   battery_mv(u16) reserved(u16) rssi(i16) snr×4(i16)
+    ///   stat1(u32) stat2(u32) stat3(u32) uptime_seconds(u32) num_contacts(u32)
+    ///   stat4(u32) stat5(u32) stat6(u32) ... trailing stats
     private static func parseStatusResponse(_ data: Data) -> ParsedResponse {
         var offset = 0
-
-        // Dump raw hex for protocol debugging
-        DebugLogger.shared.log("STATUS RAW [\(data.count) bytes]: \(data.hexFormatted(maxBytes: 40))", level: .rx)
-
         _ = readUInt8(data, offset: &offset) // reserved
         let senderKey = data.count >= offset + 6 ? Data(data[offset..<offset+6]) : Data()
         offset += min(6, data.count - offset)
 
-        // Log remaining status_data bytes for layout verification
-        let statusData = data.count > offset ? Data(data[offset...]) : Data()
-        DebugLogger.shared.log("STATUS DATA [\(statusData.count) bytes] from offset \(offset): \(statusData.hexFormatted(maxBytes: 30))", level: .rx)
-
+        // Byte 0-1: battery millivolts
         let batteryMV = readUInt16(data, offset: &offset)
+        // Byte 2-3: reserved
+        _ = readUInt16(data, offset: &offset)
+        // Byte 4-5: RSSI (int16)
+        _ = readUInt16(data, offset: &offset)
+        // Byte 6-7: SNR×4 (int16)
+        _ = readUInt16(data, offset: &offset)
+        // Byte 8-19: stat counters (3 × uint32)
+        _ = readUInt32(data, offset: &offset)
+        _ = readUInt32(data, offset: &offset)
+        _ = readUInt32(data, offset: &offset)
+        // Byte 20-23: uptime seconds (uint32)
         let uptime = readUInt32(data, offset: &offset)
-        let contacts = readUInt16(data, offset: &offset)
+        // Byte 24-27: num contacts in table (uint32)
+        let contactsU32 = readUInt32(data, offset: &offset)
+        let contacts = UInt16(min(contactsU32, UInt32(UInt16.max)))
 
         logger.info("StatusResponse: from=\(senderKey.hexCompact) batt=\(batteryMV)mV uptime=\(uptime)s contacts=\(contacts)")
 
