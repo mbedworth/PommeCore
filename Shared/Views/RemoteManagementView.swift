@@ -24,6 +24,13 @@ struct RemoteManagementView: View {
     @State private var showPubkeyCopied = false
     @State private var showNameWizard = false
 
+    // Phase 2 section expand state — collapsed by default, fetch on expand
+    @State private var expandedTimingSection = false
+    @State private var expandedRoutingSection = false
+    @State private var expandedGPSSection = false
+    @State private var expandedSecuritySection = false
+    @State private var expandedMaintenanceSection = false
+
     /// Accent color — teal for room servers, amber for repeaters.
     private var remoteAccent: Color {
         contact.type == .room ? MeshTheme.remoteRoom : MeshTheme.remoteRepeater
@@ -36,12 +43,13 @@ struct RemoteManagementView: View {
                 if !isUSBDevice {
                     disconnectSection
                 }
-                if let section = session.fetchingSection {
+                // Phase 1 loading indicator (only shows during initial info/radio/advertising fetch)
+                if session.fetchingSection != nil && !session.fetchedSections.contains("advertising") {
                     Section {
                         HStack(spacing: 12) {
                             ProgressView()
                                 .tint(remoteAccent)
-                            Text("Loading \(section)...")
+                            Text("Loading \(session.fetchingSection ?? "settings")...")
                                 .foregroundStyle(MeshTheme.textSecondary)
                         }
                         .listRowBackground(MeshTheme.surface)
@@ -59,44 +67,43 @@ struct RemoteManagementView: View {
                     .listRowBackground(MeshTheme.surface)
                 }
 
-                // All permission levels: device info (auto-fetched on login)
+                // === Phase 1: Always visible, auto-fetched on login ===
                 infoSection
-                // Read-only and above: settings sections (fetched on demand)
                 if canRead {
                     radioSection
-                        .onAppear { remoteSessionManager.fetchSection("radio", for: contact) }
-                    timingSection
-                        .onAppear { remoteSessionManager.fetchSection("timing", for: contact) }
-                    if contact.type == .repeater {
-                        routingSection
-                            .onAppear { remoteSessionManager.fetchSection("routing", for: contact) }
-                    }
                     advertisingSection
-                        .onAppear { remoteSessionManager.fetchSection("advertising", for: contact) }
-                    gpsSection
-                        .onAppear { remoteSessionManager.fetchSection("gps", for: contact) }
-                    if contact.type == .room {
-                        roomSection
-                    }
-                    if contact.type == .sensor && isAdmin {
-                        sensorSection
-                    }
                 }
-                // Admin only: security, maintenance, CLI
-                if isAdmin {
-                    securitySection
-                        .onAppear { remoteSessionManager.fetchSection("security", for: contact) }
-                    maintenanceSection
-                        .onAppear { remoteSessionManager.fetchSection("maintenance", for: contact) }
-                    #if os(macOS) || targetEnvironment(macCatalyst)
-                    if isUSBDevice {
-                        serialOnlySection
+
+                // === Phase 2: Collapsed by default, fetch on expand ===
+                if canRead {
+                    lazySectionHeader("Timing & Performance", expanded: $expandedTimingSection, sectionKey: "timing")
+                    if expandedTimingSection { timingSection }
+
+                    if contact.type == .repeater {
+                        lazySectionHeader("Routing", expanded: $expandedRoutingSection, sectionKey: "routing")
+                        if expandedRoutingSection { routingSection }
                     }
+
+                    lazySectionHeader("GPS", expanded: $expandedGPSSection, sectionKey: "gps")
+                    if expandedGPSSection { gpsSection }
+
+                    if contact.type == .room { roomSection }
+                    if contact.type == .sensor && isAdmin { sensorSection }
+                }
+                if isAdmin {
+                    lazySectionHeader("Security", expanded: $expandedSecuritySection, sectionKey: "security")
+                    if expandedSecuritySection { securitySection }
+
+                    lazySectionHeader("Maintenance", expanded: $expandedMaintenanceSection, sectionKey: "maintenance")
+                    if expandedMaintenanceSection { maintenanceSection }
+
+                    #if os(macOS) || targetEnvironment(macCatalyst)
+                    if isUSBDevice { serialOnlySection }
                     #endif
                     cliTerminalSection
                 } else if canRead {
-                    maintenanceSection
-                        .onAppear { remoteSessionManager.fetchSection("maintenance", for: contact) }
+                    lazySectionHeader("Maintenance", expanded: $expandedMaintenanceSection, sectionKey: "maintenance")
+                    if expandedMaintenanceSection { maintenanceSection }
                 }
             } else {
                 loginSection
@@ -105,9 +112,11 @@ struct RemoteManagementView: View {
         .meshListStyle()
         .navigationTitle("Remote Management")
         .task {
-            // Backup trigger: fetch device info if login auto-fetch hasn't started yet
+            // Backup trigger: fetch Phase 1 if login auto-fetch hasn't started yet
             guard isLoggedIn, !session.fetchedSections.contains("info") else { return }
-            remoteSessionManager.fetchSection("info", for: contact)
+            await remoteSessionManager.fetchSectionAsync("info", for: contact)
+            await remoteSessionManager.fetchSectionAsync("radio", for: contact)
+            await remoteSessionManager.fetchSectionAsync("advertising", for: contact)
         }
         .onDisappear {
             // Cancel any in-progress settings fetch immediately
@@ -121,7 +130,16 @@ struct RemoteManagementView: View {
             ToolbarItem(placement: .automatic) {
                 Button {
                     session.fetchedSections.removeAll()
-                    remoteSessionManager.fetchSection("info", for: contact)
+                    expandedTimingSection = false
+                    expandedRoutingSection = false
+                    expandedGPSSection = false
+                    expandedSecuritySection = false
+                    expandedMaintenanceSection = false
+                    Task {
+                        await remoteSessionManager.fetchSectionAsync("info", for: contact)
+                        await remoteSessionManager.fetchSectionAsync("radio", for: contact)
+                        await remoteSessionManager.fetchSectionAsync("advertising", for: contact)
+                    }
                 } label: {
                     Image(systemName: "arrow.clockwise")
                         .foregroundStyle(MeshTheme.accent)
@@ -215,6 +233,40 @@ struct RemoteManagementView: View {
         #else
         false
         #endif
+    }
+
+    /// Header row for a Phase 2 collapsible section.
+    private func lazySectionHeader(_ title: String, expanded: Binding<Bool>, sectionKey: String) -> some View {
+        Section {
+            Button {
+                expanded.wrappedValue.toggle()
+                if expanded.wrappedValue {
+                    remoteSessionManager.fetchSection(sectionKey, for: contact)
+                }
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: expanded.wrappedValue ? "chevron.down" : "chevron.right")
+                        .font(.caption)
+                        .foregroundStyle(MeshTheme.textSecondary)
+                        .frame(width: 16)
+                    Text(title)
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(MeshTheme.textPrimary)
+                    if session.fetchedSections.contains(sectionKey) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.caption2)
+                            .foregroundStyle(MeshTheme.connected)
+                    }
+                    Spacer()
+                    if session.fetchingSection == sectionKey {
+                        ProgressView()
+                            .scaleEffect(0.7)
+                    }
+                }
+            }
+            .buttonStyle(.plain)
+            .listRowBackground(MeshTheme.surface)
+        }
     }
 
     private var permissionBadgeColor: Color {

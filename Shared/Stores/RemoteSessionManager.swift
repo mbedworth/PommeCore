@@ -394,28 +394,37 @@ final class RemoteSessionManager {
         "maintenance": ["powersaving"],
     ]
 
-    /// Fetch commands for a specific section, if not already fetched.
+    /// Fetch commands for a specific section, if not already fetched. Fire-and-forget.
     func fetchSection(_ section: String, for contact: Contact) {
+        Task { await fetchSectionAsync(section, for: contact) }
+    }
+
+    /// Fetch commands for a specific section, awaitable. Skips if already fetched.
+    func fetchSectionAsync(_ section: String, for contact: Contact) async {
         let session = remoteSession(for: contact)
-        guard !session.fetchedSections.contains(section),
-              session.fetchingSection == nil else { return }
+        guard !session.fetchedSections.contains(section) else { return }
+
+        // Wait if another section is currently fetching
+        while session.fetchingSection != nil {
+            try? await Task.sleep(nanoseconds: 200_000_000)
+        }
 
         guard let commands = Self.sectionCommands[section] else { return }
 
         session.fetchingSection = section
         Self.logger.info("REMOTE MGMT: Fetching section '\(section)' (\(commands.count) commands) for \(contact.name)")
 
-        fetchTask?.cancel()
-        fetchTask = Task { [weak self] in
-            for command in commands {
-                guard let self, !Task.isCancelled else { return }
-                await self.fetchRemoteSetting(command: command, contact: contact, session: session)
+        for command in commands {
+            guard !Task.isCancelled else {
+                session.fetchingSection = nil
+                return
             }
-            guard !Task.isCancelled else { return }
-            session.fetchedSections.insert(section)
-            session.fetchingSection = nil
-            Self.logger.info("REMOTE MGMT: Section '\(section)' loaded for \(contact.name)")
+            await fetchRemoteSetting(command: command, contact: contact, session: session)
         }
+
+        session.fetchedSections.insert(section)
+        session.fetchingSection = nil
+        Self.logger.info("REMOTE MGMT: Section '\(section)' loaded for \(contact.name)")
     }
 
     /// Send a single CLI command and wait for its response.
@@ -576,12 +585,14 @@ final class RemoteSessionManager {
 
                 syncNextMessage?()
                 if let contact = contacts.first(where: { $0.publicKeyPrefix == key }) {
-                    Self.logger.info("REMOTE MGMT: Login success for \(contact.name), fetching device info")
+                    Self.logger.info("REMOTE MGMT: Login success for \(contact.name), fetching Phase 1 settings")
                     Task { [weak self] in
                         try? await Task.sleep(nanoseconds: 1_500_000_000)
                         guard let self else { return }
-                        // Only fetch device info on login — other sections load on demand
-                        self.fetchSection("info", for: contact)
+                        // Phase 1: auto-fetch essential sections (info, radio, advertising)
+                        await self.fetchSectionAsync("info", for: contact)
+                        await self.fetchSectionAsync("radio", for: contact)
+                        await self.fetchSectionAsync("advertising", for: contact)
                     }
                 }
                 return key
