@@ -36,6 +36,8 @@ struct ChatView: View {
     @State private var searchText = ""
     @State private var showPathEditor = false
     @State private var quotedMessage: Message?
+    @State private var forwardMessage: Message?
+    @State private var showForwardPicker = false
 
     /// Live contact from ViewModel (picks up optimistic path updates).
     private var liveContact: Contact {
@@ -267,6 +269,16 @@ struct ChatView: View {
                 .padding(24)
             }
         }
+        .sheet(isPresented: $showForwardPicker) {
+            ForwardContactPicker { targetContact in
+                if let msg = forwardMessage {
+                    let fwdText = "Fwd from \(contactStore.displayName(for: contact)): \(msg.text)"
+                    messageStoreManager.sendTextMessage(String(fwdText.prefix(160)), to: targetContact)
+                }
+                forwardMessage = nil
+                showForwardPicker = false
+            }
+        }
         .onAppear {
             if messageText.isEmpty {
                 messageText = messageStoreManager.loadDraft(for: contact.publicKeyPrefix)
@@ -318,6 +330,10 @@ struct ChatView: View {
                             onQuote: { quotedMessage = $0 },
                             onReact: { msg, emoji in
                                 messageStoreManager.addReaction(emoji, to: msg)
+                            },
+                            onForward: { msg in
+                                forwardMessage = msg
+                                showForwardPicker = true
                             }
                         )
                             .id(message.id)
@@ -1516,6 +1532,7 @@ struct MessageBubble: View {
     let message: Message
     var onQuote: ((Message) -> Void)?
     var onReact: ((Message, String) -> Void)?
+    var onForward: ((Message) -> Void)?
     @Environment(MessageStoreManager.self) private var messageStoreManager
 
     /// Parse quoted text from message (lines starting with "> ")
@@ -1658,6 +1675,11 @@ struct MessageBubble: View {
                     copyToClipboard(message.text)
                 } label: {
                     Label("Copy Text", systemImage: "doc.on.doc")
+                }
+                Button {
+                    onForward?(message)
+                } label: {
+                    Label("Forward", systemImage: "arrowshape.turn.up.right")
                 }
                 if message.isOutgoing && message.status == .failed {
                     Button {
@@ -2101,5 +2123,53 @@ struct ChannelDetailSheet: View {
             }
         }
         .meshTheme()
+    }
+}
+
+// MARK: - Forward Contact Picker
+
+struct ForwardContactPicker: View {
+    let onSelect: (Contact) -> Void
+    @Environment(ContactStore.self) private var contactStore
+    @Environment(\.dismiss) private var dismiss
+    @State private var search = ""
+
+    private var filteredContacts: [Contact] {
+        let chatContacts = contactStore.contacts.filter { $0.type == .chat }
+        if search.isEmpty { return chatContacts }
+        return chatContacts.filter {
+            contactStore.displayName(for: $0).localizedCaseInsensitiveContains(search)
+        }
+    }
+
+    var body: some View {
+        NavigationStack {
+            List(filteredContacts) { contact in
+                Button {
+                    onSelect(contact)
+                } label: {
+                    HStack(spacing: 10) {
+                        Circle()
+                            .fill(contactStore.contactStatusColor(for: contact))
+                            .frame(width: 8, height: 8)
+                        Text(contactStore.displayName(for: contact))
+                            .foregroundStyle(MeshTheme.textPrimary)
+                    }
+                }
+                .listRowBackground(MeshTheme.surface)
+            }
+            .meshTheme()
+            .searchable(text: $search, prompt: "Search contacts")
+            .navigationTitle("Forward To")
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+            }
+        }
+        .frame(minWidth: 300, minHeight: 400)
     }
 }
