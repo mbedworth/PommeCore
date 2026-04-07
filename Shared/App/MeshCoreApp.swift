@@ -54,6 +54,7 @@ struct MeshCoreApp: App {
                     .environment(viewModel.navigationStore)
                     #if !os(watchOS)
                     .environment(viewModel.lineOfSightStore)
+                    .environment(viewModel.rfMonitorStore)
                     #endif
                     .meshTheme()
                     #if os(iOS)

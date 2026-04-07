@@ -251,6 +251,9 @@ extension MeshCoreViewModel {
         case .telemetryResponse(let senderKey, let readings):
             Self.logger.info("PUSH Telemetry: \(readings.count) readings from \(Data(senderKey.prefix(6)).hexCompact)")
             remoteSessionManager.handleTelemetryResponse(senderKey: senderKey, readings: readings)
+            #if !os(watchOS)
+            rfMonitorStore.recordTelemetry(for: Data(senderKey.prefix(6)), readings: readings)
+            #endif
 
         case .controlData(let snr, let rssi, let pathLen, let payload):
             Self.logger.info("PUSH ControlData: snr=\(snr) rssi=\(rssi) pathLen=\(pathLen)")
@@ -346,6 +349,9 @@ extension MeshCoreViewModel {
                 let rssi = payload.count > 1 ? Int8(bitPattern: payload[1]) : 0
                 Self.logger.debug("LOG_RX_DATA (0x88): snr=\(Float(snr)/4.0) rssi=\(rssi) rawLen=\(payload.count - 2)")
                 messageStoreManager.handleLogRxData(payload)
+                #if !os(watchOS)
+                rfMonitorStore.recordRFSample(snr: snr, rssi: rssi)
+                #endif
             } else if type >= 0x80 {
                 Self.logger.debug("Ignoring push notification 0x\(String(format: "%02x", type)), \(payload.count) bytes payload")
             } else {

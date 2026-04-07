@@ -34,6 +34,16 @@
 		0FCE4BE52F7A20E5009358D8 /* MeshCoreViewModel+ResponseHandling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FCE4BE22F7A20C3009358D8 /* MeshCoreViewModel+ResponseHandling.swift */; };
 		0FD96D482F84943D0026DF54 /* ToolsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FD96D472F84943D0026DF54 /* ToolsView.swift */; };
 		0FD96D492F84943D0026DF54 /* ToolsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FD96D472F84943D0026DF54 /* ToolsView.swift */; };
+		0FD96D4B2F84A8CD0026DF54 /* RFMonitorStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FD96D4A2F84A8CD0026DF54 /* RFMonitorStore.swift */; };
+		0FD96D4C2F84A8CD0026DF54 /* RFMonitorStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FD96D4A2F84A8CD0026DF54 /* RFMonitorStore.swift */; };
+		0FD96D4F2F84A8EE0026DF54 /* Tools/NoiseFloorMonitorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FD96D4D2F84A8EE0026DF54 /* Tools/NoiseFloorMonitorView.swift */; };
+		0FD96D502F84A8EE0026DF54 /* Tools/TelemetryChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FD96D4E2F84A8EE0026DF54 /* Tools/TelemetryChartView.swift */; };
+		0FD96D512F84A8EE0026DF54 /* Tools/NoiseFloorMonitorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FD96D4D2F84A8EE0026DF54 /* Tools/NoiseFloorMonitorView.swift */; };
+		0FD96D522F84A8EE0026DF54 /* Tools/TelemetryChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FD96D4E2F84A8EE0026DF54 /* Tools/TelemetryChartView.swift */; };
+		0FD96D552F84AA320026DF54 /* DiscoverNodesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FD96D532F84AA320026DF54 /* DiscoverNodesView.swift */; };
+		0FD96D562F84AA320026DF54 /* RadioCalculatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FD96D542F84AA320026DF54 /* RadioCalculatorView.swift */; };
+		0FD96D572F84AA320026DF54 /* DiscoverNodesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FD96D532F84AA320026DF54 /* DiscoverNodesView.swift */; };
+		0FD96D582F84AA320026DF54 /* RadioCalculatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FD96D542F84AA320026DF54 /* RadioCalculatorView.swift */; };
 		18B6F45B61F3581FB64D1DB0 /* DeviceScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2377BED4FF5A7170783BA649 /* DeviceScannerView.swift */; };
 		28A0B13C16FFEC509F16A983 /* NodeSetupWizardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86334BBA19C5E5E981032313 /* NodeSetupWizardView.swift */; };
 		309F59A4C45F0C74C7632AAF /* NetworkToolsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB24E21D8CDBE0500C92E469 /* NetworkToolsView.swift */; };
@@ -129,6 +139,11 @@
 		0F29C3D32F84863E0007BF08 /* LineOfSight/TerrainProfileRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineOfSight/TerrainProfileRenderer.swift; sourceTree = "<group>"; };
 		0FCE4BE22F7A20C3009358D8 /* MeshCoreViewModel+ResponseHandling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MeshCoreViewModel+ResponseHandling.swift"; sourceTree = "<group>"; };
 		0FD96D472F84943D0026DF54 /* ToolsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolsView.swift; sourceTree = "<group>"; };
+		0FD96D4A2F84A8CD0026DF54 /* RFMonitorStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RFMonitorStore.swift; sourceTree = "<group>"; };
+		0FD96D4D2F84A8EE0026DF54 /* Tools/NoiseFloorMonitorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tools/NoiseFloorMonitorView.swift; sourceTree = "<group>"; };
+		0FD96D4E2F84A8EE0026DF54 /* Tools/TelemetryChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tools/TelemetryChartView.swift; sourceTree = "<group>"; };
+		0FD96D532F84AA320026DF54 /* DiscoverNodesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Tools/DiscoverNodesView.swift"; sourceTree = "<group>"; };
+		0FD96D542F84AA320026DF54 /* RadioCalculatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Tools/RadioCalculatorView.swift"; sourceTree = "<group>"; };
 		21606E2B959E6496D3B0230D /* ContactListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactListView.swift; sourceTree = "<group>"; };
 		2377BED4FF5A7170783BA649 /* DeviceScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceScannerView.swift; sourceTree = "<group>"; };
 		2EEF439B8EDC4A5408C299FB /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = macOS/PrivacyInfo.xcprivacy; sourceTree = SOURCE_ROOT; };
@@ -206,6 +221,10 @@
 		0A6B0F647BA21A953CCB6490 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				0FD96D532F84AA320026DF54 /* DiscoverNodesView.swift */,
+				0FD96D542F84AA320026DF54 /* RadioCalculatorView.swift */,
+				0FD96D4D2F84A8EE0026DF54 /* Tools/NoiseFloorMonitorView.swift */,
+				0FD96D4E2F84A8EE0026DF54 /* Tools/TelemetryChartView.swift */,
 				0FD96D472F84943D0026DF54 /* ToolsView.swift */,
 				0F29C3CC2F84863E0007BF08 /* LineOfSight/AntennaSettingsView.swift */,
 				0F29C3CD2F84863E0007BF08 /* LineOfSight/LineOfSightView.swift */,
@@ -303,6 +322,7 @@
 		STO00000GRP0000000000001 /* Stores */ = {
 			isa = PBXGroup;
 			children = (
+				0FD96D4A2F84A8CD0026DF54 /* RFMonitorStore.swift */,
 				0F29C3C82F8485BD0007BF08 /* LineOfSightStore.swift */,
 				STO10000000000000000001 /* ContactStore.swift */,
 				STO20000000000000000001 /* ChannelStore.swift */,
@@ -507,12 +527,17 @@
 				DBG10000000000000000002 /* DebugLogView.swift in Sources */,
 				0F29C3DC2F84863E0007BF08 /* LineOfSight/TerrainProfileCanvas.swift in Sources */,
 				0F29C3DD2F84863E0007BF08 /* LineOfSight/AntennaSettingsView.swift in Sources */,
+				0FD96D552F84AA320026DF54 /* DiscoverNodesView.swift in Sources */,
+				0FD96D562F84AA320026DF54 /* RadioCalculatorView.swift in Sources */,
 				0F29C3DE2F84863E0007BF08 /* LineOfSight/RepeaterConfigView.swift in Sources */,
 				0FD96D482F84943D0026DF54 /* ToolsView.swift in Sources */,
 				0F29C3DF2F84863E0007BF08 /* LineOfSight/LoSResultsView.swift in Sources */,
+				0FD96D512F84A8EE0026DF54 /* Tools/NoiseFloorMonitorView.swift in Sources */,
+				0FD96D522F84A8EE0026DF54 /* Tools/TelemetryChartView.swift in Sources */,
 				0F29C3E02F84863E0007BF08 /* LineOfSight/LineOfSightView.swift in Sources */,
 				0F29C3E12F84863E0007BF08 /* LineOfSight/MapPointPickerView.swift in Sources */,
 				0F29C3E22F84863E0007BF08 /* LineOfSight/TerrainProfileRenderer.swift in Sources */,
+				0FD96D4B2F84A8CD0026DF54 /* RFMonitorStore.swift in Sources */,
 				0F29C3E32F84863E0007BF08 /* LineOfSight/PointSelectionView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -550,12 +575,17 @@
 				DBG10000000000000000003 /* DebugLogView.swift in Sources */,
 				0F29C3D42F84863E0007BF08 /* LineOfSight/TerrainProfileCanvas.swift in Sources */,
 				0F29C3D52F84863E0007BF08 /* LineOfSight/AntennaSettingsView.swift in Sources */,
+				0FD96D572F84AA320026DF54 /* DiscoverNodesView.swift in Sources */,
+				0FD96D582F84AA320026DF54 /* RadioCalculatorView.swift in Sources */,
 				0F29C3D62F84863E0007BF08 /* LineOfSight/RepeaterConfigView.swift in Sources */,
 				0FD96D492F84943D0026DF54 /* ToolsView.swift in Sources */,
 				0F29C3D72F84863E0007BF08 /* LineOfSight/LoSResultsView.swift in Sources */,
+				0FD96D4F2F84A8EE0026DF54 /* Tools/NoiseFloorMonitorView.swift in Sources */,
+				0FD96D502F84A8EE0026DF54 /* Tools/TelemetryChartView.swift in Sources */,
 				0F29C3D82F84863E0007BF08 /* LineOfSight/LineOfSightView.swift in Sources */,
 				0F29C3D92F84863E0007BF08 /* LineOfSight/MapPointPickerView.swift in Sources */,
 				0F29C3DA2F84863E0007BF08 /* LineOfSight/TerrainProfileRenderer.swift in Sources */,
+				0FD96D4C2F84A8CD0026DF54 /* RFMonitorStore.swift in Sources */,
 				0F29C3DB2F84863E0007BF08 /* LineOfSight/PointSelectionView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

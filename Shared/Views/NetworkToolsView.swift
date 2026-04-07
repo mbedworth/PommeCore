@@ -621,6 +621,11 @@ struct ContactDetailSheet: View {
                         TelemetryView(readings: readings, contactName: contactStore.displayName(for: contact))
                     }
 
+                    // Telemetry history chart
+                    #if !os(watchOS)
+                    TelemetryChartView(contactKey: contact.publicKeyPrefix, contactName: contactStore.displayName(for: contact))
+                    #endif
+
                     // Routing Path (from contact's outPath)
                     PathViewer(contact: contact)
 

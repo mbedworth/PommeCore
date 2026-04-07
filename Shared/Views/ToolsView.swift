@@ -2,7 +2,7 @@
 //  ToolsView.swift
 //  PommeCore
 //
-//  Standalone tools that don't require a radio connection or specific contact.
+//  Planning and monitoring tools — accessible from the sidebar.
 //
 
 #if !os(watchOS)
@@ -11,39 +11,56 @@ import MeshCoreKit
 
 struct ToolsView: View {
     @State private var showLineOfSight = false
+    @State private var showNoiseFloor = false
+    @State private var showRadioCalc = false
+    @State private var showDiscover = false
 
     var body: some View {
         List {
             Section {
-                Button {
+                toolButton(
+                    icon: "eye.trianglebadge.exclamationmark",
+                    title: "Line of Sight",
+                    subtitle: "Terrain analysis with Fresnel zone for RF path planning",
+                    badge: "Offline"
+                ) {
                     showLineOfSight = true
-                } label: {
-                    HStack(spacing: 12) {
-                        ZStack {
-                            Circle()
-                                .fill(MeshTheme.accent.opacity(0.15))
-                                .frame(width: 40, height: 40)
-                            Image(systemName: "eye.trianglebadge.exclamationmark")
-                                .foregroundStyle(MeshTheme.accent)
-                        }
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Line of Sight")
-                                .font(.body)
-                                .foregroundStyle(MeshTheme.textPrimary)
-                            Text("Terrain analysis with Fresnel zone for RF path planning")
-                                .font(.caption)
-                                .foregroundStyle(MeshTheme.textSecondary)
-                                .lineLimit(2)
-                        }
-                    }
-                    .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
-                .listRowBackground(MeshTheme.surface)
+
+                toolButton(
+                    icon: "function",
+                    title: "Radio Calculator",
+                    subtitle: "Link budget, path loss, wavelength, and range estimation",
+                    badge: "Offline"
+                ) {
+                    showRadioCalc = true
+                }
             } header: {
-                Text("Planning Tools")
+                Text("Planning")
             } footer: {
                 Text("These tools work offline and don't require a radio connection.")
+            }
+
+            Section {
+                toolButton(
+                    icon: "waveform.badge.magnifyingglass",
+                    title: "RF Monitor",
+                    subtitle: "Live SNR and RSSI chart from received LoRa packets"
+                ) {
+                    showNoiseFloor = true
+                }
+
+                toolButton(
+                    icon: "magnifyingglass",
+                    title: "Discover Nodes",
+                    subtitle: "Scan the mesh for all reachable devices"
+                ) {
+                    showDiscover = true
+                }
+            } header: {
+                Text("Monitoring")
+            } footer: {
+                Text("These tools require a radio connection.")
             }
         }
         .meshTheme()
@@ -52,6 +69,87 @@ struct ToolsView: View {
             LineOfSightView()
                 .frame(minWidth: 400, minHeight: 600)
         }
+        .sheet(isPresented: $showRadioCalc) {
+            NavigationStack {
+                RadioCalculatorView()
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Done") { showRadioCalc = false }
+                        }
+                    }
+            }
+            .meshTheme()
+            .frame(minWidth: 400, minHeight: 500)
+        }
+        .sheet(isPresented: $showNoiseFloor) {
+            NavigationStack {
+                ScrollView {
+                    NoiseFloorMonitorView()
+                        .padding()
+                }
+                .background(MeshTheme.background)
+                .navigationTitle("RF Monitor")
+                #if os(iOS)
+                .navigationBarTitleDisplayMode(.inline)
+                #endif
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Done") { showNoiseFloor = false }
+                    }
+                }
+            }
+            .meshTheme()
+            .frame(minWidth: 400, minHeight: 500)
+        }
+        .sheet(isPresented: $showDiscover) {
+            NavigationStack {
+                DiscoverNodesView()
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Done") { showDiscover = false }
+                        }
+                    }
+            }
+            .meshTheme()
+            .frame(minWidth: 400, minHeight: 400)
+        }
+    }
+
+    private func toolButton(icon: String, title: String, subtitle: String, badge: String? = nil, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                ZStack {
+                    Circle()
+                        .fill(MeshTheme.accent.opacity(0.15))
+                        .frame(width: 40, height: 40)
+                    Image(systemName: icon)
+                        .foregroundStyle(MeshTheme.accent)
+                }
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 6) {
+                        Text(title)
+                            .font(.body)
+                            .foregroundStyle(MeshTheme.textPrimary)
+                        if let badge {
+                            Text(badge)
+                                .font(.caption2.weight(.medium))
+                                .foregroundStyle(MeshTheme.accent)
+                                .padding(.horizontal, 5)
+                                .padding(.vertical, 1)
+                                .background(MeshTheme.accent.opacity(0.15))
+                                .clipShape(Capsule())
+                        }
+                    }
+                    Text(subtitle)
+                        .font(.caption)
+                        .foregroundStyle(MeshTheme.textSecondary)
+                        .lineLimit(2)
+                }
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .listRowBackground(MeshTheme.surface)
     }
 }
 #endif
