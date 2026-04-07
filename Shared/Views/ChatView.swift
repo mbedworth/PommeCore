@@ -477,8 +477,11 @@ struct ChatView: View {
     private func send() {
         var text = messageText
         if let quoted = quotedMessage {
-            let quotedPreview = String(quoted.text.prefix(60))
-            text = "> \(quotedPreview)\n\(text)"
+            // MeshCore One compatible quote format: @[senderName]\n>preview..\nreply
+            let senderName = quoted.isOutgoing ? "Me" : contactStore.displayName(for: contact)
+            let preview = String(quoted.text.prefix(10))
+            let suffix = quoted.text.count > 10 ? ".." : ""
+            text = "@[\(senderName)]\n>\(preview)\(suffix)\n\(text)"
         }
         messageStoreManager.sendTextMessage(text, to: contact)
         messageStoreManager.playHapticFeedback()
@@ -1536,18 +1539,36 @@ struct MessageBubble: View {
     @Environment(MessageStoreManager.self) private var messageStoreManager
     @State private var linkMetadata: LinkPreviewService.LinkMetadata?
 
-    /// Parse quoted text from message (lines starting with "> ")
+    /// Parse quoted text from message. Supports both formats:
+    /// MeshCore One: @[name]\n>preview..\nreply
+    /// Legacy: > quoted text\nreply
     private var quotedText: String? {
         let lines = message.text.components(separatedBy: "\n")
-        guard let first = lines.first, first.hasPrefix("> ") else { return nil }
-        return String(first.dropFirst(2))
+        // MeshCore One format: @[name] on first line, >preview on second
+        if let first = lines.first, first.hasPrefix("@["),
+           lines.count >= 2, lines[1].hasPrefix(">") {
+            return String(lines[1].dropFirst()) // drop the ">"
+        }
+        // Legacy format: > text
+        if let first = lines.first, first.hasPrefix("> ") {
+            return String(first.dropFirst(2))
+        }
+        return nil
     }
 
-    /// The reply text (everything after the quoted line)
+    /// The reply text (everything after the quote lines)
     private var replyText: String {
         let lines = message.text.components(separatedBy: "\n")
-        guard lines.first?.hasPrefix("> ") == true else { return message.text }
-        return lines.dropFirst().joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
+        // MeshCore One format: skip @[name] and >preview lines
+        if let first = lines.first, first.hasPrefix("@["),
+           lines.count >= 2, lines[1].hasPrefix(">") {
+            return lines.dropFirst(2).joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        // Legacy format: skip > line
+        if lines.first?.hasPrefix("> ") == true {
+            return lines.dropFirst().joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        return message.text
     }
 
     var body: some View {
