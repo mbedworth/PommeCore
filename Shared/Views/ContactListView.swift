@@ -788,7 +788,7 @@ struct ContactListView: View {
             }
             ForEach(contactStore.contactGroups) { group in
                 DisclosureGroup {
-                    let members = contactStore.contactsInGroup(group)
+                    let members = sortedGroupMembers(contactStore.contactsInGroup(group))
                     if members.isEmpty {
                         Text("No contacts in this group")
                             .font(.caption)
@@ -1332,6 +1332,17 @@ struct ContactListView: View {
             selectedContacts.remove(contact.publicKeyPrefix)
         } else {
             selectedContacts.insert(contact.publicKeyPrefix)
+        }
+    }
+
+    private func sortedGroupMembers(_ members: [Contact]) -> [Contact] {
+        members.sorted { a, b in
+            if sortByLastSeen {
+                return contactStore.lastActivityTimestamp(for: a) > contactStore.lastActivityTimestamp(for: b)
+            }
+            let nameA = contactStore.displayName(for: a).strippingEmoji
+            let nameB = contactStore.displayName(for: b).strippingEmoji
+            return nameA.localizedCaseInsensitiveCompare(nameB) == .orderedAscending
         }
     }
 
