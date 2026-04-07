@@ -1039,11 +1039,10 @@ struct ContactListView: View {
         } message: {
             Text("Paste a meshcore:// link to import a contact or channel.")
         }
-        .alert("New Group", isPresented: $showNewGroupSheet) {
-            TextField("Group name", text: $newGroupName)
-            TextField("Emoji (optional)", text: $newGroupEmoji)
-            Button("Cancel", role: .cancel) { newGroupName = ""; newGroupEmoji = ""; groupContactForNew = nil }
-            Button("Create") {
+        .sheet(isPresented: $showNewGroupSheet, onDismiss: {
+            newGroupName = ""; newGroupEmoji = ""; groupContactForNew = nil
+        }) {
+            GroupEditSheet(title: "New Group", name: $newGroupName, emoji: $newGroupEmoji) {
                 let trimmed = newGroupName.trimmingCharacters(in: .whitespacesAndNewlines)
                 guard !trimmed.isEmpty else { return }
                 contactStore.addContactGroup(name: trimmed, emoji: newGroupEmoji)
@@ -1051,21 +1050,18 @@ struct ContactListView: View {
                    let group = contactStore.contactGroups.last {
                     contactStore.addContactToGroup(contact, group: group)
                 }
-                newGroupName = ""
-                newGroupEmoji = ""
-                groupContactForNew = nil
+                showNewGroupSheet = false
             }
         }
-        .alert("Rename Group", isPresented: $showRenameGroupSheet) {
-            TextField("Group name", text: $renameGroupName)
-            TextField("Emoji (optional)", text: $renameGroupEmoji)
-            Button("Cancel", role: .cancel) { renameGroupTarget = nil }
-            Button("Save") {
+        .sheet(isPresented: $showRenameGroupSheet, onDismiss: {
+            renameGroupTarget = nil
+        }) {
+            GroupEditSheet(title: "Rename Group", name: $renameGroupName, emoji: $renameGroupEmoji) {
                 let trimmed = renameGroupName.trimmingCharacters(in: .whitespacesAndNewlines)
                 if !trimmed.isEmpty, let target = renameGroupTarget {
                     contactStore.renameContactGroup(target, name: trimmed, emoji: renameGroupEmoji)
                 }
-                renameGroupTarget = nil
+                showRenameGroupSheet = false
             }
         }
         #if os(iOS)
@@ -1565,5 +1561,86 @@ private extension ContactListView {
             } message: {
                 Text("This will remove the selected contacts from the device. This cannot be undone.")
             }
+    }
+}
+
+// MARK: - Group Edit Sheet
+
+private struct GroupEditSheet: View {
+    let title: String
+    @Binding var name: String
+    @Binding var emoji: String
+    let onSave: () -> Void
+    @Environment(\.dismiss) private var dismiss
+
+    private let emojiOptions = ["📡", "🏠", "🏔️", "🌲", "🏙️", "⛺", "🚗", "🛠️", "🔒", "⭐", "🔥", "💬", "📍", "🌊", "🎯"]
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    TextField("Group name", text: $name)
+                        .listRowBackground(MeshTheme.surface)
+                } header: {
+                    Text("Name")
+                }
+
+                Section {
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 8), spacing: 12) {
+                        ForEach(emojiOptions, id: \.self) { option in
+                            Button {
+                                emoji = emoji == option ? "" : option
+                            } label: {
+                                Text(option)
+                                    .font(.title2)
+                                    .frame(width: 36, height: 36)
+                                    .background(emoji == option ? MeshTheme.accent.opacity(0.3) : Color.clear)
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .listRowBackground(MeshTheme.surface)
+
+                    HStack {
+                        Text("Custom:")
+                            .foregroundStyle(MeshTheme.textSecondary)
+                        TextField("Emoji", text: $emoji)
+                            .frame(width: 50)
+                    }
+                    .listRowBackground(MeshTheme.surface)
+                } header: {
+                    Text("Icon")
+                }
+
+                if !emoji.isEmpty {
+                    Section {
+                        HStack {
+                            Text("\(emoji) \(name.isEmpty ? "Group Name" : name)")
+                                .foregroundStyle(MeshTheme.textPrimary)
+                        }
+                        .listRowBackground(MeshTheme.surface)
+                    } header: {
+                        Text("Preview")
+                    }
+                }
+            }
+            .formStyle(.grouped)
+            .meshTheme()
+            .navigationTitle(title)
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") { onSave() }
+                        .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
+            }
+        }
+        .frame(minWidth: 350, idealWidth: 400, minHeight: 350, idealHeight: 450)
     }
 }
