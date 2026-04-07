@@ -1439,6 +1439,9 @@ private extension RemoteManagementView {
 struct SerialOnlySection: View {
     let sendCLI: (String) -> Void
     @State private var showFactoryResetConfirm = false
+    @State private var showRestoreKeyAlert = false
+    @State private var restoreKeyText = ""
+    @State private var backupCopied = false
 
     var body: some View {
         Section {
@@ -1448,6 +1451,56 @@ struct SerialOnlySection: View {
 
             CLICommandButton(icon: "key.fill", label: "View Private Key", color: .orange) {
                 sendCLI("get prv.key")
+            }
+
+            Button {
+                sendCLI("get prv.key")
+                // The key will appear in the CLI output — user can copy from there
+                showFeedback($backupCopied)
+            } label: {
+                HStack {
+                    Image(systemName: "square.and.arrow.down")
+                        .foregroundStyle(.orange)
+                        .frame(width: 24)
+                    Text(backupCopied ? "Key Shown in Terminal" : "Backup Identity Key")
+                        .foregroundStyle(backupCopied ? .green : MeshTheme.accent)
+                    Spacer()
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .listRowBackground(MeshTheme.surface)
+
+            Button {
+                showRestoreKeyAlert = true
+            } label: {
+                HStack {
+                    Image(systemName: "square.and.arrow.up")
+                        .foregroundStyle(.orange)
+                        .frame(width: 24)
+                    Text("Restore Identity Key")
+                        .foregroundStyle(.orange)
+                    Spacer()
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .listRowBackground(MeshTheme.surface)
+            .alert("Restore Identity Key", isPresented: $showRestoreKeyAlert) {
+                TextField("Hex private key", text: $restoreKeyText)
+                Button("Cancel", role: .cancel) { restoreKeyText = "" }
+                Button("Restore & Reboot") {
+                    let key = restoreKeyText.trimmingCharacters(in: .whitespacesAndNewlines)
+                    guard !key.isEmpty else { return }
+                    sendCLI("set prv.key \(key)")
+                    // Reboot required after setting private key
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                        sendCLI("reboot")
+                    }
+                    restoreKeyText = ""
+                }
+            } message: {
+                Text("Paste the hex-encoded private key from a previous backup. The device will reboot after restoring.")
             }
 
             Button {
