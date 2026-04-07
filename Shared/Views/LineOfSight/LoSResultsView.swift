@@ -28,17 +28,39 @@ struct LoSResultsView: View {
                 }
             }
 
-            // Stats grid
+            // Stats grid — show relay worst-case when repeater is active
             LazyVGrid(columns: [
                 GridItem(.flexible()),
                 GridItem(.flexible())
             ], spacing: 10) {
                 statCard("Distance", value: GeoMath.formatDistance(result.profile.totalDistance), icon: "ruler")
                 statCard("Frequency", value: String(format: "%.1f MHz", result.frequencyMHz), icon: "antenna.radiowaves.left.and.right")
-                statCard("Min Clearance", value: String(format: "%.1f m", result.directSegment.minClearance), icon: "arrow.up.and.down",
-                         color: result.directSegment.minClearance >= 0 ? .green : .red)
-                statCard("Fresnel Zone", value: String(format: "%.0f%%", result.directSegment.fresnelClearancePercent), icon: "circle.dashed",
-                         color: fresnelColor(result.directSegment.fresnelClearancePercent))
+
+                if hasRelay, let ar = result.segmentAtoRepeater, let rb = result.segmentRepeaterToB {
+                    let worstClearance = min(ar.minClearance, rb.minClearance)
+                    let worstFresnel = min(ar.fresnelClearancePercent, rb.fresnelClearancePercent)
+                    statCard("Min Clearance", value: String(format: "%.1f m", worstClearance), icon: "arrow.up.and.down",
+                             color: worstClearance >= 0 ? .green : .red)
+                    statCard("Fresnel Zone", value: String(format: "%.0f%%", worstFresnel), icon: "circle.dashed",
+                             color: fresnelColor(worstFresnel))
+                } else {
+                    statCard("Min Clearance", value: String(format: "%.1f m", result.directSegment.minClearance), icon: "arrow.up.and.down",
+                             color: result.directSegment.minClearance >= 0 ? .green : .red)
+                    statCard("Fresnel Zone", value: String(format: "%.0f%%", result.directSegment.fresnelClearancePercent), icon: "circle.dashed",
+                             color: fresnelColor(result.directSegment.fresnelClearancePercent))
+                }
+            }
+
+            // Direct path note when relay is active
+            if hasRelay && !result.directSegment.hasLineOfSight {
+                HStack(spacing: 6) {
+                    Image(systemName: "xmark.circle")
+                        .foregroundStyle(.red)
+                        .font(.caption)
+                    Text("Direct path blocked — relay required")
+                        .font(.caption)
+                        .foregroundStyle(MeshTheme.textSecondary)
+                }
             }
 
             // Endpoint elevations
@@ -66,7 +88,22 @@ struct LoSResultsView: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
+    private var hasRelay: Bool {
+        result.segmentAtoRepeater != nil
+    }
+
     private var summaryText: String {
+        if hasRelay {
+            if result.overallPass {
+                return "Relay path clear — both segments have adequate Fresnel clearance"
+            } else {
+                let arOk = result.segmentAtoRepeater?.fresnelClearancePercent ?? 0 >= 60
+                let rbOk = result.segmentRepeaterToB?.fresnelClearancePercent ?? 0 >= 60
+                if !arOk && !rbOk { return "Both relay segments are obstructed" }
+                if !arOk { return "A \u{2192} Repeater segment is obstructed" }
+                return "Repeater \u{2192} B segment is obstructed"
+            }
+        }
         let direct = result.directSegment
         if direct.fresnelClearancePercent >= 60 {
             return "Full Fresnel zone clearance (\(String(format: "%.0f%%", direct.fresnelClearancePercent)))"

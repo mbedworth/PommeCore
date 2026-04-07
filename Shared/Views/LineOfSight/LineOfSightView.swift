@@ -107,6 +107,14 @@ struct LineOfSightView: View {
             .onAppear {
                 store.loadFromDeviceConfig(deviceConfig)
             }
+            // Clear results when any setting changes so user can re-analyze
+            .onChange(of: store.antennaHeightA) { _, _ in store.clearResults() }
+            .onChange(of: store.antennaHeightB) { _, _ in store.clearResults() }
+            .onChange(of: store.frequencyMHz) { _, _ in store.clearResults() }
+            .onChange(of: store.repeaterEnabled) { _, _ in store.clearResults() }
+            .onChange(of: store.repeaterSliderFraction) { _, _ in store.clearResults() }
+            .onChange(of: store.pointASource) { _, _ in store.clearResults() }
+            .onChange(of: store.pointBSource) { _, _ in store.clearResults() }
         }
     }
 
