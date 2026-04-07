@@ -38,6 +38,8 @@ struct ChatView: View {
     @State private var quotedMessage: Message?
     @State private var forwardMessage: Message?
     @State private var showForwardPicker = false
+    @State private var chatExportItems: [Any] = []
+    @State private var showChatExport = false
 
     /// Live contact from ViewModel (picks up optimistic path updates).
     private var liveContact: Contact {
@@ -200,6 +202,13 @@ struct ChatView: View {
                     .accessibilityLabel(isSearching ? "Close search" : "Search messages")
                     #if !os(watchOS)
                     Button {
+                        exportChatHistory()
+                    } label: {
+                        Image(systemName: "square.and.arrow.up")
+                            .foregroundStyle(MeshTheme.accent)
+                    }
+                    .accessibilityLabel("Export chat")
+                    Button {
                         sendLocationAsDM()
                     } label: {
                         Image(systemName: "location.fill")
@@ -279,6 +288,13 @@ struct ChatView: View {
                 showForwardPicker = false
             }
         }
+        #if os(iOS)
+        .sheet(isPresented: $showChatExport) {
+            if !chatExportItems.isEmpty {
+                ShareSheetView(activityItems: chatExportItems)
+            }
+        }
+        #endif
         .onAppear {
             if messageText.isEmpty {
                 messageText = messageStoreManager.loadDraft(for: contact.publicKeyPrefix)
@@ -491,6 +507,26 @@ struct ChatView: View {
     }
 
     #if !os(watchOS)
+    private func exportChatHistory() {
+        let name = contactStore.displayName(for: contact)
+        let msgs = messages.sorted(by: { $0.timestamp < $1.timestamp })
+        var lines = ["Chat with \(name)", "Exported \(Date().formatted(date: .abbreviated, time: .shortened))", ""]
+        for msg in msgs {
+            let time = msg.timestamp.formatted(date: .numeric, time: .shortened)
+            let sender = msg.isOutgoing ? "Me" : name
+            lines.append("[\(time)] \(sender): \(msg.text)")
+        }
+        let text = lines.joined(separator: "\n")
+        #if os(iOS)
+        chatExportItems = [text]
+        showChatExport = true
+        #elseif os(macOS)
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(text, forType: .string)
+        #endif
+    }
+
     private func sendLocationAsDM() {
         guard let location = SharedLocation.manager.location else {
             DebugLogger.shared.log("LOCATION: unavailable for send", level: .warning)
