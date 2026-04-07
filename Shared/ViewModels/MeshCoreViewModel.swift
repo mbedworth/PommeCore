@@ -104,7 +104,11 @@ final class MeshCoreViewModel: ObservableObject {
     let navigationStore = NavigationStore()
     #if !os(watchOS)
     let lineOfSightStore = LineOfSightStore()
-    let rfMonitorStore = RFMonitorStore()
+    let rfMonitorStore: RFMonitorStore = {
+        let store = RFMonitorStore()
+        store.loadTelemetryHistory()
+        return store
+    }()
     #endif
     
     // All forwarding properties removed — use stores directly.

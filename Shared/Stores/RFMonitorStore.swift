@@ -9,13 +9,38 @@ import Foundation
 import MeshCoreKit
 
 /// A timestamped telemetry snapshot for history charts.
-struct TelemetrySnapshot: Identifiable {
-    let id = UUID()
+struct TelemetrySnapshot: Identifiable, Codable {
+    let id: UUID
     let timestamp: Date
-    let readings: [TelemetryReading]
+    let readings: [CodableTelemetryReading]
+
+    init(timestamp: Date, readings: [TelemetryReading]) {
+        self.id = UUID()
+        self.timestamp = timestamp
+        self.readings = readings.map { CodableTelemetryReading(name: $0.name, value: $0.value, unit: $0.unit) }
+    }
 
     func value(named name: String) -> Double? {
         readings.first(where: { $0.name == name })?.value
+    }
+
+    func toTelemetryReadings() -> [TelemetryReading] {
+        readings.map { TelemetryReading(name: $0.name, value: $0.value, unit: $0.unit) }
+    }
+}
+
+/// Codable wrapper for TelemetryReading (which uses non-stable UUID id).
+struct CodableTelemetryReading: Codable, Identifiable {
+    let id: UUID
+    let name: String
+    let value: Double
+    let unit: String
+
+    init(name: String, value: Double, unit: String) {
+        self.id = UUID()
+        self.name = name
+        self.value = value
+        self.unit = unit
     }
 }
 
@@ -32,11 +57,13 @@ final class RFMonitorStore {
 
     // MARK: - Telemetry History
 
-    /// Telemetry history per contact (keyed by publicKeyPrefix).
+    /// Telemetry history per contact (keyed by publicKeyPrefix hex).
     /// Stores up to maxHistoryCount snapshots per contact.
     var telemetryHistory: [Data: [TelemetrySnapshot]] = [:]
 
-    private let maxHistoryCount = 100
+    private let maxHistoryCount = 500
+    private let maxDaysRetained = 7
+    private var savePending = false
 
     /// Record a new telemetry reading for a contact.
     func recordTelemetry(for contactKey: Data, readings: [TelemetryReading]) {
@@ -47,6 +74,7 @@ final class RFMonitorStore {
             history.removeFirst(history.count - maxHistoryCount)
         }
         telemetryHistory[contactKey] = history
+        scheduleSave()
     }
 
     /// Get history for a specific reading type (e.g. "Battery", "Temperature").
@@ -120,5 +148,64 @@ final class RFMonitorStore {
 
     var minRSSI: Int8? {
         rfSamples.map(\.rssi).min()
+    }
+
+    // MARK: - Persistence
+
+    private static var telemetryFileURL: URL {
+        let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let appDir = dir.appendingPathComponent("MeshCore", isDirectory: true)
+        try? FileManager.default.createDirectory(at: appDir, withIntermediateDirectories: true)
+        return appDir.appendingPathComponent("telemetry_history.json")
+    }
+
+    /// Codable wrapper for serialization (Data keys become hex strings).
+    private struct PersistedHistory: Codable {
+        let contacts: [String: [TelemetrySnapshot]]
+    }
+
+    func loadTelemetryHistory() {
+        let url = Self.telemetryFileURL
+        guard FileManager.default.fileExists(atPath: url.path) else { return }
+        do {
+            let data = try Data(contentsOf: url)
+            let persisted = try JSONDecoder().decode(PersistedHistory.self, from: data)
+            let cutoff = Date().addingTimeInterval(-Double(maxDaysRetained) * 86400)
+            for (hexKey, snapshots) in persisted.contacts {
+                if let keyData = Data(hexString: hexKey) {
+                    telemetryHistory[keyData] = snapshots.filter { $0.timestamp > cutoff }
+                }
+            }
+        } catch {
+            DebugLogger.shared.log("TELEMETRY: failed to load history: \(error.localizedDescription)", level: .warning)
+        }
+    }
+
+    private func scheduleSave() {
+        guard !savePending else { return }
+        savePending = true
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 5_000_000_000) // batch saves every 5s
+            self.savePending = false
+            self.saveTelemetryHistory()
+        }
+    }
+
+    func saveTelemetryHistory() {
+        let cutoff = Date().addingTimeInterval(-Double(maxDaysRetained) * 86400)
+        var contacts: [String: [TelemetrySnapshot]] = [:]
+        for (key, snapshots) in telemetryHistory {
+            let filtered = snapshots.filter { $0.timestamp > cutoff }
+            if !filtered.isEmpty {
+                contacts[key.map { String(format: "%02x", $0) }.joined()] = filtered
+            }
+        }
+        let persisted = PersistedHistory(contacts: contacts)
+        do {
+            let data = try JSONEncoder().encode(persisted)
+            try data.write(to: Self.telemetryFileURL, options: .atomic)
+        } catch {
+            DebugLogger.shared.log("TELEMETRY: failed to save history: \(error.localizedDescription)", level: .warning)
+        }
     }
 }
