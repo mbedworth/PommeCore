@@ -63,6 +63,10 @@ struct ContactListView: View {
     @State private var newGroupName = ""
     @State private var newGroupEmoji = ""
     @State private var groupContactForNew: Contact?
+    @State private var showRenameGroupSheet = false
+    @State private var renameGroupTarget: ContactStore.ContactGroup?
+    @State private var renameGroupName = ""
+    @State private var renameGroupEmoji = ""
     #if !os(watchOS)
     @State private var shareContact: Contact?
     #endif
@@ -776,6 +780,12 @@ struct ContactListView: View {
     @ViewBuilder
     private var groupsSection: some View {
         Section {
+            if contactStore.contactGroups.isEmpty {
+                Text("Long-press a contact or tap + to create a group")
+                    .font(.caption)
+                    .foregroundStyle(MeshTheme.textSecondary)
+                    .listRowBackground(MeshTheme.surface)
+            }
             ForEach(contactStore.contactGroups) { group in
                 DisclosureGroup {
                     let members = contactStore.contactsInGroup(group)
@@ -815,6 +825,22 @@ struct ContactListView: View {
                     }
                 }
                 .listRowBackground(MeshTheme.surface)
+                .contextMenu {
+                    Button {
+                        renameGroupTarget = group
+                        renameGroupName = group.name
+                        renameGroupEmoji = group.emoji
+                        showRenameGroupSheet = true
+                    } label: {
+                        Label("Rename", systemImage: "pencil")
+                    }
+                    Divider()
+                    Button(role: .destructive) {
+                        contactStore.deleteContactGroup(group)
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                }
                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                     Button(role: .destructive) {
                         contactStore.deleteContactGroup(group)
@@ -824,8 +850,19 @@ struct ContactListView: View {
                 }
             }
         } header: {
-            Text("Groups")
-                .foregroundStyle(MeshTheme.textSecondary)
+            HStack {
+                Text("Groups")
+                    .foregroundStyle(MeshTheme.textSecondary)
+                Spacer()
+                Button {
+                    groupContactForNew = nil
+                    showNewGroupSheet = true
+                } label: {
+                    Image(systemName: "plus.circle")
+                        .foregroundStyle(MeshTheme.accent)
+                }
+                .buttonStyle(.plain)
+            }
         }
     }
 
@@ -1017,6 +1054,18 @@ struct ContactListView: View {
                 newGroupName = ""
                 newGroupEmoji = ""
                 groupContactForNew = nil
+            }
+        }
+        .alert("Rename Group", isPresented: $showRenameGroupSheet) {
+            TextField("Group name", text: $renameGroupName)
+            TextField("Emoji (optional)", text: $renameGroupEmoji)
+            Button("Cancel", role: .cancel) { renameGroupTarget = nil }
+            Button("Save") {
+                let trimmed = renameGroupName.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !trimmed.isEmpty, let target = renameGroupTarget {
+                    contactStore.renameContactGroup(target, name: trimmed, emoji: renameGroupEmoji)
+                }
+                renameGroupTarget = nil
             }
         }
         #if os(iOS)
@@ -1341,9 +1390,7 @@ private extension ContactListView {
             if !contactStore.pendingNewContacts.isEmpty {
                 pendingContactsSection
             }
-            if !contactStore.contactGroups.isEmpty {
-                groupsSection
-            }
+            groupsSection
             contactsSection
             if !channelsFirst {
                 channelsSection

@@ -323,6 +323,14 @@ final class ContactStore {
         saveContactGroupsToiCloud()
     }
 
+    func renameContactGroup(_ group: ContactGroup, name: String, emoji: String) {
+        if let idx = contactGroups.firstIndex(where: { $0.id == group.id }) {
+            contactGroups[idx].name = name
+            contactGroups[idx].emoji = emoji
+            saveContactGroupsToiCloud()
+        }
+    }
+
     func addContactToGroup(_ contact: Contact, group: ContactGroup) {
         let pubkeyHex = contact.publicKey.hexCompact
         if let idx = contactGroups.firstIndex(where: { $0.id == group.id }) {
