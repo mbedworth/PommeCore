@@ -1282,6 +1282,8 @@ struct ContactListView: View {
             } else {
                 Text("Map requires iOS 17+ or macOS 14+")
             }
+        case .tools:
+            ToolsView()
         #if os(macOS) || targetEnvironment(macCatalyst)
         case .usbTerminal:
             USBTerminalView()
@@ -1365,6 +1367,27 @@ private extension ContactListView {
                 }
                 .listRowBackground(
                     navigationStore.sidebarSelection == .map
+                        ? MeshTheme.surfaceLight
+                        : MeshTheme.surface
+                )
+
+                NavigationLink(value: SidebarSelection.tools) {
+                    HStack(spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(MeshTheme.accent.opacity(0.15))
+                                .frame(width: 40, height: 40)
+                            Image(systemName: "wrench.and.screwdriver")
+                                .foregroundStyle(MeshTheme.accent)
+                        }
+                        Text("Tools")
+                            .font(.body)
+                            .foregroundStyle(MeshTheme.accent)
+                    }
+                    .contentShape(Rectangle())
+                }
+                .listRowBackground(
+                    navigationStore.sidebarSelection == .tools
                         ? MeshTheme.surfaceLight
                         : MeshTheme.surface
                 )

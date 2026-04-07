@@ -235,6 +235,8 @@ struct ContentView: View {
                 } else {
                     Text("Map requires iOS 17+ or macOS 14+")
                 }
+            case .tools:
+                ToolsView()
             #endif
             #if os(macOS) || targetEnvironment(macCatalyst)
             case .usbTerminal:

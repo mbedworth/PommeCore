@@ -20,6 +20,7 @@ enum SidebarSelection: Hashable {
     case contact(Data) // publicKeyPrefix
     case settings
     case map
+    case tools
     #if os(macOS) || targetEnvironment(macCatalyst)
     case usbTerminal
     case usbDevice

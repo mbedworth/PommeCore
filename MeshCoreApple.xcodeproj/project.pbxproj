@@ -8,30 +8,32 @@
 
 /* Begin PBXBuildFile section */
 		038B76DA3EB2B884787888BE /* ContactListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21606E2B959E6496D3B0230D /* ContactListView.swift */; };
-		0F29C3C52F84856E0007BF08 /* ElevationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3C42F84856E0007BF08 /* ElevationService.swift */; };
-		0F29C3C62F84856E0007BF08 /* ElevationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3C42F84856E0007BF08 /* ElevationService.swift */; };
-		0F29C3C72F84856E0007BF08 /* ElevationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3C42F84856E0007BF08 /* ElevationService.swift */; };
+		0F29C3C52F84856E0007BF08 /* Services/ElevationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3C42F84856E0007BF08 /* Services/ElevationService.swift */; };
+		0F29C3C62F84856E0007BF08 /* Services/ElevationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3C42F84856E0007BF08 /* Services/ElevationService.swift */; };
+		0F29C3C72F84856E0007BF08 /* Services/ElevationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3C42F84856E0007BF08 /* Services/ElevationService.swift */; };
 		0F29C3C92F8485BD0007BF08 /* LineOfSightStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3C82F8485BD0007BF08 /* LineOfSightStore.swift */; };
 		0F29C3CA2F8485BD0007BF08 /* LineOfSightStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3C82F8485BD0007BF08 /* LineOfSightStore.swift */; };
-		0F29C3D42F84863E0007BF08 /* TerrainProfileCanvas.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3D22F84863E0007BF08 /* TerrainProfileCanvas.swift */; };
-		0F29C3D52F84863E0007BF08 /* AntennaSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3CC2F84863E0007BF08 /* AntennaSettingsView.swift */; };
-		0F29C3D62F84863E0007BF08 /* RepeaterConfigView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3D12F84863E0007BF08 /* RepeaterConfigView.swift */; };
-		0F29C3D72F84863E0007BF08 /* LoSResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3CE2F84863E0007BF08 /* LoSResultsView.swift */; };
-		0F29C3D82F84863E0007BF08 /* LineOfSightView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3CD2F84863E0007BF08 /* LineOfSightView.swift */; };
-		0F29C3D92F84863E0007BF08 /* MapPointPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3CF2F84863E0007BF08 /* MapPointPickerView.swift */; };
-		0F29C3DA2F84863E0007BF08 /* TerrainProfileRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3D32F84863E0007BF08 /* TerrainProfileRenderer.swift */; };
-		0F29C3DB2F84863E0007BF08 /* PointSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3D02F84863E0007BF08 /* PointSelectionView.swift */; };
-		0F29C3DC2F84863E0007BF08 /* TerrainProfileCanvas.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3D22F84863E0007BF08 /* TerrainProfileCanvas.swift */; };
-		0F29C3DD2F84863E0007BF08 /* AntennaSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3CC2F84863E0007BF08 /* AntennaSettingsView.swift */; };
-		0F29C3DE2F84863E0007BF08 /* RepeaterConfigView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3D12F84863E0007BF08 /* RepeaterConfigView.swift */; };
-		0F29C3DF2F84863E0007BF08 /* LoSResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3CE2F84863E0007BF08 /* LoSResultsView.swift */; };
-		0F29C3E02F84863E0007BF08 /* LineOfSightView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3CD2F84863E0007BF08 /* LineOfSightView.swift */; };
-		0F29C3E12F84863E0007BF08 /* MapPointPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3CF2F84863E0007BF08 /* MapPointPickerView.swift */; };
-		0F29C3E22F84863E0007BF08 /* TerrainProfileRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3D32F84863E0007BF08 /* TerrainProfileRenderer.swift */; };
-		0F29C3E32F84863E0007BF08 /* PointSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3D02F84863E0007BF08 /* PointSelectionView.swift */; };
+		0F29C3D42F84863E0007BF08 /* LineOfSight/TerrainProfileCanvas.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3D22F84863E0007BF08 /* LineOfSight/TerrainProfileCanvas.swift */; };
+		0F29C3D52F84863E0007BF08 /* LineOfSight/AntennaSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3CC2F84863E0007BF08 /* LineOfSight/AntennaSettingsView.swift */; };
+		0F29C3D62F84863E0007BF08 /* LineOfSight/RepeaterConfigView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3D12F84863E0007BF08 /* LineOfSight/RepeaterConfigView.swift */; };
+		0F29C3D72F84863E0007BF08 /* LineOfSight/LoSResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3CE2F84863E0007BF08 /* LineOfSight/LoSResultsView.swift */; };
+		0F29C3D82F84863E0007BF08 /* LineOfSight/LineOfSightView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3CD2F84863E0007BF08 /* LineOfSight/LineOfSightView.swift */; };
+		0F29C3D92F84863E0007BF08 /* LineOfSight/MapPointPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3CF2F84863E0007BF08 /* LineOfSight/MapPointPickerView.swift */; };
+		0F29C3DA2F84863E0007BF08 /* LineOfSight/TerrainProfileRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3D32F84863E0007BF08 /* LineOfSight/TerrainProfileRenderer.swift */; };
+		0F29C3DB2F84863E0007BF08 /* LineOfSight/PointSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3D02F84863E0007BF08 /* LineOfSight/PointSelectionView.swift */; };
+		0F29C3DC2F84863E0007BF08 /* LineOfSight/TerrainProfileCanvas.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3D22F84863E0007BF08 /* LineOfSight/TerrainProfileCanvas.swift */; };
+		0F29C3DD2F84863E0007BF08 /* LineOfSight/AntennaSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3CC2F84863E0007BF08 /* LineOfSight/AntennaSettingsView.swift */; };
+		0F29C3DE2F84863E0007BF08 /* LineOfSight/RepeaterConfigView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3D12F84863E0007BF08 /* LineOfSight/RepeaterConfigView.swift */; };
+		0F29C3DF2F84863E0007BF08 /* LineOfSight/LoSResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3CE2F84863E0007BF08 /* LineOfSight/LoSResultsView.swift */; };
+		0F29C3E02F84863E0007BF08 /* LineOfSight/LineOfSightView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3CD2F84863E0007BF08 /* LineOfSight/LineOfSightView.swift */; };
+		0F29C3E12F84863E0007BF08 /* LineOfSight/MapPointPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3CF2F84863E0007BF08 /* LineOfSight/MapPointPickerView.swift */; };
+		0F29C3E22F84863E0007BF08 /* LineOfSight/TerrainProfileRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3D32F84863E0007BF08 /* LineOfSight/TerrainProfileRenderer.swift */; };
+		0F29C3E32F84863E0007BF08 /* LineOfSight/PointSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3D02F84863E0007BF08 /* LineOfSight/PointSelectionView.swift */; };
 		0FCE4BE32F7A20E5009358D8 /* MeshCoreViewModel+ResponseHandling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FCE4BE22F7A20C3009358D8 /* MeshCoreViewModel+ResponseHandling.swift */; };
 		0FCE4BE42F7A20E5009358D8 /* MeshCoreViewModel+ResponseHandling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FCE4BE22F7A20C3009358D8 /* MeshCoreViewModel+ResponseHandling.swift */; };
 		0FCE4BE52F7A20E5009358D8 /* MeshCoreViewModel+ResponseHandling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FCE4BE22F7A20C3009358D8 /* MeshCoreViewModel+ResponseHandling.swift */; };
+		0FD96D482F84943D0026DF54 /* ToolsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FD96D472F84943D0026DF54 /* ToolsView.swift */; };
+		0FD96D492F84943D0026DF54 /* ToolsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FD96D472F84943D0026DF54 /* ToolsView.swift */; };
 		18B6F45B61F3581FB64D1DB0 /* DeviceScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2377BED4FF5A7170783BA649 /* DeviceScannerView.swift */; };
 		28A0B13C16FFEC509F16A983 /* NodeSetupWizardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86334BBA19C5E5E981032313 /* NodeSetupWizardView.swift */; };
 		309F59A4C45F0C74C7632AAF /* NetworkToolsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB24E21D8CDBE0500C92E469 /* NetworkToolsView.swift */; };
@@ -115,17 +117,18 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		0F29C3C42F84856E0007BF08 /* ElevationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Services/ElevationService.swift"; sourceTree = "<group>"; };
+		0F29C3C42F84856E0007BF08 /* Services/ElevationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/ElevationService.swift; sourceTree = "<group>"; };
 		0F29C3C82F8485BD0007BF08 /* LineOfSightStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineOfSightStore.swift; sourceTree = "<group>"; };
-		0F29C3CC2F84863E0007BF08 /* AntennaSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LineOfSight/AntennaSettingsView.swift"; sourceTree = "<group>"; };
-		0F29C3CD2F84863E0007BF08 /* LineOfSightView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LineOfSight/LineOfSightView.swift"; sourceTree = "<group>"; };
-		0F29C3CE2F84863E0007BF08 /* LoSResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LineOfSight/LoSResultsView.swift"; sourceTree = "<group>"; };
-		0F29C3CF2F84863E0007BF08 /* MapPointPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LineOfSight/MapPointPickerView.swift"; sourceTree = "<group>"; };
-		0F29C3D02F84863E0007BF08 /* PointSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LineOfSight/PointSelectionView.swift"; sourceTree = "<group>"; };
-		0F29C3D12F84863E0007BF08 /* RepeaterConfigView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LineOfSight/RepeaterConfigView.swift"; sourceTree = "<group>"; };
-		0F29C3D22F84863E0007BF08 /* TerrainProfileCanvas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LineOfSight/TerrainProfileCanvas.swift"; sourceTree = "<group>"; };
-		0F29C3D32F84863E0007BF08 /* TerrainProfileRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LineOfSight/TerrainProfileRenderer.swift"; sourceTree = "<group>"; };
+		0F29C3CC2F84863E0007BF08 /* LineOfSight/AntennaSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineOfSight/AntennaSettingsView.swift; sourceTree = "<group>"; };
+		0F29C3CD2F84863E0007BF08 /* LineOfSight/LineOfSightView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineOfSight/LineOfSightView.swift; sourceTree = "<group>"; };
+		0F29C3CE2F84863E0007BF08 /* LineOfSight/LoSResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineOfSight/LoSResultsView.swift; sourceTree = "<group>"; };
+		0F29C3CF2F84863E0007BF08 /* LineOfSight/MapPointPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineOfSight/MapPointPickerView.swift; sourceTree = "<group>"; };
+		0F29C3D02F84863E0007BF08 /* LineOfSight/PointSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineOfSight/PointSelectionView.swift; sourceTree = "<group>"; };
+		0F29C3D12F84863E0007BF08 /* LineOfSight/RepeaterConfigView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineOfSight/RepeaterConfigView.swift; sourceTree = "<group>"; };
+		0F29C3D22F84863E0007BF08 /* LineOfSight/TerrainProfileCanvas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineOfSight/TerrainProfileCanvas.swift; sourceTree = "<group>"; };
+		0F29C3D32F84863E0007BF08 /* LineOfSight/TerrainProfileRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineOfSight/TerrainProfileRenderer.swift; sourceTree = "<group>"; };
 		0FCE4BE22F7A20C3009358D8 /* MeshCoreViewModel+ResponseHandling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MeshCoreViewModel+ResponseHandling.swift"; sourceTree = "<group>"; };
+		0FD96D472F84943D0026DF54 /* ToolsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolsView.swift; sourceTree = "<group>"; };
 		21606E2B959E6496D3B0230D /* ContactListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactListView.swift; sourceTree = "<group>"; };
 		2377BED4FF5A7170783BA649 /* DeviceScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceScannerView.swift; sourceTree = "<group>"; };
 		2EEF439B8EDC4A5408C299FB /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = macOS/PrivacyInfo.xcprivacy; sourceTree = SOURCE_ROOT; };
@@ -203,14 +206,15 @@
 		0A6B0F647BA21A953CCB6490 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				0F29C3CC2F84863E0007BF08 /* AntennaSettingsView.swift */,
-				0F29C3CD2F84863E0007BF08 /* LineOfSightView.swift */,
-				0F29C3CE2F84863E0007BF08 /* LoSResultsView.swift */,
-				0F29C3CF2F84863E0007BF08 /* MapPointPickerView.swift */,
-				0F29C3D02F84863E0007BF08 /* PointSelectionView.swift */,
-				0F29C3D12F84863E0007BF08 /* RepeaterConfigView.swift */,
-				0F29C3D22F84863E0007BF08 /* TerrainProfileCanvas.swift */,
-				0F29C3D32F84863E0007BF08 /* TerrainProfileRenderer.swift */,
+				0FD96D472F84943D0026DF54 /* ToolsView.swift */,
+				0F29C3CC2F84863E0007BF08 /* LineOfSight/AntennaSettingsView.swift */,
+				0F29C3CD2F84863E0007BF08 /* LineOfSight/LineOfSightView.swift */,
+				0F29C3CE2F84863E0007BF08 /* LineOfSight/LoSResultsView.swift */,
+				0F29C3CF2F84863E0007BF08 /* LineOfSight/MapPointPickerView.swift */,
+				0F29C3D02F84863E0007BF08 /* LineOfSight/PointSelectionView.swift */,
+				0F29C3D12F84863E0007BF08 /* LineOfSight/RepeaterConfigView.swift */,
+				0F29C3D22F84863E0007BF08 /* LineOfSight/TerrainProfileCanvas.swift */,
+				0F29C3D32F84863E0007BF08 /* LineOfSight/TerrainProfileRenderer.swift */,
 				86334BBA19C5E5E981032313 /* NodeSetupWizardView.swift */,
 				7EFFE2BF3488F0C0647632CD /* ChatView.swift */,
 				DB24E21D8CDBE0500C92E469 /* NetworkToolsView.swift */,
@@ -276,7 +280,7 @@
 		E0B34F245C5063D4BCB4E068 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
-				0F29C3C42F84856E0007BF08 /* ElevationService.swift */,
+				0F29C3C42F84856E0007BF08 /* Services/ElevationService.swift */,
 				C9E04F99D8E7C9D4D391AEF8 /* Models */,
 				F587E5EEE1FE6B2B210AEFE3 /* App */,
 				307D79903AB18CCBBF806BCE /* ViewModels */,
@@ -446,7 +450,7 @@
 				309F59A4C45F0C74C7632AAF /* NetworkToolsView.swift in Sources */,
 				038B76DA3EB2B884787888BE /* ContactListView.swift in Sources */,
 				B2C3D4E5F6A7B8C9D0E1F2A3 /* ContactRowView.swift in Sources */,
-				0F29C3C72F84856E0007BF08 /* ElevationService.swift in Sources */,
+				0F29C3C72F84856E0007BF08 /* Services/ElevationService.swift in Sources */,
 				F2A3B4C5D6E7F8A9B0C1D2E3 /* NavigationStore.swift in Sources */,
 				0FCE4BE52F7A20E5009358D8 /* MeshCoreViewModel+ResponseHandling.swift in Sources */,
 				C2497AA6CDB94C882FC3C7CB /* DeviceScannerView.swift in Sources */,
@@ -479,7 +483,7 @@
 				3749B94D818310AD5ACF3B87 /* ChatView.swift in Sources */,
 				9D7EAB7850F077EF373AC84F /* NetworkToolsView.swift in Sources */,
 				C9CEA8D3714859C1177D7704 /* ContactListView.swift in Sources */,
-				0F29C3C52F84856E0007BF08 /* ElevationService.swift in Sources */,
+				0F29C3C52F84856E0007BF08 /* Services/ElevationService.swift in Sources */,
 				D4E5F6A7B8C9D0E1F2A3B4C5 /* ContactRowView.swift in Sources */,
 				B4C5D6E7F8A9B0C1D2E3F4A5 /* NavigationStore.swift in Sources */,
 				18B6F45B61F3581FB64D1DB0 /* DeviceScannerView.swift in Sources */,
@@ -501,14 +505,15 @@
 				0F29C3CA2F8485BD0007BF08 /* LineOfSightStore.swift in Sources */,
 				MAP10000000000000000002 /* MeshMapView.swift in Sources */,
 				DBG10000000000000000002 /* DebugLogView.swift in Sources */,
-				0F29C3DC2F84863E0007BF08 /* TerrainProfileCanvas.swift in Sources */,
-				0F29C3DD2F84863E0007BF08 /* AntennaSettingsView.swift in Sources */,
-				0F29C3DE2F84863E0007BF08 /* RepeaterConfigView.swift in Sources */,
-				0F29C3DF2F84863E0007BF08 /* LoSResultsView.swift in Sources */,
-				0F29C3E02F84863E0007BF08 /* LineOfSightView.swift in Sources */,
-				0F29C3E12F84863E0007BF08 /* MapPointPickerView.swift in Sources */,
-				0F29C3E22F84863E0007BF08 /* TerrainProfileRenderer.swift in Sources */,
-				0F29C3E32F84863E0007BF08 /* PointSelectionView.swift in Sources */,
+				0F29C3DC2F84863E0007BF08 /* LineOfSight/TerrainProfileCanvas.swift in Sources */,
+				0F29C3DD2F84863E0007BF08 /* LineOfSight/AntennaSettingsView.swift in Sources */,
+				0F29C3DE2F84863E0007BF08 /* LineOfSight/RepeaterConfigView.swift in Sources */,
+				0FD96D482F84943D0026DF54 /* ToolsView.swift in Sources */,
+				0F29C3DF2F84863E0007BF08 /* LineOfSight/LoSResultsView.swift in Sources */,
+				0F29C3E02F84863E0007BF08 /* LineOfSight/LineOfSightView.swift in Sources */,
+				0F29C3E12F84863E0007BF08 /* LineOfSight/MapPointPickerView.swift in Sources */,
+				0F29C3E22F84863E0007BF08 /* LineOfSight/TerrainProfileRenderer.swift in Sources */,
+				0F29C3E32F84863E0007BF08 /* LineOfSight/PointSelectionView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -521,7 +526,7 @@
 				9144822AD9EB38340AF2317E /* ChatView.swift in Sources */,
 				F01FFE8B0B7AB2F62D296F88 /* NetworkToolsView.swift in Sources */,
 				8EF971496F064F1AD761B796 /* ContactListView.swift in Sources */,
-				0F29C3C62F84856E0007BF08 /* ElevationService.swift in Sources */,
+				0F29C3C62F84856E0007BF08 /* Services/ElevationService.swift in Sources */,
 				C3D4E5F6A7B8C9D0E1F2A3B4 /* ContactRowView.swift in Sources */,
 				A3B4C5D6E7F8A9B0C1D2E3F4 /* NavigationStore.swift in Sources */,
 				9A92FFC5BE2A781BEC80720C /* DeviceScannerView.swift in Sources */,
@@ -543,14 +548,15 @@
 				0F29C3C92F8485BD0007BF08 /* LineOfSightStore.swift in Sources */,
 				MAP10000000000000000003 /* MeshMapView.swift in Sources */,
 				DBG10000000000000000003 /* DebugLogView.swift in Sources */,
-				0F29C3D42F84863E0007BF08 /* TerrainProfileCanvas.swift in Sources */,
-				0F29C3D52F84863E0007BF08 /* AntennaSettingsView.swift in Sources */,
-				0F29C3D62F84863E0007BF08 /* RepeaterConfigView.swift in Sources */,
-				0F29C3D72F84863E0007BF08 /* LoSResultsView.swift in Sources */,
-				0F29C3D82F84863E0007BF08 /* LineOfSightView.swift in Sources */,
-				0F29C3D92F84863E0007BF08 /* MapPointPickerView.swift in Sources */,
-				0F29C3DA2F84863E0007BF08 /* TerrainProfileRenderer.swift in Sources */,
-				0F29C3DB2F84863E0007BF08 /* PointSelectionView.swift in Sources */,
+				0F29C3D42F84863E0007BF08 /* LineOfSight/TerrainProfileCanvas.swift in Sources */,
+				0F29C3D52F84863E0007BF08 /* LineOfSight/AntennaSettingsView.swift in Sources */,
+				0F29C3D62F84863E0007BF08 /* LineOfSight/RepeaterConfigView.swift in Sources */,
+				0FD96D492F84943D0026DF54 /* ToolsView.swift in Sources */,
+				0F29C3D72F84863E0007BF08 /* LineOfSight/LoSResultsView.swift in Sources */,
+				0F29C3D82F84863E0007BF08 /* LineOfSight/LineOfSightView.swift in Sources */,
+				0F29C3D92F84863E0007BF08 /* LineOfSight/MapPointPickerView.swift in Sources */,
+				0F29C3DA2F84863E0007BF08 /* LineOfSight/TerrainProfileRenderer.swift in Sources */,
+				0F29C3DB2F84863E0007BF08 /* LineOfSight/PointSelectionView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
