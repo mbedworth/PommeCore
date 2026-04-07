@@ -11,6 +11,7 @@
 import SwiftUI
 import os.log
 import UserNotifications
+import CryptoKit
 #if os(watchOS)
 import WatchKit
 #endif
@@ -483,6 +484,15 @@ final class MessageStoreManager {
     func handleIncomingMessage(_ message: Message) -> Message? {
         let contactKey = message.contactKeyHash
 
+        // Check if this is a reaction message (MeshCore One compatible)
+        if let reaction = parseReaction(text: message.text) {
+            if handleIncomingReaction(emoji: reaction.emoji, hash: reaction.hash, contactKey: contactKey) {
+                Self.logger.debug("Matched incoming reaction \(reaction.emoji) to message hash \(reaction.hash)")
+                return nil // Don't store as a regular message
+            }
+            // If no match found, store as regular message (might be for a message we don't have)
+        }
+
         let existing = messagesByContact[contactKey] ?? []
         let isDuplicate = existing.contains { msg in
             msg.text == message.text &&
@@ -542,9 +552,74 @@ final class MessageStoreManager {
             messages[idx].reactions.removeAll { $0 == emoji }
         } else {
             messages[idx].reactions.append(emoji)
+            // Send reaction over the mesh (MeshCore One compatible format)
+            let hash = reactionHash(for: message)
+            let reactionText = "\(emoji)\n\(hash)"
+            if let contact = contactProvider?(contactKey) {
+                sendTextMessage(reactionText, to: contact)
+            }
         }
         messagesByContact[contactKey] = messages
         persistMessages(for: contactKey)
+    }
+
+    // MARK: - Reaction Hash (MeshCore One compatible)
+
+    /// Compute the Crockford Base32 hash for a message (for reaction matching).
+    /// Hash = SHA256(message_text_utf8 + sender_timestamp_le_u32), first 5 bytes → 8-char Crockford Base32.
+    func reactionHash(for message: Message) -> String {
+        let textData = Data(message.text.utf8)
+        let epoch = UInt32(message.timestamp.timeIntervalSince1970)
+        var combined = textData
+        combined.append(contentsOf: withUnsafeBytes(of: epoch.littleEndian) { Array($0) })
+        let digest = SHA256.hash(data: combined)
+        let first5 = Data(digest.prefix(5))
+        return crockfordBase32Encode(first5)
+    }
+
+    /// Check if an incoming message text is a reaction (emoji + newline + 8-char hash).
+    func parseReaction(text: String) -> (emoji: String, hash: String)? {
+        let parts = text.components(separatedBy: "\n")
+        guard parts.count == 2 else { return nil }
+        let emojiPart = parts[0]
+        let hashPart = parts[1]
+        // Emoji part should be 1-2 Unicode scalars, hash should be 8 alphanumeric chars
+        guard emojiPart.unicodeScalars.count <= 4,
+              emojiPart.unicodeScalars.first?.properties.isEmoji == true,
+              hashPart.count == 8,
+              hashPart.allSatisfy({ $0.isLetter || $0.isNumber }) else { return nil }
+        return (emojiPart, hashPart)
+    }
+
+    /// Try to attach an incoming reaction to an existing message.
+    /// Returns true if the reaction was matched and attached.
+    func handleIncomingReaction(emoji: String, hash: String, contactKey: Data) -> Bool {
+        guard var messages = messagesByContact[contactKey] else { return false }
+        for i in messages.indices.reversed() { // search recent first
+            let msgHash = reactionHash(for: messages[i])
+            if msgHash == hash {
+                if !messages[i].reactions.contains(emoji) {
+                    messages[i].reactions.append(emoji)
+                    messagesByContact[contactKey] = messages
+                    persistMessages(for: contactKey)
+                }
+                return true
+            }
+        }
+        return false
+    }
+
+    /// Crockford Base32 encoding for 5 bytes → 8 characters.
+    private func crockfordBase32Encode(_ data: Data) -> String {
+        let alphabet = Array("0123456789abcdefghjkmnpqrstvwxyz")
+        var bits: UInt64 = 0
+        for byte in data { bits = (bits << 8) | UInt64(byte) }
+        var result = ""
+        for i in stride(from: 35, through: 0, by: -5) {
+            let index = Int((bits >> i) & 0x1F)
+            result.append(alphabet[index])
+        }
+        return result
     }
 
     func deleteMessage(_ message: Message, in contactKey: Data) {
