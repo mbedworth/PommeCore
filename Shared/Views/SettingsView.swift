@@ -3332,6 +3332,9 @@ struct GPSEditorSheet: View {
     @State private var latitude = ""
     @State private var longitude = ""
     @State private var gpsSyncFeedback = false
+    @State private var mapPickFeedback = false
+    @State private var showMapPicker = false
+    @State private var mapPickedCoordinate: CLLocationCoordinate2D?
     @AppStorage("autoUpdateLocation") private var autoUpdateLocation = false
     @AppStorage("locationUpdateInterval") private var locationUpdateInterval = 900
 
@@ -3356,6 +3359,17 @@ struct GPSEditorSheet: View {
                 } label: {
                     Label(gpsSyncFeedback ? "Location Set!" : "Set from Phone GPS", systemImage: "iphone.radiowaves.left.and.right")
                         .foregroundStyle(gpsSyncFeedback ? .green : MeshTheme.accent)
+                }
+
+                Button {
+                    // Pre-populate map with current coordinates
+                    if let lat = Double(latitude), let lon = Double(longitude), lat != 0 || lon != 0 {
+                        mapPickedCoordinate = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+                    }
+                    showMapPicker = true
+                } label: {
+                    Label(mapPickFeedback ? "Location Set!" : "Pick on Map", systemImage: mapPickFeedback ? "checkmark.circle.fill" : "map")
+                        .foregroundStyle(mapPickFeedback ? .green : MeshTheme.accent)
                 }
 
                 Toggle(isOn: $autoUpdateLocation) {
@@ -3391,6 +3405,17 @@ struct GPSEditorSheet: View {
         .onAppear {
             if deviceConfig.latitude != 0 { latitude = formatCoordinate(deviceConfig.latitude) }
             if deviceConfig.longitude != 0 { longitude = formatCoordinate(deviceConfig.longitude) }
+        }
+        .sheet(isPresented: $showMapPicker, onDismiss: {
+            guard let coord = mapPickedCoordinate else { return }
+            let (fLat, fLon) = MeshCoreViewModel.fudgeLocation(lat: coord.latitude, lon: coord.longitude)
+            latitude = formatCoordinate(fLat)
+            longitude = formatCoordinate(fLon)
+            connectionManager.setAdvertLatLon(latitude: fLat, longitude: fLon)
+            showFeedback($mapPickFeedback)
+        }) {
+            MapPointPickerView(selectedCoordinate: $mapPickedCoordinate)
+                .frame(minWidth: 500, idealWidth: 700, minHeight: 500, idealHeight: 600)
         }
     }
 }

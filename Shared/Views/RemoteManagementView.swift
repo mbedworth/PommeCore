@@ -9,6 +9,7 @@
 //
 
 import SwiftUI
+import CoreLocation
 import MeshCoreKit
 
 /// Management view for repeater and room server contacts.
@@ -1098,7 +1099,10 @@ struct RemoteGPSSection: View {
     let canEdit: Bool
     @State private var gpsSyncFeedback = false
     @State private var gpsLocFeedback = false
+    @State private var mapPickFeedback = false
     @State private var gpsAdvertMode = ""
+    @State private var showMapPicker = false
+    @State private var mapPickedCoordinate: CLLocationCoordinate2D?
 
     var body: some View {
         Section {
@@ -1133,6 +1137,19 @@ struct RemoteGPSSection: View {
 
                 Spacer()
 
+                Button {
+                    // Pre-populate with remote device's current lat/lon if available
+                    if let latStr = session.settings["lat"], let lonStr = session.settings["lon"],
+                       let lat = Double(latStr), let lon = Double(lonStr), lat != 0 || lon != 0 {
+                        mapPickedCoordinate = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+                    }
+                    showMapPicker = true
+                } label: {
+                    Label(mapPickFeedback ? "Location Set" : "Pick on Map", systemImage: mapPickFeedback ? "checkmark.circle.fill" : "map")
+                        .foregroundStyle(mapPickFeedback ? .green : MeshTheme.accent)
+                }
+                .buttonStyle(.plain)
+
             }
             .listRowBackground(MeshTheme.surface)
 
@@ -1152,6 +1169,19 @@ struct RemoteGPSSection: View {
             }
         } header: {
             SectionInfoHeader(title: "GPS", info: "Controls whether this device includes its location in mesh advertisements. \u{2018}GPS\u{2019} uses the hardware GPS module. \u{2018}Manual\u{2019} uses the latitude and longitude values configured in the advertising section.")
+        }
+        .sheet(isPresented: $showMapPicker, onDismiss: {
+            guard let coord = mapPickedCoordinate else { return }
+            sendCLI("set lat \(String(format: "%.6f", coord.latitude))")
+            sendCLI("set lon \(String(format: "%.6f", coord.longitude))")
+            showFeedback($mapPickFeedback)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                sendCLI("get lat")
+                sendCLI("get lon")
+            }
+        }) {
+            MapPointPickerView(selectedCoordinate: $mapPickedCoordinate)
+                .frame(minWidth: 500, idealWidth: 700, minHeight: 500, idealHeight: 600)
         }
     }
 
