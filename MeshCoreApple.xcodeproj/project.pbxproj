@@ -69,6 +69,12 @@
 		895D4D4DB59133B2391177FB /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 635B414AA8FC75B37367C7F5 /* PrivacyInfo.xcprivacy */; };
 		8EF971496F064F1AD761B796 /* ContactListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21606E2B959E6496D3B0230D /* ContactListView.swift */; };
 		9144822AD9EB38340AF2317E /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EFFE2BF3488F0C0647632CD /* ChatView.swift */; };
+		CVC10000000100000000001 /* ChatView+Channels.swift in Sources */ = {isa = PBXBuildFile; fileRef = CVC10000000000000000000 /* ChatView+Channels.swift */; };
+		CVC10000000100000000002 /* ChatView+Channels.swift in Sources */ = {isa = PBXBuildFile; fileRef = CVC10000000000000000000 /* ChatView+Channels.swift */; };
+		CVC10000000100000000003 /* ChatView+Channels.swift in Sources */ = {isa = PBXBuildFile; fileRef = CVC10000000000000000000 /* ChatView+Channels.swift */; };
+		CVP10000000100000000001 /* ChatView+Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = CVP10000000000000000000 /* ChatView+Components.swift */; };
+		CVP10000000100000000002 /* ChatView+Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = CVP10000000000000000000 /* ChatView+Components.swift */; };
+		CVP10000000100000000003 /* ChatView+Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = CVP10000000000000000000 /* ChatView+Components.swift */; };
 		94C0CD2260D30DB5BF8D731C /* RadioPreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E616344CEDCD1ADC41548B7 /* RadioPreset.swift */; };
 		96059FF0363E830C376C23ED /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6BA0593D517B1467DBC1C42 /* Theme.swift */; };
 		9A92FFC5BE2A781BEC80720C /* DeviceScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2377BED4FF5A7170783BA649 /* DeviceScannerView.swift */; };
@@ -137,6 +143,15 @@
 		USB10000000000000000002 /* USBSerialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = USB10000000000000000000 /* USBSerialView.swift */; };
 		USB10000000000000000003 /* USBSerialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = USB10000000000000000000 /* USBSerialView.swift */; };
 		XUOVAQ6Y1NIWH1G3OMK55ENV /* RemoteManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */; };
+		SVS10000000100000000001 /* SettingsView+Sections.swift in Sources */ = {isa = PBXBuildFile; fileRef = SVS10000000000000000000 /* SettingsView+Sections.swift */; };
+		SVS10000000100000000002 /* SettingsView+Sections.swift in Sources */ = {isa = PBXBuildFile; fileRef = SVS10000000000000000000 /* SettingsView+Sections.swift */; };
+		SVS10000000100000000003 /* SettingsView+Sections.swift in Sources */ = {isa = PBXBuildFile; fileRef = SVS10000000000000000000 /* SettingsView+Sections.swift */; };
+		SVT10000000100000000001 /* SettingsView+TipJar.swift in Sources */ = {isa = PBXBuildFile; fileRef = SVT10000000000000000000 /* SettingsView+TipJar.swift */; };
+		SVT10000000100000000002 /* SettingsView+TipJar.swift in Sources */ = {isa = PBXBuildFile; fileRef = SVT10000000000000000000 /* SettingsView+TipJar.swift */; };
+		SVT10000000100000000003 /* SettingsView+TipJar.swift in Sources */ = {isa = PBXBuildFile; fileRef = SVT10000000000000000000 /* SettingsView+TipJar.swift */; };
+		SVE10000000100000000001 /* SettingsView+Editors.swift in Sources */ = {isa = PBXBuildFile; fileRef = SVE10000000000000000000 /* SettingsView+Editors.swift */; };
+		SVE10000000100000000002 /* SettingsView+Editors.swift in Sources */ = {isa = PBXBuildFile; fileRef = SVE10000000000000000000 /* SettingsView+Editors.swift */; };
+		SVE10000000100000000003 /* SettingsView+Editors.swift in Sources */ = {isa = PBXBuildFile; fileRef = SVE10000000000000000000 /* SettingsView+Editors.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -194,6 +209,11 @@
 		STO40000000000000000001 /* ConnectionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionManager.swift; sourceTree = "<group>"; };
 		STO50000000000000000001 /* RemoteSessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteSessionManager.swift; sourceTree = "<group>"; };
 		USB10000000000000000000 /* USBSerialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = USBSerialView.swift; sourceTree = "<group>"; };
+		CVC10000000000000000000 /* ChatView+Channels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatView+Channels.swift"; sourceTree = "<group>"; };
+		CVP10000000000000000000 /* ChatView+Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatView+Components.swift"; sourceTree = "<group>"; };
+		SVS10000000000000000000 /* SettingsView+Sections.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SettingsView+Sections.swift"; sourceTree = "<group>"; };
+		SVT10000000000000000000 /* SettingsView+TipJar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SettingsView+TipJar.swift"; sourceTree = "<group>"; };
+		SVE10000000000000000000 /* SettingsView+Editors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SettingsView+Editors.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -256,11 +276,16 @@
 				0F29C3D32F84863E0007BF08 /* LineOfSight/TerrainProfileRenderer.swift */,
 				86334BBA19C5E5E981032313 /* NodeSetupWizardView.swift */,
 				7EFFE2BF3488F0C0647632CD /* ChatView.swift */,
+				CVC10000000000000000000 /* ChatView+Channels.swift */,
+				CVP10000000000000000000 /* ChatView+Components.swift */,
 				DB24E21D8CDBE0500C92E469 /* NetworkToolsView.swift */,
 				21606E2B959E6496D3B0230D /* ContactListView.swift */,
 				A1B2C3D4E5F6A7B8C9D0E1F2 /* ContactRowView.swift */,
 				2377BED4FF5A7170783BA649 /* DeviceScannerView.swift */,
 				5D859AE9C98610F71C2FBAAF /* SettingsView.swift */,
+				SVS10000000000000000000 /* SettingsView+Sections.swift */,
+				SVT10000000000000000000 /* SettingsView+TipJar.swift */,
+				SVE10000000000000000000 /* SettingsView+Editors.swift */,
 				LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */,
 				A1B2C3D4E5F60718293A4B5C /* ShareView.swift */,
 				OBV10000000000000000000 /* OnboardingView.swift */,
@@ -490,6 +515,8 @@
 				94C0CD2260D30DB5BF8D731C /* RadioPreset.swift in Sources */,
 				28A0B13C16FFEC509F16A983 /* NodeSetupWizardView.swift in Sources */,
 				C0FC54B3FE70C36D754DEEEC /* ChatView.swift in Sources */,
+				CVC10000000100000000001 /* ChatView+Channels.swift in Sources */,
+				CVP10000000100000000001 /* ChatView+Components.swift in Sources */,
 				309F59A4C45F0C74C7632AAF /* NetworkToolsView.swift in Sources */,
 				038B76DA3EB2B884787888BE /* ContactListView.swift in Sources */,
 				B2C3D4E5F6A7B8C9D0E1F2A3 /* ContactRowView.swift in Sources */,
@@ -500,6 +527,9 @@
 				894905739E99B7E425A27485 /* MeshCoreApp.swift in Sources */,
 				5EA23B098C539C2A2191CA10 /* MeshCoreViewModel.swift in Sources */,
 				68CC8A44AD061C07535707EB /* SettingsView.swift in Sources */,
+				SVS10000000100000000001 /* SettingsView+Sections.swift in Sources */,
+				SVT10000000100000000001 /* SettingsView+TipJar.swift in Sources */,
+				SVE10000000100000000001 /* SettingsView+Editors.swift in Sources */,
 				A81875C1B0A1226A9333AFCF /* Theme.swift in Sources */,
 				44472F77FC4CAC4A41BDD12F /* WatchChatView.swift in Sources */,
 				5WT22AMGOSQXJ90NFRN8O6TK /* RemoteManagementView.swift in Sources */,
@@ -526,6 +556,8 @@
 				A3C4EC30F51CEF0E73260DD5 /* RadioPreset.swift in Sources */,
 				3B5A0845138A331E632F1FA8 /* NodeSetupWizardView.swift in Sources */,
 				3749B94D818310AD5ACF3B87 /* ChatView.swift in Sources */,
+				CVC10000000100000000002 /* ChatView+Channels.swift in Sources */,
+				CVP10000000100000000002 /* ChatView+Components.swift in Sources */,
 				9D7EAB7850F077EF373AC84F /* NetworkToolsView.swift in Sources */,
 				C9CEA8D3714859C1177D7704 /* ContactListView.swift in Sources */,
 				0F29C3C52F84856E0007BF08 /* Services/ElevationService.swift in Sources */,
@@ -537,6 +569,9 @@
 				0FCE4BE42F7A20E5009358D8 /* MeshCoreViewModel+ResponseHandling.swift in Sources */,
 				D3633106D9031C89E0589468 /* MeshCoreViewModel.swift in Sources */,
 				FC6474A70CF5B233AB283928 /* SettingsView.swift in Sources */,
+				SVS10000000100000000002 /* SettingsView+Sections.swift in Sources */,
+				SVT10000000100000000002 /* SettingsView+TipJar.swift in Sources */,
+				SVE10000000100000000002 /* SettingsView+Editors.swift in Sources */,
 				96059FF0363E830C376C23ED /* Theme.swift in Sources */,
 				XUOVAQ6Y1NIWH1G3OMK55ENV /* RemoteManagementView.swift in Sources */,
 				KCM1ABCD0002000000000001 /* KeychainManager.swift in Sources */,
@@ -579,6 +614,8 @@
 				381E1F98C45D43E2D7BD8819 /* RadioPreset.swift in Sources */,
 				F686EC73BF362831969DC6D5 /* NodeSetupWizardView.swift in Sources */,
 				9144822AD9EB38340AF2317E /* ChatView.swift in Sources */,
+				CVC10000000100000000003 /* ChatView+Channels.swift in Sources */,
+				CVP10000000100000000003 /* ChatView+Components.swift in Sources */,
 				F01FFE8B0B7AB2F62D296F88 /* NetworkToolsView.swift in Sources */,
 				8EF971496F064F1AD761B796 /* ContactListView.swift in Sources */,
 				0F29C3C62F84856E0007BF08 /* Services/ElevationService.swift in Sources */,
@@ -590,6 +627,9 @@
 				0FCE4BE32F7A20E5009358D8 /* MeshCoreViewModel+ResponseHandling.swift in Sources */,
 				6A8D08F2CE9D321D55C02696 /* MeshCoreViewModel.swift in Sources */,
 				EC8655805E2DCD03D8C9C4F6 /* SettingsView.swift in Sources */,
+				SVS10000000100000000003 /* SettingsView+Sections.swift in Sources */,
+				SVT10000000100000000003 /* SettingsView+TipJar.swift in Sources */,
+				SVE10000000100000000003 /* SettingsView+Editors.swift in Sources */,
 				FAA4FA7E3E52FCF631D55675 /* Theme.swift in Sources */,
 				CATKUXG25PTVMENJWXQZY49X /* RemoteManagementView.swift in Sources */,
 				KCM1ABCD0003000000000001 /* KeychainManager.swift in Sources */,
@@ -634,7 +674,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = iOS/MeshCoreApple.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 15;
 				DEVELOPMENT_TEAM = 7R925EW7AT;
 				INFOPLIST_FILE = iOS/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = PommeCore;
@@ -717,7 +757,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 15;
 				INFOPLIST_FILE = watchOS/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = PommeCore;
 				MARKETING_VERSION = 26.04.2;
@@ -738,7 +778,7 @@
 				CODE_SIGN_ENTITLEMENTS = "macOS/MeshCoreApple-macOS.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 15;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 7R925EW7AT;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -763,7 +803,7 @@
 				CODE_SIGN_ENTITLEMENTS = "macOS/MeshCoreApple-macOS.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 15;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 7R925EW7AT;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -787,7 +827,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = iOS/MeshCoreApple.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 15;
 				DEVELOPMENT_TEAM = 7R925EW7AT;
 				INFOPLIST_FILE = iOS/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = PommeCore;
@@ -877,7 +917,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 15;
 				INFOPLIST_FILE = watchOS/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = PommeCore;
 				MARKETING_VERSION = 26.04.2;
