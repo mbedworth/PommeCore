@@ -13,6 +13,8 @@ struct ToolsView: View {
     @State private var showLineOfSight = false
     @State private var showNoiseFloor = false
     @State private var showRadioCalc = false
+    @State private var showAirtime = false
+    @State private var showSensitivity = false
     @State private var showDiscover = false
 
     var body: some View {
@@ -21,8 +23,7 @@ struct ToolsView: View {
                 toolButton(
                     icon: "eye.trianglebadge.exclamationmark",
                     title: "Line of Sight",
-                    subtitle: "Terrain analysis with Fresnel zone for RF path planning",
-                    badge: "Offline"
+                    subtitle: "Terrain analysis with Fresnel zone for RF path planning"
                 ) {
                     showLineOfSight = true
                 }
@@ -31,14 +32,32 @@ struct ToolsView: View {
                     icon: "function",
                     title: "Radio Calculator",
                     subtitle: "Link budget, path loss, wavelength, and range estimation",
-                    badge: "Offline"
+                    badge: "No Radio"
                 ) {
                     showRadioCalc = true
+                }
+
+                toolButton(
+                    icon: "timer",
+                    title: "Airtime Calculator",
+                    subtitle: "LoRa time-on-air, duty cycle, and packets per hour",
+                    badge: "No Radio"
+                ) {
+                    showAirtime = true
+                }
+
+                toolButton(
+                    icon: "chart.bar",
+                    title: "SF/BW Reference",
+                    subtitle: "Sensitivity, bit rate, and range by spreading factor",
+                    badge: "No Radio"
+                ) {
+                    showSensitivity = true
                 }
             } header: {
                 Text("Planning")
             } footer: {
-                Text("These tools work offline and don't require a radio connection.")
+                Text("These tools don't require a radio connection.")
             }
 
             Section {
@@ -67,7 +86,7 @@ struct ToolsView: View {
         .navigationTitle("Tools")
         .sheet(isPresented: $showLineOfSight) {
             LineOfSightView()
-                .frame(minWidth: 400, minHeight: 600)
+                .frame(minWidth: 500, idealWidth: 700, minHeight: 700, idealHeight: 900)
         }
         .sheet(isPresented: $showRadioCalc) {
             NavigationStack {
@@ -79,7 +98,31 @@ struct ToolsView: View {
                     }
             }
             .meshTheme()
-            .frame(minWidth: 400, minHeight: 500)
+            .frame(minWidth: 500, idealWidth: 600, minHeight: 600, idealHeight: 700)
+        }
+        .sheet(isPresented: $showAirtime) {
+            NavigationStack {
+                LoRaAirtimeView()
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Done") { showAirtime = false }
+                        }
+                    }
+            }
+            .meshTheme()
+            .frame(minWidth: 500, idealWidth: 600, minHeight: 600, idealHeight: 700)
+        }
+        .sheet(isPresented: $showSensitivity) {
+            NavigationStack {
+                SensitivityTableView()
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Done") { showSensitivity = false }
+                        }
+                    }
+            }
+            .meshTheme()
+            .frame(minWidth: 500, idealWidth: 600, minHeight: 600, idealHeight: 700)
         }
         .sheet(isPresented: $showNoiseFloor) {
             NavigationStack {
