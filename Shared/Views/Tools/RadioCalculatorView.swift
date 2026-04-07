@@ -69,6 +69,7 @@ struct RadioCalculatorView: View {
                 Text("Theoretical maximum based on TX power, antenna gains, and RX sensitivity. Actual range depends on terrain, obstructions, and interference.")
             }
         }
+        .formStyle(.grouped)
         .meshTheme()
         .navigationTitle("Radio Calculator")
         #if os(iOS)

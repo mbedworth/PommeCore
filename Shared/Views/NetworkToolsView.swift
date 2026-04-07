@@ -683,7 +683,7 @@ struct ContactDetailSheet: View {
             #if !os(watchOS)
             .sheet(isPresented: $showLineOfSight) {
                 LineOfSightView()
-                    .frame(minWidth: 400, minHeight: 600)
+                    .frame(minWidth: 500, idealWidth: 700, minHeight: 700, idealHeight: 900)
             }
             #endif
         }
