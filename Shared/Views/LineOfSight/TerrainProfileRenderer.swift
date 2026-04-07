@@ -184,12 +184,48 @@ enum TerrainProfileRenderer {
             y: layout.yForElevation(result.profile.pointB.totalHeight)
         )
 
-        var path = Path()
-        path.move(to: ptA)
-        path.addLine(to: ptB)
+        // Direct A→B line (always drawn)
+        var directPath = Path()
+        directPath.move(to: ptA)
+        directPath.addLine(to: ptB)
 
-        let color: Color = result.directSegment.hasLineOfSight ? .green : .red
-        context.stroke(path, with: .color(color), style: StrokeStyle(lineWidth: 2, dash: [6, 3]))
+        let directColor: Color = result.directSegment.hasLineOfSight ? .green : .red
+        // When repeater present, make direct line thinner/subtler
+        let hasRepeater = result.profile.repeater != nil
+        let directLineWidth: CGFloat = hasRepeater ? 1.5 : 2
+        let directOpacity: Double = hasRepeater ? 0.4 : 1.0
+        context.stroke(directPath, with: .color(directColor.opacity(directOpacity)),
+                       style: StrokeStyle(lineWidth: directLineWidth, dash: [6, 3]))
+
+        // Repeater relay path A→R→B (through antenna tip)
+        if let repeater = result.profile.repeater,
+           let segAR = result.segmentAtoRepeater,
+           let segRB = result.segmentRepeaterToB {
+            let repeaterDist = GeoMath.haversineDistance(
+                lat1: result.profile.pointA.latitude, lon1: result.profile.pointA.longitude,
+                lat2: repeater.latitude, lon2: repeater.longitude
+            )
+            let ptR = CGPoint(
+                x: layout.xForDistance(repeaterDist),
+                y: layout.yForElevation(repeater.totalHeight)
+            )
+
+            // A → R segment
+            var pathAR = Path()
+            pathAR.move(to: ptA)
+            pathAR.addLine(to: ptR)
+            let colorAR: Color = segAR.hasLineOfSight ? .green : .red
+            context.stroke(pathAR, with: .color(colorAR),
+                           style: StrokeStyle(lineWidth: 2, dash: [6, 3]))
+
+            // R → B segment
+            var pathRB = Path()
+            pathRB.move(to: ptR)
+            pathRB.addLine(to: ptB)
+            let colorRB: Color = segRB.hasLineOfSight ? .green : .red
+            context.stroke(pathRB, with: .color(colorRB),
+                           style: StrokeStyle(lineWidth: 2, dash: [6, 3]))
+        }
     }
 
     // MARK: - Endpoint Markers
