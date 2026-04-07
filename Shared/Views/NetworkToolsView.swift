@@ -591,6 +591,17 @@ struct ContactDetailSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 16) {
+                    // Ping Results
+                    if remoteSessionManager.isPinging || !remoteSessionManager.pingResults.isEmpty {
+                        PingResultsView(
+                            results: remoteSessionManager.pingResults,
+                            stats: remoteSessionManager.pingStats,
+                            isPinging: remoteSessionManager.isPinging,
+                            current: remoteSessionManager.pingCount,
+                            total: remoteSessionManager.pingTotal
+                        )
+                    }
+
                     // Trace Route
                     if isTracePending {
                         ActivityOverlay(message: "Tracing route to \(contactStore.displayName(for: contact))...", timeout: 15)
@@ -641,6 +652,16 @@ struct ContactDetailSheet: View {
 
                     // Actions
                     VStack(spacing: 8) {
+                        actionButton("Ping", icon: "bolt.horizontal", pending: false) {
+                            remoteSessionManager.ping(contact: contact)
+                        }
+                        actionButton("Multi-Ping (5x)", icon: "bolt.horizontal.fill", pending: remoteSessionManager.isPinging) {
+                            if remoteSessionManager.isPinging {
+                                remoteSessionManager.cancelPing()
+                            } else {
+                                remoteSessionManager.multiPing(contact: contact, count: 5)
+                            }
+                        }
                         actionButton("Trace Route", icon: "point.topleft.down.to.point.bottomright.curvepath", pending: isTracePending) {
                             remoteSessionManager.traceRoute(to: contact)
                         }
@@ -1403,6 +1424,81 @@ struct ManualPathEditor: View {
             }
         default: // Auto — reset path so device rediscovers
             contactStore.resetPath(for: contact)
+        }
+    }
+}
+
+// MARK: - Ping Results View
+
+struct PingResultsView: View {
+    let results: [RemoteSessionManager.PingResult]
+    let stats: (sent: Int, received: Int, avgMs: Double, minMs: Double, maxMs: Double)?
+    let isPinging: Bool
+    let current: Int
+    let total: Int
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Image(systemName: "bolt.horizontal")
+                    .foregroundStyle(MeshTheme.accent)
+                Text(isPinging ? "Ping \(current)/\(total)" : "Ping Results")
+                    .font(.headline)
+                    .foregroundStyle(MeshTheme.textPrimary)
+                if isPinging {
+                    ProgressView()
+                        .scaleEffect(0.7)
+                }
+            }
+
+            ForEach(results) { result in
+                HStack {
+                    Text("seq=\(result.seq)")
+                        .font(.caption.monospaced())
+                        .foregroundStyle(MeshTheme.textSecondary)
+                        .frame(width: 50, alignment: .leading)
+                    if let ms = result.latencyMs {
+                        Text(String(format: "%.0f ms", ms))
+                            .font(.caption.monospaced().weight(.medium))
+                            .foregroundStyle(ms < 5000 ? .green : ms < 15000 ? .orange : .red)
+                        if result.hops > 0 {
+                            Text("\(result.hops) hop\(result.hops == 1 ? "" : "s")")
+                                .font(.caption2)
+                                .foregroundStyle(MeshTheme.textSecondary)
+                        }
+                    } else {
+                        Text("timeout")
+                            .font(.caption.monospaced())
+                            .foregroundStyle(.red)
+                    }
+                }
+            }
+
+            if let stats, !isPinging {
+                Divider()
+                HStack(spacing: 16) {
+                    statLabel("Sent", value: "\(stats.sent)")
+                    statLabel("Recv", value: "\(stats.received)")
+                    statLabel("Loss", value: String(format: "%.0f%%", stats.sent > 0 ? Double(stats.sent - stats.received) / Double(stats.sent) * 100 : 0))
+                    statLabel("Avg", value: String(format: "%.0f ms", stats.avgMs))
+                    statLabel("Min", value: String(format: "%.0f ms", stats.minMs))
+                    statLabel("Max", value: String(format: "%.0f ms", stats.maxMs))
+                }
+            }
+        }
+        .padding()
+        .background(MeshTheme.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    private func statLabel(_ label: String, value: String) -> some View {
+        VStack(spacing: 2) {
+            Text(label)
+                .font(.caption2)
+                .foregroundStyle(MeshTheme.textSecondary)
+            Text(value)
+                .font(.caption.monospaced().weight(.medium))
+                .foregroundStyle(MeshTheme.textPrimary)
         }
     }
 }

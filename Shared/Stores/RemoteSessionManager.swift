@@ -50,6 +50,34 @@ final class RemoteSessionManager {
     var isDiscovering = false
     var discoverFallbackMessage: String?
     var lastTraceResult: TraceResult?
+
+    // MARK: - Ping State
+
+    struct PingResult: Identifiable {
+        let id = UUID()
+        let seq: Int
+        let latencyMs: Double?  // nil = timeout
+        let hops: Int
+        let timestamp: Date
+    }
+
+    var pingResults: [PingResult] = []
+    var isPinging = false
+    var pingCount: Int = 0
+    var pingTotal: Int = 0
+    private var pingSendTime: Date?
+    private var pingContact: Contact?
+    private var pingTask: Task<Void, Never>?
+
+    var pingStats: (sent: Int, received: Int, avgMs: Double, minMs: Double, maxMs: Double)? {
+        guard !pingResults.isEmpty else { return nil }
+        let received = pingResults.filter { $0.latencyMs != nil }
+        let latencies = received.compactMap(\.latencyMs)
+        guard !latencies.isEmpty else { return (pingResults.count, 0, 0, 0, 0) }
+        let avg = latencies.reduce(0, +) / Double(latencies.count)
+        return (pingResults.count, received.count, avg, latencies.min() ?? 0, latencies.max() ?? 0)
+    }
+
     var telemetryByContact: [Data: [TelemetryReading]] = [:]
     var statusByContact: [Data: RemoteStatusInfo] = [:]
     var advertPathByContact: [Data: AdvertPathInfo] = [:]
@@ -880,6 +908,87 @@ final class RemoteSessionManager {
             detailContactForTrace = contact
         }
         pendingTraceContact = nil
+
+        // If ping is in progress, record the result
+        if isPinging, let sendTime = pingSendTime {
+            let latency = Date().timeIntervalSince(sendTime) * 1000
+            pingResults.append(PingResult(seq: pingCount, latencyMs: latency, hops: result.hops.count, timestamp: Date()))
+            pingSendTime = nil
+            continueMultiPing()
+        }
+    }
+
+    // MARK: - Ping
+
+    /// Single ping — sends a trace and measures round-trip time.
+    func ping(contact: Contact) {
+        startPing(contact: contact, count: 1)
+    }
+
+    /// Multi-ping — sends N pings with 3s spacing, collects stats.
+    func multiPing(contact: Contact, count: Int) {
+        startPing(contact: contact, count: count)
+    }
+
+    func cancelPing() {
+        pingTask?.cancel()
+        isPinging = false
+        pingSendTime = nil
+    }
+
+    private func startPing(contact: Contact, count: Int) {
+        guard contact.outPathLen > 0, !contact.outPath.isEmpty else {
+            showError?("Cannot ping — no route known. Try a direct neighbor with Status Request instead.")
+            return
+        }
+        pingResults = []
+        pingCount = 0
+        pingTotal = count
+        pingContact = contact
+        isPinging = true
+        sendSinglePing()
+    }
+
+    private func sendSinglePing() {
+        guard let contact = pingContact, pingCount < pingTotal else {
+            isPinging = false
+            return
+        }
+        pingCount += 1
+        pingSendTime = Date()
+
+        let tag = UInt32.random(in: 0..<UInt32.max)
+        pendingTraceTag = tag
+        pendingTraceContact = contact
+        lastTraceResult = nil
+        let actualPathLen = Int(contact.outPathLen)
+        let pathData = contact.outPath.prefix(actualPathLen)
+        let frame = MeshCoreProtocol.buildSendTracePath(outPath: Data(pathData), tag: tag)
+        sendCommand?(frame, "PING(\(pingCount)/\(pingTotal))")
+
+        // Timeout for this ping
+        traceTimeoutTask?.cancel()
+        traceTimeoutTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 15_000_000_000)
+            guard !Task.isCancelled, let self, self.isPinging, self.pingSendTime != nil else { return }
+            self.pingResults.append(PingResult(seq: self.pingCount, latencyMs: nil, hops: 0, timestamp: Date()))
+            self.pingSendTime = nil
+            self.pendingTraceTag = nil
+            self.continueMultiPing()
+        }
+    }
+
+    private func continueMultiPing() {
+        guard isPinging, pingCount < pingTotal else {
+            isPinging = false
+            return
+        }
+        // 3-second delay between pings
+        pingTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 3_000_000_000)
+            guard !Task.isCancelled else { return }
+            self?.sendSinglePing()
+        }
     }
 
     // MARK: - Status & Telemetry
