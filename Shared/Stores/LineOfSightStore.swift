@@ -150,6 +150,7 @@ final class LineOfSightStore {
     func clearResults() {
         currentResult = nil
         errorMessage = nil
+        resultCache.removeAll()
     }
 
     func clearCache() {
