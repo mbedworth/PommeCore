@@ -11,7 +11,7 @@
 #if !os(watchOS)
 import SwiftUI
 import MapKit
-import CoreLocation
+@preconcurrency import CoreLocation
 import MeshCoreKit
 
 // MARK: - InternetMapNode
