@@ -577,6 +577,10 @@ struct ContactDetailSheet: View {
     @Environment(RemoteSessionManager.self) private var remoteSessionManager
     @Environment(\.dismiss) private var dismiss
     @State private var showPathEditor = false
+    #if !os(watchOS)
+    @Environment(LineOfSightStore.self) private var lineOfSightStore
+    @State private var showLineOfSight = false
+    #endif
 
     private var isTracePending: Bool { remoteSessionManager.pendingTraceTag != nil }
     private var isStatusPending: Bool { remoteSessionManager.pendingStatusKey == contact.publicKeyPrefix }
@@ -650,6 +654,12 @@ struct ContactDetailSheet: View {
                         actionButton("Edit Path", icon: "pencil.line", pending: false) {
                             showPathEditor = true
                         }
+                        #if !os(watchOS)
+                        actionButton("Line of Sight", icon: "eye.trianglebadge.exclamationmark", pending: false) {
+                            lineOfSightStore.configureForContact(contact)
+                            showLineOfSight = true
+                        }
+                        #endif
                     }
                     .foregroundStyle(MeshTheme.accent)
                 }
@@ -665,6 +675,12 @@ struct ContactDetailSheet: View {
             .sheet(isPresented: $showPathEditor) {
                 ManualPathEditor(contact: contact)
             }
+            #if !os(watchOS)
+            .sheet(isPresented: $showLineOfSight) {
+                LineOfSightView()
+                    .frame(minWidth: 400, minHeight: 600)
+            }
+            #endif
         }
         .meshTheme()
         .onAppear {

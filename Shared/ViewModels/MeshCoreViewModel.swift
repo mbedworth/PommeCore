@@ -102,6 +102,9 @@ final class MeshCoreViewModel: ObservableObject {
     let connectionManager = ConnectionManager()
     let remoteSessionManager = RemoteSessionManager()
     let navigationStore = NavigationStore()
+    #if !os(watchOS)
+    let lineOfSightStore = LineOfSightStore()
+    #endif
     
     // All forwarding properties removed — use stores directly.
     // contacts → contactStore.contacts, channels → channelStore.channels, etc.
@@ -215,6 +218,10 @@ final class MeshCoreViewModel: ObservableObject {
         remoteSessionManager.sendUSBCLI = { [weak self] cmd in self?.connectionManager.sendUSBCLI(cmd) }
         remoteSessionManager.sendUSBCLIDirect = { [weak self] cmd in self?.connectionManager.sendUSBCLIDirect(cmd) }
         remoteSessionManager.sendUSBKeepalive = { [weak self] in self?.connectionManager.sendUSBKeepalive() }
+#endif
+
+#if !os(watchOS)
+        lineOfSightStore.userLocationProvider = { SharedLocation.manager.location }
 #endif
     }
     

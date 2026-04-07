@@ -52,6 +52,9 @@ struct MeshCoreApp: App {
                     .environment(viewModel.connectionManager)
                     .environment(viewModel.remoteSessionManager)
                     .environment(viewModel.navigationStore)
+                    #if !os(watchOS)
+                    .environment(viewModel.lineOfSightStore)
+                    #endif
                     .meshTheme()
                     #if os(iOS)
                     .onAppear { appDelegate.viewModel = viewModel }

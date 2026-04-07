@@ -4,12 +4,13 @@ import XCTest
 final class MeshCoreKitTests: XCTestCase {
     func testBuildAppStart() {
         let frame = MeshCoreProtocol.buildAppStart()
-        XCTAssertEqual(frame, Data([0x01]))
+        XCTAssertEqual(frame[0], 0x01, "First byte should be appStart command")
+        XCTAssertGreaterThan(frame.count, 1, "Frame should include app version and name")
     }
 
-    func testBuildGetDeviceInfo() {
-        let frame = MeshCoreProtocol.buildGetDeviceInfo()
-        XCTAssertEqual(frame, Data([0x06]))
+    func testBuildGetBattAndStorage() {
+        let frame = MeshCoreProtocol.buildGetBattAndStorage()
+        XCTAssertEqual(frame, Data([0x14]))
     }
 
     func testPublicKeyHash() {
