@@ -1944,6 +1944,21 @@ struct ChannelMessageBubble: View {
                     Label("Copy Text", systemImage: "doc.on.doc")
                 }
                 if !message.isOutgoing, let sender = message.senderName, !sender.isEmpty {
+                    // Channel reactions (MeshCore One format: emoji@[senderName]\nhash)
+                    Menu {
+                        ForEach(["👍", "❤️", "😂", "😮", "😢", "🙏"], id: \.self) { emoji in
+                            Button(emoji) {
+                                let hash = messageStoreManager.reactionHash(for: message)
+                                let reactionText = "\(emoji)@[\(sender)]\n\(hash)"
+                                if let chIdx = message.channelIndex {
+                                    messageStoreManager.sendChannelMessage(reactionText, channelIndex: chIdx)
+                                }
+                                messageStoreManager.addReactionLocal(emoji, to: message)
+                            }
+                        }
+                    } label: {
+                        Label("React", systemImage: "face.smiling")
+                    }
                     Button {
                         NotificationCenter.default.post(name: .insertMention, object: sender)
                     } label: {

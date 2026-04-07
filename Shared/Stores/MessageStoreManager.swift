@@ -563,6 +563,18 @@ final class MessageStoreManager {
         persistMessages(for: contactKey)
     }
 
+    /// Add a reaction locally without sending over mesh (for channel reactions sent separately).
+    func addReactionLocal(_ emoji: String, to message: Message) {
+        let contactKey = message.contactKeyHash
+        guard var messages = messagesByContact[contactKey],
+              let idx = messages.firstIndex(where: { $0.id == message.id }) else { return }
+        if !messages[idx].reactions.contains(emoji) {
+            messages[idx].reactions.append(emoji)
+            messagesByContact[contactKey] = messages
+            persistMessages(for: contactKey)
+        }
+    }
+
     // MARK: - Reaction Hash (MeshCore One compatible)
 
     /// Compute the Crockford Base32 hash for a message (for reaction matching).
@@ -577,13 +589,22 @@ final class MessageStoreManager {
         return crockfordBase32Encode(first5)
     }
 
-    /// Check if an incoming message text is a reaction (emoji + newline + 8-char hash).
+    /// Check if an incoming message text is a reaction.
+    /// DM format: emoji\nhash
+    /// Channel format: emoji@[senderName]\nhash
     func parseReaction(text: String) -> (emoji: String, hash: String)? {
         let parts = text.components(separatedBy: "\n")
         guard parts.count == 2 else { return nil }
-        let emojiPart = parts[0]
+        var emojiPart = parts[0]
         let hashPart = parts[1]
-        // Emoji part should be 1-2 Unicode scalars, hash should be 8 alphanumeric chars
+
+        // Strip @[senderName] suffix for channel reactions
+        if let atIdx = emojiPart.firstIndex(of: "@"),
+           emojiPart[atIdx...].hasPrefix("@[") {
+            emojiPart = String(emojiPart[..<atIdx])
+        }
+
+        // Emoji part should be 1-4 Unicode scalars, hash should be 8 alphanumeric chars
         guard emojiPart.unicodeScalars.count <= 4,
               emojiPart.unicodeScalars.first?.properties.isEmoji == true,
               hashPart.count == 8,
