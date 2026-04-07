@@ -380,6 +380,44 @@ final class RemoteSessionManager {
         fetchTask = nil
     }
 
+    /// CLI commands grouped by UI section for on-demand loading.
+    static let sectionCommands: [String: [String]] = [
+        "info": ["ver", "clock", "get name", "get role", "get public.key"],
+        "radio": ["get radio", "get tx", "get repeat"],
+        "timing": ["get af", "get rxdelay", "get txdelay", "get direct.txdelay",
+                    "get flood.max", "get int.thresh", "get agc.reset.interval"],
+        "routing": ["get loop.detect", "get path.hash.mode"],
+        "advertising": ["get name", "get lat", "get lon", "get owner.info",
+                        "get advert.interval", "get flood.advert.interval", "get multi.acks"],
+        "gps": ["gps", "gps advert"],
+        "security": ["get allow.read.only", "get guest.password", "get adc.multiplier"],
+        "maintenance": ["powersaving"],
+    ]
+
+    /// Fetch commands for a specific section, if not already fetched.
+    func fetchSection(_ section: String, for contact: Contact) {
+        let session = remoteSession(for: contact)
+        guard !session.fetchedSections.contains(section),
+              session.fetchingSection == nil else { return }
+
+        guard let commands = Self.sectionCommands[section] else { return }
+
+        session.fetchingSection = section
+        Self.logger.info("REMOTE MGMT: Fetching section '\(section)' (\(commands.count) commands) for \(contact.name)")
+
+        fetchTask?.cancel()
+        fetchTask = Task { [weak self] in
+            for command in commands {
+                guard let self, !Task.isCancelled else { return }
+                await self.fetchRemoteSetting(command: command, contact: contact, session: session)
+            }
+            guard !Task.isCancelled else { return }
+            session.fetchedSections.insert(section)
+            session.fetchingSection = nil
+            Self.logger.info("REMOTE MGMT: Section '\(section)' loaded for \(contact.name)")
+        }
+    }
+
     /// Send a single CLI command and wait for its response.
     private func fetchRemoteSetting(command: String, contact: Contact, session: RemoteDeviceSession) async {
         let cmdIndex: Int
@@ -538,12 +576,12 @@ final class RemoteSessionManager {
 
                 syncNextMessage?()
                 if let contact = contacts.first(where: { $0.publicKeyPrefix == key }) {
-                    Self.logger.info("REMOTE MGMT: Login success for \(contact.name), scheduling settings fetch")
+                    Self.logger.info("REMOTE MGMT: Login success for \(contact.name), fetching device info")
                     Task { [weak self] in
                         try? await Task.sleep(nanoseconds: 1_500_000_000)
                         guard let self else { return }
-                        Self.logger.info("REMOTE MGMT: Starting auto-fetch settings for \(contact.name)")
-                        self.fetchRemoteSettings(for: contact)
+                        // Only fetch device info on login — other sections load on demand
+                        self.fetchSection("info", for: contact)
                     }
                 }
                 return key

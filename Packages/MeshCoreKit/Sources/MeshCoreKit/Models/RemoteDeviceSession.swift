@@ -83,6 +83,12 @@ public final class RemoteDeviceSession: ObservableObject {
     /// Whether full settings have been fetched at least once this session.
     public var hasLoadedFullSettings = false
 
+    /// Tracks which setting sections have been fetched (on-demand loading).
+    @Published public var fetchedSections: Set<String> = []
+
+    /// Section currently being fetched.
+    @Published public var fetchingSection: String?
+
     /// Total number of settings commands sent during auto-fetch.
     @Published public var fetchTotalCount = 0
 

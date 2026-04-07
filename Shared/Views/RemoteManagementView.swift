@@ -36,18 +36,13 @@ struct RemoteManagementView: View {
                 if !isUSBDevice {
                     disconnectSection
                 }
-                if session.isFetchingSettings {
+                if let section = session.fetchingSection {
                     Section {
                         HStack(spacing: 12) {
                             ProgressView()
                                 .tint(remoteAccent)
-                            if session.fetchTotalCount > 0 {
-                                Text("Fetching settings... (\(session.fetchReceivedCount)/\(session.fetchTotalCount))")
-                                    .foregroundStyle(MeshTheme.textSecondary)
-                            } else {
-                                Text("Fetching settings...")
-                                    .foregroundStyle(MeshTheme.textSecondary)
-                            }
+                            Text("Loading \(section)...")
+                                .foregroundStyle(MeshTheme.textSecondary)
                         }
                         .listRowBackground(MeshTheme.surface)
                     }
@@ -64,23 +59,25 @@ struct RemoteManagementView: View {
                     .listRowBackground(MeshTheme.surface)
                 }
 
-                // All permission levels: device info (read-only)
+                // All permission levels: device info (auto-fetched on login)
                 infoSection
-                // Read-only and above: settings sections
+                // Read-only and above: settings sections (fetched on demand)
                 if canRead {
                     radioSection
+                        .onAppear { remoteSessionManager.fetchSection("radio", for: contact) }
                     timingSection
-                    // Repeater-only: routing has discover.neighbors and regions
+                        .onAppear { remoteSessionManager.fetchSection("timing", for: contact) }
                     if contact.type == .repeater {
                         routingSection
+                            .onAppear { remoteSessionManager.fetchSection("routing", for: contact) }
                     }
                     advertisingSection
+                        .onAppear { remoteSessionManager.fetchSection("advertising", for: contact) }
                     gpsSection
-                    // Room server-only sections
+                        .onAppear { remoteSessionManager.fetchSection("gps", for: contact) }
                     if contact.type == .room {
                         roomSection
                     }
-                    // Sensor-only sections
                     if contact.type == .sensor && isAdmin {
                         sensorSection
                     }
@@ -88,7 +85,9 @@ struct RemoteManagementView: View {
                 // Admin only: security, maintenance, CLI
                 if isAdmin {
                     securitySection
+                        .onAppear { remoteSessionManager.fetchSection("security", for: contact) }
                     maintenanceSection
+                        .onAppear { remoteSessionManager.fetchSection("maintenance", for: contact) }
                     #if os(macOS) || targetEnvironment(macCatalyst)
                     if isUSBDevice {
                         serialOnlySection
@@ -96,8 +95,8 @@ struct RemoteManagementView: View {
                     #endif
                     cliTerminalSection
                 } else if canRead {
-                    // Non-admin readers see read-only maintenance (power saving status)
                     maintenanceSection
+                        .onAppear { remoteSessionManager.fetchSection("maintenance", for: contact) }
                 }
             } else {
                 loginSection
@@ -106,9 +105,9 @@ struct RemoteManagementView: View {
         .meshListStyle()
         .navigationTitle("Remote Management")
         .task {
-            // Backup trigger: fetch settings if login auto-fetch hasn't started yet
-            guard isLoggedIn, !session.hasLoadedFullSettings, !session.isFetchingSettings else { return }
-            remoteSessionManager.fetchRemoteSettings(for: contact)
+            // Backup trigger: fetch device info if login auto-fetch hasn't started yet
+            guard isLoggedIn, !session.fetchedSections.contains("info") else { return }
+            remoteSessionManager.fetchSection("info", for: contact)
         }
         .onDisappear {
             // Cancel any in-progress settings fetch immediately
@@ -121,8 +120,8 @@ struct RemoteManagementView: View {
         .toolbar {
             ToolbarItem(placement: .automatic) {
                 Button {
-                    session.hasLoadedFullSettings = false
-                    remoteSessionManager.fetchRemoteSettings(for: contact)
+                    session.fetchedSections.removeAll()
+                    remoteSessionManager.fetchSection("info", for: contact)
                 } label: {
                     Image(systemName: "arrow.clockwise")
                         .foregroundStyle(MeshTheme.accent)
