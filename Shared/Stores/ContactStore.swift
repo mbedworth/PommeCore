@@ -112,14 +112,22 @@ final class ContactStore {
         sortedContacts(byLastSeen: false)
     }
 
+    /// Composite last-activity timestamp: max(lastAdvert, last message activity).
+    func lastActivityTimestamp(for contact: Contact) -> TimeInterval {
+        var latest = TimeInterval(contact.lastAdvert)
+        if let activityDate = activityDateProvider?(contact.publicKeyPrefix) {
+            latest = max(latest, activityDate.timeIntervalSince1970)
+        }
+        return latest
+    }
+
     func sortedContacts(byLastSeen: Bool) -> [Contact] {
         contacts.filter { !isBlocked($0) }.sorted { a, b in
             if a.isFavourite != b.isFavourite {
                 return a.isFavourite
             }
             if byLastSeen {
-                // Most recently seen first
-                return a.lastAdvert > b.lastAdvert
+                return lastActivityTimestamp(for: a) > lastActivityTimestamp(for: b)
             }
             let nameA = displayName(for: a).strippingEmoji
             let nameB = displayName(for: b).strippingEmoji
@@ -206,13 +214,7 @@ final class ContactStore {
 
     func contactStatus(for contact: Contact) -> ContactStatus {
         let now = Date().timeIntervalSince1970
-        let lastSeen = TimeInterval(contact.lastAdvert)
-
-        // Also check messages for most recent activity
-        var latest = lastSeen
-        if let activityDate = activityDateProvider?(contact.publicKeyPrefix) {
-            latest = max(latest, activityDate.timeIntervalSince1970)
-        }
+        let latest = lastActivityTimestamp(for: contact)
 
         guard latest > 1_000_000_000 else { return .offline }
         let elapsed = now - latest
