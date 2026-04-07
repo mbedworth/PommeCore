@@ -60,8 +60,6 @@ struct ContactListView: View {
     @State private var showExportCopied = false
     @State private var isExporting = false
     @State private var showNewGroupSheet = false
-    @State private var newGroupName = ""
-    @State private var newGroupEmoji = ""
     @State private var groupContactForNew: Contact?
     @State private var showRenameGroupSheet = false
     @State private var renameGroupTarget: ContactStore.ContactGroup?
@@ -780,12 +778,6 @@ struct ContactListView: View {
     @ViewBuilder
     private var groupsSection: some View {
         Section {
-            if contactStore.contactGroups.isEmpty {
-                Text("Long-press a contact or tap + to create a group")
-                    .font(.caption)
-                    .foregroundStyle(MeshTheme.textSecondary)
-                    .listRowBackground(MeshTheme.surface)
-            }
             ForEach(contactStore.contactGroups) { group in
                 DisclosureGroup {
                     let members = sortedGroupMembers(contactStore.contactsInGroup(group))
@@ -1098,28 +1090,23 @@ struct ContactListView: View {
         } message: {
             Text("Paste a meshcore:// link to import a contact or channel.")
         }
-        .sheet(isPresented: $showNewGroupSheet, onDismiss: {
-            newGroupName = ""; newGroupEmoji = ""; groupContactForNew = nil
-        }) {
-            GroupEditSheet(title: "New Group", name: $newGroupName, emoji: $newGroupEmoji) {
-                let trimmed = newGroupName.trimmingCharacters(in: .whitespacesAndNewlines)
-                guard !trimmed.isEmpty else { return }
-                contactStore.addContactGroup(name: trimmed, emoji: newGroupEmoji)
+        .sheet(isPresented: $showNewGroupSheet) {
+            GroupEditSheet(title: "New Group", initialName: "", initialEmoji: "") { name, emoji in
+                contactStore.addContactGroup(name: name, emoji: emoji)
                 if let contact = groupContactForNew,
                    let group = contactStore.contactGroups.last {
                     contactStore.addContactToGroup(contact, group: group)
                 }
+                groupContactForNew = nil
                 showNewGroupSheet = false
             }
         }
-        .sheet(isPresented: $showRenameGroupSheet, onDismiss: {
-            renameGroupTarget = nil
-        }) {
-            GroupEditSheet(title: "Rename Group", name: $renameGroupName, emoji: $renameGroupEmoji) {
-                let trimmed = renameGroupName.trimmingCharacters(in: .whitespacesAndNewlines)
-                if !trimmed.isEmpty, let target = renameGroupTarget {
-                    contactStore.renameContactGroup(target, name: trimmed, emoji: renameGroupEmoji)
+        .sheet(isPresented: $showRenameGroupSheet) {
+            GroupEditSheet(title: "Rename Group", initialName: renameGroupName, initialEmoji: renameGroupEmoji) { name, emoji in
+                if let target = renameGroupTarget {
+                    contactStore.renameContactGroup(target, name: name, emoji: emoji)
                 }
+                renameGroupTarget = nil
                 showRenameGroupSheet = false
             }
         }
@@ -1456,7 +1443,9 @@ private extension ContactListView {
             if !contactStore.pendingNewContacts.isEmpty {
                 pendingContactsSection
             }
-            groupsSection
+            if !contactStore.contactGroups.isEmpty {
+                groupsSection
+            }
             contactsSection
             if !channelsFirst {
                 channelsSection
@@ -1638,10 +1627,12 @@ private extension ContactListView {
 
 private struct GroupEditSheet: View {
     let title: String
-    @Binding var name: String
-    @Binding var emoji: String
-    let onSave: () -> Void
+    let initialName: String
+    let initialEmoji: String
+    let onSave: (String, String) -> Void
     @Environment(\.dismiss) private var dismiss
+    @State private var name = ""
+    @State private var emoji = ""
 
     private let emojiOptions = ["📡", "🏠", "🏔️", "🌲", "🏙️", "⛺", "🚗", "🛠️", "🔒", "⭐", "🔥", "💬", "📍", "🌊", "🎯"]
 
@@ -1706,11 +1697,19 @@ private struct GroupEditSheet: View {
                     Button("Cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") { onSave() }
-                        .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    Button("Save") {
+                        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+                        guard !trimmed.isEmpty else { return }
+                        onSave(trimmed, emoji)
+                    }
+                    .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
         }
         .frame(minWidth: 350, idealWidth: 400, minHeight: 350, idealHeight: 450)
+        .onAppear {
+            name = initialName
+            emoji = initialEmoji
+        }
     }
 }
