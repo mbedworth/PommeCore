@@ -60,6 +60,8 @@ final class ChannelStore {
     private var incomingChannels: [MeshChannel] = []
     var hasCompletedInitialChannelSync = false
     private var channelSyncTimeoutTask: Task<Void, Never>?
+    private var consecutiveEmptyChannels = 0
+    private static let earlyStopThreshold = 3
 
     /// The 12-char hex prefix of the connected radio's public key.
     /// Used to scope channel secrets and notification modes per radio.
@@ -100,6 +102,7 @@ final class ChannelStore {
         Self.logger.info("Channel sync: requesting indices 0..<\(maxCh) (maxChannels=\(maxChannels) from DEVICE_INFO)")
         isSyncingChannels = true
         incomingChannels = []
+        consecutiveEmptyChannels = 0
 
         for idx in 0..<maxCh {
             let delay = UInt64(idx) * 50_000_000
@@ -120,6 +123,8 @@ final class ChannelStore {
     }
 
     func handleChannelInfo(_ channel: MeshChannel) {
+        guard isSyncingChannels else { return }
+
         var ch = channel
         if ch.secret == nil {
             if let existing = channels.first(where: { $0.index == channel.index }) {
@@ -146,8 +151,15 @@ final class ChannelStore {
             incomingChannels.append(ch)
         }
 
-        // Check completion — caller provides maxChannels via syncChannels call
-        // We check against incomingChannels count vs expected from the sync call
+        // Early stop: finalize once we see consecutive empty channels
+        if ch.isActive {
+            consecutiveEmptyChannels = 0
+        } else {
+            consecutiveEmptyChannels += 1
+            if consecutiveEmptyChannels >= Self.earlyStopThreshold {
+                finalizeChannelSync()
+            }
+        }
     }
 
     /// Check if channel sync is complete based on maxChannels from DeviceInfo.
@@ -306,6 +318,7 @@ final class ChannelStore {
         incomingChannels = []
         isSyncingChannels = false
         hasCompletedInitialChannelSync = false
+        consecutiveEmptyChannels = 0
         pendingChannelImport = nil
         showChannelImportOptions = false
         pendingMultiChannelImport = nil
