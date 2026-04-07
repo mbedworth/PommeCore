@@ -11,6 +11,9 @@
 		0F29C3C52F84856E0007BF08 /* Services/ElevationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3C42F84856E0007BF08 /* Services/ElevationService.swift */; };
 		0F29C3C62F84856E0007BF08 /* Services/ElevationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3C42F84856E0007BF08 /* Services/ElevationService.swift */; };
 		0F29C3C72F84856E0007BF08 /* Services/ElevationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3C42F84856E0007BF08 /* Services/ElevationService.swift */; };
+		LNK10000000000000000001 /* Services/LinkPreviewService.swift in Sources */ = {isa = PBXBuildFile; fileRef = LNK10000000000000000000 /* Services/LinkPreviewService.swift */; };
+		LNK10000000000000000002 /* Services/LinkPreviewService.swift in Sources */ = {isa = PBXBuildFile; fileRef = LNK10000000000000000000 /* Services/LinkPreviewService.swift */; };
+		LNK10000000000000000003 /* Services/LinkPreviewService.swift in Sources */ = {isa = PBXBuildFile; fileRef = LNK10000000000000000000 /* Services/LinkPreviewService.swift */; };
 		0F29C3C92F8485BD0007BF08 /* LineOfSightStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3C82F8485BD0007BF08 /* LineOfSightStore.swift */; };
 		0F29C3CA2F8485BD0007BF08 /* LineOfSightStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3C82F8485BD0007BF08 /* LineOfSightStore.swift */; };
 		0F29C3D42F84863E0007BF08 /* LineOfSight/TerrainProfileCanvas.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3D22F84863E0007BF08 /* LineOfSight/TerrainProfileCanvas.swift */; };
@@ -132,6 +135,7 @@
 
 /* Begin PBXFileReference section */
 		0F29C3C42F84856E0007BF08 /* Services/ElevationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/ElevationService.swift; sourceTree = "<group>"; };
+		LNK10000000000000000000 /* Services/LinkPreviewService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/LinkPreviewService.swift; sourceTree = "<group>"; };
 		0F29C3C82F8485BD0007BF08 /* LineOfSightStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineOfSightStore.swift; sourceTree = "<group>"; };
 		0F29C3CC2F84863E0007BF08 /* LineOfSight/AntennaSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineOfSight/AntennaSettingsView.swift; sourceTree = "<group>"; };
 		0F29C3CD2F84863E0007BF08 /* LineOfSight/LineOfSightView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineOfSight/LineOfSightView.swift; sourceTree = "<group>"; };
@@ -308,6 +312,7 @@
 			isa = PBXGroup;
 			children = (
 				0F29C3C42F84856E0007BF08 /* Services/ElevationService.swift */,
+				LNK10000000000000000000 /* Services/LinkPreviewService.swift */,
 				C9E04F99D8E7C9D4D391AEF8 /* Models */,
 				F587E5EEE1FE6B2B210AEFE3 /* App */,
 				307D79903AB18CCBBF806BCE /* ViewModels */,
@@ -512,6 +517,7 @@
 				9D7EAB7850F077EF373AC84F /* NetworkToolsView.swift in Sources */,
 				C9CEA8D3714859C1177D7704 /* ContactListView.swift in Sources */,
 				0F29C3C52F84856E0007BF08 /* Services/ElevationService.swift in Sources */,
+				LNK10000000000000000001 /* Services/LinkPreviewService.swift in Sources */,
 				D4E5F6A7B8C9D0E1F2A3B4C5 /* ContactRowView.swift in Sources */,
 				B4C5D6E7F8A9B0C1D2E3F4A5 /* NavigationStore.swift in Sources */,
 				18B6F45B61F3581FB64D1DB0 /* DeviceScannerView.swift in Sources */,
@@ -562,6 +568,7 @@
 				F01FFE8B0B7AB2F62D296F88 /* NetworkToolsView.swift in Sources */,
 				8EF971496F064F1AD761B796 /* ContactListView.swift in Sources */,
 				0F29C3C62F84856E0007BF08 /* Services/ElevationService.swift in Sources */,
+				LNK10000000000000000002 /* Services/LinkPreviewService.swift in Sources */,
 				C3D4E5F6A7B8C9D0E1F2A3B4 /* ContactRowView.swift in Sources */,
 				A3B4C5D6E7F8A9B0C1D2E3F4 /* NavigationStore.swift in Sources */,
 				9A92FFC5BE2A781BEC80720C /* DeviceScannerView.swift in Sources */,

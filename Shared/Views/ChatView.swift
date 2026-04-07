@@ -1534,6 +1534,7 @@ struct MessageBubble: View {
     var onReact: ((Message, String) -> Void)?
     var onForward: ((Message) -> Void)?
     @Environment(MessageStoreManager.self) private var messageStoreManager
+    @State private var linkMetadata: LinkPreviewService.LinkMetadata?
 
     /// Parse quoted text from message (lines starting with "> ")
     private var quotedText: String? {
@@ -1571,6 +1572,11 @@ struct MessageBubble: View {
                     // Message text
                     linkifyMeshcoreURLs(quotedText != nil ? replyText : message.text)
                         .textSelection(.enabled)
+
+                    // Link preview
+                    if let meta = linkMetadata, meta.title != nil {
+                        LinkPreviewCard(metadata: meta)
+                    }
                 }
                     .padding(.horizontal, 14)
                     .padding(.vertical, 9)
@@ -1698,6 +1704,21 @@ struct MessageBubble: View {
 
             if !message.isOutgoing { Spacer(minLength: 48) }
         }
+        .task(id: message.id) {
+            guard linkMetadata == nil, let url = firstHTTPURL(in: message.text) else { return }
+            linkMetadata = await LinkPreviewService.shared.fetchMetadata(for: url)
+        }
+    }
+
+    /// Extract the first http/https URL from message text.
+    private func firstHTTPURL(in text: String) -> URL? {
+        let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue)
+        let range = NSRange(text.startIndex..., in: text)
+        guard let match = detector?.firstMatch(in: text, range: range),
+              let url = match.url,
+              let scheme = url.scheme?.lowercased(),
+              scheme == "http" || scheme == "https" else { return nil }
+        return url
     }
 
     @ViewBuilder
@@ -2171,5 +2192,53 @@ struct ForwardContactPicker: View {
             }
         }
         .frame(minWidth: 300, minHeight: 400)
+    }
+}
+
+// MARK: - Link Preview Card
+
+struct LinkPreviewCard: View {
+    let metadata: LinkPreviewService.LinkMetadata
+
+    var body: some View {
+        Link(destination: metadata.url) {
+            VStack(alignment: .leading, spacing: 4) {
+                if let imageURL = metadata.imageURL {
+                    AsyncImage(url: imageURL) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(maxHeight: 120)
+                            .clipped()
+                    } placeholder: {
+                        Color.clear.frame(height: 0)
+                    }
+                }
+                VStack(alignment: .leading, spacing: 2) {
+                    if let title = metadata.title {
+                        Text(title)
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(MeshTheme.textOnAccent)
+                            .lineLimit(2)
+                    }
+                    if let desc = metadata.description {
+                        Text(desc)
+                            .font(.caption2)
+                            .foregroundStyle(MeshTheme.textOnAccent.opacity(0.7))
+                            .lineLimit(2)
+                    }
+                    if let site = metadata.siteName {
+                        Text(site)
+                            .font(.caption2)
+                            .foregroundStyle(MeshTheme.accent)
+                    }
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+            }
+            .frame(maxWidth: 240)
+            .background(Color.black.opacity(0.15))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+        }
     }
 }
