@@ -82,6 +82,9 @@ public struct Message: Identifiable, Codable, Sendable {
     /// Whether path was reset (flood phase active).
     public var didResetPath: Bool
 
+    /// Local-only emoji reactions (not persisted to mesh, PommeCore-to-PommeCore feature).
+    public var reactions: [String]
+
     public init(
         id: UUID = UUID(),
         senderKeyHash: Data = Data(),
@@ -100,7 +103,8 @@ public struct Message: Identifiable, Codable, Sendable {
         attempt: UInt8 = 0,
         isSigned: Bool = false,
         suggestedTimeoutMs: UInt32? = nil,
-        didResetPath: Bool = false
+        didResetPath: Bool = false,
+        reactions: [String] = []
     ) {
         self.id = id
         self.senderKeyHash = senderKeyHash
@@ -120,5 +124,30 @@ public struct Message: Identifiable, Codable, Sendable {
         self.isSigned = isSigned
         self.suggestedTimeoutMs = suggestedTimeoutMs
         self.didResetPath = didResetPath
+        self.reactions = reactions
+    }
+
+    // Backward-compatible decoder — reactions may not exist in older persisted data
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        senderKeyHash = try container.decode(Data.self, forKey: .senderKeyHash)
+        contactKeyHash = try container.decode(Data.self, forKey: .contactKeyHash)
+        text = try container.decode(String.self, forKey: .text)
+        timestamp = try container.decode(Date.self, forKey: .timestamp)
+        isOutgoing = try container.decode(Bool.self, forKey: .isOutgoing)
+        status = try container.decode(DeliveryStatus.self, forKey: .status)
+        expectedACK = try container.decodeIfPresent(UInt32.self, forKey: .expectedACK)
+        snr = try container.decodeIfPresent(Int8.self, forKey: .snr)
+        hops = try container.decodeIfPresent(UInt8.self, forKey: .hops)
+        channelIndex = try container.decodeIfPresent(UInt8.self, forKey: .channelIndex)
+        senderName = try container.decodeIfPresent(String.self, forKey: .senderName)
+        roundTripMs = try container.decodeIfPresent(UInt32.self, forKey: .roundTripMs)
+        txtType = try container.decodeIfPresent(UInt8.self, forKey: .txtType) ?? 0
+        attempt = try container.decodeIfPresent(UInt8.self, forKey: .attempt) ?? 0
+        isSigned = try container.decodeIfPresent(Bool.self, forKey: .isSigned) ?? false
+        suggestedTimeoutMs = try container.decodeIfPresent(UInt32.self, forKey: .suggestedTimeoutMs)
+        didResetPath = try container.decodeIfPresent(Bool.self, forKey: .didResetPath) ?? false
+        reactions = try container.decodeIfPresent([String].self, forKey: .reactions) ?? []
     }
 }

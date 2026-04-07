@@ -528,6 +528,19 @@ final class MessageStoreManager {
 
     // MARK: - Delete / Clear
 
+    func addReaction(_ emoji: String, to message: Message) {
+        let contactKey = message.contactKeyHash
+        guard var messages = messagesByContact[contactKey],
+              let idx = messages.firstIndex(where: { $0.id == message.id }) else { return }
+        if messages[idx].reactions.contains(emoji) {
+            messages[idx].reactions.removeAll { $0 == emoji }
+        } else {
+            messages[idx].reactions.append(emoji)
+        }
+        messagesByContact[contactKey] = messages
+        persistMessages(for: contactKey)
+    }
+
     func deleteMessage(_ message: Message, in contactKey: Data) {
         if var messages = messagesByContact[contactKey],
            let idx = messages.firstIndex(where: { $0.id == message.id }) {

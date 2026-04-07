@@ -35,6 +35,7 @@ struct ChatView: View {
     @State private var isSearching = false
     @State private var searchText = ""
     @State private var showPathEditor = false
+    @State private var quotedMessage: Message?
 
     /// Live contact from ViewModel (picks up optimistic path updates).
     private var liveContact: Contact {
@@ -312,7 +313,13 @@ struct ChatView: View {
                         if searchText.isEmpty && index == unreadDividerIndex {
                             UnreadDivider()
                         }
-                        MessageBubble(message: message)
+                        MessageBubble(
+                            message: message,
+                            onQuote: { quotedMessage = $0 },
+                            onReact: { msg, emoji in
+                                messageStoreManager.addReaction(emoji, to: msg)
+                            }
+                        )
                             .id(message.id)
                     }
                 }
@@ -378,6 +385,32 @@ struct ChatView: View {
 
     private var messageInput: some View {
         VStack(spacing: 4) {
+            // Quote preview bar
+            if let quoted = quotedMessage {
+                HStack(spacing: 8) {
+                    Rectangle()
+                        .fill(MeshTheme.accent)
+                        .frame(width: 3)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(quoted.isOutgoing ? "You" : contactStore.displayName(for: contact))
+                            .font(.caption2.weight(.semibold))
+                            .foregroundStyle(MeshTheme.accent)
+                        Text(quoted.text)
+                            .font(.caption)
+                            .foregroundStyle(MeshTheme.textSecondary)
+                            .lineLimit(2)
+                    }
+                    Spacer()
+                    Button { quotedMessage = nil } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(MeshTheme.textSecondary)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(MeshTheme.surfaceLight)
+            }
             HStack(spacing: 10) {
                 TextField("Type a message...", text: $messageText)
                     .padding(.horizontal, 14)
@@ -426,9 +459,15 @@ struct ChatView: View {
     }
 
     private func send() {
-        messageStoreManager.sendTextMessage(messageText, to: contact)
+        var text = messageText
+        if let quoted = quotedMessage {
+            let quotedPreview = String(quoted.text.prefix(60))
+            text = "> \(quotedPreview)\n\(text)"
+        }
+        messageStoreManager.sendTextMessage(text, to: contact)
         messageStoreManager.playHapticFeedback()
         messageText = ""
+        quotedMessage = nil
         messageStoreManager.saveDraft("", for: contact.publicKeyPrefix)
     }
 
@@ -1475,20 +1514,66 @@ struct RepeaterLoginView: View {
 
 struct MessageBubble: View {
     let message: Message
+    var onQuote: ((Message) -> Void)?
+    var onReact: ((Message, String) -> Void)?
     @Environment(MessageStoreManager.self) private var messageStoreManager
+
+    /// Parse quoted text from message (lines starting with "> ")
+    private var quotedText: String? {
+        let lines = message.text.components(separatedBy: "\n")
+        guard let first = lines.first, first.hasPrefix("> ") else { return nil }
+        return String(first.dropFirst(2))
+    }
+
+    /// The reply text (everything after the quoted line)
+    private var replyText: String {
+        let lines = message.text.components(separatedBy: "\n")
+        guard lines.first?.hasPrefix("> ") == true else { return message.text }
+        return lines.dropFirst().joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
+    }
 
     var body: some View {
         HStack {
             if message.isOutgoing { Spacer(minLength: 48) }
 
             VStack(alignment: message.isOutgoing ? .trailing : .leading, spacing: 2) {
-                linkifyMeshcoreURLs(message.text)
-                    .textSelection(.enabled)
+                VStack(alignment: .leading, spacing: 4) {
+                    // Quoted text block
+                    if let quoted = quotedText {
+                        HStack(spacing: 6) {
+                            Rectangle()
+                                .fill(MeshTheme.accent.opacity(0.6))
+                                .frame(width: 2)
+                            Text(quoted)
+                                .font(.caption)
+                                .foregroundStyle(MeshTheme.textOnAccent.opacity(0.7))
+                                .lineLimit(2)
+                        }
+                        .padding(.bottom, 2)
+                    }
+                    // Message text
+                    linkifyMeshcoreURLs(quotedText != nil ? replyText : message.text)
+                        .textSelection(.enabled)
+                }
                     .padding(.horizontal, 14)
                     .padding(.vertical, 9)
                     .background(message.isOutgoing ? MeshTheme.outgoingBubble : MeshTheme.incomingBubble)
                     .foregroundStyle(MeshTheme.textOnAccent)
                     .clipShape(RoundedRectangle(cornerRadius: 18))
+
+                // Reactions display
+                if !message.reactions.isEmpty {
+                    HStack(spacing: 2) {
+                        ForEach(message.reactions, id: \.self) { emoji in
+                            Text(emoji)
+                                .font(.caption)
+                        }
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 2)
+                    .background(MeshTheme.surfaceLight)
+                    .clipShape(Capsule())
+                }
 
                 HStack(spacing: 4) {
                     Text(message.timestamp, style: .time)
@@ -1556,6 +1641,19 @@ struct MessageBubble: View {
             }
             .contentShape(Rectangle())
             .contextMenu {
+                Button {
+                    onQuote?(message)
+                } label: {
+                    Label("Quote", systemImage: "text.quote")
+                }
+                // Quick reactions
+                Menu {
+                    ForEach(["👍", "❤️", "😂", "😮", "😢", "🙏"], id: \.self) { emoji in
+                        Button(emoji) { onReact?(message, emoji) }
+                    }
+                } label: {
+                    Label("React", systemImage: "face.smiling")
+                }
                 Button {
                     copyToClipboard(message.text)
                 } label: {
