@@ -27,6 +27,7 @@ final class ContactStore {
     var contacts: [Contact] = []
     var pendingNewContacts: [Contact] = []
     var contactGroups: [ContactGroup] = []
+    var mutedContacts: Set<String> = []
 
     // MARK: - Dependencies (set by coordinator)
 
@@ -102,6 +103,7 @@ final class ContactStore {
         // Don't load nicknames/notes at init — radio pubkey isn't known yet.
         // They are loaded in handleSelfInfo when the radio connects.
         loadContactGroupsFromiCloud()
+        loadMutedContactsFromiCloud()
         loadBlockedFromiCloud()
         observeiCloudChanges()
     }
@@ -292,17 +294,36 @@ final class ContactStore {
 
     // MARK: - Contact Groups
 
+    enum GroupNotifyMode: String, Codable, CaseIterable {
+        case all = "All Messages"
+        case priority = "Priority"
+        case muted = "Muted"
+    }
+
+    enum GroupSound: String, Codable, CaseIterable {
+        case `default` = "Default"
+        case chime = "Chime"
+        case pulse = "Pulse"
+        case alert = "Alert"
+        case none = "None"
+    }
+
     struct ContactGroup: Codable, Identifiable {
         let id: UUID
         var name: String
         var emoji: String
         var memberPubkeys: [String]
+        var notifyMode: GroupNotifyMode
+        var sound: GroupSound
 
-        init(id: UUID = UUID(), name: String, emoji: String = "", memberPubkeys: [String] = []) {
+        init(id: UUID = UUID(), name: String, emoji: String = "", memberPubkeys: [String] = [],
+             notifyMode: GroupNotifyMode = .all, sound: GroupSound = .default) {
             self.id = id
             self.name = name
             self.emoji = emoji
             self.memberPubkeys = memberPubkeys
+            self.notifyMode = notifyMode
+            self.sound = sound
         }
     }
 
@@ -356,6 +377,81 @@ final class ContactStore {
             let hex = contact.publicKey.hexCompact
             return group.memberPubkeys.contains(hex)
         }
+    }
+
+    func setGroupNotifyMode(_ group: ContactGroup, mode: GroupNotifyMode) {
+        if let idx = contactGroups.firstIndex(where: { $0.id == group.id }) {
+            contactGroups[idx].notifyMode = mode
+            saveContactGroupsToiCloud()
+        }
+    }
+
+    func setGroupSound(_ group: ContactGroup, sound: GroupSound) {
+        if let idx = contactGroups.firstIndex(where: { $0.id == group.id }) {
+            contactGroups[idx].sound = sound
+            saveContactGroupsToiCloud()
+        }
+    }
+
+    /// Mute/unmute all members of a group.
+    func setGroupMembersMuted(_ group: ContactGroup, muted: Bool) {
+        for pubkey in group.memberPubkeys {
+            if muted {
+                mutedContacts.insert(pubkey)
+            } else {
+                mutedContacts.remove(pubkey)
+            }
+        }
+        saveMutedContactsToiCloud()
+    }
+
+    // MARK: - Per-Contact Mute
+
+    func isContactMuted(_ contact: Contact) -> Bool {
+        mutedContacts.contains(contact.publicKey.hexCompact)
+    }
+
+    func toggleContactMuted(_ contact: Contact) {
+        let key = contact.publicKey.hexCompact
+        if mutedContacts.contains(key) {
+            mutedContacts.remove(key)
+        } else {
+            mutedContacts.insert(key)
+        }
+        saveMutedContactsToiCloud()
+    }
+
+    /// Returns the most specific notification mode for a contact based on group membership.
+    /// Priority > All > Muted. If contact is in multiple groups, highest priority wins.
+    func effectiveNotifyMode(for contact: Contact) -> GroupNotifyMode {
+        let hex = contact.publicKey.hexCompact
+        if mutedContacts.contains(hex) { return .muted }
+        var best: GroupNotifyMode = .all
+        for group in contactGroups where group.memberPubkeys.contains(hex) {
+            if group.notifyMode == .priority { return .priority }
+            if group.notifyMode == .muted { best = .muted }
+        }
+        return best
+    }
+
+    /// Returns the notification sound for a contact based on group membership.
+    func effectiveSound(for contact: Contact) -> GroupSound {
+        let hex = contact.publicKey.hexCompact
+        for group in contactGroups where group.memberPubkeys.contains(hex) {
+            if group.sound != .default { return group.sound }
+        }
+        return .default
+    }
+
+    func loadMutedContactsFromiCloud() {
+        if let array = iCloudStore.array(forKey: "mutedContacts") as? [String] {
+            mutedContacts = Set(array)
+        }
+    }
+
+    private func saveMutedContactsToiCloud() {
+        iCloudStore.set(Array(mutedContacts), forKey: "mutedContacts")
+        iCloudStore.synchronize()
     }
 
     // MARK: - Favourites
@@ -682,6 +778,7 @@ final class ContactStore {
                     self?.loadContactNotesFromiCloud()
                 }
                 self?.loadContactGroupsFromiCloud()
+                self?.loadMutedContactsFromiCloud()
                 self?.loadBlockedFromiCloud()
             }
         }

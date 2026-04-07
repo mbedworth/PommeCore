@@ -59,6 +59,12 @@ final class MessageStoreManager {
     /// Closure to get all channels (for notification context).
     var allChannelsProvider: (() -> [MeshChannel])?
 
+    /// Closure to check contact notification mode (from group membership / mute).
+    var contactNotifyModeProvider: ((Contact) -> ContactStore.GroupNotifyMode)?
+
+    /// Closure to get contact notification sound (from group membership).
+    var contactSoundProvider: ((Contact) -> ContactStore.GroupSound)?
+
     /// Closure to reset a contact's path (for flood retry).
     var resetPathForContact: ((Contact) -> Void)?
 
@@ -706,10 +712,27 @@ final class MessageStoreManager {
                 return
             }
             guard prefs.notifyDirect else { return }
+
+            // Check per-contact / group mute
+            if let contact, let mode = contactNotifyModeProvider?(contact) {
+                if mode == .muted { return }
+            }
         }
 
         let content = UNMutableNotificationContent()
-        content.sound = .default
+
+        // Apply group-specific sound
+        var notifSound: UNNotificationSound = .default
+        if let contact, let groupSound = contactSoundProvider?(contact) {
+            switch groupSound {
+            case .default: break
+            case .chime: notifSound = UNNotificationSound(named: UNNotificationSoundName("chime.caf"))
+            case .pulse: notifSound = UNNotificationSound(named: UNNotificationSoundName("pulse.caf"))
+            case .alert: notifSound = UNNotificationSound(named: UNNotificationSoundName("alert.caf"))
+            case .none: notifSound = UNNotificationSound(named: UNNotificationSoundName(""))
+            }
+        }
+        content.sound = notifSound
 
         let senderName = message.senderName
             ?? contact.map { displayNameProvider?($0.publicKeyPrefix) ?? $0.name }

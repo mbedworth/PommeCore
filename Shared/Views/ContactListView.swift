@@ -818,6 +818,15 @@ struct ContactListView: View {
                         }
                         Text(group.name)
                             .foregroundStyle(MeshTheme.textPrimary)
+                        if group.notifyMode == .muted {
+                            Image(systemName: "bell.slash")
+                                .font(.caption2)
+                                .foregroundStyle(MeshTheme.textSecondary)
+                        } else if group.notifyMode == .priority {
+                            Image(systemName: "bell.badge")
+                                .font(.caption2)
+                                .foregroundStyle(.orange)
+                        }
                         Spacer()
                         Text("\(group.memberPubkeys.count)")
                             .font(.caption)
@@ -834,7 +843,57 @@ struct ContactListView: View {
                     } label: {
                         Label("Rename", systemImage: "pencil")
                     }
+
+                    Menu {
+                        ForEach(ContactStore.GroupNotifyMode.allCases, id: \.rawValue) { mode in
+                            Button {
+                                contactStore.setGroupNotifyMode(group, mode: mode)
+                            } label: {
+                                HStack {
+                                    Text(mode.rawValue)
+                                    if group.notifyMode == mode {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                        }
+                    } label: {
+                        Label("Notifications", systemImage: group.notifyMode == .muted ? "bell.slash" : group.notifyMode == .priority ? "bell.badge" : "bell")
+                    }
+
+                    Menu {
+                        ForEach(ContactStore.GroupSound.allCases, id: \.rawValue) { sound in
+                            Button {
+                                contactStore.setGroupSound(group, sound: sound)
+                            } label: {
+                                HStack {
+                                    Text(sound.rawValue)
+                                    if group.sound == sound {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                        }
+                    } label: {
+                        Label("Sound", systemImage: "speaker.wave.2")
+                    }
+
                     Divider()
+
+                    Button {
+                        contactStore.setGroupMembersMuted(group, muted: true)
+                    } label: {
+                        Label("Mute All Members", systemImage: "bell.slash")
+                    }
+
+                    Button {
+                        contactStore.setGroupMembersMuted(group, muted: false)
+                    } label: {
+                        Label("Unmute All Members", systemImage: "bell")
+                    }
+
+                    Divider()
+
                     Button(role: .destructive) {
                         contactStore.deleteContactGroup(group)
                     } label: {

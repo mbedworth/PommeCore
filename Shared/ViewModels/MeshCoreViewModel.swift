@@ -205,6 +205,8 @@ final class MeshCoreViewModel: ObservableObject {
         messageStoreManager.channelProvider = { [weak self] idx in self?.channelStore.channels.first(where: { $0.index == idx }) }
         messageStoreManager.channelNotifyModeProvider = { [weak self] name in self?.channelStore.channelNotifyMode(for: name) ?? .all }
         messageStoreManager.allChannelsProvider = { [weak self] in self?.channelStore.channels ?? [] }
+        messageStoreManager.contactNotifyModeProvider = { [weak self] contact in self?.contactStore.effectiveNotifyMode(for: contact) ?? .all }
+        messageStoreManager.contactSoundProvider = { [weak self] contact in self?.contactStore.effectiveSound(for: contact) ?? .default }
         messageStoreManager.resetPathForContact = { [weak self] contact in self?.contactStore.resetPath(for: contact) }
         
         // RemoteSessionManager dependencies
