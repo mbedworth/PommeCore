@@ -188,6 +188,13 @@ final class LineOfSightStore {
     }
 
     private func cacheKey(_ c: (latA: Double, lonA: Double, latB: Double, lonB: Double)) -> String {
-        String(format: "%.4f,%.4f->%.4f,%.4f@%.1f", c.latA, c.lonA, c.latB, c.lonB, frequencyMHz)
+        var key = String(format: "%.4f,%.4f->%.4f,%.4f@%.1f|%.1f|%.1f",
+                         c.latA, c.lonA, c.latB, c.lonB, frequencyMHz, antennaHeightA, antennaHeightB)
+        if repeaterEnabled {
+            if let rCoord = resolveRepeater(c) {
+                key += String(format: "|R%.4f,%.4f@%.1f", rCoord.latitude, rCoord.longitude, repeaterAntennaHeight)
+            }
+        }
+        return key
     }
 }
