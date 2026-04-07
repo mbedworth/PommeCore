@@ -29,6 +29,18 @@ final class ContactStore {
     var contactGroups: [ContactGroup] = []
     var mutedContacts: Set<String> = []
 
+    // MARK: - Position History
+
+    struct PositionPoint: Codable {
+        let latitude: Double
+        let longitude: Double
+        let timestamp: Date
+    }
+
+    /// Position history per contact (keyed by pubkey hex). Max 50 points per contact.
+    var positionHistory: [String: [PositionPoint]] = [:]
+    private let maxPositionPoints = 50
+
     // MARK: - Dependencies (set by coordinator)
 
     /// Closure to send a command frame to the device.
@@ -105,6 +117,7 @@ final class ContactStore {
         loadContactGroupsFromiCloud()
         loadMutedContactsFromiCloud()
         loadBlockedFromiCloud()
+        loadPositionHistory()
         observeiCloudChanges()
     }
 
@@ -454,6 +467,74 @@ final class ContactStore {
         iCloudStore.synchronize()
     }
 
+    // MARK: - Position History
+
+    /// Record a position update for a contact. Deduplicates if position hasn't changed.
+    func recordPosition(for contact: Contact) {
+        let lat = contact.latitude
+        let lon = contact.longitude
+        guard lat != 0 || lon != 0 else { return }
+
+        let key = contact.publicKey.hexCompact
+        var history = positionHistory[key] ?? []
+
+        // Skip if same position as last recorded
+        if let last = history.last,
+           abs(last.latitude - lat) < 0.00001 && abs(last.longitude - lon) < 0.00001 {
+            return
+        }
+
+        history.append(PositionPoint(latitude: lat, longitude: lon, timestamp: Date()))
+        if history.count > maxPositionPoints {
+            history.removeFirst(history.count - maxPositionPoints)
+        }
+        positionHistory[key] = history
+        savePositionHistoryDebounced()
+    }
+
+    func positionTrail(for contact: Contact) -> [PositionPoint] {
+        positionHistory[contact.publicKey.hexCompact] ?? []
+    }
+
+    private var positionSavePending = false
+
+    private func savePositionHistoryDebounced() {
+        guard !positionSavePending else { return }
+        positionSavePending = true
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 10_000_000_000) // batch every 10s
+            self.positionSavePending = false
+            self.savePositionHistory()
+        }
+    }
+
+    func loadPositionHistory() {
+        let url = Self.positionHistoryFileURL
+        guard FileManager.default.fileExists(atPath: url.path) else { return }
+        do {
+            let data = try Data(contentsOf: url)
+            positionHistory = try JSONDecoder().decode([String: [PositionPoint]].self, from: data)
+        } catch {
+            DebugLogger.shared.log("POSITION: failed to load history: \(error.localizedDescription)", level: .warning)
+        }
+    }
+
+    private func savePositionHistory() {
+        do {
+            let data = try JSONEncoder().encode(positionHistory)
+            try data.write(to: Self.positionHistoryFileURL, options: .atomic)
+        } catch {
+            DebugLogger.shared.log("POSITION: failed to save history: \(error.localizedDescription)", level: .warning)
+        }
+    }
+
+    private static var positionHistoryFileURL: URL {
+        let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let appDir = dir.appendingPathComponent("MeshCore", isDirectory: true)
+        try? FileManager.default.createDirectory(at: appDir, withIntermediateDirectories: true)
+        return appDir.appendingPathComponent("position_history.json")
+    }
+
     // MARK: - Favourites
 
     func toggleFavourite(for contact: Contact) {
@@ -643,6 +724,11 @@ final class ContactStore {
         let wasFullSync = !isIncrementalContactSync
         isIncrementalContactSync = false
         isSyncingContacts = false
+
+        // Record position history for contacts with coordinates
+        for contact in contacts {
+            recordPosition(for: contact)
+        }
 
         #if canImport(CoreSpotlight)
         indexContactsForSpotlight()

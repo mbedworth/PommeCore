@@ -508,6 +508,17 @@ struct MeshMapView: View {
     var body: some View {
         ZStack {
             Map(position: $cameraPosition) {
+                // Position history trails
+                ForEach(mappableContacts) { contact in
+                    let trail = contactStore.positionTrail(for: contact)
+                    if trail.count >= 2 {
+                        MapPolyline(coordinates: trail.map {
+                            CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude)
+                        })
+                        .stroke(contactTypeColor(contact).opacity(0.5), lineWidth: 2)
+                    }
+                }
+
                 // Local mesh contacts — custom annotations with tap-to-navigate
                 ForEach(mappableContacts) { contact in
                     Annotation(contactStore.displayName(for: contact),
