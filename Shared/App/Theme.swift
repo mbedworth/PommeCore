@@ -136,6 +136,7 @@ enum MeshTheme {
     // Status colors — these system colors adapt automatically
     static let connected = Color.green
     static let connecting = Color.orange
+    static let initialConnected = Color.yellow
     static let scanning = Color.blue
     static let disconnected = Color.red
 
@@ -194,28 +195,28 @@ struct MeshThemeModifier: ViewModifier {
     /// Apply theme via UIKit window override — affects all windows including sheets.
     /// SwiftUI's `.preferredColorScheme(nil)` doesn't propagate to sheets,
     /// but UIKit's `overrideUserInterfaceStyle = .unspecified` does.
+    /// Called synchronously on main thread (from onAppear/onChange) to avoid
+    /// race conditions when the user switches themes rapidly.
     private func applyToAllWindows() {
         let theme = selectedTheme
-        DispatchQueue.main.async {
-            #if os(iOS)
-            let style: UIUserInterfaceStyle = switch theme {
-            case .light: .light
-            case .dark: .dark
-            case .system: .unspecified
-            }
-            for scene in UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }) {
-                for window in scene.windows {
-                    window.overrideUserInterfaceStyle = style
-                }
-            }
-            #elseif os(macOS)
-            switch theme {
-            case .light: NSApp?.appearance = NSAppearance(named: .aqua)
-            case .dark: NSApp?.appearance = NSAppearance(named: .darkAqua)
-            case .system: NSApp?.appearance = nil
-            }
-            #endif
+        #if os(iOS)
+        let style: UIUserInterfaceStyle = switch theme {
+        case .light: .light
+        case .dark: .dark
+        case .system: .unspecified
         }
+        for scene in UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }) {
+            for window in scene.windows {
+                window.overrideUserInterfaceStyle = style
+            }
+        }
+        #elseif os(macOS)
+        switch theme {
+        case .light: NSApp?.appearance = NSAppearance(named: .aqua)
+        case .dark: NSApp?.appearance = NSAppearance(named: .darkAqua)
+        case .system: NSApp?.appearance = nil
+        }
+        #endif
     }
 }
 
@@ -337,7 +338,7 @@ struct LabelValueRow: View {
     let label: String
     let value: String
     var labelColor: Color = MeshTheme.accent
-    var valueColor: Color = MeshTheme.textPrimary
+    var valueColor: Color = MeshTheme.textSecondary
 
     var body: some View {
         HStack {

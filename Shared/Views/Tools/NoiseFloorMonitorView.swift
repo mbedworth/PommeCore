@@ -20,7 +20,7 @@ struct NoiseFloorMonitorView: View {
                     .foregroundStyle(MeshTheme.accent)
                 Text("RF Monitor")
                     .font(.headline)
-                    .foregroundStyle(MeshTheme.textPrimary)
+                    .foregroundStyle(MeshTheme.accent)
                 Spacer()
                 Button {
                     rfStore.toggleMonitoring()
@@ -125,7 +125,7 @@ struct NoiseFloorMonitorView: View {
                 .foregroundStyle(MeshTheme.textSecondary)
             Text(value)
                 .font(.caption.weight(.medium))
-                .foregroundStyle(MeshTheme.textPrimary)
+                .foregroundStyle(MeshTheme.textSecondary)
         }
     }
 }

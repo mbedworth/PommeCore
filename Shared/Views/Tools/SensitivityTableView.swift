@@ -24,6 +24,8 @@ struct SensitivityTableView: View {
                         Text(formatBW(bw)).tag(bw)
                     }
                 }
+                .foregroundStyle(MeshTheme.accent)
+                .tint(.primary)
                 .listRowBackground(MeshTheme.surface)
             } header: {
                 Text("Select Bandwidth")
@@ -71,7 +73,7 @@ struct SensitivityTableView: View {
                             .frame(maxWidth: .infinity, alignment: .trailing)
                     }
                     .font(.body.monospaced())
-                    .foregroundStyle(isCurrentSF ? MeshTheme.accent : MeshTheme.textPrimary)
+                    .foregroundStyle(isCurrentSF ? MeshTheme.accent : MeshTheme.textSecondary)
                     .listRowBackground(isCurrentSF ? MeshTheme.accent.opacity(0.1) : MeshTheme.surface)
                 }
             } header: {
@@ -179,7 +181,7 @@ struct SensitivityTableView: View {
         VStack(alignment: .leading, spacing: 4) {
             Text(label)
                 .font(.subheadline.weight(.medium))
-                .foregroundStyle(MeshTheme.textPrimary)
+                .foregroundStyle(MeshTheme.accent)
             Text(detail)
                 .font(.caption)
                 .foregroundStyle(MeshTheme.textSecondary)

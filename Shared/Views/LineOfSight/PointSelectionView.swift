@@ -69,6 +69,8 @@ struct PointSelectionView: View {
                             .tag(Contact?.some(c))
                         }
                     }
+                    .foregroundStyle(MeshTheme.accent)
+                    .tint(.primary)
                     .listRowBackground(MeshTheme.surface)
 
                     if let c = contact {
@@ -105,7 +107,7 @@ struct PointSelectionView: View {
                 .frame(width: 24)
             Text(String(format: "%.6f, %.6f", lat, lon))
                 .font(.system(.caption, design: .monospaced))
-                .foregroundStyle(MeshTheme.textPrimary)
+                .foregroundStyle(MeshTheme.textSecondary)
         }
         .listRowBackground(MeshTheme.surface)
     }

@@ -24,6 +24,7 @@ struct RadioCalculatorView: View {
         Form {
             Section {
                 Toggle("Use Connected Radio Settings", isOn: $useDeviceConfig)
+                    .foregroundStyle(MeshTheme.accent)
                     .listRowBackground(MeshTheme.surface)
                     .onChange(of: useDeviceConfig) { _, use in
                         if use { loadFromDevice() }
@@ -52,7 +53,7 @@ struct RadioCalculatorView: View {
                         .foregroundStyle(linkMargin > 10 ? .green : linkMargin > 0 ? .orange : .red)
                     Text(linkVerdict)
                         .font(.subheadline.weight(.medium))
-                        .foregroundStyle(MeshTheme.textPrimary)
+                        .foregroundStyle(MeshTheme.textSecondary)
                 }
                 .listRowBackground(MeshTheme.surface)
             } header: {
@@ -136,12 +137,12 @@ struct RadioCalculatorView: View {
     private func paramRow(_ label: String, value: Binding<Double>, unit: String, range: ClosedRange<Double>) -> some View {
         HStack {
             Text(label)
-                .foregroundStyle(MeshTheme.textPrimary)
+                .foregroundStyle(MeshTheme.accent)
             Spacer()
             TextField(unit, value: value, format: .number)
                 .frame(width: 80)
                 .multilineTextAlignment(.trailing)
-                .foregroundStyle(MeshTheme.accent)
+                .foregroundStyle(.primary)
                 #if !os(watchOS)
                 .textFieldStyle(.roundedBorder)
                 #endif
@@ -153,10 +154,10 @@ struct RadioCalculatorView: View {
         .listRowBackground(MeshTheme.surface)
     }
 
-    private func resultRow(_ label: String, value: String, color: Color = MeshTheme.accent) -> some View {
+    private func resultRow(_ label: String, value: String, color: Color = MeshTheme.textSecondary) -> some View {
         HStack {
             Text(label)
-                .foregroundStyle(MeshTheme.textPrimary)
+                .foregroundStyle(MeshTheme.accent)
             Spacer()
             Text(value)
                 .font(.body.monospaced())

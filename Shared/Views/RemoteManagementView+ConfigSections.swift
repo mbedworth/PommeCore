@@ -1,0 +1,354 @@
+//
+//  RemoteManagementView+ConfigSections.swift
+//  MeshCoreApple
+//
+//  Radio, Timing, Routing, and Advertising configuration sections for remote management.
+//
+//  Created by Michael P. Bedworth on 3/13/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
+
+import SwiftUI
+import MeshCoreKit
+
+// MARK: - Radio Section
+
+struct RemoteRadioSection: View {
+    let contact: Contact
+    @ObservedObject var session: RemoteDeviceSession
+    let sendCLI: (String) -> Void
+    let canEdit: Bool
+
+    @State private var radioParams = ""
+    @State private var txPower = ""
+    @State private var saveState: SaveButtonState = .idle
+    @State private var isRebooting = false
+
+    /// Parse "freq_MHz,bw_kHz,sf,cr" from session settings into components for preset detection.
+    private var parsedRadio: (freqKHz: Double, bw: Double, sf: UInt8, cr: UInt8) {
+        guard let radio = session.settings["radio"] else { return (0, 0, 0, 0) }
+        let parts = radio.replacingOccurrences(of: " ", with: "").split(separator: ",")
+        guard parts.count >= 4,
+              let freqMHz = Double(parts[0]),
+              let bw = Double(parts[1]),
+              let sf = UInt8(parts[2]),
+              let cr = UInt8(parts[3]) else { return (0, 0, 0, 0) }
+        return (freqMHz * 1000, bw, sf, cr) // Convert MHz → kHz for preset comparison
+    }
+
+    var body: some View {
+        if canEdit {
+            RadioPresetPicker(
+                onApply: { preset in
+                    let freqMHz = String(format: "%.6f", preset.frequencyKHz / 1000.0)
+                    let bwStr = preset.bandwidth == preset.bandwidth.rounded() ? "\(Int(preset.bandwidth))" : "\(preset.bandwidth)"
+                    let params = "\(freqMHz),\(bwStr),\(preset.spreadingFactor),\(preset.codingRate)"
+                    radioParams = params
+                    sendCLI("set radio \(params)")
+                    // Radio params require reboot to take effect — guard against rapid taps
+                    guard !isRebooting else { return }
+                    isRebooting = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                        sendCLI("reboot")
+                    }
+                },
+                currentFreqKHz: parsedRadio.freqKHz,
+                currentBW: parsedRadio.bw,
+                currentSF: parsedRadio.sf,
+                currentCR: parsedRadio.cr
+            )
+        }
+
+        Section {
+            if canEdit {
+                cliEditRow(icon: "antenna.radiowaves.left.and.right", label: "Radio (freq,bw,sf,cr)", text: $radioParams, current: session.settings["radio"])
+                cliEditRow(icon: "bolt", label: "TX Power", text: $txPower, current: session.settings["tx"])
+            } else {
+                cliInfoRow(icon: "antenna.radiowaves.left.and.right", label: "Radio", value: session.settings["radio"] ?? "\u{2014}")
+                cliInfoRow(icon: "bolt", label: "TX Power", value: session.settings["tx"] ?? "\u{2014}")
+            }
+            CLIToggleRow(icon: "repeat", label: "Repeat Mode", settingKey: "repeat", onCommand: "set repeat on", offCommand: "set repeat off", session: session, sendCLI: sendCLI, canEdit: canEdit)
+
+            if canEdit {
+                SaveButton(state: saveState, label: "Apply Radio Settings") {
+                    if !radioParams.isEmpty { sendCLI("set radio \(radioParams)") }
+                    if !txPower.isEmpty { sendCLI("set tx \(txPower)") }
+                    showSaved($saveState)
+                }
+            }
+        } header: {
+            SectionInfoHeader(title: "Radio Configuration", info: "Radio format: freq_MHz,bw_kHz,sf,cr (e.g. 910.525,62.5,7,5)")
+        }
+    }
+}
+
+// MARK: - Timing Section
+
+struct RemoteTimingSection: View {
+    let contact: Contact
+    @ObservedObject var session: RemoteDeviceSession
+    let sendCLI: (String) -> Void
+    let canEdit: Bool
+
+    @State private var airtimeFactor = ""
+    @State private var rxDelay = ""
+    @State private var txDelay = ""
+    @State private var directTxDelay = ""
+    @State private var floodMax = ""
+    @State private var intThresh = ""
+    @State private var agcReset = ""
+    @State private var saveState: SaveButtonState = .idle
+    @State private var isExpanded = false
+
+    var body: some View {
+        Section {
+            DisclosureGroup(isExpanded: $isExpanded) {
+                cliEditRow(icon: "clock.arrow.2.circlepath", label: "Airtime Factor", text: $airtimeFactor, current: session.settings["af"])
+                cliEditRow(icon: "timer", label: "RX Delay", text: $rxDelay, current: session.settings["rxdelay"])
+                cliEditRow(icon: "arrow.up.circle", label: "TX Delay", text: $txDelay, current: session.settings["txdelay"])
+                cliEditRow(icon: "arrow.right.circle", label: "Direct TX Delay", text: $directTxDelay, current: session.settings["direct.txdelay"])
+                cliEditRow(icon: "arrow.triangle.branch", label: "Flood Max Hops", text: $floodMax, current: session.settings["flood.max"])
+                cliEditRow(icon: "waveform.badge.exclamationmark", label: "Interference Thresh", text: $intThresh, current: session.settings["int.thresh"])
+                cliEditRow(icon: "dial.low", label: "AGC Reset Interval", text: $agcReset, current: session.settings["agc.reset.interval"])
+
+                if canEdit {
+                    SaveButton(state: saveState, label: "Apply Settings") {
+                        if !airtimeFactor.isEmpty { sendCLI("set af \(airtimeFactor)") }
+                        if !rxDelay.isEmpty { sendCLI("set rxdelay \(rxDelay)") }
+                        if !txDelay.isEmpty { sendCLI("set txdelay \(txDelay)") }
+                        if !directTxDelay.isEmpty { sendCLI("set direct.txdelay \(directTxDelay)") }
+                        if !floodMax.isEmpty { sendCLI("set flood.max \(floodMax)") }
+                        if !intThresh.isEmpty { sendCLI("set int.thresh \(intThresh)") }
+                        if !agcReset.isEmpty { sendCLI("set agc.reset.interval \(agcReset)") }
+                        showSaved($saveState)
+                    }
+                }
+            } label: {
+                Label("Timing & Performance", systemImage: "slider.horizontal.3")
+                    .foregroundStyle(MeshTheme.accent)
+            }
+            .listRowBackground(MeshTheme.surface)
+        } header: {
+            SectionInfoHeader(title: "", info: "Advanced — adjust timing parameters for mesh performance. Default values work well for most setups. Flood Max Hops supports 0\u{2013}64 (default 64).")
+        }
+        .disabled(!canEdit)
+    }
+}
+
+// MARK: - Routing Section
+
+struct RemoteRoutingSection: View {
+    @ObservedObject var session: RemoteDeviceSession
+    let sendCLI: (String) -> Void
+    let canEdit: Bool
+    @State private var loopDetect = ""
+    @State private var pathHashMode = ""
+    @State private var saveState: SaveButtonState = .idle
+    @State private var isExpanded = false
+
+    var body: some View {
+        Section {
+            DisclosureGroup(isExpanded: $isExpanded) {
+                HStack {
+                    Image(systemName: "arrow.triangle.capsulepath")
+                        .foregroundStyle(MeshTheme.accent)
+                        .frame(width: 24)
+                    Picker("Loop Detection", selection: loopDetectBinding) {
+                        Text("Off").tag("off")
+                        Text("Min").tag("minimal")
+                        Text("Mod").tag("moderate")
+                        Text("Strict").tag("strict")
+                    }
+                    .pickerStyle(.segmented)
+                }
+                .listRowBackground(MeshTheme.surface)
+
+                HStack {
+                    Image(systemName: "number.circle")
+                        .foregroundStyle(MeshTheme.accent)
+                        .frame(width: 24)
+                    Picker("Path Hash", selection: pathHashBinding) {
+                        Text("1-byte").tag("1")
+                        Text("2-byte").tag("2")
+                        Text("3-byte").tag("3")
+                    }
+                    .pickerStyle(.segmented)
+                }
+                .listRowBackground(MeshTheme.surface)
+
+                CLICommandButton(icon: "antenna.radiowaves.left.and.right", label: "Discover Neighbors") {
+                    sendCLI("discover.neighbors")
+                }
+
+                if let neighborsResult = session.settings["discover.neighbors"], !neighborsResult.isEmpty {
+                    Text(neighborsResult)
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundStyle(MeshTheme.textPrimary)
+                        .listRowBackground(MeshTheme.surface)
+                }
+            } label: {
+                Label("Advanced Routing", systemImage: "arrow.triangle.branch")
+                    .foregroundStyle(MeshTheme.accent)
+            }
+            .listRowBackground(MeshTheme.surface)
+        } header: {
+            SectionInfoHeader(title: "", info: "Loop detection rejects flood packets that appear to be in a loop (v1.14+). Path hash size controls ID/hash encoding in path headers \u{2014} higher values reduce collision risk but require v1.14+ firmware across the network.")
+        }
+        .disabled(!canEdit)
+    }
+
+    private var loopDetectBinding: Binding<String> {
+        Binding(
+            get: {
+                if !loopDetect.isEmpty { return loopDetect }
+                return session.settings["loop.detect"] ?? "off"
+            },
+            set: { newValue in
+                loopDetect = newValue
+                sendCLI("set loop.detect \(newValue)")
+            }
+        )
+    }
+
+    private var pathHashBinding: Binding<String> {
+        Binding(
+            get: {
+                if !pathHashMode.isEmpty { return pathHashMode }
+                return session.settings["path.hash.mode"] ?? "1"
+            },
+            set: { newValue in
+                pathHashMode = newValue
+                sendCLI("set path.hash.mode \(newValue)")
+            }
+        )
+    }
+}
+
+// MARK: - Advertising Section
+
+struct RemoteAdvertSection: View {
+    let contact: Contact
+    @ObservedObject var session: RemoteDeviceSession
+    let sendCLI: (String) -> Void
+    let canEdit: Bool
+
+    @State private var name = ""
+    @State private var lat = ""
+    @State private var lon = ""
+    @State private var ownerInfo = ""
+    @State private var advertInterval = ""
+    @State private var floodAdvertInterval = ""
+    @State private var saveState: SaveButtonState = .idle
+    @State private var showAdvertOptions = false
+    @State private var showAdvertSent = false
+
+    var body: some View {
+        Section {
+            cliEditRow(icon: "person.text.rectangle", label: "Name", text: $name, current: session.settings["name"])
+            cliEditRow(icon: "location", label: "Latitude", text: $lat, current: session.settings["lat"])
+            cliEditRow(icon: "location", label: "Longitude", text: $lon, current: session.settings["lon"])
+            cliEditRow(icon: "person.crop.rectangle", label: "Owner Info", text: $ownerInfo, current: session.settings["owner.info"])
+            HStack {
+                Image(systemName: "clock.arrow.circlepath")
+                    .foregroundStyle(MeshTheme.accent)
+                    .frame(width: 24)
+                Picker("Standard Advert", selection: standardAdvertBinding) {
+                    Text("Disabled").tag("0")
+                    Text("60 min").tag("60")
+                    Text("90 min").tag("90")
+                    Text("120 min").tag("120")
+                    Text("180 min").tag("180")
+                    Text("240 min").tag("240")
+                }
+                .foregroundStyle(MeshTheme.accent)
+                .tint(.primary)
+            }
+            .listRowBackground(MeshTheme.surface)
+
+            HStack {
+                Image(systemName: "dot.radiowaves.left.and.right")
+                    .foregroundStyle(MeshTheme.accent)
+                    .frame(width: 24)
+                Picker("Flood Advert", selection: floodAdvertBinding) {
+                    Text("Disabled").tag("0")
+                    Text("3 hours").tag("3")
+                    Text("6 hours").tag("6")
+                    Text("12 hours").tag("12")
+                    Text("24 hours").tag("24")
+                }
+                .foregroundStyle(MeshTheme.accent)
+                .tint(.primary)
+            }
+            .listRowBackground(MeshTheme.surface)
+            CLIToggleRow(icon: "checkmark.message", label: "Multi-ACKs", settingKey: "multi.acks", onCommand: "set multi.acks 1", offCommand: "set multi.acks 0", session: session, sendCLI: sendCLI, canEdit: canEdit)
+
+            if canEdit {
+                HStack(spacing: 12) {
+                    SaveButton(state: saveState, label: "Save Advertising") {
+                        // Send owner.info, lat, lon BEFORE name —
+                        // "set name" must be last (firmware may restart advert system)
+                        if !ownerInfo.isEmpty { sendCLI("set owner.info \(ownerInfo)") }
+                        if !lat.isEmpty { sendCLI("set lat \(lat)") }
+                        if !lon.isEmpty { sendCLI("set lon \(lon)") }
+                        if !name.isEmpty { sendCLI("set name \(name)") }
+                        // Advert intervals handled via picker bindings
+                        showSaved($saveState)
+                    }
+
+                    Spacer()
+
+                    Button {
+                        showAdvertOptions = true
+                    } label: {
+                        Label(showAdvertSent ? "Sent!" : "Advertise", systemImage: "dot.radiowaves.left.and.right")
+                            .foregroundStyle(showAdvertSent ? .green : MeshTheme.accent)
+                    }
+                    .buttonStyle(.plain)
+                    .contentShape(Rectangle())
+                }
+            }
+        } header: {
+            SectionInfoHeader(title: "Advertising", info: "Standard adverts are local (0-hop, 60-240 min). Flood adverts are relayed by all repeaters (min 3 hours). Minimum intervals enforced by firmware.")
+        }
+        .confirmationDialog("Send Advertisement", isPresented: $showAdvertOptions) {
+            Button("Zero-Hop (nearby only)") {
+                sendCLI("advert.zerohop")
+                showFeedback($showAdvertSent)
+            }
+            Button("Flood (entire mesh)") {
+                sendCLI("advert")
+                showFeedback($showAdvertSent)
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Zero-hop reaches nearby nodes only. Flood is relayed by repeaters across the entire mesh network.")
+        }
+        .disabled(!canEdit)
+    }
+
+    private var standardAdvertBinding: Binding<String> {
+        Binding(
+            get: {
+                if !advertInterval.isEmpty { return advertInterval }
+                return session.settings["advert.interval"] ?? "120"
+            },
+            set: { newValue in
+                advertInterval = newValue
+                sendCLI("set advert.interval \(newValue)")
+            }
+        )
+    }
+
+    private var floodAdvertBinding: Binding<String> {
+        Binding(
+            get: {
+                if !floodAdvertInterval.isEmpty { return floodAdvertInterval }
+                return session.settings["flood.advert.interval"] ?? "3"
+            },
+            set: { newValue in
+                floodAdvertInterval = newValue
+                sendCLI("set flood.advert.interval \(newValue)")
+            }
+        )
+    }
+}

@@ -136,10 +136,7 @@ struct SettingsView: View {
             // 1. Appearance
             appearanceSection
 
-            // 2. Tip Jar
-            tipJarSection
-
-            // 3. Connection
+            // 2. Connection
             connectionSection
 
             // 4. Device Info (BLE/WiFi/USB Binary only — USB CLI uses RemoteManagementView)
@@ -162,27 +159,27 @@ struct SettingsView: View {
 
             // 7. iCloud & Storage
             iCloudSection
-            radioDataSection
             storageSection
+            radioDataSection
 
-            // 8. Advanced (collapsed)
+            // 8. Support & About
+            tipJarSection
+            aboutSection
+
+            // 9. Advanced
             Section {
-                DisclosureGroup("Advanced") {
-                    if isConnected {
-                        if !deviceConfig.customVars.isEmpty {
-                            customVarsSection
-                        }
-                        statsSection
+                if isConnected {
+                    if !deviceConfig.customVars.isEmpty {
+                        customVarsSection
                     }
-                    troubleshootingSection
+                    statsSection
                 }
-                .listRowBackground(MeshTheme.surface)
+                troubleshootingSection
             } header: {
-                sectionInfoHeader("", info: "Developer and diagnostic tools. Most users won\u{2019}t need these.")
+                sectionInfoHeader("Advanced", info: "Developer and diagnostic tools. Most users won\u{2019}t need these.")
             }
 
-            // 9. About
-            aboutSection
+            // 10. Danger Zone
             if isConnected {
                 dangerZoneSection
             }
@@ -338,11 +335,11 @@ private extension SettingsView {
                 let usage = iCloudKVSUsage()
                 HStack {
                     Text("iCloud Storage")
-                        .foregroundStyle(MeshTheme.textPrimary)
+                        .foregroundStyle(MeshTheme.accent)
                     Spacer()
                     Text("\(usage.keys) keys, \(ByteCountFormatter.string(fromByteCount: Int64(usage.bytes), countStyle: .memory))")
                         .font(.caption)
-                        .foregroundStyle(usage.bytes > 900_000 ? .red : usage.bytes > 700_000 ? .orange : MeshTheme.textSecondary)
+                        .foregroundStyle(usage.bytes > 900_000 ? .red : usage.bytes > 700_000 ? .orange : .green)
                 }
                 .listRowBackground(MeshTheme.surface)
                 if usage.bytes > 900_000 {
@@ -428,7 +425,7 @@ struct RadioDataSection: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Radio \(radioPrefix.prefix(8))...")
                                 .font(.body)
-                                .foregroundStyle(MeshTheme.textPrimary)
+                                .foregroundStyle(MeshTheme.accent)
                             Text("\(messageCountForRadio(radioPrefix)) messages in iCloud")
                                 .font(.caption)
                                 .foregroundStyle(MeshTheme.textSecondary)
@@ -468,7 +465,7 @@ struct RadioDataSection: View {
                     }
                 }
             } header: {
-                SectionInfoHeader(title: "Radio Data", info: "Each radio stores messages separately. If you replace a radio, use \u{2018}Migrate\u{2019} to move history to your new device.")
+                SectionInfoHeader(title: "Known Radios", info: "Each radio stores messages separately. If you replace a radio, use \u{2018}Migrate\u{2019} to move history to your new device.")
             }
             .confirmationDialog("Delete Radio Data?", isPresented: $showDeleteRadioConfirm) {
                 Button("Delete All Messages", role: .destructive) {

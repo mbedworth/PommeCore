@@ -20,7 +20,7 @@ struct RepeaterConfigView: View {
         @Bindable var store = store
         Section {
             Toggle("Add Relay Repeater", isOn: $store.repeaterEnabled)
-                .foregroundStyle(MeshTheme.textPrimary)
+                .foregroundStyle(MeshTheme.accent)
                 .listRowBackground(MeshTheme.surface)
 
             if store.repeaterEnabled {
@@ -56,6 +56,8 @@ struct RepeaterConfigView: View {
                                 Text(contactStore.displayName(for: contact)).tag(Contact?.some(contact))
                             }
                         }
+                        .foregroundStyle(MeshTheme.accent)
+                        .tint(.primary)
                         .listRowBackground(MeshTheme.surface)
                     }
                 }
@@ -67,7 +69,7 @@ struct RepeaterConfigView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Repeater Antenna")
                             .font(.caption)
-                            .foregroundStyle(MeshTheme.textSecondary)
+                            .foregroundStyle(MeshTheme.accent)
                         Stepper(value: $store.repeaterAntennaHeight, in: 0.5...100, step: 0.5) {
                             Text(String(format: "%.1f m", store.repeaterAntennaHeight))
                                 .foregroundStyle(MeshTheme.textPrimary)

@@ -75,7 +75,7 @@ struct LoSResultsView: View {
                 Divider()
                 Text("Relay Analysis")
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(MeshTheme.textPrimary)
+                    .foregroundStyle(MeshTheme.accent)
 
                 HStack(spacing: 16) {
                     segmentSummary("A \u{2192} R", result: arResult)
@@ -125,7 +125,7 @@ struct LoSResultsView: View {
                     .foregroundStyle(MeshTheme.textSecondary)
                 Text(value)
                     .font(.caption.weight(.medium))
-                    .foregroundStyle(MeshTheme.textPrimary)
+                    .foregroundStyle(MeshTheme.textSecondary)
             }
         }
     }
@@ -137,7 +137,7 @@ struct LoSResultsView: View {
                 .foregroundStyle(MeshTheme.textSecondary)
             Text("\(GeoMath.formatElevation(elevation)) + \(String(format: "%.0fm", antenna)) antenna")
                 .font(.caption)
-                .foregroundStyle(MeshTheme.textPrimary)
+                .foregroundStyle(MeshTheme.textSecondary)
         }
     }
 
@@ -149,7 +149,7 @@ struct LoSResultsView: View {
                     .foregroundStyle(result.hasLineOfSight ? .green : .red)
                 Text(label)
                     .font(.caption.weight(.medium))
-                    .foregroundStyle(MeshTheme.textPrimary)
+                    .foregroundStyle(MeshTheme.accent)
             }
             Text("Clearance: \(String(format: "%.1fm", result.minClearance))")
                 .font(.caption2)

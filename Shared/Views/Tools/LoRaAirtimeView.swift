@@ -30,6 +30,7 @@ struct LoRaAirtimeView: View {
         Form {
             Section {
                 Toggle("Use Connected Radio Settings", isOn: $useDeviceConfig)
+                    .foregroundStyle(MeshTheme.accent)
                     .listRowBackground(MeshTheme.surface)
                     .onChange(of: useDeviceConfig) { _, use in
                         if use { loadFromDevice() }
@@ -40,6 +41,8 @@ struct LoRaAirtimeView: View {
                         Text("SF\(sf)").tag(sf)
                     }
                 }
+                .foregroundStyle(MeshTheme.accent)
+                .tint(.primary)
                 .listRowBackground(MeshTheme.surface)
 
                 Picker("Bandwidth", selection: $bandwidthKHz) {
@@ -47,6 +50,8 @@ struct LoRaAirtimeView: View {
                         Text(formatBW(bw)).tag(bw)
                     }
                 }
+                .foregroundStyle(MeshTheme.accent)
+                .tint(.primary)
                 .listRowBackground(MeshTheme.surface)
 
                 Picker("Coding Rate", selection: $codingRate) {
@@ -54,16 +59,21 @@ struct LoRaAirtimeView: View {
                         Text("4/\(cr)").tag(cr)
                     }
                 }
+                .foregroundStyle(MeshTheme.accent)
+                .tint(.primary)
                 .listRowBackground(MeshTheme.surface)
 
                 paramRow("Payload Size", value: $payloadBytes, unit: "bytes", range: 1...255)
                 paramRow("Preamble", value: $preambleSymbols, unit: "symbols", range: 6...65535)
 
                 Toggle("Explicit Header", isOn: $explicitHeader)
+                    .foregroundStyle(MeshTheme.accent)
                     .listRowBackground(MeshTheme.surface)
                 Toggle("CRC", isOn: $crcEnabled)
+                    .foregroundStyle(MeshTheme.accent)
                     .listRowBackground(MeshTheme.surface)
                 Toggle("Low Data Rate Optimize", isOn: $lowDataRateOptimize)
+                    .foregroundStyle(MeshTheme.accent)
                     .listRowBackground(MeshTheme.surface)
             } header: {
                 Text("Parameters")
@@ -186,12 +196,12 @@ struct LoRaAirtimeView: View {
     private func paramRow(_ label: String, value: Binding<Int>, unit: String, range: ClosedRange<Int>) -> some View {
         HStack {
             Text(label)
-                .foregroundStyle(MeshTheme.textPrimary)
+                .foregroundStyle(MeshTheme.accent)
             Spacer()
             TextField(unit, value: value, format: .number)
                 .frame(width: 70)
                 .multilineTextAlignment(.trailing)
-                .foregroundStyle(MeshTheme.accent)
+                .foregroundStyle(.primary)
                 #if !os(watchOS)
                 .textFieldStyle(.roundedBorder)
                 #endif
@@ -203,10 +213,10 @@ struct LoRaAirtimeView: View {
         .listRowBackground(MeshTheme.surface)
     }
 
-    private func resultRow(_ label: String, value: String, color: Color = MeshTheme.accent) -> some View {
+    private func resultRow(_ label: String, value: String, color: Color = MeshTheme.textSecondary) -> some View {
         HStack {
             Text(label)
-                .foregroundStyle(MeshTheme.textPrimary)
+                .foregroundStyle(MeshTheme.accent)
             Spacer()
             Text(value)
                 .font(.body.monospaced())

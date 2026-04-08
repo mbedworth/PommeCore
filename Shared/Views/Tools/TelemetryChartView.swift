@@ -27,7 +27,7 @@ struct TelemetryChartView: View {
                     .foregroundStyle(MeshTheme.accent)
                 Text("Telemetry History")
                     .font(.headline)
-                    .foregroundStyle(MeshTheme.textPrimary)
+                    .foregroundStyle(MeshTheme.accent)
             }
 
             if availableReadings.isEmpty {

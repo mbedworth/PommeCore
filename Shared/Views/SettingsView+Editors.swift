@@ -371,7 +371,7 @@ func showSaved(_ state: Binding<SaveButtonState>) {
 extension SettingsView {
     var config: DeviceConfig { deviceConfig }
 
-    func infoRow(icon: String, label: String, value: String) -> some View {
+    func infoRow(icon: String, label: String, value: String, valueColor: Color = MeshTheme.textSecondary) -> some View {
         HStack {
             Image(systemName: icon)
                 .foregroundStyle(MeshTheme.accent)
@@ -380,7 +380,7 @@ extension SettingsView {
                 .foregroundStyle(MeshTheme.accent)
             Spacer()
             Text(value)
-                .foregroundStyle(MeshTheme.textPrimary)
+                .foregroundStyle(valueColor)
                 .textSelection(.enabled)
         }
         .listRowBackground(MeshTheme.surface)
@@ -419,6 +419,7 @@ struct NameEditorSheet: View {
             Section {
                 HStack {
                     TextField("Device Name", text: $name)
+                        .foregroundStyle(MeshTheme.textPrimary)
                         .onChange(of: name) { _, newValue in
                             if newValue.count > 31 { name = String(newValue.prefix(31)) }
                         }
@@ -660,6 +661,7 @@ struct GPSEditorSheet: View {
     @State private var mapPickedCoordinate: CLLocationCoordinate2D?
     @AppStorage("autoUpdateLocation") private var autoUpdateLocation = false
     @AppStorage("locationUpdateInterval") private var locationUpdateInterval = 900
+    @AppStorage("locationPrivacyRadius") private var locationPrivacyRadius: Double = 0.0
 
     var body: some View {
         Form {
@@ -697,6 +699,7 @@ struct GPSEditorSheet: View {
 
                 Toggle(isOn: $autoUpdateLocation) {
                     Label("Auto-Update", systemImage: "location.fill.viewfinder")
+                        .foregroundStyle(MeshTheme.accent)
                 }
                 .tint(MeshTheme.accent)
                 .onChange(of: autoUpdateLocation) { _, enabled in
@@ -719,6 +722,25 @@ struct GPSEditorSheet: View {
             } header: {
                 SectionInfoHeader(title: "", info: "Set from Phone GPS copies your phone\u{2019}s coordinates to the radio. Auto-Update periodically refreshes while the app is open.")
             }
+
+            Section {
+                HStack {
+                    Image(systemName: "location.slash.circle")
+                        .foregroundStyle(MeshTheme.accent)
+                        .frame(width: 24)
+                    Picker("Position Accuracy", selection: $locationPrivacyRadius) {
+                        Text("Exact").tag(0.0)
+                        Text("\u{00B1} 100m (~1 block)").tag(100.0)
+                        Text("\u{00B1} 500m (~\u{00BC} mile)").tag(500.0)
+                        Text("\u{00B1} 1km (~\u{00BD} mile)").tag(1000.0)
+                        Text("\u{00B1} 5km (~3 miles)").tag(5000.0)
+                    }
+                    .foregroundStyle(MeshTheme.accent)
+                    .tint(.primary)
+                }
+            } header: {
+                SectionInfoHeader(title: "", info: "Adds a random offset to your location before sharing. Only affects your personal device \u{2014} repeater and room server locations are always exact.")
+            }
             #endif
         }
         .navigationTitle("GPS & Location")
@@ -728,6 +750,9 @@ struct GPSEditorSheet: View {
         .onAppear {
             if deviceConfig.latitude != 0 { latitude = formatCoordinate(deviceConfig.latitude) }
             if deviceConfig.longitude != 0 { longitude = formatCoordinate(deviceConfig.longitude) }
+        }
+        .onChange(of: locationPrivacyRadius) {
+            MeshCoreViewModel.regenerateLocationFudge()
         }
         .sheet(isPresented: $showMapPicker, onDismiss: {
             guard let coord = mapPickedCoordinate else { return }
@@ -768,6 +793,7 @@ struct BatteryEditorSheet: View {
                     Text("LiFePO4 (3.2V)").tag(BatteryChemistry.lifepo4.rawValue)
                     Text("Li-Ion (3.7V)").tag(BatteryChemistry.li18650.rawValue)
                 }
+                .tint(.primary)
             } header: {
                 SectionInfoHeader(title: "", info: "Select battery chemistry for accurate percentage calculation.")
             }

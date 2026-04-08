@@ -153,6 +153,36 @@
 		SVE10000000100000000001 /* SettingsView+Editors.swift in Sources */ = {isa = PBXBuildFile; fileRef = SVE10000000000000000000 /* SettingsView+Editors.swift */; };
 		SVE10000000100000000002 /* SettingsView+Editors.swift in Sources */ = {isa = PBXBuildFile; fileRef = SVE10000000000000000000 /* SettingsView+Editors.swift */; };
 		SVE10000000100000000003 /* SettingsView+Editors.swift in Sources */ = {isa = PBXBuildFile; fileRef = SVE10000000000000000000 /* SettingsView+Editors.swift */; };
+		RMC10000000100000000001 /* RemoteManagementView+ConfigSections.swift in Sources */ = {isa = PBXBuildFile; fileRef = RMC10000000000000000000 /* RemoteManagementView+ConfigSections.swift */; };
+		RMC10000000100000000002 /* RemoteManagementView+ConfigSections.swift in Sources */ = {isa = PBXBuildFile; fileRef = RMC10000000000000000000 /* RemoteManagementView+ConfigSections.swift */; };
+		RMC10000000100000000003 /* RemoteManagementView+ConfigSections.swift in Sources */ = {isa = PBXBuildFile; fileRef = RMC10000000000000000000 /* RemoteManagementView+ConfigSections.swift */; };
+		RMD10000000100000000001 /* RemoteManagementView+DeviceSections.swift in Sources */ = {isa = PBXBuildFile; fileRef = RMD10000000000000000000 /* RemoteManagementView+DeviceSections.swift */; };
+		RMD10000000100000000002 /* RemoteManagementView+DeviceSections.swift in Sources */ = {isa = PBXBuildFile; fileRef = RMD10000000000000000000 /* RemoteManagementView+DeviceSections.swift */; };
+		RMD10000000100000000003 /* RemoteManagementView+DeviceSections.swift in Sources */ = {isa = PBXBuildFile; fileRef = RMD10000000000000000000 /* RemoteManagementView+DeviceSections.swift */; };
+		RMM10000000100000000001 /* RemoteManagementView+ManagementSections.swift in Sources */ = {isa = PBXBuildFile; fileRef = RMM10000000000000000000 /* RemoteManagementView+ManagementSections.swift */; };
+		RMM10000000100000000002 /* RemoteManagementView+ManagementSections.swift in Sources */ = {isa = PBXBuildFile; fileRef = RMM10000000000000000000 /* RemoteManagementView+ManagementSections.swift */; };
+		RMM10000000100000000003 /* RemoteManagementView+ManagementSections.swift in Sources */ = {isa = PBXBuildFile; fileRef = RMM10000000000000000000 /* RemoteManagementView+ManagementSections.swift */; };
+		CLC10000000100000000001 /* ContactListView+ChannelsUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLC10000000000000000000 /* ContactListView+ChannelsUI.swift */; };
+		CLC10000000100000000002 /* ContactListView+ChannelsUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLC10000000000000000000 /* ContactListView+ChannelsUI.swift */; };
+		CLC10000000100000000003 /* ContactListView+ChannelsUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLC10000000000000000000 /* ContactListView+ChannelsUI.swift */; };
+		CLU10000000100000000001 /* ContactListView+ContactsUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLU10000000000000000000 /* ContactListView+ContactsUI.swift */; };
+		CLU10000000100000000002 /* ContactListView+ContactsUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLU10000000000000000000 /* ContactListView+ContactsUI.swift */; };
+		CLU10000000100000000003 /* ContactListView+ContactsUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLU10000000000000000000 /* ContactListView+ContactsUI.swift */; };
+		CLA10000000100000000001 /* ContactListView+ContactActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLA10000000000000000000 /* ContactListView+ContactActions.swift */; };
+		CLA10000000100000000002 /* ContactListView+ContactActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLA10000000000000000000 /* ContactListView+ContactActions.swift */; };
+		CLA10000000100000000003 /* ContactListView+ContactActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLA10000000000000000000 /* ContactListView+ContactActions.swift */; };
+		NTD10000000100000000001 /* NetworkToolsView+Discovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = NTD10000000000000000000 /* NetworkToolsView+Discovery.swift */; };
+		NTD10000000100000000002 /* NetworkToolsView+Discovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = NTD10000000000000000000 /* NetworkToolsView+Discovery.swift */; };
+		NTD10000000100000000003 /* NetworkToolsView+Discovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = NTD10000000000000000000 /* NetworkToolsView+Discovery.swift */; };
+		NTC10000000100000000001 /* NetworkToolsView+Channels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NTC10000000000000000000 /* NetworkToolsView+Channels.swift */; };
+		NTC10000000100000000002 /* NetworkToolsView+Channels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NTC10000000000000000000 /* NetworkToolsView+Channels.swift */; };
+		NTC10000000100000000003 /* NetworkToolsView+Channels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NTC10000000000000000000 /* NetworkToolsView+Channels.swift */; };
+		NTV10000000100000000001 /* NetworkToolsView+Device.swift in Sources */ = {isa = PBXBuildFile; fileRef = NTV10000000000000000000 /* NetworkToolsView+Device.swift */; };
+		NTV10000000100000000002 /* NetworkToolsView+Device.swift in Sources */ = {isa = PBXBuildFile; fileRef = NTV10000000000000000000 /* NetworkToolsView+Device.swift */; };
+		NTV10000000100000000003 /* NetworkToolsView+Device.swift in Sources */ = {isa = PBXBuildFile; fileRef = NTV10000000000000000000 /* NetworkToolsView+Device.swift */; };
+		SVR10000000100000000001 /* SettingsView+RadioPrivacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = SVR10000000000000000000 /* SettingsView+RadioPrivacy.swift */; };
+		SVR10000000100000000002 /* SettingsView+RadioPrivacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = SVR10000000000000000000 /* SettingsView+RadioPrivacy.swift */; };
+		SVR10000000100000000003 /* SettingsView+RadioPrivacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = SVR10000000000000000000 /* SettingsView+RadioPrivacy.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -216,6 +246,16 @@
 		SVS10000000000000000000 /* SettingsView+Sections.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SettingsView+Sections.swift"; sourceTree = "<group>"; };
 		SVT10000000000000000000 /* SettingsView+TipJar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SettingsView+TipJar.swift"; sourceTree = "<group>"; };
 		SVE10000000000000000000 /* SettingsView+Editors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SettingsView+Editors.swift"; sourceTree = "<group>"; };
+		RMC10000000000000000000 /* RemoteManagementView+ConfigSections.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RemoteManagementView+ConfigSections.swift"; sourceTree = "<group>"; };
+		RMD10000000000000000000 /* RemoteManagementView+DeviceSections.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RemoteManagementView+DeviceSections.swift"; sourceTree = "<group>"; };
+		RMM10000000000000000000 /* RemoteManagementView+ManagementSections.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RemoteManagementView+ManagementSections.swift"; sourceTree = "<group>"; };
+		CLC10000000000000000000 /* ContactListView+ChannelsUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContactListView+ChannelsUI.swift"; sourceTree = "<group>"; };
+		CLU10000000000000000000 /* ContactListView+ContactsUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContactListView+ContactsUI.swift"; sourceTree = "<group>"; };
+		CLA10000000000000000000 /* ContactListView+ContactActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContactListView+ContactActions.swift"; sourceTree = "<group>"; };
+		NTD10000000000000000000 /* NetworkToolsView+Discovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NetworkToolsView+Discovery.swift"; sourceTree = "<group>"; };
+		NTC10000000000000000000 /* NetworkToolsView+Channels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NetworkToolsView+Channels.swift"; sourceTree = "<group>"; };
+		NTV10000000000000000000 /* NetworkToolsView+Device.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NetworkToolsView+Device.swift"; sourceTree = "<group>"; };
+		SVR10000000000000000000 /* SettingsView+RadioPrivacy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SettingsView+RadioPrivacy.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -281,14 +321,24 @@
 				CVC10000000000000000000 /* ChatView+Channels.swift */,
 				CVP10000000000000000000 /* ChatView+Components.swift */,
 				DB24E21D8CDBE0500C92E469 /* NetworkToolsView.swift */,
+				NTD10000000000000000000 /* NetworkToolsView+Discovery.swift */,
+				NTC10000000000000000000 /* NetworkToolsView+Channels.swift */,
+				NTV10000000000000000000 /* NetworkToolsView+Device.swift */,
 				21606E2B959E6496D3B0230D /* ContactListView.swift */,
+				CLC10000000000000000000 /* ContactListView+ChannelsUI.swift */,
+				CLU10000000000000000000 /* ContactListView+ContactsUI.swift */,
+				CLA10000000000000000000 /* ContactListView+ContactActions.swift */,
 				A1B2C3D4E5F6A7B8C9D0E1F2 /* ContactRowView.swift */,
 				2377BED4FF5A7170783BA649 /* DeviceScannerView.swift */,
 				5D859AE9C98610F71C2FBAAF /* SettingsView.swift */,
 				SVS10000000000000000000 /* SettingsView+Sections.swift */,
+				SVR10000000000000000000 /* SettingsView+RadioPrivacy.swift */,
 				SVT10000000000000000000 /* SettingsView+TipJar.swift */,
 				SVE10000000000000000000 /* SettingsView+Editors.swift */,
 				LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */,
+				RMC10000000000000000000 /* RemoteManagementView+ConfigSections.swift */,
+				RMD10000000000000000000 /* RemoteManagementView+DeviceSections.swift */,
+				RMM10000000000000000000 /* RemoteManagementView+ManagementSections.swift */,
 				A1B2C3D4E5F60718293A4B5C /* ShareView.swift */,
 				OBV10000000000000000000 /* OnboardingView.swift */,
 				USB10000000000000000000 /* USBSerialView.swift */,
@@ -521,7 +571,13 @@
 				CVC10000000100000000001 /* ChatView+Channels.swift in Sources */,
 				CVP10000000100000000001 /* ChatView+Components.swift in Sources */,
 				309F59A4C45F0C74C7632AAF /* NetworkToolsView.swift in Sources */,
+				NTD10000000100000000001 /* NetworkToolsView+Discovery.swift in Sources */,
+				NTC10000000100000000001 /* NetworkToolsView+Channels.swift in Sources */,
+				NTV10000000100000000001 /* NetworkToolsView+Device.swift in Sources */,
 				038B76DA3EB2B884787888BE /* ContactListView.swift in Sources */,
+				CLC10000000100000000001 /* ContactListView+ChannelsUI.swift in Sources */,
+				CLU10000000100000000001 /* ContactListView+ContactsUI.swift in Sources */,
+				CLA10000000100000000001 /* ContactListView+ContactActions.swift in Sources */,
 				B2C3D4E5F6A7B8C9D0E1F2A3 /* ContactRowView.swift in Sources */,
 				0F29C3C72F84856E0007BF08 /* Services/ElevationService.swift in Sources */,
 				FWC10000000100000000001 /* Services/FirmwareUpdateChecker.swift in Sources */,
@@ -532,11 +588,15 @@
 				5EA23B098C539C2A2191CA10 /* MeshCoreViewModel.swift in Sources */,
 				68CC8A44AD061C07535707EB /* SettingsView.swift in Sources */,
 				SVS10000000100000000001 /* SettingsView+Sections.swift in Sources */,
+				SVR10000000100000000001 /* SettingsView+RadioPrivacy.swift in Sources */,
 				SVT10000000100000000001 /* SettingsView+TipJar.swift in Sources */,
 				SVE10000000100000000001 /* SettingsView+Editors.swift in Sources */,
 				A81875C1B0A1226A9333AFCF /* Theme.swift in Sources */,
 				44472F77FC4CAC4A41BDD12F /* WatchChatView.swift in Sources */,
 				5WT22AMGOSQXJ90NFRN8O6TK /* RemoteManagementView.swift in Sources */,
+				RMC10000000100000000001 /* RemoteManagementView+ConfigSections.swift in Sources */,
+				RMD10000000100000000001 /* RemoteManagementView+DeviceSections.swift in Sources */,
+				RMM10000000100000000001 /* RemoteManagementView+ManagementSections.swift in Sources */,
 				KCM1ABCD0001000000000001 /* KeychainManager.swift in Sources */,
 				STO10000000100000000001 /* ContactStore.swift in Sources */,
 				STO20000000100000000001 /* ChannelStore.swift in Sources */,
@@ -563,7 +623,13 @@
 				CVC10000000100000000002 /* ChatView+Channels.swift in Sources */,
 				CVP10000000100000000002 /* ChatView+Components.swift in Sources */,
 				9D7EAB7850F077EF373AC84F /* NetworkToolsView.swift in Sources */,
+				NTD10000000100000000002 /* NetworkToolsView+Discovery.swift in Sources */,
+				NTC10000000100000000002 /* NetworkToolsView+Channels.swift in Sources */,
+				NTV10000000100000000002 /* NetworkToolsView+Device.swift in Sources */,
 				C9CEA8D3714859C1177D7704 /* ContactListView.swift in Sources */,
+				CLC10000000100000000002 /* ContactListView+ChannelsUI.swift in Sources */,
+				CLU10000000100000000002 /* ContactListView+ContactsUI.swift in Sources */,
+				CLA10000000100000000002 /* ContactListView+ContactActions.swift in Sources */,
 				0F29C3C52F84856E0007BF08 /* Services/ElevationService.swift in Sources */,
 				FWC10000000100000000002 /* Services/FirmwareUpdateChecker.swift in Sources */,
 				LNK10000000000000000001 /* Services/LinkPreviewService.swift in Sources */,
@@ -575,10 +641,14 @@
 				D3633106D9031C89E0589468 /* MeshCoreViewModel.swift in Sources */,
 				FC6474A70CF5B233AB283928 /* SettingsView.swift in Sources */,
 				SVS10000000100000000002 /* SettingsView+Sections.swift in Sources */,
+				SVR10000000100000000002 /* SettingsView+RadioPrivacy.swift in Sources */,
 				SVT10000000100000000002 /* SettingsView+TipJar.swift in Sources */,
 				SVE10000000100000000002 /* SettingsView+Editors.swift in Sources */,
 				96059FF0363E830C376C23ED /* Theme.swift in Sources */,
 				XUOVAQ6Y1NIWH1G3OMK55ENV /* RemoteManagementView.swift in Sources */,
+				RMC10000000100000000002 /* RemoteManagementView+ConfigSections.swift in Sources */,
+				RMD10000000100000000002 /* RemoteManagementView+DeviceSections.swift in Sources */,
+				RMM10000000100000000002 /* RemoteManagementView+ManagementSections.swift in Sources */,
 				KCM1ABCD0002000000000001 /* KeychainManager.swift in Sources */,
 				STO10000000100000000002 /* ContactStore.swift in Sources */,
 				STO20000000100000000002 /* ChannelStore.swift in Sources */,
@@ -622,7 +692,13 @@
 				CVC10000000100000000003 /* ChatView+Channels.swift in Sources */,
 				CVP10000000100000000003 /* ChatView+Components.swift in Sources */,
 				F01FFE8B0B7AB2F62D296F88 /* NetworkToolsView.swift in Sources */,
+				NTD10000000100000000003 /* NetworkToolsView+Discovery.swift in Sources */,
+				NTC10000000100000000003 /* NetworkToolsView+Channels.swift in Sources */,
+				NTV10000000100000000003 /* NetworkToolsView+Device.swift in Sources */,
 				8EF971496F064F1AD761B796 /* ContactListView.swift in Sources */,
+				CLC10000000100000000003 /* ContactListView+ChannelsUI.swift in Sources */,
+				CLU10000000100000000003 /* ContactListView+ContactsUI.swift in Sources */,
+				CLA10000000100000000003 /* ContactListView+ContactActions.swift in Sources */,
 				0F29C3C62F84856E0007BF08 /* Services/ElevationService.swift in Sources */,
 				FWC10000000100000000003 /* Services/FirmwareUpdateChecker.swift in Sources */,
 				LNK10000000000000000002 /* Services/LinkPreviewService.swift in Sources */,
@@ -634,10 +710,14 @@
 				6A8D08F2CE9D321D55C02696 /* MeshCoreViewModel.swift in Sources */,
 				EC8655805E2DCD03D8C9C4F6 /* SettingsView.swift in Sources */,
 				SVS10000000100000000003 /* SettingsView+Sections.swift in Sources */,
+				SVR10000000100000000003 /* SettingsView+RadioPrivacy.swift in Sources */,
 				SVT10000000100000000003 /* SettingsView+TipJar.swift in Sources */,
 				SVE10000000100000000003 /* SettingsView+Editors.swift in Sources */,
 				FAA4FA7E3E52FCF631D55675 /* Theme.swift in Sources */,
 				CATKUXG25PTVMENJWXQZY49X /* RemoteManagementView.swift in Sources */,
+				RMC10000000100000000003 /* RemoteManagementView+ConfigSections.swift in Sources */,
+				RMD10000000100000000003 /* RemoteManagementView+DeviceSections.swift in Sources */,
+				RMM10000000100000000003 /* RemoteManagementView+ManagementSections.swift in Sources */,
 				KCM1ABCD0003000000000001 /* KeychainManager.swift in Sources */,
 				STO10000000100000000003 /* ContactStore.swift in Sources */,
 				STO20000000100000000003 /* ChannelStore.swift in Sources */,

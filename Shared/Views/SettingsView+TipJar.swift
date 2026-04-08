@@ -258,7 +258,9 @@ extension SettingsView {
                 Text("1,000").tag(1000)
             } label: {
                 Label("Messages Per Contact", systemImage: "number")
+                    .foregroundStyle(MeshTheme.accent)
             }
+            .tint(.primary)
             .listRowBackground(MeshTheme.surface)
 
             Button {
@@ -271,13 +273,16 @@ extension SettingsView {
                     let msgCount = messageStoreManager.messagesByContact.values.reduce(0) { $0 + $1.count }
                     #if !os(watchOS)
                     let telCount = rfMonitorStore.totalSnapshotCount
+                    let msgStatus: Color = msgCount > 20_000 ? .red : msgCount > 5_000 ? .orange : .green
+                    let telStatus: Color = telCount > 2_000 ? .red : telCount > 500 ? .orange : .green
+                    let worstStatus: Color = msgStatus == .red || telStatus == .red ? .red : msgStatus == .orange || telStatus == .orange ? .orange : .green
                     Text("\(msgCount) messages, \(telCount) telemetry")
                         .font(.caption)
-                        .foregroundStyle(MeshTheme.textSecondary)
+                        .foregroundStyle(worstStatus)
                     #else
                     Text("\(msgCount) messages")
                         .font(.caption)
-                        .foregroundStyle(MeshTheme.textSecondary)
+                        .foregroundStyle(msgCount > 20_000 ? .red : msgCount > 5_000 ? .orange : .green)
                     #endif
                 }
                 .contentShape(Rectangle())
@@ -365,7 +370,7 @@ extension SettingsView {
             .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
         } header: {
-            sectionInfoHeader("Support", info: "MeshCore is free with all features. Tips help fund development. \u{1F49A} tippers join the Supporters Wall!")
+            sectionInfoHeader("Support the App", info: "MeshCore is free with all features. Tips help fund development. \u{1F49A} tippers join the Supporters Wall!")
         }
     }
 

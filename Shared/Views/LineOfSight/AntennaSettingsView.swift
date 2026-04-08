@@ -22,7 +22,7 @@ struct AntennaSettingsView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Point A Antenna")
                         .font(.caption)
-                        .foregroundStyle(MeshTheme.textSecondary)
+                        .foregroundStyle(MeshTheme.accent)
                     Stepper(value: $store.antennaHeightA, in: 0.5...100, step: 0.5) {
                         Text(String(format: "%.1f m", store.antennaHeightA))
                             .foregroundStyle(MeshTheme.textPrimary)
@@ -38,7 +38,7 @@ struct AntennaSettingsView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Point B Antenna")
                         .font(.caption)
-                        .foregroundStyle(MeshTheme.textSecondary)
+                        .foregroundStyle(MeshTheme.accent)
                     Stepper(value: $store.antennaHeightB, in: 0.5...100, step: 0.5) {
                         Text(String(format: "%.1f m", store.antennaHeightB))
                             .foregroundStyle(MeshTheme.textPrimary)
@@ -54,7 +54,7 @@ struct AntennaSettingsView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Frequency")
                         .font(.caption)
-                        .foregroundStyle(MeshTheme.textSecondary)
+                        .foregroundStyle(MeshTheme.accent)
                     if store.manualFrequencyOverride {
                         TextField("MHz", value: $store.frequencyMHz, format: .number)
                             .foregroundStyle(MeshTheme.textPrimary)
@@ -63,7 +63,7 @@ struct AntennaSettingsView: View {
                             #endif
                     } else {
                         Text(String(format: "%.3f MHz (from radio)", store.frequencyMHz))
-                            .foregroundStyle(MeshTheme.textPrimary)
+                            .foregroundStyle(MeshTheme.textSecondary)
                     }
                 }
             }
@@ -71,7 +71,7 @@ struct AntennaSettingsView: View {
 
             Toggle("Manual Frequency Override", isOn: $store.manualFrequencyOverride)
                 .font(.caption)
-                .foregroundStyle(MeshTheme.textSecondary)
+                .foregroundStyle(MeshTheme.accent)
                 .listRowBackground(MeshTheme.surface)
                 .onChange(of: store.manualFrequencyOverride) { _, manual in
                     if !manual {

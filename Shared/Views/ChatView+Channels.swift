@@ -932,13 +932,16 @@ struct RepeaterLoginView: View {
                 Spacer()
 
                 VStack(spacing: 12) {
-                    Image(systemName: "antenna.radiowaves.left.and.right")
+                    let remoteAccent: Color = contact.type == .room ? MeshTheme.remoteRoom : MeshTheme.remoteRepeater
+                    let deviceLabel = contact.type == .room ? "Room Server" : contact.type == .sensor ? "Sensor" : "Repeater"
+                    let deviceIcon = contact.type == .room ? "server.rack" : "antenna.radiowaves.left.and.right"
+                    Image(systemName: deviceIcon)
                         .font(.system(size: 48))
-                        .foregroundStyle(MeshTheme.textSecondary)
-                    Text("Repeater Login")
+                        .foregroundStyle(remoteAccent)
+                    Text("\(deviceLabel) Login")
                         .font(.title3.weight(.semibold))
-                        .foregroundStyle(MeshTheme.textPrimary)
-                    Text("Enter the admin password to manage this repeater.")
+                        .foregroundStyle(remoteAccent)
+                    Text("Enter the admin password to manage this \(deviceLabel.lowercased()).")
                         .font(.subheadline)
                         .foregroundStyle(MeshTheme.textSecondary)
                         .multilineTextAlignment(.center)
@@ -972,7 +975,7 @@ struct RepeaterLoginView: View {
                     #if !os(watchOS)
                     Toggle("Remember Password", isOn: $rememberPassword)
                         .font(.subheadline)
-                        .foregroundStyle(MeshTheme.textSecondary)
+                        .foregroundStyle(MeshTheme.accent)
                         .padding(.horizontal, 32)
                     #endif
 

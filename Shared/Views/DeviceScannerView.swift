@@ -34,11 +34,11 @@ struct DeviceScannerView: View {
                                 .tint(MeshTheme.accent)
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("Searching for MeshCore devices...")
-                                    .foregroundStyle(MeshTheme.textPrimary)
+                                    .foregroundStyle(MeshTheme.scanning)
                                 if connectionManager.scanRetryCount < 3 && connectionManager.scanRetryCount > 0 {
                                     Text("Retry \(3 - connectionManager.scanRetryCount) of 3")
                                         .font(.caption)
-                                        .foregroundStyle(MeshTheme.textSecondary)
+                                        .foregroundStyle(.orange)
                                 }
                             }
                         }
@@ -54,7 +54,7 @@ struct DeviceScannerView: View {
                                     .foregroundStyle(MeshTheme.textSecondary)
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text("No devices found")
-                                        .foregroundStyle(MeshTheme.textPrimary)
+                                        .foregroundStyle(MeshTheme.accent)
                                     Text("Tap to scan again")
                                         .font(.caption)
                                         .foregroundStyle(MeshTheme.accent)
@@ -75,7 +75,7 @@ struct DeviceScannerView: View {
                                 .tint(MeshTheme.accent)
                             Text("Scanning...")
                                 .font(.caption)
-                                .foregroundStyle(MeshTheme.textSecondary)
+                                .foregroundStyle(MeshTheme.scanning)
                         }
                         .listRowBackground(MeshTheme.surface)
                     }
@@ -96,7 +96,7 @@ struct DeviceScannerView: View {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(peripheral.name)
                                         .font(.body)
-                                        .foregroundStyle(MeshTheme.textPrimary)
+                                        .foregroundStyle(MeshTheme.accent)
                                     Text("\(peripheral.rssi) dBm")
                                         .font(.caption)
                                         .foregroundStyle(MeshTheme.textSecondary)
@@ -121,7 +121,7 @@ struct DeviceScannerView: View {
                         Image(systemName: "wifi")
                             .foregroundStyle(MeshTheme.connected)
                         Text(connectionManager.wifiManager.connectedHost ?? "Connected")
-                            .foregroundStyle(MeshTheme.textPrimary)
+                            .foregroundStyle(MeshTheme.connected)
                         Spacer()
                         Button("Disconnect") {
                             connectionManager.disconnectWiFi()
@@ -141,14 +141,18 @@ struct DeviceScannerView: View {
                                 Image(systemName: "wifi")
                                     .foregroundStyle(MeshTheme.accent)
                                 VStack(alignment: .leading) {
+                                    Text("WiFi Radio")
+                                        .foregroundStyle(MeshTheme.accent)
                                     Text("\(saved.host):\(saved.port)")
-                                        .foregroundStyle(MeshTheme.textPrimary)
+                                        .font(.caption)
+                                        .foregroundStyle(MeshTheme.textSecondary)
                                     Text(saved.lastConnected, style: .relative)
                                         .font(.caption2)
                                         .foregroundStyle(MeshTheme.textSecondary)
                                 }
                                 Spacer()
                             }
+                            .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
                         .listRowBackground(MeshTheme.surface)
@@ -206,7 +210,7 @@ struct DeviceScannerView: View {
                         Image(systemName: "cable.connector")
                             .foregroundStyle(MeshTheme.connected)
                         Text(connectionManager.usbManager.connectedPort?.replacingOccurrences(of: "/dev/cu.", with: "") ?? "Connected")
-                            .foregroundStyle(MeshTheme.textPrimary)
+                            .foregroundStyle(MeshTheme.connected)
                         Spacer()
                         Button("Disconnect") { connectionManager.disconnectUSB() }
                             .foregroundStyle(MeshTheme.disconnected)
@@ -218,7 +222,7 @@ struct DeviceScannerView: View {
                             Image(systemName: "cable.connector")
                                 .foregroundStyle(MeshTheme.accent)
                             Text(port.replacingOccurrences(of: "/dev/cu.", with: ""))
-                                .foregroundStyle(MeshTheme.textPrimary)
+                                .foregroundStyle(MeshTheme.accent)
                             Spacer()
                             Button("Connect") { connectionManager.connectUSB(port: port); dismiss() }
                                 .buttonStyle(.borderedProminent)
