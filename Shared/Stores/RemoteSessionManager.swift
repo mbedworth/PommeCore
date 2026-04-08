@@ -460,6 +460,18 @@ final class RemoteSessionManager {
         Self.logger.info("REMOTE MGMT: Section '\(section)' loaded for \(contact.name)")
     }
 
+    /// Fetch only volatile keys that change automatically (clock, etc).
+    /// Used when cache exists to avoid re-fetching stable settings.
+    private func fetchVolatileKeys(for contact: Contact, session: RemoteDeviceSession) async {
+        let volatileCommands = ["clock"]
+        Self.logger.info("REMOTE MGMT: Fetching \(volatileCommands.count) volatile keys for \(contact.name) (cache hit)")
+
+        for command in volatileCommands {
+            guard !Task.isCancelled else { return }
+            await fetchRemoteSetting(command: command, contact: contact, session: session)
+        }
+    }
+
     /// Send a single CLI command and wait for its response.
     private func fetchRemoteSetting(command: String, contact: Contact, session: RemoteDeviceSession) async {
         let cmdIndex: Int
@@ -628,10 +640,18 @@ final class RemoteSessionManager {
                         try? await Task.sleep(nanoseconds: 1_500_000_000)
                         guard let self else { return }
                         // Phase 1: auto-fetch essentials sequentially (1-request-1-answer)
-                        // All other sections (timing, routing, etc.) load on demand when expanded
-                        await self.fetchSectionAsync("info", for: contact)
-                        await self.fetchSectionAsync("radio", for: contact)
-                        await self.fetchSectionAsync("advertising", for: contact)
+                        let session = self.remoteSession(for: contact)
+                        let hasCachedData = !session.settings.isEmpty
+
+                        if hasCachedData {
+                            // Cache exists — only fetch volatile keys (clock changes automatically)
+                            await self.fetchVolatileKeys(for: contact, session: session)
+                        } else {
+                            // No cache — full fetch of info, radio, advertising
+                            await self.fetchSectionAsync("info", for: contact)
+                            await self.fetchSectionAsync("radio", for: contact)
+                            await self.fetchSectionAsync("advertising", for: contact)
+                        }
                     }
                 }
                 return key
