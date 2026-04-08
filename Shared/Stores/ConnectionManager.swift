@@ -505,7 +505,20 @@ final class ConnectionManager {
     }
 
     func disconnectWiFi() {
+        let previousState = connectionState
         wifiManager.disconnect()
+        connectionState = .disconnected
+        connectedDeviceName = nil
+        if previousState != .disconnected {
+            onDisconnected?(previousState)
+        }
+        // Auto-scan after user-initiated disconnect
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            guard let self, self.connectionState == .disconnected else { return }
+            self.requestShowScanner = true
+            self.startScanning()
+        }
     }
 
     /// Reconnect WiFi if it was previously connected but dropped (e.g. app suspended).
@@ -629,6 +642,17 @@ final class ConnectionManager {
     #endif
 
     func disconnect() {
+        // Route to the correct transport disconnect
+        if wifiManager.isConnected {
+            disconnectWiFi()
+            return
+        }
+        #if os(macOS) || targetEnvironment(macCatalyst)
+        if usbManager.isConnected {
+            disconnectUSB()
+            return
+        }
+        #endif
         bleManager.disconnect()
         // Auto-scan after user-initiated disconnect
         Task { @MainActor [weak self] in
