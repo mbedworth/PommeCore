@@ -112,11 +112,13 @@ struct RemoteGPSSection: View {
             if canEdit {
                 HStack(spacing: 12) {
                     Button {
+                        let epoch = Int(Date().timeIntervalSince1970)
+                        sendCLI("time \(epoch)")
                         sendCLI("gps sync")
                         showFeedback($gpsSyncFeedback)
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { sendCLI("clock") }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { sendCLI("clock") }
                     } label: {
-                        Label(gpsSyncFeedback ? "Clock Synced" : "Sync Time from GPS", systemImage: gpsSyncFeedback ? "checkmark.circle.fill" : "clock.arrow.2.circlepath")
+                        Label(gpsSyncFeedback ? "Clock Synced" : "Sync Time", systemImage: gpsSyncFeedback ? "checkmark.circle.fill" : "clock.arrow.2.circlepath")
                             .foregroundStyle(gpsSyncFeedback ? .green : MeshTheme.accent)
                     }
                     .buttonStyle(.plain)

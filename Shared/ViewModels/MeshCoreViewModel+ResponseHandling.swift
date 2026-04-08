@@ -213,7 +213,7 @@ extension MeshCoreViewModel {
                 // Auto-request status for infrastructure devices after login (battery/uptime)
                 if let contact = contactStore.contacts.first(where: { $0.publicKeyPrefix == contactKey }),
                    contact.type == .repeater || contact.type == .room || contact.type == .sensor {
-                    remoteSessionManager.requestStatus(for: contact)
+                    remoteSessionManager.requestStatus(for: contact, silent: true)
                 }
             }
 

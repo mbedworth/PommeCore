@@ -639,17 +639,24 @@ final class RemoteSessionManager {
                 if let contact = contacts.first(where: { $0.publicKeyPrefix == key }) {
                     Self.logger.info("REMOTE MGMT: Login success for \(contact.name), fetching Phase 1 settings")
                     Task { [weak self] in
-                        try? await Task.sleep(nanoseconds: 1_500_000_000)
                         guard let self else { return }
                         // Phase 1: auto-fetch essentials sequentially (1-request-1-answer)
                         let session = self.remoteSession(for: contact)
                         let hasCachedData = !session.settings.isEmpty
 
                         if hasCachedData {
-                            // Cache exists — only fetch volatile keys (clock changes automatically)
+                            // Cache exists — wait for StatusResponse (battery/uptime) before CLI
+                            // STATUS_REQ was sent on login; give LoRa time to round-trip
+                            let contactKey = contact.publicKeyPrefix
+                            for _ in 0..<16 {
+                                try? await Task.sleep(nanoseconds: 500_000_000) // 500ms intervals
+                                if self.statusByContact[contactKey] != nil { break }
+                            }
+                            // Then fetch volatile keys (clock)
                             await self.fetchVolatileKeys(for: contact, session: session)
                         } else {
-                            // No cache — full fetch of info, radio, advertising
+                            // No cache — wait briefly then full fetch
+                            try? await Task.sleep(nanoseconds: 1_500_000_000)
                             await self.fetchSectionAsync("info", for: contact)
                             await self.fetchSectionAsync("radio", for: contact)
                             await self.fetchSectionAsync("advertising", for: contact)
@@ -1026,7 +1033,7 @@ final class RemoteSessionManager {
 
     // MARK: - Status & Telemetry
 
-    func requestStatus(for contact: Contact) {
+    func requestStatus(for contact: Contact, silent: Bool = false) {
         switch contact.type {
         case .chat:
             Self.logger.info("Status request to chat contact — may not respond")
@@ -1044,6 +1051,7 @@ final class RemoteSessionManager {
         sendCommand?(frame, "STATUS_REQ")
 
         statusTimeoutTask?.cancel()
+        guard !silent else { return }
         statusTimeoutTask = Task { @MainActor [weak self] in
             try? await Task.sleep(nanoseconds: 15_000_000_000)
             guard !Task.isCancelled, let self, self.pendingStatusKey == key else { return }
