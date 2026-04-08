@@ -14,6 +14,9 @@
 		LNK10000000000000000001 /* Services/LinkPreviewService.swift in Sources */ = {isa = PBXBuildFile; fileRef = LNK10000000000000000000 /* Services/LinkPreviewService.swift */; };
 		LNK10000000000000000002 /* Services/LinkPreviewService.swift in Sources */ = {isa = PBXBuildFile; fileRef = LNK10000000000000000000 /* Services/LinkPreviewService.swift */; };
 		LNK10000000000000000003 /* Services/LinkPreviewService.swift in Sources */ = {isa = PBXBuildFile; fileRef = LNK10000000000000000000 /* Services/LinkPreviewService.swift */; };
+		FWC10000000100000000001 /* Services/FirmwareUpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = FWC10000000000000000000 /* Services/FirmwareUpdateChecker.swift */; };
+		FWC10000000100000000002 /* Services/FirmwareUpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = FWC10000000000000000000 /* Services/FirmwareUpdateChecker.swift */; };
+		FWC10000000100000000003 /* Services/FirmwareUpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = FWC10000000000000000000 /* Services/FirmwareUpdateChecker.swift */; };
 		0F29C3C92F8485BD0007BF08 /* LineOfSightStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3C82F8485BD0007BF08 /* LineOfSightStore.swift */; };
 		0F29C3CA2F8485BD0007BF08 /* LineOfSightStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3C82F8485BD0007BF08 /* LineOfSightStore.swift */; };
 		0F29C3D42F84863E0007BF08 /* LineOfSight/TerrainProfileCanvas.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3D22F84863E0007BF08 /* LineOfSight/TerrainProfileCanvas.swift */; };
@@ -43,9 +46,7 @@
 		0FD96D502F84A8EE0026DF54 /* Tools/TelemetryChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FD96D4E2F84A8EE0026DF54 /* Tools/TelemetryChartView.swift */; };
 		0FD96D512F84A8EE0026DF54 /* Tools/NoiseFloorMonitorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FD96D4D2F84A8EE0026DF54 /* Tools/NoiseFloorMonitorView.swift */; };
 		0FD96D522F84A8EE0026DF54 /* Tools/TelemetryChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FD96D4E2F84A8EE0026DF54 /* Tools/TelemetryChartView.swift */; };
-		0FD96D552F84AA320026DF54 /* DiscoverNodesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FD96D532F84AA320026DF54 /* DiscoverNodesView.swift */; };
 		0FD96D562F84AA320026DF54 /* RadioCalculatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FD96D542F84AA320026DF54 /* RadioCalculatorView.swift */; };
-		0FD96D572F84AA320026DF54 /* DiscoverNodesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FD96D532F84AA320026DF54 /* DiscoverNodesView.swift */; };
 		0FD96D582F84AA320026DF54 /* RadioCalculatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FD96D542F84AA320026DF54 /* RadioCalculatorView.swift */; };
 		ART10000000000000000001 /* LoRaAirtimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ART10000000000000000000 /* LoRaAirtimeView.swift */; };
 		ART10000000000000000002 /* LoRaAirtimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ART10000000000000000000 /* LoRaAirtimeView.swift */; };
@@ -157,6 +158,7 @@
 /* Begin PBXFileReference section */
 		0F29C3C42F84856E0007BF08 /* Services/ElevationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/ElevationService.swift; sourceTree = "<group>"; };
 		LNK10000000000000000000 /* Services/LinkPreviewService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/LinkPreviewService.swift; sourceTree = "<group>"; };
+		FWC10000000000000000000 /* Services/FirmwareUpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/FirmwareUpdateChecker.swift; sourceTree = "<group>"; };
 		0F29C3C82F8485BD0007BF08 /* LineOfSightStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineOfSightStore.swift; sourceTree = "<group>"; };
 		0F29C3CC2F84863E0007BF08 /* LineOfSight/AntennaSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineOfSight/AntennaSettingsView.swift; sourceTree = "<group>"; };
 		0F29C3CD2F84863E0007BF08 /* LineOfSight/LineOfSightView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineOfSight/LineOfSightView.swift; sourceTree = "<group>"; };
@@ -171,7 +173,7 @@
 		0FD96D4A2F84A8CD0026DF54 /* RFMonitorStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RFMonitorStore.swift; sourceTree = "<group>"; };
 		0FD96D4D2F84A8EE0026DF54 /* Tools/NoiseFloorMonitorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tools/NoiseFloorMonitorView.swift; sourceTree = "<group>"; };
 		0FD96D4E2F84A8EE0026DF54 /* Tools/TelemetryChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tools/TelemetryChartView.swift; sourceTree = "<group>"; };
-		0FD96D532F84AA320026DF54 /* DiscoverNodesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Tools/DiscoverNodesView.swift"; sourceTree = "<group>"; };
+
 		0FD96D542F84AA320026DF54 /* RadioCalculatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Tools/RadioCalculatorView.swift"; sourceTree = "<group>"; };
 		ART10000000000000000000 /* LoRaAirtimeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Tools/LoRaAirtimeView.swift"; sourceTree = "<group>"; };
 		SBW10000000000000000000 /* SensitivityTableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Tools/SensitivityTableView.swift"; sourceTree = "<group>"; };
@@ -259,7 +261,7 @@
 		0A6B0F647BA21A953CCB6490 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				0FD96D532F84AA320026DF54 /* DiscoverNodesView.swift */,
+
 				0FD96D542F84AA320026DF54 /* RadioCalculatorView.swift */,
 				ART10000000000000000000 /* LoRaAirtimeView.swift */,
 				SBW10000000000000000000 /* SensitivityTableView.swift */,
@@ -346,6 +348,7 @@
 			children = (
 				0F29C3C42F84856E0007BF08 /* Services/ElevationService.swift */,
 				LNK10000000000000000000 /* Services/LinkPreviewService.swift */,
+				FWC10000000000000000000 /* Services/FirmwareUpdateChecker.swift */,
 				C9E04F99D8E7C9D4D391AEF8 /* Models */,
 				F587E5EEE1FE6B2B210AEFE3 /* App */,
 				307D79903AB18CCBBF806BCE /* ViewModels */,
@@ -521,6 +524,7 @@
 				038B76DA3EB2B884787888BE /* ContactListView.swift in Sources */,
 				B2C3D4E5F6A7B8C9D0E1F2A3 /* ContactRowView.swift in Sources */,
 				0F29C3C72F84856E0007BF08 /* Services/ElevationService.swift in Sources */,
+				FWC10000000100000000001 /* Services/FirmwareUpdateChecker.swift in Sources */,
 				F2A3B4C5D6E7F8A9B0C1D2E3 /* NavigationStore.swift in Sources */,
 				0FCE4BE52F7A20E5009358D8 /* MeshCoreViewModel+ResponseHandling.swift in Sources */,
 				C2497AA6CDB94C882FC3C7CB /* DeviceScannerView.swift in Sources */,
@@ -561,6 +565,7 @@
 				9D7EAB7850F077EF373AC84F /* NetworkToolsView.swift in Sources */,
 				C9CEA8D3714859C1177D7704 /* ContactListView.swift in Sources */,
 				0F29C3C52F84856E0007BF08 /* Services/ElevationService.swift in Sources */,
+				FWC10000000100000000002 /* Services/FirmwareUpdateChecker.swift in Sources */,
 				LNK10000000000000000001 /* Services/LinkPreviewService.swift in Sources */,
 				D4E5F6A7B8C9D0E1F2A3B4C5 /* ContactRowView.swift in Sources */,
 				B4C5D6E7F8A9B0C1D2E3F4A5 /* NavigationStore.swift in Sources */,
@@ -590,7 +595,7 @@
 				DBG10000000000000000002 /* DebugLogView.swift in Sources */,
 				0F29C3DC2F84863E0007BF08 /* LineOfSight/TerrainProfileCanvas.swift in Sources */,
 				0F29C3DD2F84863E0007BF08 /* LineOfSight/AntennaSettingsView.swift in Sources */,
-				0FD96D552F84AA320026DF54 /* DiscoverNodesView.swift in Sources */,
+
 				0FD96D562F84AA320026DF54 /* RadioCalculatorView.swift in Sources */,
 				ART10000000000000000001 /* LoRaAirtimeView.swift in Sources */,
 				SBW10000000000000000001 /* SensitivityTableView.swift in Sources */,
@@ -619,6 +624,7 @@
 				F01FFE8B0B7AB2F62D296F88 /* NetworkToolsView.swift in Sources */,
 				8EF971496F064F1AD761B796 /* ContactListView.swift in Sources */,
 				0F29C3C62F84856E0007BF08 /* Services/ElevationService.swift in Sources */,
+				FWC10000000100000000003 /* Services/FirmwareUpdateChecker.swift in Sources */,
 				LNK10000000000000000002 /* Services/LinkPreviewService.swift in Sources */,
 				C3D4E5F6A7B8C9D0E1F2A3B4 /* ContactRowView.swift in Sources */,
 				A3B4C5D6E7F8A9B0C1D2E3F4 /* NavigationStore.swift in Sources */,
@@ -648,7 +654,7 @@
 				DBG10000000000000000003 /* DebugLogView.swift in Sources */,
 				0F29C3D42F84863E0007BF08 /* LineOfSight/TerrainProfileCanvas.swift in Sources */,
 				0F29C3D52F84863E0007BF08 /* LineOfSight/AntennaSettingsView.swift in Sources */,
-				0FD96D572F84AA320026DF54 /* DiscoverNodesView.swift in Sources */,
+
 				0FD96D582F84AA320026DF54 /* RadioCalculatorView.swift in Sources */,
 				ART10000000000000000002 /* LoRaAirtimeView.swift in Sources */,
 				SBW10000000000000000002 /* SensitivityTableView.swift in Sources */,
@@ -674,7 +680,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = iOS/MeshCoreApple.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = 7R925EW7AT;
 				INFOPLIST_FILE = iOS/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = PommeCore;
@@ -757,7 +763,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 16;
 				INFOPLIST_FILE = watchOS/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = PommeCore;
 				MARKETING_VERSION = 26.04.2;
@@ -778,7 +784,7 @@
 				CODE_SIGN_ENTITLEMENTS = "macOS/MeshCoreApple-macOS.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 16;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 7R925EW7AT;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -803,7 +809,7 @@
 				CODE_SIGN_ENTITLEMENTS = "macOS/MeshCoreApple-macOS.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 16;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 7R925EW7AT;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -827,7 +833,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = iOS/MeshCoreApple.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = 7R925EW7AT;
 				INFOPLIST_FILE = iOS/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = PommeCore;
@@ -917,7 +923,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 16;
 				INFOPLIST_FILE = watchOS/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = PommeCore;
 				MARKETING_VERSION = 26.04.2;
