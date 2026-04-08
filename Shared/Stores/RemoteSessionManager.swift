@@ -80,6 +80,8 @@ final class RemoteSessionManager {
 
     var telemetryByContact: [Data: [TelemetryReading]] = [:]
     var statusByContact: [Data: RemoteStatusInfo] = [:]
+    /// Increments when status/telemetry updates arrive — forces SwiftUI to re-read statusByContact.
+    var statusUpdateCounter = 0
     var advertPathByContact: [Data: AdvertPathInfo] = [:]
     var allowedRepeatFreqRanges: [FrequencyRange] = []
     private(set) var pendingTraceTag: UInt32?
@@ -1084,6 +1086,7 @@ final class RemoteSessionManager {
         if let key = pendingStatusKey {
             statusByContact[key] = info
             pendingStatusKey = nil
+            statusUpdateCounter += 1
             onStateChanged?()
         }
     }

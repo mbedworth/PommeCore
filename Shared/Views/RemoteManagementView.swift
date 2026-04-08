@@ -558,6 +558,7 @@ private extension RemoteManagementView {
                 }
                 .font(.caption)
                 .foregroundStyle(MeshTheme.textSecondary)
+                .id(remoteSessionManager.statusUpdateCounter)
 
                 if let radio = session.settings["radio"], !radio.isEmpty {
                     let tx = session.settings["tx"] ?? ""
