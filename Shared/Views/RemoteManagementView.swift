@@ -44,7 +44,7 @@ struct RemoteManagementView: View {
                 if !isUSBDevice {
                     disconnectSection
                 }
-                // Phase 1 loading indicator (only shows during initial info/radio/advertising fetch)
+                // Phase 1 loading indicator (only shows during initial fetch)
                 if session.fetchingSection != nil && !session.fetchedSections.contains("advertising") {
                     Section {
                         HStack(spacing: 12) {
@@ -112,13 +112,8 @@ struct RemoteManagementView: View {
         }
         .meshListStyle()
         .navigationTitle("Remote Management")
-        .task {
-            // Backup trigger: fetch Phase 1 if login auto-fetch hasn't started yet
-            guard isLoggedIn, !session.fetchedSections.contains("info") else { return }
-            await remoteSessionManager.fetchSectionAsync("info", for: contact)
-            await remoteSessionManager.fetchSectionAsync("radio", for: contact)
-            await remoteSessionManager.fetchSectionAsync("advertising", for: contact)
-        }
+        // Phase 1 fetch is handled by handleLoginSuccess() in RemoteSessionManager
+        // No backup trigger needed here — the login code handles it sequentially
         .onDisappear {
             // Cancel any in-progress settings fetch immediately
             remoteSessionManager.cancelFetch()
@@ -259,6 +254,10 @@ struct RemoteManagementView: View {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.caption2)
                             .foregroundStyle(MeshTheme.connected)
+                    } else if session.hasCachedSettings(for: sectionKey) {
+                        Image(systemName: "arrow.triangle.2.circlepath.circle")
+                            .font(.caption2)
+                            .foregroundStyle(.orange)
                     }
                     Spacer()
                     if session.fetchingSection == sectionKey {

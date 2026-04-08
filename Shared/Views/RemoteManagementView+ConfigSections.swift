@@ -10,6 +10,7 @@
 
 import SwiftUI
 import MeshCoreKit
+import CoreLocation
 
 // MARK: - Radio Section
 
@@ -241,12 +242,32 @@ struct RemoteAdvertSection: View {
     @State private var saveState: SaveButtonState = .idle
     @State private var showAdvertOptions = false
     @State private var showAdvertSent = false
+    @State private var showMapPicker = false
+    @State private var mapPickedCoordinate: CLLocationCoordinate2D?
+    @State private var mapPickFeedback = false
 
     var body: some View {
         Section {
             cliEditRow(icon: "person.text.rectangle", label: "Name", text: $name, current: session.settings["name"])
             cliEditRow(icon: "location", label: "Latitude", text: $lat, current: session.settings["lat"])
             cliEditRow(icon: "location", label: "Longitude", text: $lon, current: session.settings["lon"])
+
+            if canEdit {
+                Button {
+                    // Pre-populate with current lat/lon if available
+                    if let latStr = session.settings["lat"], let lonStr = session.settings["lon"],
+                       let latVal = Double(latStr), let lonVal = Double(lonStr), latVal != 0 || lonVal != 0 {
+                        mapPickedCoordinate = CLLocationCoordinate2D(latitude: latVal, longitude: lonVal)
+                    }
+                    showMapPicker = true
+                } label: {
+                    Label(mapPickFeedback ? "Location Set!" : "Pick on Map", systemImage: mapPickFeedback ? "checkmark.circle.fill" : "map")
+                        .foregroundStyle(mapPickFeedback ? .green : MeshTheme.accent)
+                }
+                .buttonStyle(.plain)
+                .listRowBackground(MeshTheme.surface)
+            }
+
             cliEditRow(icon: "person.crop.rectangle", label: "Owner Info", text: $ownerInfo, current: session.settings["owner.info"])
             HStack {
                 Image(systemName: "clock.arrow.circlepath")
@@ -309,6 +330,25 @@ struct RemoteAdvertSection: View {
             }
         } header: {
             SectionInfoHeader(title: "Advertising", info: "Standard adverts are local (0-hop, 60-240 min). Flood adverts are relayed by all repeaters (min 3 hours). Minimum intervals enforced by firmware.")
+        }
+        .sheet(isPresented: $showMapPicker, onDismiss: {
+            guard let coord = mapPickedCoordinate else { return }
+            let latStr = String(format: "%.6f", coord.latitude)
+            let lonStr = String(format: "%.6f", coord.longitude)
+            lat = latStr
+            lon = lonStr
+            sendCLI("set lat \(latStr)")
+            sendCLI("set lon \(lonStr)")
+            showFeedback($mapPickFeedback)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                sendCLI("get lat")
+                sendCLI("get lon")
+            }
+        }) {
+            MapPointPickerView(selectedCoordinate: $mapPickedCoordinate)
+            #if os(macOS) || targetEnvironment(macCatalyst)
+                .frame(minWidth: 500, idealWidth: 700, minHeight: 500, idealHeight: 600)
+            #endif
         }
         .confirmationDialog("Send Advertisement", isPresented: $showAdvertOptions) {
             Button("Zero-Hop (nearby only)") {

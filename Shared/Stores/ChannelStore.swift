@@ -93,6 +93,11 @@ final class ChannelStore {
 
     // MARK: - Channel Sync
 
+    /// Index of the next channel to request during sequential sync.
+    private var nextChannelIndex = 0
+    /// Total channels to sync.
+    private var channelSyncMax = 0
+
     func syncChannels(maxChannels: UInt8) {
         let maxCh = Int(maxChannels)
         guard maxCh > 0 else {
@@ -103,15 +108,11 @@ final class ChannelStore {
         isSyncingChannels = true
         incomingChannels = []
         consecutiveEmptyChannels = 0
+        nextChannelIndex = 0
+        channelSyncMax = maxCh
 
-        for idx in 0..<maxCh {
-            let delay = UInt64(idx) * 50_000_000
-            Task { @MainActor in
-                try? await Task.sleep(nanoseconds: delay)
-                let frame = MeshCoreProtocol.buildGetChannel(index: UInt8(idx))
-                self.sendCommand?(frame, "GET_CHANNEL(\(idx))")
-            }
-        }
+        // Request first channel — subsequent channels requested after each response
+        requestNextChannel()
 
         channelSyncTimeoutTask?.cancel()
         channelSyncTimeoutTask = Task { @MainActor in
@@ -120,6 +121,15 @@ final class ChannelStore {
             DebugLogger.shared.log("Channel sync timeout — completing with \(self.incomingChannels.count) channels", level: .warning)
             self.finalizeChannelSync()
         }
+    }
+
+    /// Request the next channel in sequence. Stops when all requested or early-stop triggered.
+    private func requestNextChannel() {
+        guard isSyncingChannels, nextChannelIndex < channelSyncMax else { return }
+        let idx = nextChannelIndex
+        nextChannelIndex += 1
+        let frame = MeshCoreProtocol.buildGetChannel(index: UInt8(idx))
+        sendCommand?(frame, "GET_CHANNEL(\(idx))")
     }
 
     func handleChannelInfo(_ channel: MeshChannel) {
@@ -158,7 +168,15 @@ final class ChannelStore {
             consecutiveEmptyChannels += 1
             if consecutiveEmptyChannels >= Self.earlyStopThreshold {
                 finalizeChannelSync()
+                return
             }
+        }
+
+        // Request next channel (sequential: 1 request per response)
+        if nextChannelIndex < channelSyncMax {
+            requestNextChannel()
+        } else {
+            finalizeChannelSync()
         }
     }
 

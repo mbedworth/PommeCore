@@ -656,6 +656,7 @@ struct GPSEditorSheet: View {
     @State private var latitude = ""
     @State private var longitude = ""
     @State private var gpsSyncFeedback = false
+    @State private var gpsUnavailable = false
     @State private var mapPickFeedback = false
     @State private var showMapPicker = false
     @State private var mapPickedCoordinate: CLLocationCoordinate2D?
@@ -675,15 +676,18 @@ struct GPSEditorSheet: View {
             #if !os(watchOS)
             Section {
                 Button {
-                    guard let location = SharedLocation.manager.location else { return }
+                    guard let location = SharedLocation.manager.location else {
+                        showFeedback($gpsUnavailable)
+                        return
+                    }
                     let (fLat, fLon) = MeshCoreViewModel.fudgeLocation(lat: location.coordinate.latitude, lon: location.coordinate.longitude)
                     latitude = formatCoordinate(fLat)
                     longitude = formatCoordinate(fLon)
                     connectionManager.setAdvertLatLon(latitude: fLat, longitude: fLon)
                     showFeedback($gpsSyncFeedback)
                 } label: {
-                    Label(gpsSyncFeedback ? "Location Set!" : "Set from Phone GPS", systemImage: "iphone.radiowaves.left.and.right")
-                        .foregroundStyle(gpsSyncFeedback ? .green : MeshTheme.accent)
+                    Label(gpsUnavailable ? "GPS Not Available" : gpsSyncFeedback ? "Location Set!" : "Set from Phone GPS", systemImage: gpsUnavailable ? "location.slash" : "iphone.radiowaves.left.and.right")
+                        .foregroundStyle(gpsUnavailable ? .red : gpsSyncFeedback ? .green : MeshTheme.accent)
                 }
 
                 Button {
@@ -750,6 +754,18 @@ struct GPSEditorSheet: View {
         .onAppear {
             if deviceConfig.latitude != 0 { latitude = formatCoordinate(deviceConfig.latitude) }
             if deviceConfig.longitude != 0 { longitude = formatCoordinate(deviceConfig.longitude) }
+            #if !os(watchOS)
+            let mgr = SharedLocation.manager
+            if mgr.authorizationStatus == .notDetermined {
+                mgr.requestWhenInUseAuthorization()
+            }
+            mgr.startUpdatingLocation()
+            #endif
+        }
+        .onDisappear {
+            #if !os(watchOS)
+            SharedLocation.manager.stopUpdatingLocation()
+            #endif
         }
         .onChange(of: locationPrivacyRadius) {
             MeshCoreViewModel.regenerateLocationFudge()

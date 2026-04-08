@@ -32,6 +32,13 @@ struct MeshCoreApp: App {
     /// Set by OnboardingView's "Open Settings Now" button to trigger Settings on first launch.
     @AppStorage("openSettingsAfterOnboarding") private var openSettingsAfterOnboarding = false
 
+    init() {
+        UserDefaults.standard.register(defaults: [
+            "autoRetry": true,
+            "autoResetPath": true
+        ])
+    }
+
     var body: some Scene {
         WindowGroup {
             if !hasCompletedOnboarding {

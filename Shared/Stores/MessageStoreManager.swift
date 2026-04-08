@@ -361,7 +361,7 @@ final class MessageStoreManager {
                 persistMessages(for: contactKey)
                 matched = true
 
-                let timeoutSec = max(UInt64(suggestedTimeoutMs / 1000), 30)
+                let timeoutSec = max(UInt64(suggestedTimeoutMs / 1000), 6)
                 Task { [weak self] in
                     try? await Task.sleep(nanoseconds: timeoutSec * 1_000_000_000)
                     guard let self else { return }

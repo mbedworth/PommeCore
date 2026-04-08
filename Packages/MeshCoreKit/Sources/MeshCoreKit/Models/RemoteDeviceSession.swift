@@ -110,8 +110,102 @@ public final class RemoteDeviceSession: ObservableObject {
         cliHistory.first(where: { !$0.isComplete })?.command
     }
 
+    /// Keys that change automatically and should always be fetched fresh (never served from cache alone).
+    public static let volatileKeys: Set<String> = [
+        "clock", "neighbors"
+    ]
+
     public init(contact: Contact) {
         self.contact = contact
+        loadCachedSettings()
+    }
+
+    // MARK: - Settings Cache
+
+    private static var cacheDirectory: URL {
+        let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let appDir = dir.appendingPathComponent("MeshCore/remote_settings", isDirectory: true)
+        try? FileManager.default.createDirectory(at: appDir, withIntermediateDirectories: true)
+        return appDir
+    }
+
+    private var cacheFileURL: URL {
+        let keyHex = contact.publicKey.map { String(format: "%02x", $0) }.joined()
+        return Self.cacheDirectory.appendingPathComponent("settings_\(keyHex).json")
+    }
+
+    /// Section command mapping — must match RemoteSessionManager.sectionCommands keys.
+    /// Maps section name to the setting keys that section would populate.
+    private static let sectionSettingKeys: [String: [String]] = [
+        "info": ["ver", "clock", "name", "role", "public.key"],
+        "radio": ["radio", "tx", "repeat"],
+        "timing": ["af", "rxdelay", "txdelay", "direct.txdelay", "flood.max", "int.thresh", "agc.reset.interval"],
+        "routing": ["loop.detect", "path.hash.mode"],
+        "advertising": ["name", "lat", "lon", "owner.info", "advert.interval", "flood.advert.interval", "multi.acks"],
+        "gps": ["gps", "gps advert"],
+        "security": ["allow.read.only", "guest.password", "adc.multiplier"],
+        "maintenance": ["powersaving"],
+    ]
+
+    /// Whether cached settings exist for any keys in the given section.
+    public func hasCachedSettings(for section: String) -> Bool {
+        guard let keys = Self.sectionSettingKeys[section] else { return false }
+        return keys.contains { settings[$0] != nil }
+    }
+
+    /// Debounce timer for cache saves — avoids writing on every single setting update.
+    private var cacheSaveTask: Task<Void, Never>?
+
+    /// Schedule a debounced save of non-volatile settings to disk.
+    public func saveSettingsCache() {
+        cacheSaveTask?.cancel()
+        cacheSaveTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 2_000_000_000) // 2s debounce
+            guard !Task.isCancelled, let self else { return }
+            self.writeCacheToDisk()
+        }
+    }
+
+    /// Immediately flush cached settings to disk (called when a section completes).
+    public func flushCacheNow() {
+        cacheSaveTask?.cancel()
+        writeCacheToDisk()
+    }
+
+    /// Immediately write non-volatile settings to disk.
+    private func writeCacheToDisk() {
+        let cacheable = settings.filter { !Self.volatileKeys.contains($0.key) }
+        guard !cacheable.isEmpty else { return }
+        do {
+            let data = try JSONEncoder().encode(cacheable)
+            try data.write(to: cacheFileURL, options: .atomic)
+        } catch {
+            // Cache save is best-effort
+        }
+    }
+
+    /// Load cached settings from disk into the settings dictionary.
+    /// Also marks sections as fetched so Phase 1 skips them on subsequent launches.
+    private func loadCachedSettings() {
+        let url = cacheFileURL
+        guard FileManager.default.fileExists(atPath: url.path) else { return }
+        do {
+            let data = try Data(contentsOf: url)
+            let cached = try JSONDecoder().decode([String: String].self, from: data)
+            guard !cached.isEmpty else { return }
+            for (key, value) in cached {
+                settings[key] = value
+            }
+            // Mark sections as fetched if their keys exist in cache
+            for (section, _) in Self.sectionSettingKeys {
+                if hasCachedSettings(for: section) {
+                    fetchedSections.insert(section)
+                }
+            }
+        } catch {
+            // Cache load is best-effort — stale cache is deleted
+            try? FileManager.default.removeItem(at: url)
+        }
     }
 
     /// Wait for a specific command's response to arrive. Polls every 50ms up to timeout.
@@ -213,6 +307,7 @@ public final class RemoteDeviceSession: ObservableObject {
             let key = String(cmd.dropFirst(4)).trimmingCharacters(in: .whitespaces)
             if !key.isEmpty {
                 settings[key] = response
+                saveSettingsCache()
                 return
             }
         }
@@ -222,6 +317,7 @@ public final class RemoteDeviceSession: ObservableObject {
         let bareCommands = ["ver", "clock", "powersaving", "gps", "gps advert", "neighbors", "discover.neighbors", "region", "log", "io"]
         if bareCommands.contains(cmd) {
             settings[cmd] = response
+            saveSettingsCache()
             return
         }
 

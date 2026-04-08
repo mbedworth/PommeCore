@@ -9,7 +9,6 @@
 //
 
 import SwiftUI
-import CoreLocation
 import MeshCoreKit
 
 // MARK: - Security Section
@@ -104,91 +103,57 @@ struct RemoteGPSSection: View {
     let canEdit: Bool
     @State private var gpsSyncFeedback = false
     @State private var gpsLocFeedback = false
-    @State private var mapPickFeedback = false
     @State private var gpsAdvertMode = ""
-    @State private var showMapPicker = false
-    @State private var mapPickedCoordinate: CLLocationCoordinate2D?
 
     var body: some View {
         Section {
             CLIToggleRow(icon: "location.circle", label: "GPS", settingKey: "gps", onCommand: "gps on", offCommand: "gps off", session: session, sendCLI: sendCLI, canEdit: canEdit)
 
             if canEdit {
-            HStack(spacing: 12) {
-                Button {
-                    sendCLI("gps sync")
-                    showFeedback($gpsSyncFeedback)
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1) { sendCLI("clock") }
-                } label: {
-                    Label(gpsSyncFeedback ? "Clock Synced" : "Sync Time", systemImage: gpsSyncFeedback ? "checkmark.circle.fill" : "clock.arrow.2.circlepath")
-                        .foregroundStyle(gpsSyncFeedback ? .green : MeshTheme.accent)
-                }
-                .buttonStyle(.plain)
-
-                Spacer()
-
-                Button {
-                    sendCLI("gps setloc")
-                    showFeedback($gpsLocFeedback)
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                        sendCLI("get lat")
-                        sendCLI("get lon")
+                HStack(spacing: 12) {
+                    Button {
+                        sendCLI("gps sync")
+                        showFeedback($gpsSyncFeedback)
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { sendCLI("clock") }
+                    } label: {
+                        Label(gpsSyncFeedback ? "Clock Synced" : "Sync Time from GPS", systemImage: gpsSyncFeedback ? "checkmark.circle.fill" : "clock.arrow.2.circlepath")
+                            .foregroundStyle(gpsSyncFeedback ? .green : MeshTheme.accent)
                     }
-                } label: {
-                    Label(gpsLocFeedback ? "Location Set" : "Set Location", systemImage: gpsLocFeedback ? "checkmark.circle.fill" : "mappin")
-                        .foregroundStyle(gpsLocFeedback ? .green : MeshTheme.accent)
-                }
-                .buttonStyle(.plain)
+                    .buttonStyle(.plain)
 
-                Spacer()
+                    Spacer()
 
-                Button {
-                    // Pre-populate with remote device's current lat/lon if available
-                    if let latStr = session.settings["lat"], let lonStr = session.settings["lon"],
-                       let lat = Double(latStr), let lon = Double(lonStr), lat != 0 || lon != 0 {
-                        mapPickedCoordinate = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+                    Button {
+                        sendCLI("gps setloc")
+                        showFeedback($gpsLocFeedback)
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                            sendCLI("get lat")
+                            sendCLI("get lon")
+                        }
+                    } label: {
+                        Label(gpsLocFeedback ? "Location Set" : "Set from Hardware GPS", systemImage: gpsLocFeedback ? "checkmark.circle.fill" : "antenna.radiowaves.left.and.right")
+                            .foregroundStyle(gpsLocFeedback ? .green : MeshTheme.accent)
                     }
-                    showMapPicker = true
-                } label: {
-                    Label(mapPickFeedback ? "Location Set" : "Pick on Map", systemImage: mapPickFeedback ? "checkmark.circle.fill" : "map")
-                        .foregroundStyle(mapPickFeedback ? .green : MeshTheme.accent)
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
+                .listRowBackground(MeshTheme.surface)
 
-            }
-            .listRowBackground(MeshTheme.surface)
-
-            HStack {
-                Image(systemName: "location.north.line")
+                HStack {
+                    Image(systemName: "location.north.line")
+                        .foregroundStyle(MeshTheme.accent)
+                        .frame(width: 24)
+                    Picker("Location in Advertisements", selection: gpsAdvertBinding) {
+                        Text("None \u{2014} don't include location").tag("none")
+                        Text("GPS \u{2014} use live GPS coordinates").tag("share")
+                        Text("Manual \u{2014} use saved lat/lon settings").tag("prefs")
+                    }
                     .foregroundStyle(MeshTheme.accent)
-                    .frame(width: 24)
-                Picker("Location in Advertisements", selection: gpsAdvertBinding) {
-                    Text("None \u{2014} don't include location").tag("none")
-                    Text("GPS \u{2014} use live GPS coordinates").tag("share")
-                    Text("Manual \u{2014} use saved lat/lon settings").tag("prefs")
+                    .tint(.primary)
                 }
-                .foregroundStyle(MeshTheme.accent)
-                .tint(.primary)
-            }
-            .listRowBackground(MeshTheme.surface)
+                .listRowBackground(MeshTheme.surface)
             }
         } header: {
-            SectionInfoHeader(title: "GPS", info: "Controls whether this device includes its location in mesh advertisements. \u{2018}GPS\u{2019} uses the hardware GPS module. \u{2018}Manual\u{2019} uses the latitude and longitude values configured in the advertising section.")
-        }
-        .sheet(isPresented: $showMapPicker, onDismiss: {
-            guard let coord = mapPickedCoordinate else { return }
-            sendCLI("set lat \(String(format: "%.6f", coord.latitude))")
-            sendCLI("set lon \(String(format: "%.6f", coord.longitude))")
-            showFeedback($mapPickFeedback)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                sendCLI("get lat")
-                sendCLI("get lon")
-            }
-        }) {
-            MapPointPickerView(selectedCoordinate: $mapPickedCoordinate)
-            #if os(macOS) || targetEnvironment(macCatalyst)
-                .frame(minWidth: 500, idealWidth: 700, minHeight: 500, idealHeight: 600)
-            #endif
+            SectionInfoHeader(title: "GPS", info: "Controls whether this device includes its location in mesh advertisements. \u{2018}GPS\u{2019} uses the hardware GPS module. \u{2018}Manual\u{2019} uses the latitude and longitude values configured in the advertising section above.")
         }
     }
 

@@ -422,15 +422,18 @@ final class RemoteSessionManager {
         "maintenance": ["powersaving"],
     ]
 
-    /// Fetch commands for a specific section, if not already fetched. Fire-and-forget.
-    func fetchSection(_ section: String, for contact: Contact) {
-        Task { await fetchSectionAsync(section, for: contact) }
+    /// Fetch commands for a specific section. Fire-and-forget.
+    func fetchSection(_ section: String, for contact: Contact, skipIfFetched: Bool = true) {
+        Task { await fetchSectionAsync(section, for: contact, skipIfFetched: skipIfFetched) }
     }
 
-    /// Fetch commands for a specific section, awaitable. Skips if already fetched.
-    func fetchSectionAsync(_ section: String, for contact: Contact) async {
+    /// Fetch commands for a specific section, awaitable.
+    /// If the section has cached values, they're already in session.settings from init.
+    /// This always fetches fresh values to verify/update the cache.
+    /// Pass `skipIfFetched: true` (default) to skip sections already fetched this session.
+    func fetchSectionAsync(_ section: String, for contact: Contact, skipIfFetched: Bool = true) async {
         let session = remoteSession(for: contact)
-        guard !session.fetchedSections.contains(section) else { return }
+        if skipIfFetched && session.fetchedSections.contains(section) { return }
 
         // Wait if another section is currently fetching
         while session.fetchingSection != nil {
@@ -452,6 +455,8 @@ final class RemoteSessionManager {
 
         session.fetchedSections.insert(section)
         session.fetchingSection = nil
+        // Flush settings cache to disk after each section completes
+        session.flushCacheNow()
         Self.logger.info("REMOTE MGMT: Section '\(section)' loaded for \(contact.name)")
     }
 
@@ -474,7 +479,8 @@ final class RemoteSessionManager {
                 recipientKeyHash: contact.publicKeyPrefix
             )
             sendCommand?(frame, "CLI_FETCH")
-            try? await Task.sleep(nanoseconds: 300_000_000)
+            // Wait for radio to process before pulling response
+            try? await Task.sleep(nanoseconds: 500_000_000)
             syncNextMessage?()
         }
         #else
@@ -484,14 +490,18 @@ final class RemoteSessionManager {
             recipientKeyHash: contact.publicKeyPrefix
         )
         sendCommand?(frame, "CLI_FETCH")
-        try? await Task.sleep(nanoseconds: 300_000_000)
+        // Wait for radio to process before pulling response
+        try? await Task.sleep(nanoseconds: 500_000_000)
         syncNextMessage?()
         #endif
 
+        // Strict 1-request-1-answer: wait for response before sending next command
         let received = await session.waitForResponse(at: cmdIndex, timeout: 3.0)
         if !received {
             session.timeoutCommand(at: cmdIndex)
         }
+        // Spacing between commands to prevent overrunning the radio
+        try? await Task.sleep(nanoseconds: 500_000_000)
     }
 
     // MARK: - USB CLI
@@ -617,7 +627,8 @@ final class RemoteSessionManager {
                     Task { [weak self] in
                         try? await Task.sleep(nanoseconds: 1_500_000_000)
                         guard let self else { return }
-                        // Phase 1: auto-fetch essential sections (info, radio, advertising)
+                        // Phase 1: auto-fetch essentials sequentially (1-request-1-answer)
+                        // All other sections (timing, routing, etc.) load on demand when expanded
                         await self.fetchSectionAsync("info", for: contact)
                         await self.fetchSectionAsync("radio", for: contact)
                         await self.fetchSectionAsync("advertising", for: contact)
