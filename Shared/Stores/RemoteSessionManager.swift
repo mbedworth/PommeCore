@@ -1084,6 +1084,7 @@ final class RemoteSessionManager {
         if let key = pendingStatusKey {
             statusByContact[key] = info
             pendingStatusKey = nil
+            onStateChanged?()
         }
     }
 
