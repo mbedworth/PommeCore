@@ -75,6 +75,9 @@ public final class BLEManager: NSObject, ObservableObject {
     /// Work item for the reconnect timeout (cancelled on successful reconnect).
     private var reconnectTimeoutWork: DispatchWorkItem?
 
+    /// Set when an encryption/pairing error occurs — prevents auto-reconnect loop.
+    private var pairingFailed = false
+
     /// Publisher for incoming data frames from the device TX characteristic.
     public let receivedDataSubject = PassthroughSubject<Data, Never>()
 
@@ -82,6 +85,12 @@ public final class BLEManager: NSObject, ObservableObject {
 
     public override init() {
         super.init()
+    }
+
+    /// Create the CBCentralManager. Call after onboarding to avoid premature BLE permission prompt.
+    /// Safe to call multiple times — only initializes once.
+    public func activate() {
+        guard centralManager == nil else { return }
         centralManager = CBCentralManager(
             delegate: self,
             queue: bleQueue,
@@ -193,6 +202,7 @@ public final class BLEManager: NSObject, ObservableObject {
         }
 
         shouldAutoReconnect = true
+        pairingFailed = false
         reconnectAttemptsRemaining = Self.maxReconnectAttempts
         connectedPeripheral = peripheral
         peripheral.delegate = self
@@ -399,9 +409,12 @@ extension BLEManager: CBCentralManagerDelegate {
         Self.logger.error("Failed to connect: \(error?.localizedDescription ?? "unknown error")")
         DebugLogger.shared.log("BLE: connect failed — \(error?.localizedDescription ?? "unknown")", level: .error)
 
+        // Don't retry on pairing/auth failures
+        let desc = error?.localizedDescription.lowercased() ?? ""
+        let isPairingFailure = desc.contains("pair") || desc.contains("auth") || desc.contains("encrypt")
+
         #if os(iOS)
-        if shouldAutoReconnect {
-            // Retry — CoreBluetooth will queue it for when the device is available
+        if shouldAutoReconnect && !isPairingFailure {
             Self.logger.info("iOS: re-queuing connect after failure")
             central.connect(peripheral, options: nil)
             return
@@ -431,6 +444,26 @@ extension BLEManager: CBCentralManagerDelegate {
         DispatchQueue.main.async {
             self.rxCharacteristic = nil
             self.txCharacteristic = nil
+        }
+
+        // Detect pairing/authentication failures — don't auto-reconnect (would loop the PIN prompt)
+        if pairingFailed {
+            Self.logger.warning("BLE: pairing/auth failure — stopping auto-reconnect")
+            DebugLogger.shared.log("BLE: pairing cancelled or failed — tap a device to retry", level: .warning)
+            pairingFailed = false
+            shouldAutoReconnect = false
+            reconnectAttemptsRemaining = 0
+            reconnectTimeoutWork?.cancel()
+            reconnectTimeoutWork = nil
+            DispatchQueue.main.async {
+                self.connectionState = .disconnected
+                self.connectedPeripheral = nil
+                self.connectedDeviceName = nil
+            }
+            self.bleQueue.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+                self?.startScanning()
+            }
+            return
         }
 
         let isUnexpected = error != nil && shouldAutoReconnect
@@ -605,6 +638,10 @@ extension BLEManager: CBPeripheralDelegate {
     ) {
         if let error {
             Self.logger.error("Notification state error: \(error.localizedDescription)")
+            // "Encryption is insufficient" means pairing was cancelled or failed
+            if error.localizedDescription.lowercased().contains("encrypt") {
+                pairingFailed = true
+            }
             return
         }
 

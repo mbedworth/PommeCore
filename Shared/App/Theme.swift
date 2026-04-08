@@ -186,8 +186,36 @@ struct MeshThemeModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .preferredColorScheme(selectedTheme.colorScheme)
             .tint(MeshTheme.accent)
+            .onAppear { applyToAllWindows() }
+            .onChange(of: appTheme) { applyToAllWindows() }
+    }
+
+    /// Apply theme via UIKit window override — affects all windows including sheets.
+    /// SwiftUI's `.preferredColorScheme(nil)` doesn't propagate to sheets,
+    /// but UIKit's `overrideUserInterfaceStyle = .unspecified` does.
+    private func applyToAllWindows() {
+        let theme = selectedTheme
+        DispatchQueue.main.async {
+            #if os(iOS)
+            let style: UIUserInterfaceStyle = switch theme {
+            case .light: .light
+            case .dark: .dark
+            case .system: .unspecified
+            }
+            for scene in UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }) {
+                for window in scene.windows {
+                    window.overrideUserInterfaceStyle = style
+                }
+            }
+            #elseif os(macOS)
+            switch theme {
+            case .light: NSApp?.appearance = NSAppearance(named: .aqua)
+            case .dark: NSApp?.appearance = NSAppearance(named: .darkAqua)
+            case .system: NSApp?.appearance = nil
+            }
+            #endif
+        }
     }
 }
 

@@ -173,7 +173,9 @@ struct RemoteManagementView: View {
                 }
             }
             .meshTheme()
+            #if os(macOS) || targetEnvironment(macCatalyst)
             .frame(minWidth: 360, minHeight: 500)
+            #endif
         }
     }
 
@@ -1181,7 +1183,9 @@ struct RemoteGPSSection: View {
             }
         }) {
             MapPointPickerView(selectedCoordinate: $mapPickedCoordinate)
+            #if os(macOS) || targetEnvironment(macCatalyst)
                 .frame(minWidth: 500, idealWidth: 700, minHeight: 500, idealHeight: 600)
+            #endif
         }
     }
 

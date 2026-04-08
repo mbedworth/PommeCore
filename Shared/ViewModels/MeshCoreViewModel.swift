@@ -43,19 +43,19 @@ final class NotificationPreferences: ObservableObject {
     private let store = NSUbiquitousKeyValueStore.default
 
     @Published var notifyDirect: Bool {
-        didSet { store.setAndSync(notifyDirect, forKey: "notify.direct") }
+        didSet { if iCloudSyncEnabled { store.setAndSync(notifyDirect, forKey: "notify.direct") } }
     }
     @Published var notifyChannel: Bool {
-        didSet { store.setAndSync(notifyChannel, forKey: "notify.channel") }
+        didSet { if iCloudSyncEnabled { store.setAndSync(notifyChannel, forKey: "notify.channel") } }
     }
     @Published var notifyRoom: Bool {
-        didSet { store.setAndSync(notifyRoom, forKey: "notify.room") }
+        didSet { if iCloudSyncEnabled { store.setAndSync(notifyRoom, forKey: "notify.room") } }
     }
     @Published var notifyNewContacts: Bool {
-        didSet { store.setAndSync(notifyNewContacts, forKey: "notify.newContacts") }
+        didSet { if iCloudSyncEnabled { store.setAndSync(notifyNewContacts, forKey: "notify.newContacts") } }
     }
     @Published var notifyConnection: Bool {
-        didSet { store.setAndSync(notifyConnection, forKey: "notify.connection") }
+        didSet { if iCloudSyncEnabled { store.setAndSync(notifyConnection, forKey: "notify.connection") } }
     }
 
     private init() {
@@ -71,6 +71,7 @@ final class NotificationPreferences: ObservableObject {
             object: store, queue: .main
         ) { [weak self] _ in
             Task { @MainActor in
+                guard iCloudSyncEnabled else { return }
                 self?.loadAll()
             }
         }
@@ -109,6 +110,7 @@ final class MeshCoreViewModel: ObservableObject {
         store.loadTelemetryHistory()
         return store
     }()
+    let telemetryCloudSync = TelemetryCloudSync()
     #endif
     
     // All forwarding properties removed — use stores directly.
@@ -175,9 +177,13 @@ final class MeshCoreViewModel: ObservableObject {
         wireStoreDependencies()
         wireConnectionCallbacks()
         observeStores()
-        requestNotificationPermissions()
         observeiCloudChanges()
         registerTerminationHandler()
+    }
+
+    /// Call after onboarding to request notification permissions (avoids prompt during onboarding).
+    func requestNotificationPermissionsIfNeeded() {
+        requestNotificationPermissions()
     }
     
     /// Wire cross-store dependencies via closures (no circular references).
@@ -229,6 +235,21 @@ final class MeshCoreViewModel: ObservableObject {
 
 #if !os(watchOS)
         lineOfSightStore.userLocationProvider = { SharedLocation.manager.location }
+
+        // TelemetryCloudSync: wire to RFMonitorStore
+        rfMonitorStore.cloudSync = telemetryCloudSync
+        telemetryCloudSync.onCloudDataReceived = { [weak self] contactKey, snapshots in
+            guard let self else { return }
+            let existing = self.rfMonitorStore.telemetryHistory[contactKey] ?? []
+            let existingIDs = Set(existing.map(\.id))
+            let newSnapshots = snapshots.filter { !existingIDs.contains($0.id) }
+            guard !newSnapshots.isEmpty else { return }
+            var merged = existing + newSnapshots
+            merged.sort { $0.timestamp < $1.timestamp }
+            if merged.count > 500 { merged = Array(merged.suffix(500)) }
+            self.rfMonitorStore.telemetryHistory[contactKey] = merged
+            self.rfMonitorStore.saveTelemetryHistory()
+        }
 #endif
     }
     

@@ -20,6 +20,7 @@ import MeshCoreKit
 struct MeshCoreApp: App {
     @StateObject private var viewModel = MeshCoreViewModel()
     @StateObject private var appLock = AppLockManager()
+    private let syncedSettings = SyncedSettings.shared
     @Environment(\.scenePhase) private var scenePhase
     #if os(iOS)
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
@@ -39,6 +40,12 @@ struct MeshCoreApp: App {
                     navigateToSettings: { openSettingsAfterOnboarding = true }
                 )
                 .meshTheme()
+                .onChange(of: hasCompletedOnboarding) { _, completed in
+                    if completed {
+                        viewModel.connectionManager.bleManager.activate()
+                        viewModel.requestNotificationPermissionsIfNeeded()
+                    }
+                }
             } else if appLock.appLockEnabled && !appLock.isUnlocked {
                 AppLockView(appLock: appLock)
                     .meshTheme()
@@ -57,6 +64,10 @@ struct MeshCoreApp: App {
                     .environment(viewModel.rfMonitorStore)
                     #endif
                     .meshTheme()
+                    .onAppear {
+                        viewModel.connectionManager.bleManager.activate()
+                        viewModel.requestNotificationPermissionsIfNeeded()
+                    }
                     #if os(iOS)
                     .onAppear { appDelegate.viewModel = viewModel }
                     #endif
@@ -316,16 +327,28 @@ struct ContentView: View {
                 .accessibilityHint("Send an advertisement to announce your presence on the mesh")
             }
             ToolbarItem(placement: .primaryAction) {
-                Button {
-                    showDiscover = true
+                Menu {
+                    Button {
+                        showDiscover = true
+                    } label: {
+                        Label("Discover Nodes", systemImage: "binoculars.fill")
+                    }
+                    Button {
+                        navigationStore.sidebarSelection = .map
+                    } label: {
+                        Label("Mesh Map", systemImage: "map.fill")
+                    }
+                    Button {
+                        navigationStore.sidebarSelection = .tools
+                    } label: {
+                        Label("Tools", systemImage: "wrench.and.screwdriver")
+                    }
                 } label: {
-                    Image(systemName: "binoculars.fill")
+                    Image(systemName: "ellipsis.circle")
                         .foregroundStyle(MeshTheme.accent)
                 }
-                .disabled(connectionManager.connectionState != .ready)
-                .help("Discover")
-                .accessibilityLabel("Discover")
-                .accessibilityHint("Find nearby mesh nodes")
+                .help("More")
+                .accessibilityLabel("More")
             }
             ToolbarItem(placement: .primaryAction) {
                 Button {

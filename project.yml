@@ -27,6 +27,7 @@ targets:
         CFBundleDisplayName: PommeCore
         UIBackgroundModes:
           - bluetooth-central
+          - remote-notification
         NSBluetoothAlwaysUsageDescription: "MeshCore needs Bluetooth to communicate with your LoRa radio device."
         NSBluetoothPeripheralUsageDescription: "MeshCore needs Bluetooth to communicate with your LoRa radio device."
     settings:

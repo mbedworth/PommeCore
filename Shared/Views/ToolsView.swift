@@ -15,8 +15,6 @@ struct ToolsView: View {
     @State private var showRadioCalc = false
     @State private var showAirtime = false
     @State private var showSensitivity = false
-    @State private var showDiscover = false
-
     var body: some View {
         List {
             Section {
@@ -69,13 +67,6 @@ struct ToolsView: View {
                     showNoiseFloor = true
                 }
 
-                toolButton(
-                    icon: "magnifyingglass",
-                    title: "Discover Nodes",
-                    subtitle: "Scan the mesh for all reachable devices"
-                ) {
-                    showDiscover = true
-                }
             } header: {
                 Text("Monitoring")
             } footer: {
@@ -86,7 +77,9 @@ struct ToolsView: View {
         .navigationTitle("Tools")
         .sheet(isPresented: $showLineOfSight) {
             LineOfSightView()
+            #if os(macOS) || targetEnvironment(macCatalyst)
                 .frame(minWidth: 500, idealWidth: 700, minHeight: 700, idealHeight: 900)
+            #endif
         }
         .sheet(isPresented: $showRadioCalc) {
             NavigationStack {
@@ -98,7 +91,9 @@ struct ToolsView: View {
                     }
             }
             .meshTheme()
+            #if os(macOS) || targetEnvironment(macCatalyst)
             .frame(minWidth: 500, idealWidth: 600, minHeight: 600, idealHeight: 700)
+            #endif
         }
         .sheet(isPresented: $showAirtime) {
             NavigationStack {
@@ -110,7 +105,9 @@ struct ToolsView: View {
                     }
             }
             .meshTheme()
+            #if os(macOS) || targetEnvironment(macCatalyst)
             .frame(minWidth: 500, idealWidth: 600, minHeight: 600, idealHeight: 700)
+            #endif
         }
         .sheet(isPresented: $showSensitivity) {
             NavigationStack {
@@ -122,7 +119,9 @@ struct ToolsView: View {
                     }
             }
             .meshTheme()
+            #if os(macOS) || targetEnvironment(macCatalyst)
             .frame(minWidth: 500, idealWidth: 600, minHeight: 600, idealHeight: 700)
+            #endif
         }
         .sheet(isPresented: $showNoiseFloor) {
             NavigationStack {
@@ -142,19 +141,9 @@ struct ToolsView: View {
                 }
             }
             .meshTheme()
+            #if os(macOS) || targetEnvironment(macCatalyst)
             .frame(minWidth: 400, minHeight: 500)
-        }
-        .sheet(isPresented: $showDiscover) {
-            NavigationStack {
-                DiscoverNodesView()
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button("Done") { showDiscover = false }
-                        }
-                    }
-            }
-            .meshTheme()
-            .frame(minWidth: 400, minHeight: 400)
+            #endif
         }
     }
 

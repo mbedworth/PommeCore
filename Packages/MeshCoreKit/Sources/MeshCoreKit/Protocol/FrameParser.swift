@@ -813,8 +813,7 @@ public enum FrameParser {
         if remaining >= 16 {
             secret = Data(data[offset..<offset+16])
             offset += 16
-            let secretHex = secret!.hexCompact
-            logger.info("ChannelInfo: idx=\(channelIdx) name='\(name)' secret=\(secretHex)")
+            logger.info("ChannelInfo: idx=\(channelIdx) name='\(name)' secret=<\(secret!.count) bytes>")
         } else {
             logger.info("ChannelInfo: idx=\(channelIdx) name='\(name)' (no secret, \(remaining) trailing bytes)")
         }
@@ -925,20 +924,23 @@ public enum FrameParser {
             let lppType = readUInt8(data, offset: &offset)
 
             switch lppType {
-            case 0x67: // Temperature (int16, 0.1 C)
-                let raw = Int16(bitPattern: readUInt16(data, offset: &offset))
+            case 0x67: // Temperature (int16 BE, 0.1 C)
+                let raw = Int16(bitPattern: readUInt16BE(data, offset: &offset))
                 readings.append(TelemetryReading(name: "Temperature", value: Double(raw) / 10.0, unit: "\u{00B0}C"))
             case 0x68: // Humidity (uint8, 0.5 %)
                 let raw = readUInt8(data, offset: &offset)
                 readings.append(TelemetryReading(name: "Humidity", value: Double(raw) / 2.0, unit: "%"))
-            case 0x73: // Barometric Pressure (uint16, 0.1 hPa)
-                let raw = readUInt16(data, offset: &offset)
+            case 0x73: // Barometric Pressure (uint16 BE, 0.1 hPa)
+                let raw = readUInt16BE(data, offset: &offset)
                 readings.append(TelemetryReading(name: "Pressure", value: Double(raw) / 10.0, unit: "hPa"))
-            case 0x02: // Analog Input (uint16, 0.01 V) — often battery
-                let raw = readUInt16(data, offset: &offset)
+            case 0x02: // Analog Input (uint16 BE, 0.01 V) — often battery
+                let raw = readUInt16BE(data, offset: &offset)
                 readings.append(TelemetryReading(name: "Battery", value: Double(raw) / 100.0, unit: "V"))
-            case 0x65: // Illuminance (uint16, 1 lux)
-                let raw = readUInt16(data, offset: &offset)
+            case 0x74: // Voltage (uint16 BE, 0.01 V) — battery voltage
+                let raw = readUInt16BE(data, offset: &offset)
+                readings.append(TelemetryReading(name: "Battery", value: Double(raw) / 100.0, unit: "V"))
+            case 0x65: // Illuminance (uint16 BE, 1 lux)
+                let raw = readUInt16BE(data, offset: &offset)
                 readings.append(TelemetryReading(name: "Light", value: Double(raw), unit: "lux"))
             case 0x88: // GPS (9 bytes: lat 3, lon 3, alt 3 — all 24-bit signed)
                 guard offset + 9 <= data.count else { break }
@@ -1046,6 +1048,14 @@ public enum FrameParser {
         }
         offset += 2
         return UInt16(littleEndian: v)
+    }
+
+    /// Read big-endian UInt16 (for Cayenne LPP telemetry fields).
+    private static func readUInt16BE(_ data: Data, offset: inout Int) -> UInt16 {
+        guard offset + 2 <= data.count else { return 0 }
+        let v = UInt16(data[offset]) << 8 | UInt16(data[offset + 1])
+        offset += 2
+        return v
     }
 
     private static func readUInt32(_ data: Data, offset: inout Int) -> UInt32 {

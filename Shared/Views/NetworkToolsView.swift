@@ -704,7 +704,9 @@ struct ContactDetailSheet: View {
             #if !os(watchOS)
             .sheet(isPresented: $showLineOfSight) {
                 LineOfSightView()
+                #if os(macOS) || targetEnvironment(macCatalyst)
                     .frame(minWidth: 500, idealWidth: 700, minHeight: 700, idealHeight: 900)
+                #endif
             }
             #endif
         }

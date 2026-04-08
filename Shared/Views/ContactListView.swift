@@ -77,6 +77,8 @@ struct ContactListView: View {
     @AppStorage("channelsFirst") private var channelsFirst = false
     #if os(iOS)
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @State private var navigateToMap = false
+    @State private var navigateToTools = false
     #endif
     /// Local selection state decoupled from ViewModel to avoid
     /// "Publishing changes from within view updates" when List writes to selection.
@@ -102,6 +104,16 @@ struct ContactListView: View {
         #if os(iOS) && !targetEnvironment(macCatalyst)
         .navigationDestination(for: SidebarSelection.self) { selection in
             sidebarDestinationView(for: selection)
+        }
+        .navigationDestination(isPresented: $navigateToMap) {
+            if #available(iOS 17.0, *) {
+                MeshMapView()
+            } else {
+                Text("Map requires iOS 17+")
+            }
+        }
+        .navigationDestination(isPresented: $navigateToTools) {
+            ToolsView()
         }
         #endif
         // Sync local selection → ViewModel (deferred to avoid publishing during view update)
@@ -164,15 +176,6 @@ struct ContactListView: View {
                     .disabled(connectionManager.connectionState != .ready)
 
                     Button {
-                        showDiscover?.wrappedValue = true
-                    } label: {
-                        Image(systemName: "binoculars.fill")
-                            .foregroundStyle(MeshTheme.accent)
-                    }
-                    .accessibilityLabel("Discover")
-                    .disabled(connectionManager.connectionState != .ready)
-
-                    Button {
                         connectionManager.refreshAll(contactStore: contactStore)
                     } label: {
                         Image(systemName: "arrow.clockwise")
@@ -180,6 +183,28 @@ struct ContactListView: View {
                     }
                     .accessibilityLabel("Refresh")
                     .disabled(connectionManager.connectionState != .ready)
+
+                    Menu {
+                        Button {
+                            showDiscover?.wrappedValue = true
+                        } label: {
+                            Label("Discover Nodes", systemImage: "binoculars.fill")
+                        }
+                        Button {
+                            navigateToMap = true
+                        } label: {
+                            Label("Mesh Map", systemImage: "map.fill")
+                        }
+                        Button {
+                            navigateToTools = true
+                        } label: {
+                            Label("Tools", systemImage: "wrench.and.screwdriver")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                            .foregroundStyle(MeshTheme.accent)
+                    }
+                    .accessibilityLabel("More")
                 }
             }
         }
@@ -197,7 +222,9 @@ struct ContactListView: View {
         }
         .sheet(item: $detailContact) { contact in
             ContactDetailSheet(contact: contact)
+            #if os(macOS) || targetEnvironment(macCatalyst)
                 .frame(minWidth: 360, minHeight: 400)
+            #endif
         }
         .onChange(of: remoteSessionManager.detailContactForTrace?.id) {
             if let contact = remoteSessionManager.detailContactForTrace {
@@ -218,16 +245,22 @@ struct ContactListView: View {
                     }
             }
             .meshTheme()
+            #if os(macOS) || targetEnvironment(macCatalyst)
             .frame(minWidth: 360, minHeight: 400)
+            #endif
         }
         #if !os(watchOS)
         .sheet(item: $channelToShareSidebar) { channel in
             ShareChannelSheet(channel: channel)
+            #if os(macOS) || targetEnvironment(macCatalyst)
                 .frame(minWidth: 360, minHeight: 400)
+            #endif
         }
         .sheet(isPresented: $showShareAllChannels) {
             ShareAllChannelsSheet(channels: channelStore.channels)
+            #if os(macOS) || targetEnvironment(macCatalyst)
                 .frame(minWidth: 360, minHeight: 400)
+            #endif
         }
         .alert("Rename Channel", isPresented: Binding(
             get: { channelToRenameSidebar != nil },
@@ -259,11 +292,15 @@ struct ContactListView: View {
         }
         .sheet(isPresented: $showMyContactCode) {
             MyContactCodeSheet()
+            #if os(macOS) || targetEnvironment(macCatalyst)
                 .frame(minWidth: 360, minHeight: 400)
+            #endif
         }
         .sheet(item: $shareContact) { contact in
             ShareContactSheet(contact: contact)
+            #if os(macOS) || targetEnvironment(macCatalyst)
                 .frame(minWidth: 360, minHeight: 400)
+            #endif
         }
         #endif
         .sheet(isPresented: $showNicknameSheet) {
@@ -333,7 +370,9 @@ struct ContactListView: View {
                 }
             }
             .meshTheme()
+            #if os(macOS) || targetEnvironment(macCatalyst)
             .frame(minWidth: 360, minHeight: 300)
+            #endif
         }
         .onChange(of: messageStoreManager.lastExportedURL) { _, url in
             if isExporting, let url, !url.isEmpty {
@@ -460,9 +499,6 @@ struct ContactListView: View {
                                 Label("Copy Public Key", systemImage: "doc.on.doc")
                             }
                         }
-                        Button { connectionManager.verifyRadioConfig() } label: {
-                            Label("Verify Radio Config", systemImage: "checkmark.shield")
-                        }
                         Divider()
                         if connectionManager.usbManager.isConnected {
                             Button(role: .destructive) { connectionManager.disconnectUSB() } label: {
@@ -484,9 +520,6 @@ struct ContactListView: View {
                         } label: {
                             Label("Copy Public Key", systemImage: "doc.on.doc")
                         }
-                    }
-                    Button { connectionManager.verifyRadioConfig() } label: {
-                        Label("Verify Radio Config", systemImage: "checkmark.shield")
                     }
                     Divider()
                     Button(role: .destructive) { connectionManager.disconnect() } label: {
@@ -1324,6 +1357,9 @@ struct ContactListView: View {
 
     private func sortedGroupMembers(_ members: [Contact]) -> [Contact] {
         members.sorted { a, b in
+            if a.isFavourite != b.isFavourite {
+                return a.isFavourite
+            }
             if sortByLastSeen {
                 return contactStore.lastActivityTimestamp(for: a) > contactStore.lastActivityTimestamp(for: b)
             }
@@ -1450,51 +1486,6 @@ private extension ContactListView {
             if !channelsFirst {
                 channelsSection
             }
-            #if !os(watchOS)
-            Section {
-                NavigationLink(value: SidebarSelection.map) {
-                    HStack(spacing: 12) {
-                        ZStack {
-                            Circle()
-                                .fill(MeshTheme.accent.opacity(0.15))
-                                .frame(width: 40, height: 40)
-                            Image(systemName: "map.fill")
-                                .foregroundStyle(MeshTheme.accent)
-                        }
-                        Text("Mesh Map")
-                            .font(.body)
-                            .foregroundStyle(MeshTheme.accent)
-                    }
-                    .contentShape(Rectangle())
-                }
-                .listRowBackground(
-                    navigationStore.sidebarSelection == .map
-                        ? MeshTheme.surfaceLight
-                        : MeshTheme.surface
-                )
-
-                NavigationLink(value: SidebarSelection.tools) {
-                    HStack(spacing: 12) {
-                        ZStack {
-                            Circle()
-                                .fill(MeshTheme.accent.opacity(0.15))
-                                .frame(width: 40, height: 40)
-                            Image(systemName: "wrench.and.screwdriver")
-                                .foregroundStyle(MeshTheme.accent)
-                        }
-                        Text("Tools")
-                            .font(.body)
-                            .foregroundStyle(MeshTheme.accent)
-                    }
-                    .contentShape(Rectangle())
-                }
-                .listRowBackground(
-                    navigationStore.sidebarSelection == .tools
-                        ? MeshTheme.surfaceLight
-                        : MeshTheme.surface
-                )
-            }
-            #endif
             #if os(macOS) || targetEnvironment(macCatalyst)
             if isUSBCLIConnected {
                 Section {

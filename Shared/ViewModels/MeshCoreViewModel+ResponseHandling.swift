@@ -66,6 +66,11 @@ extension MeshCoreViewModel {
             channelStore.activateForRadio(radioPrefix)
             contactStore.loadNicknamesFromiCloud()
             contactStore.loadContactNotesFromiCloud()
+            #if !os(watchOS)
+            telemetryCloudSync.radioPrefix = radioPrefix
+            telemetryCloudSync.migrateIfNeeded(telemetryHistory: rfMonitorStore.telemetryHistory)
+            telemetryCloudSync.fetchFromCloud()
+            #endif
             deviceConfig.latitude = info.latitude
             deviceConfig.longitude = info.longitude
             deviceConfig.radioFrequency = info.radioFreq

@@ -106,6 +106,7 @@ final class ContactStore {
     }
 
     private func saveBlockedToiCloud() {
+        guard iCloudSyncEnabled else { return }
         iCloudStore.saveCodable(Array(blockedPubkeys), forKey: "blockedContacts")
     }
 
@@ -202,6 +203,7 @@ final class ContactStore {
     }
 
     private func saveNicknamesToiCloud() {
+        guard iCloudSyncEnabled else { return }
         let cleaned = nicknames.filter { !$0.value.isEmpty }
         iCloudStore.saveCodable(cleaned, forKey: nicknamesKey)
     }
@@ -302,6 +304,7 @@ final class ContactStore {
     }
 
     private func saveContactNotesToiCloud() {
+        guard iCloudSyncEnabled else { return }
         iCloudStore.saveCodable(contactNotes, forKey: notesKey)
     }
 
@@ -346,6 +349,7 @@ final class ContactStore {
     }
 
     private func saveContactGroupsToiCloud() {
+        guard iCloudSyncEnabled else { return }
         iCloudStore.saveCodable(contactGroups, forKey: "contactGroups")
     }
 
@@ -463,6 +467,7 @@ final class ContactStore {
     }
 
     private func saveMutedContactsToiCloud() {
+        guard iCloudSyncEnabled else { return }
         iCloudStore.set(Array(mutedContacts), forKey: "mutedContacts")
         iCloudStore.synchronize()
     }

@@ -259,6 +259,9 @@ public final class DeviceConfig {
     }
 
     public func saveBatteryCalibration(_ cal: BatteryCalibration) {
+        let syncEnabled = UserDefaults.standard.object(forKey: "iCloudSyncEnabled") == nil
+            ? true : UserDefaults.standard.bool(forKey: "iCloudSyncEnabled")
+        guard syncEnabled else { return }
         let key = "battery.cal.\(publicKeyHex)"
         let store = NSUbiquitousKeyValueStore.default
         if let data = try? JSONEncoder().encode(cal) {

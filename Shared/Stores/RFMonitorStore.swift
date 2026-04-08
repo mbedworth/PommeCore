@@ -65,6 +65,9 @@ final class RFMonitorStore {
     private let maxDaysRetained = 7
     private var savePending = false
 
+    /// Cloud sync hook — called after recording telemetry and after saving.
+    var cloudSync: TelemetryCloudSync?
+
     /// Record a new telemetry reading for a contact.
     func recordTelemetry(for contactKey: Data, readings: [TelemetryReading]) {
         let snapshot = TelemetrySnapshot(timestamp: Date(), readings: readings)
@@ -74,6 +77,7 @@ final class RFMonitorStore {
             history.removeFirst(history.count - maxHistoryCount)
         }
         telemetryHistory[contactKey] = history
+        cloudSync?.markDirty(contactKey: contactKey)
         scheduleSave()
     }
 
@@ -164,6 +168,18 @@ final class RFMonitorStore {
         let contacts: [String: [TelemetrySnapshot]]
     }
 
+    /// Clear all telemetry history (local file + in-memory).
+    func clearTelemetryHistory() {
+        telemetryHistory.removeAll()
+        try? FileManager.default.removeItem(at: Self.telemetryFileURL)
+        DebugLogger.shared.log("TELEMETRY: cleared all history", level: .info)
+    }
+
+    /// Number of telemetry snapshots across all contacts.
+    var totalSnapshotCount: Int {
+        telemetryHistory.values.reduce(0) { $0 + $1.count }
+    }
+
     func loadTelemetryHistory() {
         let url = Self.telemetryFileURL
         guard FileManager.default.fileExists(atPath: url.path) else { return }
@@ -207,5 +223,6 @@ final class RFMonitorStore {
         } catch {
             DebugLogger.shared.log("TELEMETRY: failed to save history: \(error.localizedDescription)", level: .warning)
         }
+        cloudSync?.uploadIfNeeded(telemetryHistory: telemetryHistory)
     }
 }
