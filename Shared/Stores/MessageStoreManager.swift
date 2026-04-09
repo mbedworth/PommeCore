@@ -373,7 +373,8 @@ final class MessageStoreManager {
             }
         }
         if !matched {
-            Self.logger.warning("DM RESP_SENT: NO .sending message found for ack=\(expectedACK)")
+            // Expected for CLI commands, login, status requests — not just DMs.
+            Self.logger.debug("DM RESP_SENT: no pending message for ack=\(expectedACK) (likely non-DM command)")
         }
     }
 

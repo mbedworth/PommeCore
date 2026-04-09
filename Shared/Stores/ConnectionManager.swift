@@ -529,6 +529,7 @@ final class ConnectionManager {
         wifiManager.connect(host: host, port: port)
     }
 
+
     #if os(macOS) || targetEnvironment(macCatalyst)
     func connectUSB(port: String) {
         stopScanning()
@@ -766,7 +767,9 @@ final class ConnectionManager {
             }
             .store(in: &cancellables)
 
-        // WiFi connection state
+        // WiFi connection state — isConnected only changes on user-initiated
+        // connect/disconnect and real failures. Silent TCP re-establishes don't
+        // touch it, so the app sees a stable connection.
         wifiManager.$isConnected
             .receive(on: DispatchQueue.main)
             .sink { [weak self] connected in
@@ -776,7 +779,8 @@ final class ConnectionManager {
                     self.connectionState = .ready
                     self.connectedDeviceName = "WiFi: \(self.wifiManager.connectedHost ?? "unknown")"
                     self.onDeviceReady?()
-                } else if self.wifiManager.connectedHost != nil {
+                } else {
+                    // Real disconnect (user-initiated or silent reconnect exhausted)
                     if self.connectionState == .ready {
                         let prev = self.connectionState
                         self.connectionState = .disconnected

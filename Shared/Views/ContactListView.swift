@@ -159,53 +159,50 @@ struct ContactListView: View {
         // to avoid being constrained to the narrow sidebar column.
         #else
         .toolbar {
-            ToolbarItem(placement: .automatic) {
-                HStack(spacing: 12) {
-                    Button {
-                        connectionManager.sendAdvertise(type: 1)
-                        showAdvertSent?.wrappedValue = true
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                            showAdvertSent?.wrappedValue = false
-                        }
-                    } label: {
-                        Image(systemName: showAdvertSent?.wrappedValue == true
-                              ? "checkmark.circle.fill" : "antenna.radiowaves.left.and.right")
-                            .foregroundStyle(showAdvertSent?.wrappedValue == true ? .green : MeshTheme.accent)
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    connectionManager.sendAdvertise(type: 1)
+                    showAdvertSent?.wrappedValue = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                        showAdvertSent?.wrappedValue = false
                     }
-                    .accessibilityLabel("Advertise")
-                    .disabled(connectionManager.connectionState != .ready)
-
+                } label: {
+                    Image(systemName: showAdvertSent?.wrappedValue == true
+                          ? "checkmark.circle.fill" : "antenna.radiowaves.left.and.right")
+                        .foregroundStyle(showAdvertSent?.wrappedValue == true ? .green : MeshTheme.accent)
+                }
+                .accessibilityLabel("Advertise")
+                .disabled(connectionManager.connectionState != .ready)
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                Menu {
                     Button {
                         connectionManager.refreshAll(contactStore: contactStore)
                     } label: {
-                        Image(systemName: "arrow.clockwise")
-                            .foregroundStyle(MeshTheme.accent)
+                        Label("Refresh", systemImage: "arrow.clockwise")
                     }
-                    .accessibilityLabel("Refresh")
                     .disabled(connectionManager.connectionState != .ready)
-
-                    Menu {
-                        Button {
-                            showDiscover?.wrappedValue = true
-                        } label: {
-                            Label("Discover Nodes", systemImage: "binoculars.fill")
-                        }
-                        Button {
-                            navigateToMap = true
-                        } label: {
-                            Label("Mesh Map", systemImage: "map.fill")
-                        }
-                        Button {
-                            navigateToTools = true
-                        } label: {
-                            Label("Tools", systemImage: "wrench.and.screwdriver")
-                        }
+                    Divider()
+                    Button {
+                        showDiscover?.wrappedValue = true
                     } label: {
-                        Image(systemName: "ellipsis.circle")
-                            .foregroundStyle(MeshTheme.accent)
+                        Label("Discover Nodes", systemImage: "binoculars.fill")
                     }
-                    .accessibilityLabel("More")
+                    Button {
+                        navigateToMap = true
+                    } label: {
+                        Label("Mesh Map", systemImage: "map.fill")
+                    }
+                    Button {
+                        navigateToTools = true
+                    } label: {
+                        Label("Tools", systemImage: "wrench.and.screwdriver")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                        .foregroundStyle(MeshTheme.accent)
                 }
+                .accessibilityLabel("More")
             }
         }
         #endif

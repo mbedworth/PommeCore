@@ -442,6 +442,7 @@ struct ContentView: View {
             if openSettingsAfterOnboarding {
                 openSettingsAfterOnboarding = false
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                    dismissAllSheets()
                     showSettings = true
                 }
             }
@@ -451,6 +452,7 @@ struct ContentView: View {
         }
         .onChange(of: connectionManager.requestShowScanner) { _, shouldShow in
             if shouldShow {
+                dismissAllSheets()
                 showScanner = true
                 connectionManager.requestShowScanner = false
             }
@@ -533,6 +535,17 @@ struct ContentView: View {
 
     /// Check if device has a default name and offer the setup wizard.
     /// Only prompts once per radio (keyed by public key prefix).
+    /// Dismiss any active sheet before presenting a new one.
+    /// SwiftUI only supports one presented sheet at a time — setting multiple
+    /// sheet booleans simultaneously causes "only presenting a single sheet" warnings.
+    private func dismissAllSheets() {
+        showScanner = false
+        showSettings = false
+        showDiscover = false
+        showRemoteManagement = false
+        showSetupWizard = false
+    }
+
     private func offerSetupWizardIfNeeded() {
         // Wait for device info to populate
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
@@ -547,6 +560,7 @@ struct ContentView: View {
                 || name.hasPrefix("MeshCore")
                 || name.count <= 4
             if isDefault {
+                dismissAllSheets()
                 showSetupWizard = true
             }
             UserDefaults.standard.set(true, forKey: key)

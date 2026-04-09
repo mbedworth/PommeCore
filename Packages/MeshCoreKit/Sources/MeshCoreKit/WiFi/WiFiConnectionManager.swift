@@ -4,6 +4,12 @@
 //
 //  TCP socket connection to MeshCore radios over WiFi.
 //
+//  The MeshCore firmware (SerialWifiInterface) never closes TCP connections —
+//  it polls client.connected() in its main loop. However the ESP32's lwIP
+//  stack sends a TCP FIN when the connection goes idle. This manager handles
+//  that by silently re-establishing the TCP socket without changing the
+//  external isConnected state, so the rest of the app sees a stable connection.
+//
 //  Created by Michael P. Bedworth on 3/17/26.
 //  Copyright © 2026 Michael P. Bedworth. All rights reserved.
 //
@@ -32,56 +38,107 @@ public final class WiFiConnectionManager: ObservableObject {
     /// Auto-reconnect state
     public private(set) var lastHost: String?
     public private(set) var lastPort: UInt16?
-    private var reconnectAttempts = 0
-    private static let maxReconnectAttempts = 3
-    private var reconnectTask: Task<Void, Never>?
     public private(set) var isUserDisconnect = false
+
+    /// Silent reconnect counter — incremented on each attempt, reset only
+    /// when real data flows through the connection (not just on TCP .ready).
+    /// This prevents infinite loops when TCP connects then immediately closes.
+    private var silentReconnectAttempts = 0
+    private static let maxSilentReconnects = 10
 
     public init() {}
 
+    // MARK: - TCP Options
+
+    private func makeTCPParams() -> NWParameters {
+        let tcp = NWProtocolTCP.Options()
+        tcp.enableKeepalive = true
+        tcp.keepaliveIdle = 10
+        tcp.keepaliveInterval = 5
+        tcp.keepaliveCount = 3
+        tcp.connectionTimeout = 10
+        tcp.noDelay = true
+        return NWParameters(tls: nil, tcp: tcp)
+    }
+
     // MARK: - Connect / Disconnect
 
+    /// User-initiated connection to a WiFi device.
     public func connect(host: String, port: UInt16 = 5000) {
-        reconnectTask?.cancel()
         isUserDisconnect = false
+        silentReconnectAttempts = 0
+        lastHost = host
+        lastPort = port
+        establishTCP(host: host, port: port, silent: false)
+    }
+
+    public func disconnect() {
+        isUserDisconnect = true
+        silentReconnectAttempts = 0
+        let conn = connection
+        connection = nil
+        // Cancel and clear buffer on the WiFi queue to avoid racing with receiveLoop.
+        queue.async { [weak self] in
+            conn?.cancel()
+            self?.readBuffer = Data()
+        }
+        isConnected = false
+        connectedHost = nil
+    }
+
+    // MARK: - Internal TCP lifecycle
+
+    /// Create a new NWConnection. If `silent`, don't change isConnected on success —
+    /// the app already thinks we're connected.
+    private func establishTCP(host: String, port: UInt16, silent: Bool) {
         connection?.cancel()
         connection = nil
         readBuffer = Data()
 
-        lastHost = host
-        lastPort = port
-
         let nwHost = NWEndpoint.Host(host)
-        guard let nwPort = NWEndpoint.Port(rawValue: port) else {
-            Self.logger.error("Invalid port: \(port)")
-            return
-        }
+        guard let nwPort = NWEndpoint.Port(rawValue: port) else { return }
 
-        let conn = NWConnection(host: nwHost, port: nwPort, using: .tcp)
+        let conn = NWConnection(host: nwHost, port: nwPort, using: makeTCPParams())
         conn.stateUpdateHandler = { [weak self] state in
             guard let self else { return }
             switch state {
             case .ready:
-                Self.logger.info("WiFi connected to \(host):\(port)")
-                DebugLogger.shared.log("WIFI: connected to \(host):\(port)", level: .info)
-                DispatchQueue.main.async {
-                    self.reconnectAttempts = 0
-                    self.isConnected = true
-                    self.connectedHost = host
+                if silent {
+                    Self.logger.info("WiFi TCP re-established to \(host):\(port)")
+                    DebugLogger.shared.log("WIFI: TCP re-established (silent)", level: .info)
+                    // Don't reset silentReconnectAttempts here — only reset when
+                    // real data arrives in receiveLoop, to prevent infinite loops
+                    // when TCP connects then immediately closes.
+                } else {
+                    Self.logger.info("WiFi connected to \(host):\(port)")
+                    DebugLogger.shared.log("WIFI: connected to \(host):\(port)", level: .info)
+                    DispatchQueue.main.async {
+                        self.silentReconnectAttempts = 0
+                        self.isConnected = true
+                        self.connectedHost = host
+                    }
                 }
                 self.receiveLoop()
+
             case .failed(let error):
-                Self.logger.error("WiFi connection failed: \(error)")
-                DispatchQueue.main.async {
-                    self.isConnected = false
-                    self.connectedHost = nil
-                    self.attemptReconnect()
+                Self.logger.error("WiFi TCP failed: \(error)")
+                if silent {
+                    self.handleSilentReconnectFailure()
+                } else {
+                    DispatchQueue.main.async {
+                        self.isConnected = false
+                        self.connectedHost = nil
+                    }
                 }
+
             case .cancelled:
-                DispatchQueue.main.async {
-                    self.isConnected = false
-                    self.connectedHost = nil
+                if !silent {
+                    DispatchQueue.main.async {
+                        self.isConnected = false
+                        self.connectedHost = nil
+                    }
                 }
+
             default:
                 break
             }
@@ -90,33 +147,26 @@ public final class WiFiConnectionManager: ObservableObject {
         connection = conn
     }
 
-    public func disconnect() {
-        isUserDisconnect = true
-        reconnectTask?.cancel()
-        reconnectAttempts = 0
-        connection?.cancel()
-        connection = nil
-        readBuffer = Data()
-        isConnected = false
-        connectedHost = nil
-    }
-
-    private func attemptReconnect() {
-        guard !isUserDisconnect,
-              let host = lastHost, let port = lastPort,
-              reconnectAttempts < Self.maxReconnectAttempts else {
-            if reconnectAttempts >= Self.maxReconnectAttempts {
-                DebugLogger.shared.log("WIFI: reconnect attempts exhausted", level: .warning)
+    /// Called when a silent TCP re-establish fails.
+    private func handleSilentReconnectFailure() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self, !self.isUserDisconnect else { return }
+            if self.silentReconnectAttempts < Self.maxSilentReconnects,
+               let host = self.lastHost, let port = self.lastPort {
+                let attempt = self.silentReconnectAttempts
+                Self.logger.info("WiFi silent reconnect retry \(attempt)/\(Self.maxSilentReconnects)")
+                Task { @MainActor [weak self] in
+                    try? await Task.sleep(nanoseconds: 2_000_000_000)
+                    guard let self, !self.isUserDisconnect else { return }
+                    self.establishTCP(host: host, port: port, silent: true)
+                }
+            } else {
+                // Exhausted — surface the disconnect to the app
+                Self.logger.warning("WiFi silent reconnect exhausted — disconnecting")
+                DebugLogger.shared.log("WIFI: silent reconnect exhausted", level: .warning)
+                self.isConnected = false
+                self.connectedHost = nil
             }
-            return
-        }
-        reconnectAttempts += 1
-        DebugLogger.shared.log("WIFI: reconnect attempt \(reconnectAttempts)/\(Self.maxReconnectAttempts) to \(host):\(port)", level: .warning)
-
-        reconnectTask = Task { @MainActor [weak self] in
-            try? await Task.sleep(nanoseconds: 3_000_000_000)
-            guard !Task.isCancelled, let self else { return }
-            self.connect(host: host, port: port)
         }
     }
 
@@ -147,9 +197,15 @@ public final class WiFiConnectionManager: ObservableObject {
             if let data, !data.isEmpty {
                 self.readBuffer.append(data)
                 self.parseBinaryFrames()
+                // Real data flowing — reset the silent reconnect counter.
+                // This is the ONLY place it resets for silent reconnects,
+                // preventing loops where TCP connects but immediately closes.
+                DispatchQueue.main.async { self.silentReconnectAttempts = 0 }
             }
-            if isComplete || error != nil {
-                Self.logger.info("WiFi connection ended")
+            if let error {
+                // Real error — surface to app
+                Self.logger.warning("WiFi connection error: \(error)")
+                DebugLogger.shared.log("WIFI: connection error: \(error)", level: .warning)
                 DispatchQueue.main.async {
                     guard !self.isUserDisconnect else { return }
                     self.connection?.cancel()
@@ -157,7 +213,31 @@ public final class WiFiConnectionManager: ObservableObject {
                     self.readBuffer = Data()
                     self.isConnected = false
                     self.connectedHost = nil
-                    self.attemptReconnect()
+                }
+                return
+            }
+            if isComplete {
+                // TCP FIN from ESP32 lwIP idle — silently re-establish without
+                // changing isConnected. The app never sees this drop.
+                Self.logger.info("WiFi TCP closed by remote (idle) — re-establishing")
+                DebugLogger.shared.log("WIFI: TCP idle close — re-establishing silently", level: .info)
+                self.connection?.cancel()
+                self.connection = nil
+                self.readBuffer = Data()
+                DispatchQueue.main.async {
+                    self.silentReconnectAttempts += 1
+                    guard self.silentReconnectAttempts <= Self.maxSilentReconnects,
+                          let host = self.lastHost, let port = self.lastPort,
+                          !self.isUserDisconnect else {
+                        if self.silentReconnectAttempts > Self.maxSilentReconnects {
+                            Self.logger.warning("WiFi silent reconnect exhausted (isComplete loop)")
+                            DebugLogger.shared.log("WIFI: silent reconnect exhausted", level: .warning)
+                            self.isConnected = false
+                            self.connectedHost = nil
+                        }
+                        return
+                    }
+                    self.establishTCP(host: host, port: port, silent: true)
                 }
                 return
             }
