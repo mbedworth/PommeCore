@@ -17,7 +17,7 @@ import Security
 /// Uses JSON encoding to a per-contact file in the app's documents directory.
 /// Messages are stored in per-radio subdirectories to isolate data between radios.
 public final class MessageStore {
-    private static let logger = Logger(subsystem: "com.meshcore", category: "MessageStore")
+    private static let logger = Logger(subsystem: "com.pommecore", category: "MessageStore")
 
     private static var rootDirectory: URL {
         let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!

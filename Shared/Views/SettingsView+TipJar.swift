@@ -1,6 +1,6 @@
 //
 //  SettingsView+TipJar.swift
-//  MeshCoreApple
+//  PommeCore
 //
 //  Device settings, radio config, privacy, iCloud, storage, and diagnostics.
 //
@@ -50,9 +50,9 @@ class TipJarManager: ObservableObject {
 
     var thankYouMessage: String {
         guard let id = purchasedProductID else { return "Your support means a lot." }
-        if id.hasSuffix(".decent") { return "Every bit helps keep MeshCore free for everyone." }
+        if id.hasSuffix(".decent") { return "Every bit helps keep PommeCore free for everyone." }
         if id.hasSuffix(".nice") { return "Your generosity helps fund new features and improvements." }
-        if id.hasSuffix(".great") { return "Seriously, thank you. People like you make MeshCore possible." }
+        if id.hasSuffix(".great") { return "Seriously, thank you. People like you make PommeCore possible." }
         if id.hasSuffix(".help") { return "You're helping build the future of off-grid communication. Check the Supporters Wall!" }
         return "Your support means a lot."
     }
@@ -66,9 +66,9 @@ class TipJarManager: ObservableObject {
     }
 
     static let placeholders: [PlaceholderTip] = [
-        PlaceholderTip(id: "decent", emoji: "\u{1F44B}", name: "Decent Try!", description: "Thanks for giving MeshCore a shot", price: "$0.99"),
+        PlaceholderTip(id: "decent", emoji: "\u{1F44B}", name: "Decent Try!", description: "Thanks for giving PommeCore a shot", price: "$0.99"),
         PlaceholderTip(id: "nice", emoji: "\u{1F44D}", name: "Nice App!", description: "You're enjoying the mesh life", price: "$2.99"),
-        PlaceholderTip(id: "great", emoji: "\u{1F389}", name: "Great Job!", description: "MeshCore has become your go-to client", price: "$4.99"),
+        PlaceholderTip(id: "great", emoji: "\u{1F389}", name: "Great Job!", description: "PommeCore has become your go-to client", price: "$4.99"),
         PlaceholderTip(id: "help", emoji: "\u{1F49A}", name: "I Want to Help!", description: "You believe in off-grid communication", price: "$9.99"),
     ]
 
@@ -370,7 +370,7 @@ extension SettingsView {
             .buttonStyle(.plain)
             .listRowBackground(MeshTheme.surface)
         } header: {
-            sectionInfoHeader("Support the App", info: "MeshCore is free with all features. Tips help fund development. \u{1F49A} tippers join the Supporters Wall!")
+            sectionInfoHeader("Support the App", info: "PommeCore is free with all features. Tips help fund development. \u{1F49A} tippers join the Supporters Wall!")
         }
     }
 
@@ -392,11 +392,11 @@ struct TipJarView: View {
                     .foregroundStyle(MeshTheme.accent)
                     .padding(.top, 20)
 
-                Text("Support MeshCore Development")
+                Text("Support PommeCore Development")
                     .font(.title2.bold())
                     .foregroundStyle(MeshTheme.textPrimary)
 
-                Text("MeshCore is free with all features unlocked. If you find it useful, consider leaving a tip to support continued development.")
+                Text("PommeCore is free with all features unlocked. If you find it useful, consider leaving a tip to support continued development.")
                     .font(.subheadline)
                     .foregroundStyle(MeshTheme.textSecondary)
                     .multilineTextAlignment(.center)
@@ -621,7 +621,7 @@ struct SupportersView: View {
                         .multilineTextAlignment(.center)
                         .padding(.horizontal)
                 } else {
-                    Text("These generous people help keep MeshCore free for everyone.")
+                    Text("These generous people help keep PommeCore free for everyone.")
                         .font(.subheadline)
                         .foregroundStyle(MeshTheme.textSecondary)
                         .multilineTextAlignment(.center)

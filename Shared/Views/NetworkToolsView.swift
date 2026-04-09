@@ -1,6 +1,6 @@
 //
 //  NetworkToolsView.swift
-//  MeshCoreApple
+//  PommeCore
 //
 //  Contact detail sheet for trace route, status, telemetry, path info, and ping.
 //

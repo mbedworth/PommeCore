@@ -14,7 +14,7 @@ import os.log
 /// Parses incoming binary frames from the MeshCore device.
 public enum FrameParser {
 
-    private static let logger = Logger(subsystem: "com.meshcore", category: "FrameParser")
+    private static let logger = Logger(subsystem: "com.pommecore", category: "FrameParser")
 
     /// Parsed response from the device.
     public enum ParsedResponse: Sendable {

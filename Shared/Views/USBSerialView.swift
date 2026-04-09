@@ -1,6 +1,6 @@
 //
 //  USBSerialView.swift
-//  MeshCoreApple
+//  PommeCore
 //
 //  USB terminal view for raw CLI interaction with infrastructure devices.
 //

@@ -1,6 +1,6 @@
 //
 //  NetworkToolsView+Channels.swift
-//  MeshCoreApple
+//  PommeCore
 //
 //  Channel management: join hashtag, create private, join private channels.
 //

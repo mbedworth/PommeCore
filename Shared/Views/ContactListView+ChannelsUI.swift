@@ -1,6 +1,6 @@
 //
 //  ContactListView+ChannelsUI.swift
-//  MeshCoreApple
+//  PommeCore
 //
 //  Connection status, public channel, channels section, and channel rows
 //  split from ContactListView.swift.

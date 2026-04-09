@@ -1,11 +1,11 @@
-# MeshCore Privacy Policy
+# PommeCore Privacy Policy
 
 **Last updated:** March 2026
 
-MeshCore is an off-grid mesh networking app. It connects to your personal MeshCore radio via Bluetooth.
+PommeCore is an off-grid mesh networking app. It connects to your personal MeshCore radio via Bluetooth.
 
 ## Data Collection
-MeshCore does not collect, store, or transmit any personal data to external servers. All communication happens directly between your device and your MeshCore radio over Bluetooth, and between radios over LoRa (a local radio protocol).
+PommeCore does not collect, store, or transmit any personal data to external servers. All communication happens directly between your device and your MeshCore radio over Bluetooth, and between radios over LoRa (a local radio protocol).
 
 ## Data Stored on Device
 - Message history (stored locally on your device only)
@@ -13,10 +13,10 @@ MeshCore does not collect, store, or transmit any personal data to external serv
 - App preferences (stored locally on your device only)
 
 ## Network Communication
-MeshCore does not connect to the internet. All messaging occurs over LoRa radio, which is a local, off-grid protocol. No data passes through any server.
+PommeCore does not connect to the internet. All messaging occurs over LoRa radio, which is a local, off-grid protocol. No data passes through any server.
 
 ## Third-Party Services
-MeshCore does not use any third-party analytics, advertising, or tracking services.
+PommeCore does not use any third-party analytics, advertising, or tracking services.
 
 ## Contact
 For questions about this privacy policy, contact the developer via the app's support page.

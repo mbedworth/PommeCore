@@ -13,7 +13,7 @@ import MeshCoreKit
 actor ElevationService {
     static let shared = ElevationService()
 
-    private static let logger = Logger(subsystem: "com.meshcore", category: "Elevation")
+    private static let logger = Logger(subsystem: "com.pommecore", category: "Elevation")
     private static let apiEndpoint = "https://api.open-meteo.com/v1/elevation"
     private static let maxPointsPerRequest = 100
     private static let maxRetries = 3

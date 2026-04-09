@@ -1,4 +1,4 @@
-# MeshCoreApple
+# PommeCore
 
 Native SwiftUI client for [MeshCore](https://github.com/rpp0/MeshCore) LoRa mesh radio devices. Communicates via BLE using the MeshCore Companion Radio Protocol.
 
@@ -23,7 +23,7 @@ Native SwiftUI client for [MeshCore](https://github.com/rpp0/MeshCore) LoRa mesh
 ## Architecture
 
 ```
-MeshCoreApple/
+PommeCore/
 ├── Packages/MeshCoreKit/       # Swift Package — BLE, protocol, models
 │   └── Sources/MeshCoreKit/
 │       ├── BLE/                # BLEManager, constants, background handler
@@ -31,10 +31,10 @@ MeshCoreApple/
 │       ├── Models/             # Contact, Message, DeviceConfig (@Observable), MessageStore
 │       └── Crypto/             # MeshCore crypto utilities
 ├── Shared/                     # Multiplatform app code
-│   ├── App/                    # MeshCoreApp entry point, Theme
+│   ├── App/                    # PommeCoreApp entry point, Theme
 │   ├── Stores/                 # @Observable stores: ContactStore, ChannelStore,
 │   │                           #   MessageStoreManager, ConnectionManager, RemoteSessionManager
-│   ├── ViewModels/             # MeshCoreViewModel (thin coordinator, ObservableObject bridge)
+│   ├── ViewModels/             # PommeCoreViewModel (thin coordinator, ObservableObject bridge)
 │   └── Views/                  # ContactList, Chat, Settings, RemoteManagement, Scanner
 ├── iOS/                        # iOS target resources
 ├── macOS/                      # macOS target resources
@@ -52,4 +52,4 @@ Binary frame encoding with command codes, response codes, and push notifications
 
 ## Building
 
-Open `MeshCoreApple.xcodeproj` in Xcode 16+ and select the desired target (iOS, macOS, or watchOS).
+Open `PommeCore.xcodeproj` in Xcode 16+ and select the desired target (iOS, macOS, or watchOS).

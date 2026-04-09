@@ -1,6 +1,6 @@
 //
 //  MeshMapView.swift
-//  MeshCoreApple
+//  PommeCore
 //
 //  Internet mesh map integration with contact pins and map.meshcore.dev overlay.
 //

@@ -1,6 +1,6 @@
 //
 //  ChatView+Components.swift
-//  MeshCoreApple
+//  PommeCore
 //
 //  Message bubbles and shared chat components split from ChatView.swift.
 //

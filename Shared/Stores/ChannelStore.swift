@@ -1,6 +1,6 @@
 //
 //  ChannelStore.swift
-//  MeshCoreApple
+//  PommeCore
 //
 //  Channel sync, import/export, notification modes, iCloud channel preferences.
 //
@@ -13,10 +13,10 @@ import os.log
 import MeshCoreKit
 
 /// Observable store for channels, sync, import/export, and notification modes.
-/// Extracted from MeshCoreViewModel to enable fine-grained view observation.
+/// Extracted from PommeCoreViewModel to enable fine-grained view observation.
 @MainActor @Observable
 final class ChannelStore {
-    private static let logger = Logger(subsystem: "com.meshcore", category: "ChannelStore")
+    private static let logger = Logger(subsystem: "com.pommecore", category: "ChannelStore")
 
     // MARK: - Public State
 

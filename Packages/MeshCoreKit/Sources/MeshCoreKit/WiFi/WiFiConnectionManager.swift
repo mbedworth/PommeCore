@@ -23,7 +23,7 @@ import os.log
 /// Uses the same binary framing as USB serial: `<` (0x3C) + length(2 LE) + payload (inbound),
 /// `>` (0x3E) + length(2 LE) + payload (outbound).
 public final class WiFiConnectionManager: ObservableObject {
-    private static let logger = Logger(subsystem: "com.meshcore", category: "WiFi")
+    private static let logger = Logger(subsystem: "com.pommecore", category: "WiFi")
 
     @Published public private(set) var isConnected: Bool = false
     @Published public private(set) var connectedHost: String?

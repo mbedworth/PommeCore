@@ -1,6 +1,6 @@
 //
 //  SettingsView+Sections.swift
-//  MeshCoreApple
+//  PommeCore
 //
 //  Device settings, radio config, privacy, iCloud, storage, and diagnostics.
 //
@@ -653,7 +653,7 @@ extension SettingsView {
                 .listRowBackground(MeshTheme.surface)
             }
         } header: {
-            sectionInfoHeader("Connection", info: "MeshCore supports Bluetooth, WiFi, and USB Serial connections to your radio.")
+            sectionInfoHeader("Connection", info: "PommeCore supports Bluetooth, WiFi, and USB Serial connections to your radio.")
         }
     }
 

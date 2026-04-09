@@ -1,6 +1,6 @@
 //
 //  RemoteSessionManager.swift
-//  MeshCoreApple
+//  PommeCore
 //
 //  Remote CLI sessions, USB CLI management, network tools, and telemetry.
 //
@@ -14,10 +14,10 @@ import os.log
 import MeshCoreKit
 
 /// Observable store for remote management sessions, network tools (discover, trace, status, telemetry),
-/// and USB CLI device management. Extracted from MeshCoreViewModel.
+/// and USB CLI device management. Extracted from PommeCoreViewModel.
 @MainActor @Observable
 final class RemoteSessionManager {
-    private static let logger = Logger(subsystem: "com.meshcore", category: "RemoteSession")
+    private static let logger = Logger(subsystem: "com.pommecore", category: "RemoteSession")
 
     // MARK: - Public State: Remote Sessions
 

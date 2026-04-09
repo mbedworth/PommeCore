@@ -1,6 +1,6 @@
 //
 //  ContactRowView.swift
-//  MeshCoreApple
+//  PommeCore
 //
 //  Single contact row: name, status indicator, path, last seen, unread badge.
 //

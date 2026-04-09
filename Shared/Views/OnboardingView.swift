@@ -1,6 +1,6 @@
 //
 //  OnboardingView.swift
-//  MeshCoreApple
+//  PommeCore
 //
 //  First-launch onboarding flow with connection guide and region selection.
 //
@@ -64,7 +64,7 @@ struct OnboardingView: View {
             Image(systemName: "antenna.radiowaves.left.and.right")
                 .font(.system(size: 72))
                 .foregroundStyle(MeshTheme.accent)
-            Text("Welcome to MeshCore")
+            Text("Welcome to PommeCore")
                 .font(.largeTitle.bold())
                 .foregroundStyle(MeshTheme.textPrimary)
             Text("Off-Grid Mesh Messaging")
@@ -93,7 +93,7 @@ struct OnboardingView: View {
 
             VStack(alignment: .leading, spacing: 10) {
                 stepRow(number: "1", text: "Power on your MeshCore radio and make sure Bluetooth is enabled on your device.")
-                stepRow(number: "2", text: "MeshCore will scan for nearby radios automatically.")
+                stepRow(number: "2", text: "PommeCore will scan for nearby radios automatically.")
                 stepRow(number: "3", text: "Tap your radio\u{2019}s name when it appears.")
                 stepRow(number: "4", text: "Enter the BLE PIN shown on your radio\u{2019}s screen (if required).")
                 stepRow(number: "5", text: "Once connected, your contacts and channels will sync automatically.")

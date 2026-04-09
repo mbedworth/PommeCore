@@ -332,7 +332,7 @@ section "ROUTING: Auto path reset on direct message"
 # =============================================================================
 # Verify the path auto-reset logic exists in response handling
 
-PATH_RESET=$(grep -c 'PATH AUTO-RESET\|hops.*==.*0.*outPathLen.*>.*0' "$PROJECT_DIR/Shared/ViewModels/MeshCoreViewModel+ResponseHandling.swift" 2>/dev/null || true)
+PATH_RESET=$(grep -c 'PATH AUTO-RESET\|hops.*==.*0.*outPathLen.*>.*0' "$PROJECT_DIR/Shared/ViewModels/PommeCoreViewModel+ResponseHandling.swift" 2>/dev/null || true)
 if [ "$PATH_RESET" -gt 0 ]; then
     pass "Auto path reset on incoming direct message is implemented"
 else

@@ -1,6 +1,6 @@
 //
 //  DeviceScannerView.swift
-//  MeshCoreApple
+//  PommeCore
 //
 //  BLE/WiFi/USB device scanner with signal strength and saved connections.
 //

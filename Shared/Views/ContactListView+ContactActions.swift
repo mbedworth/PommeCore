@@ -1,6 +1,6 @@
 //
 //  ContactListView+ContactActions.swift
-//  MeshCoreApple
+//  PommeCore
 //
 //  Contact context menu, helper functions, and navigation destinations
 //  split from ContactListView.swift.

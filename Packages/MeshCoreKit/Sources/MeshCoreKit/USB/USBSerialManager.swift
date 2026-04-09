@@ -34,7 +34,7 @@ import os.log
 /// Published state is updated on main thread. The read loop runs on a background thread
 /// and dispatches received data to serialQueue for parsing.
 public final class USBSerialManager: ObservableObject {
-    private static let logger = Logger(subsystem: "com.meshcore", category: "USB")
+    private static let logger = Logger(subsystem: "com.pommecore", category: "USB")
 
     // MARK: - Published State
 

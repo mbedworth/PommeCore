@@ -1,6 +1,6 @@
 //
 //  RadioPreset.swift
-//  MeshCoreApple
+//  PommeCore
 //
 //  Radio preset definitions and reusable picker view.
 //  Extracted from SettingsView for shared use by Settings and Remote Management.

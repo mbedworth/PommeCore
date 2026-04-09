@@ -1,6 +1,6 @@
 //
 //  DebugLogView.swift
-//  MeshCoreApple
+//  PommeCore
 //
 //  Debug log viewer with filtering, export, and auto-scroll.
 //

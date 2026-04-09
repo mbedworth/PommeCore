@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-# MeshCoreApple Distribute Script
+# PommeCore Distribute Script
 # Archives and uploads to TestFlight.
 #
 # Two modes:
@@ -15,7 +15,7 @@ set -euo pipefail
 #   ./build-and-distribute.sh [ios|macos|all] --release    # App Store release
 #   ./build-and-distribute.sh [ios|macos|all] --release 2  # Second release this month
 
-SCHEME="MeshCoreApple"
+SCHEME="PommeCore"
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 BUILD_DIR="$PROJECT_DIR/build"
 ARCHIVE_DATE=$(date '+%Y-%m-%d')
@@ -49,7 +49,7 @@ done
 # --- Pre-flight ---
 
 cd "$PROJECT_DIR"
-PBXPROJ="MeshCoreApple.xcodeproj/project.pbxproj"
+PBXPROJ="PommeCore.xcodeproj/project.pbxproj"
 CURRENT_VERSION=$(grep "MARKETING_VERSION" "$PBXPROJ" | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
 CURRENT_BUILD=$(grep "CURRENT_PROJECT_VERSION" "$PBXPROJ" | grep -o '[0-9]*' | sort -n | tail -1)
 
@@ -76,8 +76,8 @@ fi
 mkdir -p "$ARCHIVE_DIR" "$EXPORT_DIR"
 
 # Archive names
-IOS_ARCHIVE="$ARCHIVE_DIR/MeshCoreApple v$NEW_VERSION ($NEW_BUILD).xcarchive"
-MACOS_ARCHIVE="$ARCHIVE_DIR/MeshCoreApple-macOS v$NEW_VERSION ($NEW_BUILD).xcarchive"
+IOS_ARCHIVE="$ARCHIVE_DIR/PommeCore v$NEW_VERSION ($NEW_BUILD).xcarchive"
+MACOS_ARCHIVE="$ARCHIVE_DIR/PommeCore-macOS v$NEW_VERSION ($NEW_BUILD).xcarchive"
 
 # ============================================================
 # PHASE 1 — SET VERSION & BUILD (before archiving)
@@ -122,7 +122,7 @@ if [[ "$TARGET" == "ios" || "$TARGET" == "all" ]]; then
     log "Archiving iOS (v$NEW_VERSION build $NEW_BUILD)..."
     security unlock-keychain -p "" ~/Library/Keychains/login.keychain-db 2>/dev/null || true
     if ! xcodebuild archive \
-        -project MeshCoreApple.xcodeproj \
+        -project PommeCore.xcodeproj \
         -scheme "$SCHEME" \
         -destination "generic/platform=iOS" \
         -archivePath "$IOS_ARCHIVE" \
@@ -142,8 +142,8 @@ if [[ "$TARGET" == "macos" || "$TARGET" == "all" ]]; then
     log "Archiving macOS (v$NEW_VERSION build $NEW_BUILD)..."
     security unlock-keychain -p "" ~/Library/Keychains/login.keychain-db 2>/dev/null || true
     if ! xcodebuild archive \
-        -project MeshCoreApple.xcodeproj \
-        -scheme "MeshCoreApple-macOS" \
+        -project PommeCore.xcodeproj \
+        -scheme "PommeCore-macOS" \
         -destination "generic/platform=macOS" \
         -archivePath "$MACOS_ARCHIVE" \
         -allowProvisioningUpdates \

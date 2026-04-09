@@ -1,6 +1,6 @@
 //
 //  ContactListView.swift
-//  MeshCoreApple
+//  PommeCore
 //
 //  Sidebar contact/channel list, connection status, context menus, and edit mode.
 //

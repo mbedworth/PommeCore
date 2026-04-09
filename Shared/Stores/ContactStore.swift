@@ -1,6 +1,6 @@
 //
 //  ContactStore.swift
-//  MeshCoreApple
+//  PommeCore
 //
 //  Contacts, nicknames, notes, groups, activity status, and Spotlight indexing.
 //
@@ -17,10 +17,10 @@ import UniformTypeIdentifiers
 import MeshCoreKit
 
 /// Observable store for contacts, nicknames, notes, groups, and activity status.
-/// Extracted from MeshCoreViewModel to enable fine-grained view observation.
+/// Extracted from PommeCoreViewModel to enable fine-grained view observation.
 @MainActor @Observable
 final class ContactStore {
-    private static let logger = Logger(subsystem: "com.meshcore", category: "ContactStore")
+    private static let logger = Logger(subsystem: "com.pommecore", category: "ContactStore")
 
     // MARK: - Public State
 
@@ -840,7 +840,7 @@ final class ContactStore {
         for contact in contacts {
             let attrs = CSSearchableItemAttributeSet(contentType: .contact)
             attrs.displayName = displayName(for: contact)
-            attrs.contentDescription = "MeshCore \(contact.type == .repeater ? "repeater" : contact.type == .room ? "room server" : "contact")"
+            attrs.contentDescription = "PommeCore \(contact.type == .repeater ? "repeater" : contact.type == .room ? "room server" : "contact")"
             let pubkeyHex = contact.publicKey.hexCompact
             let item = CSSearchableItem(
                 uniqueIdentifier: "meshcore.contact.\(pubkeyHex)",

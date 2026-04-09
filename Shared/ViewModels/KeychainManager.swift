@@ -1,6 +1,6 @@
 //
 //  KeychainManager.swift
-//  MeshCoreApple
+//  PommeCore
 //
 //  Keychain read/write for passwords, channel secrets, and encryption keys.
 //
@@ -12,7 +12,7 @@ import Security
 import Foundation
 import MeshCoreKit
 
-/// Manages Keychain storage for MeshCore device login credentials.
+/// Manages Keychain storage for PommeCore device login credentials.
 /// Passwords are stored per-device (keyed by public key) and protected with
 /// kSecAttrAccessibleWhenUnlockedThisDeviceOnly (no iCloud sync).
 ///

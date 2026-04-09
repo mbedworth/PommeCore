@@ -1,6 +1,6 @@
 //
 //  ContactListView+ContactsUI.swift
-//  MeshCoreApple
+//  PommeCore
 //
 //  Pending contacts, groups section, contacts section header/body
 //  split from ContactListView.swift.

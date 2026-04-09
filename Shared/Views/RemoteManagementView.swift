@@ -1,6 +1,6 @@
 //
 //  RemoteManagementView.swift
-//  MeshCoreApple
+//  PommeCore
 //
 //  Remote admin settings for repeaters, rooms, and sensors via CLI over LoRa or USB.
 //

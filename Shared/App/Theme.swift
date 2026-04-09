@@ -1,6 +1,6 @@
 //
 //  Theme.swift
-//  MeshCoreApple
+//  PommeCore
 //
 //  Color system, mesh theme constants, clipboard helpers, shared UI utilities.
 //

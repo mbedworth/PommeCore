@@ -1,6 +1,6 @@
 //
-//  MeshCoreViewModel.swift
-//  MeshCoreApple
+//  PommeCoreViewModel.swift
+//  PommeCore
 //
 //  Coordinator: store wiring, lifecycle, cross-store dependencies.
 //
@@ -90,10 +90,10 @@ final class NotificationPreferences: ObservableObject {
 // SidebarSelection enum moved to NavigationStore.swift
 
 @MainActor
-final class MeshCoreViewModel: ObservableObject {
-    static let logger = Logger(subsystem: "com.meshcore", category: "ViewModel")
-    
-    // MARK: - Stores (@Observable, injected via .environment() in MeshCoreApp)
+final class PommeCoreViewModel: ObservableObject {
+    static let logger = Logger(subsystem: "com.pommecore", category: "ViewModel")
+
+    // MARK: - Stores (@Observable, injected via .environment() in PommeCoreApp)
     // Stores own all state and logic. ViewModel is the coordinator:
     // wires store dependencies, dispatches incoming frames, manages lifecycle.
     

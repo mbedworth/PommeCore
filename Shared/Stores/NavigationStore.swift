@@ -1,6 +1,6 @@
 //
 //  NavigationStore.swift
-//  MeshCoreApple
+//  PommeCore
 //
 //  Sidebar selection and navigation state for split view coordination.
 //

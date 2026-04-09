@@ -1,6 +1,6 @@
 //
 //  RemoteManagementView+ConfigSections.swift
-//  MeshCoreApple
+//  PommeCore
 //
 //  Radio, Timing, Routing, and Advertising configuration sections for remote management.
 //

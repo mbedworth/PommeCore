@@ -1,6 +1,6 @@
 //
 //  ConnectionManager.swift
-//  MeshCoreApple
+//  PommeCore
 //
 //  BLE/WiFi/USB transport, scanning, connection state, and protocol commands.
 //
@@ -45,10 +45,10 @@ enum RegionCheck { case pass, warning, fail }
 enum RadioRegion { case americas, europe, japan, india, unknown }
 
 /// Observable store for transport state, scanning, connect/disconnect, and sendCommand routing.
-/// Extracted from MeshCoreViewModel to enable fine-grained view observation.
+/// Extracted from PommeCoreViewModel to enable fine-grained view observation.
 @MainActor @Observable
 final class ConnectionManager {
-    private static let logger = Logger(subsystem: "com.meshcore", category: "ConnectionManager")
+    private static let logger = Logger(subsystem: "com.pommecore", category: "ConnectionManager")
 
     // MARK: - Public State
 
@@ -171,7 +171,7 @@ final class ConnectionManager {
         if deviceConfig?.advertLocPolicy == 1, let location = SharedLocation.manager.location {
             let radius = UserDefaults.standard.double(forKey: "locationPrivacyRadius")
             if radius > 0 {
-                let (fLat, fLon) = MeshCoreViewModel.fudgeLocation(lat: location.coordinate.latitude, lon: location.coordinate.longitude)
+                let (fLat, fLon) = PommeCoreViewModel.fudgeLocation(lat: location.coordinate.latitude, lon: location.coordinate.longitude)
                 sendCommand(MeshCoreProtocol.buildSetAdvertLatLon(latitude: fLat, longitude: fLon), label: "FUDGE_LATLON")
                 DebugLogger.shared.log("ADVERT: fudged GPS applied before advert", level: .tx)
             } else {
@@ -274,7 +274,7 @@ final class ConnectionManager {
     }
 
     func setAdvertLatLon(latitude: Double, longitude: Double) {
-        let (fLat, fLon) = MeshCoreViewModel.fudgeLocation(lat: latitude, lon: longitude)
+        let (fLat, fLon) = PommeCoreViewModel.fudgeLocation(lat: latitude, lon: longitude)
         sendCommand(MeshCoreProtocol.buildSetAdvertLatLon(latitude: fLat, longitude: fLon), label: "SET_LATLON")
         deviceConfig?.latitude = fLat
         deviceConfig?.longitude = fLon
@@ -438,7 +438,7 @@ final class ConnectionManager {
     private func setLocationFromPhoneGPS() {
         #if !os(watchOS)
         guard let location = SharedLocation.manager.location else { return }
-        let (fLat, fLon) = MeshCoreViewModel.fudgeLocation(lat: location.coordinate.latitude, lon: location.coordinate.longitude)
+        let (fLat, fLon) = PommeCoreViewModel.fudgeLocation(lat: location.coordinate.latitude, lon: location.coordinate.longitude)
         setAdvertLatLon(latitude: fLat, longitude: fLon)
         #endif
     }

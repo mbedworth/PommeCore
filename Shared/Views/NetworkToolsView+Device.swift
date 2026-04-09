@@ -1,6 +1,6 @@
 //
 //  NetworkToolsView+Device.swift
-//  MeshCoreApple
+//  PommeCore
 //
 //  Device info, activity overlay, path viewer, manual path editor, and ping results.
 //

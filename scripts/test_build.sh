@@ -20,7 +20,7 @@ set -euo pipefail
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$PROJECT_DIR"
 
-PBXPROJ="MeshCoreApple.xcodeproj/project.pbxproj"
+PBXPROJ="PommeCore.xcodeproj/project.pbxproj"
 BUILD_STATUS="BUILD_STATUS.md"
 SENTINEL="build/last_build_success"
 
@@ -53,8 +53,8 @@ log "Verifying build $CURRENT (v$VERSION) — no bump yet"
 log "Archiving iOS (compile check)..."
 mkdir -p build
 if ! xcodebuild archive \
-    -project MeshCoreApple.xcodeproj \
-    -scheme MeshCoreApple \
+    -project PommeCore.xcodeproj \
+    -scheme PommeCore \
     -destination "generic/platform=iOS" \
     -configuration Release \
     -archivePath /tmp/bump_build_ios.xcarchive \
@@ -76,8 +76,8 @@ log "iOS: ARCHIVE SUCCEEDED"
 
 log "Archiving macOS (compile check)..."
 if ! xcodebuild archive \
-    -project MeshCoreApple.xcodeproj \
-    -scheme MeshCoreApple-macOS \
+    -project PommeCore.xcodeproj \
+    -scheme PommeCore-macOS \
     -destination "generic/platform=macOS" \
     -configuration Release \
     -archivePath /tmp/bump_build_macos.xcarchive \

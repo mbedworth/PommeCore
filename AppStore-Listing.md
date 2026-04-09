@@ -1,14 +1,14 @@
-# MeshCore — App Store Listing
+# PommeCore — App Store Listing
 
 ## App Name
-MeshCore
+PommeCore
 
 ## Subtitle (30 chars max)
 Off-Grid Mesh Messaging
 
 ## Description (4000 chars max)
 
-MeshCore is a companion app for MeshCore LoRa radio devices, enabling off-grid text messaging over long-range mesh networks. No cell towers, no internet, no subscriptions — just radio waves.
+PommeCore is a companion app for MeshCore LoRa radio devices, enabling off-grid text messaging over long-range mesh networks. No cell towers, no internet, no subscriptions — just radio waves.
 
 WHAT IS MESHCORE?
 
@@ -44,11 +44,11 @@ PLATFORMS
 
 PRIVACY
 
-MeshCore does not collect any personal data. All communication happens directly between your device and your radio over Bluetooth. Messages travel over the LoRa mesh network, not through any server. Location sharing is optional and can be fuzzed with a configurable privacy radius.
+PommeCore does not collect any personal data. All communication happens directly between your device and your radio over Bluetooth. Messages travel over the LoRa mesh network, not through any server. Location sharing is optional and can be fuzzed with a configurable privacy radius.
 
 OPEN SOURCE
 
-MeshCore is built on the open-source MeshCore protocol. Learn more at meshcore.co.
+PommeCore is built on the open-source MeshCore protocol. Learn more at meshcore.co.
 
 ## Keywords (100 chars max)
 mesh,lora,off-grid,radio,messaging,emergency,outdoor,meshcore,ham,walkie-talkie

@@ -1,6 +1,6 @@
 //
 //  RemoteManagementView+DeviceSections.swift
-//  MeshCoreApple
+//  PommeCore
 //
 //  Security, GPS, and Clock sections for remote management.
 //

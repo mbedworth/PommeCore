@@ -4,7 +4,7 @@
 #   ./bump-build.sh          # auto-increment from current
 #   ./bump-build.sh 50       # set to a specific number
 
-PBXPROJ="MeshCoreApple.xcodeproj/project.pbxproj"
+PBXPROJ="PommeCore.xcodeproj/project.pbxproj"
 
 CURRENT=$(grep -m1 "CURRENT_PROJECT_VERSION" "$PBXPROJ" | grep -o '[0-9]*' | head -1)
 

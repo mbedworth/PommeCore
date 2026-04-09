@@ -1,6 +1,6 @@
 //
 //  MessageStoreManager.swift
-//  MeshCoreApple
+//  PommeCore
 //
 //  Messages, ACK tracking, echo detection, drafts, unread counts, and iCloud sync.
 //
@@ -18,10 +18,10 @@ import WatchKit
 import MeshCoreKit
 
 /// Observable store for messages, ACK tracking, echo detection, drafts, and unread counts.
-/// Extracted from MeshCoreViewModel to enable fine-grained view observation.
+/// Extracted from PommeCoreViewModel to enable fine-grained view observation.
 @MainActor @Observable
 final class MessageStoreManager {
-    private static let logger = Logger(subsystem: "com.meshcore", category: "MessageStore")
+    private static let logger = Logger(subsystem: "com.pommecore", category: "MessageStore")
 
     // MARK: - Public State
 

@@ -1,6 +1,6 @@
 //
 //  NetworkToolsView+Discovery.swift
-//  MeshCoreApple
+//  PommeCore
 //
 //  Discover neighbors, trace route, status request, telemetry, and advert path views.
 //

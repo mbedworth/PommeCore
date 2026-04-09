@@ -21,7 +21,7 @@
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>MeshCore needs Bluetooth to communicate with your LoRa radio device.</string>
+	<string>PommeCore needs Bluetooth to communicate with your LoRa radio device.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>bluetooth-central</string>

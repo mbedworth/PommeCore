@@ -1,4 +1,4 @@
-name: MeshCoreApple
+name: PommeCore
 options:
   bundleIdPrefix: com.meshcore
   deploymentTarget:
@@ -13,7 +13,7 @@ packages:
     path: Packages/MeshCoreKit
 
 targets:
-  MeshCoreApple:
+  PommeCore:
     type: application
     platform: iOS
     sources:
@@ -28,12 +28,12 @@ targets:
         UIBackgroundModes:
           - bluetooth-central
           - remote-notification
-        NSBluetoothAlwaysUsageDescription: "MeshCore needs Bluetooth to communicate with your LoRa radio device."
-        NSBluetoothPeripheralUsageDescription: "MeshCore needs Bluetooth to communicate with your LoRa radio device."
+        NSBluetoothAlwaysUsageDescription: "PommeCore needs Bluetooth to communicate with your LoRa radio device."
+        NSBluetoothPeripheralUsageDescription: "PommeCore needs Bluetooth to communicate with your LoRa radio device."
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.meshcore.app
-        PRODUCT_NAME: MeshCore
+        PRODUCT_NAME: PommeCore
         MARKETING_VERSION: "0.1.0"
         CURRENT_PROJECT_VERSION: 1
         SWIFT_VERSION: "5.9"
@@ -41,7 +41,7 @@ targets:
         INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
 
-  MeshCoreApple-macOS:
+  PommeCore-macOS:
     type: application
     platform: macOS
     sources:
@@ -52,17 +52,17 @@ targets:
       path: macOS/Info.plist
       properties:
         CFBundleDisplayName: PommeCore
-        NSBluetoothAlwaysUsageDescription: "MeshCore needs Bluetooth to communicate with your LoRa radio device."
+        NSBluetoothAlwaysUsageDescription: "PommeCore needs Bluetooth to communicate with your LoRa radio device."
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.meshcore.app
-        PRODUCT_NAME: MeshCore
+        PRODUCT_NAME: PommeCore
         MARKETING_VERSION: "0.1.0"
         CURRENT_PROJECT_VERSION: 1
         SWIFT_VERSION: "5.9"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
 
-  MeshCoreApple-watchOS:
+  PommeCore-watchOS:
     type: application
     platform: watchOS
     sources:
@@ -76,12 +76,12 @@ targets:
         CFBundleDisplayName: PommeCore
         UIBackgroundModes:
           - bluetooth-central
-        NSBluetoothAlwaysUsageDescription: "MeshCore needs Bluetooth to communicate with your LoRa radio device."
+        NSBluetoothAlwaysUsageDescription: "PommeCore needs Bluetooth to communicate with your LoRa radio device."
         WKApplication: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.meshcore.app.watchos
-        PRODUCT_NAME: MeshCore Watch
+        PRODUCT_NAME: PommeCore Watch
         MARKETING_VERSION: "0.1.0"
         CURRENT_PROJECT_VERSION: 1
         SWIFT_VERSION: "5.9"

@@ -1,6 +1,6 @@
 //
 //  SettingsView+Editors.swift
-//  MeshCoreApple
+//  PommeCore
 //
 //  Device settings, radio config, privacy, iCloud, storage, and diagnostics.
 //
@@ -680,7 +680,7 @@ struct GPSEditorSheet: View {
                         showFeedback($gpsUnavailable)
                         return
                     }
-                    let (fLat, fLon) = MeshCoreViewModel.fudgeLocation(lat: location.coordinate.latitude, lon: location.coordinate.longitude)
+                    let (fLat, fLon) = PommeCoreViewModel.fudgeLocation(lat: location.coordinate.latitude, lon: location.coordinate.longitude)
                     latitude = formatCoordinate(fLat)
                     longitude = formatCoordinate(fLon)
                     connectionManager.setAdvertLatLon(latitude: fLat, longitude: fLon)
@@ -768,11 +768,11 @@ struct GPSEditorSheet: View {
             #endif
         }
         .onChange(of: locationPrivacyRadius) {
-            MeshCoreViewModel.regenerateLocationFudge()
+            PommeCoreViewModel.regenerateLocationFudge()
         }
         .sheet(isPresented: $showMapPicker, onDismiss: {
             guard let coord = mapPickedCoordinate else { return }
-            let (fLat, fLon) = MeshCoreViewModel.fudgeLocation(lat: coord.latitude, lon: coord.longitude)
+            let (fLat, fLon) = PommeCoreViewModel.fudgeLocation(lat: coord.latitude, lon: coord.longitude)
             latitude = formatCoordinate(fLat)
             longitude = formatCoordinate(fLon)
             connectionManager.setAdvertLatLon(latitude: fLat, longitude: fLon)

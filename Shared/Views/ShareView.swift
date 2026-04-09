@@ -1,6 +1,6 @@
 //
 //  ShareView.swift
-//  MeshCoreApple
+//  PommeCore
 //
 //  QR code generation, contact/channel sharing, and meshcore:// URL handling.
 //

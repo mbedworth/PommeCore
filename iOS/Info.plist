@@ -21,15 +21,15 @@
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>MeshCore shows your location on the mesh map and can include it in your advertisements.</string>
+	<string>PommeCore shows your location on the mesh map and can include it in your advertisements.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>MeshCore uses the camera to scan QR codes for importing contacts and channels.</string>
+	<string>PommeCore uses the camera to scan QR codes for importing contacts and channels.</string>
 	<key>NSFaceIDUsageDescription</key>
-	<string>MeshCore uses Face ID to protect your messages when App Lock is enabled.</string>
+	<string>PommeCore uses Face ID to protect your messages when App Lock is enabled.</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>MeshCore needs Bluetooth to communicate with your LoRa radio device for off-grid mesh messaging.</string>
+	<string>PommeCore needs Bluetooth to communicate with your LoRa radio device for off-grid mesh messaging.</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>
-	<string>MeshCore needs Bluetooth to communicate with your LoRa radio device for off-grid mesh messaging.</string>
+	<string>PommeCore needs Bluetooth to communicate with your LoRa radio device for off-grid mesh messaging.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>bluetooth-central</string>

@@ -1,6 +1,6 @@
 //
 //  NodeSetupWizardView.swift
-//  MeshCoreApple
+//  PommeCore
 //
 //  Name Wizard — directs users to the namer website to generate a
 //  standardized node name, then lets them paste it and apply.

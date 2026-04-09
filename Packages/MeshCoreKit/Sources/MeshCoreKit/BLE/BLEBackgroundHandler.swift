@@ -17,7 +17,7 @@ import os.log
 /// by iOS. It works in conjunction with `BLEManager` to re-establish connections after
 /// the system restores the app's CBCentralManager state.
 public final class BLEBackgroundHandler {
-    private static let logger = Logger(subsystem: "com.meshcore", category: "BLEBackground")
+    private static let logger = Logger(subsystem: "com.pommecore", category: "BLEBackground")
 
     /// Process restored peripherals from `centralManager(_:willRestoreState:)`.
     ///

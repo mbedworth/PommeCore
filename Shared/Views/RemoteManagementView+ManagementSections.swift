@@ -1,6 +1,6 @@
 //
 //  RemoteManagementView+ManagementSections.swift
-//  MeshCoreApple
+//  PommeCore
 //
 //  Room, Sensor, Maintenance, Serial-only, CLI Terminal sections and reusable row helpers.
 //

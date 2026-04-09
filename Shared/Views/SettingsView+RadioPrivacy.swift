@@ -1,6 +1,6 @@
 //
 //  SettingsView+RadioPrivacy.swift
-//  MeshCoreApple
+//  PommeCore
 //
 //  Radio configuration, privacy & security, custom variables, and statistics.
 //

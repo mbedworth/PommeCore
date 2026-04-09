@@ -1,6 +1,6 @@
 //
-//  MeshCoreApp.swift
-//  MeshCoreApple
+//  PommeCoreApp.swift
+//  PommeCore
 //
 //  App entry point, NavigationSplitView layout, platform-specific UI, sheet management.
 //
@@ -17,8 +17,8 @@ import CoreSpotlight
 import MeshCoreKit
 
 @main
-struct MeshCoreApp: App {
-    @StateObject private var viewModel = MeshCoreViewModel()
+struct PommeCoreApp: App {
+    @StateObject private var viewModel = PommeCoreViewModel()
     @StateObject private var appLock = AppLockManager()
     private let syncedSettings = SyncedSettings.shared
     @Environment(\.scenePhase) private var scenePhase
@@ -105,7 +105,7 @@ struct MeshCoreApp: App {
 
 #if os(iOS)
 class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
-    var viewModel: MeshCoreViewModel?
+    var viewModel: PommeCoreViewModel?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         UNUserNotificationCenter.current().delegate = self
@@ -601,7 +601,7 @@ class AppLockManager: ObservableObject {
             }
 
             context.evaluatePolicy(.deviceOwnerAuthentication,
-                                   localizedReason: "Unlock MeshCore to access your messages") { success, authError in
+                                   localizedReason: "Unlock PommeCore to access your messages") { success, authError in
                 Task { @MainActor in
                     if success {
                         DebugLogger.shared.log("APP LOCK: authenticated successfully", level: .info)
@@ -640,7 +640,7 @@ struct AppLockView: View {
             Image(systemName: "lock.shield.fill")
                 .font(.system(size: 72))
                 .foregroundStyle(MeshTheme.accent)
-            Text("MeshCore is Locked")
+            Text("PommeCore is Locked")
                 .font(.title2.bold())
                 .foregroundStyle(MeshTheme.textPrimary)
             Text("Authenticate to access your messages")

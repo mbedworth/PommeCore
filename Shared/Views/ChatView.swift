@@ -1,6 +1,6 @@
 //
 //  ChatView.swift
-//  MeshCoreApple
+//  PommeCore
 //
 //  Direct message chat UI with delivery status, search, and location sharing.
 //
@@ -536,7 +536,7 @@ struct ChatView: View {
         }
         let lat = location.coordinate.latitude
         let lon = location.coordinate.longitude
-        let (fLat, fLon) = MeshCoreViewModel.fudgeLocation(lat: lat, lon: lon)
+        let (fLat, fLon) = PommeCoreViewModel.fudgeLocation(lat: lat, lon: lon)
         let text = "\u{1F4CD} \(formatCoordinate(fLat)), \(formatCoordinate(fLon))"
         messageStoreManager.sendTextMessage(text, to: contact)
         messageStoreManager.playHapticFeedback()

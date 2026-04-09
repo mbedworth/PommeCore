@@ -1,6 +1,6 @@
 //
-//  MeshCoreViewModel+ResponseHandling.swift
-//  MeshCoreApple
+//  PommeCoreViewModel+ResponseHandling.swift
+//  PommeCore
 //
 //  Frame dispatch from radio to stores, message handling, sync flow.
 //
@@ -19,9 +19,9 @@ import AppKit
 #endif
 
 // MARK: - Response Handling
-// Extracted from MeshCoreViewModel — dispatches parsed frames to stores.
+// Extracted from PommeCoreViewModel — dispatches parsed frames to stores.
 
-extension MeshCoreViewModel {
+extension PommeCoreViewModel {
 
     static let routineResponseCodes: Set<UInt8> = [
         0x00, 0x02, 0x03, 0x04, 0x09, 0x0A, 0x0C, 0x12,

@@ -1,6 +1,6 @@
 //
 //  ChatView+Channels.swift
-//  MeshCoreApple
+//  PommeCore
 //
 //  Channel and room chat views split from ChatView.swift.
 //
@@ -318,7 +318,7 @@ struct ChannelChatView: View {
             DebugLogger.shared.log("LOCATION: unavailable for channel send", level: .warning)
             return
         }
-        let (fLat, fLon) = MeshCoreViewModel.fudgeLocation(lat: location.coordinate.latitude, lon: location.coordinate.longitude)
+        let (fLat, fLon) = PommeCoreViewModel.fudgeLocation(lat: location.coordinate.latitude, lon: location.coordinate.longitude)
         let text = "\u{1F4CD} \(formatCoordinate(fLat)), \(formatCoordinate(fLon))"
         messageStoreManager.sendChannelMessage(text, channelIndex: channelIndex)
         messageStoreManager.playHapticFeedback()

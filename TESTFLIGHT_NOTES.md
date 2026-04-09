@@ -2,7 +2,7 @@
 
 ## App Store Description
 
-MeshCore — Off-Grid Mesh Messaging
+PommeCore — Off-Grid Mesh Messaging
 
 Send encrypted text messages without cellular service, WiFi, or internet using MeshCore LoRa radios. MeshCore creates a decentralized mesh network where messages hop between radios to reach their destination — even miles away.
 
@@ -24,7 +24,7 @@ MeshCore is open source. Learn more at github.com/meshcore-dev/MeshCore.
 
 ## Beta Test Notes
 
-Welcome to the MeshCore Apple beta!
+Welcome to the PommeCore beta!
 
 Please test:
 1. Connect to your MeshCore radio via Bluetooth
@@ -46,7 +46,7 @@ Please report bugs via TestFlight feedback.
 
 ## Export Compliance
 
-MeshCore uses end-to-end encryption, but the encryption is implemented in the radio firmware (C++), not in the app itself. The app transmits pre-encrypted binary frames over BLE.
+PommeCore uses end-to-end encryption, but the encryption is implemented in the radio firmware (C++), not in the app itself. The app transmits pre-encrypted binary frames over BLE.
 
 For the App Store export compliance questionnaire:
 - Does your app use encryption? → Yes

@@ -43,7 +43,7 @@ public struct DiscoveredPeripheral: Identifiable, Equatable {
 /// Handles scanning, connecting, service/characteristic discovery, background state
 /// restoration, and auto-reconnect on disconnect.
 public final class BLEManager: NSObject, ObservableObject {
-    private static let logger = Logger(subsystem: "com.meshcore", category: "BLE")
+    private static let logger = Logger(subsystem: "com.pommecore", category: "BLE")
 
     // MARK: - Published State
 

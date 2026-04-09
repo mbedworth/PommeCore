@@ -1,6 +1,6 @@
 //
 //  SettingsView.swift
-//  MeshCoreApple
+//  PommeCore
 //
 //  Device settings, radio config, privacy, iCloud, storage, and diagnostics.
 //
@@ -74,7 +74,7 @@ struct SettingsView: View {
             }
             Button("No Thanks", role: .cancel) {}
         } message: {
-            Text("Thank you for your generous tip! Enter a display name to appear on the Supporters Wall, visible to all MeshCore users.")
+            Text("Thank you for your generous tip! Enter a display name to appear on the Supporters Wall, visible to all PommeCore users.")
         }
         .onAppear {
             if isConnected {
@@ -596,7 +596,7 @@ private extension SettingsView {
             .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
         } header: {
-            sectionInfoHeader("Appearance", info: "Choose how MeshCore looks. System follows your device\u{2019}s Dark Mode setting.")
+            sectionInfoHeader("Appearance", info: "Choose how PommeCore looks. System follows your device\u{2019}s Dark Mode setting.")
         }
     }
 }

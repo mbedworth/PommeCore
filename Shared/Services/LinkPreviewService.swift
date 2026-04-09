@@ -12,7 +12,7 @@ import os.log
 actor LinkPreviewService {
     static let shared = LinkPreviewService()
 
-    private static let logger = Logger(subsystem: "com.meshcore", category: "LinkPreview")
+    private static let logger = Logger(subsystem: "com.pommecore", category: "LinkPreview")
 
     struct LinkMetadata: Sendable {
         let url: URL
@@ -35,7 +35,7 @@ actor LinkPreviewService {
 
         do {
             var request = URLRequest(url: url, timeoutInterval: 5)
-            request.setValue("MeshCoreApple/1.0", forHTTPHeaderField: "User-Agent")
+            request.setValue("PommeCore/1.0", forHTTPHeaderField: "User-Agent")
 
             let (data, response) = try await URLSession.shared.data(for: request)
 
