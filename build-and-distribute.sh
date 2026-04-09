@@ -53,7 +53,15 @@ PBXPROJ="PommeCore.xcodeproj/project.pbxproj"
 CURRENT_VERSION=$(grep "MARKETING_VERSION" "$PBXPROJ" | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
 CURRENT_BUILD=$(grep "CURRENT_PROJECT_VERSION" "$PBXPROJ" | grep -o '[0-9]*' | sort -n | tail -1)
 
-ASC_KEY_PATH="$HOME/.appstoreconnect/private_keys/AuthKey_$ASC_KEY_ID.p8"
+# App Store Connect credentials — set via environment or .asc.env file
+if [[ -f "$PROJECT_DIR/.asc.env" ]]; then
+    source "$PROJECT_DIR/.asc.env"
+fi
+
+ASC_KEY_ID="${ASC_KEY_ID:?Set ASC_KEY_ID in environment or .asc.env}"
+ASC_KEY_ISSUER="${ASC_KEY_ISSUER:?Set ASC_KEY_ISSUER in environment or .asc.env}"
+ASC_KEY_PATH="${ASC_KEY_PATH:-$HOME/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8}"
+
 if [[ ! -f "$ASC_KEY_PATH" ]]; then
     error "App Store Connect API key not found at $ASC_KEY_PATH"
 fi
