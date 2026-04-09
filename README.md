@@ -53,3 +53,11 @@ Binary frame encoding with command codes, response codes, and push notifications
 ## Building
 
 Open `PommeCore.xcodeproj` in Xcode 16+ and select the desired target (iOS, macOS, or watchOS).
+
+## License
+
+Copyright (C) 2026 Michael Bedworth
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, version 3.
+
+See [LICENSE](LICENSE) for the full text.
