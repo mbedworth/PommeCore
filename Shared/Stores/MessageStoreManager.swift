@@ -66,8 +66,12 @@ final class MessageStoreManager {
     /// Closure to get contact notification sound (from group membership).
     var contactSoundProvider: ((Contact) -> ContactStore.GroupSound)?
 
-    /// Closure to reset a contact's path (for flood retry).
+    /// Closure to reset a contact's path (for flood retry / path refresh).
     var resetPathForContact: ((Contact) -> Void)?
+
+    /// Pending pre-send path check: holds message frame until advert path response arrives.
+    private var pendingPathCheck: (contact: Contact, frame: Data)?
+    private var pathCheckTimeoutTask: Task<Void, Never>?
 
     /// Whether the app is currently in the background.
     var isInBackground = false
@@ -288,7 +292,55 @@ final class MessageStoreManager {
         )
         Self.logger.info("DM SEND: to=\(contact.name) key=\(contact.publicKeyPrefix.hexCompact)")
         DebugLogger.shared.log("DM SEND: to='\(contact.name)' '\(text.prefix(40))'", level: .tx)
-        sendCommand?(frame, "SEND_TXT")
+
+        // For routed contacts, query the firmware's last advert path before sending.
+        // If the contact's advert arrived directly (path_len=0), reset the outbound
+        // route so the firmware discovers the direct path instead of routing through
+        // a repeater. This is a local firmware query — no airtime cost.
+        if contact.outPathLen > 0 {
+            pendingPathCheck = (contact: contact, frame: frame)
+            let query = MeshCoreProtocol.buildGetAdvertPath(publicKey: contact.publicKey)
+            sendCommand?(query, "PRE_SEND_PATH_CHECK")
+            pathCheckTimeoutTask?.cancel()
+            pathCheckTimeoutTask = Task { [weak self] in
+                try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+                guard !Task.isCancelled, let self else { return }
+                self.flushPendingPathCheck(reason: "timeout")
+            }
+        } else {
+            sendCommand?(frame, "SEND_TXT")
+        }
+    }
+
+    /// Handle advert path response for a pending pre-send path check.
+    func handleAdvertPathForPendingSend(_ info: AdvertPathInfo) {
+        guard let pending = pendingPathCheck else { return }
+        pathCheckTimeoutTask?.cancel()
+        pendingPathCheck = nil
+
+        if info.pathLen == 0 {
+            // Last advert from this contact arrived directly — they're in range.
+            // Reset the stale routed path so the firmware discovers direct.
+            Self.logger.info("PRE-SEND PATH CHECK: \(pending.contact.name) advert path is direct — resetting routed path")
+            DebugLogger.shared.log("PATH REFRESH: \(pending.contact.name) direct advert detected, resetting route", level: .info)
+            resetPathForContact?(pending.contact)
+            Task { [weak self] in
+                try? await Task.sleep(nanoseconds: 500_000_000)
+                self?.sendCommand?(pending.frame, "SEND_TXT(path_refreshed)")
+            }
+        } else {
+            // Contact still reached via repeater(s) — send on the cached routed path.
+            Self.logger.info("PRE-SEND PATH CHECK: \(pending.contact.name) still routed (\(info.pathLen) hops)")
+            sendCommand?(pending.frame, "SEND_TXT")
+        }
+    }
+
+    private func flushPendingPathCheck(reason: String) {
+        guard let pending = pendingPathCheck else { return }
+        pendingPathCheck = nil
+        pathCheckTimeoutTask?.cancel()
+        Self.logger.info("PRE-SEND PATH CHECK: flushing (\(reason)) — sending on cached path for \(pending.contact.name)")
+        sendCommand?(pending.frame, "SEND_TXT")
     }
 
     func sendChannelMessage(_ text: String, channelIndex: UInt8 = 0) {

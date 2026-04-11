@@ -300,6 +300,7 @@ extension PommeCoreViewModel {
         case .advertPath(let info):
             Self.logger.info("AdvertPath: timestamp=\(info.recvTimestamp) pathLen=\(info.pathLen)")
             remoteSessionManager.handleAdvertPathResponse(info)
+            messageStoreManager.handleAdvertPathForPendingSend(info)
 
         case .allowedRepeatFreq(let ranges):
             Self.logger.info("AllowedRepeatFreq: \(ranges.count) ranges")
