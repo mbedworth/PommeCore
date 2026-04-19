@@ -344,7 +344,7 @@ final class RemoteSessionManager {
         let commands = [
             "ver", "clock",
             "get radio", "get tx", "get repeat",
-            "get af", "get rxdelay", "get txdelay", "get direct.txdelay",
+            "get dutycycle", "get af", "get rxdelay", "get txdelay", "get direct.txdelay",
             "get flood.max", "get int.thresh", "get agc.reset.interval",
             "get name", "get lat", "get lon", "get owner.info",
             "get advert.interval", "get flood.advert.interval", "get multi.acks",

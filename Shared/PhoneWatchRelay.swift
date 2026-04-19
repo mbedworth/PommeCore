@@ -266,6 +266,15 @@ extension PhoneWatchRelay: WCSessionDelegate {
         session.activate()
     }
 
+    nonisolated func sessionReachabilityDidChange(_ session: WCSession) {
+        guard session.isReachable else { return }
+        Task { @MainActor in
+            sendState()
+            sendContacts()
+            sendChannels()
+        }
+    }
+
     nonisolated func session(_ session: WCSession, didReceiveMessage message: [String: Any]) {
         Task { @MainActor in handleCommand(message) }
     }

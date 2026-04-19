@@ -104,7 +104,7 @@ struct RemoteTimingSection: View {
     var body: some View {
         Section {
             DisclosureGroup(isExpanded: $isExpanded) {
-                cliEditRow(icon: "clock.arrow.2.circlepath", label: "Airtime Factor", text: $airtimeFactor, current: session.settings["af"])
+                cliEditRow(icon: "clock.arrow.2.circlepath", label: "Duty Cycle", text: $airtimeFactor, current: session.settings["dutycycle"] ?? session.settings["af"])
                 cliEditRow(icon: "timer", label: "RX Delay", text: $rxDelay, current: session.settings["rxdelay"])
                 cliEditRow(icon: "arrow.up.circle", label: "TX Delay", text: $txDelay, current: session.settings["txdelay"])
                 cliEditRow(icon: "arrow.right.circle", label: "Direct TX Delay", text: $directTxDelay, current: session.settings["direct.txdelay"])
@@ -114,7 +114,8 @@ struct RemoteTimingSection: View {
 
                 if canEdit {
                     SaveButton(state: saveState, label: "Apply Settings") {
-                        if !airtimeFactor.isEmpty { sendCLI("set af \(airtimeFactor)") }
+                        let dutycycleCmd = session.settings["dutycycle"] != nil ? "set dutycycle" : "set af"
+                        if !airtimeFactor.isEmpty { sendCLI("\(dutycycleCmd) \(airtimeFactor)") }
                         if !rxDelay.isEmpty { sendCLI("set rxdelay \(rxDelay)") }
                         if !txDelay.isEmpty { sendCLI("set txdelay \(txDelay)") }
                         if !directTxDelay.isEmpty { sendCLI("set direct.txdelay \(directTxDelay)") }

@@ -1,6 +1,6 @@
 # MeshCore Binary Protocol Reference
 
-**Protocol Version:** FIRMWARE_VER_CODE = 10 (app sends 0x03 for v3+ in CMD_DEVICE_QUERY)
+**Protocol Version:** FIRMWARE_VER_CODE = 11 (app sends 0x03 for v3+ in CMD_DEVICE_QUERY)
 
 All uint32 values are **Little Endian**.
 
@@ -343,6 +343,7 @@ Packets (type 2):
 | 0x8E | PUSH_CODE_CONTROL_DATA | control packet received |
 | 0x8F | PUSH_CODE_CONTACT_DELETED | contact evicted — pub_key(32) |
 | 0x90 | PUSH_CODE_CONTACTS_FULL | no payload |
+| 0x91+ | GROUP_DATA (binary) | Added in firmware 1.15.0. Binary data packets over channels. Format: channel_hash(1) + cipher_mac(2) + ciphertext(rest). Decrypted: data_type(2) + data_len(1) + data(N). App handles as `unknown(type:payload:)` — no crash, silently ignored. |
 
 **Echo/repeat detection:** 0x88 LOG_RX_DATA fires when a repeater forwards a packet after a channel send.
 Arms `pendingChannelEcho` on channel send; if 0x88 arrives within 30s, sets message status to `.repeated`.
@@ -360,6 +361,17 @@ The raw LoRa bytes are encrypted — use timing correlation only, not content.
 | 0x04 | ERR_CODE_BAD_STATE | Invalid state |
 | 0x05 | ERR_CODE_FILE_IO_ERROR | Flash error |
 | 0x06 | ERR_CODE_ILLEGAL_ARG | Bad parameter |
+
+---
+
+## FIRMWARE 1.15.0 ADDITIONS
+
+### CMD_GET_DEFAULT_FLOOD_SCOPE / CMD_SET_DEFAULT_FLOOD_SCOPE
+New binary commands for regional flood scope (companion + repeater + room server). Exact opcodes TBD — not yet implemented in app. CLI equivalent: `region default [scope]`. Related CLI: `region put <name>` (defaults to flood allowed).
+
+### CLI: `get/set dutycycle` (replaces deprecated `get/set af`)
+`af` (airtime fraction) renamed to `dutycycle` in 1.15.0. `af` still works as deprecated alias.
+**App pattern:** fetch both `get dutycycle` and `get af`; display `dutycycle ?? af`; set via `set dutycycle` if device responded to it, else `set af`.
 
 ---
 

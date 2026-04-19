@@ -192,7 +192,7 @@ if [[ "$TARGET" == "ios" || "$TARGET" == "all" ]]; then
     log "Uploading iOS to App Store Connect..."
     xcodebuild -exportArchive \
         -archivePath "$IOS_ARCHIVE" \
-        -exportOptionsPlist "$PROJECT_DIR/ExportOptions-AppStore.plist" \
+        -exportOptionsPlist "$PROJECT_DIR/ExportOptions-AppStore-iOS.plist" \
         -exportPath "$EXPORT_DIR/iOS-$NEW_BUILD" \
         -allowProvisioningUpdates \
         -authenticationKeyPath "$ASC_KEY_PATH" \
@@ -209,7 +209,7 @@ if [[ "$TARGET" == "macos" || "$TARGET" == "all" ]]; then
     log "Uploading macOS to App Store Connect..."
     xcodebuild -exportArchive \
         -archivePath "$MACOS_ARCHIVE" \
-        -exportOptionsPlist "$PROJECT_DIR/ExportOptions-AppStore.plist" \
+        -exportOptionsPlist "$PROJECT_DIR/ExportOptions-AppStore-macOS.plist" \
         -exportPath "$EXPORT_DIR/macOS-$NEW_BUILD" \
         -allowProvisioningUpdates \
         -authenticationKeyPath "$ASC_KEY_PATH" \
