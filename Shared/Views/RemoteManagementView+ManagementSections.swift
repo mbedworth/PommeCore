@@ -146,7 +146,7 @@ struct RemoteMaintenanceSection: View {
     @State private var adcMultiplier = ""
 
     var body: some View {
-        Section {
+        Group {
             CLIToggleRow(icon: "leaf", label: "Power Saving", settingKey: "powersaving", onCommand: "powersaving on", offCommand: "powersaving off", session: session, sendCLI: sendCLI, canEdit: permission.canEdit)
 
             if permission.canEdit {
@@ -161,12 +161,10 @@ struct RemoteMaintenanceSection: View {
             }
 
             if permission.isAdmin {
-                // Region management
                 CLICommandButton(icon: "map", label: "List Regions") {
                     sendCLI("region")
                 }
 
-                // Logging (start/stop work over BLE; log dump is serial-only)
                 HStack(spacing: 12) {
                     Button { sendCLI("log start") } label: {
                         Text("Start Log").foregroundStyle(MeshTheme.accent)
@@ -177,16 +175,13 @@ struct RemoteMaintenanceSection: View {
                         Text("Stop Log").foregroundStyle(MeshTheme.textSecondary)
                     }
                     .buttonStyle(.plain)
-
                 }
                 .listRowBackground(MeshTheme.surface)
 
                 CLICommandButton(icon: "chart.bar.xaxis", label: "Clear Stats", color: .orange) {
                     sendCLI("clear stats")
                 }
-            }
 
-            if permission.isAdmin {
                 Button {
                     showRebootConfirm = true
                 } label: {
@@ -211,8 +206,6 @@ struct RemoteMaintenanceSection: View {
                     Text("The remote device will restart. You will need to log in again.")
                 }
             }
-        } header: {
-            SectionInfoHeader(title: "Maintenance", info: "Reboot restarts the device (~30 seconds). Clear Stats resets packet counters and airtime. Log dump requires USB serial connection.")
         }
     }
 }

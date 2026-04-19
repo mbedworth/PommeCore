@@ -77,34 +77,46 @@ struct RemoteManagementView: View {
 
                 // === Phase 2: Collapsed by default, fetch on expand ===
                 if canRead {
-                    lazySectionHeader("Timing & Performance", expanded: $expandedTimingSection, sectionKey: "timing")
-                    if expandedTimingSection { timingSection }
-
-                    if contact.type == .repeater {
-                        lazySectionHeader("Routing", expanded: $expandedRoutingSection, sectionKey: "routing")
-                        if expandedRoutingSection { routingSection }
+                    lazySection("Timing & Performance", expanded: $expandedTimingSection, sectionKey: "timing",
+                                info: "Advanced \u{2014} adjust timing parameters for mesh performance. Default values work well for most setups. Flood Max Hops supports 0\u{2013}64 (default 64).") {
+                        timingSection
                     }
 
-                    lazySectionHeader("GPS", expanded: $expandedGPSSection, sectionKey: "gps")
-                    if expandedGPSSection { gpsSection }
+                    if contact.type == .repeater {
+                        lazySection("Routing", expanded: $expandedRoutingSection, sectionKey: "routing",
+                                    info: "Loop detection rejects flood packets that appear to be in a loop (v1.14+). Path hash size controls ID/hash encoding in path headers \u{2014} higher values reduce collision risk but require v1.14+ firmware across the network.") {
+                            routingSection
+                        }
+                    }
+
+                    lazySection("GPS", expanded: $expandedGPSSection, sectionKey: "gps",
+                                info: "Controls whether this device includes its location in mesh advertisements. \u{2018}GPS\u{2019} uses the hardware GPS module. \u{2018}Manual\u{2019} uses the latitude and longitude values configured in the advertising section above.") {
+                        gpsSection
+                    }
 
                     if contact.type == .room { roomSection }
                     if contact.type == .sensor && isAdmin { sensorSection }
                 }
                 if isAdmin {
-                    lazySectionHeader("Security", expanded: $expandedSecuritySection, sectionKey: "security")
-                    if expandedSecuritySection { securitySection }
+                    lazySection("Security", expanded: $expandedSecuritySection, sectionKey: "security",
+                                info: "ACL permissions: 0=Guest, 1=Read-only, 2=Read-write, 3=Admin") {
+                        securitySection
+                    }
 
-                    lazySectionHeader("Maintenance", expanded: $expandedMaintenanceSection, sectionKey: "maintenance")
-                    if expandedMaintenanceSection { maintenanceSection }
+                    lazySection("Maintenance", expanded: $expandedMaintenanceSection, sectionKey: "maintenance",
+                                info: "Reboot restarts the device (~30 seconds). Clear Stats resets packet counters and airtime. Log dump requires USB serial connection.") {
+                        maintenanceSection
+                    }
 
                     #if os(macOS) || targetEnvironment(macCatalyst)
                     if isUSBDevice { serialOnlySection }
                     #endif
                     cliTerminalSection
                 } else if canRead {
-                    lazySectionHeader("Maintenance", expanded: $expandedMaintenanceSection, sectionKey: "maintenance")
-                    if expandedMaintenanceSection { maintenanceSection }
+                    lazySection("Maintenance", expanded: $expandedMaintenanceSection, sectionKey: "maintenance",
+                                info: "Reboot restarts the device (~30 seconds). Clear Stats resets packet counters and airtime. Log dump requires USB serial connection.") {
+                        maintenanceSection
+                    }
                 }
             } else {
                 loginSection
@@ -234,8 +246,19 @@ struct RemoteManagementView: View {
     }
 
     /// Header row for a Phase 2 collapsible section.
-    private func lazySectionHeader(_ title: String, expanded: Binding<Bool>, sectionKey: String) -> some View {
+    @ViewBuilder
+    private func lazySection<Content: View>(
+        _ title: String,
+        expanded: Binding<Bool>,
+        sectionKey: String,
+        info: String = "",
+        @ViewBuilder content: () -> Content
+    ) -> some View {
         Section {
+            if expanded.wrappedValue {
+                content()
+            }
+        } header: {
             Button {
                 expanded.wrappedValue.toggle()
                 if expanded.wrappedValue {
@@ -264,10 +287,13 @@ struct RemoteManagementView: View {
                         ProgressView()
                             .scaleEffect(0.7)
                     }
+                    if !info.isEmpty {
+                        InfoButton(text: info)
+                    }
                 }
             }
             .buttonStyle(.plain)
-            .listRowBackground(MeshTheme.surface)
+            .textCase(nil)
         }
     }
 

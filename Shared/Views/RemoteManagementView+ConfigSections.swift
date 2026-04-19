@@ -99,39 +99,30 @@ struct RemoteTimingSection: View {
     @State private var intThresh = ""
     @State private var agcReset = ""
     @State private var saveState: SaveButtonState = .idle
-    @State private var isExpanded = false
 
     var body: some View {
-        Section {
-            DisclosureGroup(isExpanded: $isExpanded) {
-                cliEditRow(icon: "clock.arrow.2.circlepath", label: "Duty Cycle", text: $airtimeFactor, current: session.settings["dutycycle"] ?? session.settings["af"])
-                cliEditRow(icon: "timer", label: "RX Delay", text: $rxDelay, current: session.settings["rxdelay"])
-                cliEditRow(icon: "arrow.up.circle", label: "TX Delay", text: $txDelay, current: session.settings["txdelay"])
-                cliEditRow(icon: "arrow.right.circle", label: "Direct TX Delay", text: $directTxDelay, current: session.settings["direct.txdelay"])
-                cliEditRow(icon: "arrow.triangle.branch", label: "Flood Max Hops", text: $floodMax, current: session.settings["flood.max"])
-                cliEditRow(icon: "waveform.badge.exclamationmark", label: "Interference Thresh", text: $intThresh, current: session.settings["int.thresh"])
-                cliEditRow(icon: "dial.low", label: "AGC Reset Interval", text: $agcReset, current: session.settings["agc.reset.interval"])
+        Group {
+            cliEditRow(icon: "clock.arrow.2.circlepath", label: "Duty Cycle", text: $airtimeFactor, current: session.settings["dutycycle"] ?? session.settings["af"])
+            cliEditRow(icon: "timer", label: "RX Delay", text: $rxDelay, current: session.settings["rxdelay"])
+            cliEditRow(icon: "arrow.up.circle", label: "TX Delay", text: $txDelay, current: session.settings["txdelay"])
+            cliEditRow(icon: "arrow.right.circle", label: "Direct TX Delay", text: $directTxDelay, current: session.settings["direct.txdelay"])
+            cliEditRow(icon: "arrow.triangle.branch", label: "Flood Max Hops", text: $floodMax, current: session.settings["flood.max"])
+            cliEditRow(icon: "waveform.badge.exclamationmark", label: "Interference Thresh", text: $intThresh, current: session.settings["int.thresh"])
+            cliEditRow(icon: "dial.low", label: "AGC Reset Interval", text: $agcReset, current: session.settings["agc.reset.interval"])
 
-                if canEdit {
-                    SaveButton(state: saveState, label: "Apply Settings") {
-                        let dutycycleCmd = session.settings["dutycycle"] != nil ? "set dutycycle" : "set af"
-                        if !airtimeFactor.isEmpty { sendCLI("\(dutycycleCmd) \(airtimeFactor)") }
-                        if !rxDelay.isEmpty { sendCLI("set rxdelay \(rxDelay)") }
-                        if !txDelay.isEmpty { sendCLI("set txdelay \(txDelay)") }
-                        if !directTxDelay.isEmpty { sendCLI("set direct.txdelay \(directTxDelay)") }
-                        if !floodMax.isEmpty { sendCLI("set flood.max \(floodMax)") }
-                        if !intThresh.isEmpty { sendCLI("set int.thresh \(intThresh)") }
-                        if !agcReset.isEmpty { sendCLI("set agc.reset.interval \(agcReset)") }
-                        showSaved($saveState)
-                    }
+            if canEdit {
+                SaveButton(state: saveState, label: "Apply Settings") {
+                    let dutycycleCmd = session.settings["dutycycle"] != nil ? "set dutycycle" : "set af"
+                    if !airtimeFactor.isEmpty { sendCLI("\(dutycycleCmd) \(airtimeFactor)") }
+                    if !rxDelay.isEmpty { sendCLI("set rxdelay \(rxDelay)") }
+                    if !txDelay.isEmpty { sendCLI("set txdelay \(txDelay)") }
+                    if !directTxDelay.isEmpty { sendCLI("set direct.txdelay \(directTxDelay)") }
+                    if !floodMax.isEmpty { sendCLI("set flood.max \(floodMax)") }
+                    if !intThresh.isEmpty { sendCLI("set int.thresh \(intThresh)") }
+                    if !agcReset.isEmpty { sendCLI("set agc.reset.interval \(agcReset)") }
+                    showSaved($saveState)
                 }
-            } label: {
-                Label("Timing & Performance", systemImage: "slider.horizontal.3")
-                    .foregroundStyle(MeshTheme.accent)
             }
-            .listRowBackground(MeshTheme.surface)
-        } header: {
-            SectionInfoHeader(title: "", info: "Advanced — adjust timing parameters for mesh performance. Default values work well for most setups. Flood Max Hops supports 0\u{2013}64 (default 64).")
         }
         .disabled(!canEdit)
     }
@@ -149,66 +140,57 @@ struct RemoteRoutingSection: View {
     @State private var floodScope = ""
     @State private var floodScopeSaveState: SaveButtonState = .idle
     @State private var saveState: SaveButtonState = .idle
-    @State private var isExpanded = false
 
     var body: some View {
-        Section {
-            DisclosureGroup(isExpanded: $isExpanded) {
-                HStack {
-                    Image(systemName: "arrow.triangle.capsulepath")
-                        .foregroundStyle(MeshTheme.accent)
-                        .frame(width: 24)
-                    Picker("Loop Detection", selection: loopDetectBinding) {
-                        Text("Off").tag("off")
-                        Text("Min").tag("minimal")
-                        Text("Mod").tag("moderate")
-                        Text("Strict").tag("strict")
-                    }
-                    .pickerStyle(.segmented)
-                }
-                .listRowBackground(MeshTheme.surface)
-
-                HStack {
-                    Image(systemName: "number.circle")
-                        .foregroundStyle(MeshTheme.accent)
-                        .frame(width: 24)
-                    Picker("Path Hash", selection: pathHashBinding) {
-                        Text("1-byte").tag("1")
-                        Text("2-byte").tag("2")
-                        Text("3-byte").tag("3")
-                    }
-                    .pickerStyle(.segmented)
-                }
-                .listRowBackground(MeshTheme.surface)
-
-                CLICommandButton(icon: "antenna.radiowaves.left.and.right", label: "Discover Neighbors") {
-                    sendCLI("discover.neighbors")
-                }
-
-                if let neighborsResult = session.settings["discover.neighbors"], !neighborsResult.isEmpty {
-                    Text(neighborsResult)
-                        .font(.system(.caption, design: .monospaced))
-                        .foregroundStyle(MeshTheme.textPrimary)
-                        .listRowBackground(MeshTheme.surface)
-                }
-
-                if contact.type == .repeater {
-                    cliEditRow(icon: "globe.americas", label: "Default Flood Scope", text: $floodScope, current: session.settings["region default"])
-                    if canEdit {
-                        SaveButton(state: floodScopeSaveState, label: "Set Flood Scope") {
-                            let name = floodScope.trimmingCharacters(in: .whitespaces)
-                            sendCLI(name.isEmpty ? "region default" : "region default \(name)")
-                            showSaved($floodScopeSaveState)
-                        }
-                    }
-                }
-            } label: {
-                Label("Advanced Routing", systemImage: "arrow.triangle.branch")
+        Group {
+            HStack {
+                Image(systemName: "arrow.triangle.capsulepath")
                     .foregroundStyle(MeshTheme.accent)
+                    .frame(width: 24)
+                Picker("Loop Detection", selection: loopDetectBinding) {
+                    Text("Off").tag("off")
+                    Text("Min").tag("minimal")
+                    Text("Mod").tag("moderate")
+                    Text("Strict").tag("strict")
+                }
+                .pickerStyle(.segmented)
             }
             .listRowBackground(MeshTheme.surface)
-        } header: {
-            SectionInfoHeader(title: "", info: "Loop detection rejects flood packets that appear to be in a loop (v1.14+). Path hash size controls ID/hash encoding in path headers \u{2014} higher values reduce collision risk but require v1.14+ firmware across the network.")
+
+            HStack {
+                Image(systemName: "number.circle")
+                    .foregroundStyle(MeshTheme.accent)
+                    .frame(width: 24)
+                Picker("Path Hash", selection: pathHashBinding) {
+                    Text("1-byte").tag("1")
+                    Text("2-byte").tag("2")
+                    Text("3-byte").tag("3")
+                }
+                .pickerStyle(.segmented)
+            }
+            .listRowBackground(MeshTheme.surface)
+
+            CLICommandButton(icon: "antenna.radiowaves.left.and.right", label: "Discover Neighbors") {
+                sendCLI("discover.neighbors")
+            }
+
+            if let neighborsResult = session.settings["discover.neighbors"], !neighborsResult.isEmpty {
+                Text(neighborsResult)
+                    .font(.system(.caption, design: .monospaced))
+                    .foregroundStyle(MeshTheme.textPrimary)
+                    .listRowBackground(MeshTheme.surface)
+            }
+
+            if contact.type == .repeater {
+                cliEditRow(icon: "globe.americas", label: "Default Flood Scope", text: $floodScope, current: session.settings["region default"])
+                if canEdit {
+                    SaveButton(state: floodScopeSaveState, label: "Set Flood Scope") {
+                        let name = floodScope.trimmingCharacters(in: .whitespaces)
+                        sendCLI(name.isEmpty ? "region default" : "region default \(name)")
+                        showSaved($floodScopeSaveState)
+                    }
+                }
+            }
         }
         .disabled(!canEdit)
     }

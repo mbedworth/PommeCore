@@ -23,7 +23,7 @@ struct RemoteSecuritySection: View {
     @State private var guestPassword = ""
 
     var body: some View {
-        Section {
+        Group {
             if permission.isAdmin {
                 HStack {
                     Image(systemName: "lock.shield")
@@ -89,8 +89,6 @@ struct RemoteSecuritySection: View {
                     .foregroundStyle(MeshTheme.textSecondary)
             }
             .listRowBackground(MeshTheme.surface)
-        } header: {
-            SectionInfoHeader(title: "Security", info: "ACL permissions: 0=Guest, 1=Read-only, 2=Read-write, 3=Admin")
         }
     }
 }
@@ -106,7 +104,7 @@ struct RemoteGPSSection: View {
     @State private var gpsAdvertMode = ""
 
     var body: some View {
-        Section {
+        Group {
             CLIToggleRow(icon: "location.circle", label: "GPS", settingKey: "gps", onCommand: "gps on", offCommand: "gps off", session: session, sendCLI: sendCLI, canEdit: canEdit)
 
             if canEdit {
@@ -154,8 +152,6 @@ struct RemoteGPSSection: View {
                 }
                 .listRowBackground(MeshTheme.surface)
             }
-        } header: {
-            SectionInfoHeader(title: "GPS", info: "Controls whether this device includes its location in mesh advertisements. \u{2018}GPS\u{2019} uses the hardware GPS module. \u{2018}Manual\u{2019} uses the latitude and longitude values configured in the advertising section above.")
         }
     }
 
