@@ -142,9 +142,9 @@ extension SettingsView {
 extension SettingsView {
     var deviceInfoSection: some View {
         #if os(macOS) || targetEnvironment(macCatalyst)
-        DeviceInfoSection(batteryChemistryRaw: $batteryChemistryRaw, showSetupWizard: $showSetupWizard, connectedDeviceName: connectionManager.connectedDeviceName, inspectorSheet: $inspectorSheet, showInspector: $showInspector)
+        DeviceInfoSection(batteryChemistryRaw: $batteryChemistryRaw, showSetupWizard: $showSetupWizard, connectedDeviceName: connectionManager.connectedDeviceName, showOTASheet: $showFirmwareOTASheet, otaLatestVersion: $firmwareOTALatestVersion, inspectorSheet: $inspectorSheet, showInspector: $showInspector)
         #else
-        DeviceInfoSection(batteryChemistryRaw: $batteryChemistryRaw, showSetupWizard: $showSetupWizard, connectedDeviceName: connectionManager.connectedDeviceName, activeSheet: $iosDeviceSheet)
+        DeviceInfoSection(batteryChemistryRaw: $batteryChemistryRaw, showSetupWizard: $showSetupWizard, connectedDeviceName: connectionManager.connectedDeviceName, showOTASheet: $showFirmwareOTASheet, otaLatestVersion: $firmwareOTALatestVersion, activeSheet: $iosDeviceSheet)
         #endif
     }
 
@@ -162,6 +162,8 @@ struct DeviceInfoSection: View {
     @Binding var showSetupWizard: Bool
     var connectedDeviceName: String?
     @State private var firmwareChecker = FirmwareUpdateChecker()
+    @Binding var showOTASheet: Bool
+    @Binding var otaLatestVersion: String
     #if os(macOS) || targetEnvironment(macCatalyst)
     /// Binding to parent SettingsView — drives the inspector panel content.
     @Binding var inspectorSheet: DeviceSheet?
@@ -368,20 +370,30 @@ struct DeviceInfoSection: View {
     private var firmwareUpdateRow: some View {
         Group {
             if firmwareChecker.isUpdateAvailable, let latest = firmwareChecker.latestVersion {
-                HStack(spacing: 8) {
-                    Image(systemName: "arrow.down.circle.fill")
-                        .foregroundStyle(.orange)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Firmware Update Available")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(MeshTheme.textPrimary)
-                        let current = FirmwareUpdateChecker.extractVersion(config.semanticVersion.isEmpty ? config.firmwareVersion : config.semanticVersion)
-                        Text("v\(latest) is available (you have v\(current))")
+                Button {
+                    otaLatestVersion = latest
+                    showOTASheet = true
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "arrow.down.circle.fill")
+                            .foregroundStyle(.orange)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Firmware Update Available")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(MeshTheme.textPrimary)
+                            let current = FirmwareUpdateChecker.extractVersion(config.semanticVersion.isEmpty ? config.firmwareVersion : config.semanticVersion)
+                            Text("v\(latest) available \u{2014} tap to update (you have v\(current))")
+                                .font(.caption)
+                                .foregroundStyle(MeshTheme.textSecondary)
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right")
                             .font(.caption)
                             .foregroundStyle(MeshTheme.textSecondary)
                     }
-                    Spacer()
+                    .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
                 .listRowBackground(MeshTheme.surface)
             } else if firmwareChecker.isChecking {
                 HStack(spacing: 8) {

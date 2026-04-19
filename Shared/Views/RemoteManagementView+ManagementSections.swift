@@ -143,6 +143,7 @@ struct RemoteMaintenanceSection: View {
     let permission: RemotePermission
 
     @State private var showRebootConfirm = false
+    @State private var showOTAConfirm = false
     @State private var adcMultiplier = ""
 
     var body: some View {
@@ -204,6 +205,30 @@ struct RemoteMaintenanceSection: View {
                     }
                 } message: {
                     Text("The remote device will restart. You will need to log in again.")
+                }
+
+                Button {
+                    showOTAConfirm = true
+                } label: {
+                    HStack {
+                        Image(systemName: "arrow.down.circle")
+                            .foregroundStyle(.orange)
+                            .frame(width: 24)
+                        Text("Start OTA Update")
+                            .foregroundStyle(.orange)
+                        Spacer()
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .listRowBackground(MeshTheme.surface)
+                .alert("Start OTA Update?", isPresented: $showOTAConfirm) {
+                    Button("Cancel", role: .cancel) {}
+                    Button("Start OTA", role: .destructive) {
+                        sendCLI("start ota")
+                    }
+                } message: {
+                    Text("The device will create a 'MeshCore-OTA' WiFi hotspot. Connect to it and use the Firmware Update flow to upload the new binary.")
                 }
             }
         }

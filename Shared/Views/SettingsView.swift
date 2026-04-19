@@ -49,6 +49,8 @@ struct SettingsView: View {
     @State var showTipJarSheet = false
     #endif
     @State var showSetupWizard = false
+    @State var showFirmwareOTASheet = false
+    @State var firmwareOTALatestVersion = ""
 
     var batteryChemistry: BatteryChemistry {
         BatteryChemistry(rawValue: batteryChemistryRaw) ?? .lipo
@@ -210,6 +212,12 @@ struct SettingsView: View {
             }
             .meshTheme()
         }
+        .sheet(isPresented: $showFirmwareOTASheet) {
+            FirmwareUpdateView(latestVersion: firmwareOTALatestVersion)
+                #if os(macOS) || targetEnvironment(macCatalyst)
+                .frame(minWidth: 480, minHeight: 420)
+                #endif
+        }
         // iOS: Tip Jar sheet anchored at List level — same reason as iosDeviceSheet above.
         .sheet(isPresented: $showTipJarSheet) {
             NavigationStack {
@@ -272,6 +280,10 @@ struct SettingsView: View {
             }
         }
         .inspectorColumnWidth(min: 300, ideal: 400, max: 500)
+        .sheet(isPresented: $showFirmwareOTASheet) {
+            FirmwareUpdateView(latestVersion: firmwareOTALatestVersion)
+                .frame(minWidth: 480, minHeight: 420)
+        }
         // macOS/Catalyst: Tip Jar sheet anchored at the List level (not on the row Button)
         // so List cell reuse/re-render on sheet dismiss can't corrupt navigation state.
         .sheet(isPresented: $showTipJarSheet) {

@@ -115,6 +115,10 @@
 		FE123217A6AD32B385F9ACBC /* MeshCoreKit in Frameworks */ = {isa = PBXBuildFile; productRef = FBBB0BD5BAFCC905A8DC17D3 /* MeshCoreKit */; };
 		FWC10000000100000000002 /* Services/FirmwareUpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = FWC10000000000000000000 /* Services/FirmwareUpdateChecker.swift */; };
 		FWC10000000100000000003 /* Services/FirmwareUpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = FWC10000000000000000000 /* Services/FirmwareUpdateChecker.swift */; };
+		OTASVC00000001000000002 /* Services/FirmwareOTAService.swift in Sources */ = {isa = PBXBuildFile; fileRef = OTASVC0000000000000000 /* Services/FirmwareOTAService.swift */; };
+		OTASVC00000001000000003 /* Services/FirmwareOTAService.swift in Sources */ = {isa = PBXBuildFile; fileRef = OTASVC0000000000000000 /* Services/FirmwareOTAService.swift */; };
+		OTAVIEW00000001000000002 /* FirmwareUpdateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = OTAVIEW0000000000000000 /* FirmwareUpdateView.swift */; };
+		OTAVIEW00000001000000003 /* FirmwareUpdateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = OTAVIEW0000000000000000 /* FirmwareUpdateView.swift */; };
 		KCM1ABCD0002000000000001 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = KCM1ABCD0000000000000001 /* KeychainManager.swift */; };
 		KCM1ABCD0003000000000001 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = KCM1ABCD0000000000000001 /* KeychainManager.swift */; };
 		LNK10000000000000000001 /* Services/LinkPreviewService.swift in Sources */ = {isa = PBXBuildFile; fileRef = LNK10000000000000000000 /* Services/LinkPreviewService.swift */; };
@@ -243,6 +247,8 @@
 		E1F2A3B4C5D6E7F8A9B0C1D2 /* NavigationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationStore.swift; sourceTree = "<group>"; };
 		F6BA0593D517B1467DBC1C42 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		FWC10000000000000000000 /* Services/FirmwareUpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/FirmwareUpdateChecker.swift; sourceTree = "<group>"; };
+		OTASVC0000000000000000 /* Services/FirmwareOTAService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/FirmwareOTAService.swift; sourceTree = "<group>"; };
+		OTAVIEW0000000000000000 /* FirmwareUpdateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirmwareUpdateView.swift; sourceTree = "<group>"; };
 		KCM1ABCD0000000000000001 /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
 		LNK10000000000000000000 /* Services/LinkPreviewService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/LinkPreviewService.swift; sourceTree = "<group>"; };
 		LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteManagementView.swift; sourceTree = "<group>"; };
@@ -355,6 +361,7 @@
 				OBV10000000000000000000 /* OnboardingView.swift */,
 				USB10000000000000000000 /* USBSerialView.swift */,
 				MAP10000000000000000000 /* MeshMapView.swift */,
+				OTAVIEW0000000000000000 /* FirmwareUpdateView.swift */,
 				DBG10000000000000000000 /* DebugLogView.swift */,
 			);
 			path = Views;
@@ -427,6 +434,7 @@
 				0F29C3C42F84856E0007BF08 /* Services/ElevationService.swift */,
 				LNK10000000000000000000 /* Services/LinkPreviewService.swift */,
 				FWC10000000000000000000 /* Services/FirmwareUpdateChecker.swift */,
+				OTASVC0000000000000000 /* Services/FirmwareOTAService.swift */,
 				C9E04F99D8E7C9D4D391AEF8 /* Models */,
 				F587E5EEE1FE6B2B210AEFE3 /* App */,
 				307D79903AB18CCBBF806BCE /* ViewModels */,
@@ -628,6 +636,7 @@
 				CLA10000000100000000002 /* ContactListView+ContactActions.swift in Sources */,
 				0F29C3C52F84856E0007BF08 /* Services/ElevationService.swift in Sources */,
 				FWC10000000100000000002 /* Services/FirmwareUpdateChecker.swift in Sources */,
+				OTASVC00000001000000002 /* Services/FirmwareOTAService.swift in Sources */,
 				LNK10000000000000000001 /* Services/LinkPreviewService.swift in Sources */,
 				D4E5F6A7B8C9D0E1F2A3B4C5 /* ContactRowView.swift in Sources */,
 				B4C5D6E7F8A9B0C1D2E3F4A5 /* NavigationStore.swift in Sources */,
@@ -658,6 +667,7 @@
 				USB10000000000000000002 /* USBSerialView.swift in Sources */,
 				0F29C3CA2F8485BD0007BF08 /* LineOfSightStore.swift in Sources */,
 				MAP10000000000000000002 /* MeshMapView.swift in Sources */,
+				OTAVIEW00000001000000002 /* FirmwareUpdateView.swift in Sources */,
 				DBG10000000000000000002 /* DebugLogView.swift in Sources */,
 				0F29C3DC2F84863E0007BF08 /* LineOfSight/TerrainProfileCanvas.swift in Sources */,
 				0F29C3DD2F84863E0007BF08 /* LineOfSight/AntennaSettingsView.swift in Sources */,
@@ -702,6 +712,7 @@
 				CLA10000000100000000003 /* ContactListView+ContactActions.swift in Sources */,
 				0F29C3C62F84856E0007BF08 /* Services/ElevationService.swift in Sources */,
 				FWC10000000100000000003 /* Services/FirmwareUpdateChecker.swift in Sources */,
+				OTASVC00000001000000003 /* Services/FirmwareOTAService.swift in Sources */,
 				LNK10000000000000000002 /* Services/LinkPreviewService.swift in Sources */,
 				C3D4E5F6A7B8C9D0E1F2A3B4 /* ContactRowView.swift in Sources */,
 				A3B4C5D6E7F8A9B0C1D2E3F4 /* NavigationStore.swift in Sources */,
@@ -732,6 +743,7 @@
 				USB10000000000000000003 /* USBSerialView.swift in Sources */,
 				0F29C3C92F8485BD0007BF08 /* LineOfSightStore.swift in Sources */,
 				MAP10000000000000000003 /* MeshMapView.swift in Sources */,
+				OTAVIEW00000001000000003 /* FirmwareUpdateView.swift in Sources */,
 				DBG10000000000000000003 /* DebugLogView.swift in Sources */,
 				0F29C3D42F84863E0007BF08 /* LineOfSight/TerrainProfileCanvas.swift in Sources */,
 				0F29C3D52F84863E0007BF08 /* LineOfSight/AntennaSettingsView.swift in Sources */,
