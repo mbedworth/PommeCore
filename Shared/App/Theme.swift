@@ -352,6 +352,33 @@ struct LabelValueRow: View {
     }
 }
 
+// MARK: - Coordinate Input Field
+
+/// Reusable lat/lon text field row for List/Form contexts.
+struct CoordinateInputField: View {
+    let label: String
+    let placeholder: String
+    @Binding var text: String
+    var onChange: (() -> Void)? = nil
+
+    var body: some View {
+        HStack {
+            Text(label)
+                .font(.caption)
+                .foregroundStyle(MeshTheme.accent)
+                .frame(width: 80, alignment: .leading)
+            TextField(placeholder, text: $text)
+                .font(.system(.caption, design: .monospaced))
+                .foregroundStyle(MeshTheme.textPrimary)
+                #if os(iOS)
+                .keyboardType(.numbersAndPunctuation)
+                #endif
+                .onChange(of: text) { onChange?() }
+        }
+        .listRowBackground(MeshTheme.surface)
+    }
+}
+
 // MARK: - macOS Window State
 
 #if os(macOS)

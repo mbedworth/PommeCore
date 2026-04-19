@@ -77,25 +77,27 @@ actor ElevationService {
         return results.map { $0 ?? 0 }
     }
 
-    /// Build a complete terrain profile between two endpoints with adaptive sampling.
+    /// Build a complete terrain profile between two endpoints with optional relay points.
+    /// Relays are provided as an ordered array from A to B — the service fetches their
+    /// elevations in the same batch as the terrain samples.
     func buildTerrainProfile(
         latA: Double, lonA: Double, antennaHeightA: Double,
         latB: Double, lonB: Double, antennaHeightB: Double,
-        repeaterLat: Double? = nil, repeaterLon: Double? = nil, repeaterAntennaHeight: Double? = nil
+        relays: [(lat: Double, lon: Double, antennaHeight: Double)] = []
     ) async throws -> TerrainProfile {
         let totalDistance = GeoMath.haversineDistance(lat1: latA, lon1: lonA, lat2: latB, lon2: lonB)
         let sampleCount = GeoMath.adaptiveSampleCount(distanceMeters: totalDistance)
         let sampleCoords = GeoMath.samplePoints(lat1: latA, lon1: lonA, lat2: latB, lon2: lonB, count: sampleCount)
 
-        // Include repeater coordinate in elevation fetch
+        // Append relay coordinates after the terrain samples so indices are predictable
         var allCoords = sampleCoords
-        if let rLat = repeaterLat, let rLon = repeaterLon {
-            allCoords.append((rLat, rLon))
+        for relay in relays {
+            allCoords.append((relay.lat, relay.lon))
         }
 
         let elevations = try await fetchElevations(coordinates: allCoords)
 
-        // Build elevation points with distance from start
+        // Build elevation points
         var samples: [ElevationPoint] = []
         for (i, coord) in sampleCoords.enumerated() where i < elevations.count {
             let dist = GeoMath.haversineDistance(lat1: latA, lon1: lonA, lat2: coord.latitude, lon2: coord.longitude)
@@ -114,15 +116,18 @@ actor ElevationService {
                                   groundElevation: elevations[sampleCount - 1],
                                   antennaHeight: antennaHeightB)
 
-        var repeater: LoSEndpoint?
-        if let rLat = repeaterLat, let rLon = repeaterLon, let rHeight = repeaterAntennaHeight {
-            let rElevation = elevations.count > sampleCount ? elevations[sampleCount] : 0
-            repeater = LoSEndpoint(latitude: rLat, longitude: rLon,
-                                    groundElevation: rElevation,
-                                    antennaHeight: rHeight)
+        var repeaterEndpoints: [LoSEndpoint] = []
+        for (i, relay) in relays.enumerated() {
+            let elevIdx = sampleCount + i
+            let rElevation = elevIdx < elevations.count ? elevations[elevIdx] : 0
+            repeaterEndpoints.append(LoSEndpoint(
+                latitude: relay.lat, longitude: relay.lon,
+                groundElevation: rElevation,
+                antennaHeight: relay.antennaHeight
+            ))
         }
 
-        return TerrainProfile(pointA: pointA, pointB: pointB, repeater: repeater,
+        return TerrainProfile(pointA: pointA, pointB: pointB, repeaters: repeaterEndpoints,
                               samples: samples, totalDistance: totalDistance)
     }
 

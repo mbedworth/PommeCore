@@ -2,7 +2,7 @@
 //  PointSelectionView.swift
 //  PommeCore
 //
-//  Reusable picker for selecting an LoS endpoint: GPS, Contact, or Map Pin.
+//  Reusable picker for selecting an LoS endpoint: GPS, Contact, Map Pin, or Coordinates.
 //
 
 import SwiftUI
@@ -14,7 +14,10 @@ struct PointSelectionView: View {
     @Binding var source: LoSPointSource
     @Binding var contact: Contact?
     @Binding var mapPin: CLLocationCoordinate2D?
+    @Binding var coordinates: CLLocationCoordinate2D?
     @State private var showMapPicker = false
+    @State private var latText: String = ""
+    @State private var lonText: String = ""
 
     @Environment(ContactStore.self) private var contactStore
     @Environment(LineOfSightStore.self) private var store
@@ -94,9 +97,40 @@ struct PointSelectionView: View {
                     MapPointPickerView(selectedCoordinate: $mapPin)
                 }
                 #endif
+
+            case .coordinates:
+                CoordinateInputField(label: "Latitude", placeholder: "e.g. 37.334900", text: $latText, onChange: parseCoordinates)
+                CoordinateInputField(label: "Longitude", placeholder: "e.g. -122.009020", text: $lonText, onChange: parseCoordinates)
+                if let coord = coordinates {
+                    coordinateRow(lat: coord.latitude, lon: coord.longitude)
+                } else if !latText.isEmpty && !lonText.isEmpty {
+                    Text("Enter a valid latitude (−90 to 90) and longitude (−180 to 180)")
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                        .listRowBackground(MeshTheme.surface)
+                }
             }
         } header: {
             Text(label)
+        }
+        .onAppear {
+            if let coord = coordinates, latText.isEmpty, lonText.isEmpty {
+                latText = String(coord.latitude)
+                lonText = String(coord.longitude)
+            }
+        }
+    }
+
+    private func parseCoordinates() {
+        guard !latText.isEmpty, !lonText.isEmpty else { return }
+        guard let lat = Double(latText), let lon = Double(lonText),
+              lat >= -90, lat <= 90, lon >= -180, lon <= 180 else {
+            if coordinates != nil { coordinates = nil }
+            return
+        }
+        let newCoord = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+        if coordinates?.latitude != newCoord.latitude || coordinates?.longitude != newCoord.longitude {
+            coordinates = newCoord
         }
     }
 

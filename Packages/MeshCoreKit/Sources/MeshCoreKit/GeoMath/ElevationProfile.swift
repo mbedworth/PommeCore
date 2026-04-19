@@ -39,7 +39,7 @@ public struct LoSEndpoint: Sendable {
     }
 }
 
-/// Result of LoS analysis for a single path segment (A→B or A→Repeater or Repeater→B).
+/// Result of LoS analysis for a single path segment.
 public struct LoSSegmentResult: Sendable {
     public let hasLineOfSight: Bool
     public let minClearance: Double            // meters (negative = obstructed)
@@ -79,19 +79,23 @@ public struct ProfileSample: Sendable {
     }
 }
 
-/// Complete terrain profile between two (or three) points.
+/// Complete terrain profile between two endpoints, with zero or more relay points.
 public struct TerrainProfile: Sendable {
     public let pointA: LoSEndpoint
     public let pointB: LoSEndpoint
-    public let repeater: LoSEndpoint?
+    /// Relay points in order from A to B.
+    public let repeaters: [LoSEndpoint]
     public let samples: [ElevationPoint]
     public let totalDistance: Double  // meters
 
-    public init(pointA: LoSEndpoint, pointB: LoSEndpoint, repeater: LoSEndpoint?,
+    /// Convenience for single-repeater access.
+    public var repeater: LoSEndpoint? { repeaters.first }
+
+    public init(pointA: LoSEndpoint, pointB: LoSEndpoint, repeaters: [LoSEndpoint] = [],
                 samples: [ElevationPoint], totalDistance: Double) {
         self.pointA = pointA
         self.pointB = pointB
-        self.repeater = repeater
+        self.repeaters = repeaters
         self.samples = samples
         self.totalDistance = totalDistance
     }
@@ -100,19 +104,25 @@ public struct TerrainProfile: Sendable {
 /// Complete LoS analysis result.
 public struct LoSResult: Sendable {
     public let profile: TerrainProfile
+    /// Analysis of the direct A→B path (always computed for display).
     public let directSegment: LoSSegmentResult
-    public let segmentAtoRepeater: LoSSegmentResult?
-    public let segmentRepeaterToB: LoSSegmentResult?
+    /// Analysis of each relay hop: [A→R1, R1→R2, …, Rn→B]. Empty when no relays.
+    public let relaySegments: [LoSSegmentResult]
     public let overallPass: Bool
     public let frequencyMHz: Double
 
+    /// Convenience for single-repeater access.
+    public var segmentAtoRepeater: LoSSegmentResult? { relaySegments.first }
+    public var segmentRepeaterToB: LoSSegmentResult? {
+        guard relaySegments.count >= 2 else { return nil }
+        return relaySegments.last
+    }
+
     public init(profile: TerrainProfile, directSegment: LoSSegmentResult,
-                segmentAtoRepeater: LoSSegmentResult?, segmentRepeaterToB: LoSSegmentResult?,
-                overallPass: Bool, frequencyMHz: Double) {
+                relaySegments: [LoSSegmentResult], overallPass: Bool, frequencyMHz: Double) {
         self.profile = profile
         self.directSegment = directSegment
-        self.segmentAtoRepeater = segmentAtoRepeater
-        self.segmentRepeaterToB = segmentRepeaterToB
+        self.relaySegments = relaySegments
         self.overallPass = overallPass
         self.frequencyMHz = frequencyMHz
     }

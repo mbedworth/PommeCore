@@ -28,14 +28,15 @@ enum TerrainProfileRenderer {
             plotHeight = size.height - margin.top - margin.bottom
             totalDistance = profile.totalDistance
 
-            // Find elevation range across terrain and LoS line
+            // Find elevation range — include relay antenna tips so they're never clipped
             let terrainMin = samples.map(\.groundElevation).min() ?? 0
             let terrainMax = samples.map(\.groundElevation).max() ?? 0
             let losMax = samples.map(\.losHeight).max() ?? 0
             let fresnelTop = samples.map { $0.losHeight + $0.fresnelRadius }.max() ?? 0
+            let relayMax = profile.repeaters.map(\.totalHeight).max() ?? 0
 
             let dataMin = terrainMin
-            let dataMax = max(terrainMax, losMax, fresnelTop)
+            let dataMax = max(terrainMax, losMax, fresnelTop, relayMax)
             let padding = max((dataMax - dataMin) * 0.15, 10)
 
             minElevation = dataMin - padding
@@ -70,14 +71,10 @@ enum TerrainProfileRenderer {
         drawSkyGradient(context: &context, layout: layout)
         drawTerrainFill(context: &context, layout: layout, samples: samples)
         drawTerrainOutline(context: &context, layout: layout, samples: samples)
-        drawFresnelZone(context: &context, layout: layout, samples: samples)
+        drawFresnelZone(context: &context, layout: layout, result: result)
         drawLoSLine(context: &context, layout: layout, result: result)
         drawEndpointMarkers(context: &context, layout: layout, result: result)
-
-        if let repeater = result.profile.repeater {
-            drawRepeaterMarker(context: &context, layout: layout, repeater: repeater, profile: result.profile)
-        }
-
+        drawRepeaterMarkers(context: &context, layout: layout, profile: result.profile)
         drawAxisLabels(context: &context, layout: layout)
 
         if let x = scrubX {
@@ -132,30 +129,28 @@ enum TerrainProfileRenderer {
 
     // MARK: - Fresnel Zone
 
-    private static func drawFresnelZone(context: inout GraphicsContext, layout: Layout, samples: [ProfileSample]) {
+    private static func drawFresnelZone(context: inout GraphicsContext, layout: Layout, result: LoSResult) {
+        if result.relaySegments.isEmpty {
+            drawFresnelBand(context: &context, layout: layout, samples: result.directSegment.samples)
+        } else {
+            for segment in result.relaySegments {
+                drawFresnelBand(context: &context, layout: layout, samples: segment.samples)
+            }
+        }
+    }
+
+    private static func drawFresnelBand(context: inout GraphicsContext, layout: Layout, samples: [ProfileSample]) {
         guard samples.count >= 2 else { return }
 
-        // Upper boundary of Fresnel zone
         var upperPath = Path()
-        var lowerPath = Path()
         for (i, sample) in samples.enumerated() {
             let x = layout.xForDistance(sample.distanceFromStart)
             let yLos = layout.yForElevation(sample.losHeight)
             let fresnelPixels = max(layout.plotHeight * CGFloat(sample.fresnelRadius / layout.elevationRange), 0)
-
-            let upperPt = CGPoint(x: x, y: yLos - fresnelPixels)
-            let lowerPt = CGPoint(x: x, y: yLos + fresnelPixels)
-
-            if i == 0 {
-                upperPath.move(to: upperPt)
-                lowerPath.move(to: lowerPt)
-            } else {
-                upperPath.addLine(to: upperPt)
-                lowerPath.addLine(to: lowerPt)
-            }
+            let pt = CGPoint(x: x, y: yLos - fresnelPixels)
+            if i == 0 { upperPath.move(to: pt) } else { upperPath.addLine(to: pt) }
         }
 
-        // Fill Fresnel zone as a shape between upper and lower paths
         var zonePath = upperPath
         for sample in samples.reversed() {
             let x = layout.xForDistance(sample.distanceFromStart)
@@ -165,7 +160,6 @@ enum TerrainProfileRenderer {
         }
         zonePath.closeSubpath()
 
-        // Color based on worst clearance
         let worstPercent = samples.map(\.fresnelPercent).min() ?? 100
         let zoneColor: Color = worstPercent >= 60 ? .green : worstPercent >= 0 ? .orange : .red
         context.fill(zonePath, with: .color(zoneColor.opacity(0.15)))
@@ -175,55 +169,42 @@ enum TerrainProfileRenderer {
     // MARK: - LoS Line
 
     private static func drawLoSLine(context: inout GraphicsContext, layout: Layout, result: LoSResult) {
-        let ptA = CGPoint(
-            x: layout.xForDistance(0),
-            y: layout.yForElevation(result.profile.pointA.totalHeight)
-        )
-        let ptB = CGPoint(
-            x: layout.xForDistance(result.profile.totalDistance),
-            y: layout.yForElevation(result.profile.pointB.totalHeight)
-        )
+        let ptA = CGPoint(x: layout.xForDistance(0),
+                          y: layout.yForElevation(result.profile.pointA.totalHeight))
+        let ptB = CGPoint(x: layout.xForDistance(result.profile.totalDistance),
+                          y: layout.yForElevation(result.profile.pointB.totalHeight))
 
-        // Direct A→B line (always drawn)
+        let hasRelays = !result.profile.repeaters.isEmpty
+
+        // Direct A→B line — subtler when relays are active
         var directPath = Path()
         directPath.move(to: ptA)
         directPath.addLine(to: ptB)
-
         let directColor: Color = result.directSegment.hasLineOfSight ? .green : .red
-        // When repeater present, make direct line thinner/subtler
-        let hasRepeater = result.profile.repeater != nil
-        let directLineWidth: CGFloat = hasRepeater ? 1.5 : 2
-        let directOpacity: Double = hasRepeater ? 0.4 : 1.0
-        context.stroke(directPath, with: .color(directColor.opacity(directOpacity)),
-                       style: StrokeStyle(lineWidth: directLineWidth, dash: [6, 3]))
+        context.stroke(directPath, with: .color(directColor.opacity(hasRelays ? 0.35 : 1.0)),
+                       style: StrokeStyle(lineWidth: hasRelays ? 1.5 : 2, dash: [6, 3]))
 
-        // Repeater relay path A→R→B (through antenna tip)
-        if let repeater = result.profile.repeater,
-           let segAR = result.segmentAtoRepeater,
-           let segRB = result.segmentRepeaterToB {
-            let repeaterDist = GeoMath.haversineDistance(
+        guard hasRelays else { return }
+
+        // Build canvas points for all waypoints: A, R1…Rn, B
+        var waypoints: [CGPoint] = [ptA]
+        for repeater in result.profile.repeaters {
+            let dist = GeoMath.haversineDistance(
                 lat1: result.profile.pointA.latitude, lon1: result.profile.pointA.longitude,
                 lat2: repeater.latitude, lon2: repeater.longitude
             )
-            let ptR = CGPoint(
-                x: layout.xForDistance(repeaterDist),
-                y: layout.yForElevation(repeater.totalHeight)
-            )
+            waypoints.append(CGPoint(x: layout.xForDistance(dist),
+                                     y: layout.yForElevation(repeater.totalHeight)))
+        }
+        waypoints.append(ptB)
 
-            // A → R segment
-            var pathAR = Path()
-            pathAR.move(to: ptA)
-            pathAR.addLine(to: ptR)
-            let colorAR: Color = segAR.hasLineOfSight ? .green : .red
-            context.stroke(pathAR, with: .color(colorAR),
-                           style: StrokeStyle(lineWidth: 2, dash: [6, 3]))
-
-            // R → B segment
-            var pathRB = Path()
-            pathRB.move(to: ptR)
-            pathRB.addLine(to: ptB)
-            let colorRB: Color = segRB.hasLineOfSight ? .green : .red
-            context.stroke(pathRB, with: .color(colorRB),
+        // Draw each hop segment with its own pass/fail color
+        for i in 0..<(waypoints.count - 1) {
+            let segPass = i < result.relaySegments.count && result.relaySegments[i].hasLineOfSight
+            var path = Path()
+            path.move(to: waypoints[i])
+            path.addLine(to: waypoints[i + 1])
+            context.stroke(path, with: .color(segPass ? Color.green : Color.red),
                            style: StrokeStyle(lineWidth: 2, dash: [6, 3]))
         }
     }
@@ -262,18 +243,21 @@ enum TerrainProfileRenderer {
         context.draw(text, at: CGPoint(x: x, y: yAntenna - 14), anchor: .bottom)
     }
 
-    // MARK: - Repeater Marker
+    // MARK: - Repeater Markers
 
-    private static func drawRepeaterMarker(context: inout GraphicsContext, layout: Layout, repeater: LoSEndpoint, profile: TerrainProfile) {
-        let dist = GeoMath.haversineDistance(
-            lat1: profile.pointA.latitude, lon1: profile.pointA.longitude,
-            lat2: repeater.latitude, lon2: repeater.longitude
-        )
-        let x = layout.xForDistance(dist)
-        let yGround = layout.yForElevation(repeater.groundElevation)
-        let yAntenna = layout.yForElevation(repeater.totalHeight)
-
-        drawAntennaMarker(context: &context, x: x, yGround: yGround, yAntenna: yAntenna, label: "R", color: .orange)
+    private static func drawRepeaterMarkers(context: inout GraphicsContext, layout: Layout, profile: TerrainProfile) {
+        let useNumbers = profile.repeaters.count > 1
+        for (i, repeater) in profile.repeaters.enumerated() {
+            let dist = GeoMath.haversineDistance(
+                lat1: profile.pointA.latitude, lon1: profile.pointA.longitude,
+                lat2: repeater.latitude, lon2: repeater.longitude
+            )
+            let x = layout.xForDistance(dist)
+            let yGround = layout.yForElevation(repeater.groundElevation)
+            let yAntenna = layout.yForElevation(repeater.totalHeight)
+            let label = useNumbers ? "R\(i + 1)" : "R"
+            drawAntennaMarker(context: &context, x: x, yGround: yGround, yAntenna: yAntenna, label: label, color: .orange)
+        }
     }
 
     // MARK: - Axis Labels

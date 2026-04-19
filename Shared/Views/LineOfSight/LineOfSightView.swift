@@ -25,14 +25,16 @@ struct LineOfSightView: View {
                     label: "Point A",
                     source: Binding(get: { store.pointASource }, set: { store.pointASource = $0 }),
                     contact: Binding(get: { store.pointAContact }, set: { store.pointAContact = $0 }),
-                    mapPin: Binding(get: { store.pointAMapPin }, set: { store.pointAMapPin = $0 })
+                    mapPin: Binding(get: { store.pointAMapPin }, set: { store.pointAMapPin = $0 }),
+                    coordinates: Binding(get: { store.pointACoordinates }, set: { store.pointACoordinates = $0; store.clearCache() })
                 )
 
                 PointSelectionView(
                     label: "Point B",
                     source: Binding(get: { store.pointBSource }, set: { store.pointBSource = $0 }),
                     contact: Binding(get: { store.pointBContact }, set: { store.pointBContact = $0 }),
-                    mapPin: Binding(get: { store.pointBMapPin }, set: { store.pointBMapPin = $0 })
+                    mapPin: Binding(get: { store.pointBMapPin }, set: { store.pointBMapPin = $0 }),
+                    coordinates: Binding(get: { store.pointBCoordinates }, set: { store.pointBCoordinates = $0; store.clearCache() })
                 )
 
                 AntennaSettingsView()
@@ -179,15 +181,37 @@ struct LineOfSightView: View {
 private struct LoSShareSnapshot: View {
     let result: LoSResult
 
+    private var activeClearance: Double {
+        result.relaySegments.isEmpty
+            ? result.directSegment.minClearance
+            : result.relaySegments.map(\.minClearance).min() ?? 0
+    }
+    private var activeFresnel: Double {
+        result.relaySegments.isEmpty
+            ? result.directSegment.fresnelClearancePercent
+            : result.relaySegments.map(\.fresnelClearancePercent).min() ?? 0
+    }
+    private var headerTitle: String {
+        if result.overallPass            { return "Line of Sight Clear" }
+        if activeClearance >= 0          { return "Fresnel Zone Partially Obstructed" }
+        return "Line of Sight Blocked"
+    }
+    private var headerColor: Color {
+        result.overallPass ? .green : activeClearance >= 0 ? .orange : .red
+    }
+    private var headerIcon: String {
+        result.overallPass ? "checkmark.circle.fill" : activeClearance >= 0 ? "exclamationmark.triangle.fill" : "xmark.circle.fill"
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             // Header
             HStack(spacing: 8) {
-                Image(systemName: result.overallPass ? "checkmark.circle.fill" : "xmark.circle.fill")
+                Image(systemName: headerIcon)
                     .font(.title2)
-                    .foregroundStyle(result.overallPass ? .green : .red)
+                    .foregroundStyle(headerColor)
                 VStack(alignment: .leading) {
-                    Text(result.overallPass ? "Line of Sight Clear" : "Line of Sight Obstructed")
+                    Text(headerTitle)
                         .font(.headline)
                     Text(String(format: "%.3f km · %.1f MHz", result.profile.totalDistance / 1000, result.frequencyMHz))
                         .font(.caption)
@@ -197,8 +221,8 @@ private struct LoSShareSnapshot: View {
 
             // Stats
             HStack(spacing: 20) {
-                statItem("Min Clearance", value: String(format: "%.1f m", result.directSegment.minClearance))
-                statItem("Fresnel", value: String(format: "%.0f%%", result.directSegment.fresnelClearancePercent))
+                statItem("Min Clearance", value: String(format: "%.1f m", activeClearance))
+                statItem("Fresnel", value: String(format: "%.0f%%", activeFresnel))
                 statItem("Point A", value: String(format: "%.0fm + %.0fm", result.profile.pointA.groundElevation, result.profile.pointA.antennaHeight))
                 statItem("Point B", value: String(format: "%.0fm + %.0fm", result.profile.pointB.groundElevation, result.profile.pointB.antennaHeight))
             }

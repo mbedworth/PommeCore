@@ -102,7 +102,9 @@ check_build_log() {
     local logfile=$2
 
     # Check for errors (fatal)
-    ERRORS=$(grep -i "error:" "$logfile" | grep -v "^warning:" | head -20 || true)
+    # Exclude lines from system tools (timestamped xcodebuild runtime messages) which
+    # can contain "error:" inside ObjC selector names (e.g. SimServiceContext:error:).
+    ERRORS=$(grep -i "error:" "$logfile" | grep -v "^warning:" | grep -vE "^\s*[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\." | head -20 || true)
     if [ -n "$ERRORS" ]; then
         error "$platform: Found compilation ERRORS:"
         echo "$ERRORS" >&2

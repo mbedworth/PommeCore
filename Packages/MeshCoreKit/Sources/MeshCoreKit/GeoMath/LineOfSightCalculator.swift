@@ -88,13 +88,14 @@ public enum LineOfSightCalculator {
         )
     }
 
-    /// Full LoS analysis. If a repeater is present, analyzes A→Repeater and Repeater→B separately.
+    /// Full LoS analysis. If relays are present, analyzes each hop independently.
+    /// The direct A→B segment is always computed for display/comparison purposes.
     public static func analyze(
         profile: TerrainProfile,
         frequencyMHz: Double,
         kFactor: Double = FresnelZone.standardKFactor
     ) -> LoSResult {
-        // Direct A→B analysis
+        // Direct A→B analysis — always computed for display
         let directResult = analyzeSegment(
             pointA: profile.pointA,
             pointB: profile.pointB,
@@ -103,53 +104,54 @@ public enum LineOfSightCalculator {
             kFactor: kFactor
         )
 
-        // If no repeater, return direct result only
-        guard let repeater = profile.repeater else {
+        guard !profile.repeaters.isEmpty else {
             return LoSResult(
                 profile: profile,
                 directSegment: directResult,
-                segmentAtoRepeater: nil,
-                segmentRepeaterToB: nil,
+                relaySegments: [],
                 overallPass: directResult.hasLineOfSight && directResult.fresnelClearancePercent >= 60,
                 frequencyMHz: frequencyMHz
             )
         }
 
-        // Find the repeater's position in the sample array
-        let repeaterDistance = GeoMath.haversineDistance(
-            lat1: profile.pointA.latitude, lon1: profile.pointA.longitude,
-            lat2: repeater.latitude, lon2: repeater.longitude
-        )
+        // Build ordered waypoints: A, R1, R2, …, B
+        let waypoints: [LoSEndpoint] = [profile.pointA] + profile.repeaters + [profile.pointB]
 
-        // Split samples at the repeater distance
-        let samplesAtoR = profile.samples.filter { $0.distanceFromStart <= repeaterDistance }
-        let samplesRtoB = profile.samples.filter { $0.distanceFromStart >= repeaterDistance }
+        // Distance of each waypoint from A (used to slice the sample array per segment)
+        let waypointDistances: [Double] = waypoints.map { wp in
+            GeoMath.haversineDistance(
+                lat1: profile.pointA.latitude, lon1: profile.pointA.longitude,
+                lat2: wp.latitude, lon2: wp.longitude
+            )
+        }
 
-        let segmentAR = analyzeSegment(
-            pointA: profile.pointA,
-            pointB: repeater,
-            samples: samplesAtoR,
-            frequencyMHz: frequencyMHz,
-            kFactor: kFactor
-        )
+        var relaySegments: [LoSSegmentResult] = []
+        for i in 0..<(waypoints.count - 1) {
+            let startDist = waypointDistances[i]
+            let endDist   = waypointDistances[i + 1]
 
-        let segmentRB = analyzeSegment(
-            pointA: repeater,
-            pointB: profile.pointB,
-            samples: samplesRtoB,
-            frequencyMHz: frequencyMHz,
-            kFactor: kFactor
-        )
+            let segSamples = profile.samples.filter {
+                $0.distanceFromStart >= startDist && $0.distanceFromStart <= endDist
+            }
 
-        let arPass = segmentAR.hasLineOfSight && segmentAR.fresnelClearancePercent >= 60
-        let rbPass = segmentRB.hasLineOfSight && segmentRB.fresnelClearancePercent >= 60
+            relaySegments.append(analyzeSegment(
+                pointA: waypoints[i],
+                pointB: waypoints[i + 1],
+                samples: segSamples,
+                frequencyMHz: frequencyMHz,
+                kFactor: kFactor
+            ))
+        }
+
+        let overallPass = relaySegments.allSatisfy {
+            $0.hasLineOfSight && $0.fresnelClearancePercent >= 60
+        }
 
         return LoSResult(
             profile: profile,
             directSegment: directResult,
-            segmentAtoRepeater: segmentAR,
-            segmentRepeaterToB: segmentRB,
-            overallPass: arPass && rbPass,
+            relaySegments: relaySegments,
+            overallPass: overallPass,
             frequencyMHz: frequencyMHz
         )
     }
