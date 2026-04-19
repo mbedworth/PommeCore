@@ -50,7 +50,7 @@
 		0F4E79672F95622A00307C73 /* WatchMainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F4E79662F95622A00307C73 /* WatchMainView.swift */; };
 		0F4E79682F95622A00307C73 /* WatchChannelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F4E79652F95622A00307C73 /* WatchChannelView.swift */; };
 		0F4E796B2F95627900307C73 /* WatchConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0F4E796A2F95627900307C73 /* WatchConnectivity.framework */; };
-		0F4E796F2F9566DF00307C73 /* PommeCore Watch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = D4F0BB9B2578DD9861508E3D /* PommeCore Watch.app */; };
+		0F4E796F2F9566DF00307C73 /* PommeCore Watch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = D4F0BB9B2578DD9861508E3D /* PommeCore Watch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		0FCE4BE32F7A20E5009358D8 /* PommeCoreViewModel+ResponseHandling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FCE4BE22F7A20C3009358D8 /* PommeCoreViewModel+ResponseHandling.swift */; };
 		0FCE4BE42F7A20E5009358D8 /* PommeCoreViewModel+ResponseHandling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FCE4BE22F7A20C3009358D8 /* PommeCoreViewModel+ResponseHandling.swift */; };
 		0FCE4BE52F7A20E5009358D8 /* PommeCoreViewModel+ResponseHandling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FCE4BE22F7A20C3009358D8 /* PommeCoreViewModel+ResponseHandling.swift */; };
@@ -219,14 +219,14 @@
 /* Begin PBXCopyFilesBuildPhase section */
 		0F4E796E2F95669000307C73 /* Embed Watch Content */ = {
 			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 8;
-			dstPath = "";
-			dstSubfolderSpec = 16;
+			buildActionMask = 2147483647;
+			dstPath = "Watch";
+			dstSubfolderSpec = 1;
 			files = (
 				0F4E796F2F9566DF00307C73 /* PommeCore Watch.app in Embed Watch Content */,
 			);
 			name = "Embed Watch Content";
-			runOnlyForDeploymentPostprocessing = 1;
+			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
@@ -816,7 +816,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = iOS/PommeCore.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_TEAM = 7R925EW7AT;
 				INFOPLIST_FILE = iOS/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = PommeCore;
@@ -899,7 +899,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = WatchAppIcon;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_TEAM = 7R925EW7AT;
 				INFOPLIST_FILE = watchOS/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = PommeCore;
@@ -921,7 +921,7 @@
 				CODE_SIGN_ENTITLEMENTS = "macOS/PommeCore-macOS.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 7R925EW7AT;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -946,7 +946,7 @@
 				CODE_SIGN_ENTITLEMENTS = "macOS/PommeCore-macOS.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 7R925EW7AT;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -970,7 +970,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = iOS/PommeCore.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_TEAM = 7R925EW7AT;
 				INFOPLIST_FILE = iOS/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = PommeCore;
@@ -1060,7 +1060,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = WatchAppIcon;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_TEAM = 7R925EW7AT;
 				INFOPLIST_FILE = watchOS/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = PommeCore;
