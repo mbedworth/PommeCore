@@ -243,120 +243,6 @@ struct DangerZoneSection: View {
 
 // MARK: - Save Button with Feedback (Fix #14)
 
-enum SaveButtonState {
-    case idle, saved
-}
-
-struct SaveButton: View {
-    let state: SaveButtonState
-    let label: String
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 4) {
-                if state == .saved {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(.green)
-                    Text("Saved")
-                        .foregroundStyle(.green)
-                } else {
-                    Text(label)
-                        .foregroundStyle(MeshTheme.accent)
-                }
-            }
-        }
-        .buttonStyle(.plain)
-        .contentShape(Rectangle())
-        .listRowBackground(MeshTheme.surface)
-        .animation(.easeInOut(duration: 0.2), value: state)
-    }
-}
-
-/// Tappable ⓘ button for individual rows. Drop it at the trailing end of any HStack.
-/// Each call site supplies its own help text; state is local to each instance.
-/// Shared popover/sheet content for ⓘ help text.
-/// On iPhone the .popover adapts to a sheet — content sizes itself to fit all text.
-/// On iPad/macOS it shows as a real popover anchored to the button.
-private struct InfoPopoverContent: View {
-    let text: String
-
-    var body: some View {
-        #if os(macOS) || targetEnvironment(macCatalyst)
-        // macOS/Catalyst: let the text determine the popover height.
-        // Using ScrollView with a fixed frame forces scrolling; fixedSize lets the
-        // popover grow to fit its content so no scrolling is required.
-        Text(text)
-            .font(.callout)
-            .lineLimit(nil)
-            .multilineTextAlignment(.leading)
-            .fixedSize(horizontal: false, vertical: true)
-            .padding(16)
-            .frame(minWidth: 240, maxWidth: 340)
-        #else
-        ScrollView {
-            Text(text)
-                .font(.callout)
-                .lineLimit(nil)
-                .multilineTextAlignment(.leading)
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(16)
-        }
-        .frame(minWidth: 240, maxWidth: 300, minHeight: 60)
-        .presentationDetents([.medium, .large])
-        .presentationDragIndicator(.visible)
-        #endif
-    }
-}
-
-struct InfoButton: View {
-    let text: String
-    @State private var showPopover = false
-
-    var body: some View {
-        Button {
-            showPopover = true
-        } label: {
-            Image(systemName: "info.circle")
-                .foregroundStyle(MeshTheme.textSecondary.opacity(0.75))
-        }
-        .buttonStyle(.plain)
-        .popover(isPresented: $showPopover) {
-            InfoPopoverContent(text: text)
-        }
-    }
-}
-
-/// Section header combining a title with a tappable ⓘ icon.
-/// Tap the icon to reveal the full help text as a popover.
-struct SectionInfoHeader: View {
-    let title: String
-    let info: String
-    var titleColor: Color?
-    @State private var showInfo = false
-
-    var body: some View {
-        let color = titleColor ?? MeshTheme.textSecondary
-        HStack(spacing: 6) {
-            if !title.isEmpty {
-                Text(title)
-                    .foregroundStyle(color)
-            }
-            Spacer(minLength: 0)
-            Button {
-                showInfo = true
-            } label: {
-                Image(systemName: "info.circle")
-                    .foregroundStyle(color.opacity(0.75))
-            }
-            .buttonStyle(.plain)
-            .popover(isPresented: $showInfo) {
-                InfoPopoverContent(text: info)
-            }
-        }
-    }
-}
-
 /// Trigger saved feedback: show "Saved" for 2 seconds then revert.
 func showSaved(_ state: Binding<SaveButtonState>) {
     state.wrappedValue = .saved
@@ -643,6 +529,57 @@ struct TuningEditorSheet: View {
             rxDelay = deviceConfig.rxDelaySeconds
             airtimeFactor = deviceConfig.airtimeMultiplier
         }
+    }
+}
+
+// MARK: - Flood Scope Editor
+
+struct FloodScopeEditorSheet: View {
+    @Environment(DeviceConfig.self) private var deviceConfig
+    @Environment(ConnectionManager.self) private var connectionManager
+    @Environment(\.dismiss) private var dismiss
+    @State private var scopeName = ""
+
+    var body: some View {
+        Form {
+            Section {
+                TextField("Region name (e.g. SoCal)", text: $scopeName)
+                    .autocorrectionDisabled()
+                    #if !os(macOS)
+                    .textInputAutocapitalization(.never)
+                    #endif
+            } footer: {
+                Text("Sets the default region scope for flood packets originating from this device. Leave empty to clear.")
+                    .foregroundStyle(MeshTheme.textSecondary)
+            }
+        }
+        .navigationTitle("Flood Scope")
+        #if !os(macOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
+        .toolbar {
+            #if targetEnvironment(macCatalyst)
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Apply") { apply() }
+            }
+            #elseif os(macOS)
+            ToolbarItem(placement: .primaryAction) {
+                Button("Apply") { apply() }
+            }
+            #else
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button("Apply") { apply() }
+            }
+            #endif
+        }
+        .onAppear {
+            scopeName = deviceConfig.defaultFloodScope
+        }
+    }
+
+    private func apply() {
+        connectionManager.setDefaultFloodScope(scopeName.trimmingCharacters(in: .whitespaces))
+        dismiss()
     }
 }
 

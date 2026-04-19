@@ -367,7 +367,12 @@ The raw LoRa bytes are encrypted — use timing correlation only, not content.
 ## FIRMWARE 1.15.0 ADDITIONS
 
 ### CMD_GET_DEFAULT_FLOOD_SCOPE / CMD_SET_DEFAULT_FLOOD_SCOPE
-New binary commands for regional flood scope (companion + repeater + room server). Exact opcodes TBD — not yet implemented in app. CLI equivalent: `region default [scope]`. Related CLI: `region put <name>` (defaults to flood allowed).
+Binary commands for default flood scope region name. Implemented in app as of v26.04.10.
+- `CMD_SET_DEFAULT_FLOOD_SCOPE` = `0x3F` (63) — payload: region name as null-terminated UTF-8 string. Empty (just `\0`) clears the scope.
+- `CMD_GET_DEFAULT_FLOOD_SCOPE` = `0x40` (64) — no payload.
+- `RESP_CODE_DEFAULT_FLOOD_SCOPE` = `0x1C` (28) — payload: name(31 bytes, null-terminated) + key(16 bytes) if configured; empty payload if not configured.
+- CLI equivalent: `region default [name]` — Repeater only. Bare `region default` returns current value; `region default <name>` sets it.
+- UI: Settings → Device → Flood Scope (binary, companion); Remote Management → Advanced Routing → Default Flood Scope (CLI, repeater).
 
 ### CLI: `get/set dutycycle` (replaces deprecated `get/set af`)
 `af` (airtime fraction) renamed to `dutycycle` in 1.15.0. `af` still works as deprecated alias.

@@ -14,7 +14,8 @@ import MeshCoreKit
 
 /// Manages Keychain storage for PommeCore device login credentials.
 /// Passwords are stored per-device (keyed by public key) and protected with
-/// kSecAttrAccessibleWhenUnlockedThisDeviceOnly (no iCloud sync).
+/// kSecAttrAccessibleWhenUnlockedThisDeviceOnly (no iCloud sync). Channel secrets
+/// use kSecAttrAccessibleAfterFirstUnlock to allow background channel decryption.
 ///
 /// Uses the data protection keychain (kSecUseDataProtectionKeychain) so macOS
 /// does not prompt for login keychain access on every rebuild.
@@ -195,7 +196,7 @@ struct KeychainManager {
             kSecAttrAccount as String: account,
             kSecValueData as String: secret,
             kSecAttrSynchronizable as String: Self.iCloudSyncEnabled,
-            kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock
         ]
         #if os(macOS)
         addQuery[kSecUseDataProtectionKeychain as String] = true
@@ -264,7 +265,7 @@ struct KeychainManager {
             kSecAttrAccount as String: account,
             kSecValueData as String: secret,
             kSecAttrSynchronizable as String: Self.iCloudSyncEnabled,
-            kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock
         ]
         #if os(macOS)
         addQuery[kSecUseDataProtectionKeychain as String] = true

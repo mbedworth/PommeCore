@@ -26,6 +26,16 @@ final class PhoneWatchRelay: NSObject {
         WCSession.isSupported() && session.activationState == .activated && session.isReachable
     }
 
+    // Debounce tasks — coalesce rapid changes before sending to watch.
+    private var stateSendTask: Task<Void, Never>?
+    private var contactsSendTask: Task<Void, Never>?
+    private var channelsSendTask: Task<Void, Never>?
+
+    // Last-sent payload cache — skip WCSession transfer when payload is unchanged.
+    private var lastSentStateData: Data?
+    private var lastSentContactsData: Data?
+    private var lastSentChannelsData: Data?
+
     func activate() {
         guard WCSession.isSupported() else { return }
         session.delegate = self
@@ -43,7 +53,7 @@ final class PhoneWatchRelay: NSObject {
                 _ = messageStoreManager?.unreadCounts
             } onChange: {
                 Task { @MainActor [weak self] in
-                    self?.sendState()
+                    self?.scheduleSendState()
                     trackState()
                 }
             }
@@ -55,7 +65,7 @@ final class PhoneWatchRelay: NSObject {
                 _ = contactStore?.contacts
             } onChange: {
                 Task { @MainActor [weak self] in
-                    self?.sendContacts()
+                    self?.scheduleSendContacts()
                     trackContacts()
                 }
             }
@@ -67,12 +77,39 @@ final class PhoneWatchRelay: NSObject {
                 _ = channelStore?.channels
             } onChange: {
                 Task { @MainActor [weak self] in
-                    self?.sendChannels()
+                    self?.scheduleSendChannels()
                     trackChannels()
                 }
             }
         }
         trackChannels()
+    }
+
+    private func scheduleSendState() {
+        stateSendTask?.cancel()
+        stateSendTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 1_000_000_000)
+            guard !Task.isCancelled else { return }
+            self?.sendState()
+        }
+    }
+
+    private func scheduleSendContacts() {
+        contactsSendTask?.cancel()
+        contactsSendTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 1_000_000_000)
+            guard !Task.isCancelled else { return }
+            self?.sendContacts()
+        }
+    }
+
+    private func scheduleSendChannels() {
+        channelsSendTask?.cancel()
+        channelsSendTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 1_000_000_000)
+            guard !Task.isCancelled else { return }
+            self?.sendChannels()
+        }
     }
 
     // MARK: - Push State
@@ -88,6 +125,8 @@ final class PhoneWatchRelay: NSObject {
             unreadByContact: unreadByContact
         )
         guard let data = try? JSONEncoder().encode(payload) else { return }
+        guard data != lastSentStateData else { return }
+        lastSentStateData = data
         try? session.updateApplicationContext([WatchKey.topic: WatchTopic.state.rawValue, WatchKey.data: data])
     }
 
@@ -107,6 +146,8 @@ final class PhoneWatchRelay: NSObject {
             )
         }
         guard let data = try? JSONEncoder().encode(watchContacts) else { return }
+        guard data != lastSentContactsData else { return }
+        lastSentContactsData = data
         session.transferUserInfo([WatchKey.topic: WatchTopic.contacts.rawValue, WatchKey.data: data])
     }
 
@@ -121,6 +162,8 @@ final class PhoneWatchRelay: NSObject {
             )
         }
         guard let data = try? JSONEncoder().encode(watchChannels) else { return }
+        guard data != lastSentChannelsData else { return }
+        lastSentChannelsData = data
         session.transferUserInfo([WatchKey.topic: WatchTopic.channels.rawValue, WatchKey.data: data])
     }
 
@@ -269,6 +312,10 @@ extension PhoneWatchRelay: WCSessionDelegate {
     nonisolated func sessionReachabilityDidChange(_ session: WCSession) {
         guard session.isReachable else { return }
         Task { @MainActor in
+            // Flush payload caches so watch gets a full refresh on reconnect.
+            lastSentStateData = nil
+            lastSentContactsData = nil
+            lastSentChannelsData = nil
             sendState()
             sendContacts()
             sendChannels()

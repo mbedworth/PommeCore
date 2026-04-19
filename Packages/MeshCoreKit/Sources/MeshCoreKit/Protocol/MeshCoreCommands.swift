@@ -52,6 +52,8 @@ public enum MeshCoreCommand: UInt8, Sendable {
     case setAutoAddConfig     = 0x3A  // 58 — set contact auto-add bitmask
     case getAutoAddConfig     = 0x3B  // 59 — get contact auto-add config
     case getAllowedRepeatFreq = 0x3C  // 60 — get allowed repeat frequency ranges
+    case setDefaultFloodScope = 0x3F  // 63 — set default flood scope region name (firmware 1.15.0+)
+    case getDefaultFloodScope = 0x40  // 64 — get default flood scope region name (firmware 1.15.0+)
 
     // Signing commands (device-side Ed25519)
     case signStart            = 0x21  // 33 — initialize signing session
@@ -89,6 +91,7 @@ public enum MeshCoreResponseCode: UInt8, Sendable {
     case stats                = 0x18  // 24 — RESP_CODE_STATS
     case autoAddConfig        = 0x19  // 25 — RESP_CODE_AUTOADD_CONFIG
     case allowedRepeatFreq    = 0x1A  // 26 — RESP_ALLOWED_REPEAT_FREQ
+    case defaultFloodScope    = 0x1C  // 28 — RESP_CODE_DEFAULT_FLOOD_SCOPE (firmware 1.15.0+)
 }
 
 /// MeshCore error codes returned with RESP_CODE_ERR.

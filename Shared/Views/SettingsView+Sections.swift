@@ -234,6 +234,17 @@ struct DeviceInfoSection: View {
         .contentShape(Rectangle())
     }
 
+    private var floodScopeRow: some View {
+        HStack {
+            Label("Flood Scope", systemImage: "globe.americas")
+                .foregroundStyle(MeshTheme.accent)
+            Spacer()
+            Text(config.defaultFloodScope.isEmpty ? "Not set" : config.defaultFloodScope)
+                .foregroundStyle(config.defaultFloodScope.isEmpty ? MeshTheme.textSecondary : MeshTheme.textPrimary)
+        }
+        .contentShape(Rectangle())
+    }
+
     @AppStorage("autoUpdateLocation") private var autoUpdateLocation = false
     @AppStorage("locationPrivacyRadius") private var locationPrivacyRadius: Double = 0.0
 
@@ -259,7 +270,7 @@ struct DeviceInfoSection: View {
             Spacer()
             VStack(alignment: .trailing, spacing: 2) {
                 if config.latitude != 0 || config.longitude != 0 {
-                    Text("\(String(format: "%.4f", config.latitude)), \(String(format: "%.4f", config.longitude))")
+                    Text("\(formatCoordinate(config.latitude)), \(formatCoordinate(config.longitude))")
                         .font(.caption)
                         .foregroundStyle(MeshTheme.textSecondary)
                 }
@@ -307,7 +318,7 @@ struct DeviceInfoSection: View {
 
     // DeviceSheet enum shared between platforms
     enum DeviceSheet: Identifiable {
-        case radio, txPower, tuning, name, gps, battery, firmware
+        case radio, txPower, tuning, name, gps, battery, firmware, floodScope
         var id: String { String(describing: self) }
     }
 
@@ -331,6 +342,8 @@ struct DeviceInfoSection: View {
                 Button { openInspector(.tuning) } label: { tuningRow }
                     .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
             }
+            Button { openInspector(.floodScope) } label: { floodScopeRow }
+                .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
             Button { openInspector(.gps) } label: { gpsRow }
                 .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
             Button { openInspector(.battery) } label: { batteryRow }
@@ -438,6 +451,8 @@ struct DeviceInfoSection: View {
                 Button { activeSheet = .tuning } label: { tuningRow }
                     .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
             }
+            Button { activeSheet = .floodScope } label: { floodScopeRow }
+                .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
             Button { activeSheet = .gps } label: { gpsRow }
                 .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
             Button { activeSheet = .battery } label: { batteryRow }

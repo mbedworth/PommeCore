@@ -442,6 +442,7 @@ enum MeshMapMessagePackDecoder {
 struct MeshMapView: View {
     @Environment(ContactStore.self) private var contactStore
     @Environment(NavigationStore.self) private var navigationStore
+    @Environment(RFMonitorStore.self) private var rfStore
     @StateObject private var locationManager = LocationManager()
     @State private var cameraPosition: MapCameraPosition = .automatic
     /// Mirrors the camera's current region. Set explicitly when we move the camera
@@ -451,6 +452,8 @@ struct MeshMapView: View {
     @State private var hasSetInitialCamera = false
     /// The selected cluster for the detail sheet/popover.
     @State private var selectedCluster: NodeCluster? = nil
+    /// Whether to show the RF coverage heat map overlay.
+    @State private var showCoverageLayer = false
     /// Internet map nodes fetched from map.meshcore.dev.
     @State private var internetMapNodes: [InternetMapNode] = []
     @State private var isLoadingInternetNodes = false
@@ -594,6 +597,18 @@ struct MeshMapView: View {
                     }
                 }
 
+                // Coverage heat map — GPS-tagged RSSI points from RF monitor
+                if showCoverageLayer {
+                    ForEach(visibleCoveragePoints) { point in
+                        MapCircle(
+                            center: CLLocationCoordinate2D(latitude: point.latitude, longitude: point.longitude),
+                            radius: 60
+                        )
+                        .foregroundStyle(coverageColor(rssi: point.rssi).opacity(0.35))
+                        .stroke(coverageColor(rssi: point.rssi).opacity(0.6), lineWidth: 1)
+                    }
+                }
+
                 UserAnnotation()
             }
             .onMapCameraChange(frequency: .onEnd) { context in
@@ -609,40 +624,82 @@ struct MeshMapView: View {
 
             // Overlays
             VStack {
-                // Status bar: loading indicator or legend
-                if isLoadingInternetNodes {
-                    HStack(spacing: 6) {
-                        ProgressView().controlSize(.mini)
-                        Text("Loading internet map…")
-                            .font(.caption2)
-                            .foregroundStyle(MeshTheme.textSecondary)
-                    }
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .background(.thinMaterial)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                    .padding(.top, 8)
-                } else if !internetMapNodes.isEmpty {
-                    HStack(spacing: 8) {
-                        HStack(spacing: 4) {
-                            Circle().fill(MeshTheme.accent).frame(width: 8, height: 8)
-                            Text("Local mesh")
+                // Top bar: loading indicator, legend, coverage toggle
+                HStack(alignment: .top) {
+                    // Status / legend
+                    if isLoadingInternetNodes {
+                        HStack(spacing: 6) {
+                            ProgressView().controlSize(.mini)
+                            Text("Loading internet map…")
                                 .font(.caption2)
                                 .foregroundStyle(MeshTheme.textSecondary)
                         }
-                        HStack(spacing: 4) {
-                            Circle().fill(Color.teal.opacity(0.85)).frame(width: 8, height: 8)
-                            Text("Internet map (\(internetMapNodes.count))")
-                                .font(.caption2)
-                                .foregroundStyle(MeshTheme.textSecondary)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(.thinMaterial)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                    } else if showCoverageLayer {
+                        HStack(spacing: 6) {
+                            HStack(spacing: 3) {
+                                Circle().fill(Color.green).frame(width: 8, height: 8)
+                                Text("> -100")
+                            }
+                            HStack(spacing: 3) {
+                                Circle().fill(Color.orange).frame(width: 8, height: 8)
+                                Text("-100–-120")
+                            }
+                            HStack(spacing: 3) {
+                                Circle().fill(Color.red).frame(width: 8, height: 8)
+                                Text("< -120")
+                            }
+                            Text("dBm")
                         }
+                        .font(.caption2)
+                        .foregroundStyle(MeshTheme.textSecondary)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(.thinMaterial)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                    } else if !internetMapNodes.isEmpty {
+                        HStack(spacing: 8) {
+                            HStack(spacing: 4) {
+                                Circle().fill(MeshTheme.accent).frame(width: 8, height: 8)
+                                Text("Local mesh")
+                                    .font(.caption2)
+                                    .foregroundStyle(MeshTheme.textSecondary)
+                            }
+                            HStack(spacing: 4) {
+                                Circle().fill(Color.teal.opacity(0.85)).frame(width: 8, height: 8)
+                                Text("Internet map (\(internetMapNodes.count))")
+                                    .font(.caption2)
+                                    .foregroundStyle(MeshTheme.textSecondary)
+                            }
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(.thinMaterial)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
                     }
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .background(.thinMaterial)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                    .padding(.top, 8)
+
+                    Spacer()
+
+                    // Coverage layer toggle (only shown when monitoring has collected points)
+                    if !rfStore.coveragePoints.isEmpty || showCoverageLayer {
+                        Button {
+                            showCoverageLayer.toggle()
+                        } label: {
+                            Image(systemName: showCoverageLayer ? "map.fill" : "map")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundStyle(showCoverageLayer ? MeshTheme.accent : MeshTheme.textSecondary)
+                                .frame(width: 32, height: 32)
+                                .background(.thinMaterial)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
+                .padding(.horizontal, 8)
+                .padding(.top, 8)
 
                 Spacer()
 
@@ -709,6 +766,27 @@ struct MeshMapView: View {
         }
         .sheet(item: $selectedCluster) { cluster in
             ClusterDetailView(cluster: cluster)
+        }
+    }
+
+    // MARK: - Coverage layer
+
+    private func coverageColor(rssi: Int8) -> Color {
+        let dBm = Int(rssi)
+        if dBm > -100 { return .green }
+        if dBm > -120 { return .orange }
+        return .red
+    }
+
+    /// Coverage points filtered to the visible map region for performance.
+    private var visibleCoveragePoints: [CoveragePoint] {
+        guard let region = visibleRegion else { return rfStore.coveragePoints }
+        let latHalf = region.span.latitudeDelta / 2 * 1.2
+        let lonHalf = region.span.longitudeDelta / 2 * 1.2
+        let lat = region.center.latitude
+        let lon = region.center.longitude
+        return rfStore.coveragePoints.filter {
+            abs($0.latitude - lat) <= latHalf && abs($0.longitude - lon) <= lonHalf
         }
     }
 

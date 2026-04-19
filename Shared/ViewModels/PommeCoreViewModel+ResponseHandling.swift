@@ -158,6 +158,10 @@ extension PommeCoreViewModel {
             deviceConfig.autoAddBitmask = bitmask
             deviceConfig.autoAddMaxHops = maxHops
 
+        case .defaultFloodScope(let name):
+            Self.logger.info("PARSED DefaultFloodScope: '\(name)'")
+            deviceConfig.defaultFloodScope = name
+
         case .contactsStart(let count):
             contactStore.handleContactsStart(count: count)
 

@@ -247,6 +247,26 @@ final class RemoteSessionManager {
         }
     }
 
+    /// Returns true if a CLI command requires write/admin permission.
+    private func isWriteCLICommand(_ cmd: String) -> Bool {
+        let lower = cmd.lowercased().trimmingCharacters(in: .whitespaces)
+        return lower.hasPrefix("set ") || lower == "reboot" || lower.hasPrefix("powersaving ")
+    }
+
+    /// Minimum interval between remote CLI commands to prevent mesh airtime abuse.
+    private static let cliMinIntervalSeconds: TimeInterval = 0.3
+    private var lastRemoteCLITime: Date?
+
+    /// Returns true if a remote CLI command should be rate-limited (called too soon after the previous one).
+    private func isRateLimited() -> Bool {
+        let now = Date()
+        if let last = lastRemoteCLITime, now.timeIntervalSince(last) < Self.cliMinIntervalSeconds {
+            return true
+        }
+        lastRemoteCLITime = now
+        return false
+    }
+
     /// Send a CLI command to a remote device.
     func sendCLICommand(_ command: String, to contact: Contact) {
         let trimmed = command.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -271,6 +291,24 @@ final class RemoteSessionManager {
         #endif
 
         let session = remoteSession(for: contact)
+
+        // Enforce login state and write permissions before sending remote CLI commands.
+        switch session.loginState {
+        case .loggedIn(let permission):
+            if isWriteCLICommand(trimmed) && !permission.canEdit {
+                Self.logger.warning("CLI BLOCKED: '\(trimmed)' requires write permission (current: \(permission.displayName))")
+                return
+            }
+        case .notLoggedIn, .loggingIn, .loginFailed:
+            Self.logger.warning("CLI BLOCKED: '\(trimmed)' — not logged in to \(contact.name)")
+            return
+        }
+
+        if isRateLimited() {
+            Self.logger.warning("CLI RATE LIMITED: '\(trimmed)' dropped — too many commands")
+            return
+        }
+
         let cmdIndex = session.commandSent(trimmed)
 
         if trimmed.hasPrefix("gps") {
@@ -416,7 +454,7 @@ final class RemoteSessionManager {
         "radio": ["get radio", "get tx", "get repeat"],
         "timing": ["get af", "get rxdelay", "get txdelay", "get direct.txdelay",
                     "get flood.max", "get int.thresh", "get agc.reset.interval"],
-        "routing": ["get loop.detect", "get path.hash.mode"],
+        "routing": ["get loop.detect", "get path.hash.mode", "region default"],
         "advertising": ["get name", "get lat", "get lon", "get owner.info",
                         "get advert.interval", "get flood.advert.interval", "get multi.acks"],
         "gps": ["gps", "gps advert"],

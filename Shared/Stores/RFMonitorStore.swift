@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import CoreLocation
 import MeshCoreKit
 
 /// A timestamped telemetry snapshot for history charts.
@@ -50,6 +51,25 @@ struct RFSample: Identifiable {
     let timestamp: Date
     let snr: Double   // dB (raw / 4.0)
     let rssi: Int8    // dBm
+}
+
+/// A GPS-tagged RF signal measurement for the coverage heat map.
+struct CoveragePoint: Identifiable, Codable {
+    let id: UUID
+    let timestamp: Date
+    let latitude: Double
+    let longitude: Double
+    let rssi: Int8
+    let snr: Double
+
+    init(timestamp: Date, latitude: Double, longitude: Double, rssi: Int8, snr: Double) {
+        self.id = UUID()
+        self.timestamp = timestamp
+        self.latitude = latitude
+        self.longitude = longitude
+        self.rssi = rssi
+        self.snr = snr
+    }
 }
 
 @MainActor @Observable
@@ -107,21 +127,36 @@ final class RFMonitorStore {
 
     private let maxRFSamples = 300  // ~5 minutes at 1/sec
 
-    /// Record an RF sample from LOG_RX_DATA.
+    /// Record an RF sample from LOG_RX_DATA. Also adds a coverage point if GPS is available.
     func recordRFSample(snr: Int8, rssi: Int8) {
         guard isMonitoring else { return }
-        let sample = RFSample(
-            timestamp: Date(),
-            snr: Double(snr) / 4.0,
-            rssi: rssi
-        )
-        rfSamples.append(sample)
+        let now = Date()
+        let snrDB = Double(snr) / 4.0
+        rfSamples.append(RFSample(timestamp: now, snr: snrDB, rssi: rssi))
         if rfSamples.count > maxRFSamples {
             rfSamples.removeFirst(rfSamples.count - maxRFSamples)
         }
+
+        #if !os(watchOS)
+        let location = SharedLocation.manager.location
+        if let loc = location, loc.coordinate.latitude != 0 || loc.coordinate.longitude != 0 {
+            let point = CoveragePoint(
+                timestamp: now,
+                latitude: loc.coordinate.latitude,
+                longitude: loc.coordinate.longitude,
+                rssi: rssi,
+                snr: snrDB
+            )
+            coveragePoints.append(point)
+            if coveragePoints.count > maxCoveragePoints {
+                coveragePoints.removeFirst(coveragePoints.count - maxCoveragePoints)
+            }
+            scheduleCoverageSave()
+        }
+        #endif
     }
 
-    /// Clear RF samples.
+    /// Clear RF samples (does not clear the persistent coverage map).
     func clearRFSamples() {
         rfSamples.removeAll()
     }
@@ -131,6 +166,66 @@ final class RFMonitorStore {
         isMonitoring.toggle()
         if isMonitoring {
             rfSamples.removeAll()
+        }
+    }
+
+    // MARK: - Coverage Map
+
+    /// GPS-tagged signal measurements for the coverage heat map.
+    var coveragePoints: [CoveragePoint] = []
+
+    private let maxCoveragePoints = 2000
+    private var coverageSavePending = false
+
+    /// Clear all coverage points (local file + in-memory).
+    func clearCoveragePoints() {
+        coveragePoints.removeAll()
+        try? FileManager.default.removeItem(at: Self.coverageFileURL)
+    }
+
+    private static var coverageFileURL: URL {
+        let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let appDir = dir.appendingPathComponent("MeshCore", isDirectory: true)
+        try? FileManager.default.createDirectory(at: appDir, withIntermediateDirectories: true)
+        return appDir.appendingPathComponent("coverage_points.json")
+    }
+
+    private func scheduleCoverageSave() {
+        guard !coverageSavePending else { return }
+        coverageSavePending = true
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 10_000_000_000) // batch saves every 10s
+            self.coverageSavePending = false
+            self.saveCoveragePoints()
+        }
+    }
+
+    func saveCoveragePoints() {
+        let points = coveragePoints
+        let fileURL = Self.coverageFileURL
+        Task.detached(priority: .utility) {
+            do {
+                let data = try JSONEncoder().encode(points)
+                try data.write(to: fileURL, options: .atomic)
+            } catch {
+                DebugLogger.shared.log("COVERAGE: failed to save: \(error.localizedDescription)", level: .warning)
+            }
+        }
+    }
+
+    func loadCoveragePoints() {
+        let url = Self.coverageFileURL
+        Task.detached(priority: .utility) { [weak self] in
+            guard FileManager.default.fileExists(atPath: url.path) else { return }
+            do {
+                let data = try Data(contentsOf: url)
+                let loaded = try JSONDecoder().decode([CoveragePoint].self, from: data)
+                await MainActor.run { [weak self] in
+                    self?.coveragePoints = loaded
+                }
+            } catch {
+                DebugLogger.shared.log("COVERAGE: failed to load: \(error.localizedDescription)", level: .warning)
+            }
         }
     }
 
@@ -182,18 +277,28 @@ final class RFMonitorStore {
 
     func loadTelemetryHistory() {
         let url = Self.telemetryFileURL
-        guard FileManager.default.fileExists(atPath: url.path) else { return }
-        do {
-            let data = try Data(contentsOf: url)
-            let persisted = try JSONDecoder().decode(PersistedHistory.self, from: data)
-            let cutoff = Date().addingTimeInterval(-Double(maxDaysRetained) * 86400)
-            for (hexKey, snapshots) in persisted.contacts {
-                if let keyData = Data(hexString: hexKey) {
-                    telemetryHistory[keyData] = snapshots.filter { $0.timestamp > cutoff }
+        let maxDays = maxDaysRetained
+        Task.detached(priority: .utility) { [weak self] in
+            guard FileManager.default.fileExists(atPath: url.path) else { return }
+            do {
+                let data = try Data(contentsOf: url)
+                let persisted = try JSONDecoder().decode(PersistedHistory.self, from: data)
+                let cutoff = Date().addingTimeInterval(-Double(maxDays) * 86400)
+                let loaded: [Data: [TelemetrySnapshot]] = Dictionary(uniqueKeysWithValues:
+                    persisted.contacts.compactMap { hexKey, snapshots -> (Data, [TelemetrySnapshot])? in
+                        guard let keyData = Data(hexString: hexKey) else { return nil }
+                        return (keyData, snapshots.filter { $0.timestamp > cutoff })
+                    }
+                )
+                await MainActor.run { [weak self] in
+                    guard let self else { return }
+                    for (key, snapshots) in loaded {
+                        self.telemetryHistory[key] = snapshots
+                    }
                 }
+            } catch {
+                DebugLogger.shared.log("TELEMETRY: failed to load history: \(error.localizedDescription)", level: .warning)
             }
-        } catch {
-            DebugLogger.shared.log("TELEMETRY: failed to load history: \(error.localizedDescription)", level: .warning)
         }
     }
 
@@ -217,12 +322,15 @@ final class RFMonitorStore {
             }
         }
         let persisted = PersistedHistory(contacts: contacts)
-        do {
-            let data = try JSONEncoder().encode(persisted)
-            try data.write(to: Self.telemetryFileURL, options: .atomic)
-        } catch {
-            DebugLogger.shared.log("TELEMETRY: failed to save history: \(error.localizedDescription)", level: .warning)
-        }
         cloudSync?.uploadIfNeeded(telemetryHistory: telemetryHistory)
+        let fileURL = Self.telemetryFileURL
+        Task.detached(priority: .utility) {
+            do {
+                let data = try JSONEncoder().encode(persisted)
+                try data.write(to: fileURL, options: .atomic)
+            } catch {
+                DebugLogger.shared.log("TELEMETRY: failed to save history: \(error.localizedDescription)", level: .warning)
+            }
+        }
     }
 }

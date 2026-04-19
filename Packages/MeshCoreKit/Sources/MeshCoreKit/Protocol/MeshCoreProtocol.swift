@@ -408,6 +408,24 @@ public enum MeshCoreProtocol {
         Data([MeshCoreCommand.getAutoAddConfig.rawValue])
     }
 
+    // MARK: - Default Flood Scope (firmware 1.15.0+)
+
+    /// CMD_GET_DEFAULT_FLOOD_SCOPE (code 64) — request current default flood scope region name.
+    public static func buildGetDefaultFloodScope() -> Data {
+        Data([MeshCoreCommand.getDefaultFloodScope.rawValue])
+    }
+
+    /// CMD_SET_DEFAULT_FLOOD_SCOPE (code 63) — set default flood scope region name.
+    /// Pass an empty string to clear the default scope.
+    public static func buildSetDefaultFloodScope(name: String) -> Data {
+        var frame = Data([MeshCoreCommand.setDefaultFloodScope.rawValue])
+        if !name.isEmpty, let payload = name.data(using: .utf8) {
+            frame.append(payload)
+        }
+        frame.append(0x00)
+        return frame
+    }
+
     // MARK: - Discovery & Diagnostics
 
     /// CMD_SEND_CONTROL_DATA (code 55) — send a control packet.

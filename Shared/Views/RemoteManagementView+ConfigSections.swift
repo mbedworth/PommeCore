@@ -140,11 +140,14 @@ struct RemoteTimingSection: View {
 // MARK: - Routing Section
 
 struct RemoteRoutingSection: View {
+    let contact: Contact
     @ObservedObject var session: RemoteDeviceSession
     let sendCLI: (String) -> Void
     let canEdit: Bool
     @State private var loopDetect = ""
     @State private var pathHashMode = ""
+    @State private var floodScope = ""
+    @State private var floodScopeSaveState: SaveButtonState = .idle
     @State private var saveState: SaveButtonState = .idle
     @State private var isExpanded = false
 
@@ -187,6 +190,17 @@ struct RemoteRoutingSection: View {
                         .font(.system(.caption, design: .monospaced))
                         .foregroundStyle(MeshTheme.textPrimary)
                         .listRowBackground(MeshTheme.surface)
+                }
+
+                if contact.type == .repeater {
+                    cliEditRow(icon: "globe.americas", label: "Default Flood Scope", text: $floodScope, current: session.settings["region default"])
+                    if canEdit {
+                        SaveButton(state: floodScopeSaveState, label: "Set Flood Scope") {
+                            let name = floodScope.trimmingCharacters(in: .whitespaces)
+                            sendCLI(name.isEmpty ? "region default" : "region default \(name)")
+                            showSaved($floodScopeSaveState)
+                        }
+                    }
                 }
             } label: {
                 Label("Advanced Routing", systemImage: "arrow.triangle.branch")
@@ -334,8 +348,8 @@ struct RemoteAdvertSection: View {
         }
         .sheet(isPresented: $showMapPicker, onDismiss: {
             guard let coord = mapPickedCoordinate else { return }
-            let latStr = String(format: "%.6f", coord.latitude)
-            let lonStr = String(format: "%.6f", coord.longitude)
+            let latStr = formatCoordinate(coord.latitude)
+            let lonStr = formatCoordinate(coord.longitude)
             lat = latStr
             lon = lonStr
             sendCLI("set lat \(latStr)")

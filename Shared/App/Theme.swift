@@ -9,6 +9,7 @@
 //
 
 import SwiftUI
+import MeshCoreKit
 
 // MARK: - App Theme Preference
 
@@ -418,6 +419,205 @@ func formatBatteryVoltage<T: BinaryInteger>(_ mV: T) -> String {
 func formatCoordinate(_ value: Double) -> String {
     String(format: "%.6f", value)
 }
+
+// MARK: - Shared Settings Components
+#if !os(watchOS)
+
+enum SaveButtonState {
+    case idle, saved
+}
+
+struct SaveButton: View {
+    let state: SaveButtonState
+    let label: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 4) {
+                if state == .saved {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(.green)
+                    Text("Saved")
+                        .foregroundStyle(.green)
+                } else {
+                    Text(label)
+                        .foregroundStyle(MeshTheme.accent)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+        .contentShape(Rectangle())
+        .listRowBackground(MeshTheme.surface)
+        .animation(.easeInOut(duration: 0.2), value: state)
+    }
+}
+
+private struct InfoPopoverContent: View {
+    let text: String
+
+    var body: some View {
+        #if os(macOS) || targetEnvironment(macCatalyst)
+        Text(text)
+            .font(.callout)
+            .lineLimit(nil)
+            .multilineTextAlignment(.leading)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(16)
+            .frame(minWidth: 240, maxWidth: 340)
+        #else
+        ScrollView {
+            Text(text)
+                .font(.callout)
+                .lineLimit(nil)
+                .multilineTextAlignment(.leading)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(16)
+        }
+        .frame(minWidth: 240, maxWidth: 300, minHeight: 60)
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
+        #endif
+    }
+}
+
+struct InfoButton: View {
+    let text: String
+    @State private var showPopover = false
+
+    var body: some View {
+        Button {
+            showPopover = true
+        } label: {
+            Image(systemName: "info.circle")
+                .foregroundStyle(MeshTheme.textSecondary.opacity(0.75))
+        }
+        .buttonStyle(.plain)
+        .popover(isPresented: $showPopover) {
+            InfoPopoverContent(text: text)
+        }
+    }
+}
+
+struct SectionInfoHeader: View {
+    let title: String
+    let info: String
+    var titleColor: Color?
+    @State private var showInfo = false
+
+    var body: some View {
+        let color = titleColor ?? MeshTheme.textSecondary
+        HStack(spacing: 6) {
+            if !title.isEmpty {
+                Text(title)
+                    .foregroundStyle(color)
+            }
+            Spacer(minLength: 0)
+            Button {
+                showInfo = true
+            } label: {
+                Image(systemName: "info.circle")
+                    .foregroundStyle(color.opacity(0.75))
+            }
+            .buttonStyle(.plain)
+            .popover(isPresented: $showInfo) {
+                InfoPopoverContent(text: info)
+            }
+        }
+    }
+}
+
+// MARK: - CLI Shared Components
+
+struct CLICommandButton: View {
+    let icon: String
+    let label: String
+    var color: Color = MeshTheme.accent
+    let action: () -> Void
+
+    var body: some View {
+        Button {
+            action()
+        } label: {
+            HStack {
+                Image(systemName: icon)
+                    .foregroundStyle(color)
+                    .frame(width: 24)
+                Text(label)
+                    .foregroundStyle(color)
+                Spacer()
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .listRowBackground(MeshTheme.surface)
+    }
+}
+
+struct CLIToggleRow: View {
+    let icon: String
+    let label: String
+    let settingKey: String
+    let onCommand: String
+    let offCommand: String
+    @ObservedObject var session: RemoteDeviceSession
+    let sendCLI: (String) -> Void
+    var canEdit: Bool = true
+
+    private var isOn: Bool? {
+        guard let value = session.settings[settingKey]?.lowercased() else { return nil }
+        if value == "on" || value == "1" || value == "true" || value == "enabled" || value.contains("on") { return true }
+        if value == "off" || value == "0" || value == "false" || value == "disabled" || value.contains("off") { return false }
+        return nil
+    }
+
+    var body: some View {
+        HStack {
+            Image(systemName: icon)
+                .foregroundStyle(MeshTheme.accent)
+                .frame(width: 24)
+            Text(label)
+                .foregroundStyle(MeshTheme.accent)
+            Spacer()
+            if canEdit {
+                let toggleActive = MeshTheme.interactiveGreen
+                HStack(spacing: 0) {
+                    Button {
+                        sendCLI(onCommand)
+                    } label: {
+                        Text("On")
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(isOn == true ? .black : MeshTheme.textPrimary)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 5)
+                            .background(isOn == true ? toggleActive : Color.clear)
+                    }
+                    .buttonStyle(.plain)
+
+                    Button {
+                        sendCLI(offCommand)
+                    } label: {
+                        Text("Off")
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(isOn == false ? .black : MeshTheme.textPrimary)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 5)
+                            .background(isOn == false ? toggleActive : Color.clear)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .background(MeshTheme.background)
+                .clipShape(Capsule())
+            } else {
+                Text(isOn == true ? "On" : isOn == false ? "Off" : "\u{2014}")
+                    .foregroundStyle(MeshTheme.textPrimary)
+            }
+        }
+        .listRowBackground(MeshTheme.surface)
+    }
+}
+
+#endif // !os(watchOS)
 
 // MARK: - Clipboard Utility
 

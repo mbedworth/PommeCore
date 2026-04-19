@@ -59,34 +59,38 @@ final class TelemetryCloudSync {
     }
 
     private func performUpload(batches: Set<String>, telemetryHistory: [Data: [TelemetrySnapshot]], radioPrefix: String) async {
+        // Pre-compute day strings and filter snapshots on MainActor, then JSON-encode on background thread.
         let cutoff = Date().addingTimeInterval(-7 * 86400)
-        var records: [CKRecord] = []
-
+        let recordTypeName = Self.recordType
+        struct BatchData: Sendable { var key: String; var contactHex: String; var dateStr: String; var date: Date; var snapshots: [TelemetrySnapshot] }
+        var batchData: [BatchData] = []
         for batchKey in batches {
             let parts = batchKey.split(separator: ".")
             guard parts.count == 3 else { continue }
             let contactHex = String(parts[1])
             let dateStr = String(parts[2])
-
             guard let contactKey = Data(hexString: contactHex),
                   let snapshots = telemetryHistory[contactKey] else { continue }
-
-            let daySnapshots = snapshots.filter { snapshot in
-                snapshot.timestamp > cutoff && Self.dayString(from: snapshot.timestamp) == dateStr
-            }
+            let daySnapshots = snapshots.filter { $0.timestamp > cutoff && Self.dayString(from: $0.timestamp) == dateStr }
             guard !daySnapshots.isEmpty else { continue }
-
-            let recordID = CKRecord.ID(recordName: batchKey)
-            let record = CKRecord(recordType: Self.recordType, recordID: recordID)
-            record["radioPrefix"] = radioPrefix as CKRecordValue
-            record["contactKey"] = contactHex as CKRecordValue
-            record["date"] = Self.dateFromDayString(dateStr) as? CKRecordValue ?? Date() as CKRecordValue
-            record["snapshotCount"] = daySnapshots.count as CKRecordValue
-            if let data = try? JSONEncoder().encode(daySnapshots) {
-                record["snapshots"] = data as CKRecordValue
-            }
-            records.append(record)
+            let date = Self.dateFromDayString(dateStr) ?? Date()
+            batchData.append(BatchData(key: batchKey, contactHex: contactHex, dateStr: dateStr, date: date, snapshots: daySnapshots))
         }
+
+        let records: [CKRecord] = await Task.detached(priority: .utility) {
+            let encoder = JSONEncoder()
+            return batchData.compactMap { batch in
+                let record = CKRecord(recordType: recordTypeName, recordID: CKRecord.ID(recordName: batch.key))
+                record["radioPrefix"] = radioPrefix as CKRecordValue
+                record["contactKey"] = batch.contactHex as CKRecordValue
+                record["date"] = batch.date as CKRecordValue
+                record["snapshotCount"] = batch.snapshots.count as CKRecordValue
+                if let data = try? encoder.encode(batch.snapshots) {
+                    record["snapshots"] = data as CKRecordValue
+                }
+                return record
+            }
+        }.value
 
         guard !records.isEmpty else { return }
 

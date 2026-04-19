@@ -273,10 +273,11 @@ extension SettingsView {
                     let msgCount = messageStoreManager.messagesByContact.values.reduce(0) { $0 + $1.count }
                     #if !os(watchOS)
                     let telCount = rfMonitorStore.totalSnapshotCount
+                    let covCount = rfMonitorStore.coveragePoints.count
                     let msgStatus: Color = msgCount > 20_000 ? .red : msgCount > 5_000 ? .orange : .green
                     let telStatus: Color = telCount > 2_000 ? .red : telCount > 500 ? .orange : .green
                     let worstStatus: Color = msgStatus == .red || telStatus == .red ? .red : msgStatus == .orange || telStatus == .orange ? .orange : .green
-                    Text("\(msgCount) messages, \(telCount) telemetry")
+                    Text("\(msgCount) msg, \(telCount) telemetry, \(covCount) coverage")
                         .font(.caption)
                         .foregroundStyle(worstStatus)
                     #else
@@ -299,6 +300,9 @@ extension SettingsView {
                 #if !os(watchOS)
                 Button("Clear Telemetry History", role: .destructive) {
                     rfMonitorStore.clearTelemetryHistory()
+                }
+                Button("Clear Coverage Map", role: .destructive) {
+                    rfMonitorStore.clearCoveragePoints()
                 }
                 #endif
                 Button("Cancel", role: .cancel) {}

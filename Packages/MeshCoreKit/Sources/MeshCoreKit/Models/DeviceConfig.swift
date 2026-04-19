@@ -121,6 +121,11 @@ public final class DeviceConfig {
     /// Maximum hop count for auto-add. From RESP_CODE_AUTOADD_CONFIG byte 2.
     public var autoAddMaxHops: UInt8 = 3
 
+    // MARK: - Default Flood Scope (firmware 1.15.0+)
+
+    /// Region name used as default flood scope. Empty string = not configured.
+    public var defaultFloodScope: String = ""
+
     // MARK: - Time
 
     public var deviceTimeEpoch: UInt32 = 0
@@ -194,6 +199,7 @@ public final class DeviceConfig {
         blePIN = 0
         autoAddBitmask = 0x0F
         autoAddMaxHops = 3
+        defaultFloodScope = ""
         deviceTimeEpoch = 0
         customVars = []
         statsBatteryMV = 0

@@ -108,6 +108,7 @@ final class PommeCoreViewModel: ObservableObject {
     let rfMonitorStore: RFMonitorStore = {
         let store = RFMonitorStore()
         store.loadTelemetryHistory()
+        store.loadCoveragePoints()
         return store
     }()
     let telemetryCloudSync = TelemetryCloudSync()

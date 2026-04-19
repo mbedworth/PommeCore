@@ -322,6 +322,19 @@ final class ConnectionManager {
         sendCommand(MeshCoreProtocol.buildGetAutoAddConfig(), label: "GET_AUTOADD")
     }
 
+    func getDefaultFloodScope() {
+        sendCommand(MeshCoreProtocol.buildGetDefaultFloodScope(), label: "GET_FLOOD_SCOPE")
+    }
+
+    func setDefaultFloodScope(_ name: String) {
+        sendCommand(MeshCoreProtocol.buildSetDefaultFloodScope(name: name), label: "SET_FLOOD_SCOPE")
+        deviceConfig?.defaultFloodScope = name
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 1_000_000_000)
+            self?.sendCommand(MeshCoreProtocol.buildGetDefaultFloodScope(), label: "GET_FLOOD_SCOPE")
+        }
+    }
+
     func sendAppStart() {
         sendCommand(MeshCoreProtocol.buildAppStart(), label: "APP_START")
     }
@@ -340,6 +353,7 @@ final class ConnectionManager {
         requestStats(subType: 1)
         requestStats(subType: 2)
         requestAutoAddConfig()
+        getDefaultFloodScope()
     }
 
     /// Refresh contacts, channels, and all settings.
@@ -417,6 +431,9 @@ final class ConnectionManager {
     // MARK: - Phone GPS Auto-Update
 
     private var locationUpdateTimer: Timer?
+    private var lastSentLatitude: Double?
+    private var lastSentLongitude: Double?
+    private static let locationSendThresholdMeters: Double = 50
 
     func startAutoLocationUpdates(interval: Int) {
         locationUpdateTimer?.invalidate()
@@ -432,6 +449,8 @@ final class ConnectionManager {
     func stopAutoLocationUpdates() {
         locationUpdateTimer?.invalidate()
         locationUpdateTimer = nil
+        lastSentLatitude = nil
+        lastSentLongitude = nil
         DebugLogger.shared.log("PHONE GPS: auto-update stopped", level: .info)
     }
 
@@ -439,6 +458,15 @@ final class ConnectionManager {
         #if !os(watchOS)
         guard let location = SharedLocation.manager.location else { return }
         let (fLat, fLon) = PommeCoreViewModel.fudgeLocation(lat: location.coordinate.latitude, lon: location.coordinate.longitude)
+        // Skip send if phone hasn't moved more than threshold since last update.
+        if let prevLat = lastSentLatitude, let prevLon = lastSentLongitude {
+            let dLat = (fLat - prevLat) * 111_000
+            let dLon = (fLon - prevLon) * 111_000 * cos(prevLat * .pi / 180)
+            let distanceMeters = (dLat * dLat + dLon * dLon).squareRoot()
+            guard distanceMeters >= Self.locationSendThresholdMeters else { return }
+        }
+        lastSentLatitude = fLat
+        lastSentLongitude = fLon
         setAdvertLatLon(latitude: fLat, longitude: fLon)
         #endif
     }

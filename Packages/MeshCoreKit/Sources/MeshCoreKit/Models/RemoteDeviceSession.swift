@@ -140,7 +140,7 @@ public final class RemoteDeviceSession: ObservableObject {
         "info": ["ver", "clock", "name", "role", "public.key"],
         "radio": ["radio", "tx", "repeat"],
         "timing": ["af", "rxdelay", "txdelay", "direct.txdelay", "flood.max", "int.thresh", "agc.reset.interval"],
-        "routing": ["loop.detect", "path.hash.mode"],
+        "routing": ["loop.detect", "path.hash.mode", "region default"],
         "advertising": ["name", "lat", "lon", "owner.info", "advert.interval", "flood.advert.interval", "multi.acks"],
         "gps": ["gps", "gps advert"],
         "security": ["allow.read.only", "guest.password", "adc.multiplier"],
@@ -178,7 +178,7 @@ public final class RemoteDeviceSession: ObservableObject {
         guard !cacheable.isEmpty else { return }
         do {
             let data = try JSONEncoder().encode(cacheable)
-            try data.write(to: cacheFileURL, options: .atomic)
+            try data.write(to: cacheFileURL, options: [.atomic, .completeFileProtection])
         } catch {
             // Cache save is best-effort
         }
@@ -216,7 +216,7 @@ public final class RemoteDeviceSession: ObservableObject {
             if index < cliHistory.count && cliHistory[index].isComplete {
                 return true
             }
-            try? await Task.sleep(nanoseconds: 50_000_000) // 50ms poll
+            try? await Task.sleep(nanoseconds: 200_000_000) // 200ms poll
         }
         return false
     }
@@ -300,6 +300,9 @@ public final class RemoteDeviceSession: ObservableObject {
 
     /// Derive the setting key from the CLI command and store the response as its value.
     private func parseSettingFromCommand(_ command: String, response: String) {
+        // Reject overly long responses before caching — guards against rogue device cache poisoning.
+        guard response.count <= 512 else { return }
+
         let cmd = command.trimmingCharacters(in: .whitespaces).lowercased()
 
         // "get X" → key is X
@@ -314,7 +317,7 @@ public final class RemoteDeviceSession: ObservableObject {
 
         // Bare commands like "ver", "clock", "powersaving", "gps", "neighbors"
         // use the command itself as the key
-        let bareCommands = ["ver", "clock", "powersaving", "gps", "gps advert", "neighbors", "discover.neighbors", "region", "log", "io"]
+        let bareCommands = ["ver", "clock", "powersaving", "gps", "gps advert", "neighbors", "discover.neighbors", "region", "region default", "log", "io"]
         if bareCommands.contains(cmd) {
             settings[cmd] = response
             saveSettingsCache()

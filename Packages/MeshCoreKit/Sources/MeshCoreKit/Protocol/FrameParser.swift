@@ -56,6 +56,7 @@ public enum FrameParser {
         case autoAddConfig(bitmask: UInt8, maxHops: UInt8)  // RESP_CODE_AUTOADD_CONFIG (0x19)
         case signStartResp(maxLength: UInt32)              // RESP_CODE_SIGN_START (0x13)
         case signatureResp(signature: Data)                // RESP_CODE_SIGNATURE (0x14)
+        case defaultFloodScope(name: String)               // RESP_CODE_DEFAULT_FLOOD_SCOPE (0x1C, firmware 1.15.0+)
         case unknown(type: UInt8, payload: Data)
     }
 
@@ -233,6 +234,9 @@ public enum FrameParser {
 
         case .allowedRepeatFreq:
             return parseAllowedRepeatFreq(payload)
+
+        case .defaultFloodScope:
+            return parseDefaultFloodScope(payload)
         }
     }
 
@@ -813,7 +817,7 @@ public enum FrameParser {
         if remaining >= 16 {
             secret = Data(data[offset..<offset+16])
             offset += 16
-            logger.info("ChannelInfo: idx=\(channelIdx) name='\(name)' secret=<\(secret!.count) bytes>")
+            logger.info("ChannelInfo: idx=\(channelIdx) name='\(name)' secret=<\(secret?.count ?? 0) bytes>")
         } else {
             logger.info("ChannelInfo: idx=\(channelIdx) name='\(name)' (no secret, \(remaining) trailing bytes)")
         }
@@ -1029,6 +1033,22 @@ public enum FrameParser {
         logger.info("AllowedRepeatFreq: \(ranges.count) ranges")
 
         return .allowedRepeatFreq(ranges)
+    }
+
+    // MARK: - Default Flood Scope (code 28, firmware 1.15.0+)
+
+    /// RESP_CODE_DEFAULT_FLOOD_SCOPE (0x1C).
+    /// Configured:     name(31 bytes, null-terminated) + key(16 bytes) = 47 bytes payload
+    /// Not configured: empty payload (0 bytes)
+    private static func parseDefaultFloodScope(_ data: Data) -> ParsedResponse {
+        guard data.count >= 31 else {
+            logger.info("DefaultFloodScope: not configured")
+            return .defaultFloodScope(name: "")
+        }
+        var offset = 0
+        let name = readFixedString(data, offset: &offset, maxLen: 31)
+        logger.info("DefaultFloodScope: '\(name)'")
+        return .defaultFloodScope(name: name)
     }
 
     // MARK: - Binary Read Helpers

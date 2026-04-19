@@ -34,7 +34,7 @@ struct LoSResultsView: View {
                 GridItem(.flexible())
             ], spacing: 10) {
                 statCard("Distance", value: GeoMath.formatDistance(result.profile.totalDistance), icon: "ruler")
-                statCard("Frequency", value: String(format: "%.1f MHz", result.frequencyMHz), icon: "antenna.radiowaves.left.and.right")
+                statCard("Frequency", value: String(format: "%.3f MHz", result.frequencyMHz), icon: "antenna.radiowaves.left.and.right")
 
                 let (activeClearance, activeFresnel) = worstCaseStats
                 statCard("Min Clearance", value: String(format: "%.1f m", activeClearance), icon: "arrow.up.and.down",

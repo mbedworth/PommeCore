@@ -346,10 +346,10 @@ struct LoginSection: View {
                         .foregroundStyle(MeshTheme.accent)
                         .frame(width: 24)
                     #if os(watchOS)
-                    SecureField("Password", text: $password)
+                    SecureField("Password (leave blank if none)", text: $password)
                         .foregroundStyle(MeshTheme.textPrimary)
                     #else
-                    SecureField("Password", text: $password)
+                    SecureField("Password (leave blank if none)", text: $password)
                         .foregroundStyle(MeshTheme.textPrimary)
                         .textFieldStyle(MeshTextFieldStyle())
                         .onChange(of: password) { _, new in
@@ -400,7 +400,6 @@ struct LoginSection: View {
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
-                    .disabled(password.isEmpty)
                     .listRowBackground(MeshTheme.surface)
                 }
 
@@ -645,7 +644,7 @@ private extension RemoteManagementView {
     }
 
     var routingSection: some View {
-        RemoteRoutingSection(session: session, sendCLI: sendCLI, canEdit: canEdit)
+        RemoteRoutingSection(contact: contact, session: session, sendCLI: sendCLI, canEdit: canEdit)
     }
 
     var advertisingSection: some View {

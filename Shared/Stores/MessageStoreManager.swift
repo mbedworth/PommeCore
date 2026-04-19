@@ -302,7 +302,7 @@ final class MessageStoreManager {
             let query = MeshCoreProtocol.buildGetAdvertPath(publicKey: contact.publicKey)
             sendCommand?(query, "PRE_SEND_PATH_CHECK")
             pathCheckTimeoutTask?.cancel()
-            pathCheckTimeoutTask = Task { [weak self] in
+            pathCheckTimeoutTask = Task { @MainActor [weak self] in
                 try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
                 guard !Task.isCancelled, let self else { return }
                 self.flushPendingPathCheck(reason: "timeout")
@@ -324,7 +324,7 @@ final class MessageStoreManager {
             Self.logger.info("PRE-SEND PATH CHECK: \(pending.contact.name) advert path is direct — resetting routed path")
             DebugLogger.shared.log("PATH REFRESH: \(pending.contact.name) direct advert detected, resetting route", level: .info)
             resetPathForContact?(pending.contact)
-            Task { [weak self] in
+            Task { @MainActor [weak self] in
                 try? await Task.sleep(nanoseconds: 500_000_000)
                 self?.sendCommand?(pending.frame, "SEND_TXT(path_refreshed)")
             }
@@ -406,15 +406,15 @@ final class MessageStoreManager {
         for (contactKey, messages) in messagesByContact {
             if let idx = messages.firstIndex(where: { $0.isOutgoing && ($0.status == .sending || $0.status == .retrying || $0.status == .flooding) }) {
                 Self.logger.info("DM RESP_SENT: matched message \(messages[idx].id) → .sent, ack=\(expectedACK)")
-                messagesByContact[contactKey]![idx].status = .sent
-                messagesByContact[contactKey]![idx].expectedACK = expectedACK
-                messagesByContact[contactKey]![idx].suggestedTimeoutMs = suggestedTimeoutMs
+                messagesByContact[contactKey]?[idx].status = .sent
+                messagesByContact[contactKey]?[idx].expectedACK = expectedACK
+                messagesByContact[contactKey]?[idx].suggestedTimeoutMs = suggestedTimeoutMs
                 pendingACKs[expectedACK] = (contactKeyHash: contactKey, messageID: messages[idx].id)
                 persistMessages(for: contactKey)
                 matched = true
 
                 let timeoutSec = max(UInt64(suggestedTimeoutMs / 1000), 6)
-                Task { [weak self] in
+                Task { @MainActor [weak self] in
                     try? await Task.sleep(nanoseconds: timeoutSec * 1_000_000_000)
                     guard let self else { return }
                     if self.pendingACKs[expectedACK] != nil {
@@ -498,7 +498,7 @@ final class MessageStoreManager {
                 resetPathForContact?(contact)
             }
 
-            Task { [weak self] in
+            Task { @MainActor [weak self] in
                 try? await Task.sleep(nanoseconds: 500_000_000)
                 guard let self else { return }
                 let frame = MeshCoreProtocol.buildSendTextMessage(text: message.text, recipientKeyHash: contactKey, attempt: 0)
@@ -737,7 +737,7 @@ final class MessageStoreManager {
                 messagesByContact[contactKey] = messages
 
                 let msgID = message.id
-                Task { [weak self] in
+                Task { @MainActor [weak self] in
                     try? await Task.sleep(nanoseconds: 500_000_000)
                     guard let self else { return }
                     Self.logger.info("RETRY: sending flood for \(msgID) with attempt=2")

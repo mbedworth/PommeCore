@@ -57,7 +57,7 @@ struct DeviceInfoPopover: View {
             }
 
             Section {
-                infoRow("Frequency", value: String(format: "%.1f MHz", config.frequencyMHz))
+                infoRow("Frequency", value: String(format: "%.3f MHz", config.frequencyMHz))
                 infoRow("TX Power", value: "\(config.radioTXPower) dBm")
                 infoRow("SF/BW", value: "SF\(config.radioSpreadingFactor) / \(Int(config.bandwidthKHz)) kHz")
                 infoRow("Contacts", value: "\(contactStore.contacts.count) / \(config.maxContacts)")
