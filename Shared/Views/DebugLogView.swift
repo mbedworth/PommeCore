@@ -133,7 +133,9 @@ struct DebugLogView: View {
                 Text(entry.message)
                     .font(.system(.caption, design: .monospaced))
                     .foregroundStyle(levelColor(entry.level))
+                    #if !os(watchOS)
                     .textSelection(.enabled)
+                    #endif
             }
         }
         .padding(.vertical, 2)

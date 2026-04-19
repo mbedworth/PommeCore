@@ -9,7 +9,9 @@
 //
 
 import SwiftUI
+#if !os(watchOS)
 import CoreImage.CIFilterBuiltins
+#endif
 import MeshCoreKit
 
 // MARK: - QR Code Helpers

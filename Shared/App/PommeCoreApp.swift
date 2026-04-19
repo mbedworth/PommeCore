@@ -175,6 +175,7 @@ class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterD
 }
 #endif
 
+#if !os(watchOS)
 struct ContentView: View {
     @Environment(ContactStore.self) private var contactStore
     @Environment(ChannelStore.self) private var channelStore
@@ -721,3 +722,4 @@ struct AppLockView: View {
         }
     }
 }
+#endif

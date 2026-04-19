@@ -28,6 +28,8 @@
 	</array>
 	<key>WKApplication</key>
 	<true/>
+	<key>WKCompanionAppBundleIdentifier</key>
+	<string>com.mbedworth.meshcore</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 </dict>

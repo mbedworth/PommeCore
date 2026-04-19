@@ -7,6 +7,7 @@
 //  Local JSON file remains the primary cache; CloudKit is the sync layer.
 //
 
+#if !os(watchOS)
 import Foundation
 import CloudKit
 import MeshCoreKit
@@ -242,3 +243,4 @@ private extension Array {
         }
     }
 }
+#endif

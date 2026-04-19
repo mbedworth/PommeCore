@@ -872,6 +872,7 @@ final class MessageStoreManager {
 
         // Apply group-specific sound
         var notifSound: UNNotificationSound = .default
+        #if !os(watchOS)
         if let contact, let groupSound = contactSoundProvider?(contact) {
             switch groupSound {
             case .default: break
@@ -881,6 +882,7 @@ final class MessageStoreManager {
             case .none: notifSound = UNNotificationSound(named: UNNotificationSoundName(""))
             }
         }
+        #endif
         content.sound = notifSound
 
         let senderName = message.senderName
