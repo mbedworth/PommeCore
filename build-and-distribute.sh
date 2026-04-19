@@ -171,11 +171,9 @@ fi
 # ============================================================
 
 if [[ "$RELEASE_MODE" == "1" ]]; then
-    COMMIT_MSG="release: v$NEW_VERSION ($NEW_BUILD)
-
+    COMMIT_MSG="release: v$NEW_VERSION ($NEW_BUILD)"
 else
-    COMMIT_MSG="chore: bump build to $NEW_BUILD (v$NEW_VERSION)
-
+    COMMIT_MSG="chore: bump build to $NEW_BUILD (v$NEW_VERSION)"
 fi
 
 log "Committing..."
