@@ -112,7 +112,10 @@ final class PommeCoreViewModel: ObservableObject {
     }()
     let telemetryCloudSync = TelemetryCloudSync()
     #endif
-    
+    #if os(iOS)
+    let phoneWatchRelay = PhoneWatchRelay()
+    #endif
+
     // All forwarding properties removed — use stores directly.
     // contacts → contactStore.contacts, channels → channelStore.channels, etc.
     
@@ -231,6 +234,14 @@ final class PommeCoreViewModel: ObservableObject {
         remoteSessionManager.sendUSBCLI = { [weak self] cmd in self?.connectionManager.sendUSBCLI(cmd) }
         remoteSessionManager.sendUSBCLIDirect = { [weak self] cmd in self?.connectionManager.sendUSBCLIDirect(cmd) }
         remoteSessionManager.sendUSBKeepalive = { [weak self] in self?.connectionManager.sendUSBKeepalive() }
+#endif
+
+#if os(iOS)
+        phoneWatchRelay.contactStore = contactStore
+        phoneWatchRelay.channelStore = channelStore
+        phoneWatchRelay.messageStoreManager = messageStoreManager
+        phoneWatchRelay.connectionManager = connectionManager
+        phoneWatchRelay.activate()
 #endif
 
 #if !os(watchOS)

@@ -18,6 +18,12 @@ import MeshCoreKit
 
 @main
 struct PommeCoreApp: App {
+    #if os(watchOS)
+    @State private var watchReceiver = WatchReceiver()
+    @State private var watchContactStore = WatchContactStore()
+    @State private var watchMessageStore = WatchMessageStore()
+    @State private var watchAppState = WatchAppState()
+    #else
     @StateObject private var viewModel = PommeCoreViewModel()
     @StateObject private var appLock = AppLockManager()
     private let syncedSettings = SyncedSettings.shared
@@ -27,20 +33,33 @@ struct PommeCoreApp: App {
     #elseif os(macOS)
     @NSApplicationDelegateAdaptor(MacAppDelegate.self) var macAppDelegate
     #endif
-
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
-    /// Set by OnboardingView's "Open Settings Now" button to trigger Settings on first launch.
     @AppStorage("openSettingsAfterOnboarding") private var openSettingsAfterOnboarding = false
+    #endif
 
     init() {
+        #if !os(watchOS)
         UserDefaults.standard.register(defaults: [
             "autoRetry": true,
             "autoResetPath": true
         ])
+        #endif
     }
 
     var body: some Scene {
         WindowGroup {
+            #if os(watchOS)
+            WatchRootView()
+                .environment(watchContactStore)
+                .environment(watchMessageStore)
+                .environment(watchAppState)
+                .onAppear {
+                    watchReceiver.contactStore = watchContactStore
+                    watchReceiver.messageStore = watchMessageStore
+                    watchReceiver.appState = watchAppState
+                    watchReceiver.activate()
+                }
+            #else
             if !hasCompletedOnboarding {
                 OnboardingView(
                     hasCompletedOnboarding: $hasCompletedOnboarding,
@@ -87,19 +106,20 @@ struct PommeCoreApp: App {
                     }
                     #endif
             }
+            #endif
         }
+        #if !os(watchOS)
         .onChange(of: scenePhase) { _, newPhase in
             viewModel.connectionManager.isInBackground = (newPhase != .active)
             if newPhase == .active {
                 viewModel.messageStoreManager.updateAppBadge()
-                // Reconnect WiFi if it was the active transport and dropped during background
                 viewModel.connectionManager.reconnectWiFiIfNeeded()
-                // Authentication is handled by AppLockView.onAppear — don't duplicate here
             }
             if newPhase == .background && appLock.appLockEnabled {
                 appLock.isUnlocked = false
             }
         }
+        #endif
     }
 }
 

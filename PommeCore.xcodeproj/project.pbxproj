@@ -11,12 +11,6 @@
 		0F29C3C52F84856E0007BF08 /* Services/ElevationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3C42F84856E0007BF08 /* Services/ElevationService.swift */; };
 		0F29C3C62F84856E0007BF08 /* Services/ElevationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3C42F84856E0007BF08 /* Services/ElevationService.swift */; };
 		0F29C3C72F84856E0007BF08 /* Services/ElevationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3C42F84856E0007BF08 /* Services/ElevationService.swift */; };
-		LNK10000000000000000001 /* Services/LinkPreviewService.swift in Sources */ = {isa = PBXBuildFile; fileRef = LNK10000000000000000000 /* Services/LinkPreviewService.swift */; };
-		LNK10000000000000000002 /* Services/LinkPreviewService.swift in Sources */ = {isa = PBXBuildFile; fileRef = LNK10000000000000000000 /* Services/LinkPreviewService.swift */; };
-		LNK10000000000000000003 /* Services/LinkPreviewService.swift in Sources */ = {isa = PBXBuildFile; fileRef = LNK10000000000000000000 /* Services/LinkPreviewService.swift */; };
-		FWC10000000100000000001 /* Services/FirmwareUpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = FWC10000000000000000000 /* Services/FirmwareUpdateChecker.swift */; };
-		FWC10000000100000000002 /* Services/FirmwareUpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = FWC10000000000000000000 /* Services/FirmwareUpdateChecker.swift */; };
-		FWC10000000100000000003 /* Services/FirmwareUpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = FWC10000000000000000000 /* Services/FirmwareUpdateChecker.swift */; };
 		0F29C3C92F8485BD0007BF08 /* LineOfSightStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3C82F8485BD0007BF08 /* LineOfSightStore.swift */; };
 		0F29C3CA2F8485BD0007BF08 /* LineOfSightStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3C82F8485BD0007BF08 /* LineOfSightStore.swift */; };
 		0F29C3D42F84863E0007BF08 /* LineOfSight/TerrainProfileCanvas.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3D22F84863E0007BF08 /* LineOfSight/TerrainProfileCanvas.swift */; };
@@ -35,6 +29,27 @@
 		0F29C3E12F84863E0007BF08 /* LineOfSight/MapPointPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3CF2F84863E0007BF08 /* LineOfSight/MapPointPickerView.swift */; };
 		0F29C3E22F84863E0007BF08 /* LineOfSight/TerrainProfileRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3D32F84863E0007BF08 /* LineOfSight/TerrainProfileRenderer.swift */; };
 		0F29C3E32F84863E0007BF08 /* LineOfSight/PointSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3D02F84863E0007BF08 /* LineOfSight/PointSelectionView.swift */; };
+		0F4E79532F9561C200307C73 /* WatchContactStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F4E794F2F9561C200307C73 /* WatchContactStore.swift */; };
+		0F4E79542F9561C200307C73 /* WatchAppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F4E794E2F9561C200307C73 /* WatchAppState.swift */; };
+		0F4E79552F9561C200307C73 /* PhoneWatchRelay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F4E794D2F9561C200307C73 /* PhoneWatchRelay.swift */; };
+		0F4E79562F9561C200307C73 /* WatchMessageStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F4E79502F9561C200307C73 /* WatchMessageStore.swift */; };
+		0F4E79572F9561C200307C73 /* WatchModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F4E79512F9561C200307C73 /* WatchModels.swift */; };
+		0F4E79582F9561C200307C73 /* WatchReceiver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F4E79522F9561C200307C73 /* WatchReceiver.swift */; };
+		0F4E79592F9561C200307C73 /* WatchContactStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F4E794F2F9561C200307C73 /* WatchContactStore.swift */; };
+		0F4E795A2F9561C200307C73 /* WatchAppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F4E794E2F9561C200307C73 /* WatchAppState.swift */; };
+		0F4E795B2F9561C200307C73 /* PhoneWatchRelay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F4E794D2F9561C200307C73 /* PhoneWatchRelay.swift */; };
+		0F4E795C2F9561C200307C73 /* WatchMessageStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F4E79502F9561C200307C73 /* WatchMessageStore.swift */; };
+		0F4E795D2F9561C200307C73 /* WatchModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F4E79512F9561C200307C73 /* WatchModels.swift */; };
+		0F4E795E2F9561C200307C73 /* WatchReceiver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F4E79522F9561C200307C73 /* WatchReceiver.swift */; };
+		0F4E795F2F9561C200307C73 /* WatchContactStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F4E794F2F9561C200307C73 /* WatchContactStore.swift */; };
+		0F4E79602F9561C200307C73 /* WatchAppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F4E794E2F9561C200307C73 /* WatchAppState.swift */; };
+		0F4E79612F9561C200307C73 /* PhoneWatchRelay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F4E794D2F9561C200307C73 /* PhoneWatchRelay.swift */; };
+		0F4E79622F9561C200307C73 /* WatchMessageStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F4E79502F9561C200307C73 /* WatchMessageStore.swift */; };
+		0F4E79632F9561C200307C73 /* WatchModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F4E79512F9561C200307C73 /* WatchModels.swift */; };
+		0F4E79642F9561C200307C73 /* WatchReceiver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F4E79522F9561C200307C73 /* WatchReceiver.swift */; };
+		0F4E79672F95622A00307C73 /* WatchMainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F4E79662F95622A00307C73 /* WatchMainView.swift */; };
+		0F4E79682F95622A00307C73 /* WatchChannelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F4E79652F95622A00307C73 /* WatchChannelView.swift */; };
+		0F4E796B2F95627900307C73 /* WatchConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0F4E796A2F95627900307C73 /* WatchConnectivity.framework */; };
 		0FCE4BE32F7A20E5009358D8 /* PommeCoreViewModel+ResponseHandling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FCE4BE22F7A20C3009358D8 /* PommeCoreViewModel+ResponseHandling.swift */; };
 		0FCE4BE42F7A20E5009358D8 /* PommeCoreViewModel+ResponseHandling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FCE4BE22F7A20C3009358D8 /* PommeCoreViewModel+ResponseHandling.swift */; };
 		0FCE4BE52F7A20E5009358D8 /* PommeCoreViewModel+ResponseHandling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FCE4BE22F7A20C3009358D8 /* PommeCoreViewModel+ResponseHandling.swift */; };
@@ -46,12 +61,8 @@
 		0FD96D502F84A8EE0026DF54 /* Tools/TelemetryChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FD96D4E2F84A8EE0026DF54 /* Tools/TelemetryChartView.swift */; };
 		0FD96D512F84A8EE0026DF54 /* Tools/NoiseFloorMonitorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FD96D4D2F84A8EE0026DF54 /* Tools/NoiseFloorMonitorView.swift */; };
 		0FD96D522F84A8EE0026DF54 /* Tools/TelemetryChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FD96D4E2F84A8EE0026DF54 /* Tools/TelemetryChartView.swift */; };
-		0FD96D562F84AA320026DF54 /* RadioCalculatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FD96D542F84AA320026DF54 /* RadioCalculatorView.swift */; };
-		0FD96D582F84AA320026DF54 /* RadioCalculatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FD96D542F84AA320026DF54 /* RadioCalculatorView.swift */; };
-		ART10000000000000000001 /* LoRaAirtimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ART10000000000000000000 /* LoRaAirtimeView.swift */; };
-		ART10000000000000000002 /* LoRaAirtimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ART10000000000000000000 /* LoRaAirtimeView.swift */; };
-		SBW10000000000000000001 /* SensitivityTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SBW10000000000000000000 /* SensitivityTableView.swift */; };
-		SBW10000000000000000002 /* SensitivityTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SBW10000000000000000000 /* SensitivityTableView.swift */; };
+		0FD96D562F84AA320026DF54 /* Tools/RadioCalculatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FD96D542F84AA320026DF54 /* Tools/RadioCalculatorView.swift */; };
+		0FD96D582F84AA320026DF54 /* Tools/RadioCalculatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FD96D542F84AA320026DF54 /* Tools/RadioCalculatorView.swift */; };
 		18B6F45B61F3581FB64D1DB0 /* DeviceScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2377BED4FF5A7170783BA649 /* DeviceScannerView.swift */; };
 		28A0B13C16FFEC509F16A983 /* NodeSetupWizardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86334BBA19C5E5E981032313 /* NodeSetupWizardView.swift */; };
 		309F59A4C45F0C74C7632AAF /* NetworkToolsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB24E21D8CDBE0500C92E469 /* NetworkToolsView.swift */; };
@@ -70,25 +81,15 @@
 		895D4D4DB59133B2391177FB /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 635B414AA8FC75B37367C7F5 /* PrivacyInfo.xcprivacy */; };
 		8EF971496F064F1AD761B796 /* ContactListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21606E2B959E6496D3B0230D /* ContactListView.swift */; };
 		9144822AD9EB38340AF2317E /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EFFE2BF3488F0C0647632CD /* ChatView.swift */; };
-		CVC10000000100000000001 /* ChatView+Channels.swift in Sources */ = {isa = PBXBuildFile; fileRef = CVC10000000000000000000 /* ChatView+Channels.swift */; };
-		CVC10000000100000000002 /* ChatView+Channels.swift in Sources */ = {isa = PBXBuildFile; fileRef = CVC10000000000000000000 /* ChatView+Channels.swift */; };
-		CVC10000000100000000003 /* ChatView+Channels.swift in Sources */ = {isa = PBXBuildFile; fileRef = CVC10000000000000000000 /* ChatView+Channels.swift */; };
-		CVP10000000100000000001 /* ChatView+Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = CVP10000000000000000000 /* ChatView+Components.swift */; };
-		CVP10000000100000000002 /* ChatView+Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = CVP10000000000000000000 /* ChatView+Components.swift */; };
-		CVP10000000100000000003 /* ChatView+Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = CVP10000000000000000000 /* ChatView+Components.swift */; };
 		94C0CD2260D30DB5BF8D731C /* RadioPreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E616344CEDCD1ADC41548B7 /* RadioPreset.swift */; };
 		96059FF0363E830C376C23ED /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6BA0593D517B1467DBC1C42 /* Theme.swift */; };
 		9A92FFC5BE2A781BEC80720C /* DeviceScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2377BED4FF5A7170783BA649 /* DeviceScannerView.swift */; };
 		9D7EAB7850F077EF373AC84F /* NetworkToolsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB24E21D8CDBE0500C92E469 /* NetworkToolsView.swift */; };
 		A3B4C5D6E7F8A9B0C1D2E3F4 /* NavigationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1F2A3B4C5D6E7F8A9B0C1D2 /* NavigationStore.swift */; };
-		SYN60000000100000000001 /* SyncedSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = SYN60000000000000000001 /* SyncedSettings.swift */; };
-		SYN60000000100000000002 /* SyncedSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = SYN60000000000000000001 /* SyncedSettings.swift */; };
-		SYN60000000100000000003 /* SyncedSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = SYN60000000000000000001 /* SyncedSettings.swift */; };
-		TCK70000000100000000001 /* TelemetryCloudSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = TCK70000000000000000001 /* TelemetryCloudSync.swift */; };
-		TCK70000000100000000002 /* TelemetryCloudSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = TCK70000000000000000001 /* TelemetryCloudSync.swift */; };
-		TCK70000000100000000003 /* TelemetryCloudSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = TCK70000000000000000001 /* TelemetryCloudSync.swift */; };
 		A3C4EC30F51CEF0E73260DD5 /* RadioPreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E616344CEDCD1ADC41548B7 /* RadioPreset.swift */; };
 		A81875C1B0A1226A9333AFCF /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6BA0593D517B1467DBC1C42 /* Theme.swift */; };
+		ART10000000000000000001 /* Tools/LoRaAirtimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ART10000000000000000000 /* Tools/LoRaAirtimeView.swift */; };
+		ART10000000000000000002 /* Tools/LoRaAirtimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ART10000000000000000000 /* Tools/LoRaAirtimeView.swift */; };
 		B2C3D4E5F6071829A3B4C5D6 /* ShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* ShareView.swift */; };
 		B2C3D4E5F6A7B8C9D0E1F2A3 /* ContactRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E1F2 /* ContactRowView.swift */; };
 		B4C5D6E7F8A9B0C1D2E3F4A5 /* NavigationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1F2A3B4C5D6E7F8A9B0C1D2 /* NavigationStore.swift */; };
@@ -99,6 +100,21 @@
 		C3D4E5F6A7B8C9D0E1F2A3B4 /* ContactRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E1F2 /* ContactRowView.swift */; };
 		C9CEA8D3714859C1177D7704 /* ContactListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21606E2B959E6496D3B0230D /* ContactListView.swift */; };
 		CATKUXG25PTVMENJWXQZY49X /* RemoteManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */; };
+		CLA10000000100000000001 /* ContactListView+ContactActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLA10000000000000000000 /* ContactListView+ContactActions.swift */; };
+		CLA10000000100000000002 /* ContactListView+ContactActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLA10000000000000000000 /* ContactListView+ContactActions.swift */; };
+		CLA10000000100000000003 /* ContactListView+ContactActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLA10000000000000000000 /* ContactListView+ContactActions.swift */; };
+		CLC10000000100000000001 /* ContactListView+ChannelsUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLC10000000000000000000 /* ContactListView+ChannelsUI.swift */; };
+		CLC10000000100000000002 /* ContactListView+ChannelsUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLC10000000000000000000 /* ContactListView+ChannelsUI.swift */; };
+		CLC10000000100000000003 /* ContactListView+ChannelsUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLC10000000000000000000 /* ContactListView+ChannelsUI.swift */; };
+		CLU10000000100000000001 /* ContactListView+ContactsUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLU10000000000000000000 /* ContactListView+ContactsUI.swift */; };
+		CLU10000000100000000002 /* ContactListView+ContactsUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLU10000000000000000000 /* ContactListView+ContactsUI.swift */; };
+		CLU10000000100000000003 /* ContactListView+ContactsUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLU10000000000000000000 /* ContactListView+ContactsUI.swift */; };
+		CVC10000000100000000001 /* ChatView+Channels.swift in Sources */ = {isa = PBXBuildFile; fileRef = CVC10000000000000000000 /* ChatView+Channels.swift */; };
+		CVC10000000100000000002 /* ChatView+Channels.swift in Sources */ = {isa = PBXBuildFile; fileRef = CVC10000000000000000000 /* ChatView+Channels.swift */; };
+		CVC10000000100000000003 /* ChatView+Channels.swift in Sources */ = {isa = PBXBuildFile; fileRef = CVC10000000000000000000 /* ChatView+Channels.swift */; };
+		CVP10000000100000000001 /* ChatView+Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = CVP10000000000000000000 /* ChatView+Components.swift */; };
+		CVP10000000100000000002 /* ChatView+Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = CVP10000000000000000000 /* ChatView+Components.swift */; };
+		CVP10000000100000000003 /* ChatView+Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = CVP10000000000000000000 /* ChatView+Components.swift */; };
 		D3633106D9031C89E0589468 /* PommeCoreViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FBBD4DD1E3CAFDF4D56504 /* PommeCoreViewModel.swift */; };
 		D4E5F60718293A4BC5D6E7F8 /* ShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* ShareView.swift */; };
 		D4E5F6A7B8C9D0E1F2A3B4C5 /* ContactRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E1F2 /* ContactRowView.swift */; };
@@ -116,15 +132,40 @@
 		FAA4FA7E3E52FCF631D55675 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6BA0593D517B1467DBC1C42 /* Theme.swift */; };
 		FC6474A70CF5B233AB283928 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D859AE9C98610F71C2FBAAF /* SettingsView.swift */; };
 		FE123217A6AD32B385F9ACBC /* MeshCoreKit in Frameworks */ = {isa = PBXBuildFile; productRef = FBBB0BD5BAFCC905A8DC17D3 /* MeshCoreKit */; };
+		FWC10000000100000000001 /* Services/FirmwareUpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = FWC10000000000000000000 /* Services/FirmwareUpdateChecker.swift */; };
+		FWC10000000100000000002 /* Services/FirmwareUpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = FWC10000000000000000000 /* Services/FirmwareUpdateChecker.swift */; };
+		FWC10000000100000000003 /* Services/FirmwareUpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = FWC10000000000000000000 /* Services/FirmwareUpdateChecker.swift */; };
 		KCM1ABCD0001000000000001 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = KCM1ABCD0000000000000001 /* KeychainManager.swift */; };
 		KCM1ABCD0002000000000001 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = KCM1ABCD0000000000000001 /* KeychainManager.swift */; };
 		KCM1ABCD0003000000000001 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = KCM1ABCD0000000000000001 /* KeychainManager.swift */; };
+		LNK10000000000000000001 /* Services/LinkPreviewService.swift in Sources */ = {isa = PBXBuildFile; fileRef = LNK10000000000000000000 /* Services/LinkPreviewService.swift */; };
+		LNK10000000000000000002 /* Services/LinkPreviewService.swift in Sources */ = {isa = PBXBuildFile; fileRef = LNK10000000000000000000 /* Services/LinkPreviewService.swift */; };
 		MAP10000000000000000001 /* MeshMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MAP10000000000000000000 /* MeshMapView.swift */; };
 		MAP10000000000000000002 /* MeshMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MAP10000000000000000000 /* MeshMapView.swift */; };
 		MAP10000000000000000003 /* MeshMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MAP10000000000000000000 /* MeshMapView.swift */; };
+		NTC10000000100000000001 /* NetworkToolsView+Channels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NTC10000000000000000000 /* NetworkToolsView+Channels.swift */; };
+		NTC10000000100000000002 /* NetworkToolsView+Channels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NTC10000000000000000000 /* NetworkToolsView+Channels.swift */; };
+		NTC10000000100000000003 /* NetworkToolsView+Channels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NTC10000000000000000000 /* NetworkToolsView+Channels.swift */; };
+		NTD10000000100000000001 /* NetworkToolsView+Discovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = NTD10000000000000000000 /* NetworkToolsView+Discovery.swift */; };
+		NTD10000000100000000002 /* NetworkToolsView+Discovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = NTD10000000000000000000 /* NetworkToolsView+Discovery.swift */; };
+		NTD10000000100000000003 /* NetworkToolsView+Discovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = NTD10000000000000000000 /* NetworkToolsView+Discovery.swift */; };
+		NTV10000000100000000001 /* NetworkToolsView+Device.swift in Sources */ = {isa = PBXBuildFile; fileRef = NTV10000000000000000000 /* NetworkToolsView+Device.swift */; };
+		NTV10000000100000000002 /* NetworkToolsView+Device.swift in Sources */ = {isa = PBXBuildFile; fileRef = NTV10000000000000000000 /* NetworkToolsView+Device.swift */; };
+		NTV10000000100000000003 /* NetworkToolsView+Device.swift in Sources */ = {isa = PBXBuildFile; fileRef = NTV10000000000000000000 /* NetworkToolsView+Device.swift */; };
 		OBV10000000000000000001 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBV10000000000000000000 /* OnboardingView.swift */; };
 		OBV10000000000000000002 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBV10000000000000000000 /* OnboardingView.swift */; };
 		OBV10000000000000000003 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBV10000000000000000000 /* OnboardingView.swift */; };
+		RMC10000000100000000001 /* RemoteManagementView+ConfigSections.swift in Sources */ = {isa = PBXBuildFile; fileRef = RMC10000000000000000000 /* RemoteManagementView+ConfigSections.swift */; };
+		RMC10000000100000000002 /* RemoteManagementView+ConfigSections.swift in Sources */ = {isa = PBXBuildFile; fileRef = RMC10000000000000000000 /* RemoteManagementView+ConfigSections.swift */; };
+		RMC10000000100000000003 /* RemoteManagementView+ConfigSections.swift in Sources */ = {isa = PBXBuildFile; fileRef = RMC10000000000000000000 /* RemoteManagementView+ConfigSections.swift */; };
+		RMD10000000100000000001 /* RemoteManagementView+DeviceSections.swift in Sources */ = {isa = PBXBuildFile; fileRef = RMD10000000000000000000 /* RemoteManagementView+DeviceSections.swift */; };
+		RMD10000000100000000002 /* RemoteManagementView+DeviceSections.swift in Sources */ = {isa = PBXBuildFile; fileRef = RMD10000000000000000000 /* RemoteManagementView+DeviceSections.swift */; };
+		RMD10000000100000000003 /* RemoteManagementView+DeviceSections.swift in Sources */ = {isa = PBXBuildFile; fileRef = RMD10000000000000000000 /* RemoteManagementView+DeviceSections.swift */; };
+		RMM10000000100000000001 /* RemoteManagementView+ManagementSections.swift in Sources */ = {isa = PBXBuildFile; fileRef = RMM10000000000000000000 /* RemoteManagementView+ManagementSections.swift */; };
+		RMM10000000100000000002 /* RemoteManagementView+ManagementSections.swift in Sources */ = {isa = PBXBuildFile; fileRef = RMM10000000000000000000 /* RemoteManagementView+ManagementSections.swift */; };
+		RMM10000000100000000003 /* RemoteManagementView+ManagementSections.swift in Sources */ = {isa = PBXBuildFile; fileRef = RMM10000000000000000000 /* RemoteManagementView+ManagementSections.swift */; };
+		SBW10000000000000000001 /* Tools/SensitivityTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SBW10000000000000000000 /* Tools/SensitivityTableView.swift */; };
+		SBW10000000000000000002 /* Tools/SensitivityTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SBW10000000000000000000 /* Tools/SensitivityTableView.swift */; };
 		STO10000000100000000001 /* ContactStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = STO10000000000000000001 /* ContactStore.swift */; };
 		STO10000000100000000002 /* ContactStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = STO10000000000000000001 /* ContactStore.swift */; };
 		STO10000000100000000003 /* ContactStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = STO10000000000000000001 /* ContactStore.swift */; };
@@ -140,55 +181,32 @@
 		STO50000000100000000001 /* RemoteSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = STO50000000000000000001 /* RemoteSessionManager.swift */; };
 		STO50000000100000000002 /* RemoteSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = STO50000000000000000001 /* RemoteSessionManager.swift */; };
 		STO50000000100000000003 /* RemoteSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = STO50000000000000000001 /* RemoteSessionManager.swift */; };
-		USB10000000000000000001 /* USBSerialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = USB10000000000000000000 /* USBSerialView.swift */; };
-		USB10000000000000000002 /* USBSerialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = USB10000000000000000000 /* USBSerialView.swift */; };
-		USB10000000000000000003 /* USBSerialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = USB10000000000000000000 /* USBSerialView.swift */; };
-		XUOVAQ6Y1NIWH1G3OMK55ENV /* RemoteManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */; };
+		SVE10000000100000000001 /* SettingsView+Editors.swift in Sources */ = {isa = PBXBuildFile; fileRef = SVE10000000000000000000 /* SettingsView+Editors.swift */; };
+		SVE10000000100000000002 /* SettingsView+Editors.swift in Sources */ = {isa = PBXBuildFile; fileRef = SVE10000000000000000000 /* SettingsView+Editors.swift */; };
+		SVE10000000100000000003 /* SettingsView+Editors.swift in Sources */ = {isa = PBXBuildFile; fileRef = SVE10000000000000000000 /* SettingsView+Editors.swift */; };
+		SVR10000000100000000001 /* SettingsView+RadioPrivacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = SVR10000000000000000000 /* SettingsView+RadioPrivacy.swift */; };
+		SVR10000000100000000002 /* SettingsView+RadioPrivacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = SVR10000000000000000000 /* SettingsView+RadioPrivacy.swift */; };
+		SVR10000000100000000003 /* SettingsView+RadioPrivacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = SVR10000000000000000000 /* SettingsView+RadioPrivacy.swift */; };
 		SVS10000000100000000001 /* SettingsView+Sections.swift in Sources */ = {isa = PBXBuildFile; fileRef = SVS10000000000000000000 /* SettingsView+Sections.swift */; };
 		SVS10000000100000000002 /* SettingsView+Sections.swift in Sources */ = {isa = PBXBuildFile; fileRef = SVS10000000000000000000 /* SettingsView+Sections.swift */; };
 		SVS10000000100000000003 /* SettingsView+Sections.swift in Sources */ = {isa = PBXBuildFile; fileRef = SVS10000000000000000000 /* SettingsView+Sections.swift */; };
 		SVT10000000100000000001 /* SettingsView+TipJar.swift in Sources */ = {isa = PBXBuildFile; fileRef = SVT10000000000000000000 /* SettingsView+TipJar.swift */; };
 		SVT10000000100000000002 /* SettingsView+TipJar.swift in Sources */ = {isa = PBXBuildFile; fileRef = SVT10000000000000000000 /* SettingsView+TipJar.swift */; };
 		SVT10000000100000000003 /* SettingsView+TipJar.swift in Sources */ = {isa = PBXBuildFile; fileRef = SVT10000000000000000000 /* SettingsView+TipJar.swift */; };
-		SVE10000000100000000001 /* SettingsView+Editors.swift in Sources */ = {isa = PBXBuildFile; fileRef = SVE10000000000000000000 /* SettingsView+Editors.swift */; };
-		SVE10000000100000000002 /* SettingsView+Editors.swift in Sources */ = {isa = PBXBuildFile; fileRef = SVE10000000000000000000 /* SettingsView+Editors.swift */; };
-		SVE10000000100000000003 /* SettingsView+Editors.swift in Sources */ = {isa = PBXBuildFile; fileRef = SVE10000000000000000000 /* SettingsView+Editors.swift */; };
-		RMC10000000100000000001 /* RemoteManagementView+ConfigSections.swift in Sources */ = {isa = PBXBuildFile; fileRef = RMC10000000000000000000 /* RemoteManagementView+ConfigSections.swift */; };
-		RMC10000000100000000002 /* RemoteManagementView+ConfigSections.swift in Sources */ = {isa = PBXBuildFile; fileRef = RMC10000000000000000000 /* RemoteManagementView+ConfigSections.swift */; };
-		RMC10000000100000000003 /* RemoteManagementView+ConfigSections.swift in Sources */ = {isa = PBXBuildFile; fileRef = RMC10000000000000000000 /* RemoteManagementView+ConfigSections.swift */; };
-		RMD10000000100000000001 /* RemoteManagementView+DeviceSections.swift in Sources */ = {isa = PBXBuildFile; fileRef = RMD10000000000000000000 /* RemoteManagementView+DeviceSections.swift */; };
-		RMD10000000100000000002 /* RemoteManagementView+DeviceSections.swift in Sources */ = {isa = PBXBuildFile; fileRef = RMD10000000000000000000 /* RemoteManagementView+DeviceSections.swift */; };
-		RMD10000000100000000003 /* RemoteManagementView+DeviceSections.swift in Sources */ = {isa = PBXBuildFile; fileRef = RMD10000000000000000000 /* RemoteManagementView+DeviceSections.swift */; };
-		RMM10000000100000000001 /* RemoteManagementView+ManagementSections.swift in Sources */ = {isa = PBXBuildFile; fileRef = RMM10000000000000000000 /* RemoteManagementView+ManagementSections.swift */; };
-		RMM10000000100000000002 /* RemoteManagementView+ManagementSections.swift in Sources */ = {isa = PBXBuildFile; fileRef = RMM10000000000000000000 /* RemoteManagementView+ManagementSections.swift */; };
-		RMM10000000100000000003 /* RemoteManagementView+ManagementSections.swift in Sources */ = {isa = PBXBuildFile; fileRef = RMM10000000000000000000 /* RemoteManagementView+ManagementSections.swift */; };
-		CLC10000000100000000001 /* ContactListView+ChannelsUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLC10000000000000000000 /* ContactListView+ChannelsUI.swift */; };
-		CLC10000000100000000002 /* ContactListView+ChannelsUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLC10000000000000000000 /* ContactListView+ChannelsUI.swift */; };
-		CLC10000000100000000003 /* ContactListView+ChannelsUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLC10000000000000000000 /* ContactListView+ChannelsUI.swift */; };
-		CLU10000000100000000001 /* ContactListView+ContactsUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLU10000000000000000000 /* ContactListView+ContactsUI.swift */; };
-		CLU10000000100000000002 /* ContactListView+ContactsUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLU10000000000000000000 /* ContactListView+ContactsUI.swift */; };
-		CLU10000000100000000003 /* ContactListView+ContactsUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLU10000000000000000000 /* ContactListView+ContactsUI.swift */; };
-		CLA10000000100000000001 /* ContactListView+ContactActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLA10000000000000000000 /* ContactListView+ContactActions.swift */; };
-		CLA10000000100000000002 /* ContactListView+ContactActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLA10000000000000000000 /* ContactListView+ContactActions.swift */; };
-		CLA10000000100000000003 /* ContactListView+ContactActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLA10000000000000000000 /* ContactListView+ContactActions.swift */; };
-		NTD10000000100000000001 /* NetworkToolsView+Discovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = NTD10000000000000000000 /* NetworkToolsView+Discovery.swift */; };
-		NTD10000000100000000002 /* NetworkToolsView+Discovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = NTD10000000000000000000 /* NetworkToolsView+Discovery.swift */; };
-		NTD10000000100000000003 /* NetworkToolsView+Discovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = NTD10000000000000000000 /* NetworkToolsView+Discovery.swift */; };
-		NTC10000000100000000001 /* NetworkToolsView+Channels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NTC10000000000000000000 /* NetworkToolsView+Channels.swift */; };
-		NTC10000000100000000002 /* NetworkToolsView+Channels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NTC10000000000000000000 /* NetworkToolsView+Channels.swift */; };
-		NTC10000000100000000003 /* NetworkToolsView+Channels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NTC10000000000000000000 /* NetworkToolsView+Channels.swift */; };
-		NTV10000000100000000001 /* NetworkToolsView+Device.swift in Sources */ = {isa = PBXBuildFile; fileRef = NTV10000000000000000000 /* NetworkToolsView+Device.swift */; };
-		NTV10000000100000000002 /* NetworkToolsView+Device.swift in Sources */ = {isa = PBXBuildFile; fileRef = NTV10000000000000000000 /* NetworkToolsView+Device.swift */; };
-		NTV10000000100000000003 /* NetworkToolsView+Device.swift in Sources */ = {isa = PBXBuildFile; fileRef = NTV10000000000000000000 /* NetworkToolsView+Device.swift */; };
-		SVR10000000100000000001 /* SettingsView+RadioPrivacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = SVR10000000000000000000 /* SettingsView+RadioPrivacy.swift */; };
-		SVR10000000100000000002 /* SettingsView+RadioPrivacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = SVR10000000000000000000 /* SettingsView+RadioPrivacy.swift */; };
-		SVR10000000100000000003 /* SettingsView+RadioPrivacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = SVR10000000000000000000 /* SettingsView+RadioPrivacy.swift */; };
+		SYN60000000100000000001 /* SyncedSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = SYN60000000000000000001 /* SyncedSettings.swift */; };
+		SYN60000000100000000002 /* SyncedSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = SYN60000000000000000001 /* SyncedSettings.swift */; };
+		SYN60000000100000000003 /* SyncedSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = SYN60000000000000000001 /* SyncedSettings.swift */; };
+		TCK70000000100000000001 /* TelemetryCloudSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = TCK70000000000000000001 /* TelemetryCloudSync.swift */; };
+		TCK70000000100000000002 /* TelemetryCloudSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = TCK70000000000000000001 /* TelemetryCloudSync.swift */; };
+		TCK70000000100000000003 /* TelemetryCloudSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = TCK70000000000000000001 /* TelemetryCloudSync.swift */; };
+		USB10000000000000000001 /* USBSerialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = USB10000000000000000000 /* USBSerialView.swift */; };
+		USB10000000000000000002 /* USBSerialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = USB10000000000000000000 /* USBSerialView.swift */; };
+		USB10000000000000000003 /* USBSerialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = USB10000000000000000000 /* USBSerialView.swift */; };
+		XUOVAQ6Y1NIWH1G3OMK55ENV /* RemoteManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		0F29C3C42F84856E0007BF08 /* Services/ElevationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/ElevationService.swift; sourceTree = "<group>"; };
-		LNK10000000000000000000 /* Services/LinkPreviewService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/LinkPreviewService.swift; sourceTree = "<group>"; };
-		FWC10000000000000000000 /* Services/FirmwareUpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/FirmwareUpdateChecker.swift; sourceTree = "<group>"; };
 		0F29C3C82F8485BD0007BF08 /* LineOfSightStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineOfSightStore.swift; sourceTree = "<group>"; };
 		0F29C3CC2F84863E0007BF08 /* LineOfSight/AntennaSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineOfSight/AntennaSettingsView.swift; sourceTree = "<group>"; };
 		0F29C3CD2F84863E0007BF08 /* LineOfSight/LineOfSightView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineOfSight/LineOfSightView.swift; sourceTree = "<group>"; };
@@ -198,15 +216,21 @@
 		0F29C3D12F84863E0007BF08 /* LineOfSight/RepeaterConfigView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineOfSight/RepeaterConfigView.swift; sourceTree = "<group>"; };
 		0F29C3D22F84863E0007BF08 /* LineOfSight/TerrainProfileCanvas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineOfSight/TerrainProfileCanvas.swift; sourceTree = "<group>"; };
 		0F29C3D32F84863E0007BF08 /* LineOfSight/TerrainProfileRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineOfSight/TerrainProfileRenderer.swift; sourceTree = "<group>"; };
+		0F4E794D2F9561C200307C73 /* PhoneWatchRelay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneWatchRelay.swift; sourceTree = "<group>"; };
+		0F4E794E2F9561C200307C73 /* WatchAppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchAppState.swift; sourceTree = "<group>"; };
+		0F4E794F2F9561C200307C73 /* WatchContactStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchContactStore.swift; sourceTree = "<group>"; };
+		0F4E79502F9561C200307C73 /* WatchMessageStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchMessageStore.swift; sourceTree = "<group>"; };
+		0F4E79512F9561C200307C73 /* WatchModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchModels.swift; sourceTree = "<group>"; };
+		0F4E79522F9561C200307C73 /* WatchReceiver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchReceiver.swift; sourceTree = "<group>"; };
+		0F4E79652F95622A00307C73 /* WatchChannelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchChannelView.swift; sourceTree = "<group>"; };
+		0F4E79662F95622A00307C73 /* WatchMainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchMainView.swift; sourceTree = "<group>"; };
+		0F4E796A2F95627900307C73 /* WatchConnectivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WatchConnectivity.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.4.sdk/System/Library/Frameworks/WatchConnectivity.framework; sourceTree = DEVELOPER_DIR; };
 		0FCE4BE22F7A20C3009358D8 /* PommeCoreViewModel+ResponseHandling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PommeCoreViewModel+ResponseHandling.swift"; sourceTree = "<group>"; };
 		0FD96D472F84943D0026DF54 /* ToolsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolsView.swift; sourceTree = "<group>"; };
 		0FD96D4A2F84A8CD0026DF54 /* RFMonitorStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RFMonitorStore.swift; sourceTree = "<group>"; };
 		0FD96D4D2F84A8EE0026DF54 /* Tools/NoiseFloorMonitorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tools/NoiseFloorMonitorView.swift; sourceTree = "<group>"; };
 		0FD96D4E2F84A8EE0026DF54 /* Tools/TelemetryChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tools/TelemetryChartView.swift; sourceTree = "<group>"; };
-
-		0FD96D542F84AA320026DF54 /* RadioCalculatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Tools/RadioCalculatorView.swift"; sourceTree = "<group>"; };
-		ART10000000000000000000 /* LoRaAirtimeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Tools/LoRaAirtimeView.swift"; sourceTree = "<group>"; };
-		SBW10000000000000000000 /* SensitivityTableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Tools/SensitivityTableView.swift"; sourceTree = "<group>"; };
+		0FD96D542F84AA320026DF54 /* Tools/RadioCalculatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tools/RadioCalculatorView.swift; sourceTree = "<group>"; };
 		21606E2B959E6496D3B0230D /* ContactListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactListView.swift; sourceTree = "<group>"; };
 		2377BED4FF5A7170783BA649 /* DeviceScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceScannerView.swift; sourceTree = "<group>"; };
 		2EEF439B8EDC4A5408C299FB /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = macOS/PrivacyInfo.xcprivacy; sourceTree = SOURCE_ROOT; };
@@ -222,40 +246,44 @@
 		A1B2C3D4E5F6A7B8C9D0E1F2 /* ContactRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactRowView.swift; sourceTree = "<group>"; };
 		A259126AAB80661010C6A336 /* PommeCoreApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PommeCoreApp.swift; sourceTree = "<group>"; };
 		AE9677D40F85F6D31BD8C43C /* PommeCore.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PommeCore.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		ART10000000000000000000 /* Tools/LoRaAirtimeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tools/LoRaAirtimeView.swift; sourceTree = "<group>"; };
 		B1FBBD4DD1E3CAFDF4D56504 /* PommeCoreViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PommeCoreViewModel.swift; sourceTree = "<group>"; };
+		CLA10000000000000000000 /* ContactListView+ContactActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContactListView+ContactActions.swift"; sourceTree = "<group>"; };
+		CLC10000000000000000000 /* ContactListView+ChannelsUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContactListView+ChannelsUI.swift"; sourceTree = "<group>"; };
+		CLU10000000000000000000 /* ContactListView+ContactsUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContactListView+ContactsUI.swift"; sourceTree = "<group>"; };
+		CVC10000000000000000000 /* ChatView+Channels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatView+Channels.swift"; sourceTree = "<group>"; };
+		CVP10000000000000000000 /* ChatView+Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatView+Components.swift"; sourceTree = "<group>"; };
 		D2AEF5C51E98EC24A3CCA95F /* MeshCoreKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = MeshCoreKit; path = Packages/MeshCoreKit; sourceTree = SOURCE_ROOT; };
 		D4F0BB9B2578DD9861508E3D /* PommeCore Watch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "PommeCore Watch.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		DB24E21D8CDBE0500C92E469 /* NetworkToolsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkToolsView.swift; sourceTree = "<group>"; };
 		DBG10000000000000000000 /* DebugLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugLogView.swift; sourceTree = "<group>"; };
 		E1F2A3B4C5D6E7F8A9B0C1D2 /* NavigationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationStore.swift; sourceTree = "<group>"; };
-		SYN60000000000000000001 /* SyncedSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncedSettings.swift; sourceTree = "<group>"; };
-		TCK70000000000000000001 /* TelemetryCloudSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetryCloudSync.swift; sourceTree = "<group>"; };
 		F6BA0593D517B1467DBC1C42 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		FWC10000000000000000000 /* Services/FirmwareUpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/FirmwareUpdateChecker.swift; sourceTree = "<group>"; };
 		KCM1ABCD0000000000000001 /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
+		LNK10000000000000000000 /* Services/LinkPreviewService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/LinkPreviewService.swift; sourceTree = "<group>"; };
 		LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteManagementView.swift; sourceTree = "<group>"; };
 		MAP10000000000000000000 /* MeshMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshMapView.swift; sourceTree = "<group>"; };
+		NTC10000000000000000000 /* NetworkToolsView+Channels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NetworkToolsView+Channels.swift"; sourceTree = "<group>"; };
+		NTD10000000000000000000 /* NetworkToolsView+Discovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NetworkToolsView+Discovery.swift"; sourceTree = "<group>"; };
+		NTV10000000000000000000 /* NetworkToolsView+Device.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NetworkToolsView+Device.swift"; sourceTree = "<group>"; };
 		OBV10000000000000000000 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		RMC10000000000000000000 /* RemoteManagementView+ConfigSections.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RemoteManagementView+ConfigSections.swift"; sourceTree = "<group>"; };
+		RMD10000000000000000000 /* RemoteManagementView+DeviceSections.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RemoteManagementView+DeviceSections.swift"; sourceTree = "<group>"; };
+		RMM10000000000000000000 /* RemoteManagementView+ManagementSections.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RemoteManagementView+ManagementSections.swift"; sourceTree = "<group>"; };
+		SBW10000000000000000000 /* Tools/SensitivityTableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tools/SensitivityTableView.swift; sourceTree = "<group>"; };
 		STO10000000000000000001 /* ContactStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactStore.swift; sourceTree = "<group>"; };
 		STO20000000000000000001 /* ChannelStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChannelStore.swift; sourceTree = "<group>"; };
 		STO30000000000000000001 /* MessageStoreManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageStoreManager.swift; sourceTree = "<group>"; };
 		STO40000000000000000001 /* ConnectionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionManager.swift; sourceTree = "<group>"; };
 		STO50000000000000000001 /* RemoteSessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteSessionManager.swift; sourceTree = "<group>"; };
-		USB10000000000000000000 /* USBSerialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = USBSerialView.swift; sourceTree = "<group>"; };
-		CVC10000000000000000000 /* ChatView+Channels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatView+Channels.swift"; sourceTree = "<group>"; };
-		CVP10000000000000000000 /* ChatView+Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatView+Components.swift"; sourceTree = "<group>"; };
+		SVE10000000000000000000 /* SettingsView+Editors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SettingsView+Editors.swift"; sourceTree = "<group>"; };
+		SVR10000000000000000000 /* SettingsView+RadioPrivacy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SettingsView+RadioPrivacy.swift"; sourceTree = "<group>"; };
 		SVS10000000000000000000 /* SettingsView+Sections.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SettingsView+Sections.swift"; sourceTree = "<group>"; };
 		SVT10000000000000000000 /* SettingsView+TipJar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SettingsView+TipJar.swift"; sourceTree = "<group>"; };
-		SVE10000000000000000000 /* SettingsView+Editors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SettingsView+Editors.swift"; sourceTree = "<group>"; };
-		RMC10000000000000000000 /* RemoteManagementView+ConfigSections.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RemoteManagementView+ConfigSections.swift"; sourceTree = "<group>"; };
-		RMD10000000000000000000 /* RemoteManagementView+DeviceSections.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RemoteManagementView+DeviceSections.swift"; sourceTree = "<group>"; };
-		RMM10000000000000000000 /* RemoteManagementView+ManagementSections.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RemoteManagementView+ManagementSections.swift"; sourceTree = "<group>"; };
-		CLC10000000000000000000 /* ContactListView+ChannelsUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContactListView+ChannelsUI.swift"; sourceTree = "<group>"; };
-		CLU10000000000000000000 /* ContactListView+ContactsUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContactListView+ContactsUI.swift"; sourceTree = "<group>"; };
-		CLA10000000000000000000 /* ContactListView+ContactActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContactListView+ContactActions.swift"; sourceTree = "<group>"; };
-		NTD10000000000000000000 /* NetworkToolsView+Discovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NetworkToolsView+Discovery.swift"; sourceTree = "<group>"; };
-		NTC10000000000000000000 /* NetworkToolsView+Channels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NetworkToolsView+Channels.swift"; sourceTree = "<group>"; };
-		NTV10000000000000000000 /* NetworkToolsView+Device.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NetworkToolsView+Device.swift"; sourceTree = "<group>"; };
-		SVR10000000000000000000 /* SettingsView+RadioPrivacy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SettingsView+RadioPrivacy.swift"; sourceTree = "<group>"; };
+		SYN60000000000000000001 /* SyncedSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncedSettings.swift; sourceTree = "<group>"; };
+		TCK70000000000000000001 /* TelemetryCloudSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetryCloudSync.swift; sourceTree = "<group>"; };
+		USB10000000000000000000 /* USBSerialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = USBSerialView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -279,6 +307,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0F4E796B2F95627900307C73 /* WatchConnectivity.framework in Frameworks */,
 				49709E93735B40512587904A /* MeshCoreKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -295,16 +324,18 @@
 				725951214897A58A06E32F73 /* Products */,
 				635B414AA8FC75B37367C7F5 /* PrivacyInfo.xcprivacy */,
 				2EEF439B8EDC4A5408C299FB /* PrivacyInfo.xcprivacy */,
+				0F4E79692F95627900307C73 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
 		0A6B0F647BA21A953CCB6490 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-
-				0FD96D542F84AA320026DF54 /* RadioCalculatorView.swift */,
-				ART10000000000000000000 /* LoRaAirtimeView.swift */,
-				SBW10000000000000000000 /* SensitivityTableView.swift */,
+				0F4E79652F95622A00307C73 /* WatchChannelView.swift */,
+				0F4E79662F95622A00307C73 /* WatchMainView.swift */,
+				0FD96D542F84AA320026DF54 /* Tools/RadioCalculatorView.swift */,
+				ART10000000000000000000 /* Tools/LoRaAirtimeView.swift */,
+				SBW10000000000000000000 /* Tools/SensitivityTableView.swift */,
 				0FD96D4D2F84A8EE0026DF54 /* Tools/NoiseFloorMonitorView.swift */,
 				0FD96D4E2F84A8EE0026DF54 /* Tools/TelemetryChartView.swift */,
 				0FD96D472F84943D0026DF54 /* ToolsView.swift */,
@@ -346,6 +377,14 @@
 				DBG10000000000000000000 /* DebugLogView.swift */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		0F4E79692F95627900307C73 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				0F4E796A2F95627900307C73 /* WatchConnectivity.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 		307D79903AB18CCBBF806BCE /* ViewModels */ = {
@@ -396,6 +435,12 @@
 		E0B34F245C5063D4BCB4E068 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				0F4E794D2F9561C200307C73 /* PhoneWatchRelay.swift */,
+				0F4E794E2F9561C200307C73 /* WatchAppState.swift */,
+				0F4E794F2F9561C200307C73 /* WatchContactStore.swift */,
+				0F4E79502F9561C200307C73 /* WatchMessageStore.swift */,
+				0F4E79512F9561C200307C73 /* WatchModels.swift */,
+				0F4E79522F9561C200307C73 /* WatchReceiver.swift */,
 				0F29C3C42F84856E0007BF08 /* Services/ElevationService.swift */,
 				LNK10000000000000000000 /* Services/LinkPreviewService.swift */,
 				FWC10000000000000000000 /* Services/FirmwareUpdateChecker.swift */,
@@ -592,6 +637,14 @@
 				SVT10000000100000000001 /* SettingsView+TipJar.swift in Sources */,
 				SVE10000000100000000001 /* SettingsView+Editors.swift in Sources */,
 				A81875C1B0A1226A9333AFCF /* Theme.swift in Sources */,
+				0F4E79532F9561C200307C73 /* WatchContactStore.swift in Sources */,
+				0F4E79542F9561C200307C73 /* WatchAppState.swift in Sources */,
+				0F4E79552F9561C200307C73 /* PhoneWatchRelay.swift in Sources */,
+				0F4E79562F9561C200307C73 /* WatchMessageStore.swift in Sources */,
+				0F4E79572F9561C200307C73 /* WatchModels.swift in Sources */,
+				0F4E79582F9561C200307C73 /* WatchReceiver.swift in Sources */,
+				0F4E79672F95622A00307C73 /* WatchMainView.swift in Sources */,
+				0F4E79682F95622A00307C73 /* WatchChannelView.swift in Sources */,
 				44472F77FC4CAC4A41BDD12F /* WatchChatView.swift in Sources */,
 				5WT22AMGOSQXJ90NFRN8O6TK /* RemoteManagementView.swift in Sources */,
 				RMC10000000100000000001 /* RemoteManagementView+ConfigSections.swift in Sources */,
@@ -665,10 +718,15 @@
 				DBG10000000000000000002 /* DebugLogView.swift in Sources */,
 				0F29C3DC2F84863E0007BF08 /* LineOfSight/TerrainProfileCanvas.swift in Sources */,
 				0F29C3DD2F84863E0007BF08 /* LineOfSight/AntennaSettingsView.swift in Sources */,
-
-				0FD96D562F84AA320026DF54 /* RadioCalculatorView.swift in Sources */,
-				ART10000000000000000001 /* LoRaAirtimeView.swift in Sources */,
-				SBW10000000000000000001 /* SensitivityTableView.swift in Sources */,
+				0FD96D562F84AA320026DF54 /* Tools/RadioCalculatorView.swift in Sources */,
+				ART10000000000000000001 /* Tools/LoRaAirtimeView.swift in Sources */,
+				SBW10000000000000000001 /* Tools/SensitivityTableView.swift in Sources */,
+				0F4E795F2F9561C200307C73 /* WatchContactStore.swift in Sources */,
+				0F4E79602F9561C200307C73 /* WatchAppState.swift in Sources */,
+				0F4E79612F9561C200307C73 /* PhoneWatchRelay.swift in Sources */,
+				0F4E79622F9561C200307C73 /* WatchMessageStore.swift in Sources */,
+				0F4E79632F9561C200307C73 /* WatchModels.swift in Sources */,
+				0F4E79642F9561C200307C73 /* WatchReceiver.swift in Sources */,
 				0F29C3DE2F84863E0007BF08 /* LineOfSight/RepeaterConfigView.swift in Sources */,
 				0FD96D482F84943D0026DF54 /* ToolsView.swift in Sources */,
 				0F29C3DF2F84863E0007BF08 /* LineOfSight/LoSResultsView.swift in Sources */,
@@ -734,10 +792,15 @@
 				DBG10000000000000000003 /* DebugLogView.swift in Sources */,
 				0F29C3D42F84863E0007BF08 /* LineOfSight/TerrainProfileCanvas.swift in Sources */,
 				0F29C3D52F84863E0007BF08 /* LineOfSight/AntennaSettingsView.swift in Sources */,
-
-				0FD96D582F84AA320026DF54 /* RadioCalculatorView.swift in Sources */,
-				ART10000000000000000002 /* LoRaAirtimeView.swift in Sources */,
-				SBW10000000000000000002 /* SensitivityTableView.swift in Sources */,
+				0FD96D582F84AA320026DF54 /* Tools/RadioCalculatorView.swift in Sources */,
+				ART10000000000000000002 /* Tools/LoRaAirtimeView.swift in Sources */,
+				SBW10000000000000000002 /* Tools/SensitivityTableView.swift in Sources */,
+				0F4E79592F9561C200307C73 /* WatchContactStore.swift in Sources */,
+				0F4E795A2F9561C200307C73 /* WatchAppState.swift in Sources */,
+				0F4E795B2F9561C200307C73 /* PhoneWatchRelay.swift in Sources */,
+				0F4E795C2F9561C200307C73 /* WatchMessageStore.swift in Sources */,
+				0F4E795D2F9561C200307C73 /* WatchModels.swift in Sources */,
+				0F4E795E2F9561C200307C73 /* WatchReceiver.swift in Sources */,
 				0F29C3D62F84863E0007BF08 /* LineOfSight/RepeaterConfigView.swift in Sources */,
 				0FD96D492F84943D0026DF54 /* ToolsView.swift in Sources */,
 				0F29C3D72F84863E0007BF08 /* LineOfSight/LoSResultsView.swift in Sources */,
