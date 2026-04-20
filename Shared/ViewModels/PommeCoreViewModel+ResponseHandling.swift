@@ -376,7 +376,7 @@ extension PommeCoreViewModel {
         if remoteSessionManager.handleErrorResponse(code: code, description: description) { return }
         switch MeshCoreErrorCode(rawValue: code) {
         case .unsupportedCmd:
-            connectionManager.lastErrorMessage = "This command is not supported on the current firmware version."
+            Self.logger.warning("ERR_CODE_UNSUPPORTED_CMD — firmware does not support this command (older firmware version), not user-actionable")
         case .illegalArg:
             Self.logger.warning("ERR_CODE_ILLEGAL_ARG received — likely protocol/firmware mismatch, not user-actionable")
         case .notFound, .tableFull, .badState, .fileIOError:
