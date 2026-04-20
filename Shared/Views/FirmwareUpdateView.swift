@@ -70,8 +70,8 @@ struct FirmwareUpdateView: View {
         case .detectingRadio(_, _):
             detectingView
 
-        case .uploading:
-            uploadingView
+        case .uploading(let progress):
+            uploadingView(progress: progress)
 
         case .done:
             doneView
@@ -302,7 +302,7 @@ struct FirmwareUpdateView: View {
 
     // MARK: - Uploading
 
-    private var uploadingView: some View {
+    private func uploadingView(progress: Double) -> some View {
         VStack(spacing: 24) {
             stepHeader(
                 icon: "arrow.up.circle",
@@ -310,9 +310,15 @@ struct FirmwareUpdateView: View {
                 subtitle: "Transferring firmware to your radio over WiFi…"
             )
 
-            ProgressView()
-                .controlSize(.large)
-                .tint(MeshTheme.accent)
+            VStack(spacing: 8) {
+                ProgressView(value: progress > 0 ? progress : nil)
+                    .tint(MeshTheme.accent)
+                if progress > 0 {
+                    Text("\(Int(progress * 100))%")
+                        .font(.caption)
+                        .foregroundStyle(MeshTheme.textSecondary)
+                }
+            }
 
             Text("Do not close the app or disconnect from '\(FirmwareOTAService.otaSSID)' WiFi.")
                 .font(.caption)

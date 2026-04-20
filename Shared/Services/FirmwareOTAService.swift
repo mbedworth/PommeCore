@@ -46,7 +46,7 @@ final class FirmwareOTAService {
         case downloading(progress: Double, asset: OTAAsset)
         case activateOTA(firmwareData: Data, asset: OTAAsset)
         case detectingRadio(firmwareData: Data, asset: OTAAsset)
-        case uploading
+        case uploading(progress: Double)
         case done
         case failed(String, canRetry: Bool)
     }
@@ -188,7 +188,7 @@ final class FirmwareOTAService {
                 let (_, response) = try await pollSession.data(from: pollURL)
                 if (response as? HTTPURLResponse)?.statusCode != nil {
                     // Radio is reachable — upload
-                    step = .uploading
+                    step = .uploading(progress: 0)
                     do {
                         try await uploadFirmware(firmwareData)
                         step = .done
@@ -228,7 +228,13 @@ final class FirmwareOTAService {
         request.httpBody = body
         request.timeoutInterval = 120
 
-        let (_, response) = try await URLSession.shared.data(for: request)
+        let delegate = UploadProgressDelegate { [weak self] progress in
+            guard let self else { return }
+            self.step = .uploading(progress: progress)
+        }
+        let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
+
+        let (_, response) = try await session.data(for: request)
         guard let http = response as? HTTPURLResponse else {
             throw OTAError.uploadFailed(0)
         }
@@ -256,6 +262,25 @@ final class FirmwareOTAService {
             case .uploadFailed(let c): return c == 0 ? "No response from radio" : "Upload failed (HTTP \(c))"
             }
         }
+    }
+}
+
+// MARK: - Upload progress delegate
+
+private final class UploadProgressDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
+    private let onProgress: (Double) -> Void
+
+    init(onProgress: @escaping (Double) -> Void) {
+        self.onProgress = onProgress
+    }
+
+    func urlSession(_ session: URLSession, task: URLSessionTask,
+                    didSendBodyData bytesSent: Int64,
+                    totalBytesSent: Int64,
+                    totalBytesExpectedToSend: Int64) {
+        guard totalBytesExpectedToSend > 0 else { return }
+        let progress = Double(totalBytesSent) / Double(totalBytesExpectedToSend)
+        DispatchQueue.main.async { self.onProgress(progress) }
     }
 }
 
