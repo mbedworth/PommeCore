@@ -17,6 +17,12 @@ import MeshCoreKit
 import CoreLocation
 #endif
 
+/// Wraps a firmware version string so it can be used as a `.sheet(item:)` identifier.
+struct FirmwareOTAItem: Identifiable {
+    let version: String
+    var id: String { version }
+}
+
 struct SettingsView: View {
     @Environment(DeviceConfig.self) var deviceConfig
     @Environment(ConnectionManager.self) var connectionManager
@@ -49,8 +55,7 @@ struct SettingsView: View {
     @State var showTipJarSheet = false
     #endif
     @State var showSetupWizard = false
-    @State var showFirmwareOTASheet = false
-    @State var firmwareOTALatestVersion = ""
+    @State var firmwareOTAItem: FirmwareOTAItem? = nil
 
     var batteryChemistry: BatteryChemistry {
         BatteryChemistry(rawValue: batteryChemistryRaw) ?? .lipo
@@ -212,8 +217,8 @@ struct SettingsView: View {
             }
             .meshTheme()
         }
-        .sheet(isPresented: $showFirmwareOTASheet) {
-            FirmwareUpdateView(latestVersion: firmwareOTALatestVersion)
+        .sheet(item: $firmwareOTAItem) { item in
+            FirmwareUpdateView(latestVersion: item.version)
                 #if os(macOS) || targetEnvironment(macCatalyst)
                 .frame(minWidth: 480, minHeight: 420)
                 #endif
@@ -280,8 +285,8 @@ struct SettingsView: View {
             }
         }
         .inspectorColumnWidth(min: 300, ideal: 400, max: 500)
-        .sheet(isPresented: $showFirmwareOTASheet) {
-            FirmwareUpdateView(latestVersion: firmwareOTALatestVersion)
+        .sheet(item: $firmwareOTAItem) { item in
+            FirmwareUpdateView(latestVersion: item.version)
                 .frame(minWidth: 480, minHeight: 420)
         }
         // macOS/Catalyst: Tip Jar sheet anchored at the List level (not on the row Button)

@@ -142,9 +142,9 @@ extension SettingsView {
 extension SettingsView {
     var deviceInfoSection: some View {
         #if os(macOS) || targetEnvironment(macCatalyst)
-        DeviceInfoSection(batteryChemistryRaw: $batteryChemistryRaw, showSetupWizard: $showSetupWizard, connectedDeviceName: connectionManager.connectedDeviceName, showOTASheet: $showFirmwareOTASheet, otaLatestVersion: $firmwareOTALatestVersion, inspectorSheet: $inspectorSheet, showInspector: $showInspector)
+        DeviceInfoSection(batteryChemistryRaw: $batteryChemistryRaw, showSetupWizard: $showSetupWizard, connectedDeviceName: connectionManager.connectedDeviceName, onShowOTA: { firmwareOTAItem = FirmwareOTAItem(version: $0) }, inspectorSheet: $inspectorSheet, showInspector: $showInspector)
         #else
-        DeviceInfoSection(batteryChemistryRaw: $batteryChemistryRaw, showSetupWizard: $showSetupWizard, connectedDeviceName: connectionManager.connectedDeviceName, showOTASheet: $showFirmwareOTASheet, otaLatestVersion: $firmwareOTALatestVersion, activeSheet: $iosDeviceSheet)
+        DeviceInfoSection(batteryChemistryRaw: $batteryChemistryRaw, showSetupWizard: $showSetupWizard, connectedDeviceName: connectionManager.connectedDeviceName, onShowOTA: { firmwareOTAItem = FirmwareOTAItem(version: $0) }, activeSheet: $iosDeviceSheet)
         #endif
     }
 
@@ -162,8 +162,8 @@ struct DeviceInfoSection: View {
     @Binding var showSetupWizard: Bool
     var connectedDeviceName: String?
     @State private var firmwareChecker = FirmwareUpdateChecker()
-    @Binding var showOTASheet: Bool
-    @Binding var otaLatestVersion: String
+    /// Called with the resolved version string when the user taps the OTA row.
+    var onShowOTA: (String) -> Void
     #if os(macOS) || targetEnvironment(macCatalyst)
     /// Binding to parent SettingsView — drives the inspector panel content.
     @Binding var inspectorSheet: DeviceSheet?
@@ -371,8 +371,7 @@ struct DeviceInfoSection: View {
         Group {
             if firmwareChecker.isUpdateAvailable, let latest = firmwareChecker.latestVersion {
                 Button {
-                    otaLatestVersion = latest
-                    showOTASheet = true
+                    onShowOTA(latest)
                 } label: {
                     HStack(spacing: 8) {
                         Image(systemName: "arrow.down.circle.fill")

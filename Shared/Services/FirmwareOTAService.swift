@@ -150,7 +150,10 @@ final class FirmwareOTAService {
             throw OTAError.networkError("Download failed — check internet connection")
         }
 
-        let total = Int(response.expectedContentLength)
+        // GitHub uses chunked encoding — expectedContentLength is often -1.
+        // Fall back to the known asset size for progress reporting.
+        let contentLength = Int(response.expectedContentLength)
+        let total = contentLength > 0 ? contentLength : asset.sizeBytes
         var received = Data()
         received.reserveCapacity(max(total, asset.sizeBytes))
 
@@ -158,7 +161,7 @@ final class FirmwareOTAService {
             guard !isCancelled else { throw OTAError.cancelled }
             received.append(byte)
             if total > 0 {
-                let pct = Double(received.count) / Double(total)
+                let pct = min(Double(received.count) / Double(total), 1.0)
                 if case .downloading(_, let a) = step {
                     step = .downloading(progress: pct, asset: a)
                 }
@@ -250,7 +253,7 @@ final class FirmwareOTAService {
             guard http.statusCode < 400 else {
                 throw OTAError.uploadFailed(http.statusCode)
             }
-        } catch let urlError as URLError where delegate.allBytesUploaded {
+        } catch _ as URLError where delegate.allBytesUploaded {
             // ESP32 reboots immediately after flashing, dropping the connection
             // before the HTTP response is fully sent. If all bytes were uploaded,
             // treat any connection error as success.
