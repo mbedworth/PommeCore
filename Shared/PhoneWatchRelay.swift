@@ -30,6 +30,7 @@ final class PhoneWatchRelay: NSObject {
     private var stateSendTask: Task<Void, Never>?
     private var contactsSendTask: Task<Void, Never>?
     private var channelsSendTask: Task<Void, Never>?
+    private var messagesSendTask: Task<Void, Never>?
 
     // Last-sent payload cache — skip WCSession transfer when payload is unchanged.
     private var lastSentStateData: Data?
@@ -83,6 +84,18 @@ final class PhoneWatchRelay: NSObject {
             }
         }
         trackChannels()
+
+        func trackMessages() {
+            withObservationTracking {
+                _ = messageStoreManager?.messagesByContact
+            } onChange: {
+                Task { @MainActor [weak self] in
+                    self?.scheduleSendUnreadMessages()
+                    trackMessages()
+                }
+            }
+        }
+        trackMessages()
     }
 
     private func scheduleSendState() {
@@ -109,6 +122,27 @@ final class PhoneWatchRelay: NSObject {
             try? await Task.sleep(nanoseconds: 1_000_000_000)
             guard !Task.isCancelled else { return }
             self?.sendChannels()
+        }
+    }
+
+    private func scheduleSendUnreadMessages() {
+        messagesSendTask?.cancel()
+        messagesSendTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            guard !Task.isCancelled else { return }
+            self?.sendAllUnreadMessages()
+        }
+    }
+
+    func sendAllUnreadMessages() {
+        guard let store = messageStoreManager, let contacts = contactStore?.contacts else { return }
+        for (key, count) in store.unreadCounts where count > 0 {
+            if key.count == 6,
+               let contact = contacts.first(where: { $0.publicKeyPrefix == key }) {
+                sendRecentMessages(for: contact.publicKey.hexCompact)
+            } else if key.count == 1 {
+                sendChannelMessages(channelIndex: key[0])
+            }
         }
     }
 
@@ -248,6 +282,15 @@ final class PhoneWatchRelay: NSObject {
                   let keyData = Data(hexString: keyHex) else { return }
             messageStoreManager?.markAsRead(contactKey: Data(keyData.prefix(6)))
 
+        case .requestMessages:
+            if let keyHex = payload.contactKeyHex {
+                if let index = WatchContact.channelIndexFrom(key: keyHex) {
+                    sendChannelMessages(channelIndex: index)
+                } else {
+                    sendRecentMessages(for: keyHex)
+                }
+            }
+
         case .sendAdvert:
             connectionManager?.sendAdvertise(type: 1)
         }
@@ -319,6 +362,7 @@ extension PhoneWatchRelay: WCSessionDelegate {
             sendState()
             sendContacts()
             sendChannels()
+            sendAllUnreadMessages()
         }
     }
 
