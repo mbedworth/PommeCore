@@ -198,14 +198,6 @@ struct RemoteMaintenanceSection: View {
                 }
                 .buttonStyle(.plain)
                 .listRowBackground(MeshTheme.surface)
-                .alert("Reboot Remote Device?", isPresented: $showRebootConfirm) {
-                    Button("Cancel", role: .cancel) {}
-                    Button("Reboot", role: .destructive) {
-                        sendCLI("reboot")
-                    }
-                } message: {
-                    Text("The remote device will restart. You will need to log in again.")
-                }
 
                 Button {
                     showOTAConfirm = true
@@ -222,15 +214,23 @@ struct RemoteMaintenanceSection: View {
                 }
                 .buttonStyle(.plain)
                 .listRowBackground(MeshTheme.surface)
-                .alert("Start OTA Update?", isPresented: $showOTAConfirm) {
-                    Button("Cancel", role: .cancel) {}
-                    Button("Start OTA", role: .destructive) {
-                        sendCLI("start ota")
-                    }
-                } message: {
-                    Text("The device will create a 'MeshCore-OTA' WiFi hotspot. Connect to it and use the Firmware Update flow to upload the new binary.")
-                }
             }
+        }
+        .alert("Reboot Remote Device?", isPresented: $showRebootConfirm) {
+            Button("Cancel", role: .cancel) {}
+            Button("Reboot", role: .destructive) {
+                sendCLI("reboot")
+            }
+        } message: {
+            Text("The remote device will restart. You will need to log in again.")
+        }
+        .alert("Start OTA Update?", isPresented: $showOTAConfirm) {
+            Button("Cancel", role: .cancel) {}
+            Button("Start OTA", role: .destructive) {
+                sendCLI("start ota")
+            }
+        } message: {
+            Text("The device will create a 'MeshCore-OTA' WiFi hotspot. Connect to it and use the Firmware Update flow to upload the new binary.")
         }
     }
 }
