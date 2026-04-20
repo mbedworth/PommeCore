@@ -226,21 +226,35 @@ final class FirmwareOTAService {
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         request.setValue("\(body.count)", forHTTPHeaderField: "Content-Length")
         request.httpBody = body
-        request.timeoutInterval = 120
 
         let delegate = UploadProgressDelegate { [weak self] progress in
             guard let self else { return }
             self.step = .uploading(progress: progress)
         }
-        let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
 
-        let (_, response) = try await session.data(for: request)
-        guard let http = response as? HTTPURLResponse else {
-            throw OTAError.uploadFailed(0)
-        }
-        // AsyncElegantOTA returns 200 on success; it may also redirect
-        guard http.statusCode < 400 else {
-            throw OTAError.uploadFailed(http.statusCode)
+        // 30s idle timeout per segment; 10 min total — ESP32 AP is slow
+        // timeoutInterval on URLRequest is unreliable for large body uploads on macOS;
+        // set it on the configuration instead.
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 30
+        config.timeoutIntervalForResource = 600
+        config.requestCachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        let session = URLSession(configuration: config, delegate: delegate, delegateQueue: nil)
+
+        do {
+            let (_, response) = try await session.data(for: request)
+            guard let http = response as? HTTPURLResponse else {
+                throw OTAError.uploadFailed(0)
+            }
+            // AsyncElegantOTA returns 200 on success; it may also redirect
+            guard http.statusCode < 400 else {
+                throw OTAError.uploadFailed(http.statusCode)
+            }
+        } catch let urlError as URLError where delegate.allBytesUploaded {
+            // ESP32 reboots immediately after flashing, dropping the connection
+            // before the HTTP response is fully sent. If all bytes were uploaded,
+            // treat any connection error as success.
+            return
         }
     }
 
@@ -269,6 +283,8 @@ final class FirmwareOTAService {
 
 private final class UploadProgressDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
     private let onProgress: (Double) -> Void
+    /// True once all upload bytes have been sent to the ESP32.
+    private(set) var allBytesUploaded = false
 
     init(onProgress: @escaping (Double) -> Void) {
         self.onProgress = onProgress
@@ -280,6 +296,7 @@ private final class UploadProgressDelegate: NSObject, URLSessionTaskDelegate, @u
                     totalBytesExpectedToSend: Int64) {
         guard totalBytesExpectedToSend > 0 else { return }
         let progress = Double(totalBytesSent) / Double(totalBytesExpectedToSend)
+        if totalBytesSent >= totalBytesExpectedToSend { allBytesUploaded = true }
         DispatchQueue.main.async { self.onProgress(progress) }
     }
 }
