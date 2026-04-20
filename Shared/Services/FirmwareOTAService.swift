@@ -152,18 +152,26 @@ final class FirmwareOTAService {
 
         // GitHub uses chunked encoding — expectedContentLength is often -1.
         // Fall back to the known asset size for progress reporting.
+        // GitHub uses chunked encoding — expectedContentLength is often -1.
+        // Fall back to the known asset size for progress reporting.
         let contentLength = Int(response.expectedContentLength)
         let total = contentLength > 0 ? contentLength : asset.sizeBytes
         var received = Data()
         received.reserveCapacity(max(total, asset.sizeBytes))
 
+        var lastReportedPct = 0.0
         for try await byte in asyncBytes {
             guard !isCancelled else { throw OTAError.cancelled }
             received.append(byte)
             if total > 0 {
                 let pct = min(Double(received.count) / Double(total), 1.0)
-                if case .downloading(_, let a) = step {
-                    step = .downloading(progress: pct, asset: a)
+                // Throttle UI updates to every 0.5% — firing on every byte causes
+                // 1.2M SwiftUI state mutations and brings the download to a crawl.
+                if pct - lastReportedPct >= 0.005 {
+                    lastReportedPct = pct
+                    if case .downloading(_, let a) = step {
+                        step = .downloading(progress: pct, asset: a)
+                    }
                 }
             }
         }

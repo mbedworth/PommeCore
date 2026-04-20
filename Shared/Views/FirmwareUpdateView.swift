@@ -239,9 +239,15 @@ struct FirmwareUpdateView: View {
                 // Step B: connect to WiFi
                 instructionCard(number: "2", title: "Connect to '\(FirmwareOTAService.otaSSID)' WiFi") {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("After the radio starts OTA mode, go to your device Settings → Wi-Fi and connect to:")
+                        #if os(macOS) || targetEnvironment(macCatalyst)
+                        Text("After the radio starts OTA mode, click the WiFi icon in the menu bar and connect to:")
                             .font(.subheadline)
                             .foregroundStyle(MeshTheme.textPrimary)
+                        #else
+                        Text("After the radio starts OTA mode, go to Settings → Wi-Fi and connect to:")
+                            .font(.subheadline)
+                            .foregroundStyle(MeshTheme.textPrimary)
+                        #endif
                         HStack(spacing: 8) {
                             Image(systemName: "wifi")
                                 .foregroundStyle(MeshTheme.accent)
@@ -406,7 +412,7 @@ struct FirmwareUpdateView: View {
 
     private var otaManualInstructions: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Connect your radio via USB serial and run:")
+            Text("Press the physical OTA button on your hardware, or connect via USB serial and run:")
                 .font(.subheadline)
                 .foregroundStyle(MeshTheme.textPrimary)
             Text("start ota")
@@ -416,7 +422,7 @@ struct FirmwareUpdateView: View {
                 .background(MeshTheme.accent.opacity(0.1))
                 .foregroundStyle(MeshTheme.accent)
                 .clipShape(RoundedRectangle(cornerRadius: 6))
-            Text("Alternatively, use the physical OTA button if your hardware has one.")
+            Text("Note: if your radio is connected via WiFi, it will disconnect when OTA mode starts — that's expected.")
                 .font(.caption)
                 .foregroundStyle(MeshTheme.textSecondary)
         }
