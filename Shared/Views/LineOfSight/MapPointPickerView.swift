@@ -5,6 +5,9 @@
 //  Map for selecting LoS endpoints.
 //  iOS: tap to drop pin. macOS: crosshair at center, pan map to position.
 //
+//  Created by Michael P. Bedworth on 04/06/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
 
 #if !os(watchOS)
 import SwiftUI

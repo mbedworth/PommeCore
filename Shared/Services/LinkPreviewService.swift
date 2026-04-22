@@ -5,6 +5,9 @@
 //  Fetches OpenGraph metadata from URLs for inline link previews.
 //  Caches results in memory to avoid redundant fetches.
 //
+//  Created by Michael P. Bedworth on 04/07/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
 
 import Foundation
 import os.log

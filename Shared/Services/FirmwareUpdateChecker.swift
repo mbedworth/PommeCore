@@ -4,6 +4,9 @@
 //
 //  Checks GitHub for newer MeshCore firmware releases (cached once per day).
 //
+//  Created by Michael P. Bedworth on 04/07/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
 
 import Foundation
 import MeshCoreKit

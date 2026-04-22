@@ -4,6 +4,9 @@
 //
 //  Reusable picker for selecting an LoS endpoint: GPS, Contact, Map Pin, or Coordinates.
 //
+//  Created by Michael P. Bedworth on 04/06/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
 
 import SwiftUI
 import CoreLocation

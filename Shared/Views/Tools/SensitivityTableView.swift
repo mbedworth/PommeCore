@@ -5,6 +5,9 @@
 //  LoRa sensitivity and performance reference table.
 //  Shows how SF and BW affect sensitivity, bit rate, and range.
 //
+//  Created by Michael P. Bedworth on 04/07/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
 
 #if !os(watchOS)
 import SwiftUI

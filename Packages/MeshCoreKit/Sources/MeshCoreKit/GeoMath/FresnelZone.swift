@@ -4,6 +4,9 @@
 //
 //  RF calculations: Fresnel zone radius, earth bulge, atmospheric refraction.
 //
+//  Created by Michael P. Bedworth on 04/06/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
 
 import Foundation
 

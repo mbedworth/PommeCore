@@ -5,6 +5,9 @@
 //  Open-Meteo API client for terrain elevation data.
 //  Free API, no key required, max 100 points per request.
 //
+//  Created by Michael P. Bedworth on 04/06/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
 
 import Foundation
 import os.log

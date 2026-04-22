@@ -5,6 +5,9 @@
 //  Pure drawing logic for the terrain profile canvas.
 //  Extracted from Canvas view for testability and separation of concerns.
 //
+//  Created by Michael P. Bedworth on 04/06/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
 
 import SwiftUI
 import MeshCoreKit

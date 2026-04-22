@@ -4,6 +4,9 @@
 //
 //  Multi-relay configuration: add/remove relay hops, position, and antenna height.
 //
+//  Created by Michael P. Bedworth on 04/06/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
 
 import SwiftUI
 import CoreLocation

@@ -4,6 +4,9 @@
 //
 //  Data models for Line of Sight terrain analysis.
 //
+//  Created by Michael P. Bedworth on 04/06/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
 
 import Foundation
 

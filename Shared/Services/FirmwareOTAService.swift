@@ -5,6 +5,9 @@
 //  State machine for ESP32 WiFi OTA firmware updates.
 //  Flow: fetch assets → select binary → download → wait for OTA WiFi → upload → done.
 //
+//  Created by Michael P. Bedworth on 04/19/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
 
 import Foundation
 

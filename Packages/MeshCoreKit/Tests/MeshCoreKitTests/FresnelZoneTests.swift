@@ -4,6 +4,9 @@
 //
 //  Tests for RF calculations: Fresnel zone, earth bulge, clearance.
 //
+//  Created by Michael P. Bedworth on 04/06/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
 
 import XCTest
 @testable import MeshCoreKit

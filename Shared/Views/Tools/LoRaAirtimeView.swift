@@ -5,6 +5,9 @@
 //  LoRa airtime calculator: time-on-air, duty cycle, and packets-per-hour.
 //  Pure math — works offline, no radio connection required.
 //
+//  Created by Michael P. Bedworth on 04/07/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
 
 #if !os(watchOS)
 import SwiftUI

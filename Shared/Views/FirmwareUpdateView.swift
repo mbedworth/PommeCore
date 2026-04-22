@@ -4,6 +4,9 @@
 //
 //  Step-by-step guided UI for ESP32 WiFi OTA firmware updates.
 //
+//  Created by Michael P. Bedworth on 04/19/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
 
 import SwiftUI
 import MeshCoreKit

@@ -6,6 +6,9 @@
 //  Each record is one contact's telemetry for one day.
 //  Local JSON file remains the primary cache; CloudKit is the sync layer.
 //
+//  Created by Michael P. Bedworth on 04/07/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
 
 #if !os(watchOS)
 import Foundation

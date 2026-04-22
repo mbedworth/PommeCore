@@ -5,6 +5,9 @@
 //  RF link budget calculator: wavelength, free-space path loss, link budget.
 //  Works offline — no radio connection required.
 //
+//  Created by Michael P. Bedworth on 04/06/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
 
 #if !os(watchOS)
 import SwiftUI

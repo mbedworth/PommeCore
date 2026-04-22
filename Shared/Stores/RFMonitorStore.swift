@@ -4,6 +4,9 @@
 //
 //  Stores telemetry history and noise floor (SNR/RSSI) readings for charts.
 //
+//  Created by Michael P. Bedworth on 04/06/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
 
 import Foundation
 import CoreLocation

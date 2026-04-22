@@ -5,6 +5,9 @@
 //  SwiftUI Canvas wrapper for terrain profile visualization.
 //  Delegates drawing to TerrainProfileRenderer. Supports drag-to-scrub.
 //
+//  Created by Michael P. Bedworth on 04/06/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
 
 import SwiftUI
 import MeshCoreKit

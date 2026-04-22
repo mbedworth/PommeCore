@@ -4,6 +4,9 @@
 //
 //  Planning and monitoring tools — accessible from the sidebar.
 //
+//  Created by Michael P. Bedworth on 04/06/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
 
 #if !os(watchOS)
 import SwiftUI

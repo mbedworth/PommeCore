@@ -4,6 +4,9 @@
 //
 //  Core LoS analysis engine: profile analysis, clearance computation.
 //
+//  Created by Michael P. Bedworth on 04/06/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
 
 import Foundation
 

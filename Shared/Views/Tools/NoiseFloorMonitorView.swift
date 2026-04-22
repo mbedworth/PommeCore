@@ -4,6 +4,9 @@
 //
 //  Live RF noise floor chart showing SNR and RSSI from LOG_RX_DATA (0x88).
 //
+//  Created by Michael P. Bedworth on 04/06/26.
+//  Copyright © 2026 Michael P. Bedworth. All rights reserved.
+//
 
 #if !os(watchOS)
 import SwiftUI
