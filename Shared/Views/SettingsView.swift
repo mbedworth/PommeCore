@@ -159,6 +159,12 @@ struct SettingsView: View {
 
             // 5. Notifications
             notificationsSection
+
+            // 6. Watch Companion
+            #if os(iOS)
+            watchCompanionSection
+            #endif
+
             messageSettingsSection
 
             // 7. Privacy & Security

@@ -1,0 +1,15 @@
+{
+  "originHash" : "45d14d80687957410e1e277a741c94ee3db531356b012895a88c64abc51c5e51",
+  "pins" : [
+    {
+      "identity" : "pommecorewatchkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mbedworth/PommeCoreWatchKit",
+      "state" : {
+        "revision" : "c011f3f79324f7d5736d39d73070ceb3a4f4f646",
+        "version" : "1.0.0"
+      }
+    }
+  ],
+  "version" : 3
+}

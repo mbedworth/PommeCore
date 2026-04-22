@@ -704,3 +704,125 @@ extension SettingsView {
     }
 }
 
+// MARK: - Watch Companion
+
+#if os(iOS)
+extension SettingsView {
+    var watchCompanionSection: some View {
+        WatchCompanionSection()
+    }
+}
+
+@MainActor
+struct WatchCompanionSection: View {
+    @ObservedObject private var unlockManager = WatchUnlockManager.shared
+    @State private var watchProduct: Product?
+    @State private var isPurchasing = false
+    @State private var loadError: String?
+
+    var body: some View {
+        Section {
+            if unlockManager.isUnlocked {
+                HStack {
+                    Label("Watch Companion", systemImage: "applewatch")
+                        .foregroundStyle(MeshTheme.accent)
+                    Spacer()
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(.green)
+                    Text("Active")
+                        .foregroundStyle(.secondary)
+                        .font(.caption)
+                }
+                .listRowBackground(MeshTheme.surface)
+            } else {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Send and receive mesh messages from your Apple Watch.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    if let err = loadError {
+                        Text(err)
+                            .font(.caption2)
+                            .foregroundStyle(.red)
+                    }
+                }
+                .listRowBackground(MeshTheme.surface)
+
+                if let product = watchProduct {
+                    Button {
+                        Task { await purchaseCompanion(product) }
+                    } label: {
+                        HStack {
+                            Label("Unlock Watch Companion", systemImage: "applewatch")
+                                .foregroundStyle(MeshTheme.accent)
+                            Spacer()
+                            if isPurchasing {
+                                ProgressView()
+                                    .tint(MeshTheme.accent)
+                            } else {
+                                Text(product.displayPrice)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                    .disabled(isPurchasing)
+                    .listRowBackground(MeshTheme.surface)
+                } else if loadError == nil {
+                    HStack {
+                        Label("Unlock Watch Companion", systemImage: "applewatch")
+                            .foregroundStyle(MeshTheme.accent)
+                        Spacer()
+                        ProgressView()
+                            .tint(MeshTheme.accent)
+                    }
+                    .listRowBackground(MeshTheme.surface)
+                }
+
+                Text("$9.99 supporters also receive Watch Companion automatically.")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .listRowBackground(MeshTheme.surface)
+            }
+        } header: {
+            SectionInfoHeader(title: "Watch Companion", info: "Requires Apple Watch paired with this iPhone. Messages sync via WatchConnectivity when your iPhone is nearby or reachable.")
+        }
+        .task { await loadProduct() }
+    }
+
+    private func loadProduct() async {
+        do {
+            let products = try await Product.products(for: [WatchUnlockManager.companionProductID])
+            watchProduct = products.first
+            if watchProduct == nil {
+                loadError = "Not available — check App Store Connect"
+            }
+        } catch {
+            loadError = error.localizedDescription
+        }
+    }
+
+    private func purchaseCompanion(_ product: Product) async {
+        isPurchasing = true
+        defer { isPurchasing = false }
+        do {
+            let result = try await product.purchase()
+            switch result {
+            case .success(let verification):
+                if case .verified(let tx) = verification {
+                    await tx.finish()
+                    unlockManager.isUnlocked = true
+                    DebugLogger.shared.log("WATCH: companion IAP verified", level: .info)
+                }
+            case .pending:
+                DebugLogger.shared.log("WATCH: companion IAP pending", level: .warning)
+            case .userCancelled:
+                break
+            @unknown default:
+                break
+            }
+        } catch {
+            DebugLogger.shared.log("WATCH: companion IAP error — \(error.localizedDescription)", level: .error)
+        }
+    }
+}
+#endif
+

@@ -15,6 +15,9 @@ import LocalAuthentication
 import CoreSpotlight
 #endif
 import MeshCoreKit
+#if os(watchOS) || os(iOS)
+import PommeCoreWatchKit
+#endif
 
 @main
 struct PommeCoreApp: App {

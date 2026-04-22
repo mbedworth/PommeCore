@@ -144,6 +144,9 @@ class TipJarManager: ObservableObject {
                     self.purchasedProductID = product.id
                     if product.id.hasSuffix(".help") {
                         self.showSupporterNamePrompt = true
+                        #if os(iOS)
+                        WatchUnlockManager.shared.markSupporterUnlocked()
+                        #endif
                     }
                 case .unverified(let transaction, let error):
                     DebugLogger.shared.log("TIP JAR: unverified — \(error.localizedDescription)", level: .warning)

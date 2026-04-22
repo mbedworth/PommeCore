@@ -12,6 +12,7 @@
 import Foundation
 import WatchConnectivity
 import MeshCoreKit
+import PommeCoreWatchKit
 
 @MainActor
 final class PhoneWatchRelay: NSObject {
@@ -37,8 +38,11 @@ final class PhoneWatchRelay: NSObject {
     private var lastSentContactsData: Data?
     private var lastSentChannelsData: Data?
 
+    private var activated = false
+
     func activate() {
-        guard WCSession.isSupported() else { return }
+        guard !activated, WCSession.isSupported() else { return }
+        activated = true
         session.delegate = self
         session.activate()
         startObserving()
@@ -156,7 +160,8 @@ final class PhoneWatchRelay: NSObject {
         let payload = WatchAppStatePayload(
             isConnected: isConnected,
             deviceName: connectionManager?.connectedDeviceName ?? "",
-            unreadByContact: unreadByContact
+            unreadByContact: unreadByContact,
+            isUnlocked: WatchUnlockManager.shared.isUnlocked
         )
         guard let data = try? JSONEncoder().encode(payload) else { return }
         guard data != lastSentStateData else { return }

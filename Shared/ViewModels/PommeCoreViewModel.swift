@@ -242,7 +242,19 @@ final class PommeCoreViewModel: ObservableObject {
         phoneWatchRelay.channelStore = channelStore
         phoneWatchRelay.messageStoreManager = messageStoreManager
         phoneWatchRelay.connectionManager = connectionManager
-        phoneWatchRelay.activate()
+
+        // Activate relay immediately if unlocked; re-check when unlock status changes.
+        if WatchUnlockManager.shared.isUnlocked {
+            phoneWatchRelay.activate()
+        }
+        WatchUnlockManager.shared.$isUnlocked
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] unlocked in
+                guard unlocked else { return }
+                self?.phoneWatchRelay.activate()
+                self?.phoneWatchRelay.sendState()
+            }
+            .store(in: &cancellables)
 #endif
 
 #if !os(watchOS)
