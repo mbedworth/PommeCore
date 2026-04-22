@@ -454,6 +454,7 @@ struct MeshMapView: View {
     @State private var selectedCluster: NodeCluster? = nil
     /// Whether to show the RF coverage heat map overlay.
     @State private var showCoverageLayer = false
+    @State private var showCoverageInfo = false
     /// Internet map nodes fetched from map.meshcore.dev.
     @State private var internetMapNodes: [InternetMapNode] = []
     @State private var isLoadingInternetNodes = false
@@ -683,19 +684,26 @@ struct MeshMapView: View {
 
                     Spacer()
 
-                    // Coverage layer toggle (only shown when monitoring has collected points)
-                    if !rfStore.coveragePoints.isEmpty || showCoverageLayer {
-                        Button {
+                    // Coverage layer toggle — always visible; tapping while empty explains how to collect data
+                    Button {
+                        if rfStore.coveragePoints.isEmpty {
+                            showCoverageInfo = true
+                        } else {
                             showCoverageLayer.toggle()
-                        } label: {
-                            Image(systemName: showCoverageLayer ? "map.fill" : "map")
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundStyle(showCoverageLayer ? MeshTheme.accent : MeshTheme.textSecondary)
-                                .frame(width: 32, height: 32)
-                                .background(.thinMaterial)
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
                         }
-                        .buttonStyle(.plain)
+                    } label: {
+                        Image(systemName: showCoverageLayer ? "map.fill" : "map")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(showCoverageLayer ? MeshTheme.accent : MeshTheme.textSecondary)
+                            .frame(width: 32, height: 32)
+                            .background(.thinMaterial)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                    }
+                    .buttonStyle(.plain)
+                    .alert("Coverage Heat Map", isPresented: $showCoverageInfo) {
+                        Button("Got It", role: .cancel) {}
+                    } message: {
+                        Text("Signal strength data is collected automatically while the RF Monitor is open and you're moving. Every received packet is GPS-tagged and plotted here as a colour-coded heat map.\n\nOpen the RF Monitor tab and move around with your radio to start building coverage data.")
                     }
                 }
                 .padding(.horizontal, 8)
