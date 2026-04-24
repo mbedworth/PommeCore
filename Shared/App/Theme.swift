@@ -525,6 +525,8 @@ struct SectionInfoHeader: View {
     let title: String
     let info: String
     var titleColor: Color?
+    var action: (() -> Void)? = nil
+    var actionIcon: String = "arrow.clockwise"
     @State private var showInfo = false
 
     var body: some View {
@@ -535,6 +537,13 @@ struct SectionInfoHeader: View {
                     .foregroundStyle(color)
             }
             Spacer(minLength: 0)
+            if let action {
+                Button(action: action) {
+                    Image(systemName: actionIcon)
+                        .foregroundStyle(color.opacity(0.75))
+                }
+                .buttonStyle(.borderless)
+            }
             Button {
                 showInfo = true
             } label: {
@@ -571,7 +580,11 @@ struct CLICommandButton: View {
             }
             .contentShape(Rectangle())
         }
+        #if os(macOS) || targetEnvironment(macCatalyst)
+        .buttonStyle(.borderless)
+        #else
         .buttonStyle(.plain)
+        #endif
         .listRowBackground(MeshTheme.surface)
     }
 }

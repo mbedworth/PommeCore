@@ -140,7 +140,6 @@ struct RemoteManagementView: View {
             // session timeout automatically. Clearing local state here causes
             // a mismatch that makes buttons unresponsive.
         }
-        #if !os(macOS) && !targetEnvironment(macCatalyst)
         .toolbar {
             ToolbarItem(placement: .automatic) {
                 Button {
@@ -163,7 +162,6 @@ struct RemoteManagementView: View {
                 .disabled(session.isFetchingSettings)
             }
         }
-        #endif
         .sheet(isPresented: $showRemoteFirmwareUpdate) {
             FirmwareUpdateView(
                 latestVersion: "",
@@ -601,21 +599,6 @@ private extension RemoteManagementView {
                         Label(uptimeStr, systemImage: "clock")
                     }
                     Spacer()
-                    Button {
-                        remoteSessionManager.requestStatus(for: contact)
-                        sendCLI("ver")
-                        sendCLI("clock")
-                    } label: {
-                        Image(systemName: "arrow.clockwise")
-                            .font(.caption)
-                            .foregroundStyle(MeshTheme.accent)
-                    }
-                    #if os(macOS) || targetEnvironment(macCatalyst)
-                    .buttonStyle(.borderless)
-                    #else
-                    .buttonStyle(.plain)
-                    #endif
-                    .help("Refresh firmware version, battery, and uptime")
                 }
                 .font(.caption)
                 .foregroundStyle(MeshTheme.textSecondary)
@@ -689,7 +672,15 @@ private extension RemoteManagementView {
                 sendCLI("get bootloader.ver")
             }
         } header: {
-            SectionInfoHeader(title: "Device Info", info: "Basic device information. Tap Refresh to re-read version and clock from the device.")
+            SectionInfoHeader(
+                title: "Device Info",
+                info: "Basic device information. Tap ↺ to re-read version, battery, and clock from the device.",
+                action: {
+                    remoteSessionManager.requestStatus(for: contact)
+                    sendCLI("ver")
+                    sendCLI("clock")
+                }
+            )
         }
     }
 }
