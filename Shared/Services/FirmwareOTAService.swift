@@ -11,6 +11,9 @@
 
 import Foundation
 import CryptoKit
+#if os(macOS) || targetEnvironment(macCatalyst)
+import Network
+#endif
 
 // MARK: - OTAAsset
 
@@ -110,6 +113,46 @@ final class FirmwareOTAService {
     static let otaSSID = "MeshCore-OTA"
     private static let otaHost = "http://192.168.4.1"
     private static let releasesURL = "https://api.github.com/repos/meshcore-dev/MeshCore/releases"
+
+    // MARK: - WiFi Probe (macOS)
+
+    #if os(macOS) || targetEnvironment(macCatalyst)
+    /// TCP probe to 192.168.4.1:80 forced through the WiFi interface.
+    /// On macOS with Ethernet + WiFi active, URLSession follows the routing table and
+    /// may use Ethernet (where there is no route to 192.168.4.0/24). NWConnection with
+    /// requiredInterfaceType = .wifi bypasses that and goes directly over WiFi.
+    private nonisolated static func probeOTAHostViaWiFi() async -> Bool {
+        final class Gate: @unchecked Sendable { var fired = false }
+        return await withCheckedContinuation { continuation in
+            let gate = Gate()
+            let params = NWParameters.tcp
+            params.requiredInterfaceType = .wifi
+            let conn = NWConnection(host: "192.168.4.1", port: 80, using: params)
+            let q = DispatchQueue(label: "ota.wifi.probe", qos: .utility)
+            conn.stateUpdateHandler = { state in
+                switch state {
+                case .ready:
+                    guard !gate.fired else { return }
+                    gate.fired = true
+                    conn.cancel()
+                    continuation.resume(returning: true)
+                case .failed:
+                    guard !gate.fired else { return }
+                    gate.fired = true
+                    continuation.resume(returning: false)
+                default: break
+                }
+            }
+            conn.start(queue: q)
+            q.asyncAfter(deadline: .now() + 3) {
+                guard !gate.fired else { return }
+                gate.fired = true
+                conn.cancel()
+                continuation.resume(returning: false)
+            }
+        }
+    }
+    #endif
 
     // MARK: - Public API
 
@@ -268,21 +311,33 @@ final class FirmwareOTAService {
         var attempts = 0
 
         while attempts < maxAttempts && !isCancelled {
-            do {
-                let (_, response) = try await pollSession.data(from: pollURL)
-                if (response as? HTTPURLResponse)?.statusCode != nil {
-                    // Radio is reachable — upload
-                    step = .uploading(progress: 0, asset: asset)
-                    do {
-                        try await uploadFirmware(firmwareData, asset: asset)
-                        step = .done(asset: asset)
-                    } catch {
-                        guard !isCancelled else { return }
-                        step = .failed(error.localizedDescription, canRetry: true)
-                    }
-                    return
+            // On macOS with Ethernet + WiFi active, URLSession may route 192.168.4.1 via
+            // Ethernet (no route there). Use NWConnection with requiredInterfaceType = .wifi
+            // to force the probe through WiFi. On iOS, URLSession is fine.
+            let isReachable: Bool
+            #if os(macOS) || targetEnvironment(macCatalyst)
+            isReachable = await Self.probeOTAHostViaWiFi()
+            #else
+            isReachable = await { () -> Bool in
+                do {
+                    let (_, response) = try await pollSession.data(from: pollURL)
+                    return (response as? HTTPURLResponse)?.statusCode != nil
+                } catch { return false }
+            }()
+            #endif
+
+            if isReachable {
+                // Radio is reachable — upload
+                step = .uploading(progress: 0, asset: asset)
+                do {
+                    try await uploadFirmware(firmwareData, asset: asset)
+                    step = .done(asset: asset)
+                } catch {
+                    guard !isCancelled else { return }
+                    step = .failed(error.localizedDescription, canRetry: true)
                 }
-            } catch { /* not reachable yet */ }
+                return
+            }
             attempts += 1
             try? await Task.sleep(nanoseconds: 3_000_000_000)
         }
