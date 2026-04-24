@@ -381,18 +381,6 @@ struct ContentView: View {
                 .help("More")
                 .accessibilityLabel("More")
             }
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    connectionManager.refreshAll(contactStore: contactStore)
-                } label: {
-                    Image(systemName: "arrow.clockwise")
-                        .foregroundStyle(MeshTheme.accent)
-                }
-                .disabled(connectionManager.connectionState != .ready)
-                .help("Refresh")
-                .accessibilityLabel("Refresh")
-                .accessibilityHint("Sync contacts and channels from device")
-            }
         }
         #endif
         .sheet(isPresented: $showScanner) {

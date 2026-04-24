@@ -531,19 +531,34 @@ struct SectionInfoHeader: View {
 
     var body: some View {
         let color = titleColor ?? MeshTheme.textSecondary
-        HStack(spacing: 6) {
-            if !title.isEmpty {
-                Text(title)
-                    .foregroundStyle(color)
-            }
-            Spacer(minLength: 0)
+        HStack(spacing: 4) {
             if let action {
+                // Title + spacer + ↺ icon are one large button — whole row is tappable
                 Button(action: action) {
-                    Image(systemName: actionIcon)
-                        .foregroundStyle(color.opacity(0.75))
+                    HStack(spacing: 6) {
+                        if !title.isEmpty {
+                            Text(title)
+                                .foregroundStyle(color)
+                        }
+                        Spacer(minLength: 0)
+                        Image(systemName: actionIcon)
+                            .foregroundStyle(color.opacity(0.75))
+                    }
+                    .contentShape(Rectangle())
                 }
+                #if os(macOS) || targetEnvironment(macCatalyst)
                 .buttonStyle(.borderless)
+                #else
+                .buttonStyle(.plain)
+                #endif
+            } else {
+                if !title.isEmpty {
+                    Text(title)
+                        .foregroundStyle(color)
+                }
+                Spacer(minLength: 0)
             }
+            // ⓘ is always independent — tap doesn't interfere with the title action
             Button {
                 showInfo = true
             } label: {

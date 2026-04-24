@@ -155,8 +155,20 @@ struct ContactListView: View {
             }
         }
         #elseif os(macOS) || targetEnvironment(macCatalyst)
-        // macOS toolbar items are added at the NavigationSplitView level in MeshCoreApp.swift
-        // to avoid being constrained to the narrow sidebar column.
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    connectionManager.refreshAll(contactStore: contactStore)
+                } label: {
+                    Image(systemName: "arrow.clockwise")
+                        .foregroundStyle(MeshTheme.accent)
+                }
+                .disabled(connectionManager.connectionState != .ready)
+                .help("Refresh contacts and channels")
+                .accessibilityLabel("Refresh")
+                .accessibilityHint("Sync contacts and channels from device")
+            }
+        }
         #else
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
