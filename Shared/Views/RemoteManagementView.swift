@@ -140,6 +140,7 @@ struct RemoteManagementView: View {
             // session timeout automatically. Clearing local state here causes
             // a mismatch that makes buttons unresponsive.
         }
+        #if !os(macOS) && !targetEnvironment(macCatalyst)
         .toolbar {
             ToolbarItem(placement: .automatic) {
                 Button {
@@ -159,6 +160,7 @@ struct RemoteManagementView: View {
                 .disabled(session.fetchingSection != nil)
             }
         }
+        #endif
         .sheet(isPresented: $showRemoteFirmwareUpdate) {
             FirmwareUpdateView(
                 latestVersion: "",
