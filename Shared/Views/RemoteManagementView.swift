@@ -286,44 +286,48 @@ struct RemoteManagementView: View {
                 content()
             }
         } header: {
-            Button {
-                expanded.wrappedValue.toggle()
-                if expanded.wrappedValue {
-                    remoteSessionManager.fetchSection(sectionKey, for: contact)
+            HStack(spacing: 0) {
+                Button {
+                    expanded.wrappedValue.toggle()
+                    if expanded.wrappedValue {
+                        remoteSessionManager.fetchSection(sectionKey, for: contact)
+                    }
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: expanded.wrappedValue ? "chevron.down" : "chevron.right")
+                            .font(.caption)
+                            .foregroundStyle(MeshTheme.textSecondary)
+                            .frame(width: 16)
+                        Text(title)
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(MeshTheme.accent)
+                        if session.fetchedSections.contains(sectionKey) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.caption2)
+                                .foregroundStyle(MeshTheme.connected)
+                        } else if session.hasCachedSettings(for: sectionKey) {
+                            Image(systemName: "arrow.triangle.2.circlepath.circle")
+                                .font(.caption2)
+                                .foregroundStyle(.orange)
+                        }
+                        Spacer()
+                        if session.fetchingSection == sectionKey {
+                            ProgressView()
+                                .scaleEffect(0.7)
+                        }
+                    }
+                    .contentShape(Rectangle())
                 }
-            } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: expanded.wrappedValue ? "chevron.down" : "chevron.right")
-                        .font(.caption)
-                        .foregroundStyle(MeshTheme.textSecondary)
-                        .frame(width: 16)
-                    Text(title)
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(MeshTheme.accent)
-                    if session.fetchedSections.contains(sectionKey) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.caption2)
-                            .foregroundStyle(MeshTheme.connected)
-                    } else if session.hasCachedSettings(for: sectionKey) {
-                        Image(systemName: "arrow.triangle.2.circlepath.circle")
-                            .font(.caption2)
-                            .foregroundStyle(.orange)
-                    }
-                    Spacer()
-                    if session.fetchingSection == sectionKey {
-                        ProgressView()
-                            .scaleEffect(0.7)
-                    }
-                    if !info.isEmpty {
-                        InfoButton(text: info)
-                    }
+                #if os(macOS) || targetEnvironment(macCatalyst)
+                .buttonStyle(.borderless)
+                #else
+                .buttonStyle(.plain)
+                #endif
+                if !info.isEmpty {
+                    InfoButton(text: info)
+                        .padding(.leading, 6)
                 }
             }
-            #if os(macOS) || targetEnvironment(macCatalyst)
-            .buttonStyle(.borderless)
-            #else
-            .buttonStyle(.plain)
-            #endif
             .textCase(nil)
         }
     }
