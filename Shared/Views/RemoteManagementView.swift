@@ -310,7 +310,11 @@ struct RemoteManagementView: View {
                     }
                 }
             }
+            #if os(macOS) || targetEnvironment(macCatalyst)
+            .buttonStyle(.borderless)
+            #else
             .buttonStyle(.plain)
+            #endif
             .textCase(nil)
         }
     }
@@ -606,7 +610,11 @@ private extension RemoteManagementView {
                             .font(.caption)
                             .foregroundStyle(MeshTheme.accent)
                     }
+                    #if os(macOS) || targetEnvironment(macCatalyst)
+                    .buttonStyle(.borderless)
+                    #else
                     .buttonStyle(.plain)
+                    #endif
                     .help("Refresh firmware version, battery, and uptime")
                 }
                 .font(.caption)
