@@ -143,23 +143,20 @@ struct RemoteManagementView: View {
         .toolbar {
             ToolbarItem(placement: .automatic) {
                 Button {
+                    let sections = visibleSections
                     session.fetchedSections.removeAll()
-                    expandedAdvertisingSection = false
-                    expandedTimingSection = false
-                    expandedRoutingSection = false
-                    expandedGPSSection = false
-                    expandedSecuritySection = false
-                    expandedMaintenanceSection = false
+                    remoteSessionManager.requestStatus(for: contact)
                     Task {
-                        await remoteSessionManager.fetchSectionAsync("info", for: contact)
-                        await remoteSessionManager.fetchSectionAsync("radio", for: contact)
+                        for section in sections {
+                            await remoteSessionManager.fetchSectionAsync(section, for: contact, skipIfFetched: false)
+                        }
                     }
                 } label: {
                     Image(systemName: "arrow.clockwise")
                         .foregroundStyle(MeshTheme.accent)
                 }
                 .accessibilityLabel("Reload settings")
-                .disabled(session.isFetchingSettings)
+                .disabled(session.fetchingSection != nil)
             }
         }
         .sheet(isPresented: $showRemoteFirmwareUpdate) {
@@ -252,6 +249,20 @@ struct RemoteManagementView: View {
     private var isAdmin: Bool { permission.isAdmin }
     private var canEdit: Bool { permission.canEdit }
     private var canRead: Bool { permission.canRead }
+
+    /// Returns sections currently visible (always-on + expanded), in screen order.
+    /// Used by the toolbar refresh to re-fetch exactly what the user sees.
+    private var visibleSections: [String] {
+        var sections = ["info"]
+        if canRead { sections.append("radio") }
+        if expandedAdvertisingSection && canRead { sections.append("advertising") }
+        if expandedTimingSection && canRead { sections.append("timing") }
+        if expandedRoutingSection && canRead && contact.type == .repeater { sections.append("routing") }
+        if expandedGPSSection && canRead { sections.append("gps") }
+        if expandedSecuritySection && isAdmin { sections.append("security") }
+        if expandedMaintenanceSection { sections.append("maintenance") }
+        return sections
+    }
 
     private var isUSBDevice: Bool {
         #if os(macOS) || targetEnvironment(macCatalyst)
@@ -677,8 +688,10 @@ private extension RemoteManagementView {
                 info: "Basic device information. Tap ↺ to re-read version, battery, and clock from the device.",
                 action: {
                     remoteSessionManager.requestStatus(for: contact)
-                    sendCLI("ver")
-                    sendCLI("clock")
+                    session.fetchedSections.remove("info")
+                    Task {
+                        await remoteSessionManager.fetchSectionAsync("info", for: contact, skipIfFetched: false)
+                    }
                 }
             )
         }
