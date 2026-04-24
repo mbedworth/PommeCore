@@ -32,6 +32,14 @@ final class RemoteSessionManager {
         }
     }
 
+    /// The first active admin session (BLE or WiFi remote admin). Used to route CLI commands.
+    var activeAdminSession: RemoteDeviceSession? {
+        remoteSessions.values.first { session in
+            if case .loggedIn = session.loginState { return true }
+            return false
+        }
+    }
+
     // MARK: - Public State: USB CLI (macOS)
 
     #if os(macOS) || targetEnvironment(macCatalyst)
@@ -452,7 +460,7 @@ final class RemoteSessionManager {
     static let sectionCommands: [String: [String]] = [
         "info": ["ver", "clock", "get name", "get role", "get public.key"],
         "radio": ["get radio", "get tx", "get repeat"],
-        "timing": ["get af", "get rxdelay", "get txdelay", "get direct.txdelay",
+        "timing": ["get dutycycle", "get af", "get rxdelay", "get txdelay", "get direct.txdelay",
                     "get flood.max", "get int.thresh", "get agc.reset.interval"],
         "routing": ["get loop.detect", "get path.hash.mode", "region default"],
         "advertising": ["get name", "get lat", "get lon", "get owner.info",
@@ -693,11 +701,10 @@ final class RemoteSessionManager {
                             // Then fetch volatile keys (clock)
                             await self.fetchVolatileKeys(for: contact, session: session)
                         } else {
-                            // No cache — wait briefly then full fetch
+                            // No cache — wait briefly then fetch Phase 1 visible sections
                             try? await Task.sleep(nanoseconds: 1_500_000_000)
                             await self.fetchSectionAsync("info", for: contact)
                             await self.fetchSectionAsync("radio", for: contact)
-                            await self.fetchSectionAsync("advertising", for: contact)
                         }
                     }
                 }

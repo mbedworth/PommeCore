@@ -25,7 +25,10 @@ struct RemoteManagementView: View {
     @State private var showPubkeyCopied = false
     @State private var showNameWizard = false
 
-    // Phase 2 section expand state — collapsed by default, fetch on expand
+    @State private var showRemoteFirmwareUpdate = false
+
+    // Collapsible section expand state — collapsed by default, fetch on expand
+    @State private var expandedAdvertisingSection = false
     @State private var expandedTimingSection = false
     @State private var expandedRoutingSection = false
     @State private var expandedGPSSection = false
@@ -45,7 +48,7 @@ struct RemoteManagementView: View {
                     disconnectSection
                 }
                 // Phase 1 loading indicator (only shows during initial fetch)
-                if session.fetchingSection != nil && !session.fetchedSections.contains("advertising") {
+                if session.fetchingSection != nil && !session.fetchedSections.contains("radio") {
                     Section {
                         HStack(spacing: 12) {
                             ProgressView()
@@ -72,11 +75,15 @@ struct RemoteManagementView: View {
                 infoSection
                 if canRead {
                     radioSection
-                    advertisingSection
                 }
 
-                // === Phase 2: Collapsed by default, fetch on expand ===
+                // === Collapsible sections: collapsed by default, fetch on expand ===
                 if canRead {
+                    lazySection("Advertising", expanded: $expandedAdvertisingSection, sectionKey: "advertising",
+                                info: "Standard adverts are local (0-hop, 60–240 min). Flood adverts are relayed by all repeaters (min 3 hours). Minimum intervals enforced by firmware.") {
+                        advertisingSection
+                    }
+
                     lazySection("Timing & Performance", expanded: $expandedTimingSection, sectionKey: "timing",
                                 info: "Advanced \u{2014} adjust timing parameters for mesh performance. Default values work well for most setups. Flood Max Hops supports 0\u{2013}64 (default 64).") {
                         timingSection
@@ -133,11 +140,12 @@ struct RemoteManagementView: View {
             // session timeout automatically. Clearing local state here causes
             // a mismatch that makes buttons unresponsive.
         }
-        #if !os(macOS)
+        #if !os(macOS) && !targetEnvironment(macCatalyst)
         .toolbar {
             ToolbarItem(placement: .automatic) {
                 Button {
                     session.fetchedSections.removeAll()
+                    expandedAdvertisingSection = false
                     expandedTimingSection = false
                     expandedRoutingSection = false
                     expandedGPSSection = false
@@ -146,7 +154,6 @@ struct RemoteManagementView: View {
                     Task {
                         await remoteSessionManager.fetchSectionAsync("info", for: contact)
                         await remoteSessionManager.fetchSectionAsync("radio", for: contact)
-                        await remoteSessionManager.fetchSectionAsync("advertising", for: contact)
                     }
                 } label: {
                     Image(systemName: "arrow.clockwise")
@@ -157,6 +164,17 @@ struct RemoteManagementView: View {
             }
         }
         #endif
+        .sheet(isPresented: $showRemoteFirmwareUpdate) {
+            FirmwareUpdateView(
+                latestVersion: "",
+                firmwareType: remoteFirmwareType,
+                manufacturerHint: ""
+            )
+            .meshTheme()
+            #if os(macOS) || targetEnvironment(macCatalyst)
+            .frame(minWidth: 480, minHeight: 400)
+            #endif
+        }
         .sheet(isPresented: $showNameWizard) {
             NavigationStack {
                 NodeSetupWizardView(remoteContext: RemoteWizardContext(
@@ -374,10 +392,18 @@ struct LoginSection: View {
                     #if os(watchOS)
                     SecureField("Password (leave blank if none)", text: $password)
                         .foregroundStyle(MeshTheme.textPrimary)
+                        .onSubmit {
+                            remoteSessionManager.loginToRemoteDevice(contact, password: password)
+                        }
                     #else
                     SecureField("Password (leave blank if none)", text: $password)
                         .foregroundStyle(MeshTheme.textPrimary)
                         .textFieldStyle(MeshTextFieldStyle())
+                        .submitLabel(.go)
+                        .onSubmit {
+                            guard !isLoggingIn else { return }
+                            remoteSessionManager.loginToRemoteDevice(contact, password: password)
+                        }
                         .onChange(of: password) { _, new in
                             if new.count > 15 { password = String(new.prefix(15)) }
                         }
@@ -573,13 +599,15 @@ private extension RemoteManagementView {
                     Spacer()
                     Button {
                         remoteSessionManager.requestStatus(for: contact)
+                        sendCLI("ver")
+                        sendCLI("clock")
                     } label: {
                         Image(systemName: "arrow.clockwise")
                             .font(.caption)
                             .foregroundStyle(MeshTheme.accent)
                     }
                     .buttonStyle(.plain)
-                    .help("Refresh battery and uptime")
+                    .help("Refresh firmware version, battery, and uptime")
                 }
                 .font(.caption)
                 .foregroundStyle(MeshTheme.textSecondary)
@@ -701,8 +729,21 @@ private extension RemoteManagementView {
         RemoteSensorSection(session: session, sendCLI: sendCLI)
     }
 
+    var remoteFirmwareType: FirmwareOTAService.FirmwareType {
+        switch contact.type {
+        case .repeater: return .repeater
+        case .room: return .room
+        default: return .companion
+        }
+    }
+
     var maintenanceSection: some View {
-        RemoteMaintenanceSection(session: session, sendCLI: sendCLI, permission: permission)
+        RemoteMaintenanceSection(
+            session: session,
+            sendCLI: sendCLI,
+            permission: permission,
+            onFirmwareUpdate: permission.isAdmin ? { showRemoteFirmwareUpdate = true } : nil
+        )
     }
 
     var cliTerminalSection: some View {

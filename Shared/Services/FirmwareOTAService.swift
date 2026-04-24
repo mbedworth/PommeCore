@@ -10,6 +10,7 @@
 //
 
 import Foundation
+import CryptoKit
 
 // MARK: - OTAAsset
 
@@ -20,15 +21,33 @@ struct OTAAsset: Identifiable, Sendable {
     let sizeBytes: Int
 
     var boardName: String {
-        guard let range = name.range(of: "_companion_radio") else { return name }
-        return String(name[name.startIndex..<range.lowerBound])
+        let delimiters = ["_companion_radio", "_repeater", "_room_server"]
+        for delimiter in delimiters {
+            if let range = name.range(of: delimiter) {
+                return String(name[name.startIndex..<range.lowerBound])
+            }
+        }
+        return name
     }
 
     var isBLE: Bool { name.contains("_companion_radio_ble") }
     var isMerged: Bool { name.hasSuffix("-merged.bin") }
+    /// ZIP = nRF52 device → Nordic DFU flow. BIN = ESP32 device → WiFi OTA flow.
+    var isZip: Bool { name.hasSuffix(".zip") }
 
     var displayName: String {
         boardName.replacingOccurrences(of: "_", with: " ")
+    }
+
+    /// Firmware version string extracted from the asset filename (e.g. "v1.15.0-dee3e26").
+    var version: String? {
+        var base = name
+        if let dot = base.lastIndex(of: ".") { base = String(base[base.startIndex..<dot]) }
+        // Find the last "_v" — this is the firmware version suffix, not a board revision
+        if let range = base.range(of: "_v", options: .backwards) {
+            return "v" + String(base[range.upperBound...])
+        }
+        return nil
     }
 
     var sizeFormatted: String {
@@ -42,6 +61,35 @@ struct OTAAsset: Identifiable, Sendable {
 @MainActor @Observable
 final class FirmwareOTAService {
 
+    enum FirmwareType {
+        case companion, repeater, room
+
+        var tagPrefix: String {
+            switch self {
+            case .companion: return "companion-v"
+            case .repeater: return "repeater-v"
+            case .room: return "room-server-v"
+            }
+        }
+
+        /// Substring that must appear in asset filenames for this firmware type.
+        var assetFragment: String {
+            switch self {
+            case .companion: return "companion_radio"
+            case .repeater: return "_repeater"
+            case .room: return "_room_server"
+            }
+        }
+
+        var displayName: String {
+            switch self {
+            case .companion: return "Companion Radio"
+            case .repeater: return "Repeater"
+            case .room: return "Room Server"
+            }
+        }
+    }
+
     enum Step {
         case ready
         case fetchingAssets
@@ -49,8 +97,10 @@ final class FirmwareOTAService {
         case downloading(progress: Double, asset: OTAAsset)
         case activateOTA(firmwareData: Data, asset: OTAAsset)
         case detectingRadio(firmwareData: Data, asset: OTAAsset)
-        case uploading(progress: Double)
-        case done
+        case uploading(progress: Double, asset: OTAAsset)
+        /// nRF52 path: radio is in DFU mode, user installs firmware via nRF DFU app.
+        case dfuHandoff(zipData: Data, asset: OTAAsset)
+        case done(asset: OTAAsset)
         case failed(String, canRetry: Bool)
     }
 
@@ -59,18 +109,24 @@ final class FirmwareOTAService {
 
     static let otaSSID = "MeshCore-OTA"
     private static let otaHost = "http://192.168.4.1"
-    private static let releaseURL = "https://api.github.com/repos/meshcore-dev/MeshCore/releases/latest"
+    private static let releasesURL = "https://api.github.com/repos/meshcore-dev/MeshCore/releases"
 
     // MARK: - Public API
 
-    func start(manufacturer: String) async {
+    func start(manufacturer: String, firmwareType: FirmwareType = .companion) async {
         isCancelled = false
         step = .fetchingAssets
         do {
-            let assets = try await fetchAssets()
-            let candidates = assets.filter { $0.name.contains("companion_radio") && !$0.isMerged }
-            let bleAssets = candidates.filter(\.isBLE)
-            let displayAssets = bleAssets.isEmpty ? candidates : bleAssets
+            let assets = try await fetchAssets(firmwareType: firmwareType)
+
+            let displayAssets: [OTAAsset]
+            if firmwareType == .companion {
+                // Prefer BLE builds for companion radios; fall back to all if none
+                let bleAssets = assets.filter(\.isBLE)
+                displayAssets = bleAssets.isEmpty ? assets : bleAssets
+            } else {
+                displayAssets = assets
+            }
 
             let lowerMfr = manufacturer.lowercased()
             let suggested = displayAssets.first {
@@ -98,9 +154,13 @@ final class FirmwareOTAService {
     }
 
     func beginDetection(firmwareData: Data, asset: OTAAsset) {
-        step = .detectingRadio(firmwareData: firmwareData, asset: asset)
-        Task {
-            await detectAndUpload(firmwareData: firmwareData)
+        if asset.isZip {
+            // nRF52: radio is now in Nordic DFU mode — hand off to nRF DFU app
+            step = .dfuHandoff(zipData: firmwareData, asset: asset)
+        } else {
+            // ESP32: poll for WiFi hotspot then upload via HTTP
+            step = .detectingRadio(firmwareData: firmwareData, asset: asset)
+            Task { await detectAndUpload(firmwareData: firmwareData, asset: asset) }
         }
     }
 
@@ -116,8 +176,8 @@ final class FirmwareOTAService {
 
     // MARK: - GitHub Asset Fetch
 
-    private func fetchAssets() async throws -> [OTAAsset] {
-        guard let url = URL(string: Self.releaseURL) else { throw OTAError.invalidURL }
+    private func fetchAssets(firmwareType: FirmwareType) async throws -> [OTAAsset] {
+        guard let url = URL(string: Self.releasesURL) else { throw OTAError.invalidURL }
         var request = URLRequest(url: url)
         request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
         request.timeoutInterval = 15
@@ -126,13 +186,23 @@ final class FirmwareOTAService {
         guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
             throw OTAError.networkError("GitHub API unavailable — check internet connection")
         }
-        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let assets = json["assets"] as? [[String: Any]] else {
+        guard let releases = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] else {
+            throw OTAError.parseError
+        }
+        guard let release = releases.first(where: {
+            ($0["tag_name"] as? String)?.hasPrefix(firmwareType.tagPrefix) == true
+        }) else {
+            throw OTAError.networkError("No \(firmwareType.displayName) release found on GitHub")
+        }
+        guard let assets = release["assets"] as? [[String: Any]] else {
             throw OTAError.parseError
         }
 
         return assets.compactMap { item -> OTAAsset? in
-            guard let name = item["name"] as? String, name.hasSuffix(".bin"),
+            guard let name = item["name"] as? String,
+                  name.contains(firmwareType.assetFragment),
+                  !name.contains("-merged"),
+                  name.hasSuffix(".bin") || name.hasSuffix(".zip"),
                   let url = item["browser_download_url"] as? String,
                   let size = item["size"] as? Int else { return nil }
             return OTAAsset(name: name, downloadURL: url, sizeBytes: size)
@@ -185,7 +255,7 @@ final class FirmwareOTAService {
 
     // MARK: - OTA Detection + Upload
 
-    private func detectAndUpload(firmwareData: Data) async {
+    private func detectAndUpload(firmwareData: Data, asset: OTAAsset) async {
         guard let pollURL = URL(string: "\(Self.otaHost)/update") else { return }
 
         let pollConfig = URLSessionConfiguration.default
@@ -202,13 +272,13 @@ final class FirmwareOTAService {
                 let (_, response) = try await pollSession.data(from: pollURL)
                 if (response as? HTTPURLResponse)?.statusCode != nil {
                     // Radio is reachable — upload
-                    step = .uploading(progress: 0)
+                    step = .uploading(progress: 0, asset: asset)
                     do {
-                        try await uploadFirmware(firmwareData)
-                        step = .done
+                        try await uploadFirmware(firmwareData, asset: asset)
+                        step = .done(asset: asset)
                     } catch {
                         guard !isCancelled else { return }
-                        step = .failed(error.localizedDescription, canRetry: false)
+                        step = .failed(error.localizedDescription, canRetry: true)
                     }
                     return
                 }
@@ -224,13 +294,23 @@ final class FirmwareOTAService {
         )
     }
 
-    private func uploadFirmware(_ data: Data) async throws {
+    private func uploadFirmware(_ data: Data, asset: OTAAsset) async throws {
         guard let url = URL(string: "\(Self.otaHost)/update") else { throw OTAError.invalidURL }
+
+        // AsyncElegantOTA requires an MD5 form field before the firmware file.
+        // Without it the ESP32 immediately returns 400 "MD5 parameter missing".
+        let md5Hex = Insecure.MD5.hash(data: data)
+            .map { String(format: "%02hhx", $0) }.joined()
 
         let boundary = "MeshCoreOTA\(UUID().uuidString.replacingOccurrences(of: "-", with: ""))"
         var body = Data()
+        // MD5 field must come first so the upload handler can find it on chunk 0
         body += "--\(boundary)\r\n".utf8Data
-        body += "Content-Disposition: form-data; name=\"update\"; filename=\"firmware.bin\"\r\n".utf8Data
+        body += "Content-Disposition: form-data; name=\"MD5\"\r\n\r\n".utf8Data
+        body += md5Hex.utf8Data
+        body += "\r\n".utf8Data
+        body += "--\(boundary)\r\n".utf8Data
+        body += "Content-Disposition: form-data; name=\"firmware\"; filename=\"firmware.bin\"\r\n".utf8Data
         body += "Content-Type: application/octet-stream\r\n\r\n".utf8Data
         body += data
         body += "\r\n--\(boundary)--\r\n".utf8Data
@@ -243,7 +323,7 @@ final class FirmwareOTAService {
 
         let delegate = UploadProgressDelegate { [weak self] progress in
             guard let self else { return }
-            self.step = .uploading(progress: progress)
+            self.step = .uploading(progress: progress, asset: asset)
         }
 
         // 30s idle timeout per segment; 10 min total — ESP32 AP is slow
@@ -265,10 +345,29 @@ final class FirmwareOTAService {
                 throw OTAError.uploadFailed(http.statusCode)
             }
         } catch _ as URLError where delegate.allBytesUploaded {
-            // ESP32 reboots immediately after flashing, dropping the connection
-            // before the HTTP response is fully sent. If all bytes were uploaded,
-            // treat any connection error as success.
-            return
+            // ESP32 drops the TCP connection without an HTTP response in two cases:
+            // (1) successful flash + immediate reboot, or (2) upload rejection.
+            // On macOS the TCP send buffer can hold the entire ~1MB body, so
+            // allBytesUploaded fires immediately regardless of what the ESP32 did.
+            // Wait briefly, then probe to distinguish reboot (success) from rejection.
+            try? await Task.sleep(nanoseconds: 3_000_000_000)
+            guard await isESP32Offline() else {
+                throw OTAError.networkError("Upload rejected — device did not reboot. Verify you selected the correct firmware for your hardware.")
+            }
+        }
+    }
+
+    private func isESP32Offline() async -> Bool {
+        guard let url = URL(string: "\(Self.otaHost)/update") else { return false }
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 3
+        config.requestCachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        let session = URLSession(configuration: config)
+        do {
+            _ = try await session.data(from: url)
+            return false  // still reachable = ESP32 is running = OTA was rejected
+        } catch {
+            return true   // unreachable = ESP32 is rebooting = OTA succeeded
         }
     }
 

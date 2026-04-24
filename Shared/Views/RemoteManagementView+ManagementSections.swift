@@ -141,6 +141,7 @@ struct RemoteMaintenanceSection: View {
     @ObservedObject var session: RemoteDeviceSession
     let sendCLI: (String) -> Void
     let permission: RemotePermission
+    var onFirmwareUpdate: (() -> Void)? = nil
 
     @State private var showRebootConfirm = false
     @State private var showOTAConfirm = false
@@ -199,6 +200,24 @@ struct RemoteMaintenanceSection: View {
                 .buttonStyle(.plain)
                 .listRowBackground(MeshTheme.surface)
 
+                if let onFirmwareUpdate {
+                    Button {
+                        onFirmwareUpdate()
+                    } label: {
+                        HStack {
+                            Image(systemName: "arrow.down.circle.fill")
+                                .foregroundStyle(MeshTheme.accent)
+                                .frame(width: 24)
+                            Text("Download & Update Firmware")
+                                .foregroundStyle(MeshTheme.accent)
+                            Spacer()
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .listRowBackground(MeshTheme.surface)
+                }
+
                 Button {
                     showOTAConfirm = true
                 } label: {
@@ -206,7 +225,7 @@ struct RemoteMaintenanceSection: View {
                         Image(systemName: "arrow.down.circle")
                             .foregroundStyle(.orange)
                             .frame(width: 24)
-                        Text("Start OTA Update")
+                        Text("Start OTA Mode Only")
                             .foregroundStyle(.orange)
                         Spacer()
                     }
@@ -224,13 +243,13 @@ struct RemoteMaintenanceSection: View {
         } message: {
             Text("The remote device will restart. You will need to log in again.")
         }
-        .alert("Start OTA Update?", isPresented: $showOTAConfirm) {
+        .alert("Start OTA Mode Only?", isPresented: $showOTAConfirm) {
             Button("Cancel", role: .cancel) {}
             Button("Start OTA", role: .destructive) {
                 sendCLI("start ota")
             }
         } message: {
-            Text("The device will create a 'MeshCore-OTA' WiFi hotspot. Connect to it and use the Firmware Update flow to upload the new binary.")
+            Text("The device will create a 'MeshCore-OTA' WiFi hotspot. Connect to it and use 'Download & Update Firmware' to upload the binary.")
         }
     }
 }

@@ -15,8 +15,11 @@ import MeshCoreKit
 struct FirmwareUpdateView: View {
     @Environment(ConnectionManager.self) private var connectionManager
     @Environment(DeviceConfig.self) private var deviceConfig
+    @Environment(RemoteSessionManager.self) private var remoteSessionManager
     @Environment(\.dismiss) private var dismiss
     let latestVersion: String
+    var firmwareType: FirmwareOTAService.FirmwareType = .companion
+    var manufacturerHint: String = ""
 
     @State private var otaService = FirmwareOTAService()
 
@@ -41,7 +44,10 @@ struct FirmwareUpdateView: View {
         #if os(macOS) || targetEnvironment(macCatalyst)
         .frame(minWidth: 480, minHeight: 400)
         #endif
-        .task { await otaService.start(manufacturer: deviceConfig.manufacturer) }
+        .task {
+            let mfr = manufacturerHint.isEmpty ? deviceConfig.manufacturer : manufacturerHint
+            await otaService.start(manufacturer: mfr, firmwareType: firmwareType)
+        }
         .interactiveDismissDisabled(isActiveStep)
     }
 
@@ -73,11 +79,14 @@ struct FirmwareUpdateView: View {
         case .detectingRadio(_, _):
             detectingView
 
-        case .uploading(let progress):
-            uploadingView(progress: progress)
+        case .uploading(let progress, let asset):
+            uploadingView(progress: progress, asset: asset)
 
-        case .done:
-            doneView
+        case .dfuHandoff(let data, let asset):
+            dfuHandoffView(zipData: data, asset: asset)
+
+        case .done(let asset):
+            doneView(asset: asset)
 
         case .failed(let message, let canRetry):
             failedView(message: message, canRetry: canRetry)
@@ -103,8 +112,10 @@ struct FirmwareUpdateView: View {
         VStack(alignment: .leading, spacing: 0) {
             stepHeader(
                 icon: "cpu",
-                title: "Select Your Hardware",
-                subtitle: "Choose the firmware binary that matches your radio board."
+                title: firmwareType == .companion ? "Select Your Hardware" : "Select Firmware Build",
+                subtitle: firmwareType == .companion
+                    ? "Choose the firmware binary that matches your radio board."
+                    : "Choose the \(firmwareType.displayName) firmware build for your hardware."
             )
 
             if let match = suggested {
@@ -159,9 +170,16 @@ struct FirmwareUpdateView: View {
                                 .clipShape(Capsule())
                         }
                     }
-                    Text(asset.sizeFormatted)
-                        .font(.caption)
-                        .foregroundStyle(MeshTheme.textSecondary)
+                    HStack(spacing: 8) {
+                        if let version = asset.version {
+                            Text(version)
+                                .font(.caption.weight(.medium))
+                                .foregroundStyle(MeshTheme.accent)
+                        }
+                        Text(asset.sizeFormatted)
+                            .font(.caption)
+                            .foregroundStyle(MeshTheme.textSecondary)
+                    }
                 }
 
                 Spacer()
@@ -209,9 +227,11 @@ struct FirmwareUpdateView: View {
     private func activateView(firmwareData: Data, asset: OTAAsset) -> some View {
         VStack(spacing: 24) {
             stepHeader(
-                icon: "wifi",
+                icon: asset.isZip ? "bolt.horizontal" : "wifi",
                 title: "Activate OTA Mode",
-                subtitle: "Your radio needs to create a WiFi hotspot for the update."
+                subtitle: asset.isZip
+                    ? "Your radio needs to enter DFU bootloader mode to receive the update."
+                    : "Your radio needs to create a WiFi hotspot for the update."
             )
 
             VStack(alignment: .leading, spacing: 12) {
@@ -219,8 +239,8 @@ struct FirmwareUpdateView: View {
                 instructionCard(number: "1", title: "Start OTA mode on your radio") {
                     VStack(alignment: .leading, spacing: 8) {
                         #if os(macOS) || targetEnvironment(macCatalyst)
-                        if connectionManager.isUSBCLIMode {
-                            Text("Your radio is connected via USB CLI. Tap the button below to send the command.")
+                        if connectionManager.isUSBCLIMode || connectionManager.isUSBBinaryMode {
+                            Text("Your radio is connected via USB. Tap the button below to send the command.")
                                 .font(.subheadline)
                                 .foregroundStyle(MeshTheme.textPrimary)
                             Button {
@@ -230,37 +250,45 @@ struct FirmwareUpdateView: View {
                                     .foregroundStyle(MeshTheme.accent)
                             }
                             .buttonStyle(.plain)
+                        } else if let session = remoteSessionManager.activeAdminSession {
+                            remoteAdminOTAContent(session: session)
                         } else {
                             otaManualInstructions
                         }
                         #else
-                        otaManualInstructions
+                        if let session = remoteSessionManager.activeAdminSession {
+                            remoteAdminOTAContent(session: session)
+                        } else {
+                            otaManualInstructions
+                        }
                         #endif
                     }
                 }
 
-                // Step B: connect to WiFi
-                instructionCard(number: "2", title: "Connect to '\(FirmwareOTAService.otaSSID)' WiFi") {
-                    VStack(alignment: .leading, spacing: 8) {
-                        #if os(macOS) || targetEnvironment(macCatalyst)
-                        Text("After the radio starts OTA mode, click the WiFi icon in the menu bar and connect to:")
-                            .font(.subheadline)
-                            .foregroundStyle(MeshTheme.textPrimary)
-                        #else
-                        Text("After the radio starts OTA mode, go to Settings → Wi-Fi and connect to:")
-                            .font(.subheadline)
-                            .foregroundStyle(MeshTheme.textPrimary)
-                        #endif
-                        HStack(spacing: 8) {
-                            Image(systemName: "wifi")
-                                .foregroundStyle(MeshTheme.accent)
-                            Text(FirmwareOTAService.otaSSID)
-                                .font(.body.weight(.semibold))
+                // Step B: connect to WiFi (ESP32 only — nRF52 goes straight to DFU app)
+                if !asset.isZip {
+                    instructionCard(number: "2", title: "Connect to '\(FirmwareOTAService.otaSSID)' WiFi") {
+                        VStack(alignment: .leading, spacing: 8) {
+                            #if os(macOS) || targetEnvironment(macCatalyst)
+                            Text("After the radio starts OTA mode, click the WiFi icon in the menu bar and connect to:")
+                                .font(.subheadline)
                                 .foregroundStyle(MeshTheme.textPrimary)
+                            #else
+                            Text("After the radio starts OTA mode, go to Settings → Wi-Fi and connect to:")
+                                .font(.subheadline)
+                                .foregroundStyle(MeshTheme.textPrimary)
+                            #endif
+                            HStack(spacing: 8) {
+                                Image(systemName: "wifi")
+                                    .foregroundStyle(MeshTheme.accent)
+                                Text(FirmwareOTAService.otaSSID)
+                                    .font(.body.weight(.semibold))
+                                    .foregroundStyle(MeshTheme.textPrimary)
+                            }
+                            Text("No password required. Then return to this screen.")
+                                .font(.caption)
+                                .foregroundStyle(MeshTheme.textSecondary)
                         }
-                        Text("No password required. Then return to this screen.")
-                            .font(.caption)
-                            .foregroundStyle(MeshTheme.textSecondary)
                     }
                 }
             }
@@ -268,7 +296,7 @@ struct FirmwareUpdateView: View {
             Button {
                 otaService.beginDetection(firmwareData: firmwareData, asset: asset)
             } label: {
-                Text("I've Connected — Continue")
+                Text(asset.isZip ? "I've Started OTA Mode — Continue" : "I've Connected — Continue")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.black)
                     .frame(maxWidth: .infinity)
@@ -311,12 +339,12 @@ struct FirmwareUpdateView: View {
 
     // MARK: - Uploading
 
-    private func uploadingView(progress: Double) -> some View {
+    private func uploadingView(progress: Double, asset: OTAAsset) -> some View {
         VStack(spacing: 24) {
             stepHeader(
                 icon: "arrow.up.circle",
                 title: "Uploading Firmware",
-                subtitle: "Transferring firmware to your radio over WiFi…"
+                subtitle: "Transferring \(asset.displayName) to your radio…"
             )
 
             VStack(spacing: 8) {
@@ -339,17 +367,27 @@ struct FirmwareUpdateView: View {
 
     // MARK: - Done
 
-    private var doneView: some View {
+    private func doneView(asset: OTAAsset) -> some View {
         VStack(spacing: 24) {
             Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: 64))
                 .foregroundStyle(.green)
 
             VStack(spacing: 8) {
-                Text("Firmware Updated!")
+                Text("Firmware Installed")
                     .font(.title2.weight(.bold))
                     .foregroundStyle(MeshTheme.textPrimary)
-                Text("Your radio is flashing the new firmware and will restart. Reconnect your device's WiFi to your normal network, then the app will reconnect to the radio.")
+                VStack(spacing: 2) {
+                    Text(asset.displayName)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(MeshTheme.accent)
+                    if let version = asset.version {
+                        Text(version)
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(MeshTheme.textSecondary)
+                    }
+                }
+                Text("The device rebooted successfully. Reconnect your WiFi to your normal network if needed — the app will reconnect automatically.")
                     .font(.subheadline)
                     .foregroundStyle(MeshTheme.textSecondary)
                     .multilineTextAlignment(.center)
@@ -391,7 +429,10 @@ struct FirmwareUpdateView: View {
 
             if canRetry {
                 Button {
-                    Task { await otaService.start(manufacturer: deviceConfig.manufacturer) }
+                    Task {
+                        let mfr = manufacturerHint.isEmpty ? deviceConfig.manufacturer : manufacturerHint
+                        await otaService.start(manufacturer: mfr, firmwareType: firmwareType)
+                    }
                 } label: {
                     Text("Try Again")
                         .font(.subheadline.weight(.semibold))
@@ -411,6 +452,92 @@ struct FirmwareUpdateView: View {
             .buttonStyle(.plain)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    // MARK: - DFU Handoff (nRF52)
+
+    private func dfuHandoffView(zipData: Data, asset: OTAAsset) -> some View {
+        VStack(spacing: 24) {
+            stepHeader(
+                icon: "bolt.horizontal",
+                title: "Upload via nRF DFU App",
+                subtitle: "Your radio is in DFU mode. Use the nRF Device Firmware Update app to complete the update."
+            )
+
+            VStack(alignment: .leading, spacing: 12) {
+                instructionCard(number: "1", title: "Save the firmware file") {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Save the firmware ZIP to your Files so the nRF DFU app can access it.")
+                            .font(.subheadline)
+                            .foregroundStyle(MeshTheme.textPrimary)
+                        if let zipURL = makeTempZipURL(data: zipData, named: asset.name) {
+                            ShareLink(item: zipURL, preview: SharePreview(asset.displayName, image: Image(systemName: "doc.zipper"))) {
+                                Label("Save \(asset.name)", systemImage: "square.and.arrow.up")
+                                    .foregroundStyle(MeshTheme.accent)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                }
+
+                instructionCard(number: "2", title: "Open nRF Device Firmware Update") {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Install the free nRF Device Firmware Update app by Nordic Semiconductor, then:")
+                            .font(.subheadline)
+                            .foregroundStyle(MeshTheme.textPrimary)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("1. Open the nRF DFU app")
+                            Text("2. Tap Settings → enable Packet Receipt Notifications, set to 8")
+                            Text("3. Select the ZIP file you saved")
+                            Text("4. Select your device from the list")
+                            Text("5. Tap Upload and wait for completion")
+                        }
+                        .font(.caption)
+                        .foregroundStyle(MeshTheme.textSecondary)
+
+                        if let url = URL(string: "https://apps.apple.com/search?term=nRF+Device+Firmware+Update") {
+                            Link(destination: url) {
+                                Label("Get nRF Device Firmware Update", systemImage: "arrow.up.right.square")
+                                    .foregroundStyle(MeshTheme.accent)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                }
+            }
+
+            Button { dismiss() } label: {
+                Text("Done")
+                    .foregroundStyle(MeshTheme.textSecondary)
+            }
+            .buttonStyle(.plain)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private func makeTempZipURL(data: Data, named: String) -> URL? {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(named)
+        do {
+            try data.write(to: url)
+            return url
+        } catch {
+            return nil
+        }
+    }
+
+    private func remoteAdminOTAContent(session: RemoteDeviceSession) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Your radio is logged in via remote admin. Tap the button below to send the command.")
+                .font(.subheadline)
+                .foregroundStyle(MeshTheme.textPrimary)
+            Button {
+                remoteSessionManager.sendCLICommand("start ota", to: session.contact)
+            } label: {
+                Label("Send start ota Command", systemImage: "terminal")
+                    .foregroundStyle(MeshTheme.accent)
+            }
+            .buttonStyle(.plain)
+        }
     }
 
     private var otaManualInstructions: some View {

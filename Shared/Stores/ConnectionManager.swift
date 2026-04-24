@@ -668,6 +668,11 @@ final class ConnectionManager {
     var isUSBCLIMode: Bool {
         usbManager.isConnected && usbManager.detectedMode == .cli
     }
+
+    /// Whether the USB device is connected via binary protocol (companion radio).
+    var isUSBBinaryMode: Bool {
+        usbManager.isConnected && usbManager.detectedMode == .binary
+    }
     #endif
 
     func disconnect() {
