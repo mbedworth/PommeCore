@@ -154,6 +154,92 @@ final class FirmwareOTAService {
     }
     #endif
 
+    // MARK: - WiFi Upload (macOS)
+
+    #if os(macOS) || targetEnvironment(macCatalyst)
+    /// Uploads firmware via NWConnection forced through WiFi with chunked progress.
+    /// URLSession on macOS hands the entire body to the TCP send buffer at once and
+    /// reports 100% immediately; NWConnection with 8 KB sequential chunks fires a
+    /// completion per chunk, giving progress that tracks actual transfer rate.
+    private func uploadFirmwareViaWiFi(_ data: Data, asset: OTAAsset) async throws {
+        let md5 = Insecure.MD5.hash(data: data).map { String(format: "%02hhx", $0) }.joined()
+        let boundary = "MeshCoreOTA\(UUID().uuidString.replacingOccurrences(of: "-", with: ""))"
+        var body = Data()
+        body += "--\(boundary)\r\n".utf8Data
+        body += "Content-Disposition: form-data; name=\"MD5\"\r\n\r\n".utf8Data
+        body += md5.utf8Data
+        body += "\r\n".utf8Data
+        body += "--\(boundary)\r\n".utf8Data
+        body += "Content-Disposition: form-data; name=\"firmware\"; filename=\"firmware.bin\"\r\n".utf8Data
+        body += "Content-Type: application/octet-stream\r\n\r\n".utf8Data
+        body += data
+        body += "\r\n--\(boundary)--\r\n".utf8Data
+
+        let headerData = Data("POST /update HTTP/1.1\r\nHost: 192.168.4.1\r\nContent-Type: multipart/form-data; boundary=\(boundary)\r\nContent-Length: \(body.count)\r\nConnection: close\r\n\r\n".utf8)
+
+        let params = NWParameters.tcp
+        params.requiredInterfaceType = .wifi
+        let conn = NWConnection(host: "192.168.4.1", port: 80, using: params)
+        let q = DispatchQueue(label: "ota.upload.mac", qos: .userInitiated)
+
+        // Wait for TCP connection
+        try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
+            final class Gate: @unchecked Sendable { var fired = false }
+            let gate = Gate()
+            conn.stateUpdateHandler = { state in
+                switch state {
+                case .ready:
+                    guard !gate.fired else { return }
+                    gate.fired = true
+                    cont.resume()
+                case .failed(let err):
+                    guard !gate.fired else { return }
+                    gate.fired = true
+                    cont.resume(throwing: err)
+                default: break
+                }
+            }
+            conn.start(queue: q)
+        }
+
+        // Send HTTP headers
+        try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
+            conn.send(content: headerData, completion: .contentProcessed { err in
+                if let err { cont.resume(throwing: err) } else { cont.resume() }
+            })
+        }
+
+        // Send body in 8 KB chunks — each completion fires when the chunk leaves the app,
+        // yielding ~128 progress ticks for a 1 MB firmware rather than one instant jump.
+        let chunkSize = 8192
+        var offset = 0
+        let total = body.count
+        while offset < total {
+            guard !isCancelled else { conn.cancel(); throw OTAError.cancelled }
+            let end = min(offset + chunkSize, total)
+            let chunk = Data(body[offset..<end])
+            try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
+                conn.send(content: chunk, completion: .contentProcessed { err in
+                    if let err { cont.resume(throwing: err) } else { cont.resume() }
+                })
+            }
+            offset = end
+            step = .uploading(progress: Double(offset) / Double(total), asset: asset)
+        }
+
+        // Wait for ESP32 to respond or drop the connection (reboot after successful flash)
+        await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
+            func recv() {
+                conn.receive(minimumIncompleteLength: 1, maximumLength: 4096) { _, _, isComplete, error in
+                    if isComplete || error != nil { cont.resume() } else { recv() }
+                }
+            }
+            recv()
+        }
+        conn.cancel()
+    }
+    #endif
+
     // MARK: - Public API
 
     func start(manufacturer: String, firmwareType: FirmwareType = .companion) async {
@@ -330,7 +416,11 @@ final class FirmwareOTAService {
                 // Radio is reachable — upload
                 step = .uploading(progress: 0, asset: asset)
                 do {
+                    #if os(macOS) || targetEnvironment(macCatalyst)
+                    try await uploadFirmwareViaWiFi(firmwareData, asset: asset)
+                    #else
                     try await uploadFirmware(firmwareData, asset: asset)
+                    #endif
                     step = .done(asset: asset)
                 } catch {
                     guard !isCancelled else { return }
