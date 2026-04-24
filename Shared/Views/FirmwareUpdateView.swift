@@ -205,12 +205,13 @@ struct FirmwareUpdateView: View {
             )
 
             VStack(spacing: 8) {
-                ProgressView(value: progress > 0 ? progress : nil)
-                    .tint(MeshTheme.accent)
                 if progress > 0 {
+                    LinearProgressBar(progress: progress)
                     Text("\(Int(progress * 100))%")
                         .font(.caption)
                         .foregroundStyle(MeshTheme.textSecondary)
+                } else {
+                    ProgressView().tint(MeshTheme.accent)
                 }
             }
 
@@ -348,12 +349,13 @@ struct FirmwareUpdateView: View {
             )
 
             VStack(spacing: 8) {
-                ProgressView(value: progress > 0 ? progress : nil)
-                    .tint(MeshTheme.accent)
                 if progress > 0 {
+                    LinearProgressBar(progress: progress)
                     Text("\(Int(progress * 100))%")
                         .font(.caption)
                         .foregroundStyle(MeshTheme.textSecondary)
+                } else {
+                    ProgressView().tint(MeshTheme.accent)
                 }
             }
 

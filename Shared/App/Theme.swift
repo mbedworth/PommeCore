@@ -305,6 +305,28 @@ func showFeedback(_ state: Binding<Bool>, duration: TimeInterval = 2) {
     }
 }
 
+// MARK: - Linear Progress Bar
+
+/// Custom progress bar that avoids NSProgressIndicator's stacking animation bug on macOS,
+/// where rapid value updates cause the bar to visually bounce backwards.
+struct LinearProgressBar: View {
+    let progress: Double
+    var tint: Color = MeshTheme.accent
+
+    var body: some View {
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                Capsule().fill(Color.secondary.opacity(0.2))
+                Capsule()
+                    .fill(tint)
+                    .frame(width: geo.size.width * max(0, min(progress, 1)))
+                    .animation(.linear(duration: 0.15), value: progress)
+            }
+        }
+        .frame(height: 6)
+    }
+}
+
 // MARK: - Copy Button
 
 /// Reusable copy-to-clipboard button with timed "Copied!" feedback and consistent styling.
