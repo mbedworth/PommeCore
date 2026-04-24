@@ -490,6 +490,7 @@ final class RemoteSessionManager {
 
         guard let commands = Self.sectionCommands[section] else { return }
 
+        session.flushPendingCommands()
         session.fetchingSection = section
         Self.logger.info("REMOTE MGMT: Fetching section '\(section)' (\(commands.count) commands) for \(contact.name)")
 

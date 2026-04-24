@@ -237,6 +237,15 @@ public final class RemoteDeviceSession: ObservableObject {
         isWaitingForResponse = cliHistory.contains(where: { !$0.isComplete })
     }
 
+    /// Flush all currently-pending commands as "(flushed)" before starting a structured fetch.
+    /// Prevents FIFO response attribution from routing fetch responses to stale fire-and-forget slots.
+    public func flushPendingCommands() {
+        for i in cliHistory.indices where !cliHistory[i].isComplete {
+            cliHistory[i].response = "(flushed)"
+        }
+        isWaitingForResponse = false
+    }
+
     /// Strip all known CLI prefixes from a response value.
     public static func cleanCLIValue(_ text: String) -> String {
         var s = text.trimmingCharacters(in: .whitespacesAndNewlines)
