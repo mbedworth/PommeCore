@@ -227,14 +227,29 @@ final class FirmwareOTAService {
             step = .uploading(progress: Double(offset) / Double(total), asset: asset)
         }
 
-        // Wait for ESP32 to respond or drop the connection (reboot after successful flash)
+        // Wait for ESP32 to respond or drop the connection (reboot after successful flash).
+        // Guard with a gate + 15s timeout: when the ESP32 reboots it may drop WiFi without
+        // sending a TCP FIN, and NWConnection on macOS can miss the close event entirely.
         await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
+            final class Gate: @unchecked Sendable { var fired = false }
+            let gate = Gate()
             func recv() {
                 conn.receive(minimumIncompleteLength: 1, maximumLength: 4096) { _, _, isComplete, error in
-                    if isComplete || error != nil { cont.resume() } else { recv() }
+                    if isComplete || error != nil {
+                        guard !gate.fired else { return }
+                        gate.fired = true
+                        cont.resume()
+                    } else {
+                        recv()
+                    }
                 }
             }
             recv()
+            q.asyncAfter(deadline: .now() + 15) {
+                guard !gate.fired else { return }
+                gate.fired = true
+                cont.resume()
+            }
         }
         conn.cancel()
     }

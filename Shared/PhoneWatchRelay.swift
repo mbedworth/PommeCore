@@ -312,7 +312,8 @@ final class PhoneWatchRelay: NSObject {
             isOutgoing: message.isOutgoing,
             statusRaw: message.status.rawValue,
             senderName: message.senderName,
-            channelIndex: message.channelIndex
+            channelIndex: message.channelIndex,
+            hops: message.hops
         )
     }
 

@@ -259,6 +259,7 @@ final class RemoteSessionManager {
     private func isWriteCLICommand(_ cmd: String) -> Bool {
         let lower = cmd.lowercased().trimmingCharacters(in: .whitespaces)
         return lower.hasPrefix("set ") || lower == "reboot" || lower.hasPrefix("powersaving ")
+            || lower == "start ota" || lower.hasPrefix("start ")
     }
 
     /// Minimum interval between remote CLI commands to prevent mesh airtime abuse.
@@ -304,16 +305,22 @@ final class RemoteSessionManager {
         switch session.loginState {
         case .loggedIn(let permission):
             if isWriteCLICommand(trimmed) && !permission.canEdit {
-                Self.logger.warning("CLI BLOCKED: '\(trimmed)' requires write permission (current: \(permission.displayName))")
+                let msg = "CLI BLOCKED: '\(trimmed)' requires write permission (current: \(permission.displayName))"
+                Self.logger.warning("\(msg)")
+                DebugLogger.shared.log(msg, level: .warning)
                 return
             }
         case .notLoggedIn, .loggingIn, .loginFailed:
-            Self.logger.warning("CLI BLOCKED: '\(trimmed)' — not logged in to \(contact.name)")
+            let msg = "CLI BLOCKED: '\(trimmed)' — not logged in to \(contact.name)"
+            Self.logger.warning("\(msg)")
+            DebugLogger.shared.log(msg, level: .warning)
             return
         }
 
         if isRateLimited() {
-            Self.logger.warning("CLI RATE LIMITED: '\(trimmed)' dropped — too many commands")
+            let msg = "CLI RATE LIMITED: '\(trimmed)' dropped — too many commands"
+            Self.logger.warning("\(msg)")
+            DebugLogger.shared.log(msg, level: .warning)
             return
         }
 
@@ -351,6 +358,46 @@ final class RemoteSessionManager {
                 session.isFetchingSettings = false
                 session.isWaitingForResponse = false
             }
+        }
+    }
+
+    /// Send a CLI command directly to a known session, bypassing the session lookup and rate limiter.
+    /// Use when the caller already holds a verified logged-in session (e.g. OTA flow).
+    func sendCLICommand(_ command: String, on session: RemoteDeviceSession) {
+        let trimmed = command.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+
+        guard case .loggedIn(let permission) = session.loginState else {
+            let msg = "CLI BLOCKED (direct): '\(trimmed)' — session not logged in for \(session.contact.name)"
+            Self.logger.warning("\(msg)")
+            DebugLogger.shared.log(msg, level: .warning)
+            return
+        }
+
+        if isWriteCLICommand(trimmed) && !permission.canEdit {
+            let msg = "CLI BLOCKED (direct): '\(trimmed)' requires write permission (current: \(permission.displayName))"
+            Self.logger.warning("\(msg)")
+            DebugLogger.shared.log(msg, level: .warning)
+            return
+        }
+
+        let cmdIndex = session.commandSent(trimmed)
+        let frame = MeshCoreProtocol.buildSendCLICommand(
+            command: trimmed,
+            recipientKeyHash: session.contact.publicKeyPrefix
+        )
+        sendCommand?(frame, "CLI_CMD")
+        DebugLogger.shared.log("CLI TX: \(trimmed) → \(session.contact.name)", level: .tx)
+        Self.logger.info("CLI TX (direct): '\(trimmed)' → \(session.contact.name)")
+
+        Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            guard let self else { return }
+            self.syncNextMessage?()
+
+            try? await Task.sleep(nanoseconds: 8_000_000_000)
+            guard !Task.isCancelled else { return }
+            session.timeoutCommand(at: cmdIndex)
         }
     }
 
@@ -512,7 +559,7 @@ final class RemoteSessionManager {
     /// Fetch only volatile keys that change automatically (clock, etc).
     /// Used when cache exists to avoid re-fetching stable settings.
     private func fetchVolatileKeys(for contact: Contact, session: RemoteDeviceSession) async {
-        let volatileCommands = ["clock"]
+        let volatileCommands = ["clock", "ver"]
         Self.logger.info("REMOTE MGMT: Fetching \(volatileCommands.count) volatile keys for \(contact.name) (cache hit)")
 
         for command in volatileCommands {

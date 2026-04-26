@@ -32,7 +32,7 @@ struct FirmwareUpdateView: View {
             }
             .navigationTitle("Firmware Update")
             #if os(macOS) || targetEnvironment(macCatalyst)
-            .navigationSubtitle("v\(latestVersion)")
+            .navigationSubtitle(latestVersion.isEmpty ? "" : "v\(latestVersion)")
             #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -533,7 +533,7 @@ struct FirmwareUpdateView: View {
                 .font(.subheadline)
                 .foregroundStyle(MeshTheme.textPrimary)
             Button {
-                remoteSessionManager.sendCLICommand("start ota", to: session.contact)
+                remoteSessionManager.sendCLICommand("start ota", on: session)
             } label: {
                 Label("Send start ota Command", systemImage: "terminal")
                     .foregroundStyle(MeshTheme.accent)
