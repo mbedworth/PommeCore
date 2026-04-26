@@ -831,11 +831,6 @@ final class MessageStoreManager {
     // MARK: - Notifications
 
     func postLocalNotification(for message: Message) {
-        #if !os(macOS)
-        // On iOS/watchOS, only post when backgrounded. On macOS, always post —
-        // the notification center suppresses banners when the app is frontmost.
-        guard isInBackground else { return }
-        #endif
 
         let prefs = NotificationPreferences.shared
         let isChannel = message.channelIndex != nil

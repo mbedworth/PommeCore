@@ -57,6 +57,9 @@ final class NotificationPreferences: ObservableObject {
     @Published var notifyConnection: Bool {
         didSet { if iCloudSyncEnabled { store.setAndSync(notifyConnection, forKey: "notify.connection") } }
     }
+    @Published var notifyForeground: Bool {
+        didSet { if iCloudSyncEnabled { store.setAndSync(notifyForeground, forKey: "notify.foreground") } }
+    }
 
     private init() {
         // Load with defaults (true for messages, false for new contacts)
@@ -65,6 +68,7 @@ final class NotificationPreferences: ObservableObject {
         notifyRoom = store.object(forKey: "notify.room") == nil ? true : store.bool(forKey: "notify.room")
         notifyNewContacts = store.bool(forKey: "notify.newContacts")
         notifyConnection = store.object(forKey: "notify.connection") == nil ? true : store.bool(forKey: "notify.connection")
+        notifyForeground = store.object(forKey: "notify.foreground") == nil ? true : store.bool(forKey: "notify.foreground")
 
         NotificationCenter.default.addObserver(
             forName: NSUbiquitousKeyValueStore.didChangeExternallyNotification,
@@ -83,6 +87,7 @@ final class NotificationPreferences: ObservableObject {
         notifyRoom = store.object(forKey: "notify.room") == nil ? true : store.bool(forKey: "notify.room")
         notifyNewContacts = store.bool(forKey: "notify.newContacts")
         notifyConnection = store.object(forKey: "notify.connection") == nil ? true : store.bool(forKey: "notify.connection")
+        notifyForeground = store.object(forKey: "notify.foreground") == nil ? true : store.bool(forKey: "notify.foreground")
     }
 }
 

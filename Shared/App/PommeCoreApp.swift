@@ -135,6 +135,14 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         return true
     }
 
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        if NotificationPreferences.shared.notifyForeground {
+            completionHandler([.banner, .sound, .badge])
+        } else {
+            completionHandler([])
+        }
+    }
+
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
         let userInfo = response.notification.request.content.userInfo
 

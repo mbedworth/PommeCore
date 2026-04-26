@@ -64,8 +64,15 @@ struct NotificationsSection: View {
             }
             .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
+
+            Toggle(isOn: $prefs.notifyForeground) {
+                Label("In-App Banners", systemImage: "bell.badge")
+                    .foregroundStyle(MeshTheme.accent)
+            }
+            .tint(MeshTheme.accent)
+            .listRowBackground(MeshTheme.surface)
         } header: {
-            SectionInfoHeader(title: "Notifications", info: "Choose which events trigger notifications when the app is in the background.")
+            SectionInfoHeader(title: "Notifications", info: "Choose which events trigger notifications. In-App Banners shows alerts even when the app is open.")
         }
     }
 }
