@@ -148,10 +148,15 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
 
         // Handle quick reply action
         if response.actionIdentifier == "REPLY_ACTION",
-           let textResponse = response as? UNTextInputNotificationResponse,
-           let pubkeyHex = userInfo["contactPubkey"] as? String {
+           let textResponse = response as? UNTextInputNotificationResponse {
+            let text = textResponse.userText
             Task { @MainActor in
-                viewModel?.handleNotificationReply(text: textResponse.userText, contactPubkeyHex: pubkeyHex)
+                if let isChannel = userInfo["isChannel"] as? Bool, isChannel,
+                   let chIdx = userInfo["channelIndex"] as? UInt8 {
+                    viewModel?.handleNotificationChannelReply(text: text, channelIndex: chIdx)
+                } else if let pubkeyHex = userInfo["contactPubkey"] as? String {
+                    viewModel?.handleNotificationReply(text: text, contactPubkeyHex: pubkeyHex)
+                }
             }
         }
 

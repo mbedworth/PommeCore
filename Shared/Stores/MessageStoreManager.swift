@@ -906,9 +906,7 @@ final class MessageStoreManager {
                 content.userInfo["channelIndex"] = chIdx
             }
             #if os(iOS)
-            if !isChannel {
-                content.categoryIdentifier = "MESSAGE_CATEGORY"
-            }
+            content.categoryIdentifier = "MESSAGE_CATEGORY"
             #endif
         }
 

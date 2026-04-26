@@ -403,7 +403,7 @@ final class PommeCoreViewModel: ObservableObject {
 #endif
     }
     
-    /// Handle a quick reply from a notification action.
+    /// Handle a quick reply from a notification action (DM).
     func handleNotificationReply(text: String, contactPubkeyHex: String) {
         guard let contact = contactStore.contacts.first(where: {
             $0.publicKey.hexCompact == contactPubkeyHex
@@ -412,6 +412,11 @@ final class PommeCoreViewModel: ObservableObject {
             return
         }
         messageStoreManager.sendTextMessage(text, to: contact)
+    }
+
+    /// Handle a quick reply from a notification action (channel).
+    func handleNotificationChannelReply(text: String, channelIndex: UInt8) {
+        messageStoreManager.sendChannelMessage(text, channelIndex: channelIndex)
     }
     
     // postLocalNotification, updateAppBadge, playHapticFeedback, playReceiveHaptic -> MessageStoreManager
