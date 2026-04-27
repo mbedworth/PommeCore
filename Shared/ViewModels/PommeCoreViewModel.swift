@@ -189,6 +189,7 @@ final class PommeCoreViewModel: ObservableObject {
     init() {
         wireStoreDependencies()
         wireConnectionCallbacks()
+        wireAppIntentBridge()
         observeStores()
         observeiCloudChanges()
         registerTerminationHandler()
@@ -304,6 +305,16 @@ final class PommeCoreViewModel: ObservableObject {
 #endif
     }
     
+    /// Populate AppIntentBridge so Siri/Shortcuts intents can reach live store instances.
+    private func wireAppIntentBridge() {
+        #if !os(watchOS)
+        AppIntentBridge.shared.connectionManager = connectionManager
+        AppIntentBridge.shared.contactStore = contactStore
+        AppIntentBridge.shared.channelStore = channelStore
+        AppIntentBridge.shared.messageStoreManager = messageStoreManager
+        #endif
+    }
+
     /// Wire ConnectionManager callbacks for frame dispatch and lifecycle events.
     private func wireConnectionCallbacks() {
         connectionManager.deviceConfig = deviceConfig

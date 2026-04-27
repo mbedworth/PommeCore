@@ -56,6 +56,14 @@
 		0FFEA5842F9FEC550078A117 /* RadioProfileStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA5822F9FEC550078A117 /* RadioProfileStore.swift */; };
 		0FFEA5862F9FEC750078A117 /* RadioProfilesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA5852F9FEC750078A117 /* RadioProfilesView.swift */; };
 		0FFEA5872F9FEC750078A117 /* RadioProfilesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA5852F9FEC750078A117 /* RadioProfilesView.swift */; };
+		0FFEA5892F9FF1DB0078A117 /* FrequencyScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA5882F9FF1DB0078A117 /* FrequencyScannerView.swift */; };
+		0FFEA58A2F9FF1DB0078A117 /* FrequencyScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA5882F9FF1DB0078A117 /* FrequencyScannerView.swift */; };
+		0FFEA58F2F9FF2480078A117 /* MeshAppIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA58D2F9FF2480078A117 /* MeshAppIntents.swift */; };
+		0FFEA5902F9FF2480078A117 /* AppIntentBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA58B2F9FF2480078A117 /* AppIntentBridge.swift */; };
+		0FFEA5912F9FF2480078A117 /* MeshAppEntities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA58C2F9FF2480078A117 /* MeshAppEntities.swift */; };
+		0FFEA5922F9FF2480078A117 /* MeshAppIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA58D2F9FF2480078A117 /* MeshAppIntents.swift */; };
+		0FFEA5932F9FF2480078A117 /* AppIntentBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA58B2F9FF2480078A117 /* AppIntentBridge.swift */; };
+		0FFEA5942F9FF2480078A117 /* MeshAppEntities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA58C2F9FF2480078A117 /* MeshAppEntities.swift */; };
 		18B6F45B61F3581FB64D1DB0 /* DeviceScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2377BED4FF5A7170783BA649 /* DeviceScannerView.swift */; };
 		1EF6ECA717224849A5BE496C /* chime.caf in Resources */ = {isa = PBXBuildFile; fileRef = 6F287F4DDB0C464C99076282 /* chime.caf */; };
 		225E5EA5B1F24BE8B38A3BE9 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = E09A1F63605E4CA4ACDE7634 /* InfoPlist.xcstrings */; };
@@ -265,6 +273,10 @@
 		0FFEA57F2F9FEC2B0078A117 /* RadioProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RadioProfile.swift; sourceTree = "<group>"; };
 		0FFEA5822F9FEC550078A117 /* RadioProfileStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RadioProfileStore.swift; sourceTree = "<group>"; };
 		0FFEA5852F9FEC750078A117 /* RadioProfilesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RadioProfilesView.swift; sourceTree = "<group>"; };
+		0FFEA5882F9FF1DB0078A117 /* FrequencyScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrequencyScannerView.swift; sourceTree = "<group>"; };
+		0FFEA58B2F9FF2480078A117 /* AppIntentBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIntentBridge.swift; sourceTree = "<group>"; };
+		0FFEA58C2F9FF2480078A117 /* MeshAppEntities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshAppEntities.swift; sourceTree = "<group>"; };
+		0FFEA58D2F9FF2480078A117 /* MeshAppIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshAppIntents.swift; sourceTree = "<group>"; };
 		21606E2B959E6496D3B0230D /* ContactListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactListView.swift; sourceTree = "<group>"; };
 		2377BED4FF5A7170783BA649 /* DeviceScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceScannerView.swift; sourceTree = "<group>"; };
 		2EEF439B8EDC4A5408C299FB /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = macOS/PrivacyInfo.xcprivacy; sourceTree = SOURCE_ROOT; };
@@ -426,6 +438,7 @@
 		0A6B0F647BA21A953CCB6490 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				0FFEA5882F9FF1DB0078A117 /* FrequencyScannerView.swift */,
 				0FFEA5852F9FEC750078A117 /* RadioProfilesView.swift */,
 				0FD96D542F84AA320026DF54 /* Tools/RadioCalculatorView.swift */,
 				ART10000000000000000000 /* Tools/LoRaAirtimeView.swift */,
@@ -501,6 +514,16 @@
 			name = "Recovered References";
 			sourceTree = "<group>";
 		};
+		0FFEA58E2F9FF2480078A117 /* AppIntents */ = {
+			isa = PBXGroup;
+			children = (
+				0FFEA58B2F9FF2480078A117 /* AppIntentBridge.swift */,
+				0FFEA58C2F9FF2480078A117 /* MeshAppEntities.swift */,
+				0FFEA58D2F9FF2480078A117 /* MeshAppIntents.swift */,
+			);
+			path = AppIntents;
+			sourceTree = "<group>";
+		};
 		307D79903AB18CCBBF806BCE /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
@@ -564,6 +587,7 @@
 				0A6B0F647BA21A953CCB6490 /* Views */,
 				43931BD12312D05F62A9E3B3 /* Assets.xcassets */,
 				0913E2D5EC3349D0AEBF74B9 /* Sounds */,
+				0FFEA58E2F9FF2480078A117 /* AppIntents */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -812,6 +836,7 @@
 				NTV10000000100000000002 /* NetworkToolsView+Device.swift in Sources */,
 				C9CEA8D3714859C1177D7704 /* ContactListView.swift in Sources */,
 				CLC10000000100000000002 /* ContactListView+ChannelsUI.swift in Sources */,
+				0FFEA58A2F9FF1DB0078A117 /* FrequencyScannerView.swift in Sources */,
 				CLU10000000100000000002 /* ContactListView+ContactsUI.swift in Sources */,
 				CLA10000000100000000002 /* ContactListView+ContactActions.swift in Sources */,
 				0F29C3C52F84856E0007BF08 /* Services/ElevationService.swift in Sources */,
@@ -822,6 +847,9 @@
 				B4C5D6E7F8A9B0C1D2E3F4A5 /* NavigationStore.swift in Sources */,
 				18B6F45B61F3581FB64D1DB0 /* DeviceScannerView.swift in Sources */,
 				F466BDEE333B5D296E925DA5 /* PommeCoreApp.swift in Sources */,
+				0FFEA58F2F9FF2480078A117 /* MeshAppIntents.swift in Sources */,
+				0FFEA5902F9FF2480078A117 /* AppIntentBridge.swift in Sources */,
+				0FFEA5912F9FF2480078A117 /* MeshAppEntities.swift in Sources */,
 				0FCE4BE42F7A20E5009358D8 /* PommeCoreViewModel+ResponseHandling.swift in Sources */,
 				D3633106D9031C89E0589468 /* PommeCoreViewModel.swift in Sources */,
 				FC6474A70CF5B233AB283928 /* SettingsView.swift in Sources */,
@@ -898,6 +926,7 @@
 				NTV10000000100000000003 /* NetworkToolsView+Device.swift in Sources */,
 				8EF971496F064F1AD761B796 /* ContactListView.swift in Sources */,
 				CLC10000000100000000003 /* ContactListView+ChannelsUI.swift in Sources */,
+				0FFEA5892F9FF1DB0078A117 /* FrequencyScannerView.swift in Sources */,
 				CLU10000000100000000003 /* ContactListView+ContactsUI.swift in Sources */,
 				CLA10000000100000000003 /* ContactListView+ContactActions.swift in Sources */,
 				0F29C3C62F84856E0007BF08 /* Services/ElevationService.swift in Sources */,
@@ -908,6 +937,9 @@
 				A3B4C5D6E7F8A9B0C1D2E3F4 /* NavigationStore.swift in Sources */,
 				9A92FFC5BE2A781BEC80720C /* DeviceScannerView.swift in Sources */,
 				57D771A61E08BB1991C80DE6 /* PommeCoreApp.swift in Sources */,
+				0FFEA5922F9FF2480078A117 /* MeshAppIntents.swift in Sources */,
+				0FFEA5932F9FF2480078A117 /* AppIntentBridge.swift in Sources */,
+				0FFEA5942F9FF2480078A117 /* MeshAppEntities.swift in Sources */,
 				0FCE4BE32F7A20E5009358D8 /* PommeCoreViewModel+ResponseHandling.swift in Sources */,
 				6A8D08F2CE9D321D55C02696 /* PommeCoreViewModel.swift in Sources */,
 				EC8655805E2DCD03D8C9C4F6 /* SettingsView.swift in Sources */,

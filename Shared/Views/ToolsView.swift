@@ -18,6 +18,7 @@ struct ToolsView: View {
     @State private var showRadioCalc = false
     @State private var showAirtime = false
     @State private var showSensitivity = false
+    @State private var showFreqScanner = false
     var body: some View {
         List {
             Section {
@@ -68,6 +69,14 @@ struct ToolsView: View {
                     subtitle: "Live SNR and RSSI chart from received LoRa packets"
                 ) {
                     showNoiseFloor = true
+                }
+
+                toolButton(
+                    icon: "antenna.radiowaves.left.and.right.slash",
+                    title: "Frequency Scanner",
+                    subtitle: "Scan regional presets to detect which frequencies have mesh activity nearby"
+                ) {
+                    showFreqScanner = true
                 }
 
             } header: {
@@ -124,6 +133,20 @@ struct ToolsView: View {
             .meshTheme()
             #if os(macOS) || targetEnvironment(macCatalyst)
             .frame(minWidth: 500, idealWidth: 600, minHeight: 600, idealHeight: 700)
+            #endif
+        }
+        .sheet(isPresented: $showFreqScanner) {
+            NavigationStack {
+                FrequencyScannerView()
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Done") { showFreqScanner = false }
+                        }
+                    }
+            }
+            .meshTheme()
+            #if os(macOS) || targetEnvironment(macCatalyst)
+            .frame(minWidth: 400, minHeight: 500)
             #endif
         }
         .sheet(isPresented: $showNoiseFloor) {
