@@ -61,7 +61,7 @@ extension ContactListView {
                                 .foregroundStyle(MeshTheme.textSecondary)
                             if deviceConfig.batteryPercent() > 0 {
                                 let pct = deviceConfig.batteryPercent()
-                                Text("\u{2022} \(pct)%")
+                                Text(String(format: "• %d%%", pct))
                                     .font(.caption2)
                                     .foregroundStyle(pct > 50 ? .green : pct > 20 ? .yellow : .red)
                             }

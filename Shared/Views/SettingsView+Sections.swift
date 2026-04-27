@@ -308,7 +308,7 @@ struct DeviceInfoSection: View {
             let battV = String(format: "%.2f", Double(config.batteryMillivolts) / 1000.0)
             let battPct = config.batteryPercent()
             let battColor: Color = battPct > 50 ? .green : battPct > 20 ? .yellow : battPct > 0 ? .red : MeshTheme.textSecondary
-            Text(battPct > 0 ? "\(battV)V (\(battPct)%)" : "\(battV)V")
+            Text(battPct > 0 ? String(format: "%@V (%d%%)", battV, battPct) : "\(battV)V")
                 .foregroundStyle(battColor)
         }
         .contentShape(Rectangle())
@@ -605,7 +605,7 @@ extension SettingsView {
                 .foregroundStyle(MeshTheme.accent)
             Spacer()
             if config.batteryMillivolts > 0 {
-                Text("\(String(format: "%.2fV", correctedBatteryVoltage)) (\(correctedBatteryPercent)%)")
+                Text(String(format: "%.2fV (%d%%)", correctedBatteryVoltage, correctedBatteryPercent))
                     .foregroundStyle(batteryColor)
             } else {
                 Text("\u{2014}")

@@ -207,7 +207,7 @@ struct FirmwareUpdateView: View {
             VStack(spacing: 8) {
                 if progress > 0 {
                     LinearProgressBar(progress: progress)
-                    Text("\(Int(progress * 100))%")
+                    Text(String(format: "%d%%", Int(progress * 100)))
                         .font(.caption)
                         .foregroundStyle(MeshTheme.textSecondary)
                 } else {
@@ -351,7 +351,7 @@ struct FirmwareUpdateView: View {
             VStack(spacing: 8) {
                 if progress > 0 {
                     LinearProgressBar(progress: progress)
-                    Text("\(Int(progress * 100))%")
+                    Text(String(format: "%d%%", Int(progress * 100)))
                         .font(.caption)
                         .foregroundStyle(MeshTheme.textSecondary)
                 } else {
