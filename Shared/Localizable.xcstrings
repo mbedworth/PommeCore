@@ -2894,7 +2894,8 @@
             "value": "EU-868-MHz-Band: 1% Tastverhältnis. US 915 MHz: kein Tastverhältnislimit (FCC-Verweilzeit gilt stattdessen)."
           }
         }
-      }
+      },
+      "shouldTranslate": false
     },
     "Exact": {
       "localizations": {
@@ -6587,7 +6588,8 @@
             "value": "Empfindlichkeit setzt CR 4/5 voraus. Reichweite ist theoretisches FSPL-Maximum mit 22 dBm TX + 2 dBi Antenne. Reale Reichweite beträgt typischerweise 30–50% des Theoretischen."
           }
         }
-      }
+      },
+      "shouldTranslate": false
     },
     "Sensor GPIO": {
       "localizations": {
