@@ -130,9 +130,9 @@ public enum MeshCoreProtocol {
 
     /// CMD_SEND_CHANNEL_TXT_MSG (code 3).
     /// Frame: code(1) txt_type(1) channel_idx(1) sender_timestamp(uint32) text(varchar)
-    public static func buildSendChannelMessage(text: String, channelIndex: UInt8 = 0) -> Data {
+    public static func buildSendChannelMessage(text: String, channelIndex: UInt8 = 0, txtType: UInt8 = 0) -> Data {
         var frame = Data([MeshCoreCommand.sendChannelMessage.rawValue])
-        frame.append(0x00) // txt_type: 0 = plain text
+        frame.append(txtType)
         frame.append(channelIndex)
         appendUInt32(&frame, Date().epochUInt32)
         if let textData = text.data(using: .utf8) {

@@ -272,7 +272,7 @@ final class MessageStoreManager {
 
     // MARK: - Send Messages
 
-    func sendTextMessage(_ text: String, to contact: Contact) {
+    func sendTextMessage(_ text: String, to contact: Contact, signed: Bool = false) {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
 
@@ -281,14 +281,16 @@ final class MessageStoreManager {
             text: trimmed,
             timestamp: Date(),
             isOutgoing: true,
-            status: .sending
+            status: .sending,
+            isSigned: signed
         )
         messagesByContact[contact.publicKeyPrefix, default: []].append(outgoing)
         persistMessages(for: contact.publicKeyPrefix)
 
         let frame = MeshCoreProtocol.buildSendTextMessage(
             text: trimmed,
-            recipientKeyHash: contact.publicKeyPrefix
+            recipientKeyHash: contact.publicKeyPrefix,
+            txtType: signed ? 2 : 0
         )
         Self.logger.info("DM SEND: to=\(contact.name) key=\(contact.publicKeyPrefix.hexCompact)")
         DebugLogger.shared.log("DM SEND: to='\(contact.name)' '\(text.prefix(40))'", level: .tx)
@@ -343,13 +345,14 @@ final class MessageStoreManager {
         sendCommand?(pending.frame, "SEND_TXT")
     }
 
-    func sendChannelMessage(_ text: String, channelIndex: UInt8 = 0) {
+    func sendChannelMessage(_ text: String, channelIndex: UInt8 = 0, signed: Bool = false) {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
 
         let frame = MeshCoreProtocol.buildSendChannelMessage(
             text: trimmed,
-            channelIndex: channelIndex
+            channelIndex: channelIndex,
+            txtType: signed ? 2 : 0
         )
         Self.logger.info("CHANNEL TX: [\(frame.count) bytes] \(frame.hexFormatted())")
         DebugLogger.shared.log("CH TX: ch=\(frame.count > 2 ? "\(frame[2])" : "?") [\(frame.count)B] \(frame.hexFormatted())", level: .tx)
@@ -363,7 +366,8 @@ final class MessageStoreManager {
             timestamp: Date(),
             isOutgoing: true,
             status: .sent,
-            channelIndex: channelIndex
+            channelIndex: channelIndex,
+            isSigned: signed
         )
         messagesByContact[channelKey, default: []].append(outgoing)
         persistMessages(for: channelKey)

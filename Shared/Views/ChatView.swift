@@ -36,6 +36,7 @@ struct ChatView: View {
     @State private var searchText = ""
     @State private var showPathEditor = false
     @State private var quotedMessage: Message?
+    @State private var signNextMessage = false
     @State private var forwardMessage: Message?
     @State private var showForwardPicker = false
     @State private var chatExportItems: [Any] = []
@@ -461,6 +462,15 @@ struct ChatView: View {
                     .onSubmit { send() }
                     #endif
 
+                Button {
+                    signNextMessage.toggle()
+                } label: {
+                    Image(systemName: signNextMessage ? "lock.fill" : "lock.open")
+                        .font(.system(size: 22))
+                        .foregroundStyle(signNextMessage ? MeshTheme.accent : MeshTheme.textSecondary)
+                }
+                .buttonStyle(.plain)
+
                 Button(action: send) {
                     Image(systemName: "arrow.up.circle.fill")
                         .font(.system(size: 32))
@@ -501,8 +511,9 @@ struct ChatView: View {
             let suffix = quoted.text.count > 10 ? ".." : ""
             text = "@[\(senderName)]\n>\(preview)\(suffix)\n\(text)"
         }
-        messageStoreManager.sendTextMessage(text, to: contact)
+        messageStoreManager.sendTextMessage(text, to: contact, signed: signNextMessage)
         messageStoreManager.playHapticFeedback()
+        signNextMessage = false
         messageText = ""
         quotedMessage = nil
         messageStoreManager.saveDraft("", for: contact.publicKeyPrefix)
