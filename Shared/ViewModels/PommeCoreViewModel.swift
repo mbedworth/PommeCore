@@ -397,6 +397,8 @@ final class PommeCoreViewModel: ObservableObject {
             identifier: "MESSAGE_CATEGORY",
             actions: [replyAction],
             intentIdentifiers: [],
+            hiddenPreviewsBodyPlaceholder: "%u messages",
+            categorySummaryFormat: "%u more messages",
             options: []
         )
         UNUserNotificationCenter.current().setNotificationCategories([messageCategory])
