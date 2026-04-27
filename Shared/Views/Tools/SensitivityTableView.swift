@@ -82,7 +82,7 @@ struct SensitivityTableView: View {
             } header: {
                 Text("Performance by Spreading Factor")
             } footer: {
-                Text("Sensitivity assumes CR 4/5. Range is theoretical FSPL max with 22 dBm TX + 2 dBi antenna. Real-world range is typically 30-50% of theoretical.")
+                Text("Sensitivity assumes CR 4/5. Range is theoretical FSPL max with 22 dBm TX + 2 dBi antenna. Real-world range is typically 30-50\u{0025} of theoretical.")
             }
 
             Section {

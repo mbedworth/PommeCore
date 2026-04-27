@@ -101,7 +101,7 @@ struct LoRaAirtimeView: View {
             } header: {
                 Text("Duty Cycle")
             } footer: {
-                Text("EU 868 MHz band: 1% duty cycle. US 915 MHz: no duty cycle limit (FCC dwell time applies instead).")
+                Text("EU 868 MHz band: 1\u{0025} duty cycle. US 915 MHz: no duty cycle limit (FCC dwell time applies instead).")
             }
         }
         .formStyle(.grouped)
