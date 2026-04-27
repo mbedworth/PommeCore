@@ -744,35 +744,6 @@ struct MeshMapView: View {
                     }
 
                     Spacer()
-
-                    // Cycling overlay button: none → link quality (SNR lines) → coverage heat map → none
-                    Button {
-                        switch mapOverlay {
-                        case .none:
-                            mapOverlay = .linkQuality
-                        case .linkQuality:
-                            if rfStore.coveragePoints.isEmpty {
-                                showCoverageInfo = true
-                            } else {
-                                mapOverlay = .coverage
-                            }
-                        case .coverage:
-                            mapOverlay = .none
-                        }
-                    } label: {
-                        Image(systemName: overlayButtonIcon)
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(mapOverlay == .none ? MeshTheme.textSecondary : MeshTheme.accent)
-                            .frame(width: 32, height: 32)
-                            .background(.thinMaterial)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
-                    }
-                    .buttonStyle(.plain)
-                    .alert("Coverage Heat Map", isPresented: $showCoverageInfo) {
-                        Button("Got It", role: .cancel) {}
-                    } message: {
-                        Text("Signal strength data is collected automatically while the RF Monitor is open and you're moving. Every received packet is GPS-tagged and plotted here as a colour-coded heat map.\n\nOpen the RF Monitor tab and move around with your radio to start building coverage data.")
-                    }
                 }
                 .padding(.horizontal, 8)
                 .padding(.top, 8)
@@ -803,6 +774,40 @@ struct MeshMapView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 8))
                     .padding(.bottom)
                 }
+
+                // Cycling overlay button — bottom-trailing, clear of MapKit's top-right controls
+                HStack {
+                    Spacer()
+                    Button {
+                        switch mapOverlay {
+                        case .none:
+                            mapOverlay = .linkQuality
+                        case .linkQuality:
+                            if rfStore.coveragePoints.isEmpty {
+                                showCoverageInfo = true
+                            } else {
+                                mapOverlay = .coverage
+                            }
+                        case .coverage:
+                            mapOverlay = .none
+                        }
+                    } label: {
+                        Image(systemName: overlayButtonIcon)
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(mapOverlay == .none ? MeshTheme.textSecondary : MeshTheme.accent)
+                            .frame(width: 32, height: 32)
+                            .background(.thinMaterial)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                    }
+                    .buttonStyle(.plain)
+                    .alert("Coverage Heat Map", isPresented: $showCoverageInfo) {
+                        Button("Got It", role: .cancel) {}
+                    } message: {
+                        Text("Signal strength data is collected automatically while the RF Monitor is open and you're moving. Every received packet is GPS-tagged and plotted here as a colour-coded heat map.\n\nOpen the RF Monitor tab and move around with your radio to start building coverage data.")
+                    }
+                }
+                .padding(.horizontal, 8)
+                .padding(.bottom, 8)
             }
         }
         .navigationTitle("Map")
