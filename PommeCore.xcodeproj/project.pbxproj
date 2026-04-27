@@ -62,8 +62,18 @@
 		0FFEA5922F9FF2480078A117 /* MeshAppIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA58D2F9FF2480078A117 /* MeshAppIntents.swift */; };
 		0FFEA5932F9FF2480078A117 /* AppIntentBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA58B2F9FF2480078A117 /* AppIntentBridge.swift */; };
 		0FFEA5942F9FF2480078A117 /* MeshAppEntities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA58C2F9FF2480078A117 /* MeshAppEntities.swift */; };
-		0FFEA5962F9FF5800078A117 /* FrequencyScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA5952F9FF5800078A117 /* FrequencyScannerView.swift */; };
-		0FFEA5972F9FF5800078A117 /* FrequencyScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA5952F9FF5800078A117 /* FrequencyScannerView.swift */; };
+		0FFEA59F2F9FF7050078A117 /* NoiseFloorMonitorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA59A2F9FF7050078A117 /* NoiseFloorMonitorView.swift */; };
+		0FFEA5A02F9FF7050078A117 /* LoRaAirtimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA5992F9FF7050078A117 /* LoRaAirtimeView.swift */; };
+		0FFEA5A12F9FF7050078A117 /* TelemetryChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA59D2F9FF7050078A117 /* TelemetryChartView.swift */; };
+		0FFEA5A22F9FF7050078A117 /* FrequencyScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA5982F9FF7050078A117 /* FrequencyScannerView.swift */; };
+		0FFEA5A32F9FF7050078A117 /* RadioCalculatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA59B2F9FF7050078A117 /* RadioCalculatorView.swift */; };
+		0FFEA5A42F9FF7050078A117 /* SensitivityTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA59C2F9FF7050078A117 /* SensitivityTableView.swift */; };
+		0FFEA5A52F9FF7050078A117 /* NoiseFloorMonitorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA59A2F9FF7050078A117 /* NoiseFloorMonitorView.swift */; };
+		0FFEA5A62F9FF7050078A117 /* LoRaAirtimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA5992F9FF7050078A117 /* LoRaAirtimeView.swift */; };
+		0FFEA5A72F9FF7050078A117 /* TelemetryChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA59D2F9FF7050078A117 /* TelemetryChartView.swift */; };
+		0FFEA5A82F9FF7050078A117 /* FrequencyScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA5982F9FF7050078A117 /* FrequencyScannerView.swift */; };
+		0FFEA5A92F9FF7050078A117 /* RadioCalculatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA59B2F9FF7050078A117 /* RadioCalculatorView.swift */; };
+		0FFEA5AA2F9FF7050078A117 /* SensitivityTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA59C2F9FF7050078A117 /* SensitivityTableView.swift */; };
 		18B6F45B61F3581FB64D1DB0 /* DeviceScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2377BED4FF5A7170783BA649 /* DeviceScannerView.swift */; };
 		1EF6ECA717224849A5BE496C /* chime.caf in Resources */ = {isa = PBXBuildFile; fileRef = 6F287F4DDB0C464C99076282 /* chime.caf */; };
 		225E5EA5B1F24BE8B38A3BE9 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = E09A1F63605E4CA4ACDE7634 /* InfoPlist.xcstrings */; };
@@ -276,7 +286,12 @@
 		0FFEA58B2F9FF2480078A117 /* AppIntentBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIntentBridge.swift; sourceTree = "<group>"; };
 		0FFEA58C2F9FF2480078A117 /* MeshAppEntities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshAppEntities.swift; sourceTree = "<group>"; };
 		0FFEA58D2F9FF2480078A117 /* MeshAppIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshAppIntents.swift; sourceTree = "<group>"; };
-		0FFEA5952F9FF5800078A117 /* FrequencyScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrequencyScannerView.swift; sourceTree = "<group>"; };
+		0FFEA5982F9FF7050078A117 /* FrequencyScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrequencyScannerView.swift; sourceTree = "<group>"; };
+		0FFEA5992F9FF7050078A117 /* LoRaAirtimeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoRaAirtimeView.swift; sourceTree = "<group>"; };
+		0FFEA59A2F9FF7050078A117 /* NoiseFloorMonitorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoiseFloorMonitorView.swift; sourceTree = "<group>"; };
+		0FFEA59B2F9FF7050078A117 /* RadioCalculatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RadioCalculatorView.swift; sourceTree = "<group>"; };
+		0FFEA59C2F9FF7050078A117 /* SensitivityTableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensitivityTableView.swift; sourceTree = "<group>"; };
+		0FFEA59D2F9FF7050078A117 /* TelemetryChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetryChartView.swift; sourceTree = "<group>"; };
 		21606E2B959E6496D3B0230D /* ContactListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactListView.swift; sourceTree = "<group>"; };
 		2377BED4FF5A7170783BA649 /* DeviceScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceScannerView.swift; sourceTree = "<group>"; };
 		2EEF439B8EDC4A5408C299FB /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = macOS/PrivacyInfo.xcprivacy; sourceTree = SOURCE_ROOT; };
@@ -438,7 +453,6 @@
 		0A6B0F647BA21A953CCB6490 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				0FFEA5952F9FF5800078A117 /* FrequencyScannerView.swift */,
 				0FFEA5852F9FEC750078A117 /* RadioProfilesView.swift */,
 				0FD96D542F84AA320026DF54 /* Tools/RadioCalculatorView.swift */,
 				ART10000000000000000000 /* Tools/LoRaAirtimeView.swift */,
@@ -461,6 +475,7 @@
 				DB24E21D8CDBE0500C92E469 /* NetworkToolsView.swift */,
 				NTD10000000000000000000 /* NetworkToolsView+Discovery.swift */,
 				NTC10000000000000000000 /* NetworkToolsView+Channels.swift */,
+				0FFEA59E2F9FF7050078A117 /* Tools */,
 				NTV10000000000000000000 /* NetworkToolsView+Device.swift */,
 				21606E2B959E6496D3B0230D /* ContactListView.swift */,
 				CLC10000000000000000000 /* ContactListView+ChannelsUI.swift */,
@@ -522,6 +537,19 @@
 				0FFEA58D2F9FF2480078A117 /* MeshAppIntents.swift */,
 			);
 			path = AppIntents;
+			sourceTree = "<group>";
+		};
+		0FFEA59E2F9FF7050078A117 /* Tools */ = {
+			isa = PBXGroup;
+			children = (
+				0FFEA5982F9FF7050078A117 /* FrequencyScannerView.swift */,
+				0FFEA5992F9FF7050078A117 /* LoRaAirtimeView.swift */,
+				0FFEA59A2F9FF7050078A117 /* NoiseFloorMonitorView.swift */,
+				0FFEA59B2F9FF7050078A117 /* RadioCalculatorView.swift */,
+				0FFEA59C2F9FF7050078A117 /* SensitivityTableView.swift */,
+				0FFEA59D2F9FF7050078A117 /* TelemetryChartView.swift */,
+			);
+			path = Tools;
 			sourceTree = "<group>";
 		};
 		307D79903AB18CCBBF806BCE /* ViewModels */ = {
@@ -852,7 +880,6 @@
 				0FCE4BE42F7A20E5009358D8 /* PommeCoreViewModel+ResponseHandling.swift in Sources */,
 				D3633106D9031C89E0589468 /* PommeCoreViewModel.swift in Sources */,
 				FC6474A70CF5B233AB283928 /* SettingsView.swift in Sources */,
-				0FFEA5962F9FF5800078A117 /* FrequencyScannerView.swift in Sources */,
 				SVS10000000100000000002 /* SettingsView+Sections.swift in Sources */,
 				SVR10000000100000000002 /* SettingsView+RadioPrivacy.swift in Sources */,
 				SVT10000000100000000002 /* SettingsView+TipJar.swift in Sources */,
@@ -891,6 +918,12 @@
 				0F29C3DF2F84863E0007BF08 /* LineOfSight/LoSResultsView.swift in Sources */,
 				0FD96D512F84A8EE0026DF54 /* Tools/NoiseFloorMonitorView.swift in Sources */,
 				0FD96D522F84A8EE0026DF54 /* Tools/TelemetryChartView.swift in Sources */,
+				0FFEA59F2F9FF7050078A117 /* NoiseFloorMonitorView.swift in Sources */,
+				0FFEA5A02F9FF7050078A117 /* LoRaAirtimeView.swift in Sources */,
+				0FFEA5A12F9FF7050078A117 /* TelemetryChartView.swift in Sources */,
+				0FFEA5A22F9FF7050078A117 /* FrequencyScannerView.swift in Sources */,
+				0FFEA5A32F9FF7050078A117 /* RadioCalculatorView.swift in Sources */,
+				0FFEA5A42F9FF7050078A117 /* SensitivityTableView.swift in Sources */,
 				0F29C3E02F84863E0007BF08 /* LineOfSight/LineOfSightView.swift in Sources */,
 				0F29C3E12F84863E0007BF08 /* LineOfSight/MapPointPickerView.swift in Sources */,
 				0F29C3E22F84863E0007BF08 /* LineOfSight/TerrainProfileRenderer.swift in Sources */,
@@ -942,7 +975,6 @@
 				0FCE4BE32F7A20E5009358D8 /* PommeCoreViewModel+ResponseHandling.swift in Sources */,
 				6A8D08F2CE9D321D55C02696 /* PommeCoreViewModel.swift in Sources */,
 				EC8655805E2DCD03D8C9C4F6 /* SettingsView.swift in Sources */,
-				0FFEA5972F9FF5800078A117 /* FrequencyScannerView.swift in Sources */,
 				SVS10000000100000000003 /* SettingsView+Sections.swift in Sources */,
 				SVR10000000100000000003 /* SettingsView+RadioPrivacy.swift in Sources */,
 				SVT10000000100000000003 /* SettingsView+TipJar.swift in Sources */,
@@ -981,6 +1013,12 @@
 				0F29C3D72F84863E0007BF08 /* LineOfSight/LoSResultsView.swift in Sources */,
 				0FD96D4F2F84A8EE0026DF54 /* Tools/NoiseFloorMonitorView.swift in Sources */,
 				0FD96D502F84A8EE0026DF54 /* Tools/TelemetryChartView.swift in Sources */,
+				0FFEA5A52F9FF7050078A117 /* NoiseFloorMonitorView.swift in Sources */,
+				0FFEA5A62F9FF7050078A117 /* LoRaAirtimeView.swift in Sources */,
+				0FFEA5A72F9FF7050078A117 /* TelemetryChartView.swift in Sources */,
+				0FFEA5A82F9FF7050078A117 /* FrequencyScannerView.swift in Sources */,
+				0FFEA5A92F9FF7050078A117 /* RadioCalculatorView.swift in Sources */,
+				0FFEA5AA2F9FF7050078A117 /* SensitivityTableView.swift in Sources */,
 				0F29C3D82F84863E0007BF08 /* LineOfSight/LineOfSightView.swift in Sources */,
 				0F29C3D92F84863E0007BF08 /* LineOfSight/MapPointPickerView.swift in Sources */,
 				0F29C3DA2F84863E0007BF08 /* LineOfSight/TerrainProfileRenderer.swift in Sources */,
