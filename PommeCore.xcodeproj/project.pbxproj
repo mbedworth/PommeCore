@@ -163,6 +163,12 @@
 		TCK70000000100000000003 /* TelemetryCloudSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = TCK70000000000000000001 /* TelemetryCloudSync.swift */; };
 		USB10000000000000000002 /* USBSerialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = USB10000000000000000000 /* USBSerialView.swift */; };
 		USB10000000000000000003 /* USBSerialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = USB10000000000000000000 /* USBSerialView.swift */; };
+		DSB10000000100000000002 /* DistressBeaconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DSB10000000000000000000 /* DistressBeaconView.swift */; };
+		DSB10000000100000000003 /* DistressBeaconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DSB10000000000000000000 /* DistressBeaconView.swift */; };
+		GFN10000000100000000002 /* GeofenceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = GFN10000000000000000000 /* GeofenceStore.swift */; };
+		GFN10000000100000000003 /* GeofenceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = GFN10000000000000000000 /* GeofenceStore.swift */; };
+		GFV10000000100000000002 /* GeofencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = GFV10000000000000000000 /* GeofencesView.swift */; };
+		GFV10000000100000000003 /* GeofencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = GFV10000000000000000000 /* GeofencesView.swift */; };
 		XUOVAQ6Y1NIWH1G3OMK55ENV /* RemoteManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */; };
 /* End PBXBuildFile section */
 
@@ -269,6 +275,9 @@
 		SYN60000000000000000001 /* SyncedSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncedSettings.swift; sourceTree = "<group>"; };
 		TCK70000000000000000001 /* TelemetryCloudSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetryCloudSync.swift; sourceTree = "<group>"; };
 		USB10000000000000000000 /* USBSerialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = USBSerialView.swift; sourceTree = "<group>"; };
+		DSB10000000000000000000 /* DistressBeaconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DistressBeaconView.swift; sourceTree = "<group>"; };
+		GFN10000000000000000000 /* GeofenceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeofenceStore.swift; sourceTree = "<group>"; };
+		GFV10000000000000000000 /* GeofencesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeofencesView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -371,6 +380,8 @@
 				MAP10000000000000000000 /* MeshMapView.swift */,
 				OTAVIEW0000000000000000 /* FirmwareUpdateView.swift */,
 				DBG10000000000000000000 /* DebugLogView.swift */,
+				DSB10000000000000000000 /* DistressBeaconView.swift */,
+				GFV10000000000000000000 /* GeofencesView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -471,6 +482,7 @@
 				SYN60000000000000000001 /* SyncedSettings.swift */,
 				9B4226DA6FB1C6225C757D16 /* WatchUnlockManager.swift */,
 				TCK70000000000000000001 /* TelemetryCloudSync.swift */,
+				GFN10000000000000000000 /* GeofenceStore.swift */,
 			);
 			path = Stores;
 			sourceTree = "<group>";
@@ -698,6 +710,9 @@
 				0F29C3E22F84863E0007BF08 /* LineOfSight/TerrainProfileRenderer.swift in Sources */,
 				0FD96D4B2F84A8CD0026DF54 /* RFMonitorStore.swift in Sources */,
 				0F29C3E32F84863E0007BF08 /* LineOfSight/PointSelectionView.swift in Sources */,
+				GFN10000000100000000002 /* GeofenceStore.swift in Sources */,
+				GFV10000000100000000002 /* GeofencesView.swift in Sources */,
+				DSB10000000100000000002 /* DistressBeaconView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -770,6 +785,9 @@
 				0F29C3DA2F84863E0007BF08 /* LineOfSight/TerrainProfileRenderer.swift in Sources */,
 				0FD96D4C2F84A8CD0026DF54 /* RFMonitorStore.swift in Sources */,
 				0F29C3DB2F84863E0007BF08 /* LineOfSight/PointSelectionView.swift in Sources */,
+				GFN10000000100000000003 /* GeofenceStore.swift in Sources */,
+				GFV10000000100000000003 /* GeofencesView.swift in Sources */,
+				DSB10000000100000000003 /* DistressBeaconView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

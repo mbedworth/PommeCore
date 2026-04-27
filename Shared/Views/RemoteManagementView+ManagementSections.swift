@@ -18,32 +18,120 @@ struct RemoteRoomSection: View {
     let sendCLI: (String) -> Void
     let canEdit: Bool
 
+    @Environment(ContactStore.self) private var contactStore
+
     @State private var setPermPubkey = ""
     @State private var setPermLevel = 0
     @State private var permFeedback = false
+    @State private var newGuestPassword = ""
+    @State private var guestPwFeedback = false
+    @State private var showGuestPwEdit = false
+
+    private var chatContacts: [Contact] {
+        contactStore.contacts.filter { $0.type == .chat }.sorted { $0.name < $1.name }
+    }
 
     var body: some View {
         Section {
             CLIToggleRow(icon: "eye", label: "Allow Read-Only", settingKey: "allow.read.only", onCommand: "set allow.read.only on", offCommand: "set allow.read.only off", session: session, sendCLI: sendCLI, canEdit: canEdit)
 
-            if let guestPw = session.settings["guest.password"], !guestPw.isEmpty {
-                cliInfoRow(icon: "key", label: "Guest Password", value: guestPw)
+            // Guest password — display + edit
+            HStack {
+                Image(systemName: "key")
+                    .foregroundStyle(MeshTheme.accent)
+                    .frame(width: 24)
+                Text("Guest Password")
+                    .foregroundStyle(MeshTheme.accent)
+                Spacer()
+                if let pw = session.settings["guest.password"], !pw.isEmpty {
+                    Text(pw)
+                        .foregroundStyle(MeshTheme.textSecondary)
+                        .font(.system(.body, design: .monospaced))
+                } else {
+                    Text("Not set")
+                        .foregroundStyle(MeshTheme.textSecondary)
+                }
+                if canEdit {
+                    Button { showGuestPwEdit.toggle() } label: {
+                        Image(systemName: "pencil")
+                            .foregroundStyle(MeshTheme.accent)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .listRowBackground(MeshTheme.surface)
+
+            if canEdit && showGuestPwEdit {
+                HStack {
+                    #if os(watchOS)
+                    TextField("New password", text: $newGuestPassword)
+                        .foregroundStyle(MeshTheme.textPrimary)
+                    #else
+                    TextField("New password", text: $newGuestPassword)
+                        .foregroundStyle(MeshTheme.textPrimary)
+                        .textFieldStyle(MeshTextFieldStyle())
+                    #endif
+                    Button {
+                        sendCLI("set guest_password \(newGuestPassword)")
+                        showFeedback($guestPwFeedback)
+                        newGuestPassword = ""
+                        showGuestPwEdit = false
+                    } label: {
+                        Image(systemName: guestPwFeedback ? "checkmark.circle.fill" : "checkmark.circle")
+                            .foregroundStyle(guestPwFeedback ? .green : MeshTheme.accent)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(newGuestPassword.isEmpty)
+                }
+                .listRowBackground(MeshTheme.surface)
             }
         } header: {
-            SectionInfoHeader(title: "Room Server", info: "Allow Read-Only lets guests read messages without a password. Disable to require authentication for all access.")
+            SectionInfoHeader(title: "Room Server", info: "Allow Read-Only lets guests read messages without a password. Set a guest password to require authentication for guest access.")
         }
 
         if canEdit {
             Section {
+                // Contact picker — pre-fills pubkey field from known contacts
+                if !chatContacts.isEmpty {
+                    #if !os(watchOS)
+                    Menu {
+                        ForEach(chatContacts) { contact in
+                            Button {
+                                setPermPubkey = Data(contact.publicKey.prefix(6)).hexCompact
+                            } label: {
+                                Text("\(contactStore.displayName(for: contact)) — \(Data(contact.publicKey.prefix(6)).hexCompact)")
+                            }
+                        }
+                    } label: {
+                        HStack {
+                            Image(systemName: "person.badge.key")
+                                .foregroundStyle(MeshTheme.accent)
+                                .frame(width: 24)
+                            Text(setPermPubkey.isEmpty ? "Pick from contacts..." : setPermPubkey)
+                                .foregroundStyle(setPermPubkey.isEmpty ? MeshTheme.textSecondary : MeshTheme.textPrimary)
+                                .font(.system(.body, design: .monospaced))
+                            Spacer()
+                            Image(systemName: "chevron.up.chevron.down")
+                                .font(.caption)
+                                .foregroundStyle(MeshTheme.textSecondary)
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .listRowBackground(MeshTheme.surface)
+                    #endif
+                }
+
+                // Manual pubkey entry (always shown as override)
                 HStack {
-                    Image(systemName: "person.badge.key")
+                    Image(systemName: "number")
                         .foregroundStyle(MeshTheme.accent)
                         .frame(width: 24)
                     #if os(watchOS)
                     TextField("Pubkey hex", text: $setPermPubkey)
                         .foregroundStyle(MeshTheme.textPrimary)
                     #else
-                    TextField("Pubkey hex prefix", text: $setPermPubkey)
+                    TextField("Pubkey hex prefix (manual)", text: $setPermPubkey)
                         .foregroundStyle(MeshTheme.textPrimary)
                         .textFieldStyle(MeshTextFieldStyle())
                         .font(.system(.body, design: .monospaced))
@@ -79,7 +167,7 @@ struct RemoteRoomSection: View {
                 .disabled(setPermPubkey.isEmpty)
                 .listRowBackground(MeshTheme.surface)
             } header: {
-                SectionInfoHeader(title: "Client Permissions", info: "Set access level for a client by their public key prefix. Guest = read-only, Read-Write = can post, Admin = full control.")
+                SectionInfoHeader(title: "Client Permissions", info: "Set access level for a connected client. Pick from known contacts or enter a pubkey hex prefix manually. Guest = read-only, Read-Write = can post, Admin = full control.")
             }
         }
     }

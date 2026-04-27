@@ -91,12 +91,14 @@ final class RemoteSessionManager {
     /// Increments when status/telemetry updates arrive — forces SwiftUI to re-read statusByContact.
     var statusUpdateCounter = 0
     var advertPathByContact: [Data: AdvertPathInfo] = [:]
+    var pathDiscoveryByContact: [Data: PathDiscoveryResult] = [:]
     var allowedRepeatFreqRanges: [FrequencyRange] = []
     private(set) var pendingTraceTag: UInt32?
     var detailContactForTrace: Contact?
     private(set) var pendingAdvertPathKey: Data?
     private(set) var pendingStatusKey: Data?
     private(set) var pendingTelemetryKey: Data?
+    private(set) var pendingPathDiscoveryKey: Data?
 
     // MARK: - Dependencies (set by coordinator)
 
@@ -1246,6 +1248,25 @@ final class RemoteSessionManager {
             advertPathByContact[key] = info
             pendingAdvertPathKey = nil
         }
+    }
+
+    // MARK: - Path Discovery (0x8D)
+
+    func discoverPath(for contact: Contact) {
+        pendingPathDiscoveryKey = contact.publicKeyPrefix
+        sendCommand?(MeshCoreProtocol.buildSendPathDiscoveryReq(publicKey: contact.publicKey), "PATH_DISCOVERY")
+
+        let key = contact.publicKeyPrefix
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 30_000_000_000)
+            guard !Task.isCancelled, let self, self.pendingPathDiscoveryKey == key else { return }
+            self.pendingPathDiscoveryKey = nil
+        }
+    }
+
+    func handlePathDiscovery(_ result: PathDiscoveryResult) {
+        pathDiscoveryByContact[result.pubKeyPrefix] = result
+        pendingPathDiscoveryKey = nil
     }
 
     // MARK: - Allowed Repeat Frequencies

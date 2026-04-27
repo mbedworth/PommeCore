@@ -29,6 +29,7 @@ struct ContactDetailSheet: View {
     private var isStatusPending: Bool { remoteSessionManager.pendingStatusKey == contact.publicKeyPrefix }
     private var isTelemetryPending: Bool { remoteSessionManager.pendingTelemetryKey == contact.publicKeyPrefix }
     private var isPathPending: Bool { remoteSessionManager.pendingAdvertPathKey == contact.publicKeyPrefix }
+    private var isDiscoveryPending: Bool { remoteSessionManager.pendingPathDiscoveryKey == contact.publicKeyPrefix }
 
     var body: some View {
         NavigationStack {
@@ -93,6 +94,16 @@ struct ContactDetailSheet: View {
                         AdvertPathView(pathInfo: path, contactName: contactStore.displayName(for: contact))
                     }
 
+                    // Path Discovery
+                    if isDiscoveryPending {
+                        ActivityOverlay(message: "Discovering path to \(contactStore.displayName(for: contact))...", timeout: 30)
+                            .padding()
+                            .background(MeshTheme.surfaceLight)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                    } else if let disc = remoteSessionManager.pathDiscoveryByContact[contact.publicKeyPrefix] {
+                        PathDiscoveryResultView(result: disc, contactName: contactStore.displayName(for: contact))
+                    }
+
                     // Actions
                     VStack(spacing: 8) {
                         actionButton("Ping", icon: "bolt.horizontal", pending: false) {
@@ -116,6 +127,9 @@ struct ContactDetailSheet: View {
                         }
                         actionButton("Show Path Info", icon: "map", pending: isPathPending) {
                             remoteSessionManager.requestAdvertPath(for: contact)
+                        }
+                        actionButton("Discover Path", icon: "arrow.triangle.branch", pending: isDiscoveryPending) {
+                            remoteSessionManager.discoverPath(for: contact)
                         }
                         actionButton("Reset Path", icon: "arrow.counterclockwise", pending: false) {
                             contactStore.resetPath(for: contact)

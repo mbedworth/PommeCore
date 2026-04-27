@@ -428,6 +428,17 @@ public enum MeshCoreProtocol {
 
     // MARK: - Discovery & Diagnostics
 
+    /// CMD_SEND_PATH_DISCOVERY_REQ (code 52 / 0x34) — flood path discovery to a contact.
+    /// Frame: code(1) reserved(1) pub_key(32)
+    /// Firmware floods a telemetry request, then sends PUSH_CODE_PATH_DISCOVERY_RESPONSE (0x8D) with bidirectional path.
+    public static func buildSendPathDiscoveryReq(publicKey: Data) -> Data {
+        var frame = Data([MeshCoreCommand.sendPathDiscoveryReq.rawValue, 0x00])
+        var key = publicKey.prefix(32)
+        if key.count < 32 { key.append(Data(repeating: 0, count: 32 - key.count)) }
+        frame.append(key)
+        return frame
+    }
+
     /// CMD_SEND_CONTROL_DATA (code 55) — send a control packet.
     /// For discover: flags=0, sub_type=0x80 (DISCOVER_REQ), no payload.
     /// Frame: code(1) flags(1) sub_type(1)

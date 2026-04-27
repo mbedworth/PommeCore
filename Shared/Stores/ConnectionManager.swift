@@ -294,6 +294,10 @@ final class ConnectionManager {
         sendCommand(MeshCoreProtocol.buildSetCustomVar(name: name, value: value), label: "SET_CUSTOM_VAR")
     }
 
+    func sendPathDiscoveryRequest(contact: Contact) {
+        sendCommand(MeshCoreProtocol.buildSendPathDiscoveryReq(publicKey: contact.publicKey), label: "PATH_DISCOVERY")
+    }
+
     func requestCustomVars() {
         sendCommand(MeshCoreProtocol.buildGetCustomVars(), label: "GET_CUSTOM_VARS")
     }

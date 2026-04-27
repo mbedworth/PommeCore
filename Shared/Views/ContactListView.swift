@@ -25,6 +25,7 @@ struct ContactListView: View {
     var showRemoteManagement: Binding<Bool>? = nil
     var showAdvertSent: Binding<Bool>? = nil
 
+    @State var showDistressBeacon = false
     @State var showAdvertOptions = false
     @State var lastAdvertFlood = false
     @State var contactToDelete: Contact?
@@ -210,6 +211,13 @@ struct ContactListView: View {
                     } label: {
                         Label("Tools", systemImage: "wrench.and.screwdriver")
                     }
+                    Divider()
+                    Button(role: .destructive) {
+                        showDistressBeacon = true
+                    } label: {
+                        Label("Emergency Beacon", systemImage: "exclamationmark.triangle.fill")
+                    }
+                    .disabled(connectionManager.connectionState != .ready)
                 } label: {
                     Image(systemName: "ellipsis.circle")
                         .foregroundStyle(MeshTheme.accent)
@@ -233,6 +241,12 @@ struct ContactListView: View {
             ContactDetailSheet(contact: contact)
             #if os(macOS) || targetEnvironment(macCatalyst)
                 .frame(minWidth: 360, minHeight: 400)
+            #endif
+        }
+        .sheet(isPresented: $showDistressBeacon) {
+            DistressBeaconView()
+            #if os(macOS) || targetEnvironment(macCatalyst)
+                .frame(minWidth: 400, minHeight: 500)
             #endif
         }
         .onChange(of: remoteSessionManager.detailContactForTrace?.id) {

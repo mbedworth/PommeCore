@@ -91,6 +91,7 @@ struct PommeCoreApp: App {
                     #if !os(watchOS)
                     .environment(viewModel.lineOfSightStore)
                     .environment(viewModel.rfMonitorStore)
+                    .environment(viewModel.geofenceStore)
                     #endif
                     .meshTheme()
                     .onAppear {

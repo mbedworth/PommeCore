@@ -98,6 +98,29 @@ public struct FrequencyRange: Sendable {
     }
 }
 
+/// Result of a path discovery request (PUSH_CODE_PATH_DISCOVERY_RESPONSE 0x8D).
+/// Contains bidirectional path info: how to reach the contact (outPath) and how the contact reaches us (inPath).
+public struct PathDiscoveryResult: Sendable {
+    public let pubKeyPrefix: Data    // 6 bytes
+    public let outPathLen: UInt8     // encoded: hopCount = outPathLen & 0x3F
+    public let outPathBytes: Data
+    public let inPathLen: UInt8      // encoded: hopCount = inPathLen & 0x3F
+    public let inPathBytes: Data
+    public let timestamp: Date
+
+    public var outHopCount: Int { Int(outPathLen & 0x3F) }
+    public var inHopCount: Int { Int(inPathLen & 0x3F) }
+
+    public init(pubKeyPrefix: Data, outPathLen: UInt8, outPathBytes: Data, inPathLen: UInt8, inPathBytes: Data, timestamp: Date) {
+        self.pubKeyPrefix = pubKeyPrefix
+        self.outPathLen = outPathLen
+        self.outPathBytes = outPathBytes
+        self.inPathLen = inPathLen
+        self.inPathBytes = inPathBytes
+        self.timestamp = timestamp
+    }
+}
+
 /// Advert path info for a contact.
 public struct AdvertPathInfo: Sendable {
     public let recvTimestamp: UInt32

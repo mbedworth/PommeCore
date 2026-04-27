@@ -1,124 +1,141 @@
 {
-  "sourceLanguage" : "en",
-  "strings" : {
-    "CFBundleDisplayName" : {
-      "comment" : "Bundle display name",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "PommeCore"
+  "sourceLanguage": "en",
+  "strings": {
+    "CFBundleDisplayName": {
+      "comment": "Bundle display name",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PommeCore"
           }
         }
       }
     },
-    "CFBundleName" : {
-      "comment" : "Bundle name",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "PommeCore"
+    "CFBundleName": {
+      "comment": "Bundle name",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PommeCore"
           }
         }
       }
     },
-    "NSBluetoothAlwaysUsageDescription" : {
-      "comment" : "Privacy - Bluetooth Always Usage Description",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "PommeCore benötigt Bluetooth, um mit Ihrem LoRa-Funkgerät für Off-Grid-Mesh-Nachrichten zu kommunizieren."
+    "NSBluetoothAlwaysUsageDescription": {
+      "comment": "Privacy - Bluetooth Always Usage Description",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PommeCore benötigt Bluetooth, um mit Ihrem LoRa-Funkgerät für Off-Grid-Mesh-Nachrichten zu kommunizieren."
           }
         },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "PommeCore needs Bluetooth to communicate with your LoRa radio device for off-grid mesh messaging."
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PommeCore needs Bluetooth to communicate with your LoRa radio device for off-grid mesh messaging."
           }
         }
       }
     },
-    "NSBluetoothPeripheralUsageDescription" : {
-      "comment" : "Privacy - Bluetooth Peripheral Usage Description",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "PommeCore benötigt Bluetooth, um mit Ihrem LoRa-Funkgerät für Off-Grid-Mesh-Nachrichten zu kommunizieren."
+    "NSBluetoothPeripheralUsageDescription": {
+      "comment": "Privacy - Bluetooth Peripheral Usage Description",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PommeCore benötigt Bluetooth, um mit Ihrem LoRa-Funkgerät für Off-Grid-Mesh-Nachrichten zu kommunizieren."
           }
         },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "PommeCore needs Bluetooth to communicate with your LoRa radio device for off-grid mesh messaging."
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PommeCore needs Bluetooth to communicate with your LoRa radio device for off-grid mesh messaging."
           }
         }
       }
     },
-    "NSCameraUsageDescription" : {
-      "comment" : "Privacy - Camera Usage Description",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "PommeCore verwendet die Kamera zum Scannen von QR-Codes für den Import von Kontakten und Kanälen."
+    "NSCameraUsageDescription": {
+      "comment": "Privacy - Camera Usage Description",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PommeCore verwendet die Kamera zum Scannen von QR-Codes für den Import von Kontakten und Kanälen."
           }
         },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "PommeCore uses the camera to scan QR codes for importing contacts and channels."
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PommeCore uses the camera to scan QR codes for importing contacts and channels."
           }
         }
       }
     },
-    "NSFaceIDUsageDescription" : {
-      "comment" : "Privacy - Face ID Usage Description",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "PommeCore verwendet Face ID zum Schutz Ihrer Nachrichten, wenn die App-Sperre aktiviert ist."
+    "NSFaceIDUsageDescription": {
+      "comment": "Privacy - Face ID Usage Description",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PommeCore verwendet Face ID zum Schutz Ihrer Nachrichten, wenn die App-Sperre aktiviert ist."
           }
         },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "PommeCore uses Face ID to protect your messages when App Lock is enabled."
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PommeCore uses Face ID to protect your messages when App Lock is enabled."
           }
         }
       }
     },
-    "NSHumanReadableCopyright" : {
-      "comment" : "Copyright (human-readable)",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Copyright © 2026 Michael Bedworth. All rights reserved."
+    "NSHumanReadableCopyright": {
+      "comment": "Copyright (human-readable)",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copyright © 2026 Michael Bedworth. All rights reserved."
           }
         }
       }
     },
-    "NSLocationWhenInUseUsageDescription" : {
-      "comment" : "Privacy - Location When In Use Usage Description",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "PommeCore zeigt Ihren Standort auf der Mesh-Karte und kann ihn in Ihren Ankündigungen einbeziehen."
+    "NSLocationWhenInUseUsageDescription": {
+      "comment": "Privacy - Location When In Use Usage Description",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PommeCore zeigt Ihren Standort auf der Mesh-Karte und kann ihn in Ihren Ankündigungen einbeziehen."
           }
         },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "PommeCore shows your location on the mesh map and can include it in your advertisements."
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PommeCore shows your location on the mesh map and can include it in your advertisements."
+          }
+        }
+      }
+    },
+    "NSLocationAlwaysAndWhenInUseUsageDescription": {
+      "comment": "Privacy - Location Always and When In Use Usage Description",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PommeCore uses your location for the mesh map and to automatically send an emergency beacon if you leave a safe zone."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PommeCore verwendet Ihren Standort für die Mesh-Karte und um automatisch einen Notfallsignal zu senden, wenn Sie eine Sicherheitszone verlassen."
           }
         }
       }
     }
   },
-  "version" : "1.0"
+  "version": "1.0"
 }

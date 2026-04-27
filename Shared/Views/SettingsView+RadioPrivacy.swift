@@ -516,6 +516,10 @@ struct PrivacySection: View {
             SectionInfoHeader(title: "Privacy & Security", info: "Controls what telemetry data is shared when requested. Per-Contact mode only shares with contacts that have telemetry permission set. App Lock requires Face ID, Touch ID, or your device passcode to open MeshCore.")
         }
 
+        #if !os(watchOS)
+        safeZonesRow
+        #endif
+
         // Per-contact telemetry permission picker
         if config.telemetryBase == 1 {
             Section {
@@ -708,6 +712,52 @@ struct PrivacySection: View {
         return "lock"
         #endif
     }
+
+    #if !os(watchOS)
+    @Environment(GeofenceStore.self) private var geofenceStore
+    @State private var showSafeZones = false
+
+    var safeZonesRow: some View {
+        Section {
+            Button {
+                showSafeZones = true
+            } label: {
+                HStack {
+                    Image(systemName: "shield.fill")
+                        .foregroundStyle(MeshTheme.accent)
+                        .frame(width: 28)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Safe Zones")
+                            .foregroundStyle(MeshTheme.accent)
+                        let enabled = geofenceStore.zones.filter(\.isEnabled).count
+                        Text(enabled == 0
+                             ? "No active zones"
+                             : "^[\(enabled) zone](inflect: true) active")
+                            .font(.caption)
+                            .foregroundStyle(MeshTheme.textSecondary)
+                    }
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundStyle(MeshTheme.textSecondary)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .listRowBackground(MeshTheme.surface)
+        } header: {
+            SectionInfoHeader(title: "Emergency Safety", info: "Safe zones send an automatic SOS beacon if you leave the defined area. Requires \u{201C}Always\u{201D} location permission.")
+        }
+        .sheet(isPresented: $showSafeZones) {
+            NavigationStack {
+                GeofencesView()
+            }
+            #if os(macOS) || targetEnvironment(macCatalyst)
+            .frame(minWidth: 400, minHeight: 500)
+            #endif
+        }
+    }
+    #endif
 }
 
 // MARK: - Section 8: Custom Variables
@@ -724,6 +774,7 @@ struct CustomVarsSection: View {
     @Environment(ConnectionManager.self) private var connectionManager
     @State private var newName: String = ""
     @State private var newValue: String = ""
+    @State private var deleteTarget: String? = nil
 
     var body: some View {
         Section {
@@ -738,6 +789,21 @@ struct CustomVarsSection: View {
                         .font(.system(.body, design: .monospaced))
                 }
                 .listRowBackground(MeshTheme.surface)
+                .contentShape(Rectangle())
+                .contextMenu {
+                    Button {
+                        newName = pair.name
+                        newValue = pair.value
+                    } label: {
+                        Label("Edit", systemImage: "pencil")
+                    }
+                    Divider()
+                    Button(role: .destructive) {
+                        deleteTarget = pair.name
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                }
             }
 
             HStack {
@@ -759,10 +825,7 @@ struct CustomVarsSection: View {
                     connectionManager.setCustomVar(name: newName, value: newValue)
                     newName = ""
                     newValue = ""
-                    Task {
-                        try? await Task.sleep(nanoseconds: 500_000_000)
-                        connectionManager.requestCustomVars()
-                    }
+                    refreshVars()
                 } label: {
                     Image(systemName: "plus.circle.fill")
                         .foregroundStyle(MeshTheme.accent)
@@ -772,7 +835,26 @@ struct CustomVarsSection: View {
             }
             .listRowBackground(MeshTheme.surface)
         } header: {
-            SectionInfoHeader(title: "Custom Variables", info: "Key-value pairs stored on the radio. Used for advanced configuration and firmware development.")
+            SectionInfoHeader(title: "Custom Variables", info: "Key-value pairs stored on the radio. Used for advanced configuration and firmware development. Long-press a row to edit or delete.")
+        }
+        .alert("Delete Variable", isPresented: Binding(get: { deleteTarget != nil }, set: { if !$0 { deleteTarget = nil } })) {
+            Button("Delete", role: .destructive) {
+                if let name = deleteTarget {
+                    connectionManager.setCustomVar(name: name, value: "")
+                    refreshVars()
+                }
+                deleteTarget = nil
+            }
+            Button("Cancel", role: .cancel) { deleteTarget = nil }
+        } message: {
+            Text("Delete \"\(deleteTarget ?? "")\" from the radio?")
+        }
+    }
+
+    private func refreshVars() {
+        Task {
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            connectionManager.requestCustomVars()
         }
     }
 }

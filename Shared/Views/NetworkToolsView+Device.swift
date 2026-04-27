@@ -463,3 +463,107 @@ struct PingResultsView: View {
         }
     }
 }
+
+// MARK: - Path Discovery Result View
+
+struct PathDiscoveryResultView: View {
+    let result: PathDiscoveryResult
+    let contactName: String
+    @Environment(ContactStore.self) private var contactStore
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Image(systemName: "arrow.triangle.branch")
+                    .foregroundStyle(MeshTheme.accent)
+                Text("Path Discovery")
+                    .font(.headline)
+                    .foregroundStyle(MeshTheme.textPrimary)
+                Spacer()
+                Text(result.timestamp, style: .time)
+                    .font(.caption)
+                    .foregroundStyle(MeshTheme.textSecondary)
+            }
+
+            directionRow(
+                label: "To \(contactName)",
+                pathLen: result.outPathLen,
+                pathBytes: result.outPathBytes,
+                fromLabel: "You",
+                toLabel: contactName
+            )
+
+            directionRow(
+                label: "From \(contactName)",
+                pathLen: result.inPathLen,
+                pathBytes: result.inPathBytes,
+                fromLabel: contactName,
+                toLabel: "You"
+            )
+        }
+        .padding()
+        .background(MeshTheme.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    private func directionRow(label: String, pathLen: UInt8, pathBytes: Data, fromLabel: String, toLabel: String) -> some View {
+        let hopCount = Int(pathLen & 0x3F)
+        let hashSize = Int((pathLen >> 6) + 1)
+        let hops = resolveHops(pathBytes: pathBytes, hopCount: hopCount, hashSize: hashSize)
+
+        return VStack(alignment: .leading, spacing: 4) {
+            Text(label)
+                .font(.caption)
+                .foregroundStyle(MeshTheme.textSecondary)
+
+            if pathLen == 0xFF || (pathLen == 0 && pathBytes.isEmpty && hopCount == 0) {
+                Label("Flood route", systemImage: "antenna.radiowaves.left.and.right")
+                    .font(.subheadline)
+                    .foregroundStyle(.orange)
+            } else if hopCount == 0 {
+                Label("Direct (\(fromLabel) \u{2192} \(toLabel))", systemImage: "arrow.right")
+                    .font(.subheadline)
+                    .foregroundStyle(.green)
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 4) {
+                        pathNode(fromLabel, color: MeshTheme.interactiveGreen)
+                        ForEach(Array(hops.enumerated()), id: \.offset) { _, hop in
+                            Image(systemName: "arrow.right").font(.caption2).foregroundStyle(MeshTheme.textSecondary)
+                            pathNode(hop, color: MeshTheme.surfaceLight)
+                        }
+                        Image(systemName: "arrow.right").font(.caption2).foregroundStyle(MeshTheme.textSecondary)
+                        pathNode(toLabel, color: MeshTheme.incomingBubble)
+                    }
+                }
+                Text("^[\(hopCount) hop](inflect: true)")
+                    .font(.caption)
+                    .foregroundStyle(MeshTheme.textSecondary)
+            }
+        }
+    }
+
+    private func pathNode(_ label: String, color: Color) -> some View {
+        Text(label)
+            .font(.system(.caption, design: .monospaced))
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(color)
+            .clipShape(RoundedRectangle(cornerRadius: 4))
+            .foregroundStyle(MeshTheme.textPrimary)
+    }
+
+    private func resolveHops(pathBytes: Data, hopCount: Int, hashSize: Int) -> [String] {
+        guard !pathBytes.isEmpty, hopCount > 0 else { return [] }
+        return (0..<hopCount).compactMap { i in
+            let start = i * hashSize
+            let end = min(start + hashSize, pathBytes.count)
+            guard end <= pathBytes.count else { return nil }
+            let hash = Data(pathBytes[start..<end])
+            for c in contactStore.contacts where c.type == .repeater {
+                if c.publicKeyPrefix.prefix(hashSize) == hash { return contactStore.displayName(for: c) }
+            }
+            return hash.hexCompact.uppercased()
+        }
+    }
+}

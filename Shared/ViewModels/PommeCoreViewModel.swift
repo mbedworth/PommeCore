@@ -117,6 +117,7 @@ final class PommeCoreViewModel: ObservableObject {
         return store
     }()
     let telemetryCloudSync = TelemetryCloudSync()
+    let geofenceStore = GeofenceStore()
     #endif
     #if os(iOS)
     let phoneWatchRelay = PhoneWatchRelay()
@@ -264,6 +265,21 @@ final class PommeCoreViewModel: ObservableObject {
 
 #if !os(watchOS)
         lineOfSightStore.userLocationProvider = { SharedLocation.manager.location }
+
+        // GeofenceStore: distress action sends flood advert + public channel SOS message
+        geofenceStore.distressAction = { [weak self] in
+            guard let self else { return }
+            self.connectionManager.sendAdvertise(type: 1)
+            let name = self.deviceConfig.advertName.isEmpty ? "Unknown" : self.deviceConfig.advertName
+            var text = "\u{1F198} DISTRESS from \(name)"
+            if let loc = SharedLocation.manager.location {
+                text += String(format: " at %.5f, %.5f", loc.coordinate.latitude, loc.coordinate.longitude)
+            }
+            if let zoneName = self.geofenceStore.lastExitZoneName {
+                text += " (left safe zone: \(zoneName))"
+            }
+            self.messageStoreManager.sendChannelMessage(text, channelIndex: 0)
+        }
 
         // TelemetryCloudSync: wire to RFMonitorStore
         rfMonitorStore.cloudSync = telemetryCloudSync

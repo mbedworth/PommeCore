@@ -46,6 +46,7 @@ public enum FrameParser {
         case traceData(TraceResult)                    // PUSH_CODE_TRACE_DATA (0x89)
         case newAdvert(Contact)                        // PUSH_CODE_NEW_ADVERT (0x8A)
         case telemetryResponse(senderKey: Data, readings: [TelemetryReading]) // PUSH_CODE_TELEMETRY_RESPONSE (0x8B)
+        case pathDiscovery(PathDiscoveryResult)                // PUSH_CODE_PATH_DISCOVERY_RESPONSE (0x8D)
         case controlData(snr: Int8, rssi: Int8, pathLen: UInt8, payload: Data) // PUSH_CODE_CONTROL_DATA (0x8E)
         case channelInfo(MeshChannel)                 // RESP_CODE_CHANNEL_INFO (code 18)
         case exportedContact(url: String)             // RESP_CODE_EXPORTED_CONTACT (code 20)
@@ -315,8 +316,7 @@ public enum FrameParser {
             return .unknown(type: MeshCorePushCode.binaryResponse.rawValue, payload: payload)
 
         case .pathDiscoveryResp:
-            logger.debug("PathDiscoveryResponse: \(payload.count) bytes")
-            return .unknown(type: MeshCorePushCode.pathDiscoveryResp.rawValue, payload: payload)
+            return parsePathDiscoveryResp(payload)
 
         case .contactDeleted:
             let key = payload.count >= 32 ? Data(payload.prefix(32)) : payload
@@ -971,6 +971,47 @@ public enum FrameParser {
         logger.info("TelemetryResponse: \(readings.count) readings from \(senderKey.hexCompact)")
 
         return .telemetryResponse(senderKey: senderKey, readings: readings)
+    }
+
+    // MARK: - Path Discovery Response (0x8D)
+
+    /// PUSH_CODE_PATH_DISCOVERY_RESPONSE (0x8D) — bidirectional path returned after CMD_SEND_PATH_DISCOVERY_REQ.
+    /// Layout: reserved(1) pubKeyPrefix(6) outPathLen(1) outPath(N) inPathLen(1) inPath(M)
+    /// Path bytes: N = (outPathLen & 0x3F) * ((outPathLen >> 6) + 1)
+    private static func parsePathDiscoveryResp(_ data: Data) -> ParsedResponse {
+        var offset = 0
+        _ = readUInt8(data, offset: &offset) // reserved
+
+        guard offset + 6 <= data.count else {
+            logger.warning("PathDiscoveryResp: too short (\(data.count) bytes)")
+            return .unknown(type: MeshCorePushCode.pathDiscoveryResp.rawValue, payload: data)
+        }
+        let pubKeyPrefix = Data(data[offset..<offset+6])
+        offset += 6
+
+        let outPathLen = readUInt8(data, offset: &offset)
+        let outHops = Int(outPathLen & 0x3F)
+        let outHashSize = Int((outPathLen >> 6) + 1)
+        let outByteCount = min(outHops * outHashSize, data.count - offset)
+        let outPathBytes = Data(data[offset..<offset+outByteCount])
+        offset += outByteCount
+
+        let inPathLen = offset < data.count ? readUInt8(data, offset: &offset) : 0
+        let inHops = Int(inPathLen & 0x3F)
+        let inHashSize = Int((inPathLen >> 6) + 1)
+        let inByteCount = min(inHops * inHashSize, data.count - offset)
+        let inPathBytes = offset < data.count ? Data(data[offset..<offset+inByteCount]) : Data()
+
+        logger.info("PathDiscoveryResp: outHops=\(outHops) inHops=\(inHops) from \(pubKeyPrefix.hexCompact)")
+
+        return .pathDiscovery(PathDiscoveryResult(
+            pubKeyPrefix: pubKeyPrefix,
+            outPathLen: outPathLen,
+            outPathBytes: outPathBytes,
+            inPathLen: inPathLen,
+            inPathBytes: inPathBytes,
+            timestamp: Date()
+        ))
     }
 
     // MARK: - Control Data (0x8E)

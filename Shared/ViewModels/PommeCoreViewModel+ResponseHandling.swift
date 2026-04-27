@@ -264,6 +264,10 @@ extension PommeCoreViewModel {
             rfMonitorStore.recordTelemetry(for: Data(senderKey.prefix(6)), readings: readings)
             #endif
 
+        case .pathDiscovery(let result):
+            Self.logger.info("PUSH PathDiscovery: outHops=\(result.outHopCount) inHops=\(result.inHopCount) from \(result.pubKeyPrefix.hexCompact)")
+            remoteSessionManager.handlePathDiscovery(result)
+
         case .controlData(let snr, let rssi, let pathLen, let payload):
             Self.logger.info("PUSH ControlData: snr=\(snr) rssi=\(rssi) pathLen=\(pathLen)")
             remoteSessionManager.handleControlData(snr: snr, rssi: rssi, pathLen: pathLen, payload: payload)
