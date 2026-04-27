@@ -177,6 +177,12 @@
 		WSW10000000100000000002 /* WidgetStateWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = WSW10000000000000000000 /* WidgetStateWriter.swift */; };
 		WGS10000000100000000003 /* WidgetState.swift in Sources */ = {isa = PBXBuildFile; fileRef = WGS10000000000000000000 /* WidgetState.swift */; };
 		WSW10000000100000000003 /* WidgetStateWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = WSW10000000000000000000 /* WidgetStateWriter.swift */; };
+		MPE10000000100000000002 /* MeshProfileExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = MPE10000000000000000000 /* MeshProfileExport.swift */; };
+		MPE10000000100000000003 /* MeshProfileExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = MPE10000000000000000000 /* MeshProfileExport.swift */; };
+		PES10000000100000000002 /* ProfileExportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = PES10000000000000000000 /* ProfileExportService.swift */; };
+		PES10000000100000000003 /* ProfileExportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = PES10000000000000000000 /* ProfileExportService.swift */; };
+		PEV10000000100000000002 /* ProfileExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = PEV10000000000000000000 /* ProfileExportView.swift */; };
+		PEV10000000100000000003 /* ProfileExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = PEV10000000000000000000 /* ProfileExportView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -307,6 +313,9 @@
 		TCK70000000000000000001 /* TelemetryCloudSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetryCloudSync.swift; sourceTree = "<group>"; };
 		USB10000000000000000000 /* USBSerialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = USBSerialView.swift; sourceTree = "<group>"; };
 		WGS10000000000000000000 /* WidgetState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WidgetState.swift; path = "PommeCore Widgets/WidgetState.swift"; sourceTree = SOURCE_ROOT; };
+		MPE10000000000000000000 /* MeshProfileExport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MeshProfileExport.swift; path = "Shared/Models/MeshProfileExport.swift"; sourceTree = SOURCE_ROOT; };
+		PES10000000000000000000 /* ProfileExportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProfileExportService.swift; path = "Shared/Services/ProfileExportService.swift"; sourceTree = SOURCE_ROOT; };
+		PEV10000000000000000000 /* ProfileExportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProfileExportView.swift; path = "Shared/Views/ProfileExportView.swift"; sourceTree = SOURCE_ROOT; };
 		WSW10000000000000000000 /* WidgetStateWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WidgetStateWriter.swift; path = "Shared/App/WidgetStateWriter.swift"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
@@ -824,6 +833,9 @@
 				DSB10000000100000000002 /* DistressBeaconView.swift in Sources */,
 				WGS10000000100000000002 /* WidgetState.swift in Sources */,
 				WSW10000000100000000002 /* WidgetStateWriter.swift in Sources */,
+				MPE10000000100000000002 /* MeshProfileExport.swift in Sources */,
+				PES10000000100000000002 /* ProfileExportService.swift in Sources */,
+				PEV10000000100000000002 /* ProfileExportView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -901,6 +913,9 @@
 				DSB10000000100000000003 /* DistressBeaconView.swift in Sources */,
 				WGS10000000100000000003 /* WidgetState.swift in Sources */,
 				WSW10000000100000000003 /* WidgetStateWriter.swift in Sources */,
+				MPE10000000100000000003 /* MeshProfileExport.swift in Sources */,
+				PES10000000100000000003 /* ProfileExportService.swift in Sources */,
+				PEV10000000100000000003 /* ProfileExportView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

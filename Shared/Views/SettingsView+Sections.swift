@@ -336,7 +336,7 @@ struct DeviceInfoSection: View {
 
     // DeviceSheet enum shared between platforms
     enum DeviceSheet: Identifiable {
-        case radio, txPower, tuning, name, gps, battery, firmware, floodScope
+        case radio, txPower, tuning, name, gps, battery, firmware, floodScope, profileTransfer
         var id: String { String(describing: self) }
     }
 
@@ -371,11 +371,16 @@ struct DeviceInfoSection: View {
             firmwareUpdateRow
             verifyConfigRow
             verifyConfigResult
+            Button { openInspector(.profileTransfer) } label: { profileTransferRow }
+                .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
             #else
             iOSDeviceRows
             firmwareUpdateRow
             verifyConfigRow
             verifyConfigResult
+            profileTransferRow
+                .onTapGesture { activeSheet = .profileTransfer }
+                .listRowBackground(MeshTheme.surface)
             #endif
         } header: {
             SectionInfoHeader(title: "Device", info: "Tap any row to view or change that setting on your connected radio.")
@@ -502,6 +507,18 @@ struct DeviceInfoSection: View {
             p.spreadingFactor == sf &&
             p.codingRate == cr
         }?.name
+    }
+
+    private var profileTransferRow: some View {
+        HStack {
+            Label("Backup & Transfer", systemImage: "arrow.up.arrow.down.circle")
+                .foregroundStyle(MeshTheme.accent)
+            Spacer()
+            Image(systemName: "chevron.right")
+                .font(.caption)
+                .foregroundStyle(MeshTheme.textSecondary)
+        }
+        .contentShape(Rectangle())
     }
 }
 

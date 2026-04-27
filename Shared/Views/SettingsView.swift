@@ -213,6 +213,7 @@ struct SettingsView: View {
                     case .gps: GPSEditorSheet()
                     case .battery: BatteryEditorSheet(batteryChemistryRaw: $batteryChemistryRaw)
                     case .firmware: FirmwareDetailSheet()
+                    case .profileTransfer: ProfileExportView()
                     }
                 }
                 .toolbar {
@@ -276,6 +277,7 @@ struct SettingsView: View {
                         case .gps: GPSEditorSheet()
                         case .battery: BatteryEditorSheet(batteryChemistryRaw: $batteryChemistryRaw)
                         case .firmware: FirmwareDetailSheet()
+                        case .profileTransfer: ProfileExportView()
                         }
                     }
                     .toolbar {
