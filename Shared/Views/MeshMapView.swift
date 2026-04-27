@@ -443,6 +443,7 @@ struct MeshMapView: View {
     @Environment(ContactStore.self) private var contactStore
     @Environment(NavigationStore.self) private var navigationStore
     @Environment(RFMonitorStore.self) private var rfStore
+    @Environment(MessageStoreManager.self) private var messageStoreManager
     @StateObject private var locationManager = LocationManager()
     @State private var cameraPosition: MapCameraPosition = .automatic
     /// Mirrors the camera's current region. Set explicitly when we move the camera
@@ -455,6 +456,8 @@ struct MeshMapView: View {
     /// Whether to show the RF coverage heat map overlay.
     @State private var showCoverageLayer = false
     @State private var showCoverageInfo = false
+    /// Whether to show SNR-colored link quality lines to each contact.
+    @State private var showLinkQuality = false
     /// Internet map nodes fetched from map.meshcore.dev.
     @State private var internetMapNodes: [InternetMapNode] = []
     @State private var isLoadingInternetNodes = false
@@ -469,6 +472,24 @@ struct MeshMapView: View {
 
     private var mappableContacts: [Contact] {
         contactStore.contacts.filter { $0.latitude != 0 || $0.longitude != 0 }
+    }
+
+    private var linkQualityEntries: [(contact: Contact, snr: Int8)] {
+        var entries: [(contact: Contact, snr: Int8)] = []
+        for contact in mappableContacts {
+            guard let messages = messageStoreManager.messagesByContact[contact.publicKeyPrefix] else { continue }
+            if let snr = messages.filter({ !$0.isOutgoing }).max(by: { $0.timestamp < $1.timestamp })?.snr {
+                entries.append((contact: contact, snr: snr))
+            }
+        }
+        return entries
+    }
+
+    private func snrColor(_ snr: Int8) -> Color {
+        let db = Int(snr)
+        if db > 0 { return .green }
+        if db > -10 { return .orange }
+        return .red
     }
 
     /// Internet nodes clustered by geographic grid cell at the current zoom level.
@@ -610,6 +631,17 @@ struct MeshMapView: View {
                     }
                 }
 
+                // Link quality lines — SNR-colored from device to each contact with message history
+                if showLinkQuality, let deviceCoord = locationManager.currentLocation?.coordinate {
+                    ForEach(linkQualityEntries, id: \.contact.id) { entry in
+                        MapPolyline(coordinates: [
+                            deviceCoord,
+                            CLLocationCoordinate2D(latitude: entry.contact.latitude, longitude: entry.contact.longitude)
+                        ])
+                        .stroke(snrColor(entry.snr).opacity(0.8), lineWidth: 3)
+                    }
+                }
+
                 UserAnnotation()
             }
             .onMapCameraChange(frequency: .onEnd) { context in
@@ -635,6 +667,28 @@ struct MeshMapView: View {
                                 .font(.caption2)
                                 .foregroundStyle(MeshTheme.textSecondary)
                         }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(.thinMaterial)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                    } else if showLinkQuality {
+                        HStack(spacing: 6) {
+                            HStack(spacing: 3) {
+                                Circle().fill(Color.green).frame(width: 8, height: 8)
+                                Text("> 0 dB")
+                            }
+                            HStack(spacing: 3) {
+                                Circle().fill(Color.orange).frame(width: 8, height: 8)
+                                Text("-10–0")
+                            }
+                            HStack(spacing: 3) {
+                                Circle().fill(Color.red).frame(width: 8, height: 8)
+                                Text("< -10")
+                            }
+                            Text("SNR")
+                        }
+                        .font(.caption2)
+                        .foregroundStyle(MeshTheme.textSecondary)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 5)
                         .background(.thinMaterial)
@@ -683,6 +737,17 @@ struct MeshMapView: View {
                     }
 
                     Spacer()
+
+                    // Link quality toggle — SNR lines from device to contacts
+                    Button { showLinkQuality.toggle() } label: {
+                        Image(systemName: showLinkQuality ? "antenna.radiowaves.left.and.right.circle.fill" : "antenna.radiowaves.left.and.right.circle")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(showLinkQuality ? MeshTheme.accent : MeshTheme.textSecondary)
+                            .frame(width: 32, height: 32)
+                            .background(.thinMaterial)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                    }
+                    .buttonStyle(.plain)
 
                     // Coverage layer toggle — always visible; tapping while empty explains how to collect data
                     Button {
