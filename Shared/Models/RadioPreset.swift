@@ -224,9 +224,17 @@ struct RadioPresetPicker: View {
         }
 
         #if !os(watchOS)
-        if !presetService.presets.isEmpty {
+        let visibleCommunity: [RadioPreset] = {
+            guard let filter = countryFilter,
+                  let region = presetRegionForCountry(filter) else {
+                return presetService.presets
+            }
+            let regionMatches = presetService.presets.filter { $0.region == region }
+            return regionMatches.isEmpty ? presetService.presets : regionMatches
+        }()
+        if !visibleCommunity.isEmpty {
             Section {
-                ForEach(presetService.presets) { preset in
+                ForEach(visibleCommunity) { preset in
                     Button {
                         communityPresetToConfirm = preset
                     } label: {

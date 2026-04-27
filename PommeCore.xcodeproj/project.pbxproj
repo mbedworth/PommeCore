@@ -187,6 +187,8 @@
 		CPS10000000100000000003 /* CommunityPreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = CPS10000000000000000000 /* CommunityPreset.swift */; };
 		RPS10000000100000000002 /* RegionalPresetService.swift in Sources */ = {isa = PBXBuildFile; fileRef = RPS10000000000000000000 /* RegionalPresetService.swift */; };
 		RPS10000000100000000003 /* RegionalPresetService.swift in Sources */ = {isa = PBXBuildFile; fileRef = RPS10000000000000000000 /* RegionalPresetService.swift */; };
+		LSG10000000100000000002 /* LocationSuggestion.swift in Sources */ = {isa = PBXBuildFile; fileRef = LSG10000000000000000000 /* LocationSuggestion.swift */; };
+		LSG10000000100000000003 /* LocationSuggestion.swift in Sources */ = {isa = PBXBuildFile; fileRef = LSG10000000000000000000 /* LocationSuggestion.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -323,6 +325,7 @@
 		WSW10000000000000000000 /* WidgetStateWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WidgetStateWriter.swift; path = "Shared/App/WidgetStateWriter.swift"; sourceTree = SOURCE_ROOT; };
 		CPS10000000000000000000 /* CommunityPreset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CommunityPreset.swift; path = "Shared/Models/CommunityPreset.swift"; sourceTree = SOURCE_ROOT; };
 		RPS10000000000000000000 /* RegionalPresetService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = RegionalPresetService.swift; path = "Shared/Services/RegionalPresetService.swift"; sourceTree = SOURCE_ROOT; };
+		LSG10000000000000000000 /* LocationSuggestion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LocationSuggestion.swift; path = "Shared/Services/LocationSuggestion.swift"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -844,6 +847,7 @@
 				PEV10000000100000000002 /* ProfileExportView.swift in Sources */,
 				CPS10000000100000000002 /* CommunityPreset.swift in Sources */,
 				RPS10000000100000000002 /* RegionalPresetService.swift in Sources */,
+				LSG10000000100000000002 /* LocationSuggestion.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -926,6 +930,7 @@
 				PEV10000000100000000003 /* ProfileExportView.swift in Sources */,
 				CPS10000000100000000003 /* CommunityPreset.swift in Sources */,
 				RPS10000000100000000003 /* RegionalPresetService.swift in Sources */,
+				LSG10000000100000000003 /* LocationSuggestion.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

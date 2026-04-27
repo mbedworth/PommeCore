@@ -44,9 +44,60 @@ struct RadioSection: View {
     @State private var initBW: Double = 0
     @State private var initSF: UInt8 = 0
     @State private var initCR: UInt8 = 0
+    @State private var regionFilter: String? = LocationSuggestion.cachedCountryCode
+
+    /// Region options for the macOS manual picker: (label, representative ISO code)
+    #if os(macOS) || targetEnvironment(macCatalyst)
+    private let regionOptions: [(String, String?)] = [
+        ("All Regions", nil),
+        ("North America", "US"),
+        ("Europe", "GB"),
+        ("Australia / NZ", "AU"),
+        ("Asia", "JP"),
+    ]
+    #endif
 
     var body: some View {
         Form {
+        #if os(macOS) || targetEnvironment(macCatalyst)
+        Section {
+            HStack {
+                Image(systemName: "globe")
+                    .foregroundStyle(MeshTheme.accent)
+                    .frame(width: 24)
+                Picker("Region", selection: $regionFilter) {
+                    ForEach(regionOptions, id: \.0) { label, code in
+                        Text(label).tag(code)
+                    }
+                }
+                .foregroundStyle(MeshTheme.accent)
+                .tint(.primary)
+            }
+            .listRowBackground(MeshTheme.surface)
+        } header: {
+            SectionInfoHeader(title: "Region Filter", info: "Filter presets to your local frequency band. GPS detection is not available on Mac — select your region manually.")
+        }
+        #else
+        if let filter = regionFilter, let regionName = presetRegionForCountry(filter) {
+            Section {
+                HStack {
+                    Image(systemName: "scope")
+                        .foregroundStyle(MeshTheme.accent)
+                        .frame(width: 24)
+                    Text("Showing \(regionName) presets")
+                        .foregroundStyle(MeshTheme.textSecondary)
+                        .font(.subheadline)
+                    Spacer()
+                    Button("Show All") { regionFilter = nil }
+                        .foregroundStyle(MeshTheme.accent)
+                        .font(.subheadline)
+                        .buttonStyle(.plain)
+                }
+                .listRowBackground(MeshTheme.surface)
+            }
+        }
+        #endif
+
         RadioPresetPicker(
             onApply: { preset in
                 applyPreset(preset)
@@ -67,8 +118,10 @@ struct RadioSection: View {
             currentFreqKHz: initFreqKHz,
             currentBW: initBW,
             currentSF: initSF,
-            currentCR: initCR
+            currentCR: initCR,
+            countryFilter: regionFilter
         )
+        .task { regionFilter = await LocationSuggestion.detectIfNeeded() }
 
         Section {
             HStack {

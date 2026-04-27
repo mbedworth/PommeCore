@@ -24,6 +24,7 @@ struct RemoteRadioSection: View {
     @State private var txPower = ""
     @State private var saveState: SaveButtonState = .idle
     @State private var isRebooting = false
+    @State private var regionFilter: String? = LocationSuggestion.cachedCountryCode
 
     /// Parse "freq_MHz,bw_kHz,sf,cr" from session settings into components for preset detection.
     private var parsedRadio: (freqKHz: Double, bw: Double, sf: UInt8, cr: UInt8) {
@@ -56,8 +57,10 @@ struct RemoteRadioSection: View {
                 currentFreqKHz: parsedRadio.freqKHz,
                 currentBW: parsedRadio.bw,
                 currentSF: parsedRadio.sf,
-                currentCR: parsedRadio.cr
+                currentCR: parsedRadio.cr,
+                countryFilter: regionFilter
             )
+            .task { regionFilter = await LocationSuggestion.detectIfNeeded() }
         }
 
         Section {
