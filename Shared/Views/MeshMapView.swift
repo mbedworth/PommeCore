@@ -988,10 +988,7 @@ struct ClusterDetailView: View {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         guard let date = formatter.date(from: iso) else { return iso }
-        let display = DateFormatter()
-        display.dateStyle = .medium
-        display.timeStyle = .short
-        return display.string(from: date)
+        return date.formatted(date: .abbreviated, time: .shortened)
     }
 }
 

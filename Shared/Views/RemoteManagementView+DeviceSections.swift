@@ -180,10 +180,7 @@ struct RemoteClockRow: View {
         // If the response looks like a raw epoch number, format it as a date
         if let epoch = Double(raw.trimmingCharacters(in: .whitespaces)), epoch > 1_000_000_000 {
             let date = Date(timeIntervalSince1970: epoch)
-            let formatter = DateFormatter()
-            formatter.dateStyle = .medium
-            formatter.timeStyle = .medium
-            return formatter.string(from: date)
+            return date.formatted(date: .abbreviated, time: .shortened)
         }
         return raw
     }

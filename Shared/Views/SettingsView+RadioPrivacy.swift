@@ -545,7 +545,7 @@ struct PrivacySection: View {
                 SectionInfoHeader(title: "Contacts with Telemetry Permission", info: "Contacts listed here can request battery, temperature, and sensor data from your device. Toggle off to stop sharing telemetry with a specific contact.")
             } footer: {
                 let count = contactStore.contacts.filter { $0.type == .chat && $0.allowTelemetry }.count
-                Text("\(count) contact\(count == 1 ? "" : "s") can request your telemetry data.")
+                Text("^[\(count) contact](inflect: true) can request your telemetry data.")
                     .font(.caption2)
             }
         }
@@ -579,7 +579,7 @@ struct PrivacySection: View {
                 SectionInfoHeader(title: "Contacts with Location Permission", info: "Contacts listed here will receive your GPS coordinates when they request telemetry. Toggle off to stop sharing your location with a specific contact.")
             } footer: {
                 let count = contactStore.contacts.filter { $0.type == .chat && $0.shareTelemetryLocation }.count
-                Text("\(count) contact\(count == 1 ? "" : "s") will receive your location in telemetry.")
+                Text("^[\(count) contact](inflect: true) will receive your location in telemetry.")
                     .font(.caption2)
             }
         }

@@ -120,7 +120,7 @@ struct MessageBubble: View {
                                     .font(.caption2)
                                     .foregroundStyle(MeshTheme.textSecondary)
                             } else {
-                                Text("\(hops) hop\(hops == 1 ? "" : "s")")
+                                Text("^[\(hops) hop](inflect: true)")
                                     .font(.caption2)
                                     .foregroundStyle(MeshTheme.textSecondary)
                             }
@@ -355,7 +355,7 @@ struct ChannelMessageBubble: View {
                                     .font(.caption2)
                                     .foregroundStyle(MeshTheme.textSecondary)
                             } else {
-                                Text("\(hops) hop\(hops == 1 ? "" : "s")")
+                                Text("^[\(hops) hop](inflect: true)")
                                     .font(.caption2)
                                     .foregroundStyle(MeshTheme.textSecondary)
                             }
@@ -442,11 +442,9 @@ struct DateSeparator: View {
     }
 
     private func formattedDate(_ date: Date) -> String {
-        if Calendar.current.isDateInToday(date) { return "Today" }
-        if Calendar.current.isDateInYesterday(date) { return "Yesterday" }
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        return formatter.string(from: date)
+        if Calendar.current.isDateInToday(date) { return String(localized: "Today") }
+        if Calendar.current.isDateInYesterday(date) { return String(localized: "Yesterday") }
+        return date.formatted(date: .abbreviated, time: .omitted)
     }
 }
 

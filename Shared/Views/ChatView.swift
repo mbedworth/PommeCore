@@ -88,7 +88,7 @@ struct ChatView: View {
         if c.outPathLen < 0 { return c.outPath.isEmpty ? "Auto" : "Flood" }
         // Lower 6 bits = hop count (upper 2 bits = hash_mode)
         let hops = Int(c.outPathLen) & 0x3F
-        return "\(hops) hop\(hops == 1 ? "" : "s")"
+        return String(localized: "^[\(hops) hop](inflect: true)")
     }
 
     private var routeColor: Color {
@@ -332,7 +332,7 @@ struct ChatView: View {
                 }
                 LazyVStack(spacing: 4) {
                     if !searchText.isEmpty {
-                        Text("\(displayedMessages.count) result\(displayedMessages.count == 1 ? "" : "s")")
+                        Text("^[\(displayedMessages.count) result](inflect: true)")
                             .font(.caption2)
                             .foregroundStyle(MeshTheme.textSecondary)
                             .padding(.vertical, 4)

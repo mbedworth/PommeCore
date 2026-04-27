@@ -174,7 +174,7 @@ struct PathViewer: View {
                     }
                 }
 
-                Text("\(hops.count) hop\(hops.count == 1 ? "" : "s")")
+                Text("^[\(hops.count) hop](inflect: true)")
                     .font(.caption)
                     .foregroundStyle(MeshTheme.textSecondary)
             }
@@ -423,7 +423,7 @@ struct PingResultsView: View {
                             .font(.caption.monospaced().weight(.medium))
                             .foregroundStyle(ms < 5000 ? .green : ms < 15000 ? .orange : .red)
                         if result.hops > 0 {
-                            Text("\(result.hops) hop\(result.hops == 1 ? "" : "s")")
+                            Text("^[\(result.hops) hop](inflect: true)")
                                 .font(.caption2)
                                 .foregroundStyle(MeshTheme.textSecondary)
                         }

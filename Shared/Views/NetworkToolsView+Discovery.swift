@@ -158,7 +158,7 @@ struct DiscoverView: View {
                         discoveredNodeRow(node)
                     }
                 } header: {
-                    Text("\(remoteSessionManager.discoveredNodes.count) Node\(remoteSessionManager.discoveredNodes.count == 1 ? "" : "s") Found")
+                    Text("^[\(remoteSessionManager.discoveredNodes.count) node](inflect: true) Found")
                         .foregroundStyle(MeshTheme.textSecondary)
                 }
             }
@@ -189,7 +189,7 @@ struct DiscoverView: View {
                             .font(.caption2)
                             .foregroundStyle(MeshTheme.connected)
                     } else {
-                        Text("\(node.pathLen) hop\(node.pathLen == 1 ? "" : "s")")
+                        Text("^[\(node.pathLen) hop](inflect: true)")
                             .font(.caption2)
                             .foregroundStyle(MeshTheme.textSecondary)
                     }

@@ -135,7 +135,7 @@ struct ContactRowView: View {
         } else if contact.outPathLen > 0 {
             let pathStr = formatPathHashes(contact.outPath, hopCount: Int(contact.outPathLen))
             if pathStr.isEmpty {
-                Text("\(contact.outPathLen) hop\(contact.outPathLen == 1 ? "" : "s")")
+                Text("^[\(contact.outPathLen) hop](inflect: true)")
                     .font(.caption2)
                     .foregroundStyle(MeshTheme.textSecondary)
             } else {

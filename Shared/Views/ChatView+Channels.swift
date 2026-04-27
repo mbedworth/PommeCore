@@ -845,7 +845,7 @@ struct RoomMessageBubble: View {
                                     .font(.caption2)
                                     .foregroundStyle(MeshTheme.textSecondary)
                             } else {
-                                Text("\(hops) hop\(hops == 1 ? "" : "s")")
+                                Text("^[\(hops) hop](inflect: true)")
                                     .font(.caption2)
                                     .foregroundStyle(MeshTheme.textSecondary)
                             }
