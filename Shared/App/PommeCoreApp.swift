@@ -30,6 +30,7 @@ struct PommeCoreApp: App {
     @StateObject private var viewModel = PommeCoreViewModel()
     @StateObject private var appLock = AppLockManager()
     @State private var presetService = RegionalPresetService()
+    @State private var radioProfileStore = RadioProfileStore()
     private let syncedSettings = SyncedSettings.shared
     @Environment(\.scenePhase) private var scenePhase
     #if os(iOS)
@@ -85,6 +86,7 @@ struct PommeCoreApp: App {
                     .environmentObject(viewModel)
                     .environment(viewModel.deviceConfig)
                     .environment(presetService)
+                    .environment(radioProfileStore)
                     .environment(viewModel.contactStore)
                     .environment(viewModel.channelStore)
                     .environment(viewModel.messageStoreManager)

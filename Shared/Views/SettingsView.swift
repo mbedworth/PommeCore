@@ -214,6 +214,7 @@ struct SettingsView: View {
                     case .battery: BatteryEditorSheet(batteryChemistryRaw: $batteryChemistryRaw)
                     case .firmware: FirmwareDetailSheet()
                     case .profileTransfer: ProfileExportView()
+                    case .radioProfiles: RadioProfilesView()
                     }
                 }
                 .toolbar {
@@ -278,6 +279,7 @@ struct SettingsView: View {
                         case .battery: BatteryEditorSheet(batteryChemistryRaw: $batteryChemistryRaw)
                         case .firmware: FirmwareDetailSheet()
                         case .profileTransfer: ProfileExportView()
+                        case .radioProfiles: RadioProfilesView()
                         }
                     }
                     .toolbar {

@@ -336,7 +336,7 @@ struct DeviceInfoSection: View {
 
     // DeviceSheet enum shared between platforms
     enum DeviceSheet: Identifiable {
-        case radio, txPower, tuning, name, gps, battery, firmware, floodScope, profileTransfer
+        case radio, txPower, tuning, name, gps, battery, firmware, floodScope, profileTransfer, radioProfiles
         var id: String { String(describing: self) }
     }
 
@@ -373,6 +373,8 @@ struct DeviceInfoSection: View {
             verifyConfigResult
             Button { openInspector(.profileTransfer) } label: { profileTransferRow }
                 .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
+            Button { openInspector(.radioProfiles) } label: { radioProfilesRow }
+                .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
             #else
             iOSDeviceRows
             firmwareUpdateRow
@@ -380,6 +382,9 @@ struct DeviceInfoSection: View {
             verifyConfigResult
             profileTransferRow
                 .onTapGesture { activeSheet = .profileTransfer }
+                .listRowBackground(MeshTheme.surface)
+            radioProfilesRow
+                .onTapGesture { activeSheet = .radioProfiles }
                 .listRowBackground(MeshTheme.surface)
             #endif
         } header: {
@@ -514,6 +519,26 @@ struct DeviceInfoSection: View {
             Label("Backup & Transfer", systemImage: "arrow.up.arrow.down.circle")
                 .foregroundStyle(MeshTheme.accent)
             Spacer()
+            Image(systemName: "chevron.right")
+                .font(.caption)
+                .foregroundStyle(MeshTheme.textSecondary)
+        }
+        .contentShape(Rectangle())
+    }
+
+    @Environment(RadioProfileStore.self) private var radioProfileStore
+
+    private var radioProfilesRow: some View {
+        HStack {
+            Label("Radio Profiles", systemImage: "list.bullet.rectangle.portrait")
+                .foregroundStyle(MeshTheme.accent)
+            Spacer()
+            let count = radioProfileStore.profiles.count
+            if count > 0 {
+                Text("\(count)")
+                    .font(.caption)
+                    .foregroundStyle(MeshTheme.textSecondary)
+            }
             Image(systemName: "chevron.right")
                 .font(.caption)
                 .foregroundStyle(MeshTheme.textSecondary)
