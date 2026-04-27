@@ -29,6 +29,7 @@ struct PommeCoreApp: App {
     #else
     @StateObject private var viewModel = PommeCoreViewModel()
     @StateObject private var appLock = AppLockManager()
+    @State private var presetService = RegionalPresetService()
     private let syncedSettings = SyncedSettings.shared
     @Environment(\.scenePhase) private var scenePhase
     #if os(iOS)
@@ -80,8 +81,10 @@ struct PommeCoreApp: App {
                     .meshTheme()
             } else {
                 ContentView()
+                    .task { presetService.fetchIfNeeded() }
                     .environmentObject(viewModel)
                     .environment(viewModel.deviceConfig)
+                    .environment(presetService)
                     .environment(viewModel.contactStore)
                     .environment(viewModel.channelStore)
                     .environment(viewModel.messageStoreManager)

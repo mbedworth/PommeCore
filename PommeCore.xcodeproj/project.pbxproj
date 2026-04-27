@@ -183,6 +183,10 @@
 		PES10000000100000000003 /* ProfileExportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = PES10000000000000000000 /* ProfileExportService.swift */; };
 		PEV10000000100000000002 /* ProfileExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = PEV10000000000000000000 /* ProfileExportView.swift */; };
 		PEV10000000100000000003 /* ProfileExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = PEV10000000000000000000 /* ProfileExportView.swift */; };
+		CPS10000000100000000002 /* CommunityPreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = CPS10000000000000000000 /* CommunityPreset.swift */; };
+		CPS10000000100000000003 /* CommunityPreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = CPS10000000000000000000 /* CommunityPreset.swift */; };
+		RPS10000000100000000002 /* RegionalPresetService.swift in Sources */ = {isa = PBXBuildFile; fileRef = RPS10000000000000000000 /* RegionalPresetService.swift */; };
+		RPS10000000100000000003 /* RegionalPresetService.swift in Sources */ = {isa = PBXBuildFile; fileRef = RPS10000000000000000000 /* RegionalPresetService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -317,6 +321,8 @@
 		PES10000000000000000000 /* ProfileExportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProfileExportService.swift; path = "Shared/Services/ProfileExportService.swift"; sourceTree = SOURCE_ROOT; };
 		PEV10000000000000000000 /* ProfileExportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProfileExportView.swift; path = "Shared/Views/ProfileExportView.swift"; sourceTree = SOURCE_ROOT; };
 		WSW10000000000000000000 /* WidgetStateWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WidgetStateWriter.swift; path = "Shared/App/WidgetStateWriter.swift"; sourceTree = SOURCE_ROOT; };
+		CPS10000000000000000000 /* CommunityPreset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CommunityPreset.swift; path = "Shared/Models/CommunityPreset.swift"; sourceTree = SOURCE_ROOT; };
+		RPS10000000000000000000 /* RegionalPresetService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = RegionalPresetService.swift; path = "Shared/Services/RegionalPresetService.swift"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -836,6 +842,8 @@
 				MPE10000000100000000002 /* MeshProfileExport.swift in Sources */,
 				PES10000000100000000002 /* ProfileExportService.swift in Sources */,
 				PEV10000000100000000002 /* ProfileExportView.swift in Sources */,
+				CPS10000000100000000002 /* CommunityPreset.swift in Sources */,
+				RPS10000000100000000002 /* RegionalPresetService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -916,6 +924,8 @@
 				MPE10000000100000000003 /* MeshProfileExport.swift in Sources */,
 				PES10000000100000000003 /* ProfileExportService.swift in Sources */,
 				PEV10000000100000000003 /* ProfileExportView.swift in Sources */,
+				CPS10000000100000000003 /* CommunityPreset.swift in Sources */,
+				RPS10000000100000000003 /* RegionalPresetService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

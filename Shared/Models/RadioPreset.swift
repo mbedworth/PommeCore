@@ -124,7 +124,11 @@ struct RadioPresetPicker: View {
     var countryFilter: String?
     @State private var selectedPresetIndex: Int = -1
     @State private var presetToConfirm: RadioPreset?
+    @State private var communityPresetToConfirm: RadioPreset?
     @State private var hasAutoDetected = false
+    #if !os(watchOS)
+    @Environment(RegionalPresetService.self) private var presetService
+    #endif
 
     private var filteredPresets: [RadioPreset] {
         if let country = countryFilter {
@@ -218,5 +222,49 @@ struct RadioPresetPicker: View {
         } header: {
             SectionInfoHeader(title: "Radio Presets", info: "Select a preset for your region. All nodes on your mesh must use the same settings.")
         }
+
+        #if !os(watchOS)
+        if !presetService.presets.isEmpty {
+            Section {
+                ForEach(presetService.presets) { preset in
+                    Button {
+                        communityPresetToConfirm = preset
+                    } label: {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(preset.name)
+                                    .foregroundStyle(MeshTheme.accent)
+                                Text("\(formatFrequency(preset.frequencyKHz)) · SF\(preset.spreadingFactor) · BW \(preset.bandwidth == preset.bandwidth.rounded() ? "\(Int(preset.bandwidth))" : "\(preset.bandwidth)") kHz")
+                                    .font(.caption)
+                                    .foregroundStyle(MeshTheme.textSecondary)
+                            }
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.caption)
+                                .foregroundStyle(MeshTheme.textSecondary)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .listRowBackground(MeshTheme.surface)
+                }
+            } header: {
+                SectionInfoHeader(title: "Community Presets", info: "Presets contributed by regional mesh communities. Submit additions via pull request to the PommeCore repository.")
+            }
+            .alert("Apply Community Preset?", isPresented: Binding(
+                get: { communityPresetToConfirm != nil },
+                set: { if !$0 { communityPresetToConfirm = nil } }
+            )) {
+                Button("Cancel", role: .cancel) { communityPresetToConfirm = nil }
+                Button("Apply") {
+                    if let p = communityPresetToConfirm { onApply(p) }
+                    communityPresetToConfirm = nil
+                }
+            } message: {
+                if let p = communityPresetToConfirm {
+                    Text("This will change your radio to \(formatFrequency(p.frequencyKHz)), BW \(p.bandwidth == p.bandwidth.rounded() ? "\(Int(p.bandwidth))" : "\(p.bandwidth)") kHz, SF\(p.spreadingFactor), CR 4/\(p.codingRate).\n\nAll nodes on your mesh must use the same settings.")
+                }
+            }
+        }
+        #endif
     }
 }
