@@ -280,7 +280,7 @@ struct RemoteManagementView: View {
         _ title: String,
         expanded: Binding<Bool>,
         sectionKey: String,
-        info: String = "",
+        info: LocalizedStringKey? = nil,
         @ViewBuilder content: () -> Content
     ) -> some View {
         Section {
@@ -325,7 +325,7 @@ struct RemoteManagementView: View {
                 #else
                 .buttonStyle(.plain)
                 #endif
-                if !info.isEmpty {
+                if let info {
                     InfoButton(text: info)
                         .padding(.leading, 6)
                 }
@@ -519,9 +519,9 @@ struct LoginSection: View {
     private var statusLabel: String {
         switch session.loginState {
         case .loggedIn(let permission): permission.displayName
-        case .loggingIn: "Logging in..."
-        case .loginFailed: "Failed"
-        case .notLoggedIn: "Not logged in"
+        case .loggingIn: String(localized: "Logging in...")
+        case .loginFailed: String(localized: "Failed")
+        case .notLoggedIn: String(localized: "Not logged in")
         }
     }
 }

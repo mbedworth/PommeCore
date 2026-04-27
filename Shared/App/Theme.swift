@@ -25,6 +25,14 @@ enum AppTheme: String, CaseIterable {
         case .dark: return .dark
         }
     }
+
+    var displayName: String {
+        switch self {
+        case .system: return String(localized: "System")
+        case .light: return String(localized: "Light")
+        case .dark: return String(localized: "Dark")
+        }
+    }
 }
 
 // MARK: - Theme Colors
@@ -358,7 +366,7 @@ struct CopyButton: View {
 
 /// Reusable two-column row for displaying a label and value in a List.
 struct LabelValueRow: View {
-    let label: String
+    let label: LocalizedStringKey
     let value: String
     var labelColor: Color = MeshTheme.accent
     var valueColor: Color = MeshTheme.textSecondary
@@ -476,7 +484,7 @@ struct SaveButton: View {
 }
 
 private struct InfoPopoverContent: View {
-    let text: String
+    let text: LocalizedStringKey
 
     var body: some View {
         #if os(macOS) || targetEnvironment(macCatalyst)
@@ -504,7 +512,7 @@ private struct InfoPopoverContent: View {
 }
 
 struct InfoButton: View {
-    let text: String
+    let text: LocalizedStringKey
     @State private var showPopover = false
 
     var body: some View {
@@ -522,12 +530,20 @@ struct InfoButton: View {
 }
 
 struct SectionInfoHeader: View {
-    let title: String
-    let info: String
+    let title: LocalizedStringKey?
+    let info: LocalizedStringKey
     var titleColor: Color?
     var action: (() -> Void)? = nil
     var actionIcon: String = "arrow.clockwise"
     @State private var showInfo = false
+
+    init(title: LocalizedStringKey? = nil, info: LocalizedStringKey, titleColor: Color? = nil, action: (() -> Void)? = nil, actionIcon: String = "arrow.clockwise") {
+        self.title = title
+        self.info = info
+        self.titleColor = titleColor
+        self.action = action
+        self.actionIcon = actionIcon
+    }
 
     var body: some View {
         let color = titleColor ?? MeshTheme.textSecondary
@@ -536,7 +552,7 @@ struct SectionInfoHeader: View {
                 // Title + spacer + ↺ icon are one large button — whole row is tappable
                 Button(action: action) {
                     HStack(spacing: 6) {
-                        if !title.isEmpty {
+                        if let title {
                             Text(title)
                                 .foregroundStyle(color)
                         }
@@ -552,7 +568,7 @@ struct SectionInfoHeader: View {
                 .buttonStyle(.plain)
                 #endif
             } else {
-                if !title.isEmpty {
+                if let title {
                     Text(title)
                         .foregroundStyle(color)
                 }

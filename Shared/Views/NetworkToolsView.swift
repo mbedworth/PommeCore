@@ -166,20 +166,20 @@ struct ContactDetailSheet: View {
     /// Contextual status request message based on contact type.
     private var statusActivityMessage: String {
         switch contact.type {
-        case .chat: return "Chat nodes don't typically support status requests. Waiting..."
-        case .repeater: return "Requesting status from repeater..."
-        case .room: return "Requesting status from room server..."
-        default: return "Requesting status..."
+        case .chat: return String(localized: "Chat nodes don't typically support status requests. Waiting...")
+        case .repeater: return String(localized: "Requesting status from repeater...")
+        case .room: return String(localized: "Requesting status from room server...")
+        default: return String(localized: "Requesting status...")
         }
     }
 
     /// Contextual telemetry request message based on contact type.
     private var telemetryActivityMessage: String {
         switch contact.type {
-        case .chat: return "Telemetry is typically only available from sensor nodes. Waiting..."
-        case .repeater: return "Some repeaters support basic telemetry. Waiting..."
-        case .room: return "Room servers don't typically support telemetry. Waiting..."
-        default: return "Requesting telemetry from sensor..."
+        case .chat: return String(localized: "Telemetry is typically only available from sensor nodes. Waiting...")
+        case .repeater: return String(localized: "Some repeaters support basic telemetry. Waiting...")
+        case .room: return String(localized: "Room servers don't typically support telemetry. Waiting...")
+        default: return String(localized: "Requesting telemetry from sensor...")
         }
     }
 

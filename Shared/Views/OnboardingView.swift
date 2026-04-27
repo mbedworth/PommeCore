@@ -272,7 +272,7 @@ struct OnboardingView: View {
 
     // MARK: - Helpers
 
-    private func stepRow(number: String, text: String) -> some View {
+    private func stepRow(number: String, text: LocalizedStringKey) -> some View {
         HStack(alignment: .top, spacing: 8) {
             Text(number + ".")
                 .fontWeight(.bold)
@@ -284,7 +284,7 @@ struct OnboardingView: View {
         .font(.subheadline)
     }
 
-    private func frequencyRow(region: String, freq: String) -> some View {
+    private func frequencyRow(region: LocalizedStringKey, freq: String) -> some View {
         HStack {
             Text(region)
                 .foregroundStyle(MeshTheme.textSecondary)

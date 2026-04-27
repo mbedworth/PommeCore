@@ -228,7 +228,7 @@ extension ContactListView {
             }
             .accessibilityLabel("Add contact")
             .menuIndicator(.hidden)
-            Button(isSelecting ? "Done" : "Edit") {
+            Button(String(localized: isSelecting ? "Done" : "Edit")) {
                 isSelecting.toggle()
                 if !isSelecting { selectedContacts.removeAll() }
             }

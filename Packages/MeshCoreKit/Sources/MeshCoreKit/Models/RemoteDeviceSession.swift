@@ -19,10 +19,10 @@ public enum RemotePermission: Int, Comparable, Sendable {
 
     public var displayName: String {
         switch self {
-        case .guest: return "Guest"
-        case .readOnly: return "Read Only"
-        case .readWrite: return "Editor"
-        case .admin: return "Admin"
+        case .guest: return String(localized: "Guest")
+        case .readOnly: return String(localized: "Read Only")
+        case .readWrite: return String(localized: "Editor")
+        case .admin: return String(localized: "Admin")
         }
     }
 

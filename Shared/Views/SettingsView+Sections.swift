@@ -267,13 +267,13 @@ struct DeviceInfoSection: View {
     @AppStorage("locationPrivacyRadius") private var locationPrivacyRadius: Double = 0.0
 
     private var gpsStatusLabel: String {
-        if config.latitude == 0 && config.longitude == 0 { return "Not set" }
+        if config.latitude == 0 && config.longitude == 0 { return String(localized: "Not set") }
         if autoUpdateLocation {
             return locationPrivacyRadius > 0
-                ? "Auto \u{00B7} \u{00B1}\(formatFudgeRadius(locationPrivacyRadius))"
-                : "Auto \u{00B7} Exact"
+                ? String(format: String(localized: "Auto · ±%@"), formatFudgeRadius(locationPrivacyRadius))
+                : String(localized: "Auto · Exact")
         }
-        return "Manual"
+        return String(localized: "Manual")
     }
 
     private func formatFudgeRadius(_ radius: Double) -> String {
@@ -711,11 +711,11 @@ extension SettingsView {
 
     var connectionLabel: String {
         switch connectionManager.connectionState {
-        case .ready: "Ready"
-        case .connected: "Connected"
-        case .connecting: "Connecting"
-        case .scanning: "Scanning"
-        case .disconnected: "Disconnected"
+        case .ready: String(localized: "Ready")
+        case .connected: String(localized: "Connected")
+        case .connecting: String(localized: "Connecting")
+        case .scanning: String(localized: "Scanning")
+        case .disconnected: String(localized: "Disconnected")
         }
     }
 }

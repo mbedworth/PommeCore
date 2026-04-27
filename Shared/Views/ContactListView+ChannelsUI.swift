@@ -371,11 +371,11 @@ extension ContactListView {
 
     var connectionLabel: String {
         switch connectionManager.connectionState {
-        case .ready: "Connected"
-        case .connected: "Discovering services..."
-        case .connecting: "Connecting..."
-        case .scanning: "Scanning..."
-        case .disconnected: "Disconnected"
+        case .ready: String(localized: "Connected")
+        case .connected: String(localized: "Discovering services...")
+        case .connecting: String(localized: "Connecting...")
+        case .scanning: String(localized: "Scanning...")
+        case .disconnected: String(localized: "Disconnected")
         }
     }
 }

@@ -270,7 +270,7 @@ extension BLEManager: CBCentralManagerDelegate {
             Self.logger.warning("Bluetooth is powered off")
             DispatchQueue.main.async {
                 self.isPoweredOn = false
-                self.bleStatusMessage = "Bluetooth is turned off. Enable Bluetooth in Settings to connect to your radio."
+                self.bleStatusMessage = String(localized: "Bluetooth is turned off. Enable Bluetooth in Settings to connect to your radio.")
                 self.connectionState = .disconnected
                 self.connectedPeripheral = nil
                 self.rxCharacteristic = nil
@@ -280,7 +280,7 @@ extension BLEManager: CBCentralManagerDelegate {
             Self.logger.warning("Bluetooth permission denied")
             DispatchQueue.main.async {
                 self.isPoweredOn = false
-                self.bleStatusMessage = "Bluetooth access denied. Enable Bluetooth for MeshCore in Settings \u{2192} Privacy \u{2192} Bluetooth."
+                self.bleStatusMessage = String(localized: "Bluetooth access denied. Enable Bluetooth for MeshCore in Settings → Privacy → Bluetooth.")
                 self.connectionState = .disconnected
                 self.connectedPeripheral = nil
                 self.rxCharacteristic = nil
@@ -290,7 +290,7 @@ extension BLEManager: CBCentralManagerDelegate {
             Self.logger.warning("Bluetooth not supported on this device")
             DispatchQueue.main.async {
                 self.isPoweredOn = false
-                self.bleStatusMessage = "This device does not support Bluetooth Low Energy."
+                self.bleStatusMessage = String(localized: "This device does not support Bluetooth Low Energy.")
                 self.connectionState = .disconnected
                 self.connectedPeripheral = nil
                 self.rxCharacteristic = nil

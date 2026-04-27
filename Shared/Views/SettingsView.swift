@@ -609,7 +609,7 @@ private extension SettingsView {
         Section {
             Picker("Theme", selection: $appTheme) {
                 ForEach(AppTheme.allCases, id: \.rawValue) { theme in
-                    Text(theme.rawValue).tag(theme.rawValue)
+                    Text(theme.displayName).tag(theme.rawValue)
                 }
             }
             .pickerStyle(.segmented)

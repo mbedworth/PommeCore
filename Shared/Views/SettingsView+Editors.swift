@@ -277,7 +277,7 @@ extension SettingsView {
             .foregroundStyle(MeshTheme.textSecondary)
     }
 
-    func sectionInfoHeader(_ title: String, info: String) -> some View {
+    func sectionInfoHeader(_ title: LocalizedStringKey, info: LocalizedStringKey) -> some View {
         SectionInfoHeader(title: title, info: info)
     }
 
@@ -371,7 +371,7 @@ struct FirmwareDetailSheet: View {
                 LabeledContent("Build Date", value: buildDate.isEmpty ? "\u{2014}" : buildDate)
                 LabeledContent("Model", value: model.isEmpty ? "\u{2014}" : model)
             } header: {
-                SectionInfoHeader(title: "", info: "Hardware and firmware details from your radio.")
+                SectionInfoHeader(info: "Hardware and firmware details from your radio.")
             }
             Section {
                 LabeledContent("Max Contacts", value: "\(maxContacts)")
@@ -382,7 +382,7 @@ struct FirmwareDetailSheet: View {
                     LabeledContent("Public Key", value: String(publicKeyHex.prefix(16)) + "...")
                         .textSelection(.enabled)
                 } header: {
-                    SectionInfoHeader(title: "", info: "Long-press to copy. Share this with others to let them add you as a contact.")
+                    SectionInfoHeader(info: "Long-press to copy. Share this with others to let them add you as a contact.")
                 }
             }
             Section {
@@ -607,7 +607,7 @@ struct GPSEditorSheet: View {
                 LabeledContent("Latitude", value: latitude.isEmpty ? "\u{2014}" : latitude)
                 LabeledContent("Longitude", value: longitude.isEmpty ? "\u{2014}" : longitude)
             } header: {
-                SectionInfoHeader(title: "", info: "Your radio\u{2019}s stored coordinates. These are shared with other radios when advertising.")
+                SectionInfoHeader(info: "Your radio\u{2019}s stored coordinates. These are shared with other radios when advertising.")
             }
 
             #if !os(watchOS)
@@ -661,7 +661,7 @@ struct GPSEditorSheet: View {
                     }
                 }
             } header: {
-                SectionInfoHeader(title: "", info: "Set from Phone GPS copies your phone\u{2019}s coordinates to the radio. Auto-Update periodically refreshes while the app is open.")
+                SectionInfoHeader(info: "Set from Phone GPS copies your phone\u{2019}s coordinates to the radio. Auto-Update periodically refreshes while the app is open.")
             }
 
             Section {
@@ -680,7 +680,7 @@ struct GPSEditorSheet: View {
                     .tint(.primary)
                 }
             } header: {
-                SectionInfoHeader(title: "", info: "Adds a random offset to your location before sharing. Only affects your personal device \u{2014} repeater and room server locations are always exact.")
+                SectionInfoHeader(info: "Adds a random offset to your location before sharing. Only affects your personal device \u{2014} repeater and room server locations are always exact.")
             }
             #endif
         }
@@ -738,7 +738,7 @@ struct BatteryEditorSheet: View {
                 LabeledContent("Voltage", value: voltageText)
                 LabeledContent("Percentage", value: percentText)
             } header: {
-                SectionInfoHeader(title: "", info: "Live reading from the radio\u{2019}s battery sensor. Accuracy depends on correct chemistry selection below.")
+                SectionInfoHeader(info: "Live reading from the radio\u{2019}s battery sensor. Accuracy depends on correct chemistry selection below.")
             }
             Section {
                 Picker("Battery Type", selection: $batteryChemistryRaw) {
@@ -748,7 +748,7 @@ struct BatteryEditorSheet: View {
                 }
                 .tint(.primary)
             } header: {
-                SectionInfoHeader(title: "", info: "Select battery chemistry for accurate percentage calculation.")
+                SectionInfoHeader(info: "Select battery chemistry for accurate percentage calculation.")
             }
         }
         .navigationTitle("Battery")

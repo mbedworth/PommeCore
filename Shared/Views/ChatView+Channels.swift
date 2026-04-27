@@ -363,9 +363,9 @@ struct RoomChatView: View {
     private var loginStatusText: String {
         switch session.loginState {
         case .loggedIn(let permission): permission.displayName
-        case .loggingIn: "Logging in..."
-        case .loginFailed: "Login failed"
-        case .notLoggedIn: "Not logged in"
+        case .loggingIn: String(localized: "Logging in...")
+        case .loginFailed: String(localized: "Login failed")
+        case .notLoggedIn: String(localized: "Not logged in")
         }
     }
 

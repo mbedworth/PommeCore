@@ -423,7 +423,7 @@ struct CLITerminalSection: View {
             }
             .listRowBackground(MeshTheme.surface)
         } header: {
-            SectionInfoHeader(title: "", info: "Send raw CLI commands to the device. Type 'help' for available commands.")
+            SectionInfoHeader(info: "Send raw CLI commands to the device. Type 'help' for available commands.")
         }
     }
 

@@ -23,9 +23,9 @@ enum ChannelAction: String, CaseIterable, Identifiable {
 
     var navigationTitle: String {
         switch self {
-        case .hashtag: return "Join Hashtag Channel"
-        case .createPrivate: return "Create Private Channel"
-        case .joinPrivate: return "Join Private Channel"
+        case .hashtag: return String(localized: "Join Hashtag Channel")
+        case .createPrivate: return String(localized: "Create Private Channel")
+        case .joinPrivate: return String(localized: "Join Private Channel")
         }
     }
 }
@@ -200,19 +200,19 @@ struct ChannelManagementView: View {
     private var namePlaceholder: String {
         switch action {
         case .hashtag: return "#channel-name"
-        case .createPrivate: return "Channel name"
-        case .joinPrivate: return "Channel name"
+        case .createPrivate: return String(localized: "Channel name")
+        case .joinPrivate: return String(localized: "Channel name")
         }
     }
 
     private var footerText: String {
         switch action {
         case .hashtag:
-            return "Hashtag channels derive their encryption key from the channel name. Anyone who knows the name can join."
+            return String(localized: "Hashtag channels derive their encryption key from the channel name. Anyone who knows the name can join.")
         case .createPrivate:
-            return "Creates a channel with a random 128-bit encryption key. Share the key with others to let them join."
+            return String(localized: "Creates a channel with a random 128-bit encryption key. Share the key with others to let them join.")
         case .joinPrivate:
-            return "Enter the channel name and the shared hex secret to join an existing private channel."
+            return String(localized: "Enter the channel name and the shared hex secret to join an existing private channel.")
         }
     }
 
@@ -221,11 +221,11 @@ struct ChannelManagementView: View {
         case .hashtag:
             let name = channelName.trimmingCharacters(in: .whitespaces)
             let display = name.hasPrefix("#") ? name : "#\(name)"
-            return name.isEmpty ? "Join" : "Join \(display)"
+            return name.isEmpty ? String(localized: "Join") : String(format: String(localized: "Join %@"), display)
         case .createPrivate:
-            return "Create Channel"
+            return String(localized: "Create Channel")
         case .joinPrivate:
-            return "Join Channel"
+            return String(localized: "Join Channel")
         }
     }
 

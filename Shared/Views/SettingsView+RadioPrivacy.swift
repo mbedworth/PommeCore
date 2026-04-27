@@ -826,7 +826,7 @@ extension SettingsView {
             }
             .listRowBackground(MeshTheme.surface)
         } header: {
-            SectionInfoHeader(title: "", info: "Live radio diagnostics. Noise Floor is background signal level (lower is better). RSSI is received signal strength. SNR is signal-to-noise ratio (higher is better).")
+            SectionInfoHeader(info: "Live radio diagnostics. Noise Floor is background signal level (lower is better). RSSI is received signal strength. SNR is signal-to-noise ratio (higher is better).")
         }
     }
 
