@@ -759,7 +759,7 @@ struct BatteryEditorSheet: View {
             let battV = String(format: "%.2f", Double(deviceConfig.batteryMillivolts) / 1000.0)
             let battPct = deviceConfig.batteryPercent()
             voltageText = "\(battV)V"
-            percentText = battPct > 0 ? "\(battPct)%" : "\u{2014}"
+            percentText = battPct > 0 ? String(format: "%d%%", battPct) : "\u{2014}"
         }
     }
 }

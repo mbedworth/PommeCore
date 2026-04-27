@@ -178,7 +178,7 @@ struct ContactRowView: View {
             HStack(spacing: 8) {
                 if status.batteryMV > 0 {
                     let pct = BatteryProfile.lipo.percentage(forMillivolts: Int(status.batteryMV))
-                    Label("\(pct)%", systemImage: batteryIconName(for: pct))
+                    Label(String(format: "%d%%", pct), systemImage: batteryIconName(for: pct))
                         .foregroundStyle(batteryColor(for: pct))
                 }
                 Label(formatUptime(status.uptime), systemImage: "clock")
