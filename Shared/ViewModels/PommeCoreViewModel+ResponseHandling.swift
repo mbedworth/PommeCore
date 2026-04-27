@@ -186,12 +186,18 @@ extension PommeCoreViewModel {
             DebugLogger.shared.log("DM RX: '\(message.text.prefix(60))'", level: .rx)
             handleIncomingMessage(message)
             if messageStoreManager.isSyncingMessages { syncNextMessage() }
+            #if os(iOS)
+            if !message.isOutgoing { syncWidget() }
+            #endif
 
         case .channelMsgRecv(let message):
             Self.logger.info("CHANNEL RX: ch=\(message.channelIndex ?? 0) isOutgoing=\(message.isOutgoing) sender='\(message.senderName ?? "?")' text='\(message.text.prefix(40))'")
             DebugLogger.shared.log("CH RX: ch=\(message.channelIndex ?? 0) from='\(message.senderName ?? "?")' '\(message.text.prefix(40))'", level: .rx)
             handleIncomingMessage(message)
             if messageStoreManager.isSyncingMessages { syncNextMessage() }
+            #if os(iOS)
+            if !message.isOutgoing { syncWidget() }
+            #endif
 
         case .noMoreMessages:
             Self.logger.debug("No more messages")

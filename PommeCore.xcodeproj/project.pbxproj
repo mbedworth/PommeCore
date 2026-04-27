@@ -10,9 +10,6 @@
 		0F05C0E42F9F004400818F68 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 0F05C0E32F9F004400818F68 /* Localizable.xcstrings */; };
 		0F05C0E52F9F004400818F68 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 0F05C0E32F9F004400818F68 /* Localizable.xcstrings */; };
 		0F05C0E62F9F004400818F68 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 0F05C0E32F9F004400818F68 /* Localizable.xcstrings */; };
-		48952E4B0A0C4F5B96B1EF34 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = E09A1F63605E4CA4ACDE7634 /* InfoPlist.xcstrings */; };
-		25A8570F11FD411695EC9FA1 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = E09A1F63605E4CA4ACDE7634 /* InfoPlist.xcstrings */; };
-		225E5EA5B1F24BE8B38A3BE9 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = E09A1F63605E4CA4ACDE7634 /* InfoPlist.xcstrings */; };
 		0F29C3C52F84856E0007BF08 /* Services/ElevationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3C42F84856E0007BF08 /* Services/ElevationService.swift */; };
 		0F29C3C62F84856E0007BF08 /* Services/ElevationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3C42F84856E0007BF08 /* Services/ElevationService.swift */; };
 		0F29C3C92F8485BD0007BF08 /* LineOfSightStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3C82F8485BD0007BF08 /* LineOfSightStore.swift */; };
@@ -50,13 +47,19 @@
 		0FD96D522F84A8EE0026DF54 /* Tools/TelemetryChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FD96D4E2F84A8EE0026DF54 /* Tools/TelemetryChartView.swift */; };
 		0FD96D562F84AA320026DF54 /* Tools/RadioCalculatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FD96D542F84AA320026DF54 /* Tools/RadioCalculatorView.swift */; };
 		0FD96D582F84AA320026DF54 /* Tools/RadioCalculatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FD96D542F84AA320026DF54 /* Tools/RadioCalculatorView.swift */; };
+		0FE18A702F9F8D890026F570 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0FE18A6F2F9F8D890026F570 /* WidgetKit.framework */; };
+		0FE18A722F9F8D890026F570 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0FE18A712F9F8D890026F570 /* SwiftUI.framework */; };
+		0FE18A832F9F8D8A0026F570 /* PommeCore WidgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 0FE18A6E2F9F8D890026F570 /* PommeCore WidgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		18B6F45B61F3581FB64D1DB0 /* DeviceScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2377BED4FF5A7170783BA649 /* DeviceScannerView.swift */; };
 		1EF6ECA717224849A5BE496C /* chime.caf in Resources */ = {isa = PBXBuildFile; fileRef = 6F287F4DDB0C464C99076282 /* chime.caf */; };
+		225E5EA5B1F24BE8B38A3BE9 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = E09A1F63605E4CA4ACDE7634 /* InfoPlist.xcstrings */; };
 		226CDDBC8386695737648451 /* WatchUnlockManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4226DA6FB1C6225C757D16 /* WatchUnlockManager.swift */; };
+		25A8570F11FD411695EC9FA1 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = E09A1F63605E4CA4ACDE7634 /* InfoPlist.xcstrings */; };
 		2788FD0DCD0BC3A0F8CD181E /* PommeCoreWatchKit in Frameworks */ = {isa = PBXBuildFile; productRef = 1E5A005D1D2DDDBEDF24D906 /* PommeCoreWatchKit */; };
 		3749B94D818310AD5ACF3B87 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EFFE2BF3488F0C0647632CD /* ChatView.swift */; };
 		381E1F98C45D43E2D7BD8819 /* RadioPreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E616344CEDCD1ADC41548B7 /* RadioPreset.swift */; };
 		3B5A0845138A331E632F1FA8 /* NodeSetupWizardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86334BBA19C5E5E981032313 /* NodeSetupWizardView.swift */; };
+		48952E4B0A0C4F5B96B1EF34 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = E09A1F63605E4CA4ACDE7634 /* InfoPlist.xcstrings */; };
 		49709E93735B40512587904A /* MeshCoreKit in Frameworks */ = {isa = PBXBuildFile; productRef = 98C321AB3594D357C6B0816A /* MeshCoreKit */; };
 		57D771A61E08BB1991C80DE6 /* PommeCoreApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A259126AAB80661010C6A336 /* PommeCoreApp.swift */; };
 		65CD1325656C00EAA6EB6050 /* MeshCoreKit in Frameworks */ = {isa = PBXBuildFile; productRef = 635A77C284788242D78AE126 /* MeshCoreKit */; };
@@ -99,6 +102,8 @@
 		D5EA89B86D044DD69287E9D0 /* pulse.caf in Resources */ = {isa = PBXBuildFile; fileRef = A6CD3768D637428BAC0630D8 /* pulse.caf */; };
 		DBG10000000000000000002 /* DebugLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBG10000000000000000000 /* DebugLogView.swift */; };
 		DBG10000000000000000003 /* DebugLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBG10000000000000000000 /* DebugLogView.swift */; };
+		DSB10000000100000000002 /* DistressBeaconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DSB10000000000000000000 /* DistressBeaconView.swift */; };
+		DSB10000000100000000003 /* DistressBeaconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DSB10000000000000000000 /* DistressBeaconView.swift */; };
 		E28165853F83421C9DB40DBA /* alert.caf in Resources */ = {isa = PBXBuildFile; fileRef = 38CA824A6E6A4B7D9DD6A055 /* alert.caf */; };
 		EC8655805E2DCD03D8C9C4F6 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D859AE9C98610F71C2FBAAF /* SettingsView.swift */; };
 		EE31FC870779BB9B07A11EEE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 43931BD12312D05F62A9E3B3 /* Assets.xcassets */; };
@@ -113,6 +118,10 @@
 		FE123217A6AD32B385F9ACBC /* MeshCoreKit in Frameworks */ = {isa = PBXBuildFile; productRef = FBBB0BD5BAFCC905A8DC17D3 /* MeshCoreKit */; };
 		FWC10000000100000000002 /* Services/FirmwareUpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = FWC10000000000000000000 /* Services/FirmwareUpdateChecker.swift */; };
 		FWC10000000100000000003 /* Services/FirmwareUpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = FWC10000000000000000000 /* Services/FirmwareUpdateChecker.swift */; };
+		GFN10000000100000000002 /* GeofenceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = GFN10000000000000000000 /* GeofenceStore.swift */; };
+		GFN10000000100000000003 /* GeofenceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = GFN10000000000000000000 /* GeofenceStore.swift */; };
+		GFV10000000100000000002 /* GeofencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = GFV10000000000000000000 /* GeofencesView.swift */; };
+		GFV10000000100000000003 /* GeofencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = GFV10000000000000000000 /* GeofencesView.swift */; };
 		KCM1ABCD0002000000000001 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = KCM1ABCD0000000000000001 /* KeychainManager.swift */; };
 		KCM1ABCD0003000000000001 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = KCM1ABCD0000000000000001 /* KeychainManager.swift */; };
 		LNK10000000000000000001 /* Services/LinkPreviewService.swift in Sources */ = {isa = PBXBuildFile; fileRef = LNK10000000000000000000 /* Services/LinkPreviewService.swift */; };
@@ -163,13 +172,11 @@
 		TCK70000000100000000003 /* TelemetryCloudSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = TCK70000000000000000001 /* TelemetryCloudSync.swift */; };
 		USB10000000000000000002 /* USBSerialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = USB10000000000000000000 /* USBSerialView.swift */; };
 		USB10000000000000000003 /* USBSerialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = USB10000000000000000000 /* USBSerialView.swift */; };
-		DSB10000000100000000002 /* DistressBeaconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DSB10000000000000000000 /* DistressBeaconView.swift */; };
-		DSB10000000100000000003 /* DistressBeaconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DSB10000000000000000000 /* DistressBeaconView.swift */; };
-		GFN10000000100000000002 /* GeofenceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = GFN10000000000000000000 /* GeofenceStore.swift */; };
-		GFN10000000100000000003 /* GeofenceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = GFN10000000000000000000 /* GeofenceStore.swift */; };
-		GFV10000000100000000002 /* GeofencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = GFV10000000000000000000 /* GeofencesView.swift */; };
-		GFV10000000100000000003 /* GeofencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = GFV10000000000000000000 /* GeofencesView.swift */; };
 		XUOVAQ6Y1NIWH1G3OMK55ENV /* RemoteManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */; };
+		WGS10000000100000000002 /* WidgetState.swift in Sources */ = {isa = PBXBuildFile; fileRef = WGS10000000000000000000 /* WidgetState.swift */; };
+		WSW10000000100000000002 /* WidgetStateWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = WSW10000000000000000000 /* WidgetStateWriter.swift */; };
+		WGS10000000100000000003 /* WidgetState.swift in Sources */ = {isa = PBXBuildFile; fileRef = WGS10000000000000000000 /* WidgetState.swift */; };
+		WSW10000000100000000003 /* WidgetStateWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = WSW10000000000000000000 /* WidgetStateWriter.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -179,6 +186,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 2F42371944647533B91A5720;
 			remoteInfo = "PommeCore-watchOS";
+		};
+		0FE18A812F9F8D8A0026F570 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 39C1FC83BC1898F5DF01B1DF /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0FE18A6D2F9F8D890026F570;
+			remoteInfo = "PommeCore WidgetsExtension";
 		};
 /* End PBXContainerItemProxy section */
 
@@ -194,11 +208,21 @@
 			name = "Embed Watch Content";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		0FE18A842F9F8D8A0026F570 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				0FE18A832F9F8D8A0026F570 /* PommeCore WidgetsExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		0F05C0E32F9F004400818F68 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
-		E09A1F63605E4CA4ACDE7634 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
 		0F29C3C42F84856E0007BF08 /* Services/ElevationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/ElevationService.swift; sourceTree = "<group>"; };
 		0F29C3C82F8485BD0007BF08 /* LineOfSightStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineOfSightStore.swift; sourceTree = "<group>"; };
 		0F29C3CC2F84863E0007BF08 /* LineOfSight/AntennaSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineOfSight/AntennaSettingsView.swift; sourceTree = "<group>"; };
@@ -217,6 +241,9 @@
 		0FD96D4D2F84A8EE0026DF54 /* Tools/NoiseFloorMonitorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tools/NoiseFloorMonitorView.swift; sourceTree = "<group>"; };
 		0FD96D4E2F84A8EE0026DF54 /* Tools/TelemetryChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tools/TelemetryChartView.swift; sourceTree = "<group>"; };
 		0FD96D542F84AA320026DF54 /* Tools/RadioCalculatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tools/RadioCalculatorView.swift; sourceTree = "<group>"; };
+		0FE18A6E2F9F8D890026F570 /* PommeCore WidgetsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "PommeCore WidgetsExtension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		0FE18A6F2F9F8D890026F570 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		0FE18A712F9F8D890026F570 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		21606E2B959E6496D3B0230D /* ContactListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactListView.swift; sourceTree = "<group>"; };
 		2377BED4FF5A7170783BA649 /* DeviceScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceScannerView.swift; sourceTree = "<group>"; };
 		2EEF439B8EDC4A5408C299FB /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = macOS/PrivacyInfo.xcprivacy; sourceTree = SOURCE_ROOT; };
@@ -246,9 +273,13 @@
 		D4F0BB9B2578DD9861508E3D /* PommeCore Watch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "PommeCore Watch.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		DB24E21D8CDBE0500C92E469 /* NetworkToolsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkToolsView.swift; sourceTree = "<group>"; };
 		DBG10000000000000000000 /* DebugLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugLogView.swift; sourceTree = "<group>"; };
+		DSB10000000000000000000 /* DistressBeaconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DistressBeaconView.swift; sourceTree = "<group>"; };
+		E09A1F63605E4CA4ACDE7634 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
 		E1F2A3B4C5D6E7F8A9B0C1D2 /* NavigationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationStore.swift; sourceTree = "<group>"; };
 		F6BA0593D517B1467DBC1C42 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		FWC10000000000000000000 /* Services/FirmwareUpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/FirmwareUpdateChecker.swift; sourceTree = "<group>"; };
+		GFN10000000000000000000 /* GeofenceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeofenceStore.swift; sourceTree = "<group>"; };
+		GFV10000000000000000000 /* GeofencesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeofencesView.swift; sourceTree = "<group>"; };
 		KCM1ABCD0000000000000001 /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
 		LNK10000000000000000000 /* Services/LinkPreviewService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/LinkPreviewService.swift; sourceTree = "<group>"; };
 		LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteManagementView.swift; sourceTree = "<group>"; };
@@ -275,10 +306,30 @@
 		SYN60000000000000000001 /* SyncedSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncedSettings.swift; sourceTree = "<group>"; };
 		TCK70000000000000000001 /* TelemetryCloudSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetryCloudSync.swift; sourceTree = "<group>"; };
 		USB10000000000000000000 /* USBSerialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = USBSerialView.swift; sourceTree = "<group>"; };
-		DSB10000000000000000000 /* DistressBeaconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DistressBeaconView.swift; sourceTree = "<group>"; };
-		GFN10000000000000000000 /* GeofenceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeofenceStore.swift; sourceTree = "<group>"; };
-		GFV10000000000000000000 /* GeofencesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeofencesView.swift; sourceTree = "<group>"; };
+		WGS10000000000000000000 /* WidgetState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WidgetState.swift; path = "PommeCore Widgets/WidgetState.swift"; sourceTree = SOURCE_ROOT; };
+		WSW10000000000000000000 /* WidgetStateWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WidgetStateWriter.swift; path = "Shared/App/WidgetStateWriter.swift"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		0FE18A872F9F8D8A0026F570 /* Exceptions for "PommeCore Widgets" folder in "PommeCore WidgetsExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 0FE18A6D2F9F8D890026F570 /* PommeCore WidgetsExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		0FE18A732F9F8D890026F570 /* PommeCore Widgets */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				0FE18A872F9F8D8A0026F570 /* Exceptions for "PommeCore Widgets" folder in "PommeCore WidgetsExtension" target */,
+			);
+			path = "PommeCore Widgets";
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		094FB2AC2198CCD921B82668 /* Frameworks */ = {
@@ -295,6 +346,15 @@
 			files = (
 				65CD1325656C00EAA6EB6050 /* MeshCoreKit in Frameworks */,
 				AB260A4EA04F5F33D19AC37C /* PommeCoreWatchKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0FE18A6B2F9F8D890026F570 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0FE18A722F9F8D890026F570 /* SwiftUI.framework in Frameworks */,
+				0FE18A702F9F8D890026F570 /* WidgetKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -317,6 +377,7 @@
 				6DEB2AE5149CF01089457535 /* Packages */,
 				E0B34F245C5063D4BCB4E068 /* Shared */,
 				37FFAEFD4E59AD6A0C20CC49 /* Views */,
+				0FE18A732F9F8D890026F570 /* PommeCore Widgets */,
 				725951214897A58A06E32F73 /* Products */,
 				635B414AA8FC75B37367C7F5 /* PrivacyInfo.xcprivacy */,
 				2EEF439B8EDC4A5408C299FB /* PrivacyInfo.xcprivacy */,
@@ -390,6 +451,8 @@
 			isa = PBXGroup;
 			children = (
 				0F4E796A2F95627900307C73 /* WatchConnectivity.framework */,
+				0FE18A6F2F9F8D890026F570 /* WidgetKit.framework */,
+				0FE18A712F9F8D890026F570 /* SwiftUI.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -426,6 +489,7 @@
 				669B72A1B0246925F17F1F37 /* PommeCore.app */,
 				D4F0BB9B2578DD9861508E3D /* PommeCore Watch.app */,
 				AE9677D40F85F6D31BD8C43C /* PommeCore.app */,
+				0FE18A6E2F9F8D890026F570 /* PommeCore WidgetsExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -490,6 +554,28 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		0FE18A6D2F9F8D890026F570 /* PommeCore WidgetsExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0FE18A882F9F8D8A0026F570 /* Build configuration list for PBXNativeTarget "PommeCore WidgetsExtension" */;
+			buildPhases = (
+				0FE18A6A2F9F8D890026F570 /* Sources */,
+				0FE18A6B2F9F8D890026F570 /* Frameworks */,
+				0FE18A6C2F9F8D890026F570 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				0FE18A732F9F8D890026F570 /* PommeCore Widgets */,
+			);
+			name = "PommeCore WidgetsExtension";
+			packageProductDependencies = (
+			);
+			productName = "PommeCore WidgetsExtension";
+			productReference = 0FE18A6E2F9F8D890026F570 /* PommeCore WidgetsExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		2F42371944647533B91A5720 /* PommeCore-watchOS */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = DA101B34C01BC4FB7D6A615C /* Build configuration list for PBXNativeTarget "PommeCore-watchOS" */;
@@ -519,11 +605,13 @@
 				E4715DF347CD76CD02FF11DE /* Resources */,
 				7F7D1C124BBDD71A1688A5DC /* Frameworks */,
 				0F4E796E2F95669000307C73 /* Embed Watch Content */,
+				0FE18A842F9F8D8A0026F570 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				0F4E796D2F95665A00307C73 /* PBXTargetDependency */,
+				0FE18A822F9F8D8A0026F570 /* PBXTargetDependency */,
 			);
 			name = PommeCore;
 			packageProductDependencies = (
@@ -561,7 +649,13 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
+				LastSwiftUpdateCheck = 2640;
 				LastUpgradeCheck = 2640;
+				TargetAttributes = {
+					0FE18A6D2F9F8D890026F570 = {
+						CreatedOnToolsVersion = 26.4.1;
+					};
+				};
 			};
 			buildConfigurationList = 64FEBADFBAF641952A6C8634 /* Build configuration list for PBXProject "PommeCore" */;
 			developmentRegion = en;
@@ -585,11 +679,19 @@
 				7EF13F7D45DA717ECBD83014 /* PommeCore */,
 				AA195D714F62714D80CDB676 /* PommeCore-macOS */,
 				2F42371944647533B91A5720 /* PommeCore-watchOS */,
+				0FE18A6D2F9F8D890026F570 /* PommeCore WidgetsExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		0FE18A6C2F9F8D890026F570 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		13C5BF9BB711189ADA35FA66 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -631,6 +733,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		0FE18A6A2F9F8D890026F570 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		1A36517EFEF3C6F3C6906299 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -713,6 +822,8 @@
 				GFN10000000100000000002 /* GeofenceStore.swift in Sources */,
 				GFV10000000100000000002 /* GeofencesView.swift in Sources */,
 				DSB10000000100000000002 /* DistressBeaconView.swift in Sources */,
+				WGS10000000100000000002 /* WidgetState.swift in Sources */,
+				WSW10000000100000000002 /* WidgetStateWriter.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -788,6 +899,8 @@
 				GFN10000000100000000003 /* GeofenceStore.swift in Sources */,
 				GFV10000000100000000003 /* GeofencesView.swift in Sources */,
 				DSB10000000100000000003 /* DistressBeaconView.swift in Sources */,
+				WGS10000000100000000003 /* WidgetState.swift in Sources */,
+				WSW10000000100000000003 /* WidgetStateWriter.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -798,6 +911,11 @@
 			isa = PBXTargetDependency;
 			target = 2F42371944647533B91A5720 /* PommeCore-watchOS */;
 			targetProxy = 0F4E796C2F95665A00307C73 /* PBXContainerItemProxy */;
+		};
+		0FE18A822F9F8D8A0026F570 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0FE18A6D2F9F8D890026F570 /* PommeCore WidgetsExtension */;
+			targetProxy = 0FE18A812F9F8D8A0026F570 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -884,6 +1002,88 @@
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
 				WATCHOS_DEPLOYMENT_TARGET = 11.0;
+			};
+			name = Release;
+		};
+		0FE18A852F9F8D8A0026F570 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_ENTITLEMENTS = "PommeCore Widgets/PommeCore_Widgets.entitlements";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 7R925EW7AT;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "PommeCore Widgets/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "PommeCore Widgets";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.mbedworth.meshcore.PommeCore-Widgets";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		0FE18A862F9F8D8A0026F570 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_ENTITLEMENTS = "PommeCore Widgets/PommeCore_Widgets.entitlements";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 7R925EW7AT;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "PommeCore Widgets/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "PommeCore Widgets";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.mbedworth.meshcore.PommeCore-Widgets";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
 		};
@@ -1076,6 +1276,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		0FE18A882F9F8D8A0026F570 /* Build configuration list for PBXNativeTarget "PommeCore WidgetsExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0FE18A852F9F8D8A0026F570 /* Debug */,
+				0FE18A862F9F8D8A0026F570 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		5F9603017F6507D81AA63307 /* Build configuration list for PBXNativeTarget "PommeCore" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

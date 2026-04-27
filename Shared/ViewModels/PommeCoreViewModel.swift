@@ -12,6 +12,9 @@ import SwiftUI
 import Combine
 import os.log
 import UserNotifications
+#if os(iOS)
+import WidgetKit
+#endif
 #if os(watchOS)
 import WatchKit
 #endif
@@ -279,6 +282,9 @@ final class PommeCoreViewModel: ObservableObject {
                 text += " (left safe zone: \(zoneName))"
             }
             self.messageStoreManager.sendChannelMessage(text, channelIndex: 0)
+            #if os(iOS)
+            self.syncWidget()
+            #endif
         }
 
         // TelemetryCloudSync: wire to RFMonitorStore
@@ -333,7 +339,10 @@ final class PommeCoreViewModel: ObservableObject {
         self.messageStoreManager.markAllSendingAsFailed()
         self.messageStoreManager.reset()
         self.messageStoreManager.deactivate()
-        
+        #if os(iOS)
+        syncWidget()
+        #endif
+
         // Connection loss notification
         if previousState == .connecting || previousState == .ready {
             if self.connectionManager.isInBackground && NotificationPreferences.shared.notifyConnection {
@@ -454,6 +463,18 @@ final class PommeCoreViewModel: ObservableObject {
     // setupSubscriptions removed — transport subscriptions moved to ConnectionManager.
     // ConnectionManager callbacks are wired in wireConnectionCallbacks().
     
+    #if os(iOS)
+    func syncWidget() {
+        syncWidgetState(
+            connectionManager: connectionManager,
+            deviceConfig: deviceConfig,
+            messageStoreManager: messageStoreManager,
+            geofenceStore: geofenceStore,
+            contactStore: contactStore
+        )
+    }
+    #endif
+
     private func onDeviceReady() {
 #if os(macOS) || targetEnvironment(macCatalyst)
         // USB CLI mode handles its own settings fetch — don't send binary commands
@@ -471,6 +492,9 @@ final class PommeCoreViewModel: ObservableObject {
         connectionManager.refreshAllSettings()
         contactStore.requestContacts(fullSync: true)
         syncNextMessage()
+        #if os(iOS)
+        syncWidget()
+        #endif
     }
     
     func refreshAll() {

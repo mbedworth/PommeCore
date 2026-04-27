@@ -67,6 +67,16 @@ final class ConnectionManager {
     var isVerifyingConfig = false
     var lastConfigVerification: RadioConfigVerification?
 
+    /// True when the app has an active binary connection via any transport.
+    var isActivelyConnected: Bool {
+        if connectionState == .connected || connectionState == .ready { return true }
+        if wifiManager.isConnected { return true }
+        #if os(macOS) || targetEnvironment(macCatalyst)
+        if usbManager.isConnected && usbManager.detectedMode == .binary { return true }
+        #endif
+        return false
+    }
+
     /// Active connection transport, derived from sendCommand routing priority.
     var activeTransport: Transport {
         if wifiManager.isConnected { return .wifi }
