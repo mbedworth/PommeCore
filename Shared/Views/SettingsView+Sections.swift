@@ -34,6 +34,7 @@ struct NotificationsSection: View {
                 Label("Direct Messages", systemImage: "bubble.left.fill")
                     .foregroundStyle(MeshTheme.accent)
             }
+            .help("Notify when a contact sends you a direct message.")
             .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
 
@@ -41,6 +42,7 @@ struct NotificationsSection: View {
                 Label("Channel Messages", systemImage: "number")
                     .foregroundStyle(MeshTheme.accent)
             }
+            .help("Notify when a message is posted to a channel you are on.")
             .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
 
@@ -48,6 +50,7 @@ struct NotificationsSection: View {
                 Label("Room Server Messages", systemImage: "server.rack")
                     .foregroundStyle(MeshTheme.accent)
             }
+            .help("Notify when a room server relays a message to you.")
             .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
 
@@ -55,6 +58,7 @@ struct NotificationsSection: View {
                 Label("New Contacts Discovered", systemImage: "person.badge.plus")
                     .foregroundStyle(MeshTheme.accent)
             }
+            .help("Notify when a new radio is detected on the mesh.")
             .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
 
@@ -62,6 +66,7 @@ struct NotificationsSection: View {
                 Label("Connection Status", systemImage: "antenna.radiowaves.left.and.right")
                     .foregroundStyle(MeshTheme.accent)
             }
+            .help("Notify when your radio connects or disconnects.")
             .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
 
@@ -69,6 +74,7 @@ struct NotificationsSection: View {
                 Label("In-App Banners", systemImage: "bell.badge")
                     .foregroundStyle(MeshTheme.accent)
             }
+            .help("Show notification banners even while the app is open.")
             .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
         } header: {
@@ -86,6 +92,7 @@ extension SettingsView {
                 Label("Auto Retry", systemImage: "arrow.clockwise")
                     .foregroundStyle(MeshTheme.accent)
             }
+            .help("Resend failed direct messages up to 3 times before marking as failed.")
             .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
 
@@ -93,6 +100,7 @@ extension SettingsView {
                 Label("Auto Reset Path", systemImage: "dot.radiowaves.left.and.right")
                     .foregroundStyle(MeshTheme.accent)
             }
+            .help("After retries are exhausted, clear the cached route and resend as a mesh flood.")
             .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
 
@@ -105,6 +113,7 @@ extension SettingsView {
                         .foregroundStyle(MeshTheme.accent)
                 }
             }
+            .help("Send delivery confirmations back through every hop in the message route.")
             .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
 

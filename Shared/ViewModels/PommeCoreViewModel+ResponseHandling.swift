@@ -269,8 +269,7 @@ extension PommeCoreViewModel {
             remoteSessionManager.handleControlData(snr: snr, rssi: rssi, pathLen: pathLen, payload: payload)
 
         case .channelInfo(let channel):
-            let secretDesc = channel.secret.map { $0.hexCompact } ?? "none"
-            Self.logger.info("Channel info: idx=\(channel.index) name='\(channel.name)' secret=\(secretDesc)")
+            Self.logger.info("Channel info: idx=\(channel.index) name='\(channel.name)' secret=\(channel.secret != nil ? "present" : "none")")
             DebugLogger.shared.log("CH[\(channel.index)]: '\(channel.name)' secret=\(channel.secret != nil ? "\(channel.secret!.count)B" : "none")", level: .rx)
             channelStore.handleChannelInfo(channel)
             channelStore.checkChannelSyncComplete(maxChannels: deviceConfig.maxChannels)

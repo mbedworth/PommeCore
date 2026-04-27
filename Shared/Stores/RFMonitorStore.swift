@@ -187,7 +187,7 @@ final class RFMonitorStore {
     }
 
     private static var coverageFileURL: URL {
-        let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first ?? FileManager.default.temporaryDirectory
         let appDir = dir.appendingPathComponent("MeshCore", isDirectory: true)
         try? FileManager.default.createDirectory(at: appDir, withIntermediateDirectories: true)
         return appDir.appendingPathComponent("coverage_points.json")
@@ -255,7 +255,7 @@ final class RFMonitorStore {
     // MARK: - Persistence
 
     private static var telemetryFileURL: URL {
-        let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first ?? FileManager.default.temporaryDirectory
         let appDir = dir.appendingPathComponent("MeshCore", isDirectory: true)
         try? FileManager.default.createDirectory(at: appDir, withIntermediateDirectories: true)
         return appDir.appendingPathComponent("telemetry_history.json")

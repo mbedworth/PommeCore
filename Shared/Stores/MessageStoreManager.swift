@@ -178,11 +178,9 @@ final class MessageStoreManager {
         guard let msgs = messagesByContact[contactKey] else { return nil }
         var latest: Date?
         for msg in msgs {
-            if msg.isOutgoing && msg.status == .delivered {
-                if latest == nil || msg.timestamp > latest! { latest = msg.timestamp }
-            }
-            if !msg.isOutgoing {
-                if latest == nil || msg.timestamp > latest! { latest = msg.timestamp }
+            let eligible = (msg.isOutgoing && msg.status == .delivered) || !msg.isOutgoing
+            if eligible {
+                latest = max(latest ?? msg.timestamp, msg.timestamp)
             }
         }
         return latest
@@ -749,10 +747,11 @@ final class MessageStoreManager {
                     self.sendCommand?(frame, "MANUAL_RETRY_FLOOD")
                 }
             } else {
+                guard let channelIndex = message.channelIndex else { return }
                 messages[idx].status = .sending
                 messages[idx].attempt = 0
                 messagesByContact[contactKey] = messages
-                let frame = MeshCoreProtocol.buildSendChannelMessage(text: message.text, channelIndex: message.channelIndex!)
+                let frame = MeshCoreProtocol.buildSendChannelMessage(text: message.text, channelIndex: channelIndex)
                 sendCommand?(frame, "MANUAL_RETRY_CHANNEL")
             }
             persistMessages(for: contactKey)

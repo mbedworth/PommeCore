@@ -103,12 +103,13 @@ enum TerrainProfileRenderer {
         let bottomY = layout.margin.top + layout.plotHeight
 
         path.move(to: CGPoint(x: layout.xForDistance(samples[0].distanceFromStart), y: bottomY))
+        guard let lastSample = samples.last else { return }
         for sample in samples {
             let x = layout.xForDistance(sample.distanceFromStart)
             let y = layout.yForElevation(sample.groundElevation)
             path.addLine(to: CGPoint(x: x, y: y))
         }
-        path.addLine(to: CGPoint(x: layout.xForDistance(samples.last!.distanceFromStart), y: bottomY))
+        path.addLine(to: CGPoint(x: layout.xForDistance(lastSample.distanceFromStart), y: bottomY))
         path.closeSubpath()
 
         let gradient = Gradient(colors: [
