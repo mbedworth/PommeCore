@@ -7,6 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F70142BB0E4E485FAA189AD7 /* alert.caf in Resources */ = {isa = PBXBuildFile; fileRef = 38CA824A6E6A4B7D9DD6A055 /* alert.caf */; };
+		E28165853F83421C9DB40DBA /* alert.caf in Resources */ = {isa = PBXBuildFile; fileRef = 38CA824A6E6A4B7D9DD6A055 /* alert.caf */; };
+		1EF6ECA717224849A5BE496C /* chime.caf in Resources */ = {isa = PBXBuildFile; fileRef = 6F287F4DDB0C464C99076282 /* chime.caf */; };
+		D0850BE9C3F24035AFC8E789 /* chime.caf in Resources */ = {isa = PBXBuildFile; fileRef = 6F287F4DDB0C464C99076282 /* chime.caf */; };
+		D5EA89B86D044DD69287E9D0 /* pulse.caf in Resources */ = {isa = PBXBuildFile; fileRef = A6CD3768D637428BAC0630D8 /* pulse.caf */; };
+		BD93571403214ED79B2F4D15 /* pulse.caf in Resources */ = {isa = PBXBuildFile; fileRef = A6CD3768D637428BAC0630D8 /* pulse.caf */; };
 		0F29C3C52F84856E0007BF08 /* Services/ElevationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3C42F84856E0007BF08 /* Services/ElevationService.swift */; };
 		0F29C3C62F84856E0007BF08 /* Services/ElevationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3C42F84856E0007BF08 /* Services/ElevationService.swift */; };
 		0F29C3C92F8485BD0007BF08 /* LineOfSightStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3C82F8485BD0007BF08 /* LineOfSightStore.swift */; };
@@ -180,6 +186,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		38CA824A6E6A4B7D9DD6A055 /* alert.caf */ = {isa = PBXFileReference; lastKnownFileType = file; name = alert.caf; path = alert.caf; sourceTree = "<group>"; };
+		6F287F4DDB0C464C99076282 /* chime.caf */ = {isa = PBXFileReference; lastKnownFileType = file; name = chime.caf; path = chime.caf; sourceTree = "<group>"; };
+		A6CD3768D637428BAC0630D8 /* pulse.caf */ = {isa = PBXFileReference; lastKnownFileType = file; name = pulse.caf; path = pulse.caf; sourceTree = "<group>"; };
 		0F29C3C42F84856E0007BF08 /* Services/ElevationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/ElevationService.swift; sourceTree = "<group>"; };
 		0F29C3C82F8485BD0007BF08 /* LineOfSightStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineOfSightStore.swift; sourceTree = "<group>"; };
 		0F29C3CC2F84863E0007BF08 /* LineOfSight/AntennaSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineOfSight/AntennaSettingsView.swift; sourceTree = "<group>"; };
@@ -286,6 +295,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0913E2D5EC3349D0AEBF74B9 /* Sounds */ = {
+			isa = PBXGroup;
+			children = (
+				38CA824A6E6A4B7D9DD6A055 /* alert.caf */,
+				6F287F4DDB0C464C99076282 /* chime.caf */,
+				A6CD3768D637428BAC0630D8 /* pulse.caf */,
+			);
+			name = Sounds;
+			path = Sounds;
+			sourceTree = "<group>";
+		};
 		05CB0C5EB82027D64527E896 = {
 			isa = PBXGroup;
 			children = (
@@ -415,6 +435,7 @@
 				STO00000GRP0000000000001 /* Stores */,
 				0A6B0F647BA21A953CCB6490 /* Views */,
 				43931BD12312D05F62A9E3B3 /* Assets.xcassets */,
+				0913E2D5EC3349D0AEBF74B9 /* Sounds */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -553,7 +574,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				F35E721D0EDE9FB5A37362C6 /* Assets.xcassets in Resources */,
-			);
+			
+				E28165853F83421C9DB40DBA /* alert.caf in Resources */,
+				D0850BE9C3F24035AFC8E789 /* chime.caf in Resources */,
+				BD93571403214ED79B2F4D15 /* pulse.caf in Resources */,);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		88537C063875F8D24C6E0E49 /* Resources */ = {
@@ -571,7 +595,10 @@
 			files = (
 				EE31FC870779BB9B07A11EEE /* Assets.xcassets in Resources */,
 				895D4D4DB59133B2391177FB /* PrivacyInfo.xcprivacy in Resources */,
-			);
+			
+				F70142BB0E4E485FAA189AD7 /* alert.caf in Resources */,
+				1EF6ECA717224849A5BE496C /* chime.caf in Resources */,
+				D5EA89B86D044DD69287E9D0 /* pulse.caf in Resources */,);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
