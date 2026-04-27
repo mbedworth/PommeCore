@@ -453,11 +453,10 @@ struct MeshMapView: View {
     @State private var hasSetInitialCamera = false
     /// The selected cluster for the detail sheet/popover.
     @State private var selectedCluster: NodeCluster? = nil
-    /// Whether to show the RF coverage heat map overlay.
-    @State private var showCoverageLayer = false
+    private enum MapOverlay { case none, linkQuality, coverage }
+    /// Which overlay (if any) is active on the map.
+    @State private var mapOverlay: MapOverlay = .none
     @State private var showCoverageInfo = false
-    /// Whether to show SNR-colored link quality lines to each contact.
-    @State private var showLinkQuality = false
     /// Internet map nodes fetched from map.meshcore.dev.
     @State private var internetMapNodes: [InternetMapNode] = []
     @State private var isLoadingInternetNodes = false
@@ -490,6 +489,14 @@ struct MeshMapView: View {
         if db > 0 { return .green }
         if db > -10 { return .orange }
         return .red
+    }
+
+    private var overlayButtonIcon: String {
+        switch mapOverlay {
+        case .none: return "antenna.radiowaves.left.and.right.circle"
+        case .linkQuality: return "antenna.radiowaves.left.and.right.circle.fill"
+        case .coverage: return "map.fill"
+        }
     }
 
     /// Internet nodes clustered by geographic grid cell at the current zoom level.
@@ -620,7 +627,7 @@ struct MeshMapView: View {
                 }
 
                 // Coverage heat map — GPS-tagged RSSI points from RF monitor
-                if showCoverageLayer {
+                if mapOverlay == .coverage {
                     ForEach(visibleCoveragePoints) { point in
                         MapCircle(
                             center: CLLocationCoordinate2D(latitude: point.latitude, longitude: point.longitude),
@@ -632,7 +639,7 @@ struct MeshMapView: View {
                 }
 
                 // Link quality lines — SNR-colored from device to each contact with message history
-                if showLinkQuality, let deviceCoord = locationManager.currentLocation?.coordinate {
+                if mapOverlay == .linkQuality, let deviceCoord = locationManager.currentLocation?.coordinate {
                     ForEach(linkQualityEntries, id: \.contact.id) { entry in
                         MapPolyline(coordinates: [
                             deviceCoord,
@@ -671,7 +678,7 @@ struct MeshMapView: View {
                         .padding(.vertical, 5)
                         .background(.thinMaterial)
                         .clipShape(RoundedRectangle(cornerRadius: 8))
-                    } else if showLinkQuality {
+                    } else if mapOverlay == .linkQuality {
                         HStack(spacing: 6) {
                             HStack(spacing: 3) {
                                 Circle().fill(Color.green).frame(width: 8, height: 8)
@@ -693,7 +700,7 @@ struct MeshMapView: View {
                         .padding(.vertical, 5)
                         .background(.thinMaterial)
                         .clipShape(RoundedRectangle(cornerRadius: 8))
-                    } else if showCoverageLayer {
+                    } else if mapOverlay == .coverage {
                         HStack(spacing: 6) {
                             HStack(spacing: 3) {
                                 Circle().fill(Color.green).frame(width: 8, height: 8)
@@ -738,28 +745,24 @@ struct MeshMapView: View {
 
                     Spacer()
 
-                    // Link quality toggle — SNR lines from device to contacts
-                    Button { showLinkQuality.toggle() } label: {
-                        Image(systemName: showLinkQuality ? "antenna.radiowaves.left.and.right.circle.fill" : "antenna.radiowaves.left.and.right.circle")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(showLinkQuality ? MeshTheme.accent : MeshTheme.textSecondary)
-                            .frame(width: 32, height: 32)
-                            .background(.thinMaterial)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
-                    }
-                    .buttonStyle(.plain)
-
-                    // Coverage layer toggle — always visible; tapping while empty explains how to collect data
+                    // Cycling overlay button: none → link quality (SNR lines) → coverage heat map → none
                     Button {
-                        if rfStore.coveragePoints.isEmpty {
-                            showCoverageInfo = true
-                        } else {
-                            showCoverageLayer.toggle()
+                        switch mapOverlay {
+                        case .none:
+                            mapOverlay = .linkQuality
+                        case .linkQuality:
+                            if rfStore.coveragePoints.isEmpty {
+                                showCoverageInfo = true
+                            } else {
+                                mapOverlay = .coverage
+                            }
+                        case .coverage:
+                            mapOverlay = .none
                         }
                     } label: {
-                        Image(systemName: showCoverageLayer ? "map.fill" : "map")
+                        Image(systemName: overlayButtonIcon)
                             .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(showCoverageLayer ? MeshTheme.accent : MeshTheme.textSecondary)
+                            .foregroundStyle(mapOverlay == .none ? MeshTheme.textSecondary : MeshTheme.accent)
                             .frame(width: 32, height: 32)
                             .background(.thinMaterial)
                             .clipShape(RoundedRectangle(cornerRadius: 8))
