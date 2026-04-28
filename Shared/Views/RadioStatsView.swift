@@ -64,24 +64,41 @@ struct RadioStatsView: View {
                     statRow("Receive Errors", value: "0", color: MeshTheme.connected)
                 }
             } header: { Text("Packets") }
+
+            #if os(macOS) || targetEnvironment(macCatalyst)
+            Section {
+                Button { requestStats() } label: {
+                    Label("Refresh", systemImage: "arrow.clockwise")
+                        .foregroundStyle(MeshTheme.accent)
+                }
+                .buttonStyle(.plain)
+                .listRowBackground(MeshTheme.surface)
+            }
+            #endif
         }
         .meshTheme()
         .navigationTitle("Radio Stats")
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
-        #endif
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button {
-                    connectionManager.requestStats(subType: 0)
-                    connectionManager.requestStats(subType: 1)
-                    connectionManager.requestStats(subType: 2)
+                    requestStats()
                 } label: {
                     Image(systemName: "arrow.clockwise")
                 }
                 .accessibilityLabel("Refresh stats")
             }
         }
+        #endif
+    }
+
+    // MARK: - Actions
+
+    private func requestStats() {
+        connectionManager.requestStats(subType: 0)
+        connectionManager.requestStats(subType: 1)
+        connectionManager.requestStats(subType: 2)
     }
 
     // MARK: - Row helpers
