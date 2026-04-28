@@ -393,6 +393,22 @@ extension BLEManager: CBCentralManagerDelegate {
             ?? advertisementData[CBAdvertisementDataLocalNameKey] as? String
             ?? "MeshCore Device"
 
+        // Auto-connect to the previously-connected peripheral when rediscovered during scan
+        // (e.g., the 60s reconnect window expired and scanning started, then the radio came back).
+        if let saved = savedPeripheralUUID, peripheral.identifier == saved, !pairingFailed {
+            Self.logger.info("BLE: rediscovered saved peripheral \(name) — auto-connecting")
+            shouldAutoReconnect = true
+            reconnectAttemptsRemaining = Self.maxReconnectAttempts
+            connectedPeripheral = peripheral
+            peripheral.delegate = self
+            central.stopScan()
+            DispatchQueue.main.async {
+                self.connectionState = .connecting
+            }
+            central.connect(peripheral, options: nil)
+            return
+        }
+
         let discovered = DiscoveredPeripheral(
             id: peripheral.identifier,
             peripheral: peripheral,

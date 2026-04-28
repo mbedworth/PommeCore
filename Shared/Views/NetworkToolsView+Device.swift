@@ -126,6 +126,7 @@ struct ActivityOverlay: View {
                 .font(.caption)
                 .foregroundStyle(MeshTheme.textSecondary)
         }
+        .onAppear { elapsed = 0 }
         .onReceive(timer) { _ in
             if elapsed < timeout { elapsed += 1 }
         }
