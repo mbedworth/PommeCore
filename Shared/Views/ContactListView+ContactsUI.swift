@@ -242,7 +242,7 @@ extension ContactListView {
             if contactStore.sortedContacts(byLastSeen: sortByLastSeen).isEmpty {
                 VStack(spacing: 12) {
                     Image(systemName: "person.2.slash")
-                        .font(.system(size: 32))
+                        .font(.title)
                         .foregroundStyle(MeshTheme.textSecondary)
                     Text("No Contacts Yet")
                         .font(.headline)

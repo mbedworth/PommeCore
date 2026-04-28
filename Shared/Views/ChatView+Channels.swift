@@ -118,7 +118,7 @@ struct ChannelChatView: View {
                     VStack(spacing: 12) {
                         Spacer(minLength: 60)
                         Image(systemName: "number.square")
-                            .font(.system(size: 36))
+                            .font(.largeTitle)
                             .foregroundStyle(MeshTheme.textSecondary)
                         Text("No messages yet")
                             .font(.subheadline)
@@ -258,7 +258,7 @@ struct ChannelChatView: View {
 
                     Button(action: send) {
                         Image(systemName: "arrow.up.circle.fill")
-                            .font(.system(size: 32))
+                            .font(.title)
                             .foregroundStyle(
                                 messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                                     ? MeshTheme.textSecondary
@@ -535,7 +535,7 @@ struct RoomChatView: View {
 
                 Button(action: sendRoomMessage) {
                     Image(systemName: "arrow.up.circle.fill")
-                        .font(.system(size: 32))
+                        .font(.title)
                         .foregroundStyle(
                             messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                                 ? MeshTheme.textSecondary
@@ -583,7 +583,7 @@ struct RoomChatView: View {
 
             VStack(spacing: 12) {
                 Image(systemName: "lock.shield")
-                    .font(.system(size: 48))
+                    .font(.largeTitle)
                     .foregroundStyle(MeshTheme.textSecondary)
                 Text("Login Required")
                     .font(.title3.weight(.semibold))
@@ -936,7 +936,7 @@ struct RepeaterLoginView: View {
                     let deviceLabel = contact.type == .room ? "Room Server" : contact.type == .sensor ? "Sensor" : "Repeater"
                     let deviceIcon = contact.type == .room ? "server.rack" : "antenna.radiowaves.left.and.right"
                     Image(systemName: deviceIcon)
-                        .font(.system(size: 48))
+                        .font(.largeTitle)
                         .foregroundStyle(remoteAccent)
                     Text("\(deviceLabel) Login")
                         .font(.title3.weight(.semibold))

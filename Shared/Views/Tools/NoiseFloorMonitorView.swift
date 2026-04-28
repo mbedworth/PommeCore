@@ -14,10 +14,16 @@ import Charts
 
 struct NoiseFloorMonitorView: View {
     @Environment(RFMonitorStore.self) private var rfStore
+    @State private var selectedTab: RFTab = .chart
+
+    enum RFTab: String, CaseIterable {
+        case chart = "Chart"
+        case log = "Packet Log"
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Header + toggle
+            // Header + toggle + tab picker
             HStack {
                 Image(systemName: "waveform.badge.magnifyingglass")
                     .foregroundStyle(MeshTheme.accent)
@@ -42,7 +48,16 @@ struct NoiseFloorMonitorView: View {
                 .buttonStyle(.plain)
             }
 
-            if rfStore.isMonitoring && rfStore.rfSamples.isEmpty {
+            Picker("View", selection: $selectedTab) {
+                ForEach(RFTab.allCases, id: \.self) { tab in
+                    Text(tab.rawValue).tag(tab)
+                }
+            }
+            .pickerStyle(.segmented)
+
+            if selectedTab == .log {
+                PacketLogView(samples: rfStore.rfSamples)
+            } else if rfStore.isMonitoring && rfStore.rfSamples.isEmpty {
                 VStack(spacing: 8) {
                     ProgressView()
                         .scaleEffect(0.8)
@@ -129,6 +144,65 @@ struct NoiseFloorMonitorView: View {
             Text(value)
                 .font(.caption.weight(.medium))
                 .foregroundStyle(MeshTheme.textSecondary)
+        }
+    }
+}
+
+struct PacketLogView: View {
+    let samples: [RFSample]
+
+    private static let timeFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "HH:mm:ss"
+        return f
+    }()
+
+    var body: some View {
+        if samples.isEmpty {
+            VStack(spacing: 8) {
+                Text("No packets logged yet.")
+                    .font(.caption)
+                    .foregroundStyle(MeshTheme.textSecondary)
+                Text("Start monitoring to capture packets.")
+                    .font(.caption2)
+                    .foregroundStyle(MeshTheme.textSecondary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 24)
+        } else {
+            VStack(spacing: 0) {
+                HStack {
+                    Text("Time").frame(width: 70, alignment: .leading)
+                    Text("SNR").frame(width: 60, alignment: .trailing)
+                    Text("RSSI").frame(width: 60, alignment: .trailing)
+                }
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(MeshTheme.textSecondary)
+                .padding(.horizontal, 4)
+                .padding(.bottom, 4)
+
+                ScrollView {
+                    LazyVStack(spacing: 2) {
+                        ForEach(samples.reversed()) { sample in
+                            HStack {
+                                Text(Self.timeFormatter.string(from: sample.timestamp))
+                                    .frame(width: 70, alignment: .leading)
+                                    .foregroundStyle(MeshTheme.textSecondary)
+                                Text(String(format: "%.1f dB", sample.snr))
+                                    .frame(width: 60, alignment: .trailing)
+                                    .foregroundStyle(sample.snr > 0 ? MeshTheme.connected : sample.snr > -10 ? .orange : MeshTheme.disconnected)
+                                Text("\(sample.rssi) dBm")
+                                    .frame(width: 60, alignment: .trailing)
+                                    .foregroundStyle(sample.rssi > -100 ? MeshTheme.connected : sample.rssi > -120 ? .orange : MeshTheme.disconnected)
+                            }
+                            .font(.caption.monospacedDigit())
+                            .padding(.horizontal, 4)
+                            .padding(.vertical, 2)
+                        }
+                    }
+                }
+                .frame(maxHeight: 300)
+            }
         }
     }
 }

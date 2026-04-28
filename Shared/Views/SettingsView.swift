@@ -215,6 +215,7 @@ struct SettingsView: View {
                     case .firmware: FirmwareDetailSheet()
                     case .profileTransfer: ProfileExportView()
                     case .radioProfiles: RadioProfilesView()
+                    case .radioStats: RadioStatsView()
                     }
                 }
                 .toolbar {
@@ -280,6 +281,7 @@ struct SettingsView: View {
                         case .firmware: FirmwareDetailSheet()
                         case .profileTransfer: ProfileExportView()
                         case .radioProfiles: RadioProfilesView()
+                    case .radioStats: RadioStatsView()
                         }
                     }
                     .toolbar {

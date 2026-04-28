@@ -71,6 +71,7 @@ struct MessageBubble: View {
                                 .lineLimit(2)
                         }
                         .padding(.bottom, 2)
+                        .accessibilityLabel("Quoted: \(quoted)")
                     }
                     // Message text
                     linkifyMeshcoreURLs(quotedText != nil ? replyText : message.text)
@@ -99,6 +100,7 @@ struct MessageBubble: View {
                     .padding(.vertical, 2)
                     .background(MeshTheme.surfaceLight)
                     .clipShape(Capsule())
+                    .accessibilityLabel("Reactions: \(message.reactions.joined(separator: ", "))")
                 }
 
                 HStack(spacing: 4) {
@@ -163,6 +165,10 @@ struct MessageBubble: View {
                         .clipShape(Capsule())
                     }
                     .buttonStyle(.plain)
+                    .frame(minHeight: 44)
+                    .contentShape(Rectangle())
+                    .accessibilityLabel("Message not delivered")
+                    .accessibilityHint("Tap to resend")
                 }
             }
             .contentShape(Rectangle())
@@ -246,6 +252,8 @@ struct MessageBubble: View {
                     .font(.caption2)
                     .foregroundStyle(.orange)
             }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Retrying, attempt \(message.attempt + 1) of 3")
         case .flooding:
             HStack(spacing: 2) {
                 Image(systemName: "dot.radiowaves.left.and.right")
@@ -255,6 +263,8 @@ struct MessageBubble: View {
                     .font(.caption2)
                     .foregroundStyle(.orange)
             }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Flooding mesh network")
         case .delivered:
             HStack(spacing: 2) {
                 Image(systemName: "checkmark.circle.fill")

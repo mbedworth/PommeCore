@@ -35,9 +35,9 @@ extension ContactListView {
                 }
             } label: {
                 HStack {
-                    Circle()
-                        .fill(connectionColor)
-                        .frame(width: 10, height: 10)
+                    Image(systemName: connectionSymbol)
+                        .font(.system(size: 10))
+                        .foregroundStyle(connectionColor)
                         .shadow(color: connectionColor.opacity(0.6), radius: 4)
                         .accessibilityHidden(true)
                     Text(connectionLabel)
@@ -367,6 +367,10 @@ extension ContactListView {
         case .scanning: MeshTheme.scanning
         case .disconnected: MeshTheme.disconnected
         }
+    }
+
+    var connectionSymbol: String {
+        connectionManager.connectionState == .disconnected ? "circle" : "circle.fill"
     }
 
     var connectionLabel: String {

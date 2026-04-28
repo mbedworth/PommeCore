@@ -336,7 +336,7 @@ struct DeviceInfoSection: View {
 
     // DeviceSheet enum shared between platforms
     enum DeviceSheet: Identifiable {
-        case radio, txPower, tuning, name, gps, battery, firmware, floodScope, profileTransfer, radioProfiles
+        case radio, txPower, tuning, name, gps, battery, firmware, floodScope, profileTransfer, radioProfiles, radioStats
         var id: String { String(describing: self) }
     }
 
@@ -375,6 +375,8 @@ struct DeviceInfoSection: View {
                 .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
             Button { openInspector(.radioProfiles) } label: { radioProfilesRow }
                 .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
+            Button { openInspector(.radioStats) } label: { radioStatsRow }
+                .buttonStyle(.plain).listRowBackground(MeshTheme.surface)
             #else
             iOSDeviceRows
             firmwareUpdateRow
@@ -385,6 +387,9 @@ struct DeviceInfoSection: View {
                 .listRowBackground(MeshTheme.surface)
             radioProfilesRow
                 .onTapGesture { activeSheet = .radioProfiles }
+                .listRowBackground(MeshTheme.surface)
+            radioStatsRow
+                .onTapGesture { activeSheet = .radioStats }
                 .listRowBackground(MeshTheme.surface)
             #endif
         } header: {
@@ -539,6 +544,23 @@ struct DeviceInfoSection: View {
                     .font(.caption)
                     .foregroundStyle(MeshTheme.textSecondary)
             }
+            Image(systemName: "chevron.right")
+                .font(.caption)
+                .foregroundStyle(MeshTheme.textSecondary)
+        }
+        .contentShape(Rectangle())
+    }
+
+    private var radioStatsRow: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Label("Radio Stats", systemImage: "chart.xyaxis.line")
+                    .foregroundStyle(MeshTheme.accent)
+                Text("Battery, signal strength, and packet counters")
+                    .font(.caption)
+                    .foregroundStyle(MeshTheme.textSecondary)
+            }
+            Spacer()
             Image(systemName: "chevron.right")
                 .font(.caption)
                 .foregroundStyle(MeshTheme.textSecondary)

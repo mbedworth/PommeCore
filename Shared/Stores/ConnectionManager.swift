@@ -63,6 +63,9 @@ final class ConnectionManager {
     /// Last error message from device — displayed as an alert in ContentView.
     var lastErrorMessage: String?
 
+    /// Legal frequency ranges for this device's region (from CMD_GET_ALLOWED_REPEAT_FREQ).
+    var allowedFreqRanges: [FrequencyRange] = []
+
     /// Radio config verification state.
     var isVerifyingConfig = false
     var lastConfigVerification: RadioConfigVerification?
@@ -316,6 +319,10 @@ final class ConnectionManager {
         sendCommand(MeshCoreProtocol.buildGetStats(subType: subType), label: "GET_STATS(\(subType))")
     }
 
+    func requestAllowedRepeatFreq() {
+        sendCommand(MeshCoreProtocol.buildGetAllowedRepeatFreq(), label: "GET_ALLOWED_REPEAT_FREQ")
+    }
+
     func requestDeviceInfo() {
         sendCommand(MeshCoreProtocol.buildDeviceQuery(), label: "DEVICE_QUERY")
     }
@@ -368,6 +375,7 @@ final class ConnectionManager {
         requestStats(subType: 2)
         requestAutoAddConfig()
         getDefaultFloodScope()
+        requestAllowedRepeatFreq()
     }
 
     /// Refresh contacts, channels, and all settings.

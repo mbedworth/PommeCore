@@ -317,6 +317,7 @@ extension PommeCoreViewModel {
 
         case .allowedRepeatFreq(let ranges):
             Self.logger.info("AllowedRepeatFreq: \(ranges.count) ranges")
+            connectionManager.allowedFreqRanges = ranges
             remoteSessionManager.handleAllowedRepeatFreq(ranges)
 
         case .currentAdvert(let adData):
@@ -458,6 +459,7 @@ extension PommeCoreViewModel {
             deviceConfig.statsDirectCount = readUInt32(payload, offset: &offset)
             deviceConfig.statsRecvFlood = readUInt32(payload, offset: &offset)
             deviceConfig.statsRecvDirect = readUInt32(payload, offset: &offset)
+            if offset < payload.count { deviceConfig.statsReceiveErrors = readUInt32(payload, offset: &offset) }
         default:
             Self.logger.debug("Unknown stats subtype \(subType)")
         }

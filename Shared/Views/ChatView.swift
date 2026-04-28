@@ -41,6 +41,7 @@ struct ChatView: View {
     @State private var showForwardPicker = false
     @State private var chatExportItems: [Any] = []
     @State private var showChatExport = false
+    @State private var showLocationUnavailableAlert = false
 
     /// Live contact from ViewModel (picks up optimistic path updates).
     private var liveContact: Contact {
@@ -230,6 +231,11 @@ struct ChatView: View {
         .sheet(isPresented: $showNotes) {
             ContactNotesSheet(contact: contact)
         }
+        .alert("Location Unavailable", isPresented: $showLocationUnavailableAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Your location could not be determined. Enable Location Services for PommeCore in Settings.")
+        }
         .alert("Set Nickname", isPresented: $showNicknameSheet) {
             TextField("Nickname", text: $nicknameText)
             Button("Cancel", role: .cancel) {}
@@ -255,7 +261,7 @@ struct ChatView: View {
                 #elseif os(macOS)
                 VStack(spacing: 16) {
                     Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 36))
+                        .font(.largeTitle)
                         .foregroundStyle(MeshTheme.connected)
                     Text("Chat exported")
                         .font(.headline)
@@ -319,7 +325,7 @@ struct ChatView: View {
                     VStack(spacing: 12) {
                         Spacer(minLength: 60)
                         Image(systemName: "bubble.left.and.bubble.right")
-                            .font(.system(size: 36))
+                            .font(.largeTitle)
                             .foregroundStyle(MeshTheme.textSecondary)
                         Text("No messages yet")
                             .font(.subheadline)
@@ -466,14 +472,14 @@ struct ChatView: View {
                     signNextMessage.toggle()
                 } label: {
                     Image(systemName: signNextMessage ? "lock.fill" : "lock.open")
-                        .font(.system(size: 22))
+                        .font(.title3)
                         .foregroundStyle(signNextMessage ? MeshTheme.accent : MeshTheme.textSecondary)
                 }
                 .buttonStyle(.plain)
 
                 Button(action: send) {
                     Image(systemName: "arrow.up.circle.fill")
-                        .font(.system(size: 32))
+                        .font(.title)
                         .foregroundStyle(
                             messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                                 ? MeshTheme.textSecondary
@@ -543,6 +549,7 @@ struct ChatView: View {
     private func sendLocationAsDM() {
         guard let location = SharedLocation.manager.location else {
             DebugLogger.shared.log("LOCATION: unavailable for send", level: .warning)
+            showLocationUnavailableAlert = true
             return
         }
         let lat = location.coordinate.latitude

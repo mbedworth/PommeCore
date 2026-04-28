@@ -144,6 +144,10 @@ struct RadioSection: View {
             }
             .listRowBackground(MeshTheme.surface)
 
+            if !connectionManager.allowedFreqRanges.isEmpty {
+                allowedFreqRow
+            }
+
             // Fix #5: Bandwidth picker with standard LoRa values
             HStack {
                 Image(systemName: "waveform")
@@ -326,6 +330,28 @@ struct RadioSection: View {
 
     private func nearestBW(_ kHz: Double) -> Double {
         loraBandwidths.min(by: { abs($0 - kHz) < abs($1 - kHz) }) ?? 250
+    }
+
+    private var allowedFreqRow: some View {
+        HStack(alignment: .top, spacing: 8) {
+            Image(systemName: "checkmark.seal")
+                .foregroundStyle(MeshTheme.connected)
+                .frame(width: 24)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Legal Ranges for Your Region")
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(MeshTheme.accent)
+                let rangeText = connectionManager.allowedFreqRanges.map { r in
+                    let lo = String(format: "%.0f", Double(r.lowerHz) / 1_000_000)
+                    let hi = String(format: "%.0f", Double(r.upperHz) / 1_000_000)
+                    return "\(lo)–\(hi) MHz"
+                }.joined(separator: ", ")
+                Text(rangeText)
+                    .font(.caption)
+                    .foregroundStyle(MeshTheme.textSecondary)
+            }
+        }
+        .listRowBackground(MeshTheme.surface)
     }
 
     private func formatBW(_ bw: Double) -> String {

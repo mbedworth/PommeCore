@@ -156,6 +156,7 @@ public final class DeviceConfig {
     public var statsDirectCount: UInt32 = 0    // sent direct
     public var statsRecvFlood: UInt32 = 0
     public var statsRecvDirect: UInt32 = 0
+    public var statsReceiveErrors: UInt32 = 0
 
     // MARK: - Loading State
 
@@ -217,6 +218,7 @@ public final class DeviceConfig {
         statsDirectCount = 0
         statsRecvFlood = 0
         statsRecvDirect = 0
+        statsReceiveErrors = 0
         isLoading = false
         loadedSections = []
         batteryCalibration = nil
