@@ -190,6 +190,7 @@ struct RemoteRoutingSection: View {
                     let scopeName = floodScope.trimmingCharacters(in: .whitespaces)
                     SaveButton(state: floodScopeSaveState, label: "Set Flood Scope") {
                         sendCLI("region default \(scopeName)")
+                        session.settings["region default"] = scopeName
                         showSaved($floodScopeSaveState)
                     }
                     .disabled(scopeName.isEmpty)

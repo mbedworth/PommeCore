@@ -32,6 +32,7 @@ struct RemoteManagementView: View {
     @State private var expandedTimingSection = false
     @State private var expandedRoutingSection = false
     @State private var expandedGPSSection = false
+    @State private var expandedRoomSection = false
     @State private var expandedSecuritySection = false
     @State private var expandedMaintenanceSection = false
 
@@ -101,7 +102,12 @@ struct RemoteManagementView: View {
                         gpsSection
                     }
 
-                    if contact.type == .room { roomSection }
+                    if contact.type == .room {
+                        lazySection("Room Server", expanded: $expandedRoomSection, sectionKey: "security",
+                                    info: "Allow read-only access for guests without a password. Set the guest password required to connect. Manage per-client permissions.") {
+                            roomSection
+                        }
+                    }
                     if contact.type == .sensor && isAdmin { sensorSection }
                 }
                 if isAdmin {
@@ -261,7 +267,8 @@ struct RemoteManagementView: View {
         if expandedTimingSection && canRead { sections.append("timing") }
         if expandedRoutingSection && canRead && contact.type == .repeater { sections.append("routing") }
         if expandedGPSSection && canRead { sections.append("gps") }
-        if expandedSecuritySection && isAdmin { sections.append("security") }
+        if expandedRoomSection && canRead && contact.type == .room && !sections.contains("security") { sections.append("security") }
+        if expandedSecuritySection && isAdmin && !sections.contains("security") { sections.append("security") }
         if expandedMaintenanceSection { sections.append("maintenance") }
         return sections
     }

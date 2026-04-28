@@ -324,6 +324,34 @@ public final class RemoteDeviceSession: ObservableObject {
             }
         }
 
+        // "set X value" → optimistically update settings[X] = value from the command itself.
+        // Firmware may respond with "OK" which carries no key/value, so we use the sent value.
+        if cmd.hasPrefix("set ") {
+            let rest = String(cmd.dropFirst(4)).trimmingCharacters(in: .whitespaces)
+            // key = everything up to last space; value = last word
+            if let lastSpace = rest.lastIndex(of: " ") {
+                let key = String(rest[rest.startIndex..<lastSpace]).trimmingCharacters(in: .whitespaces)
+                let setValue = String(rest[rest.index(after: lastSpace)...]).trimmingCharacters(in: .whitespaces)
+                if !key.isEmpty && !setValue.isEmpty {
+                    settings[key] = setValue
+                    saveSettingsCache()
+                }
+            }
+            return
+        }
+
+        // Bare toggle commands like "powersaving on/off" — update settings[key] = value.
+        let bareToggleValues: Set<String> = ["on", "off", "1", "0", "enable", "disable"]
+        if let lastSpace = cmd.lastIndex(of: " ") {
+            let bareKey = String(cmd[cmd.startIndex..<lastSpace]).trimmingCharacters(in: .whitespaces)
+            let bareVal = String(cmd[cmd.index(after: lastSpace)...]).trimmingCharacters(in: .whitespaces)
+            if !bareKey.isEmpty && bareToggleValues.contains(bareVal) {
+                settings[bareKey] = bareVal
+                saveSettingsCache()
+                return
+            }
+        }
+
         // Bare commands like "ver", "clock", "powersaving", "gps", "neighbors"
         // use the command itself as the key
         let bareCommands = ["ver", "clock", "powersaving", "gps", "gps advert", "neighbors", "discover.neighbors", "region", "region default", "log", "io"]

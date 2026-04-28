@@ -72,7 +72,9 @@ struct RemoteRoomSection: View {
                         .textFieldStyle(MeshTextFieldStyle())
                     #endif
                     Button {
-                        sendCLI("set guest_password \(newGuestPassword)")
+                        let pw = newGuestPassword
+                        sendCLI("set guest.password \(pw)")
+                        session.settings["guest.password"] = pw
                         showFeedback($guestPwFeedback)
                         newGuestPassword = ""
                         showGuestPwEdit = false
@@ -81,7 +83,6 @@ struct RemoteRoomSection: View {
                             .foregroundStyle(guestPwFeedback ? .green : MeshTheme.accent)
                     }
                     .buttonStyle(.plain)
-                    .disabled(newGuestPassword.isEmpty)
                 }
                 .listRowBackground(MeshTheme.surface)
             }
