@@ -219,11 +219,13 @@ struct MessageBubble: View {
         }
     }
 
+    /// Shared detector — NSDataDetector init is expensive; never create per-render.
+    private static let linkDetector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue)
+
     /// Extract the first http/https URL from message text.
     private func firstHTTPURL(in text: String) -> URL? {
-        let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue)
         let range = NSRange(text.startIndex..., in: text)
-        guard let match = detector?.firstMatch(in: text, range: range),
+        guard let match = Self.linkDetector?.firstMatch(in: text, range: range),
               let url = match.url,
               let scheme = url.scheme?.lowercased(),
               scheme == "http" || scheme == "https" else { return nil }
@@ -291,6 +293,7 @@ struct MessageBubble: View {
                     .font(.caption2)
                     .foregroundStyle(MeshTheme.disconnected)
             }
+            .accessibilityLabel("Not delivered")
         }
     }
 }
