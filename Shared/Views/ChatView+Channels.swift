@@ -672,11 +672,10 @@ struct RoomChatView: View {
                         }
                         .frame(maxWidth: 200)
                         .padding(.vertical, 10)
-                        .background(password.isEmpty ? MeshTheme.surfaceLight : MeshTheme.interactiveGreen)
-                        .foregroundStyle(password.isEmpty ? MeshTheme.textSecondary : MeshTheme.textOnAccent)
+                        .background(MeshTheme.interactiveGreen)
+                        .foregroundStyle(MeshTheme.textOnAccent)
                         .clipShape(RoundedRectangle(cornerRadius: 10))
                     }
-                    .disabled(password.isEmpty)
                 }
 
                 if case .loginFailed(let msg) = session.loginState {
@@ -726,7 +725,6 @@ struct RoomChatView: View {
     }
 
     private func login() {
-        guard !password.isEmpty else { return }
         remoteSessionManager.loginToRemoteDevice(contact, password: password, remember: rememberPassword)
     }
 

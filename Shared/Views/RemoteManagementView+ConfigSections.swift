@@ -187,10 +187,21 @@ struct RemoteRoutingSection: View {
             if contact.type == .repeater {
                 cliEditRow(icon: "globe.americas", label: "Default Flood Scope", text: $floodScope, current: session.settings["region default"])
                 if canEdit {
+                    let scopeName = floodScope.trimmingCharacters(in: .whitespaces)
                     SaveButton(state: floodScopeSaveState, label: "Set Flood Scope") {
-                        let name = floodScope.trimmingCharacters(in: .whitespaces)
-                        sendCLI(name.isEmpty ? "region default" : "region default \(name)")
+                        sendCLI("region default \(scopeName)")
                         showSaved($floodScopeSaveState)
+                    }
+                    .disabled(scopeName.isEmpty)
+                    if session.settings["region default"] != nil && scopeName.isEmpty {
+                        HStack(spacing: 6) {
+                            Image(systemName: "info.circle")
+                                .foregroundStyle(.orange)
+                            Text("Flood scope can only be cleared via USB CLI on the repeater directly.")
+                                .font(.caption2)
+                                .foregroundStyle(MeshTheme.textSecondary)
+                        }
+                        .listRowBackground(MeshTheme.surface)
                     }
                 }
             }
