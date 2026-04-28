@@ -45,6 +45,12 @@ struct ContactRowView: View {
                     .font(.caption2)
                     .foregroundStyle(.orange)
             }
+            if contactStore.isContactMuted(contact) {
+                Image(systemName: "bell.slash")
+                    .foregroundStyle(MeshTheme.textSecondary)
+                    .font(.caption)
+                    .accessibilityLabel("Muted")
+            }
             if contactStore.hasNote(for: contact) {
                 Image(systemName: "note.text")
                     .foregroundStyle(MeshTheme.textSecondary)

@@ -223,20 +223,31 @@ struct ProfileExportView: View {
 
 private struct ShareSheet: View {
     let items: [Any]
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        #if os(macOS) || targetEnvironment(macCatalyst)
-        Text("Use the share menu to save or send the file.")
-            .padding()
-            .onAppear { openShareSheet() }
+        #if os(macOS)
+        Color.clear.frame(width: 1, height: 1)
+            .onAppear { saveWithPanel() }
         #else
         ShareSheetRepresentable(items: items)
         #endif
     }
 
-    #if os(macOS) || targetEnvironment(macCatalyst)
-    private func openShareSheet() {
-        // macOS: use NSSharingServicePicker — not available in pure SwiftUI; caller uses ShareLink
+    #if os(macOS)
+    private func saveWithPanel() {
+        guard let url = items.first as? URL else { dismiss(); return }
+        DispatchQueue.main.async {
+            let panel = NSSavePanel()
+            panel.nameFieldStringValue = url.lastPathComponent
+            panel.allowedContentTypes = [.data]
+            panel.begin { response in
+                if response == .OK, let dest = panel.url {
+                    try? FileManager.default.copyItem(at: url, to: dest)
+                }
+                dismiss()
+            }
+        }
     }
     #else
     private struct ShareSheetRepresentable: UIViewControllerRepresentable {

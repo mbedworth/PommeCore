@@ -100,7 +100,9 @@ extension ContactListView {
                 if !contactStore.contactGroups.isEmpty { Divider() }
                 Button {
                     groupContactForNew = contact
-                    showNewGroupSheet = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                        showNewGroupSheet = true
+                    }
                 } label: {
                     Label("New Group…", systemImage: "folder.badge.plus")
                 }
@@ -120,6 +122,13 @@ extension ContactListView {
             showResetConfirmation = true
         } label: {
             Label("Reset Path", systemImage: "arrow.counterclockwise")
+        }
+
+        Button {
+            contactStore.toggleContactMuted(contact)
+        } label: {
+            Label(contactStore.isContactMuted(contact) ? "Unmute" : "Mute",
+                  systemImage: contactStore.isContactMuted(contact) ? "bell" : "bell.slash")
         }
 
         Divider()

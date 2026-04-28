@@ -20,6 +20,7 @@ struct ContactDetailSheet: View {
     @Environment(RemoteSessionManager.self) private var remoteSessionManager
     @Environment(\.dismiss) private var dismiss
     @State private var showPathEditor = false
+    @State private var errorMessage: String?
     #if !os(watchOS)
     @Environment(LineOfSightStore.self) private var lineOfSightStore
     @State private var showLineOfSight = false
@@ -30,6 +31,7 @@ struct ContactDetailSheet: View {
     private var isTelemetryPending: Bool { remoteSessionManager.pendingTelemetryKey == contact.publicKeyPrefix }
     private var isPathPending: Bool { remoteSessionManager.pendingAdvertPathKey == contact.publicKeyPrefix }
     private var isDiscoveryPending: Bool { remoteSessionManager.pendingPathDiscoveryKey == contact.publicKeyPrefix }
+    private var hasPath: Bool { contact.outPathLen > 0 && !contact.outPath.isEmpty }
 
     var body: some View {
         NavigationStack {
@@ -106,18 +108,24 @@ struct ContactDetailSheet: View {
 
                     // Actions
                     VStack(spacing: 8) {
-                        actionButton("Ping", icon: "bolt.horizontal", pending: false) {
+                        actionButton("Ping", icon: "bolt.horizontal", pending: false, disabled: !hasPath) {
                             remoteSessionManager.ping(contact: contact)
                         }
-                        actionButton("Multi-Ping (5x)", icon: "bolt.horizontal.fill", pending: remoteSessionManager.isPinging) {
+                        actionButton("Multi-Ping (5x)", icon: "bolt.horizontal.fill", pending: remoteSessionManager.isPinging, disabled: !hasPath && !remoteSessionManager.isPinging) {
                             if remoteSessionManager.isPinging {
                                 remoteSessionManager.cancelPing()
                             } else {
                                 remoteSessionManager.multiPing(contact: contact, count: 5)
                             }
                         }
-                        actionButton("Trace Route", icon: "point.topleft.down.to.point.bottomright.curvepath", pending: isTracePending) {
+                        actionButton("Trace Route", icon: "point.topleft.down.to.point.bottomright.curvepath", pending: isTracePending, disabled: !hasPath) {
                             remoteSessionManager.traceRoute(to: contact)
+                        }
+                        if !hasPath {
+                            Text("Ping and Trace Route require a routed path. Use \u{201C}Discover Path\u{201D} or send a message first.")
+                                .font(.caption)
+                                .foregroundStyle(MeshTheme.textSecondary)
+                                .padding(.horizontal, 4)
                         }
                         actionButton("Request Status", icon: "info.circle", pending: isStatusPending) {
                             remoteSessionManager.requestStatus(for: contact)
@@ -169,11 +177,22 @@ struct ContactDetailSheet: View {
         }
         .meshTheme()
         .onAppear {
+            remoteSessionManager.showError = { [weak remoteSessionManager] msg in
+                Task { @MainActor in self.errorMessage = msg }
+            }
             // Auto-request status for infrastructure nodes when sheet opens
             if (contact.type == .repeater || contact.type == .room || contact.type == .sensor),
                remoteSessionManager.statusByContact[contact.publicKeyPrefix] == nil {
                 remoteSessionManager.requestStatus(for: contact)
             }
+        }
+        .alert("Network Tools", isPresented: Binding(
+            get: { errorMessage != nil },
+            set: { if !$0 { errorMessage = nil } }
+        )) {
+            Button("OK") { errorMessage = nil }
+        } message: {
+            Text(errorMessage ?? "")
         }
     }
 
@@ -197,8 +216,9 @@ struct ContactDetailSheet: View {
         }
     }
 
-    private func actionButton(_ title: String, icon: String, pending: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+    private func actionButton(_ title: String, icon: String, pending: Bool, disabled: Bool = false, action: @escaping () -> Void) -> some View {
+        let isDisabled = pending || disabled
+        return Button(action: action) {
             HStack {
                 if pending {
                     ProgressView()
@@ -212,7 +232,8 @@ struct ContactDetailSheet: View {
             .frame(maxWidth: .infinity)
         }
         .buttonStyle(.plain)
-        .disabled(pending)
+        .disabled(isDisabled)
+        .opacity(isDisabled ? 0.4 : 1.0)
         .padding(.vertical, 8)
         .padding(.horizontal, 12)
         .background(MeshTheme.surfaceLight)

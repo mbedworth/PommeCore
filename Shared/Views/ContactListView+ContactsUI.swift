@@ -16,6 +16,14 @@ import MeshCoreKit
 
 extension ContactListView {
 
+    /// Contacts not assigned to any group — shown in the main Contacts section.
+    var ungroupedContacts: [Contact] {
+        let grouped = Set(contactStore.contactGroups.flatMap(\.memberPubkeys))
+        return contactStore.sortedContacts(byLastSeen: sortByLastSeen).filter {
+            !grouped.contains($0.publicKey.hexCompact)
+        }
+    }
+
     @ViewBuilder
     var pendingContactsSection: some View {
         Section {
@@ -239,7 +247,7 @@ extension ContactListView {
 
     var contactsSection: some View {
         Section(isExpanded: $contactsExpanded) {
-            if contactStore.sortedContacts(byLastSeen: sortByLastSeen).isEmpty {
+            if ungroupedContacts.isEmpty {
                 VStack(spacing: 12) {
                     Image(systemName: "person.2.slash")
                         .font(.title)
@@ -263,7 +271,7 @@ extension ContactListView {
                 .padding(.vertical, 8)
                 .listRowBackground(MeshTheme.surface)
             } else {
-                ForEach(contactStore.sortedContacts(byLastSeen: sortByLastSeen)) { contact in
+                ForEach(ungroupedContacts) { contact in
                     #if os(watchOS)
                     NavigationLink {
                         contactDestination(contact)
@@ -326,11 +334,11 @@ extension ContactListView {
             // Paste Link and Scan QR are in the contacts "+" header menu
             if isSelecting {
                 HStack {
-                    Button(selectedContacts.count == contactStore.sortedContacts(byLastSeen: sortByLastSeen).count ? "Deselect All" : "Select All") {
-                        if selectedContacts.count == contactStore.sortedContacts(byLastSeen: sortByLastSeen).count {
+                    Button(selectedContacts.count == ungroupedContacts.count ? "Deselect All" : "Select All") {
+                        if selectedContacts.count == ungroupedContacts.count {
                             selectedContacts.removeAll()
                         } else {
-                            selectedContacts = Set(contactStore.sortedContacts(byLastSeen: sortByLastSeen).map(\.publicKeyPrefix))
+                            selectedContacts = Set(ungroupedContacts.map(\.publicKeyPrefix))
                         }
                     }
                     .font(.caption)
@@ -377,22 +385,28 @@ extension ContactListView {
         }
         .sheet(isPresented: $showNewGroupSheet) {
             GroupEditSheet(title: "New Group", initialName: "", initialEmoji: "") { name, emoji in
-                contactStore.addContactGroup(name: name, emoji: emoji)
-                if let contact = groupContactForNew,
-                   let group = contactStore.contactGroups.last {
-                    contactStore.addContactToGroup(contact, group: group)
-                }
-                groupContactForNew = nil
                 showNewGroupSheet = false
+                let contact = groupContactForNew
+                groupContactForNew = nil
+                DispatchQueue.main.async {
+                    contactStore.addContactGroup(name: name, emoji: emoji)
+                    if let contact,
+                       let group = contactStore.contactGroups.last {
+                        contactStore.addContactToGroup(contact, group: group)
+                    }
+                }
             }
         }
         .sheet(isPresented: $showRenameGroupSheet) {
             GroupEditSheet(title: "Rename Group", initialName: renameGroupName, initialEmoji: renameGroupEmoji) { name, emoji in
-                if let target = renameGroupTarget {
-                    contactStore.renameContactGroup(target, name: name, emoji: emoji)
-                }
-                renameGroupTarget = nil
                 showRenameGroupSheet = false
+                let target = renameGroupTarget
+                renameGroupTarget = nil
+                DispatchQueue.main.async {
+                    if let target {
+                        contactStore.renameContactGroup(target, name: name, emoji: emoji)
+                    }
+                }
             }
         }
         #if os(iOS)
