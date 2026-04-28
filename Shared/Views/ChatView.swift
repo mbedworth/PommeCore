@@ -468,14 +468,6 @@ struct ChatView: View {
                     .onSubmit { send() }
                     #endif
 
-                Button {
-                    signNextMessage.toggle()
-                } label: {
-                    Image(systemName: signNextMessage ? "lock.fill" : "lock.open")
-                        .font(.title3)
-                        .foregroundStyle(signNextMessage ? MeshTheme.accent : MeshTheme.textSecondary)
-                }
-                .buttonStyle(.plain)
 
                 Button(action: send) {
                     Image(systemName: "arrow.up.circle.fill")

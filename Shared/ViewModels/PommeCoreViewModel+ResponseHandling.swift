@@ -384,6 +384,9 @@ extension PommeCoreViewModel {
 
     func handleErrorResponse(code: UInt8, description: String) {
         if remoteSessionManager.handleErrorResponse(code: code, description: description) { return }
+        // If there's a message stuck in .sending when the error arrives, it will never get
+        // a RESP_SENT (no expectedACK → no timeout task). Mark it failed immediately.
+        messageStoreManager.failPendingSendingMessage()
         switch MeshCoreErrorCode(rawValue: code) {
         case .unsupportedCmd:
             Self.logger.warning("ERR_CODE_UNSUPPORTED_CMD — firmware does not support this command (older firmware version), not user-actionable")

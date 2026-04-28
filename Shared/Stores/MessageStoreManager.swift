@@ -540,6 +540,20 @@ final class MessageStoreManager {
         persistMessages(for: pending.contactKeyHash)
     }
 
+    /// Mark any message stuck in `.sending` as failed immediately.
+    /// Called when firmware returns RESP_ERR — no RESP_SENT will arrive, so no expectedACK
+    /// is registered and no timeout task is scheduled. Without this, the message hangs forever.
+    func failPendingSendingMessage() {
+        for (contactKey, messages) in messagesByContact {
+            if let idx = messages.firstIndex(where: { $0.isOutgoing && $0.status == .sending }) {
+                Self.logger.warning("RESP_ERR received with message \(messages[idx].id) stuck in .sending — marking failed")
+                messagesByContact[contactKey]?[idx].status = .failed
+                persistMessages(for: contactKey)
+                break
+            }
+        }
+    }
+
     // MARK: - Incoming Messages
 
     /// Handle an incoming message. Returns the message if stored (for notification).
