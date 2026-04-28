@@ -1068,7 +1068,7 @@ public enum FrameParser {
         while offset + 8 <= data.count {
             let lower = readUInt32(data, offset: &offset)
             let upper = readUInt32(data, offset: &offset)
-            ranges.append(FrequencyRange(lowerHz: lower, upperHz: upper))
+            ranges.append(FrequencyRange(lowerKHz: lower, upperKHz: upper))
         }
 
         logger.info("AllowedRepeatFreq: \(ranges.count) ranges")

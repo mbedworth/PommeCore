@@ -235,7 +235,7 @@ struct RadioSection: View {
                     Text("Your companion radio will act as a portable repeater.\n\nThis is useful for camping, hiking, and search & rescue where repeater infrastructure doesn't exist.\n\nRepeat mode is restricted to allowed frequency ranges configured on the device.")
                 } else {
                     let freqText = remoteSessionManager.allowedRepeatFreqRanges.map { range in
-                        String(format: "%.1f\u{2013}%.1f MHz", Double(range.lowerHz) / 1_000_000, Double(range.upperHz) / 1_000_000)
+                        String(format: "%.1f\u{2013}%.1f MHz", Double(range.lowerKHz) / 1_000, Double(range.upperKHz) / 1_000)
                     }.joined(separator: "\n")
                     Text("Your companion radio will act as a portable repeater.\n\nAllowed frequency ranges:\n\(freqText)\n\nThis is useful for camping, hiking, and search & rescue where repeater infrastructure doesn't exist.")
                 }
@@ -251,7 +251,7 @@ struct RadioSection: View {
                                 .foregroundStyle(MeshTheme.accent)
                         }
                         ForEach(Array(remoteSessionManager.allowedRepeatFreqRanges.enumerated()), id: \.offset) { _, range in
-                            Text("\(String(format: "%.3f", Double(range.lowerHz) / 1_000_000)) \u{2013} \(String(format: "%.3f", Double(range.upperHz) / 1_000_000)) MHz")
+                            Text("\(String(format: "%.0f", Double(range.lowerKHz) / 1_000)) \u{2013} \(String(format: "%.0f", Double(range.upperKHz) / 1_000)) MHz")
                                 .font(.caption)
                                 .foregroundStyle(MeshTheme.textSecondary)
                                 .padding(.leading, 32)
@@ -342,8 +342,8 @@ struct RadioSection: View {
                     .font(.caption.weight(.medium))
                     .foregroundStyle(MeshTheme.accent)
                 let rangeText = connectionManager.allowedFreqRanges.map { r in
-                    let lo = String(format: "%.0f", Double(r.lowerHz) / 1_000_000)
-                    let hi = String(format: "%.0f", Double(r.upperHz) / 1_000_000)
+                    let lo = String(format: "%.0f", Double(r.lowerKHz) / 1_000)
+                    let hi = String(format: "%.0f", Double(r.upperKHz) / 1_000)
                     return "\(lo)–\(hi) MHz"
                 }.joined(separator: ", ")
                 Text(rangeText)

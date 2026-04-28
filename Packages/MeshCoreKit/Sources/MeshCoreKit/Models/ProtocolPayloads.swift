@@ -87,14 +87,14 @@ public struct RemoteStatusInfo: Sendable {
     }
 }
 
-/// An allowed repeat frequency range.
+/// An allowed repeat frequency range. Values are in kHz (matching firmware FreqRange struct).
 public struct FrequencyRange: Sendable {
-    public let lowerHz: UInt32
-    public let upperHz: UInt32
+    public let lowerKHz: UInt32
+    public let upperKHz: UInt32
 
-    public init(lowerHz: UInt32, upperHz: UInt32) {
-        self.lowerHz = lowerHz
-        self.upperHz = upperHz
+    public init(lowerKHz: UInt32, upperKHz: UInt32) {
+        self.lowerKHz = lowerKHz
+        self.upperKHz = upperKHz
     }
 }
 
