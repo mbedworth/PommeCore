@@ -20,6 +20,8 @@
         <string>PommeCore iOS App Store</string>
         <key>com.mbedworth.meshcore.watchos</key>
         <string>PommeCore Watch App Store</string>
+        <key>com.mbedworth.meshcore.PommeCore-Widgets</key>
+        <string>PommeCore Widgets App Store</string>
     </dict>
 </dict>
 </plist>
