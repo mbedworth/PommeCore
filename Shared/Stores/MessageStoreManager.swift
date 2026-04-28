@@ -407,15 +407,22 @@ final class MessageStoreManager {
         var matched = false
         for (contactKey, messages) in messagesByContact {
             if let idx = messages.firstIndex(where: { $0.isOutgoing && ($0.status == .sending || $0.status == .retrying || $0.status == .flooding) }) {
-                Self.logger.info("DM RESP_SENT: matched message \(messages[idx].id) → .sent, ack=\(expectedACK)")
-                messagesByContact[contactKey]?[idx].status = .sent
+                // Don't downgrade a flooding message back to sent — keep .flooding visible until ACK or timeout
+                let keepFlooding = messages[idx].status == .flooding
+                Self.logger.info("DM RESP_SENT: matched message \(messages[idx].id) → \(keepFlooding ? ".flooding (kept)" : ".sent"), ack=\(expectedACK)")
+                if !keepFlooding {
+                    messagesByContact[contactKey]?[idx].status = .sent
+                }
                 messagesByContact[contactKey]?[idx].expectedACK = expectedACK
                 messagesByContact[contactKey]?[idx].suggestedTimeoutMs = suggestedTimeoutMs
                 pendingACKs[expectedACK] = (contactKeyHash: contactKey, messageID: messages[idx].id)
                 persistMessages(for: contactKey)
                 matched = true
 
-                let timeoutSec = max(UInt64(suggestedTimeoutMs / 1000), 6)
+                // Direct/retry phase: cap at 15s (covers SF12/BW125/CR4-8 worst-case ~12s round trip).
+                // Flood phase uses firmware's full suggested timeout — mesh propagation needs more time.
+                let rawSec = UInt64(suggestedTimeoutMs / 1000)
+                let timeoutSec = keepFlooding ? max(rawSec, 6) : min(max(rawSec, 6), 15)
                 Task { @MainActor [weak self] in
                     try? await Task.sleep(nanoseconds: timeoutSec * 1_000_000_000)
                     guard let self else { return }
@@ -456,12 +463,12 @@ final class MessageStoreManager {
 
         guard var messages = messagesByContact[pending.contactKeyHash],
               let idx = messages.firstIndex(where: { $0.id == pending.messageID }),
-              messages[idx].status == .sent else { return }
+              messages[idx].status == .sent || messages[idx].status == .flooding else { return }
 
         let message = messages[idx]
         let autoRetry = UserDefaults.standard.bool(forKey: "autoRetry")
         let autoResetPath = UserDefaults.standard.bool(forKey: "autoResetPath")
-        let maxDirectRetries: UInt8 = 1
+        let maxDirectRetries: UInt8 = 2  // 1 initial send + 1 retry before flooding
         let maxFloodRetries: UInt8 = 2
 
         // Phase 1: Direct path retries
