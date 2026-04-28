@@ -78,6 +78,22 @@ public final class BLEManager: NSObject, ObservableObject {
     /// Set when an encryption/pairing error occurs — prevents auto-reconnect loop.
     private var pairingFailed = false
 
+    private static let savedPeripheralUUIDKey = "BLEManager.savedPeripheralUUID"
+
+    private var savedPeripheralUUID: UUID? {
+        get {
+            guard let str = UserDefaults.standard.string(forKey: Self.savedPeripheralUUIDKey) else { return nil }
+            return UUID(uuidString: str)
+        }
+        set {
+            if let uuid = newValue {
+                UserDefaults.standard.set(uuid.uuidString, forKey: Self.savedPeripheralUUIDKey)
+            } else {
+                UserDefaults.standard.removeObject(forKey: Self.savedPeripheralUUIDKey)
+            }
+        }
+    }
+
     /// Publisher for incoming data frames from the device TX characteristic.
     public let receivedDataSubject = PassthroughSubject<Data, Never>()
 
@@ -206,6 +222,7 @@ public final class BLEManager: NSObject, ObservableObject {
         reconnectAttemptsRemaining = Self.maxReconnectAttempts
         connectedPeripheral = peripheral
         peripheral.delegate = self
+        savedPeripheralUUID = peripheral.identifier
         centralManager.connect(peripheral, options: nil)
 
         Self.logger.info("Connecting to \(peripheral.name ?? "unknown")")
@@ -216,6 +233,7 @@ public final class BLEManager: NSObject, ObservableObject {
     public func disconnect() {
         guard let peripheral = connectedPeripheral else { return }
         shouldAutoReconnect = false
+        savedPeripheralUUID = nil
         centralManager.cancelPeripheralConnection(peripheral)
         Self.logger.info("Disconnecting from \(peripheral.name ?? "unknown")")
         DebugLogger.shared.log("BLE: disconnecting from \(peripheral.name ?? "unknown")", level: .info)
@@ -265,6 +283,19 @@ extension BLEManager: CBCentralManagerDelegate {
                 } else {
                     central.connect(peripheral, options: nil)
                 }
+            } else if let uuid = savedPeripheralUUID, !pairingFailed {
+                // Force-kill → relaunch: retrieve the known peripheral by UUID and reconnect
+                let known = central.retrievePeripherals(withIdentifiers: [uuid])
+                if let peripheral = known.first {
+                    Self.logger.info("BLE: retrieved saved peripheral \(peripheral.name ?? uuid.uuidString) — reconnecting")
+                    DispatchQueue.main.async { self.connectionState = .connecting }
+                    shouldAutoReconnect = true
+                    reconnectAttemptsRemaining = Self.maxReconnectAttempts
+                    connectedPeripheral = peripheral
+                    peripheral.delegate = self
+                    central.connect(peripheral, options: nil)
+                }
+                // If retrievePeripherals returns empty, the radio is out of range or off — stay disconnected
             }
         case .poweredOff:
             Self.logger.warning("Bluetooth is powered off")
