@@ -284,7 +284,10 @@ extension BLEManager: CBCentralManagerDelegate {
                     central.connect(peripheral, options: nil)
                 }
             } else if let uuid = savedPeripheralUUID, !pairingFailed {
-                // Force-kill → relaunch: retrieve the known peripheral by UUID and reconnect
+                // Force-kill → relaunch: retrieve the known peripheral by UUID and reconnect.
+                // retrievePeripherals only works if the peripheral is already in this CBCentralManager
+                // instance's cache. After force-kill the cache is empty, so we fall back to scanning
+                // and let didDiscover auto-connect when the peripheral is found.
                 let known = central.retrievePeripherals(withIdentifiers: [uuid])
                 if let peripheral = known.first {
                     Self.logger.info("BLE: retrieved saved peripheral \(peripheral.name ?? uuid.uuidString) — reconnecting")
@@ -294,8 +297,11 @@ extension BLEManager: CBCentralManagerDelegate {
                     connectedPeripheral = peripheral
                     peripheral.delegate = self
                     central.connect(peripheral, options: nil)
+                } else {
+                    Self.logger.info("BLE: saved peripheral \(uuid) not in cache — scanning to rediscover")
+                    shouldAutoReconnect = true
+                    startScanning()
                 }
-                // If retrievePeripherals returns empty, the radio is out of range or off — stay disconnected
             }
         case .poweredOff:
             Self.logger.warning("Bluetooth is powered off")
