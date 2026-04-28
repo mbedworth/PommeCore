@@ -78,6 +78,10 @@ public final class BLEManager: NSObject, ObservableObject {
     /// Set when an encryption/pairing error occurs — prevents auto-reconnect loop.
     private var pairingFailed = false
 
+    /// True when scanning was started implicitly for reconnect (not by explicit user action).
+    /// Only auto-connect on discover when this is true — prevents hijacking a deliberate device-switch scan.
+    private var isAutoReconnectScan = false
+
     private static let savedPeripheralUUIDKey = "BLEManager.savedPeripheralUUID"
 
     private var savedPeripheralUUID: UUID? {
@@ -168,7 +172,10 @@ public final class BLEManager: NSObject, ObservableObject {
 
     /// Start scanning for MeshCore devices.
     /// Safe to call while connected — will not change connection state.
-    public func startScanning() {
+    /// Pass `forReconnect: true` when scanning is triggered internally to reconnect a known peripheral —
+    /// this allows didDiscover to auto-connect. User-initiated scans leave it false so the user can
+    /// freely pick any device without the app hijacking the selection.
+    public func startScanning(forReconnect: Bool = false) {
         guard centralManager.state == .poweredOn else {
             Self.logger.warning("Cannot scan — Bluetooth not powered on (state: \(String(describing: self.centralManager.state.rawValue)))")
             return
@@ -194,7 +201,8 @@ public final class BLEManager: NSObject, ObservableObject {
             options: [CBCentralManagerScanOptionAllowDuplicatesKey: false]
         )
 
-        Self.logger.info("Started scanning for MeshCore devices")
+        isAutoReconnectScan = forReconnect
+        Self.logger.info("Started scanning for MeshCore devices (forReconnect: \(forReconnect))")
     }
 
     /// Stop scanning. Safe to call at any time — only changes state if currently scanning.
@@ -300,7 +308,7 @@ extension BLEManager: CBCentralManagerDelegate {
                 } else {
                     Self.logger.info("BLE: saved peripheral \(uuid) not in cache — scanning to rediscover")
                     shouldAutoReconnect = true
-                    startScanning()
+                    startScanning(forReconnect: true)
                 }
             }
         case .poweredOff:
@@ -377,7 +385,7 @@ extension BLEManager: CBCentralManagerDelegate {
                             self.connectionState = .disconnected
                         }
                         self.bleQueue.asyncAfter(deadline: .now() + 1.0) { [weak self] in
-                            self?.startScanning()
+                            self?.startScanning(forReconnect: true)
                         }
                     }
                 }
@@ -399,9 +407,9 @@ extension BLEManager: CBCentralManagerDelegate {
             ?? advertisementData[CBAdvertisementDataLocalNameKey] as? String
             ?? "MeshCore Device"
 
-        // Auto-connect to the previously-connected peripheral when rediscovered during scan
-        // (e.g., the 60s reconnect window expired and scanning started, then the radio came back).
-        if let saved = savedPeripheralUUID, peripheral.identifier == saved, !pairingFailed {
+        // Auto-connect to the previously-connected peripheral when rediscovered during a reconnect scan.
+        // isAutoReconnectScan is false for user-initiated scans so deliberate device-switching is never hijacked.
+        if isAutoReconnectScan, let saved = savedPeripheralUUID, peripheral.identifier == saved, !pairingFailed {
             Self.logger.info("BLE: rediscovered saved peripheral \(name) — auto-connecting")
             shouldAutoReconnect = true
             reconnectAttemptsRemaining = Self.maxReconnectAttempts
@@ -550,7 +558,7 @@ extension BLEManager: CBCentralManagerDelegate {
                     self.connectedDeviceName = nil
                 }
                 self.bleQueue.asyncAfter(deadline: .now() + 2.0) { [weak self] in
-                    self?.startScanning()
+                    self?.startScanning(forReconnect: true)
                 }
             }
             reconnectTimeoutWork = timeout
@@ -691,9 +699,11 @@ extension BLEManager: CBPeripheralDelegate {
     ) {
         if let error {
             Self.logger.error("Notification state error: \(error.localizedDescription)")
-            // "Encryption is insufficient" means pairing was cancelled or failed
+            // "Encryption is insufficient" means pairing was cancelled or failed.
+            // Clear the saved UUID so a force-kill + relaunch doesn't loop back to this peripheral.
             if error.localizedDescription.lowercased().contains("encrypt") {
                 pairingFailed = true
+                savedPeripheralUUID = nil
             }
             return
         }
