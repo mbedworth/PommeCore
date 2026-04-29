@@ -383,32 +383,6 @@ extension ContactListView {
         } message: {
             Text("Paste a meshcore:// link to import a contact or channel.")
         }
-        .sheet(isPresented: $showNewGroupSheet) {
-            GroupEditSheet(title: "New Group", initialName: "", initialEmoji: "") { name, emoji in
-                showNewGroupSheet = false
-                let contact = groupContactForNew
-                groupContactForNew = nil
-                DispatchQueue.main.async {
-                    contactStore.addContactGroup(name: name, emoji: emoji)
-                    if let contact,
-                       let group = contactStore.contactGroups.last {
-                        contactStore.addContactToGroup(contact, group: group)
-                    }
-                }
-            }
-        }
-        .sheet(isPresented: $showRenameGroupSheet) {
-            GroupEditSheet(title: "Rename Group", initialName: renameGroupName, initialEmoji: renameGroupEmoji) { name, emoji in
-                showRenameGroupSheet = false
-                let target = renameGroupTarget
-                renameGroupTarget = nil
-                DispatchQueue.main.async {
-                    if let target {
-                        contactStore.renameContactGroup(target, name: name, emoji: emoji)
-                    }
-                }
-            }
-        }
         #if os(iOS)
         .sheet(isPresented: $showQRScanner) {
             NavigationStack {

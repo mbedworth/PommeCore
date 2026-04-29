@@ -95,7 +95,7 @@ struct ContactListView: View {
     #endif
 
     var body: some View {
-        mainList
+        mainListWithGroupSheets
         .navigationTitle("PommeCore")
         // navigationDestination is only needed on iOS (not macOS/Catalyst) because on
         // macOS the NavigationSplitView's detail: block drives the detail column exclusively.
@@ -285,7 +285,7 @@ struct ContactListView: View {
                 .frame(minWidth: 360, minHeight: 400)
             #endif
         }
-        .alert("Rename Channel", isPresented: Binding(
+        .alert("Rename Channel", isPresented: Binding<Bool>(
             get: { channelToRenameSidebar != nil },
             set: { if !$0 { channelToRenameSidebar = nil } }
         )) {
@@ -449,6 +449,38 @@ struct ContactListView: View {
 
 // MARK: - Main List (extracted to break type-checker chain)
 private extension ContactListView {
+    var mainListWithGroupSheets: some View {
+        mainList
+            .sheet(isPresented: $showNewGroupSheet) {
+                GroupEditSheet(title: "New Group", initialName: "", initialEmoji: "") { name, emoji in
+                    showNewGroupSheet = false
+                    let contact = groupContactForNew
+                    groupContactForNew = nil
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                        contactStore.addContactGroup(name: name, emoji: emoji)
+                        if let contact,
+                           let group = contactStore.contactGroups.last {
+                            contactStore.addContactToGroup(contact, group: group)
+                        }
+                    }
+                }
+                .meshTheme()
+            }
+            .sheet(isPresented: $showRenameGroupSheet) {
+                GroupEditSheet(title: "Rename Group", initialName: renameGroupName, initialEmoji: renameGroupEmoji) { name, emoji in
+                    showRenameGroupSheet = false
+                    let target = renameGroupTarget
+                    renameGroupTarget = nil
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                        if let target {
+                            contactStore.renameContactGroup(target, name: name, emoji: emoji)
+                        }
+                    }
+                }
+                .meshTheme()
+            }
+    }
+
     var mainList: some View {
         List(selection: $localSelection) {
             connectionSection
