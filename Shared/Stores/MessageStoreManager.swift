@@ -69,6 +69,9 @@ final class MessageStoreManager {
     /// Closure to reset a contact's path (for flood retry / path refresh).
     var resetPathForContact: ((Contact) -> Void)?
 
+    /// Called when unread counts change (used to trigger widget sync).
+    var onUnreadChanged: (() -> Void)?
+
     /// Pending pre-send path check: holds message frame until advert path response arrives.
     private var pendingPathCheck: (contact: Contact, frame: Data)?
     private var pathCheckTimeoutTask: Task<Void, Never>?
@@ -149,6 +152,7 @@ final class MessageStoreManager {
     func markAsRead(contactKey: Data) {
         unreadCounts[contactKey] = 0
         updateAppBadge()
+        onUnreadChanged?()
         guard let prefix = radioPrefix12 else { return }
         let contactHex = contactKey.hexCompact
         let key = "lastRead.\(prefix).\(contactHex)"

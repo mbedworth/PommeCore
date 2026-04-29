@@ -350,10 +350,6 @@ final class ConnectionManager {
     func setDefaultFloodScope(_ name: String) {
         sendCommand(MeshCoreProtocol.buildSetDefaultFloodScope(name: name), label: "SET_FLOOD_SCOPE")
         deviceConfig?.defaultFloodScope = name
-        Task { @MainActor [weak self] in
-            try? await Task.sleep(nanoseconds: 1_000_000_000)
-            self?.sendCommand(MeshCoreProtocol.buildGetDefaultFloodScope(), label: "GET_FLOOD_SCOPE")
-        }
     }
 
     func sendAppStart() {

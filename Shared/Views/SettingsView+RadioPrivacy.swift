@@ -799,7 +799,9 @@ struct PrivacySection: View {
     var safeZonesRow: some View {
         Section {
             Button {
-                showSafeZones = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    showSafeZones = true
+                }
             } label: {
                 HStack {
                     Image(systemName: "shield.fill")

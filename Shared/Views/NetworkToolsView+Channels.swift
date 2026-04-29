@@ -128,7 +128,9 @@ struct ChannelManagementView: View {
                                 .foregroundStyle(MeshTheme.textSecondary)
                             #if !os(watchOS)
                             Button {
-                                channelToShare = channel
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                    channelToShare = channel
+                                }
                             } label: {
                                 Image(systemName: "qrcode")
                                     .foregroundStyle(MeshTheme.accent)
@@ -153,7 +155,9 @@ struct ChannelManagementView: View {
                             }
                             #if !os(watchOS)
                             Button {
-                                channelToShare = channel
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                    channelToShare = channel
+                                }
                             } label: {
                                 Label("Share QR Code", systemImage: "qrcode")
                             }

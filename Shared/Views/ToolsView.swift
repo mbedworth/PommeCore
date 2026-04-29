@@ -27,7 +27,7 @@ struct ToolsView: View {
                     title: "Line of Sight",
                     subtitle: "Terrain analysis with Fresnel zone for RF path planning"
                 ) {
-                    showLineOfSight = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { showLineOfSight = true }
                 }
 
                 toolButton(
@@ -36,7 +36,7 @@ struct ToolsView: View {
                     subtitle: "Link budget, path loss, wavelength, and range estimation",
                     badge: "No Radio"
                 ) {
-                    showRadioCalc = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { showRadioCalc = true }
                 }
 
                 toolButton(
@@ -45,7 +45,7 @@ struct ToolsView: View {
                     subtitle: "LoRa time-on-air, duty cycle, and packets per hour",
                     badge: "No Radio"
                 ) {
-                    showAirtime = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { showAirtime = true }
                 }
 
                 toolButton(
@@ -54,7 +54,7 @@ struct ToolsView: View {
                     subtitle: "Sensitivity, bit rate, and range by spreading factor",
                     badge: "No Radio"
                 ) {
-                    showSensitivity = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { showSensitivity = true }
                 }
             } header: {
                 Text("Planning")
@@ -68,7 +68,7 @@ struct ToolsView: View {
                     title: "RF Monitor",
                     subtitle: "Live SNR and RSSI chart from received LoRa packets"
                 ) {
-                    showNoiseFloor = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { showNoiseFloor = true }
                 }
 
                 toolButton(
@@ -76,7 +76,7 @@ struct ToolsView: View {
                     title: "Frequency Scanner",
                     subtitle: "Scan regional presets to detect which frequencies have mesh activity nearby"
                 ) {
-                    showFreqScanner = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { showFreqScanner = true }
                 }
 
             } header: {

@@ -34,6 +34,7 @@ struct SettingsView: View {
     @AppStorage("batteryChemistry") var batteryChemistryRaw: String = BatteryChemistry.lipo.rawValue
     @AppStorage("appTheme") var appTheme: String = AppTheme.system.rawValue
     @AppStorage("maxMessagesPerContact") var maxMessagesPerContact: Int = 500
+    @AppStorage("iCloudSyncEnabled") var iCloudSyncEnabled: Bool = true
     @State var statsExpanded = false
     @StateObject var tipJar = TipJarManager()
     @State var radioToDelete: String?
@@ -355,14 +356,14 @@ struct SettingsView: View {
 private extension SettingsView {
     var iCloudSection: some View {
         Section {
-            Toggle(isOn: iCloudSyncBinding) {
+            Toggle(isOn: $iCloudSyncEnabled) {
                 Label("Sync to iCloud", systemImage: "icloud")
                     .foregroundStyle(MeshTheme.accent)
             }
             .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
 
-            if iCloudSyncBinding.wrappedValue {
+            if iCloudSyncEnabled {
                 let usage = iCloudKVSUsage()
                 HStack {
                     Text("iCloud Storage")
@@ -403,12 +404,6 @@ private extension SettingsView {
         return (dict.count, totalBytes)
     }
 
-    private var iCloudSyncBinding: Binding<Bool> {
-        Binding(
-            get: { UserDefaults.standard.object(forKey: "iCloudSyncEnabled") == nil ? true : UserDefaults.standard.bool(forKey: "iCloudSyncEnabled") },
-            set: { UserDefaults.standard.set($0, forKey: "iCloudSyncEnabled") }
-        )
-    }
 
     var radioDataSection: some View {
         RadioDataSection(radioToDelete: $radioToDelete, showDeleteRadioConfirm: $showDeleteRadioConfirm, radioToMigrate: $radioToMigrate, showMigrateSheet: $showMigrateSheet)

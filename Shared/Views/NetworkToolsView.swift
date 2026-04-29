@@ -177,7 +177,7 @@ struct ContactDetailSheet: View {
         }
         .meshTheme()
         .onAppear {
-            remoteSessionManager.showError = { [weak remoteSessionManager] msg in
+            remoteSessionManager.showError = { msg in
                 Task { @MainActor in self.errorMessage = msg }
             }
             // Auto-request status for infrastructure nodes when sheet opens

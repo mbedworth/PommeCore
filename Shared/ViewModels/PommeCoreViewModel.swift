@@ -232,6 +232,9 @@ final class PommeCoreViewModel: ObservableObject {
         messageStoreManager.contactNotifyModeProvider = { [weak self] contact in self?.contactStore.effectiveNotifyMode(for: contact) ?? .all }
         messageStoreManager.contactSoundProvider = { [weak self] contact in self?.contactStore.effectiveSound(for: contact) ?? .default }
         messageStoreManager.resetPathForContact = { [weak self] contact in self?.contactStore.resetPath(for: contact) }
+        #if os(iOS)
+        messageStoreManager.onUnreadChanged = { [weak self] in self?.syncWidget() }
+        #endif
         
         // RemoteSessionManager dependencies
         remoteSessionManager.sendCommand = { [weak self] data, label in self?.connectionManager.sendCommand(data, label: label) }

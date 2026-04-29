@@ -671,7 +671,7 @@ private extension RemoteManagementView {
                         .foregroundStyle(MeshTheme.textSecondary)
                 }
                 .contentShape(Rectangle())
-                .onTapGesture { showNameWizard = true }
+                .onTapGesture { DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { showNameWizard = true } }
                 .listRowBackground(MeshTheme.surface)
             }
 
