@@ -183,9 +183,8 @@ struct ContactRowView: View {
            let status = remoteSessionManager.statusByContact[contact.publicKeyPrefix] {
             HStack(spacing: 8) {
                 if status.batteryMV > 0 {
-                    let pct = BatteryProfile.lipo.percentage(forMillivolts: Int(status.batteryMV))
-                    Label(String(format: "%d%%", pct), systemImage: batteryIconName(for: pct))
-                        .foregroundStyle(batteryColor(for: pct))
+                    Label(String(format: "%.2fV", Double(status.batteryMV) / 1000.0), systemImage: "battery.50")
+                        .foregroundStyle(MeshTheme.accent)
                 }
                 Label(formatUptime(status.uptime), systemImage: "clock")
             }

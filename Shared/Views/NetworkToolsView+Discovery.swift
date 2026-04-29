@@ -363,10 +363,6 @@ struct StatusInfoView: View {
     let status: RemoteStatusInfo
     let contactName: String
 
-    private var batteryPercent: Int {
-        BatteryProfile.lipo.percentage(forMillivolts: Int(status.batteryMV))
-    }
-
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
@@ -378,7 +374,7 @@ struct StatusInfoView: View {
             }
 
             VStack(spacing: 8) {
-                statusRow(icon: batteryIconName(for: batteryPercent), label: "Battery", value: batteryString, color: batteryColor(for: batteryPercent))
+                statusRow(icon: "battery.50", label: "Battery", value: batteryString, color: MeshTheme.accent)
                 statusRow(icon: "clock.arrow.circlepath", label: "Uptime", value: formatUptime(status.uptime))
             }
         }
@@ -390,7 +386,7 @@ struct StatusInfoView: View {
     private var batteryString: String {
         let mv = Int(status.batteryMV)
         if mv == 0 { return "\u{2014}" }
-        return String(format: "%.2fV (%d%%)", Double(mv) / 1000.0, batteryPercent)
+        return String(format: "%.2fV", Double(mv) / 1000.0)
     }
 
     private func statusRow(icon: String, label: String, value: String, color: Color = MeshTheme.accent) -> some View {

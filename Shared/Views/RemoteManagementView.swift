@@ -612,10 +612,9 @@ private extension RemoteManagementView {
                 HStack(spacing: 12) {
                     if let status = remoteSessionManager.statusByContact[contact.publicKeyPrefix] {
                         if status.batteryMV > 0 {
-                            let pct = BatteryProfile.lipo.percentage(forMillivolts: Int(status.batteryMV))
-                            Label(String(format: "%.2fV (%d%%)", Double(status.batteryMV) / 1000.0, pct),
-                                  systemImage: pct > 75 ? "battery.100" : pct > 50 ? "battery.75" : pct > 25 ? "battery.50" : pct > 0 ? "battery.25" : "battery.0")
-                            .foregroundStyle(pct > 50 ? .green : pct > 20 ? .yellow : .red)
+                            Label(String(format: "%.2fV", Double(status.batteryMV) / 1000.0),
+                                  systemImage: "battery.50")
+                            .foregroundStyle(MeshTheme.accent)
                         }
                         let u = status.uptime
                         let d = u / 86400, h = (u % 86400) / 3600, m = (u % 3600) / 60
