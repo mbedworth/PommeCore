@@ -100,7 +100,7 @@ extension ContactListView {
                 if !contactStore.contactGroups.isEmpty { Divider() }
                 Button {
                     groupContactForNew = contact
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                         showNewGroupSheet = true
                     }
                 } label: {
