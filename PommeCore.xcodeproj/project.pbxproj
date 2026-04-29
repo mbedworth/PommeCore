@@ -1056,7 +1056,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 26.04.1;
+				MARKETING_VERSION = 26.04.28;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mbedworth.meshcore;
 				PRODUCT_NAME = PommeCore;
 				SDKROOT = iphoneos;
@@ -1153,7 +1153,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 26.04.1;
+				MARKETING_VERSION = 26.04.28;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.mbedworth.meshcore.PommeCore-Widgets";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -1192,7 +1192,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 26.04.1;
+				MARKETING_VERSION = 26.04.28;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.mbedworth.meshcore.PommeCore-Widgets";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -1217,7 +1217,7 @@
 				DEVELOPMENT_TEAM = 7R925EW7AT;
 				INFOPLIST_FILE = watchOS/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = PommeCore;
-				MARKETING_VERSION = 26.04.1;
+				MARKETING_VERSION = 26.04.28;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mbedworth.meshcore.watchos;
 				PRODUCT_NAME = "PommeCore Watch";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1246,7 +1246,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 26.04.1;
+				MARKETING_VERSION = 26.04.28;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mbedworth.meshcore;
 				PRODUCT_NAME = PommeCore;
 				SDKROOT = macosx;
@@ -1271,7 +1271,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 26.04.1;
+				MARKETING_VERSION = 26.04.28;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mbedworth.meshcore;
 				PRODUCT_NAME = PommeCore;
 				SDKROOT = macosx;
@@ -1295,7 +1295,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 26.04.1;
+				MARKETING_VERSION = 26.04.28;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mbedworth.meshcore;
 				PRODUCT_NAME = PommeCore;
 				SDKROOT = iphoneos;
@@ -1381,7 +1381,7 @@
 				DEVELOPMENT_TEAM = 7R925EW7AT;
 				INFOPLIST_FILE = watchOS/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = PommeCore;
-				MARKETING_VERSION = 26.04.1;
+				MARKETING_VERSION = 26.04.28;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mbedworth.meshcore.watchos;
 				PRODUCT_NAME = "PommeCore Watch";
 				PROVISIONING_PROFILE_SPECIFIER = "";
