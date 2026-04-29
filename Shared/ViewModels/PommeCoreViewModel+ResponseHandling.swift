@@ -17,6 +17,9 @@ import CryptoKit
 #if canImport(AppKit)
 import AppKit
 #endif
+#if os(iOS)
+import PommeCoreWatchKit
+#endif
 
 // MARK: - Response Handling
 // Extracted from PommeCoreViewModel — dispatches parsed frames to stores.
@@ -431,6 +434,13 @@ extension PommeCoreViewModel {
         messageStoreManager.selectedContactKey = userIsViewing ? message.contactKeyHash : nil
         if let stored = messageStoreManager.handleIncomingMessage(message) {
             messageStoreManager.postLocalNotification(for: stored)
+            #if os(iOS)
+            if let channelIndex = stored.channelIndex {
+                phoneWatchRelay.sendNewMessage(stored, contactKeyHex: WatchContact.channelKey(channelIndex))
+            } else if let contact = contactStore.contacts.first(where: { $0.publicKeyPrefix == stored.contactKeyHash }) {
+                phoneWatchRelay.sendNewMessage(stored, contactKeyHex: contact.publicKey.hexCompact)
+            }
+            #endif
         }
     }
 
