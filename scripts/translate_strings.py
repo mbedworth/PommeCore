@@ -19,7 +19,7 @@ import urllib.error
 from copy import deepcopy
 
 XCSTRINGS_PATH = "Shared/Localizable.xcstrings"
-OLLAMA_URL = "http://localhost:11434/api/generate"
+INFERENCE_URL = "http://localhost:11434/api/generate"
 MODEL = "aya-expanse:8b"
 
 TARGET_LANGUAGES = {
@@ -91,8 +91,8 @@ def get_translatable_keys(data, lang):
         result.append((key, src))
     return result
 
-def ollama_translate(texts, lang_name, dry_run=False):
-    """Send a batch of texts to Ollama and return translated list."""
+def run_inference(texts, lang_name, dry_run=False):
+    """Send a batch of texts to the local inference endpoint and return translated list."""
     if dry_run:
         return [f"[{lang_name}] {t}" for t in texts]
 
@@ -113,7 +113,7 @@ def ollama_translate(texts, lang_name, dry_run=False):
     }).encode("utf-8")
 
     req = urllib.request.Request(
-        OLLAMA_URL,
+        INFERENCE_URL,
         data=payload,
         headers={"Content-Type": "application/json"},
         method="POST",
@@ -124,7 +124,7 @@ def ollama_translate(texts, lang_name, dry_run=False):
             result = json.loads(resp.read())
             raw = result.get("response", "")
     except urllib.error.URLError as e:
-        print(f"  ERROR calling Ollama: {e}")
+        print(f"  ERROR calling inference endpoint: {e}")
         return None
 
     return parse_numbered_response(raw, len(texts), texts)
@@ -186,7 +186,7 @@ def translate_language(data, lang, lang_name, batch_size, dry_run, path):
         batch_end = min(batch_start + batch_size, total)
         print(f"  [{batch_end}/{total}] translating batch...", end="", flush=True)
 
-        translations = ollama_translate(texts, lang_name, dry_run)
+        translations = run_inference(texts, lang_name, dry_run)
         if translations is None:
             print(" FAILED, skipping batch")
             errors += 1
@@ -203,10 +203,10 @@ def translate_language(data, lang, lang_name, batch_size, dry_run, path):
     print(f"  Completed {done} strings, {errors} batch errors")
 
 def main():
-    parser = argparse.ArgumentParser(description="Translate Localizable.xcstrings via Ollama")
+    parser = argparse.ArgumentParser(description="Translate Localizable.xcstrings via local inference")
     parser.add_argument("--lang", default="", help="Comma-separated language codes (default: all)")
-    parser.add_argument("--batch", type=int, default=10, help="Strings per Ollama request (default: 10)")
-    parser.add_argument("--dry-run", action="store_true", help="Don't call Ollama, write dummy translations")
+    parser.add_argument("--batch", type=int, default=10, help="Strings per inference request (default: 10)")
+    parser.add_argument("--dry-run", action="store_true", help="Don't call inference endpoint, write dummy translations")
     args = parser.parse_args()
 
     langs = {}
