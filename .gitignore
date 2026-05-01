@@ -27,6 +27,12 @@ ExportOptions-AppStore.plist
 *.p8
 .asc.env
 
+# Internal documents — not for public repository
+docs/APP_STORE.md
+docs/WATCHOS_PLAN.md
+docs/TEST_PLAN.md
+docs/MESHTASTIC_FEASIBILITY.md
+
 # Build artifacts (archives go to ~/Library/Developer/Xcode/Archives/ — outside repo)
 # build/ is already ignored above; exports and logs live in /tmp or Xcode standard paths
 *.xcarchive
