@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-translate_strings.py — translate Localizable.xcstrings using Ollama (aya-expanse:8b)
+translate_strings.py — translate Localizable.xcstrings via local inference
 
 Usage:
     python3 scripts/translate_strings.py [--lang fr,es,it,...] [--batch 10] [--dry-run]
