@@ -88,6 +88,37 @@ IOS_ARCHIVE="$ARCHIVE_DIR/PommeCore v$NEW_VERSION ($NEW_BUILD).xcarchive"
 MACOS_ARCHIVE="$ARCHIVE_DIR/PommeCore-macOS v$NEW_VERSION ($NEW_BUILD).xcarchive"
 
 # ============================================================
+# PRE-FLIGHT — Ensure connected iOS devices have device support
+# When an iPhone running a newer iOS than what Xcode has device
+# support for is connected, xcodebuild refuses all iOS destinations.
+# Detect and auto-download support before touching the version number.
+# ============================================================
+
+ensure_ios_device_support() {
+    local missing_versions
+    missing_versions=$(xcodebuild -showdestinations \
+        -project PommeCore.xcodeproj -scheme PommeCore 2>&1 \
+        | grep -oE 'iOS [0-9]+\.[0-9]+ is not installed' \
+        | grep -oE '[0-9]+\.[0-9]+' | sort -u || true)
+
+    [ -z "$missing_versions" ] && return 0
+
+    for version in $missing_versions; do
+        log "iOS $version device support not installed — preparing (this may take a few minutes)..."
+        if ! xcodebuild -prepareDeviceSupport -platform iOS -osVersion "$version"; then
+            warn "Could not prepare iOS $version device support automatically."
+            warn "Fix: open Xcode → Settings → Platforms and download iOS $version, or disconnect your iPhone."
+            exit 1
+        fi
+        log "iOS $version device support ready"
+    done
+}
+
+if [[ "$TARGET" == "ios" || "$TARGET" == "all" ]]; then
+    ensure_ios_device_support
+fi
+
+# ============================================================
 # PHASE 1 — SET VERSION & BUILD (before archiving)
 # The archive must contain the correct values so TestFlight/
 # App Store receives them.
