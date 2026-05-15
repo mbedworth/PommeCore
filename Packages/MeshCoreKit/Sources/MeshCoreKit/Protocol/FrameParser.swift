@@ -35,7 +35,9 @@ public enum FrameParser {
         case channelMsgRecv(Message)                   // RESP_CODE_CHANNEL_MSG_RECV_V3 (code 17)
         case noMoreMessages                            // RESP_CODE_NO_MORE_MESSAGES (code 10)
         case currentAdvert(Data)
-        case rawData(Data)  // PUSH_CODE_RAW_DATA (0x84) — not RESP 0x0B
+        case rawData(Data)                                     // PUSH_CODE_RAW_DATA (0x84)
+        case logRxData(snr: Int8, rssi: Int8, rawBytes: Data)  // PUSH_CODE_LOG_RX_DATA (0x88)
+        case binaryResponse(tag: UInt32, payload: Data)        // PUSH_CODE_BINARY_RESPONSE (0x8C)
         case sendConfirmed(ackCode: UInt32, roundTripMs: UInt32)  // PUSH_CODE_SEND_CONFIRMED (0x82)
         case msgWaiting                                // PUSH_CODE_MSG_WAITING (0x83)
         case advert(Contact)                           // PUSH_CODE_ADVERT (0x80)
@@ -305,15 +307,21 @@ public enum FrameParser {
 
         case .rawData:
             logger.debug("RawData: \(payload.count) bytes")
-            return .unknown(type: MeshCorePushCode.rawData.rawValue, payload: payload)
+            return .rawData(payload)
 
         case .logRxData:
-            logger.debug("LogRxData: \(payload.count) bytes")
-            return .unknown(type: MeshCorePushCode.logRxData.rawValue, payload: payload)
+            let snr = payload.count > 0 ? Int8(bitPattern: payload[0]) : 0
+            let rssi = payload.count > 1 ? Int8(bitPattern: payload[1]) : 0
+            let rawBytes = payload.count > 2 ? Data(payload[2...]) : Data()
+            logger.debug("LogRxData: snr=\(Float(snr)/4.0) rssi=\(rssi) rawLen=\(rawBytes.count)")
+            return .logRxData(snr: snr, rssi: rssi, rawBytes: rawBytes)
 
         case .binaryResponse:
-            logger.debug("BinaryResponse: \(payload.count) bytes")
-            return .unknown(type: MeshCorePushCode.binaryResponse.rawValue, payload: payload)
+            var offset = 0
+            let tag = readUInt32(payload, offset: &offset)
+            let responseData = offset < payload.count ? Data(payload[offset...]) : Data()
+            logger.debug("BinaryResponse: tag=\(tag) payload=\(responseData.count) bytes")
+            return .binaryResponse(tag: tag, payload: responseData)
 
         case .pathDiscoveryResp:
             return parsePathDiscoveryResp(payload)

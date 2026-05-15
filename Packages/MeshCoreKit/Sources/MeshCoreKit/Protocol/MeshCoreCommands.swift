@@ -34,6 +34,7 @@ public enum MeshCoreCommand: UInt8, Sendable {
     case getBattAndStorage    = 0x14  // 20
     case setTuningParams      = 0x15  // 21
     case deviceQuery          = 0x16  // 22
+    case sendRawData          = 0x19  // 25 — send raw LoRa payload with routing path
     case sendLogin            = 0x1A  // 26 — login to remote device (repeater/room)
     case sendStatusReq        = 0x1B  // 27 — request status from remote device
     case getChannel           = 0x1F  // 31 — get channel info by index
@@ -46,6 +47,7 @@ public enum MeshCoreCommand: UInt8, Sendable {
     case setCustomVar         = 0x29  // 41
     case getAdvertPath        = 0x2A  // 42 — get last known path to a contact
     case getTuningParams      = 0x2B  // 43
+    case sendBinaryReq        = 0x32  // 50 — binary request; response via PUSH_CODE_BINARY_RESPONSE (0x8C)
     case factoryReset         = 0x33  // 51
     case sendPathDiscoveryReq = 0x34  // 52 — flood path discovery to a contact
     case sendControlData      = 0x37  // 55 — send control packet (discover, etc.)

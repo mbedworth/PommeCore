@@ -601,9 +601,7 @@ final class MessageStoreManager {
 
     // MARK: - Echo Detection (0x88)
 
-    func handleLogRxData(_ payload: Data) {
-        let snr = payload.count > 0 ? Int8(bitPattern: payload[0]) : 0
-
+    func handleLogRxData(snr: Int8) {
         if let pending = pendingChannelEcho {
             let elapsed = Date().timeIntervalSince(pending.sent)
             if elapsed < 30 {

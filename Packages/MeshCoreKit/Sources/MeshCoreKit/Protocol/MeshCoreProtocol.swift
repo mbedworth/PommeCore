@@ -490,6 +490,27 @@ public enum MeshCoreProtocol {
         Data([MeshCoreCommand.getAllowedRepeatFreq.rawValue])
     }
 
+    // MARK: - Raw & Binary
+
+    /// CMD_SEND_RAW_DATA (code 0x19) — transmit a raw LoRa payload with an optional routing path.
+    /// Frame: code(1) payload(N) path(M)
+    public static func buildSendRawData(payload: Data, path: Data = Data()) -> Data {
+        var frame = Data([MeshCoreCommand.sendRawData.rawValue])
+        frame.append(payload)
+        frame.append(path)
+        return frame
+    }
+
+    /// CMD_SEND_BINARY_REQ (code 0x32) — send a binary request to the device.
+    /// The device responds with RESP_CODE_SENT(0x06) containing a TAG, then fires
+    /// PUSH_CODE_BINARY_RESPONSE(0x8C) with that TAG when the response is ready.
+    /// Frame: code(1) payload(N)
+    public static func buildSendBinaryReq(_ payload: Data) -> Data {
+        var frame = Data([MeshCoreCommand.sendBinaryReq.rawValue])
+        frame.append(payload)
+        return frame
+    }
+
     // MARK: - Danger Zone
 
     /// CMD_REBOOT (code 19).

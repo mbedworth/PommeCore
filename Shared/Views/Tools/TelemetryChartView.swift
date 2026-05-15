@@ -63,21 +63,30 @@ struct TelemetryChartView: View {
                 let readingName = selectedReading ?? availableReadings.first ?? ""
                 let data = rfStore.history(for: contactKey, named: readingName)
 
-                if data.count >= 2 {
+                if !data.isEmpty {
                     Chart(data, id: \.date) { point in
-                        LineMark(
+                        if data.count >= 2 {
+                            LineMark(
+                                x: .value("Time", point.date),
+                                y: .value(readingName, point.value)
+                            )
+                            .foregroundStyle(MeshTheme.accent)
+                            .interpolationMethod(.catmullRom)
+
+                            AreaMark(
+                                x: .value("Time", point.date),
+                                y: .value(readingName, point.value)
+                            )
+                            .foregroundStyle(MeshTheme.accent.opacity(0.1))
+                            .interpolationMethod(.catmullRom)
+                        }
+
+                        PointMark(
                             x: .value("Time", point.date),
                             y: .value(readingName, point.value)
                         )
                         .foregroundStyle(MeshTheme.accent)
-                        .interpolationMethod(.catmullRom)
-
-                        AreaMark(
-                            x: .value("Time", point.date),
-                            y: .value(readingName, point.value)
-                        )
-                        .foregroundStyle(MeshTheme.accent.opacity(0.1))
-                        .interpolationMethod(.catmullRom)
+                        .symbolSize(data.count == 1 ? 120 : 0)
                     }
                     .chartXAxis {
                         AxisMarks(values: .automatic(desiredCount: 5)) { value in
@@ -98,10 +107,12 @@ struct TelemetryChartView: View {
                             .font(.caption)
                             .foregroundStyle(MeshTheme.textSecondary)
                     }
-                } else if data.count == 1 {
-                    Text("Need at least 2 readings to show a chart. Request telemetry again.")
-                        .font(.caption)
-                        .foregroundStyle(MeshTheme.textSecondary)
+
+                    if data.count == 1 {
+                        Text("Request telemetry again to start building history.")
+                            .font(.caption2)
+                            .foregroundStyle(MeshTheme.textSecondary)
+                    }
                 }
             }
         }

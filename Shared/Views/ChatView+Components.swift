@@ -38,6 +38,35 @@ struct MessageBubble: View {
         return nil
     }
 
+    private var bubbleAccessibilityLabel: String {
+        var parts: [String] = []
+        if let quoted = quotedText { parts.append("Quoted: \(quoted)") }
+        parts.append(quotedText != nil ? replyText : message.text)
+        let fmt = DateFormatter(); fmt.timeStyle = .short; fmt.dateStyle = .none
+        parts.append(fmt.string(from: message.timestamp))
+        switch message.status {
+        case .sending: parts.append("Sending")
+        case .sent: parts.append("Sent")
+        case .repeated: parts.append("Sent, repeated by mesh")
+        case .retrying: parts.append("Retrying, attempt \(message.attempt + 1) of 3")
+        case .flooding: parts.append("Flooding mesh network")
+        case .delivered:
+            if let rtt = message.roundTripMs, rtt > 0 {
+                parts.append("Delivered, round trip \(String(format: "%.1f", Double(rtt) / 1000.0)) seconds")
+            } else { parts.append("Delivered") }
+        case .failed: parts.append("Not delivered")
+        }
+        if !message.reactions.isEmpty { parts.append("Reactions: \(message.reactions.joined(separator: ", "))") }
+        if message.isSigned { parts.append("Verified") }
+        if !message.isOutgoing {
+            if let hops = message.hops {
+                parts.append(hops == 0 || hops == 0xFF ? "Direct" : "\(hops) \(hops == 1 ? "hop" : "hops")")
+            }
+            if let snr = message.snr { parts.append(formatSNR(snr)) }
+        }
+        return parts.joined(separator: ", ")
+    }
+
     /// The reply text (everything after the quote lines)
     private var replyText: String {
         let lines = message.text.components(separatedBy: "\n")
@@ -87,8 +116,10 @@ struct MessageBubble: View {
                     .background(message.isOutgoing ? MeshTheme.outgoingBubble : MeshTheme.incomingBubble)
                     .foregroundStyle(MeshTheme.textOnAccent)
                     .clipShape(RoundedRectangle(cornerRadius: 18))
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(bubbleAccessibilityLabel)
 
-                // Reactions display
+                // Reactions display (hidden from accessibility — included in bubble label above)
                 if !message.reactions.isEmpty {
                     HStack(spacing: 2) {
                         ForEach(message.reactions, id: \.self) { emoji in
@@ -100,7 +131,7 @@ struct MessageBubble: View {
                     .padding(.vertical, 2)
                     .background(MeshTheme.surfaceLight)
                     .clipShape(Capsule())
-                    .accessibilityLabel("Reactions: \(message.reactions.joined(separator: ", "))")
+                    .accessibilityHidden(true)
                 }
 
                 HStack(spacing: 4) {
@@ -148,6 +179,7 @@ struct MessageBubble: View {
                     }
                 }
                 .padding(.horizontal, 4)
+                .accessibilityHidden(true)
 
                 if message.status == .failed {
                     Button {
@@ -321,6 +353,7 @@ struct ChannelMessageBubble: View {
                         .font(.caption2.weight(.semibold))
                         .foregroundStyle(MeshTheme.accent)
                         .padding(.horizontal, 4)
+                        .accessibilityAddTraits(.isHeader)
                 }
 
                 highlightedText
@@ -363,6 +396,7 @@ struct ChannelMessageBubble: View {
                             Text("\u{2022}")
                                 .font(.caption2)
                                 .foregroundStyle(MeshTheme.textSecondary)
+                                .accessibilityHidden(true)
                             if hops == 0 || hops == 0xFF {
                                 Text("direct")
                                     .font(.caption2)
@@ -377,6 +411,7 @@ struct ChannelMessageBubble: View {
                             Text("\u{2022}")
                                 .font(.caption2)
                                 .foregroundStyle(MeshTheme.textSecondary)
+                                .accessibilityHidden(true)
                             Text(formatSNR(snr))
                                 .font(.caption2)
                                 .foregroundStyle(MeshTheme.textSecondary)
@@ -395,6 +430,7 @@ struct ChannelMessageBubble: View {
                 }
                 .padding(.horizontal, 4)
             }
+            .accessibilityElement(children: .combine)
             .contentShape(Rectangle())
             .contextMenu {
                 Button {

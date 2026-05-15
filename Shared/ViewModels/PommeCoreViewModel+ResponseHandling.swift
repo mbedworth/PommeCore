@@ -327,7 +327,18 @@ extension PommeCoreViewModel {
             Self.logger.debug("Current advert: \(adData.count) bytes")
 
         case .rawData(let pktData):
-            Self.logger.debug("Raw data: \(pktData.count) bytes")
+            Self.logger.debug("Raw data packet: \(pktData.count) bytes")
+
+        case .logRxData(let snr, let rssi, _):
+            Self.logger.debug("LOG_RX_DATA: snr=\(Float(snr)/4.0) rssi=\(rssi)")
+            messageStoreManager.handleLogRxData(snr: snr)
+            #if !os(watchOS)
+            rfMonitorStore.recordRFSample(snr: snr, rssi: rssi)
+            #endif
+
+        case .binaryResponse(let tag, let data):
+            Self.logger.debug("BinaryResponse: tag=\(tag) payload=\(data.count) bytes")
+            remoteSessionManager.handleBinaryResponse(tag: tag, payload: data)
 
         case .contactDeleted(let publicKey):
             let name = contactStore.contacts.first(where: { $0.publicKeyPrefix == publicKey.prefix(6) })?.name ?? "Unknown"
@@ -367,15 +378,7 @@ extension PommeCoreViewModel {
         #endif
 
         case .unknown(let type, let payload):
-            if type == 0x88 {
-                let snr = payload.count > 0 ? Int8(bitPattern: payload[0]) : 0
-                let rssi = payload.count > 1 ? Int8(bitPattern: payload[1]) : 0
-                Self.logger.debug("LOG_RX_DATA (0x88): snr=\(Float(snr)/4.0) rssi=\(rssi) rawLen=\(payload.count - 2)")
-                messageStoreManager.handleLogRxData(payload)
-                #if !os(watchOS)
-                rfMonitorStore.recordRFSample(snr: snr, rssi: rssi)
-                #endif
-            } else if type >= 0x80 {
+            if type >= 0x80 {
                 Self.logger.debug("Ignoring push notification 0x\(String(format: "%02x", type)), \(payload.count) bytes payload")
             } else {
                 Self.logger.warning("Unhandled response 0x\(String(format: "%02x", type)), \(payload.count) bytes payload")

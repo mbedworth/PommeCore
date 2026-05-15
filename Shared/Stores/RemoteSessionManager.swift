@@ -93,6 +93,7 @@ final class RemoteSessionManager {
     var advertPathByContact: [Data: AdvertPathInfo] = [:]
     var pathDiscoveryByContact: [Data: PathDiscoveryResult] = [:]
     var allowedRepeatFreqRanges: [FrequencyRange] = []
+    private var pendingBinaryRequests: [UInt32: (Data) -> Void] = [:]
     private(set) var pendingTraceTag: UInt32?
     var detailContactForTrace: Contact?
     private(set) var pendingAdvertPathKey: Data?
@@ -1277,6 +1278,18 @@ final class RemoteSessionManager {
 
     func handleAllowedRepeatFreq(_ ranges: [FrequencyRange]) {
         allowedRepeatFreqRanges = ranges
+    }
+
+    func handleBinaryResponse(tag: UInt32, payload: Data) {
+        guard let handler = pendingBinaryRequests.removeValue(forKey: tag) else {
+            Self.logger.debug("BinaryResponse: no handler registered for tag=\(tag)")
+            return
+        }
+        handler(payload)
+    }
+
+    func registerBinaryResponseHandler(tag: UInt32, handler: @escaping (Data) -> Void) {
+        pendingBinaryRequests[tag] = handler
     }
 
     /// Request status from a remote device (simple forward).
