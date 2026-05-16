@@ -298,6 +298,15 @@ final class PhoneWatchRelay: NSObject {
 
         case .sendAdvert:
             connectionManager?.sendAdvertise(type: 1)
+
+        case .requestRefresh:
+            lastSentStateData = nil
+            lastSentContactsData = nil
+            lastSentChannelsData = nil
+            sendState()
+            sendContacts()
+            sendChannels()
+            sendAllUnreadMessages()
         }
     }
 
