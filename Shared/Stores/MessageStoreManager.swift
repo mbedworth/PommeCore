@@ -362,8 +362,8 @@ final class MessageStoreManager {
         Self.logger.info("CHANNEL TX: [\(frame.count) bytes] \(frame.hexFormatted())")
         DebugLogger.shared.log("CH TX: ch=\(frame.count > 2 ? "\(frame[2])" : "?") [\(frame.count)B] \(frame.hexFormatted())", level: .tx)
         DebugLogger.shared.log("CH TX: text='\(trimmed)'", level: .tx)
-        sendCommand?(frame, "SEND_CHANNEL_TXT")
 
+        // Store before sending — echo response can arrive before message is persisted.
         let channelKey = Data([channelIndex])
         let outgoing = Message(
             contactKeyHash: channelKey,
@@ -377,6 +377,7 @@ final class MessageStoreManager {
         messagesByContact[channelKey, default: []].append(outgoing)
         persistMessages(for: channelKey)
 
+        sendCommand?(frame, "SEND_CHANNEL_TXT")
         pendingChannelEcho = (id: outgoing.id, channelKey: channelKey, sent: Date())
         DebugLogger.shared.log("ECHO: armed pending echo for ch=\(channelIndex)", level: .info)
     }

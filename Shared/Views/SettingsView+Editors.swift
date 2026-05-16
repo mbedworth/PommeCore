@@ -257,7 +257,7 @@ func showSaved(_ state: Binding<SaveButtonState>) {
 extension SettingsView {
     var config: DeviceConfig { deviceConfig }
 
-    func infoRow(icon: String, label: String, value: String, valueColor: Color = MeshTheme.textSecondary) -> some View {
+    func infoRow(icon: String, label: LocalizedStringKey, value: String, valueColor: Color = MeshTheme.textSecondary) -> some View {
         HStack {
             Image(systemName: icon)
                 .foregroundStyle(MeshTheme.accent)
@@ -272,7 +272,7 @@ extension SettingsView {
         .listRowBackground(MeshTheme.surface)
     }
 
-    func sectionHeader(_ title: String) -> some View {
+    func sectionHeader(_ title: LocalizedStringKey) -> some View {
         Text(title)
             .foregroundStyle(MeshTheme.textSecondary)
     }

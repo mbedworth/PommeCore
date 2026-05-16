@@ -84,7 +84,7 @@ struct DeviceInfoPopover: View {
         .navigationTitle("Device Info")
     }
 
-    private func infoRow(_ label: String, value: String) -> some View {
+    private func infoRow(_ label: LocalizedStringKey, value: String) -> some View {
         HStack {
             Text(label)
                 .foregroundStyle(MeshTheme.accent)
@@ -453,7 +453,7 @@ struct PingResultsView: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
-    private func statLabel(_ label: String, value: String) -> some View {
+    private func statLabel(_ label: LocalizedStringKey, value: String) -> some View {
         VStack(spacing: 2) {
             Text(label)
                 .font(.caption2)

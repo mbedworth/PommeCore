@@ -412,7 +412,9 @@ struct ContentView: View {
                     }
             }
             .meshTheme()
+            #if os(macOS) || targetEnvironment(macCatalyst)
             .frame(minWidth: 360, minHeight: 400)
+            #endif
         }
         .sheet(isPresented: $showSettings) {
             NavigationStack {
@@ -424,7 +426,9 @@ struct ContentView: View {
                     }
             }
             .meshTheme()
+            #if os(macOS) || targetEnvironment(macCatalyst)
             .frame(minWidth: 360, minHeight: 400)
+            #endif
         }
         .sheet(isPresented: $showDiscover) {
             NavigationStack {
@@ -436,7 +440,9 @@ struct ContentView: View {
                     }
             }
             .meshTheme()
+            #if os(macOS) || targetEnvironment(macCatalyst)
             .frame(minWidth: 360, minHeight: 400)
+            #endif
         }
         .sheet(isPresented: $showRemoteManagement) {
             if let (contact, session) = activeManagementTarget {
@@ -449,7 +455,9 @@ struct ContentView: View {
                         }
                 }
                 .meshTheme()
+                #if os(macOS) || targetEnvironment(macCatalyst)
                 .frame(minWidth: 360, minHeight: 400)
+                #endif
             }
         }
         .sheet(isPresented: $showSetupWizard) {
@@ -466,7 +474,9 @@ struct ContentView: View {
                     }
             }
             .meshTheme()
+            #if os(macOS) || targetEnvironment(macCatalyst)
             .frame(minWidth: 360, minHeight: 500)
+            #endif
         }
         .onAppear {
             requestAutoScanOnce()

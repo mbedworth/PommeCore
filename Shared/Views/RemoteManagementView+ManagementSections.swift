@@ -525,7 +525,7 @@ struct CLITerminalSection: View {
 
 // MARK: - Reusable Row Helpers
 
-func cliInfoRow(icon: String, label: String, value: String) -> some View {
+func cliInfoRow(icon: String, label: LocalizedStringKey, value: String) -> some View {
     HStack {
         Image(systemName: icon)
             .foregroundStyle(MeshTheme.accent)

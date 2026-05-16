@@ -1047,7 +1047,7 @@ struct ClusterDetailView: View {
         }
     }
 
-    private func detailRow(_ label: String, _ value: String) -> some View {
+    private func detailRow(_ label: LocalizedStringKey, _ value: String) -> some View {
         HStack {
             Text(label)
                 .foregroundStyle(MeshTheme.textSecondary)

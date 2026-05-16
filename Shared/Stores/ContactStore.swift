@@ -341,6 +341,16 @@ final class ContactStore {
             self.notifyMode = notifyMode
             self.sound = sound
         }
+
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            id           = try c.decode(UUID.self, forKey: .id)
+            name         = try c.decode(String.self, forKey: .name)
+            emoji        = try c.decodeIfPresent(String.self, forKey: .emoji) ?? ""
+            memberPubkeys = try c.decodeIfPresent([String].self, forKey: .memberPubkeys) ?? []
+            notifyMode   = try c.decodeIfPresent(GroupNotifyMode.self, forKey: .notifyMode) ?? .all
+            sound        = try c.decodeIfPresent(GroupSound.self, forKey: .sound) ?? .default
+        }
     }
 
     func loadContactGroupsFromiCloud() {
