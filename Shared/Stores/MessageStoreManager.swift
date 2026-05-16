@@ -15,6 +15,9 @@ import CryptoKit
 #if os(watchOS)
 import WatchKit
 #endif
+#if os(iOS)
+import Intents
+#endif
 import MeshCoreKit
 
 /// Observable store for messages, ACK tracking, echo detection, drafts, and unread counts.
@@ -938,13 +941,65 @@ final class MessageStoreManager {
         content.badge = NSNumber(value: totalUnread)
 
         DebugLogger.shared.log("NOTIF: posting notification for '\(message.text.prefix(30))'", level: .info)
+
+        #if os(iOS)
+        let finalContent = communicationContent(from: content, message: message, senderName: senderName)
+        #else
+        let finalContent: UNNotificationContent = content
+        #endif
+
         let request = UNNotificationRequest(
             identifier: message.id.uuidString,
-            content: content,
+            content: finalContent,
             trigger: nil
         )
         UNUserNotificationCenter.current().add(request)
     }
+
+    #if os(iOS)
+    private func communicationContent(
+        from content: UNMutableNotificationContent,
+        message: Message,
+        senderName: String?
+    ) -> UNNotificationContent {
+        let name = senderName ?? "Unknown"
+        let keyString: String
+        let speakableGroup: INSpeakableString?
+
+        if let chIdx = message.channelIndex {
+            keyString = "\(name)@ch\(chIdx)"
+            speakableGroup = INSpeakableString(spokenPhrase: content.title)
+        } else {
+            keyString = message.contactKeyHash.hexCompact
+            speakableGroup = nil
+        }
+
+        let handle = INPersonHandle(value: keyString, type: .unknown)
+        let sender = INPerson(
+            personHandle: handle,
+            nameComponents: nil,
+            displayName: name,
+            image: nil,
+            contactIdentifier: nil,
+            customIdentifier: keyString
+        )
+        let intent = INSendMessageIntent(
+            recipients: nil,
+            outgoingMessageType: .outgoingMessageText,
+            content: message.text,
+            speakableGroupName: speakableGroup,
+            conversationIdentifier: content.threadIdentifier,
+            serviceName: nil,
+            sender: sender,
+            attachments: nil
+        )
+        let interaction = INInteraction(intent: intent, response: nil)
+        interaction.direction = .incoming
+        interaction.donate(completion: nil)
+
+        return (try? content.updating(from: intent)) ?? content
+    }
+    #endif
 
     // MARK: - Badge
 

@@ -435,7 +435,7 @@ final class PommeCoreViewModel: ObservableObject {
         let messageCategory = UNNotificationCategory(
             identifier: "MESSAGE_CATEGORY",
             actions: [replyAction],
-            intentIdentifiers: [],
+            intentIdentifiers: ["INSendMessageIntent"],
             hiddenPreviewsBodyPlaceholder: "%u messages",
             categorySummaryFormat: "%u more messages",
             options: []
