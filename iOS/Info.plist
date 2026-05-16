@@ -22,6 +22,8 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>PommeCore shows your location on the mesh map and can include it in your advertisements.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>PommeCore uses your location for the mesh map and to automatically send an emergency beacon if you leave a safe zone.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>PommeCore uses the camera to scan QR codes for importing contacts and channels.</string>
 	<key>NSFaceIDUsageDescription</key>
