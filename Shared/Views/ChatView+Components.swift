@@ -87,7 +87,7 @@ struct MessageBubble: View {
             if message.isOutgoing { Spacer(minLength: 48) }
 
             VStack(alignment: message.isOutgoing ? .trailing : .leading, spacing: 2) {
-                ZStack(alignment: message.isOutgoing ? .bottomTrailing : .bottomLeading) {
+                ZStack(alignment: message.isOutgoing ? .topLeading : .topTrailing) {
                     VStack(alignment: .leading, spacing: 4) {
                         // Quoted text block
                         if let quoted = quotedText {
@@ -119,7 +119,7 @@ struct MessageBubble: View {
                     .clipShape(RoundedRectangle(cornerRadius: 18))
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(bubbleAccessibilityLabel)
-                    .padding(.bottom, message.reactions.isEmpty ? 0 : 14)
+                    .padding(.top, message.reactions.isEmpty ? 0 : 22)
 
                     if !message.reactions.isEmpty {
                         ReactionBadge(reactions: message.reactions)
@@ -349,7 +349,7 @@ struct ChannelMessageBubble: View {
                         .accessibilityAddTraits(.isHeader)
                 }
 
-                ZStack(alignment: message.isOutgoing ? .bottomTrailing : .bottomLeading) {
+                ZStack(alignment: message.isOutgoing ? .topLeading : .topTrailing) {
                     highlightedText
                         .textSelection(.enabled)
                         .padding(.horizontal, 14)
@@ -357,7 +357,7 @@ struct ChannelMessageBubble: View {
                         .background(message.isOutgoing ? MeshTheme.outgoingBubble : MeshTheme.incomingBubble)
                         .foregroundStyle(MeshTheme.textOnAccent)
                         .clipShape(RoundedRectangle(cornerRadius: 18))
-                        .padding(.bottom, message.reactions.isEmpty ? 0 : 14)
+                        .padding(.top, message.reactions.isEmpty ? 0 : 22)
 
                     if !message.reactions.isEmpty {
                         ReactionBadge(reactions: message.reactions)
@@ -476,39 +476,22 @@ struct ChannelMessageBubble: View {
 
 // MARK: - Reaction Badge
 
-private func groupedReactions(_ reactions: [String]) -> [(emoji: String, count: Int)] {
-    var counts: [String: Int] = [:]
-    var order: [String] = []
-    for emoji in reactions {
-        if counts[emoji] == nil { order.append(emoji) }
-        counts[emoji, default: 0] += 1
-    }
-    return order.map { (emoji: $0, count: counts[$0]!) }
-}
-
 private struct ReactionBadge: View {
     let reactions: [String]
 
     var body: some View {
-        let grouped = groupedReactions(reactions)
         HStack(spacing: 4) {
-            ForEach(grouped, id: \.emoji) { group in
-                HStack(spacing: 2) {
-                    Text(group.emoji)
-                        .font(.system(size: 14))
-                    if group.count > 1 {
-                        Text("\(group.count)")
-                            .font(.caption2.weight(.medium))
-                            .foregroundStyle(.secondary)
-                    }
+            ForEach(reactions, id: \.self) { emoji in
+                ZStack {
+                    Circle()
+                        .fill(.regularMaterial)
+                        .shadow(color: .black.opacity(0.18), radius: 3, y: 1)
+                    Text(emoji)
+                        .font(.system(size: 19))
                 }
+                .frame(width: 34, height: 34)
             }
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 3)
-        .background(.background.shadow(.drop(color: .black.opacity(0.12), radius: 2, y: 1)))
-        .clipShape(Capsule())
-        .overlay(Capsule().stroke(Color.primary.opacity(0.1), lineWidth: 0.5))
     }
 }
 
