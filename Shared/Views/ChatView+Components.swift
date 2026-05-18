@@ -361,7 +361,6 @@ struct ChannelMessageBubble: View {
 
                     if !message.reactions.isEmpty {
                         ReactionBadge(reactions: message.reactions)
-                            .accessibilityHidden(true)
                     }
                 }
 
@@ -478,6 +477,8 @@ struct ChannelMessageBubble: View {
 
 private struct ReactionBadge: View {
     let reactions: [String]
+    @ScaledMetric private var circleSize: CGFloat = 34
+    @ScaledMetric private var fontSize: CGFloat = 19
 
     var body: some View {
         HStack(spacing: 4) {
@@ -487,11 +488,13 @@ private struct ReactionBadge: View {
                         .fill(.regularMaterial)
                         .shadow(color: .black.opacity(0.18), radius: 3, y: 1)
                     Text(emoji)
-                        .font(.system(size: 19))
+                        .font(.system(size: fontSize))
                 }
-                .frame(width: 34, height: 34)
+                .frame(width: circleSize, height: circleSize)
             }
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Reactions: \(reactions.joined(separator: ", "))")
     }
 }
 
