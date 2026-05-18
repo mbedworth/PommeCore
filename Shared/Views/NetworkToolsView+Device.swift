@@ -161,7 +161,7 @@ struct PathViewer: View {
                 // Visual path
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 4) {
-                        pathNode("You", color: MeshTheme.interactiveGreen)
+                        pathNode(String(localized: "You"), color: MeshTheme.interactiveGreen)
                         ForEach(Array(hops.enumerated()), id: \.offset) { _, hop in
                             Image(systemName: "arrow.right")
                                 .font(.caption2)
@@ -490,7 +490,7 @@ struct PathDiscoveryResultView: View {
                 label: "To \(contactName)",
                 pathLen: result.outPathLen,
                 pathBytes: result.outPathBytes,
-                fromLabel: "You",
+                fromLabel: String(localized: "You"),
                 toLabel: contactName
             )
 
@@ -499,7 +499,7 @@ struct PathDiscoveryResultView: View {
                 pathLen: result.inPathLen,
                 pathBytes: result.inPathBytes,
                 fromLabel: contactName,
-                toLabel: "You"
+                toLabel: String(localized: "You")
             )
         }
         .padding()

@@ -170,7 +170,7 @@ struct LoSResultsView: View {
 
     // MARK: - Sub-views
 
-    private func statCard(_ label: String, value: String, icon: String, color: Color = MeshTheme.accent) -> some View {
+    private func statCard(_ label: LocalizedStringKey, value: String, icon: String, color: Color = MeshTheme.accent) -> some View {
         HStack(spacing: 8) {
             Image(systemName: icon)
                 .foregroundStyle(color)
@@ -186,7 +186,7 @@ struct LoSResultsView: View {
         }
     }
 
-    private func elevationLabel(_ label: String, elevation: Double, antenna: Double) -> some View {
+    private func elevationLabel(_ label: LocalizedStringKey, elevation: Double, antenna: Double) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(label)
                 .font(.caption2)

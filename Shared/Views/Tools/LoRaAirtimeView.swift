@@ -196,7 +196,7 @@ struct LoRaAirtimeView: View {
         return String(format: "%.1f ms", ms)
     }
 
-    private func paramRow(_ label: String, value: Binding<Int>, unit: String, range: ClosedRange<Int>) -> some View {
+    private func paramRow(_ label: LocalizedStringKey, value: Binding<Int>, unit: LocalizedStringKey, range: ClosedRange<Int>) -> some View {
         HStack {
             Text(label)
                 .foregroundStyle(MeshTheme.accent)
@@ -216,7 +216,7 @@ struct LoRaAirtimeView: View {
         .listRowBackground(MeshTheme.surface)
     }
 
-    private func resultRow(_ label: String, value: String, color: Color = MeshTheme.textSecondary) -> some View {
+    private func resultRow(_ label: LocalizedStringKey, value: String, color: Color = MeshTheme.textSecondary) -> some View {
         HStack {
             Text(label)
                 .foregroundStyle(MeshTheme.accent)

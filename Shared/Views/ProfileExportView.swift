@@ -167,7 +167,7 @@ struct ProfileExportView: View {
         }
     }
 
-    private func previewRow(_ label: String, value: String) -> some View {
+    private func previewRow(_ label: LocalizedStringKey, value: String) -> some View {
         HStack {
             Text(label).foregroundStyle(MeshTheme.accent).font(.subheadline)
             Spacer()

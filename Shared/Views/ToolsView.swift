@@ -173,7 +173,7 @@ struct ToolsView: View {
         }
     }
 
-    private func toolButton(icon: String, title: String, subtitle: String, badge: String? = nil, action: @escaping () -> Void) -> some View {
+    private func toolButton(icon: String, title: LocalizedStringKey, subtitle: LocalizedStringKey, badge: LocalizedStringKey? = nil, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack(spacing: 12) {
                 ZStack {

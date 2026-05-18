@@ -180,7 +180,7 @@ struct SensitivityTableView: View {
         return String(format: "%.0f m", km * 1000)
     }
 
-    private func infoRow(_ label: String, detail: String) -> some View {
+    private func infoRow(_ label: LocalizedStringKey, detail: LocalizedStringKey) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(label)
                 .font(.subheadline.weight(.medium))

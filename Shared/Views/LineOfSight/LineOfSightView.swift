@@ -247,7 +247,7 @@ private struct LoSShareSnapshot: View {
         .foregroundStyle(.white)
     }
 
-    private func statItem(_ label: String, value: String) -> some View {
+    private func statItem(_ label: LocalizedStringKey, value: String) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(label).font(.caption2).foregroundStyle(.secondary)
             Text(value).font(.caption.weight(.medium))

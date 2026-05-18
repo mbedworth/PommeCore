@@ -216,7 +216,7 @@ struct ContactDetailSheet: View {
         }
     }
 
-    private func actionButton(_ title: String, icon: String, pending: Bool, disabled: Bool = false, action: @escaping () -> Void) -> some View {
+    private func actionButton(_ title: LocalizedStringKey, icon: String, pending: Bool, disabled: Bool = false, action: @escaping () -> Void) -> some View {
         let isDisabled = pending || disabled
         return Button(action: action) {
             HStack {

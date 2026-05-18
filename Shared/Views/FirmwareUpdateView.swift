@@ -95,7 +95,7 @@ struct FirmwareUpdateView: View {
 
     // MARK: - Loading
 
-    private func loadingView(_ message: String) -> some View {
+    private func loadingView(_ message: LocalizedStringKey) -> some View {
         VStack(spacing: 16) {
             ProgressView()
                 .controlSize(.large)
@@ -562,7 +562,7 @@ struct FirmwareUpdateView: View {
 
     // MARK: - Reusable layout pieces
 
-    private func stepHeader(icon: String, title: String, subtitle: String) -> some View {
+    private func stepHeader(icon: String, title: LocalizedStringKey, subtitle: LocalizedStringKey) -> some View {
         VStack(spacing: 12) {
             Image(systemName: icon)
                 .font(.system(size: 44))
@@ -580,7 +580,7 @@ struct FirmwareUpdateView: View {
         .padding(.bottom, 8)
     }
 
-    private func instructionCard(number: String, title: String, @ViewBuilder content: () -> some View) -> some View {
+    private func instructionCard(number: String, title: LocalizedStringKey, @ViewBuilder content: () -> some View) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 8) {
                 Text(number)

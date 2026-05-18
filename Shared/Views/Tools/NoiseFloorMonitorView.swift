@@ -136,7 +136,7 @@ struct NoiseFloorMonitorView: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
-    private func statCard(_ label: String, value: String) -> some View {
+    private func statCard(_ label: LocalizedStringKey, value: String) -> some View {
         VStack(spacing: 2) {
             Text(label)
                 .font(.caption2)

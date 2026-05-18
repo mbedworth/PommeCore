@@ -181,7 +181,9 @@ struct ChannelManagementView: View {
         #if !os(watchOS)
         .sheet(item: $channelToShare) { channel in
             ShareChannelSheet(channel: channel)
+                #if os(macOS) || targetEnvironment(macCatalyst)
                 .frame(minWidth: 360, minHeight: 400)
+                #endif
         }
         #endif
         .alert("Rename Channel", isPresented: Binding(

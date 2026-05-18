@@ -137,7 +137,7 @@ struct RadioCalculatorView: View {
         txPowerDBm = Double(deviceConfig.radioTXPower)
     }
 
-    private func paramRow(_ label: String, value: Binding<Double>, unit: String, range: ClosedRange<Double>) -> some View {
+    private func paramRow(_ label: LocalizedStringKey, value: Binding<Double>, unit: LocalizedStringKey, range: ClosedRange<Double>) -> some View {
         HStack {
             Text(label)
                 .foregroundStyle(MeshTheme.accent)
@@ -157,7 +157,7 @@ struct RadioCalculatorView: View {
         .listRowBackground(MeshTheme.surface)
     }
 
-    private func resultRow(_ label: String, value: String, color: Color = MeshTheme.textSecondary) -> some View {
+    private func resultRow(_ label: LocalizedStringKey, value: String, color: Color = MeshTheme.textSecondary) -> some View {
         HStack {
             Text(label)
                 .foregroundStyle(MeshTheme.accent)

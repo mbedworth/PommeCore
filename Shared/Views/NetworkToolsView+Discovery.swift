@@ -303,7 +303,7 @@ struct TraceRouteResultView: View {
             } else {
                 VStack(spacing: 0) {
                     // Local device
-                    traceNode(name: connectionManager.connectedDeviceName ?? "Local", isFirst: true, isLast: false, snr: nil)
+                    traceNode(name: connectionManager.connectedDeviceName ?? String(localized: "Local"), isFirst: true, isLast: false, snr: nil)
 
                     ForEach(Array(result.hops.enumerated()), id: \.element.id) { index, hop in
                         traceLine(snr: hop.snr)
@@ -389,7 +389,7 @@ struct StatusInfoView: View {
         return String(format: "%.2fV", Double(mv) / 1000.0)
     }
 
-    private func statusRow(icon: String, label: String, value: String, color: Color = MeshTheme.accent) -> some View {
+    private func statusRow(icon: String, label: LocalizedStringKey, value: String, color: Color = MeshTheme.accent) -> some View {
         HStack {
             Image(systemName: icon)
                 .foregroundStyle(color)

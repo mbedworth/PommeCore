@@ -540,7 +540,7 @@ func cliInfoRow(icon: String, label: LocalizedStringKey, value: String) -> some 
 }
 
 /// Reusable button row for CLI command actions in remote management.
-func cliEditRow(icon: String, label: String, text: Binding<String>, current: String?) -> some View {
+func cliEditRow(icon: String, label: LocalizedStringKey, text: Binding<String>, current: String?) -> some View {
     HStack {
         Image(systemName: icon)
             .foregroundStyle(MeshTheme.accent)
