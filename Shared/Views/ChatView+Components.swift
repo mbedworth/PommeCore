@@ -87,30 +87,31 @@ struct MessageBubble: View {
             if message.isOutgoing { Spacer(minLength: 48) }
 
             VStack(alignment: message.isOutgoing ? .trailing : .leading, spacing: 2) {
-                VStack(alignment: .leading, spacing: 4) {
-                    // Quoted text block
-                    if let quoted = quotedText {
-                        HStack(spacing: 6) {
-                            Rectangle()
-                                .fill(MeshTheme.accent.opacity(0.6))
-                                .frame(width: 2)
-                            Text(quoted)
-                                .font(.caption)
-                                .foregroundStyle(MeshTheme.textOnAccent.opacity(0.7))
-                                .lineLimit(2)
+                ZStack(alignment: message.isOutgoing ? .bottomTrailing : .bottomLeading) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        // Quoted text block
+                        if let quoted = quotedText {
+                            HStack(spacing: 6) {
+                                Rectangle()
+                                    .fill(MeshTheme.accent.opacity(0.6))
+                                    .frame(width: 2)
+                                Text(quoted)
+                                    .font(.caption)
+                                    .foregroundStyle(MeshTheme.textOnAccent.opacity(0.7))
+                                    .lineLimit(2)
+                            }
+                            .padding(.bottom, 2)
+                            .accessibilityLabel("Quoted: \(quoted)")
                         }
-                        .padding(.bottom, 2)
-                        .accessibilityLabel("Quoted: \(quoted)")
-                    }
-                    // Message text
-                    linkifyMeshcoreURLs(quotedText != nil ? replyText : message.text)
-                        .textSelection(.enabled)
+                        // Message text
+                        linkifyMeshcoreURLs(quotedText != nil ? replyText : message.text)
+                            .textSelection(.enabled)
 
-                    // Link preview
-                    if let meta = linkMetadata, meta.title != nil {
-                        LinkPreviewCard(metadata: meta)
+                        // Link preview
+                        if let meta = linkMetadata, meta.title != nil {
+                            LinkPreviewCard(metadata: meta)
+                        }
                     }
-                }
                     .padding(.horizontal, 14)
                     .padding(.vertical, 9)
                     .background(message.isOutgoing ? MeshTheme.outgoingBubble : MeshTheme.incomingBubble)
@@ -118,20 +119,12 @@ struct MessageBubble: View {
                     .clipShape(RoundedRectangle(cornerRadius: 18))
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(bubbleAccessibilityLabel)
+                    .padding(.bottom, message.reactions.isEmpty ? 0 : 14)
 
-                // Reactions display (hidden from accessibility — included in bubble label above)
-                if !message.reactions.isEmpty {
-                    HStack(spacing: 2) {
-                        ForEach(message.reactions, id: \.self) { emoji in
-                            Text(emoji)
-                                .font(.caption)
-                        }
+                    if !message.reactions.isEmpty {
+                        ReactionBadge(reactions: message.reactions)
+                            .accessibilityHidden(true)
                     }
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 2)
-                    .background(MeshTheme.surfaceLight)
-                    .clipShape(Capsule())
-                    .accessibilityHidden(true)
                 }
 
                 HStack(spacing: 4) {
@@ -356,13 +349,21 @@ struct ChannelMessageBubble: View {
                         .accessibilityAddTraits(.isHeader)
                 }
 
-                highlightedText
-                    .textSelection(.enabled)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 9)
-                    .background(message.isOutgoing ? MeshTheme.outgoingBubble : MeshTheme.incomingBubble)
-                    .foregroundStyle(MeshTheme.textOnAccent)
-                    .clipShape(RoundedRectangle(cornerRadius: 18))
+                ZStack(alignment: message.isOutgoing ? .bottomTrailing : .bottomLeading) {
+                    highlightedText
+                        .textSelection(.enabled)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 9)
+                        .background(message.isOutgoing ? MeshTheme.outgoingBubble : MeshTheme.incomingBubble)
+                        .foregroundStyle(MeshTheme.textOnAccent)
+                        .clipShape(RoundedRectangle(cornerRadius: 18))
+                        .padding(.bottom, message.reactions.isEmpty ? 0 : 14)
+
+                    if !message.reactions.isEmpty {
+                        ReactionBadge(reactions: message.reactions)
+                            .accessibilityHidden(true)
+                    }
+                }
 
                 HStack(spacing: 4) {
                     Text(message.timestamp, style: .time)
@@ -470,6 +471,44 @@ struct ChannelMessageBubble: View {
 
             if !message.isOutgoing { Spacer(minLength: 48) }
         }
+    }
+}
+
+// MARK: - Reaction Badge
+
+private func groupedReactions(_ reactions: [String]) -> [(emoji: String, count: Int)] {
+    var counts: [String: Int] = [:]
+    var order: [String] = []
+    for emoji in reactions {
+        if counts[emoji] == nil { order.append(emoji) }
+        counts[emoji, default: 0] += 1
+    }
+    return order.map { (emoji: $0, count: counts[$0]!) }
+}
+
+private struct ReactionBadge: View {
+    let reactions: [String]
+
+    var body: some View {
+        let grouped = groupedReactions(reactions)
+        HStack(spacing: 4) {
+            ForEach(grouped, id: \.emoji) { group in
+                HStack(spacing: 2) {
+                    Text(group.emoji)
+                        .font(.system(size: 14))
+                    if group.count > 1 {
+                        Text("\(group.count)")
+                            .font(.caption2.weight(.medium))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 3)
+        .background(.background.shadow(.drop(color: .black.opacity(0.12), radius: 2, y: 1)))
+        .clipShape(Capsule())
+        .overlay(Capsule().stroke(Color.primary.opacity(0.1), lineWidth: 0.5))
     }
 }
 

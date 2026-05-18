@@ -307,6 +307,26 @@ final class PhoneWatchRelay: NSObject {
             sendContacts()
             sendChannels()
             sendAllUnreadMessages()
+
+        case .sendReaction:
+            guard let emoji = payload.emoji,
+                  let msgIDString = payload.messageID,
+                  let msgID = UUID(uuidString: msgIDString) else { return }
+
+            if let chIdx = payload.channelIndex {
+                let chKey = Data([chIdx])
+                guard let msg = messageStoreManager?.messagesByContact[chKey]?.first(where: { $0.id == msgID }) else { return }
+                let hash = messageStoreManager?.reactionHash(for: msg) ?? ""
+                let sender = msg.senderName ?? ""
+                let reactionText = "\(emoji)@[\(sender)]\n\(hash)"
+                messageStoreManager?.sendChannelMessage(reactionText, channelIndex: chIdx)
+                messageStoreManager?.addReactionLocal(emoji, to: msg)
+            } else {
+                guard let keyHex = payload.contactKeyHex,
+                      let keyData = Data(hexString: keyHex),
+                      let msg = messageStoreManager?.messagesByContact[Data(keyData.prefix(6))]?.first(where: { $0.id == msgID }) else { return }
+                messageStoreManager?.addReaction(emoji, to: msg)
+            }
         }
     }
 
@@ -322,7 +342,8 @@ final class PhoneWatchRelay: NSObject {
             statusRaw: message.status.rawValue,
             senderName: message.senderName,
             channelIndex: message.channelIndex,
-            hops: message.hops
+            hops: message.hops,
+            reactions: message.reactions
         )
     }
 
