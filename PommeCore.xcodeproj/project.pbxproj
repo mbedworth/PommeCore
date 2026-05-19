@@ -30,6 +30,9 @@
 		0F29C3E12F84863E0007BF08 /* LineOfSight/MapPointPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3CF2F84863E0007BF08 /* LineOfSight/MapPointPickerView.swift */; };
 		0F29C3E22F84863E0007BF08 /* LineOfSight/TerrainProfileRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3D32F84863E0007BF08 /* LineOfSight/TerrainProfileRenderer.swift */; };
 		0F29C3E32F84863E0007BF08 /* LineOfSight/PointSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F29C3D02F84863E0007BF08 /* LineOfSight/PointSelectionView.swift */; };
+		0F4DF12F2FBC9B1500C86067 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0FE18A6F2F9F8D890026F570 /* WidgetKit.framework */; };
+		0F4DF1302FBC9B1500C86067 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0FE18A712F9F8D890026F570 /* SwiftUI.framework */; };
+		0F4DF13B2FBC9B1600C86067 /* PommeCore Watch ComplicationsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 0F4DF12E2FBC9B1500C86067 /* PommeCore Watch ComplicationsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		0F4E79552F9561C200307C73 /* PhoneWatchRelay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F4E794D2F9561C200307C73 /* PhoneWatchRelay.swift */; };
 		0F4E795B2F9561C200307C73 /* PhoneWatchRelay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F4E794D2F9561C200307C73 /* PhoneWatchRelay.swift */; };
 		0F4E79612F9561C200307C73 /* PhoneWatchRelay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F4E794D2F9561C200307C73 /* PhoneWatchRelay.swift */; };
@@ -76,6 +79,7 @@
 		226CDDBC8386695737648451 /* WatchUnlockManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4226DA6FB1C6225C757D16 /* WatchUnlockManager.swift */; };
 		25A8570F11FD411695EC9FA1 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = E09A1F63605E4CA4ACDE7634 /* InfoPlist.xcstrings */; };
 		2788FD0DCD0BC3A0F8CD181E /* PommeCoreWatchKit in Frameworks */ = {isa = PBXBuildFile; productRef = 1E5A005D1D2DDDBEDF24D906 /* PommeCoreWatchKit */; };
+		51D64F6D9CCF4631964837F7 /* PommeCoreWatchKit in Frameworks */ = {isa = PBXBuildFile; productRef = 8CC2BDE5B5C64000B482D33C /* PommeCoreWatchKit */; };
 		3749B94D818310AD5ACF3B87 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EFFE2BF3488F0C0647632CD /* ChatView.swift */; };
 		381E1F98C45D43E2D7BD8819 /* RadioPreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E616344CEDCD1ADC41548B7 /* RadioPreset.swift */; };
 		3B5A0845138A331E632F1FA8 /* NodeSetupWizardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86334BBA19C5E5E981032313 /* NodeSetupWizardView.swift */; };
@@ -208,6 +212,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		0F4DF1392FBC9B1600C86067 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 39C1FC83BC1898F5DF01B1DF /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0F4DF12D2FBC9B1500C86067;
+			remoteInfo = "PommeCore Watch ComplicationsExtension";
+		};
 		0F4E796C2F95665A00307C73 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 39C1FC83BC1898F5DF01B1DF /* Project object */;
@@ -225,6 +236,17 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		0F4DF13C2FBC9B1600C86067 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				0F4DF13B2FBC9B1600C86067 /* PommeCore Watch ComplicationsExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		0F4E796E2F95669000307C73 /* Embed Watch Content */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -261,6 +283,7 @@
 		0F29C3D12F84863E0007BF08 /* LineOfSight/RepeaterConfigView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineOfSight/RepeaterConfigView.swift; sourceTree = "<group>"; };
 		0F29C3D22F84863E0007BF08 /* LineOfSight/TerrainProfileCanvas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineOfSight/TerrainProfileCanvas.swift; sourceTree = "<group>"; };
 		0F29C3D32F84863E0007BF08 /* LineOfSight/TerrainProfileRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineOfSight/TerrainProfileRenderer.swift; sourceTree = "<group>"; };
+		0F4DF12E2FBC9B1500C86067 /* PommeCore Watch ComplicationsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "PommeCore Watch ComplicationsExtension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0F4E794D2F9561C200307C73 /* PhoneWatchRelay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneWatchRelay.swift; sourceTree = "<group>"; };
 		0F4E796A2F95627900307C73 /* WatchConnectivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WatchConnectivity.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.4.sdk/System/Library/Frameworks/WatchConnectivity.framework; sourceTree = DEVELOPER_DIR; };
 		0FA47C6D2FA01D8200E1A2E8 /* RadioStatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RadioStatsView.swift; sourceTree = "<group>"; };
@@ -353,6 +376,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		0F4DF13F2FBC9B1600C86067 /* Exceptions for "PommeCore Watch Complications" folder in "PommeCore Watch ComplicationsExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 0F4DF12D2FBC9B1500C86067 /* PommeCore Watch ComplicationsExtension */;
+		};
 		0FE18A872F9F8D8A0026F570 /* Exceptions for "PommeCore Widgets" folder in "PommeCore WidgetsExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -363,6 +393,14 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		0F4DF1312FBC9B1500C86067 /* PommeCore Watch Complications */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				0F4DF13F2FBC9B1600C86067 /* Exceptions for "PommeCore Watch Complications" folder in "PommeCore Watch ComplicationsExtension" target */,
+			);
+			path = "PommeCore Watch Complications";
+			sourceTree = "<group>";
+		};
 		0FE18A732F9F8D890026F570 /* PommeCore Widgets */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -388,6 +426,16 @@
 			files = (
 				65CD1325656C00EAA6EB6050 /* MeshCoreKit in Frameworks */,
 				AB260A4EA04F5F33D19AC37C /* PommeCoreWatchKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0F4DF12B2FBC9B1500C86067 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				51D64F6D9CCF4631964837F7 /* PommeCoreWatchKit in Frameworks */,
+				0F4DF1302FBC9B1500C86067 /* SwiftUI.framework in Frameworks */,
+				0F4DF12F2FBC9B1500C86067 /* WidgetKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -420,6 +468,7 @@
 				E0B34F245C5063D4BCB4E068 /* Shared */,
 				37FFAEFD4E59AD6A0C20CC49 /* Views */,
 				0FE18A732F9F8D890026F570 /* PommeCore Widgets */,
+				0F4DF1312FBC9B1500C86067 /* PommeCore Watch Complications */,
 				725951214897A58A06E32F73 /* Products */,
 				635B414AA8FC75B37367C7F5 /* PrivacyInfo.xcprivacy */,
 				2EEF439B8EDC4A5408C299FB /* PrivacyInfo.xcprivacy */,
@@ -569,6 +618,7 @@
 				D4F0BB9B2578DD9861508E3D /* PommeCore Watch.app */,
 				AE9677D40F85F6D31BD8C43C /* PommeCore.app */,
 				0FE18A6E2F9F8D890026F570 /* PommeCore WidgetsExtension.appex */,
+				0F4DF12E2FBC9B1500C86067 /* PommeCore Watch ComplicationsExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -636,6 +686,29 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		0F4DF12D2FBC9B1500C86067 /* PommeCore Watch ComplicationsExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0F4DF1402FBC9B1600C86067 /* Build configuration list for PBXNativeTarget "PommeCore Watch ComplicationsExtension" */;
+			buildPhases = (
+				0F4DF12A2FBC9B1500C86067 /* Sources */,
+				0F4DF12B2FBC9B1500C86067 /* Frameworks */,
+				0F4DF12C2FBC9B1500C86067 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				0F4DF1312FBC9B1500C86067 /* PommeCore Watch Complications */,
+			);
+			name = "PommeCore Watch ComplicationsExtension";
+			packageProductDependencies = (
+				8CC2BDE5B5C64000B482D33C /* PommeCoreWatchKit */,
+			);
+			productName = "PommeCore Watch ComplicationsExtension";
+			productReference = 0F4DF12E2FBC9B1500C86067 /* PommeCore Watch ComplicationsExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		0FE18A6D2F9F8D890026F570 /* PommeCore WidgetsExtension */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 0FE18A882F9F8D8A0026F570 /* Build configuration list for PBXNativeTarget "PommeCore WidgetsExtension" */;
@@ -665,10 +738,12 @@
 				1A36517EFEF3C6F3C6906299 /* Sources */,
 				13C5BF9BB711189ADA35FA66 /* Resources */,
 				0C6A3482560C520BD85FB5DD /* Frameworks */,
+				0F4DF13C2FBC9B1600C86067 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				0F4DF13A2FBC9B1600C86067 /* PBXTargetDependency */,
 			);
 			name = "PommeCore-watchOS";
 			packageProductDependencies = (
@@ -731,9 +806,13 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastSwiftUpdateCheck = 2640;
+				LastSwiftUpdateCheck = 2650;
 				LastUpgradeCheck = 2640;
 				TargetAttributes = {
+					0F4DF12D2FBC9B1500C86067 = {
+						CreatedOnToolsVersion = 26.5;
+						LastSwiftMigration = 2650;
+					};
 					0FE18A6D2F9F8D890026F570 = {
 						CreatedOnToolsVersion = 26.4.1;
 					};
@@ -772,11 +851,19 @@
 				AA195D714F62714D80CDB676 /* PommeCore-macOS */,
 				2F42371944647533B91A5720 /* PommeCore-watchOS */,
 				0FE18A6D2F9F8D890026F570 /* PommeCore WidgetsExtension */,
+				0F4DF12D2FBC9B1500C86067 /* PommeCore Watch ComplicationsExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		0F4DF12C2FBC9B1500C86067 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		0FE18A6C2F9F8D890026F570 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -825,6 +912,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		0F4DF12A2FBC9B1500C86067 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		0FE18A6A2F9F8D890026F570 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1027,6 +1121,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		0F4DF13A2FBC9B1600C86067 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0F4DF12D2FBC9B1500C86067 /* PommeCore Watch ComplicationsExtension */;
+			targetProxy = 0F4DF1392FBC9B1600C86067 /* PBXContainerItemProxy */;
+		};
 		0F4E796D2F95665A00307C73 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 2F42371944647533B91A5720 /* PommeCore-watchOS */;
@@ -1125,6 +1224,93 @@
 			};
 			name = Release;
 		};
+		0F4DF13D2FBC9B1600C86067 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = "PommeCore Watch Complications/PommeCore_Watch_Complications.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 11;
+				DEVELOPMENT_TEAM = 7R925EW7AT;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "PommeCore Watch Complications/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "PommeCore Watch Complications";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 26.05.1;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.mbedworth.meshcore.watchos.PommeCore-Watch-Complications";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 11.0;
+			};
+			name = Debug;
+		};
+		0F4DF13E2FBC9B1600C86067 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = "PommeCore Watch Complications/PommeCore_Watch_Complications.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 11;
+				DEVELOPMENT_TEAM = 7R925EW7AT;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "PommeCore Watch Complications/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "PommeCore Watch Complications";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 26.05.1;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.mbedworth.meshcore.watchos.PommeCore-Watch-Complications";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 11.0;
+			};
+			name = Release;
+		};
 		0FE18A852F9F8D8A0026F570 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1211,6 +1397,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = WatchAppIcon;
+				CODE_SIGN_ENTITLEMENTS = watchOS/PommeCore-watchOS.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 11;
@@ -1375,6 +1562,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = WatchAppIcon;
+				CODE_SIGN_ENTITLEMENTS = watchOS/PommeCore-watchOS.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 11;
@@ -1396,6 +1584,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		0F4DF1402FBC9B1600C86067 /* Build configuration list for PBXNativeTarget "PommeCore Watch ComplicationsExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0F4DF13D2FBC9B1600C86067 /* Debug */,
+				0F4DF13E2FBC9B1600C86067 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		0FE18A882F9F8D8A0026F570 /* Build configuration list for PBXNativeTarget "PommeCore WidgetsExtension" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -1463,6 +1660,11 @@
 
 /* Begin XCSwiftPackageProductDependency section */
 		1E5A005D1D2DDDBEDF24D906 /* PommeCoreWatchKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 13EC7F350736068E7DB3A809 /* XCRemoteSwiftPackageReference "PommeCoreWatchKit" */;
+			productName = PommeCoreWatchKit;
+		};
+		8CC2BDE5B5C64000B482D33C /* PommeCoreWatchKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 13EC7F350736068E7DB3A809 /* XCRemoteSwiftPackageReference "PommeCoreWatchKit" */;
 			productName = PommeCoreWatchKit;

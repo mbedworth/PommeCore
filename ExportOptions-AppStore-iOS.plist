@@ -22,6 +22,8 @@
         <string>PommeCore Watch App Store</string>
         <key>com.mbedworth.meshcore.PommeCore-Widgets</key>
         <string>PommeCore Widgets App Store</string>
+        <key>com.mbedworth.meshcore.watchos.PommeCore-Watch-Complications</key>
+        <string>PommeCore Watch Complications App Store</string>
     </dict>
 </dict>
 </plist>
