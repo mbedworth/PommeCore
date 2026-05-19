@@ -402,17 +402,6 @@ struct StatusInfoView: View {
         }
     }
 
-    private func formatUptime(_ seconds: UInt32) -> String {
-        let d = seconds / 86400
-        let h = (seconds % 86400) / 3600
-        let m = (seconds % 3600) / 60
-        let s = seconds % 60
-        if d > 0 { return "\(d)d \(h)h \(m)m" }
-        if h > 0 { return "\(h)h \(m)m \(s)s" }
-        if m > 0 { return "\(m)m \(s)s" }
-        return "\(s)s"
-    }
-
     private func batteryIconName(for pct: Int) -> String {
         if pct > 75 { return "battery.100" }
         if pct > 50 { return "battery.75" }

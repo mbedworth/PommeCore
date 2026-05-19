@@ -24,4 +24,16 @@ struct RadioProfile: Codable, Identifiable {
         self.savedAt = Date()
         self.config = config
     }
+
+}
+
+extension RadioProfile {
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
+        name = try c.decodeIfPresent(String.self, forKey: .name) ?? ""
+        regionTag = try c.decodeIfPresent(String.self, forKey: .regionTag)
+        savedAt = try c.decodeIfPresent(Date.self, forKey: .savedAt) ?? Date()
+        config = try c.decode(MeshProfileExport.self, forKey: .config)
+    }
 }

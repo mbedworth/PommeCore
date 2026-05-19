@@ -196,8 +196,9 @@ final class RFMonitorStore {
     private func scheduleCoverageSave() {
         guard !coverageSavePending else { return }
         coverageSavePending = true
-        Task { @MainActor in
+        Task { @MainActor [weak self] in
             try? await Task.sleep(nanoseconds: 10_000_000_000) // batch saves every 10s
+            guard let self else { return }
             self.coverageSavePending = false
             self.saveCoveragePoints()
         }
@@ -308,8 +309,9 @@ final class RFMonitorStore {
     private func scheduleSave() {
         guard !savePending else { return }
         savePending = true
-        Task { @MainActor in
+        Task { @MainActor [weak self] in
             try? await Task.sleep(nanoseconds: 5_000_000_000) // batch saves every 5s
+            guard let self else { return }
             self.savePending = false
             self.saveTelemetryHistory()
         }

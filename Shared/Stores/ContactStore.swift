@@ -314,6 +314,11 @@ final class ContactStore {
         case all = "All Messages"
         case priority = "Priority"
         case muted = "Muted"
+
+        init(from decoder: Decoder) throws {
+            let raw = try decoder.singleValueContainer().decode(String.self)
+            self = GroupNotifyMode(rawValue: raw) ?? .all
+        }
     }
 
     enum GroupSound: String, Codable, CaseIterable {
@@ -322,6 +327,11 @@ final class ContactStore {
         case pulse = "Pulse"
         case alert = "Alert"
         case none = "None"
+
+        init(from decoder: Decoder) throws {
+            let raw = try decoder.singleValueContainer().decode(String.self)
+            self = GroupSound(rawValue: raw) ?? .default
+        }
     }
 
     struct ContactGroup: Codable, Identifiable {

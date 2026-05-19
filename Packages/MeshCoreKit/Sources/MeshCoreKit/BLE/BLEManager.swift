@@ -602,7 +602,9 @@ extension BLEManager: CBCentralManagerDelegate {
 
             DispatchQueue.main.async {
                 self.connectionState = .disconnected
-                self.connectedPeripheral = nil
+                // Keep connectedPeripheral on exhausted reconnect so scan+didDiscover can auto-reconnect.
+                // Only clear on user-initiated disconnect (isUnexpected == false).
+                if !isUnexpected { self.connectedPeripheral = nil }
                 self.connectedDeviceName = nil
             }
 

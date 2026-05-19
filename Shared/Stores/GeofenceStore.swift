@@ -38,6 +38,18 @@ struct SafeZone: Identifiable, Codable, Sendable {
     }
 }
 
+extension SafeZone {
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
+        name = try c.decodeIfPresent(String.self, forKey: .name) ?? ""
+        latitude = try c.decodeIfPresent(Double.self, forKey: .latitude) ?? 0
+        longitude = try c.decodeIfPresent(Double.self, forKey: .longitude) ?? 0
+        radiusMeters = try c.decodeIfPresent(Double.self, forKey: .radiusMeters) ?? 500
+        isEnabled = try c.decodeIfPresent(Bool.self, forKey: .isEnabled) ?? true
+    }
+}
+
 // MARK: - CLLocationManagerDelegate (NSObject subclass — separate from @Observable store)
 
 private final class GeofenceDelegate: NSObject, CLLocationManagerDelegate {

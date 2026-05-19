@@ -457,9 +457,7 @@ final class ConnectionManager {
         locationUpdateTimer?.invalidate()
         setLocationFromPhoneGPS()
         locationUpdateTimer = Timer.scheduledTimer(withTimeInterval: TimeInterval(interval), repeats: true) { [weak self] _ in
-            Task { @MainActor in
-                self?.setLocationFromPhoneGPS()
-            }
+            Task { @MainActor [weak self] in self?.setLocationFromPhoneGPS() }
         }
         DebugLogger.shared.log("PHONE GPS: auto-update every \(interval / 60)min", level: .info)
     }

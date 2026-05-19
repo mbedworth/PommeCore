@@ -26,8 +26,8 @@ final class WatchUnlockManager: ObservableObject {
     private var updateTask: Task<Void, Never>?
 
     private init() {
-        Task { await refresh() }
-        updateTask = Task { await listenForTransactionUpdates() }
+        Task { @MainActor in await self.refresh() }
+        updateTask = Task { @MainActor in await self.listenForTransactionUpdates() }
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(iCloudDidChange),

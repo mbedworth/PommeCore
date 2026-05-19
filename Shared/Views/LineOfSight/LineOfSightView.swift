@@ -151,7 +151,7 @@ struct LineOfSightView: View {
             }
             .animation(.easeInOut, value: showCopiedFeedback)
         }
-        #if os(macOS)
+        #if os(macOS) || targetEnvironment(macCatalyst)
         .frame(minWidth: 500, minHeight: 600)
         #endif
     }

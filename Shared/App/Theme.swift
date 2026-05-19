@@ -340,9 +340,9 @@ struct LinearProgressBar: View {
 /// Reusable copy-to-clipboard button with timed "Copied!" feedback and consistent styling.
 struct CopyButton: View {
     let text: String
-    let label: String
+    let label: LocalizedStringKey
     let icon: String
-    var copiedLabel: String = "Copied!"
+    var copiedLabel: LocalizedStringKey = "Copied!"
     var copiedIcon: String = "checkmark"
     @State private var copied = false
 
@@ -387,7 +387,7 @@ struct LabelValueRow: View {
 
 /// Reusable lat/lon text field row for List/Form contexts.
 struct CoordinateInputField: View {
-    let label: String
+    let label: LocalizedStringKey
     let placeholder: String
     @Binding var text: String
     var onChange: (() -> Void)? = nil
@@ -450,6 +450,16 @@ func formatCoordinate(_ value: Double) -> String {
     String(format: "%.6f", value)
 }
 
+func formatUptime(_ seconds: UInt32) -> String {
+    guard seconds > 0 else { return "—" }
+    let s = Int(seconds)
+    let d = s / 86400; let h = (s % 86400) / 3600; let m = (s % 3600) / 60
+    if d > 0 { return "\(d)d \(h)h \(m)m" }
+    if h > 0 { return "\(h)h \(m)m" }
+    if m > 0 { return "\(m)m \(s % 60)s" }
+    return "\(s % 60)s"
+}
+
 func formatDuration(_ ms: Double) -> String {
     if ms >= 1000 {
         return String(format: "%.2f s", ms / 1000)
@@ -466,7 +476,7 @@ enum SaveButtonState {
 
 struct SaveButton: View {
     let state: SaveButtonState
-    let label: String
+    let label: LocalizedStringKey
     let action: () -> Void
 
     var body: some View {
@@ -600,7 +610,7 @@ struct SectionInfoHeader: View {
 
 struct CLICommandButton: View {
     let icon: String
-    let label: String
+    let label: LocalizedStringKey
     var color: Color = MeshTheme.accent
     let action: () -> Void
 
@@ -629,7 +639,7 @@ struct CLICommandButton: View {
 
 struct CLIToggleRow: View {
     let icon: String
-    let label: String
+    let label: LocalizedStringKey
     let settingKey: String
     let onCommand: String
     let offCommand: String

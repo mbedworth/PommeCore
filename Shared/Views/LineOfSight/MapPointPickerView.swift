@@ -60,7 +60,7 @@ struct MapPointPickerView: View {
                 }
             }
         }
-        #if os(macOS)
+        #if os(macOS) || targetEnvironment(macCatalyst)
         .frame(minWidth: 600, idealWidth: 800, minHeight: 500, idealHeight: 600)
         #endif
         .onAppear {

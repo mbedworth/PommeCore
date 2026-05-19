@@ -386,13 +386,6 @@ final class MessageStoreManager {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
 
-        let frame = MeshCoreProtocol.buildSendTextMessage(
-            text: trimmed,
-            recipientKeyHash: contact.publicKeyPrefix,
-            txtType: 0
-        )
-        sendCommand?(frame, "SEND_ROOM_TXT")
-
         let outgoing = Message(
             contactKeyHash: contact.publicKeyPrefix,
             text: trimmed,
@@ -402,12 +395,22 @@ final class MessageStoreManager {
         )
         messagesByContact[contact.publicKeyPrefix, default: []].append(outgoing)
         persistMessages(for: contact.publicKeyPrefix)
+
+        let frame = MeshCoreProtocol.buildSendTextMessage(
+            text: trimmed,
+            recipientKeyHash: contact.publicKeyPrefix,
+            txtType: 0
+        )
+        sendCommand?(frame, "SEND_ROOM_TXT")
     }
 
     func syncNextMessage() {
         isSyncingMessages = true
         sendCommand?(MeshCoreProtocol.buildSyncNextMessage(), "SYNC_NEXT_MSG")
     }
+
+    private let maxDirectRetries: UInt8 = 2  // 1 initial send + 1 retry before flooding
+    private let maxFloodRetries: UInt8 = 2
 
     // MARK: - ACK Handling
 
@@ -476,8 +479,6 @@ final class MessageStoreManager {
         let message = messages[idx]
         let autoRetry = UserDefaults.standard.bool(forKey: "autoRetry")
         let autoResetPath = UserDefaults.standard.bool(forKey: "autoResetPath")
-        let maxDirectRetries: UInt8 = 2  // 1 initial send + 1 retry before flooding
-        let maxFloodRetries: UInt8 = 2
 
         // Phase 1: Direct path retries
         if !message.didResetPath && message.attempt < maxDirectRetries - 1 {
@@ -806,8 +807,7 @@ final class MessageStoreManager {
     // MARK: - iCloud Message Sync
 
     func syncMessagesToiCloud(for contactKeyHash: Data) {
-        guard UserDefaults.standard.object(forKey: "iCloudSyncEnabled") == nil
-                || UserDefaults.standard.bool(forKey: "iCloudSyncEnabled") else { return }
+        guard iCloudSyncEnabled else { return }
         let radioKey = radioPublicKeyHexProvider?() ?? ""
         guard !radioKey.isEmpty else { return }
 

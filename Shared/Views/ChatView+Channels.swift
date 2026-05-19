@@ -31,6 +31,7 @@ struct ChannelChatView: View {
     @State private var mentionQuery: String?
     @State private var notifyMode: String = "all"
     @State private var showChannelDetail = false
+    @State private var showLocationUnavailableAlert = false
 
     private let maxMessageLength = 160
 
@@ -108,6 +109,11 @@ struct ChannelChatView: View {
             if let sender = notification.object as? String {
                 messageText += "@\(sender) "
             }
+        }
+        .alert("Location Unavailable", isPresented: $showLocationUnavailableAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Your location could not be determined. Enable Location Services for PommeCore in Settings.")
         }
     }
 
@@ -315,7 +321,7 @@ struct ChannelChatView: View {
 
     private func sendLocationToChannel() {
         guard let location = SharedLocation.manager.location else {
-            DebugLogger.shared.log("LOCATION: unavailable for channel send", level: .warning)
+            showLocationUnavailableAlert = true
             return
         }
         let (fLat, fLon) = PommeCoreViewModel.fudgeLocation(lat: location.coordinate.latitude, lon: location.coordinate.longitude)
@@ -421,18 +427,6 @@ struct RoomChatView: View {
             #endif
             ToolbarItem(placement: .automatic) {
                 if isLoggedIn, permission.canRead {
-                    #if os(watchOS)
-                    NavigationLink {
-                        RemoteManagementView(
-                            contact: contact,
-                            session: session
-                        )
-                        .environmentObject(viewModel)
-                    } label: {
-                        Image(systemName: "wrench.and.screwdriver")
-                            .foregroundStyle(remoteAccent)
-                    }
-                    #else
                     Button {
                         showManagement = true
                     } label: {
@@ -440,7 +434,6 @@ struct RoomChatView: View {
                             .foregroundStyle(remoteAccent)
                     }
                     .help("Remote Management — \(contactStore.displayName(for: contact))")
-                    #endif
                 }
             }
         }

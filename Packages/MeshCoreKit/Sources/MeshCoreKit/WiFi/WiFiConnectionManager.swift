@@ -82,8 +82,10 @@ public final class WiFiConnectionManager: ObservableObject {
             conn?.cancel()
             self?.readBuffer = Data()
         }
-        isConnected = false
-        connectedHost = nil
+        DispatchQueue.main.async {
+            self.isConnected = false
+            self.connectedHost = nil
+        }
     }
 
     // MARK: - Internal TCP lifecycle

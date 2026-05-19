@@ -30,7 +30,7 @@ struct RadioStatsView: View {
                         color: noiseFloorColor)
                 statRow("Last RSSI", value: "\(deviceConfig.statsLastRSSI) dBm",
                         color: rssiColor)
-                statRow("Last SNR", value: formatSNRValue(deviceConfig.statsLastSNR),
+                statRow("Last SNR", value: formatSNR(deviceConfig.statsLastSNR),
                         color: snrColor)
                 statRow("TX Airtime", value: formatUptime(deviceConfig.statsTXAirtime))
                 statRow("RX Airtime", value: formatUptime(deviceConfig.statsRXAirtime))
@@ -131,20 +131,6 @@ struct RadioStatsView: View {
     private var batteryVoltage: String {
         guard deviceConfig.statsBatteryMV > 0 else { return "—" }
         return String(format: "%.2f V", Double(deviceConfig.statsBatteryMV) / 1000.0)
-    }
-
-    private func formatUptime(_ seconds: UInt32) -> String {
-        guard seconds > 0 else { return "—" }
-        let s = Int(seconds)
-        let d = s / 86400; let h = (s % 86400) / 3600; let m = (s % 3600) / 60
-        if d > 0 { return "\(d)d \(h)h \(m)m" }
-        if h > 0 { return "\(h)h \(m)m" }
-        return "\(m)m \(s % 60)s"
-    }
-
-    private func formatSNRValue(_ raw: Int8) -> String {
-        let snr = Double(raw) / 4.0
-        return String(format: "%.1f dB", snr)
     }
 
     private var noiseFloorColor: Color {

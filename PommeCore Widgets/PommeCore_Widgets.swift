@@ -30,7 +30,7 @@ struct PommeCoreProvider: TimelineProvider {
     func getTimeline(in context: Context, completion: @escaping (Timeline<PommeCoreEntry>) -> Void) {
         let entry = PommeCoreEntry(date: .now, state: WidgetState.load())
         // Fallback refresh every 15 min; main app calls reloadAllTimelines on real changes
-        let next = Calendar.current.date(byAdding: .minute, value: 15, to: .now)!
+        let next = Calendar.current.date(byAdding: .minute, value: 15, to: .now) ?? Date(timeIntervalSinceNow: 900)
         completion(Timeline(entries: [entry], policy: .after(next)))
     }
 
@@ -99,9 +99,9 @@ private struct StatusContent: View {
         }
 
         // Safe zones
-        if state.alertZoneName != nil {
+        if let zoneName = state.alertZoneName {
             StatusRow(icon: "exclamationmark.shield.fill",
-                      label: "Exited \(state.alertZoneName!)",
+                      label: "Exited \(zoneName)",
                       color: .orange)
         } else if state.activeZoneCount > 0 {
             let zones = state.activeZoneCount == 1 ? "1 zone" : "\(state.activeZoneCount) zones"

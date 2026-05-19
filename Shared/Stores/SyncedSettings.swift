@@ -29,6 +29,24 @@ struct SyncedSettingsPayload: Codable {
     var lastModified: Date
 }
 
+extension SyncedSettingsPayload {
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        appTheme = try c.decodeIfPresent(String.self, forKey: .appTheme) ?? "system"
+        batteryChemistry = try c.decodeIfPresent(String.self, forKey: .batteryChemistry) ?? "liion"
+        maxMessagesPerContact = try c.decodeIfPresent(Int.self, forKey: .maxMessagesPerContact) ?? 500
+        locationPrivacyRadius = try c.decodeIfPresent(Double.self, forKey: .locationPrivacyRadius) ?? 0
+        shareOnMeshMap = try c.decodeIfPresent(Bool.self, forKey: .shareOnMeshMap) ?? true
+        autoUpdateLocation = try c.decodeIfPresent(Bool.self, forKey: .autoUpdateLocation) ?? false
+        locationUpdateInterval = try c.decodeIfPresent(Int.self, forKey: .locationUpdateInterval) ?? 300
+        contactSortByLastSeen = try c.decodeIfPresent(Bool.self, forKey: .contactSortByLastSeen) ?? false
+        channelsFirst = try c.decodeIfPresent(Bool.self, forKey: .channelsFirst) ?? false
+        autoRetry = try c.decodeIfPresent(Bool.self, forKey: .autoRetry) ?? true
+        autoResetPath = try c.decodeIfPresent(Bool.self, forKey: .autoResetPath) ?? true
+        lastModified = try c.decodeIfPresent(Date.self, forKey: .lastModified) ?? Date()
+    }
+}
+
 @MainActor
 final class SyncedSettings {
     static let shared = SyncedSettings()

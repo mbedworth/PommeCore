@@ -1032,15 +1032,4 @@ extension SettingsView {
         return .red
     }
 
-    // Fix #10: Days in uptime
-    func formatUptime(_ seconds: UInt32) -> String {
-        let d = seconds / 86400
-        let h = (seconds % 86400) / 3600
-        let m = (seconds % 3600) / 60
-        let s = seconds % 60
-        if d > 0 { return "\(d)d \(h)h \(m)m \(s)s" }
-        if h > 0 { return "\(h)h \(m)m \(s)s" }
-        if m > 0 { return "\(m)m \(s)s" }
-        return "\(s)s"
-    }
 }

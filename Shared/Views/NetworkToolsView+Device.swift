@@ -95,14 +95,6 @@ struct DeviceInfoPopover: View {
         .listRowBackground(MeshTheme.surface)
     }
 
-    private func formatUptime(_ seconds: UInt32) -> String {
-        let d = seconds / 86400
-        let h = (seconds % 86400) / 3600
-        let m = (seconds % 3600) / 60
-        if d > 0 { return "\(d)d \(h)h \(m)m" }
-        if h > 0 { return "\(h)h \(m)m" }
-        return "\(m)m"
-    }
 }
 
 // MARK: - Activity Overlay

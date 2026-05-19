@@ -179,6 +179,10 @@ struct ChatView: View {
                     Button { showContactDetail = true } label: {
                         Label("Contact Details", systemImage: "info.circle")
                     }
+                    Divider()
+                    Button { exportChatHistory() } label: {
+                        Label("Export Chat", systemImage: "square.and.arrow.up")
+                    }
                 }
             }
             #endif
@@ -203,6 +207,7 @@ struct ChatView: View {
                     }
                     .accessibilityLabel(isSearching ? "Close search" : "Search messages")
                     #if !os(watchOS)
+                    #if os(macOS)
                     Button {
                         exportChatHistory()
                     } label: {
@@ -210,6 +215,7 @@ struct ChatView: View {
                             .foregroundStyle(MeshTheme.accent)
                     }
                     .accessibilityLabel("Export chat")
+                    #endif
                     Button {
                         sendLocationAsDM()
                     } label: {

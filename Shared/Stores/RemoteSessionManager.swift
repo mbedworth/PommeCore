@@ -522,7 +522,7 @@ final class RemoteSessionManager {
 
     /// Fetch commands for a specific section. Fire-and-forget.
     func fetchSection(_ section: String, for contact: Contact, skipIfFetched: Bool = true) {
-        Task { await fetchSectionAsync(section, for: contact, skipIfFetched: skipIfFetched) }
+        Task { [weak self] in await self?.fetchSectionAsync(section, for: contact, skipIfFetched: skipIfFetched) }
     }
 
     /// Fetch commands for a specific section, awaitable.
