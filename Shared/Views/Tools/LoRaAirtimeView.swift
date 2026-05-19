@@ -189,13 +189,6 @@ struct LoRaAirtimeView: View {
         return "\(bw) kHz"
     }
 
-    private func formatDuration(_ ms: Double) -> String {
-        if ms >= 1000 {
-            return String(format: "%.2f s", ms / 1000)
-        }
-        return String(format: "%.1f ms", ms)
-    }
-
     private func paramRow(_ label: LocalizedStringKey, value: Binding<Int>, unit: LocalizedStringKey, range: ClosedRange<Int>) -> some View {
         HStack {
             Text(label)

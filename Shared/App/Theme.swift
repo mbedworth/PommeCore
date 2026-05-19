@@ -450,6 +450,13 @@ func formatCoordinate(_ value: Double) -> String {
     String(format: "%.6f", value)
 }
 
+func formatDuration(_ ms: Double) -> String {
+    if ms >= 1000 {
+        return String(format: "%.2f s", ms / 1000)
+    }
+    return String(format: "%.1f ms", ms)
+}
+
 // MARK: - Shared Settings Components
 #if !os(watchOS)
 

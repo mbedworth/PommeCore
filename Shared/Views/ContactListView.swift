@@ -708,7 +708,9 @@ struct GroupEditSheet: View {
                 }
             }
         }
+        #if os(macOS) || targetEnvironment(macCatalyst)
         .frame(minWidth: 350, idealWidth: 400, minHeight: 350, idealHeight: 450)
+        #endif
         .onAppear {
             name = initialName
             emoji = initialEmoji
