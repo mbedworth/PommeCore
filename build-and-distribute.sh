@@ -209,7 +209,7 @@ fi
 
 log "Committing..."
 git add "$PBXPROJ"
-git commit -m "$COMMIT_MSG"
+git diff --cached --quiet || git commit -m "$COMMIT_MSG"
 
 log "Pushing to remote..."
 git push
