@@ -157,11 +157,14 @@ final class PhoneWatchRelay: NSObject {
         let state = connectionManager?.connectionState
         let isConnected = state == .ready || state == .connected
         let unreadByContact = resolvedUnreadCounts()
+        let (dmCount, channelCount) = resolvedSplitCounts()
         let payload = WatchAppStatePayload(
             isConnected: isConnected,
             deviceName: connectionManager?.connectedDeviceName ?? "",
             unreadByContact: unreadByContact,
-            isUnlocked: WatchUnlockManager.shared.isUnlocked
+            isUnlocked: WatchUnlockManager.shared.isUnlocked,
+            unreadDMCount: dmCount,
+            unreadChannelCount: channelCount
         )
         guard let data = try? JSONEncoder().encode(payload) else { return }
         guard data != lastSentStateData else { return }
@@ -367,6 +370,29 @@ final class PhoneWatchRelay: NSObject {
             }
         }
         return result
+    }
+
+    private func resolvedSplitCounts() -> (dm: Int, channel: Int) {
+        guard let store = messageStoreManager, let contacts = contactStore?.contacts else { return (0, 0) }
+        var dmCount = 0
+        var channelCount = 0
+        for (key, count) in store.unreadCounts where count > 0 {
+            if key.count == 6 {
+                if let contact = contacts.first(where: { $0.publicKeyPrefix == key }),
+                   let contactStore,
+                   contactStore.effectiveNotifyMode(for: contact) != .muted {
+                    dmCount += count
+                }
+            } else if key.count == 1 {
+                let channelIndex = key[0]
+                if let channel = channelStore?.channels.first(where: { $0.index == channelIndex }),
+                   let channelStore,
+                   channelStore.channelNotifyMode(for: channel.name) != .muted {
+                    channelCount += count
+                }
+            }
+        }
+        return (dmCount, channelCount)
     }
 }
 

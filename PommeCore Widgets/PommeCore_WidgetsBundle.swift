@@ -11,5 +11,6 @@ struct PommeCore_WidgetsBundle: WidgetBundle {
     var body: some Widget {
         PommeCoreStatusWidget()
         PommeCoreLockWidget()
+        PommeCoreSplitWidget()
     }
 }

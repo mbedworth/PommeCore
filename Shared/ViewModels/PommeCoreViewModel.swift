@@ -484,7 +484,8 @@ final class PommeCoreViewModel: ObservableObject {
             deviceConfig: deviceConfig,
             messageStoreManager: messageStoreManager,
             geofenceStore: geofenceStore,
-            contactStore: contactStore
+            contactStore: contactStore,
+            channelStore: channelStore
         )
     }
     #endif

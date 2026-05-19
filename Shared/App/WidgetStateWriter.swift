@@ -17,7 +17,8 @@ func syncWidgetState(
     deviceConfig: DeviceConfig,
     messageStoreManager: MessageStoreManager,
     geofenceStore: GeofenceStore,
-    contactStore: ContactStore
+    contactStore: ContactStore,
+    channelStore: ChannelStore
 ) {
     var state = WidgetState()
 
@@ -29,7 +30,23 @@ func syncWidgetState(
         ? deviceConfig.batteryPercent(chemistry: chemistry)
         : -1
 
-    state.unreadCount = messageStoreManager.unreadCounts.values.reduce(0, +)
+    var dmCount = 0
+    var channelCount = 0
+    for (key, count) in messageStoreManager.unreadCounts where count > 0 {
+        if key.count == 6 {
+            let contact = contactStore.contacts.first(where: { $0.publicKeyPrefix == key })
+            let isMuted = contact.map { contactStore.effectiveNotifyMode(for: $0) == .muted } ?? false
+            if !isMuted { dmCount += count }
+        } else if key.count == 1 {
+            let channelIndex = key[0]
+            let channel = channelStore.channels.first(where: { $0.index == channelIndex })
+            let isMuted = channel.map { channelStore.channelNotifyMode(for: $0.name) == .muted } ?? false
+            if !isMuted { channelCount += count }
+        }
+    }
+    state.unreadDMCount = dmCount
+    state.unreadChannelCount = channelCount
+    state.unreadCount = dmCount + channelCount
 
     state.activeZoneCount = geofenceStore.zones.filter(\.isEnabled).count
     state.alertZoneName = geofenceStore.lastExitZoneName

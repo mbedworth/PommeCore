@@ -39,7 +39,9 @@ struct PommeCoreProvider: TimelineProvider {
         s.isConnected = true
         s.deviceName = "Mesh Pocket"
         s.batteryPct = 72
-        s.unreadCount = 3
+        s.unreadCount = 5
+        s.unreadDMCount = 3
+        s.unreadChannelCount = 2
         s.activeZoneCount = 2
         s.lastMessageSender = "MacBook"
         s.lastMessagePreview = "Hey, did you copy that frequency?"
@@ -110,13 +112,24 @@ private struct StatusContent: View {
             StatusRow(icon: "shield", label: "No zones", color: .secondary)
         }
 
-        // Unread
-        if state.unreadCount > 0 {
-            StatusRow(icon: "message.fill",
-                      label: "\(state.unreadCount) unread",
+        // Unread DMs
+        if state.unreadDMCount > 0 {
+            StatusRow(icon: "person.fill",
+                      label: "\(state.unreadDMCount) DM\(state.unreadDMCount == 1 ? "" : "s")",
                       color: .green)
         } else {
-            StatusRow(icon: "message", label: "No unread", color: .secondary)
+            StatusRow(icon: "person", label: "No DMs", color: .secondary)
+        }
+
+        // Unread channels
+        if state.unreadChannelCount > 0 {
+            StatusRow(icon: "antenna.radiowaves.left.and.right",
+                      label: "\(state.unreadChannelCount) Ch",
+                      color: .green)
+        } else {
+            StatusRow(icon: "antenna.radiowaves.left.and.right",
+                      label: "No channels",
+                      color: .secondary)
         }
     }
 
@@ -267,6 +280,106 @@ private struct InlineLockView: View {
     }
 }
 
+// MARK: - Split Lock Screen Views (DM vs Channel counts)
+
+private struct CircularDMLockView: View {
+    let state: WidgetState
+
+    var body: some View {
+        ZStack {
+            Circle().fill(Color.green.opacity(0.15))
+            VStack(spacing: 1) {
+                Text(state.unreadDMCount > 99 ? "99+" : "\(state.unreadDMCount)")
+                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                    .widgetAccentable()
+                    .minimumScaleFactor(0.7)
+                Text("DMs")
+                    .font(.system(size: 9, weight: .medium))
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+}
+
+private struct CircularChannelLockView: View {
+    let state: WidgetState
+
+    var body: some View {
+        ZStack {
+            Circle().fill(Color.green.opacity(0.15))
+            VStack(spacing: 1) {
+                Text(state.unreadChannelCount > 99 ? "99+" : "\(state.unreadChannelCount)")
+                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                    .widgetAccentable()
+                    .minimumScaleFactor(0.7)
+                Text("Chs")
+                    .font(.system(size: 9, weight: .medium))
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+}
+
+private struct RectangularSplitLockView: View {
+    let state: WidgetState
+
+    var body: some View {
+        HStack(spacing: 0) {
+            Circle()
+                .fill(state.isConnected ? Color.green : Color.red)
+                .frame(width: 6, height: 6)
+                .padding(.trailing, 4)
+            Label("\(state.unreadDMCount)", systemImage: "person.fill")
+                .font(.caption2.weight(.semibold))
+                .widgetAccentable()
+            Text("  ·  ")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+            Label("\(state.unreadChannelCount)", systemImage: "antenna.radiowaves.left.and.right")
+                .font(.caption2.weight(.semibold))
+                .widgetAccentable()
+            Spacer()
+        }
+        .lineLimit(1)
+    }
+}
+
+private struct InlineSplitLockView: View {
+    let state: WidgetState
+
+    var body: some View {
+        if state.unreadDMCount > 0 || state.unreadChannelCount > 0 {
+            Label("\(state.unreadDMCount) DM · \(state.unreadChannelCount) Ch",
+                  systemImage: "message.fill")
+        } else if state.isConnected {
+            Label(state.deviceName.isEmpty ? "Connected" : state.deviceName,
+                  systemImage: "dot.radiowaves.left.and.right")
+        } else {
+            Label("Disconnected", systemImage: "wifi.slash")
+        }
+    }
+}
+
+// MARK: - Split Widget Entry View
+
+struct PommeCoreSplitEntryView: View {
+    let entry: PommeCoreEntry
+    @Environment(\.widgetFamily) var family
+
+    var body: some View {
+        switch family {
+        case .accessoryCircular:
+            CircularDMLockView(state: entry.state)
+        case .accessoryRectangular:
+            RectangularSplitLockView(state: entry.state)
+        case .accessoryInline:
+            InlineSplitLockView(state: entry.state)
+        default:
+            CircularDMLockView(state: entry.state)
+        }
+    }
+}
+
 // MARK: - Widget Entry View
 
 struct PommeCoreWidgetEntryView: View {
@@ -317,6 +430,20 @@ struct PommeCoreLockWidget: Widget {
         }
         .configurationDisplayName("PommeCore")
         .description("Radio connection status and unread count on your lock screen.")
+        .supportedFamilies([.accessoryCircular, .accessoryRectangular, .accessoryInline])
+    }
+}
+
+struct PommeCoreSplitWidget: Widget {
+    let kind = "PommeCoreSplit"
+
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: kind, provider: PommeCoreProvider()) { entry in
+            PommeCoreSplitEntryView(entry: entry)
+                .containerBackground(.fill.tertiary, for: .widget)
+        }
+        .configurationDisplayName("PommeCore Messages")
+        .description("Separate DM and channel unread counts.")
         .supportedFamilies([.accessoryCircular, .accessoryRectangular, .accessoryInline])
     }
 }

@@ -11,6 +11,9 @@
 import SwiftUI
 import UserNotifications
 import LocalAuthentication
+#if os(watchOS)
+import WidgetKit
+#endif
 #if canImport(CoreSpotlight)
 import CoreSpotlight
 #endif
@@ -63,7 +66,10 @@ struct PommeCoreApp: App {
                     watchReceiver.messageStore = watchMessageStore
                     watchReceiver.appState = watchAppState
                     watchReceiver.activate()
+                    syncWatchWidgetState()
                 }
+                .onChange(of: watchContactStore.unreadCounts) { _, _ in syncWatchWidgetState() }
+                .onChange(of: watchAppState.isConnected) { _, _ in syncWatchWidgetState() }
             #else
             if !hasCompletedOnboarding {
                 OnboardingView(
@@ -130,6 +136,21 @@ struct PommeCoreApp: App {
         }
         #endif
     }
+
+    #if os(watchOS)
+    private func syncWatchWidgetState() {
+        let counts = watchContactStore.unreadCounts
+        let dmCount = counts.filter { !$0.key.hasPrefix("ch") }.values.reduce(0, +)
+        let channelCount = counts.filter { $0.key.hasPrefix("ch") }.values.reduce(0, +)
+        WatchWidgetState(
+            isConnected: watchAppState.isConnected,
+            deviceName: watchAppState.deviceName,
+            unreadDMCount: dmCount,
+            unreadChannelCount: channelCount
+        ).save()
+        WidgetCenter.shared.reloadAllTimelines()
+    }
+    #endif
 }
 
 #if os(iOS)
