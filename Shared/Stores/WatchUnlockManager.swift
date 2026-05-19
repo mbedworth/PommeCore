@@ -76,7 +76,7 @@ final class WatchUnlockManager: ObservableObject {
 
     @objc private func iCloudDidChange(_ notification: Notification) {
         if NSUbiquitousKeyValueStore.default.bool(forKey: Self.supporterKVSKey) {
-            isUnlocked = true
+            Task { @MainActor in self.isUnlocked = true }
         }
     }
 }

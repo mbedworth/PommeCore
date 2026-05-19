@@ -55,7 +55,7 @@ func syncWidgetState(
     var newestMessage: Message?
     var newestKey: Data?
     for (key, messages) in messageStoreManager.messagesByContact {
-        guard let msg = messages.filter({ !$0.isOutgoing }).max(by: { $0.timestamp < $1.timestamp }) else { continue }
+        guard let msg = messages.suffix(20).filter({ !$0.isOutgoing }).max(by: { $0.timestamp < $1.timestamp }) else { continue }
         if newestMessage == nil || msg.timestamp > newestMessage!.timestamp {
             newestMessage = msg
             newestKey = key
