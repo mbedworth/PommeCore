@@ -37,6 +37,8 @@ final class PhoneWatchRelay: NSObject {
     private var lastSentStateData: Data?
     private var lastSentContactsData: Data?
     private var lastSentChannelsData: Data?
+    // Per-contact newest-message timestamp — skip re-sending all 50 messages when nothing new arrived.
+    private var lastSentMessageTimestamp: [Data: Date] = [:]
 
     private var activated = false
 
@@ -143,8 +145,14 @@ final class PhoneWatchRelay: NSObject {
         for (key, count) in store.unreadCounts where count > 0 {
             if key.count == 6,
                let contact = contacts.first(where: { $0.publicKeyPrefix == key }) {
+                let newest = store.messagesByContact[key]?.last?.timestamp
+                guard newest != lastSentMessageTimestamp[key] else { continue }
+                lastSentMessageTimestamp[key] = newest
                 sendRecentMessages(for: contact.publicKey.hexCompact)
             } else if key.count == 1 {
+                let newest = store.messagesByContact[key]?.last?.timestamp
+                guard newest != lastSentMessageTimestamp[key] else { continue }
+                lastSentMessageTimestamp[key] = newest
                 sendChannelMessages(channelIndex: key[0])
             }
         }
@@ -306,6 +314,7 @@ final class PhoneWatchRelay: NSObject {
             lastSentStateData = nil
             lastSentContactsData = nil
             lastSentChannelsData = nil
+            lastSentMessageTimestamp = [:]
             sendState()
             sendContacts()
             sendChannels()
@@ -421,6 +430,7 @@ extension PhoneWatchRelay: WCSessionDelegate {
             lastSentStateData = nil
             lastSentContactsData = nil
             lastSentChannelsData = nil
+            lastSentMessageTimestamp = [:]
             sendState()
             sendContacts()
             sendChannels()

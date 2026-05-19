@@ -178,7 +178,7 @@ struct PathViewer: View {
     }
 
     private func pathNode(_ label: String, color: Color) -> some View {
-        Text(label)
+        Text(verbatim: label)
             .font(.system(.caption, design: .monospaced))
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
@@ -505,7 +505,7 @@ struct PathDiscoveryResultView: View {
         let hops = resolveHops(pathBytes: pathBytes, hopCount: hopCount, hashSize: hashSize)
 
         return VStack(alignment: .leading, spacing: 4) {
-            Text(label)
+            Text(verbatim: label)
                 .font(.caption)
                 .foregroundStyle(MeshTheme.textSecondary)
 
@@ -537,7 +537,7 @@ struct PathDiscoveryResultView: View {
     }
 
     private func pathNode(_ label: String, color: Color) -> some View {
-        Text(label)
+        Text(verbatim: label)
             .font(.system(.caption, design: .monospaced))
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
