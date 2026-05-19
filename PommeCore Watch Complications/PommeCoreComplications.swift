@@ -2,15 +2,6 @@
 //  PommeCoreComplications.swift
 //  PommeCore Watch Complications
 //
-//  Watch face complications showing DM and channel unread counts.
-//  Reads WatchWidgetState from the shared App Group written by the watch app.
-//
-//  ADD THIS FILE to a new watchOS Widget Extension target in Xcode:
-//    File > New Target > Widget Extension (watchOS)
-//    Target name: PommeCore Watch Complications
-//    Bundle ID: com.mbedworth.meshcore.watchcomplications
-//    Enable App Group capability: group.com.mbedworth.meshcore
-//
 //  Created by Michael P. Bedworth on 05/19/26.
 //  Copyright © 2026 Michael P. Bedworth. All rights reserved.
 //
@@ -19,7 +10,7 @@ import WidgetKit
 import SwiftUI
 import PommeCoreWatchKit
 
-// MARK: - Provider
+// MARK: - Timeline
 
 struct WatchEntry: TimelineEntry {
     let date: Date
@@ -47,107 +38,85 @@ struct WatchProvider: TimelineProvider {
     }
 }
 
-// MARK: - DM Complication Views
+// MARK: - Circular view (two-row DM / PC)
 
-private struct DMCircularView: View {
+private struct CircularView: View {
     let state: WatchWidgetState
 
     var body: some View {
-        ZStack {
-            Circle().fill(Color.green.opacity(0.15))
-            VStack(spacing: 1) {
-                Text(state.unreadDMCount > 99 ? "99+" : "\(state.unreadDMCount)")
-                    .font(.system(size: 20, weight: .bold, design: .rounded))
-                    .widgetAccentable()
-                    .minimumScaleFactor(0.6)
-                Text("DMs")
-                    .font(.system(size: 9, weight: .medium))
-                    .foregroundStyle(.secondary)
-            }
+        VStack(alignment: .leading, spacing: 3) {
+            countRow(label: "DM:", value: state.unreadDMCount)
+            countRow(label: "PC:", value: state.unreadChannelCount)
+        }
+        .padding(4)
+    }
+
+    private func countRow(label: LocalizedStringKey, value: Int) -> some View {
+        HStack(spacing: 4) {
+            Text(label)
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .foregroundStyle(.red)
+                .fixedSize()
+            Text(value > 99 ? "99+" : "\(value)")
+                .font(.system(size: 11, weight: .bold, design: .rounded))
+                .foregroundStyle(.white)
+                .minimumScaleFactor(0.7)
         }
     }
 }
 
-private struct DMInlineView: View {
+// MARK: - Rectangular view (hearing-aid L/R split)
+
+private struct RectangularView: View {
     let state: WatchWidgetState
 
     var body: some View {
-        if state.unreadDMCount > 0 {
-            Label("\(state.unreadDMCount) DM\(state.unreadDMCount == 1 ? "" : "s")", systemImage: "person.fill")
-        } else {
-            Label("No DMs", systemImage: "person")
-        }
-    }
-}
-
-// MARK: - Channel Complication Views
-
-private struct ChannelCircularView: View {
-    let state: WatchWidgetState
-
-    var body: some View {
-        ZStack {
-            Circle().fill(Color.green.opacity(0.15))
-            VStack(spacing: 1) {
-                Text(state.unreadChannelCount > 99 ? "99+" : "\(state.unreadChannelCount)")
-                    .font(.system(size: 20, weight: .bold, design: .rounded))
-                    .widgetAccentable()
-                    .minimumScaleFactor(0.6)
-                Text("Chs")
-                    .font(.system(size: 9, weight: .medium))
-                    .foregroundStyle(.secondary)
-            }
-        }
-    }
-}
-
-private struct ChannelInlineView: View {
-    let state: WatchWidgetState
-
-    var body: some View {
-        if state.unreadChannelCount > 0 {
-            Label("\(state.unreadChannelCount) Ch", systemImage: "antenna.radiowaves.left.and.right")
-        } else {
-            Label("No channels", systemImage: "antenna.radiowaves.left.and.right")
-        }
-    }
-}
-
-// MARK: - Split Complication Views
-
-private struct SplitRectangularView: View {
-    let state: WatchWidgetState
-
-    var body: some View {
-        HStack(spacing: 12) {
-            VStack(alignment: .leading, spacing: 2) {
-                Label("\(state.unreadDMCount)", systemImage: "person.fill")
-                    .font(.system(size: 13, weight: .bold, design: .rounded))
-                    .widgetAccentable()
-                Text("Private")
-                    .font(.system(size: 9))
-                    .foregroundStyle(.secondary)
-            }
+        HStack(spacing: 0) {
+            column(
+                icon: "person.fill",
+                label: "DM",
+                value: state.unreadDMCount
+            )
             Divider()
-            VStack(alignment: .leading, spacing: 2) {
-                Label("\(state.unreadChannelCount)", systemImage: "antenna.radiowaves.left.and.right")
-                    .font(.system(size: 13, weight: .bold, design: .rounded))
-                    .widgetAccentable()
-                Text("Channels")
-                    .font(.system(size: 9))
-                    .foregroundStyle(.secondary)
-            }
+                .padding(.vertical, 4)
+            column(
+                icon: "antenna.radiowaves.left.and.right",
+                label: "PC",
+                value: state.unreadChannelCount
+            )
             Spacer()
         }
     }
+
+    private func column(icon: String, label: LocalizedStringKey, value: Int) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(.red)
+                Text(label)
+                    .font(.system(size: 10, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.red)
+            }
+            Text(value > 99 ? "99+" : "\(value)")
+                .font(.system(size: 22, weight: .bold, design: .rounded))
+                .foregroundStyle(.white)
+                .minimumScaleFactor(0.6)
+        }
+        .frame(minWidth: 56, alignment: .leading)
+        .padding(.horizontal, 8)
+    }
 }
 
-private struct SplitInlineView: View {
+// MARK: - Inline view
+
+private struct InlineView: View {
     let state: WatchWidgetState
 
     var body: some View {
         if state.unreadDMCount > 0 || state.unreadChannelCount > 0 {
-            Label("\(state.unreadDMCount) DM · \(state.unreadChannelCount) Ch", systemImage: "message.fill")
+            Label("DM:\(state.unreadDMCount)  PC:\(state.unreadChannelCount)",
+                  systemImage: "message.fill")
         } else if state.isConnected {
             Label(state.deviceName.isEmpty ? "Connected" : state.deviceName,
                   systemImage: "dot.radiowaves.left.and.right")
@@ -157,82 +126,46 @@ private struct SplitInlineView: View {
     }
 }
 
-// MARK: - Entry Views
+// MARK: - Entry views
 
-struct DMComplicationEntryView: View {
+struct CircularEntryView: View {
     let entry: WatchEntry
     @Environment(\.widgetFamily) var family
 
     var body: some View {
         switch family {
-        case .accessoryCircular:
-            DMCircularView(state: entry.state)
-        case .accessoryInline:
-            DMInlineView(state: entry.state)
-        default:
-            DMCircularView(state: entry.state)
+        case .accessoryCircular: CircularView(state: entry.state)
+        case .accessoryInline:   InlineView(state: entry.state)
+        default:                 CircularView(state: entry.state)
         }
     }
 }
 
-struct ChannelComplicationEntryView: View {
+struct SplitEntryView: View {
     let entry: WatchEntry
     @Environment(\.widgetFamily) var family
 
     var body: some View {
         switch family {
-        case .accessoryCircular:
-            ChannelCircularView(state: entry.state)
-        case .accessoryInline:
-            ChannelInlineView(state: entry.state)
-        default:
-            ChannelCircularView(state: entry.state)
-        }
-    }
-}
-
-struct SplitComplicationEntryView: View {
-    let entry: WatchEntry
-    @Environment(\.widgetFamily) var family
-
-    var body: some View {
-        switch family {
-        case .accessoryRectangular:
-            SplitRectangularView(state: entry.state)
-        case .accessoryInline:
-            SplitInlineView(state: entry.state)
-        default:
-            SplitRectangularView(state: entry.state)
+        case .accessoryRectangular: RectangularView(state: entry.state)
+        case .accessoryInline:      InlineView(state: entry.state)
+        default:                    RectangularView(state: entry.state)
         }
     }
 }
 
 // MARK: - Complications
 
-struct PommeCoreDMComplication: Widget {
-    let kind = "PommeCoreDMComplication"
+struct PommeCoreCircularComplication: Widget {
+    let kind = "PommeCoreCircularComplication"
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: WatchProvider()) { entry in
-            DMComplicationEntryView(entry: entry)
+            CircularEntryView(entry: entry)
                 .containerBackground(.fill.tertiary, for: .widget)
         }
-        .configurationDisplayName("PommeCore DMs")
-        .description("Unread direct message count.")
-        .supportedFamilies([.accessoryCircular, .accessoryInline])
-    }
-}
-
-struct PommeCoreChannelComplication: Widget {
-    let kind = "PommeCoreChannelComplication"
-
-    var body: some WidgetConfiguration {
-        StaticConfiguration(kind: kind, provider: WatchProvider()) { entry in
-            ChannelComplicationEntryView(entry: entry)
-                .containerBackground(.fill.tertiary, for: .widget)
-        }
-        .configurationDisplayName("PommeCore Channels")
-        .description("Unread channel message count.")
+        .configurationDisplayName("PommeCore")
+        .description("DM and public channel unread counts.")
         .supportedFamilies([.accessoryCircular, .accessoryInline])
     }
 }
@@ -242,11 +175,11 @@ struct PommeCoreSplitComplication: Widget {
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: WatchProvider()) { entry in
-            SplitComplicationEntryView(entry: entry)
+            SplitEntryView(entry: entry)
                 .containerBackground(.fill.tertiary, for: .widget)
         }
         .configurationDisplayName("PommeCore Messages")
-        .description("DM and channel unread counts side by side.")
+        .description("DM and public channel counts side by side.")
         .supportedFamilies([.accessoryRectangular, .accessoryInline])
     }
 }
@@ -256,8 +189,7 @@ struct PommeCoreSplitComplication: Widget {
 @main
 struct PommeCoreComplicationsBundle: WidgetBundle {
     var body: some Widget {
-        PommeCoreDMComplication()
-        PommeCoreChannelComplication()
+        PommeCoreCircularComplication()
         PommeCoreSplitComplication()
     }
 }
