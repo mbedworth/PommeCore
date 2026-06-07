@@ -485,6 +485,7 @@ struct ChatView: View {
                         )
                 }
                 .disabled(messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                .accessibilityLabel("Send")
             }
             .padding(.horizontal, 12)
 

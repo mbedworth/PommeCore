@@ -380,6 +380,8 @@ struct LabelValueRow: View {
                 .foregroundStyle(valueColor)
         }
         .listRowBackground(MeshTheme.surface)
+        // Read label + value as one VoiceOver element (e.g. "Firmware, 1.15.0").
+        .accessibilityElement(children: .combine)
     }
 }
 

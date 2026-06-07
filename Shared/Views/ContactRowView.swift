@@ -66,6 +66,9 @@ struct ContactRowView: View {
             unreadBadge
         }
         .contentShape(Rectangle())
+        // Collapse the row into a single VoiceOver element so name, status,
+        // path, flags, and unread count are announced together (one swipe).
+        .accessibilityElement(children: .combine)
     }
 
     // MARK: - Sub-views
@@ -218,6 +221,7 @@ struct ContactRowView: View {
                 .padding(.vertical, 2)
                 .background(MeshTheme.interactiveGreen)
                 .clipShape(Capsule())
+                .accessibilityLabel("^[\(count) unread message](inflect: true)")
         }
     }
 
