@@ -284,7 +284,7 @@ struct RemoteManagementView: View {
     /// Header row for a Phase 2 collapsible section.
     @ViewBuilder
     private func lazySection<Content: View>(
-        _ title: String,
+        _ title: LocalizedStringKey,
         expanded: Binding<Bool>,
         sectionKey: String,
         info: LocalizedStringKey? = nil,

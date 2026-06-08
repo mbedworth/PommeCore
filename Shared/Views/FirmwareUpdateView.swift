@@ -147,7 +147,7 @@ struct FirmwareUpdateView: View {
         }
     }
 
-    private func assetRow(_ asset: OTAAsset, badge: String?, action: @escaping () -> Void) -> some View {
+    private func assetRow(_ asset: OTAAsset, badge: LocalizedStringKey?, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack(spacing: 12) {
                 Image(systemName: "memorychip")

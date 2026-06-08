@@ -628,7 +628,7 @@ private extension ContactListView {
 // MARK: - Group Edit Sheet
 
 struct GroupEditSheet: View {
-    let title: String
+    let title: LocalizedStringKey
     let initialName: String
     let initialEmoji: String
     let onSave: (String, String) -> Void

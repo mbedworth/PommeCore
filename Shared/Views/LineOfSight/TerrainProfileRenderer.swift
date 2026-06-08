@@ -243,7 +243,7 @@ enum TerrainProfileRenderer {
         context.fill(dot, with: .color(color))
 
         // Label
-        let text = Text(label).font(.caption.bold()).foregroundColor(color)
+        let text = Text(verbatim: label).font(.caption.bold()).foregroundColor(color)
         context.draw(text, at: CGPoint(x: x, y: yAntenna - 14), anchor: .bottom)
     }
 

@@ -205,7 +205,7 @@ struct LoSResultsView: View {
                 Image(systemName: segPass ? "checkmark.circle.fill" : segPartial ? "exclamationmark.triangle.fill" : "xmark.circle.fill")
                     .font(.caption)
                     .foregroundStyle(segPass ? Color.green : segPartial ? Color.orange : Color.red)
-                Text(label)
+                Text(verbatim: label)
                     .font(.caption.weight(.medium))
                     .foregroundStyle(MeshTheme.accent)
             }
