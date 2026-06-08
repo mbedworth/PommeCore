@@ -340,7 +340,7 @@ extension ContactListView {
                         .foregroundStyle(MeshTheme.textSecondary)
                         .lineLimit(1)
                 } else {
-                    Text(channel.channelType == .privateChannel ? "Private channel" : "Group channel")
+                    (channel.channelType == .privateChannel ? Text("Private channel") : Text("Group channel"))
                         .font(.caption)
                         .foregroundStyle(MeshTheme.textSecondary)
                 }

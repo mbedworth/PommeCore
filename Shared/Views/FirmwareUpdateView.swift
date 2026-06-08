@@ -297,7 +297,7 @@ struct FirmwareUpdateView: View {
             Button {
                 otaService.beginDetection(firmwareData: firmwareData, asset: asset)
             } label: {
-                Text(asset.isZip ? "I've Started OTA Mode — Continue" : "I've Connected — Continue")
+                (asset.isZip ? Text("I've Started OTA Mode — Continue") : Text("I've Connected — Continue"))
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.black)
                     .frame(maxWidth: .infinity)

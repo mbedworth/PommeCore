@@ -269,7 +269,7 @@ struct MessageBubble: View {
             Image(systemName: "checkmark")
                 .font(.caption2)
                 .foregroundStyle(MeshTheme.textSecondary)
-                .accessibilityLabel(message.status == .repeated ? "Sent, repeated by mesh" : "Sent")
+                .accessibilityLabel(message.status == .repeated ? Text("Sent, repeated by mesh") : Text("Sent"))
         case .retrying:
             HStack(spacing: 2) {
                 Image(systemName: "arrow.clockwise")

@@ -158,7 +158,7 @@ struct RemoteRoomSection: View {
                         Image(systemName: permFeedback ? "checkmark.circle.fill" : "lock.rotation")
                             .foregroundStyle(permFeedback ? .green : MeshTheme.accent)
                             .frame(width: 24)
-                        Text(permFeedback ? "Permission Set" : "Set Permission")
+                        (permFeedback ? Text("Permission Set") : Text("Set Permission"))
                             .foregroundStyle(permFeedback ? .green : MeshTheme.accent)
                         Spacer()
                     }
@@ -372,7 +372,7 @@ struct SerialOnlySection: View {
                     Image(systemName: "square.and.arrow.down")
                         .foregroundStyle(.orange)
                         .frame(width: 24)
-                    Text(backupCopied ? "Key Shown in Terminal" : "Backup Identity Key")
+                    (backupCopied ? Text("Key Shown in Terminal") : Text("Backup Identity Key"))
                         .foregroundStyle(backupCopied ? .green : MeshTheme.accent)
                     Spacer()
                 }

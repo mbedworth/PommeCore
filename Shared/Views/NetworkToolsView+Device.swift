@@ -396,7 +396,7 @@ struct PingResultsView: View {
             HStack {
                 Image(systemName: "bolt.horizontal")
                     .foregroundStyle(MeshTheme.accent)
-                Text(isPinging ? "Ping \(current)/\(total)" : "Ping Results")
+                (isPinging ? Text("Ping \(current)/\(total)") : Text("Ping Results"))
                     .font(.headline)
                     .foregroundStyle(MeshTheme.textPrimary)
                 if isPinging {

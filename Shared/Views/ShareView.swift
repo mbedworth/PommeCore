@@ -409,7 +409,7 @@ struct ShareChannelSheet: View {
                                 showFeedback($copiedQR)
                             }
                         } label: {
-                            Label(copiedQR ? "Copied!" : "Copy QR Code", systemImage: copiedQR ? "checkmark" : "photo.on.rectangle")
+                            (copiedQR ? Label("Copied!", systemImage: "checkmark") : Label("Copy QR Code", systemImage: "photo.on.rectangle"))
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 10)
                                 .background(MeshTheme.accent.opacity(0.1))
@@ -512,7 +512,7 @@ struct ShareAllChannelsSheet: View {
                                 showFeedback($copiedQR)
                             }
                         } label: {
-                            Label(copiedQR ? "Copied!" : "Copy QR Code", systemImage: copiedQR ? "checkmark" : "photo.on.rectangle")
+                            (copiedQR ? Label("Copied!", systemImage: "checkmark") : Label("Copy QR Code", systemImage: "photo.on.rectangle"))
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 10)
                                 .background(MeshTheme.accent.opacity(0.1))

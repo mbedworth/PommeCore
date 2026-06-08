@@ -35,7 +35,7 @@ struct RepeaterConfigView: View {
                 .listRowBackground(MeshTheme.surface)
             }
         } header: {
-            Text(store.relays.isEmpty ? "Relay Repeaters" : "Relay Repeaters (\(store.relays.count))")
+            store.relays.isEmpty ? Text("Relay Repeaters") : Text("Relay Repeaters (\(store.relays.count))")
         }
     }
 }

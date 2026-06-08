@@ -36,7 +36,7 @@ struct NoiseFloorMonitorView: View {
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: rfStore.isMonitoring ? "stop.circle.fill" : "play.circle.fill")
-                        Text(rfStore.isMonitoring ? "Stop" : "Start")
+                        (rfStore.isMonitoring ? Text("Stop") : Text("Start"))
                             .font(.caption.weight(.medium))
                     }
                     .foregroundStyle(rfStore.isMonitoring ? .red : MeshTheme.accent)

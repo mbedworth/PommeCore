@@ -32,7 +32,7 @@ struct DiscoverView: View {
                         Image(systemName: "magnifyingglass.circle")
                             .foregroundStyle(MeshTheme.accent)
                             .frame(width: 24)
-                        Text(remoteSessionManager.isDiscovering ? "Restart Scan" : "Start Discover")
+                        (remoteSessionManager.isDiscovering ? Text("Restart Scan") : Text("Start Discover"))
                             .foregroundStyle(MeshTheme.accent)
                         Spacer()
                         if remoteSessionManager.isDiscovering {
@@ -111,7 +111,7 @@ struct DiscoverView: View {
                         Image(systemName: "antenna.radiowaves.left.and.right")
                             .foregroundStyle(MeshTheme.accent)
                             .frame(width: 24)
-                        Text(isTimedDiscovery ? "Restart Timed Discovery" : "Start Timed Discovery")
+                        (isTimedDiscovery ? Text("Restart Timed Discovery") : Text("Start Timed Discovery"))
                             .foregroundStyle(MeshTheme.accent)
                         Spacer()
                         if isTimedDiscovery {

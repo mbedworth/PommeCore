@@ -623,7 +623,9 @@ struct GPSEditorSheet: View {
                     connectionManager.setAdvertLatLon(latitude: fLat, longitude: fLon)
                     showFeedback($gpsSyncFeedback)
                 } label: {
-                    Label(gpsUnavailable ? "GPS Not Available" : gpsSyncFeedback ? "Location Set!" : "Set from Phone GPS", systemImage: gpsUnavailable ? "location.slash" : "iphone.radiowaves.left.and.right")
+                    (gpsUnavailable
+                        ? Label("GPS Not Available", systemImage: "location.slash")
+                        : (gpsSyncFeedback ? Label("Location Set!", systemImage: "iphone.radiowaves.left.and.right") : Label("Set from Phone GPS", systemImage: "iphone.radiowaves.left.and.right")))
                         .foregroundStyle(gpsUnavailable ? .red : gpsSyncFeedback ? .green : MeshTheme.accent)
                 }
 
@@ -634,7 +636,7 @@ struct GPSEditorSheet: View {
                     }
                     showMapPicker = true
                 } label: {
-                    Label(mapPickFeedback ? "Location Set!" : "Pick on Map", systemImage: mapPickFeedback ? "checkmark.circle.fill" : "map")
+                    (mapPickFeedback ? Label("Location Set!", systemImage: "checkmark.circle.fill") : Label("Pick on Map", systemImage: "map"))
                         .foregroundStyle(mapPickFeedback ? .green : MeshTheme.accent)
                 }
 

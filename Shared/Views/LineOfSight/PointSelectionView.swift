@@ -91,7 +91,7 @@ struct PointSelectionView: View {
                 Button {
                     showMapPicker = true
                 } label: {
-                    Label(mapPin == nil ? "Drop Pin on Map" : "Change Pin", systemImage: "mappin.and.ellipse")
+                    (mapPin == nil ? Label("Drop Pin on Map", systemImage: "mappin.and.ellipse") : Label("Change Pin", systemImage: "mappin.and.ellipse"))
                         .foregroundStyle(MeshTheme.accent)
                 }
                 .listRowBackground(MeshTheme.surface)

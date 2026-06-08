@@ -222,7 +222,7 @@ extension ContactListView {
                     .foregroundStyle(MeshTheme.accent)
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(sortByLastSeen ? "Sort alphabetically" : "Sort by last seen")
+            .accessibilityLabel(sortByLastSeen ? Text("Sort alphabetically") : Text("Sort by last seen"))
             Menu {
                 Button { showImportSheet = true } label: {
                     Label("Paste Contact Link", systemImage: "doc.on.clipboard")

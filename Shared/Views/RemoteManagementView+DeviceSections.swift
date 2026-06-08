@@ -116,7 +116,7 @@ struct RemoteGPSSection: View {
                         showFeedback($gpsSyncFeedback)
                         DispatchQueue.main.asyncAfter(deadline: .now() + 2) { sendCLI("clock") }
                     } label: {
-                        Label(gpsSyncFeedback ? "Clock Synced" : "Sync Time", systemImage: gpsSyncFeedback ? "checkmark.circle.fill" : "clock.arrow.2.circlepath")
+                        (gpsSyncFeedback ? Label("Clock Synced", systemImage: "checkmark.circle.fill") : Label("Sync Time", systemImage: "clock.arrow.2.circlepath"))
                             .foregroundStyle(gpsSyncFeedback ? .green : MeshTheme.accent)
                     }
                     .buttonStyle(.plain)
@@ -131,7 +131,7 @@ struct RemoteGPSSection: View {
                             sendCLI("get lon")
                         }
                     } label: {
-                        Label(gpsLocFeedback ? "Location Set" : "Set from Hardware GPS", systemImage: gpsLocFeedback ? "checkmark.circle.fill" : "antenna.radiowaves.left.and.right")
+                        (gpsLocFeedback ? Label("Location Set", systemImage: "checkmark.circle.fill") : Label("Set from Hardware GPS", systemImage: "antenna.radiowaves.left.and.right"))
                             .foregroundStyle(gpsLocFeedback ? .green : MeshTheme.accent)
                     }
                     .buttonStyle(.plain)

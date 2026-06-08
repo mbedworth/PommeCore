@@ -171,7 +171,9 @@ struct ChatView: View {
                         nicknameText = contactStore.nickname(for: contact) ?? ""
                         showNicknameSheet = true
                     } label: {
-                        Label(contactStore.nickname(for: contact) != nil ? "Edit Nickname" : "Set Nickname", systemImage: "pencil")
+                        contactStore.nickname(for: contact) != nil
+                            ? Label("Edit Nickname", systemImage: "pencil")
+                            : Label("Set Nickname", systemImage: "pencil")
                     }
                     Button { showPathEditor = true } label: {
                         Label("Edit Path", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
@@ -205,7 +207,7 @@ struct ChatView: View {
                         Image(systemName: isSearching ? "magnifyingglass.circle.fill" : "magnifyingglass")
                             .foregroundStyle(MeshTheme.accent)
                     }
-                    .accessibilityLabel(isSearching ? "Close search" : "Search messages")
+                    .accessibilityLabel(isSearching ? Text("Close search") : Text("Search messages"))
                     #if !os(watchOS)
                     #if os(macOS)
                     Button {

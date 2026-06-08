@@ -173,7 +173,7 @@ struct NodeSetupWizardView: View {
                 } label: {
                     HStack {
                         Image(systemName: nameApplied ? "checkmark.circle.fill" : "arrow.right.circle.fill")
-                        Text(nameApplied ? "Name Applied" : "Apply Name")
+                        nameApplied ? Text("Name Applied") : Text("Apply Name")
                     }
                     .frame(maxWidth: .infinity)
                     .padding()

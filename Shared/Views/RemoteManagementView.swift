@@ -65,7 +65,7 @@ struct RemoteManagementView: View {
                     HStack(spacing: 8) {
                         Image(systemName: permission == .guest ? "person" : "eye")
                             .foregroundStyle(permissionBadgeColor)
-                        Text(permission == .guest ? "Logged in as Guest \u{2014} no access to settings" : "Logged in as \(permission.displayName) \u{2014} read-only access")
+                        (permission == .guest ? Text("Logged in as Guest \u{2014} no access to settings") : Text("Logged in as \(permission.displayName) \u{2014} read-only access"))
                             .font(.caption)
                             .foregroundStyle(MeshTheme.textSecondary)
                     }
@@ -86,7 +86,7 @@ struct RemoteManagementView: View {
                     }
 
                     lazySection("Timing & Performance", expanded: $expandedTimingSection, sectionKey: "timing",
-                                info: "Advanced \u{2014} adjust timing parameters for mesh performance. Default values work well for most setups. Flood Max Hops supports 0\u{2013}64 (default 64).") {
+                                info: "Advanced \u{2014} adjust timing parameters for mesh performance. Default values work well for most setups. Flood Max Hops supports 0\u{2013}64 (default 64). Flood Max (Unscoped) caps hops for floods with no region assigned (0\u{2013}64, default 64).") {
                         timingSection
                     }
 
@@ -603,7 +603,9 @@ private extension RemoteManagementView {
                     if !getValue("ver").isEmpty {
                         Label(getValue("ver"), systemImage: "cpu")
                     }
-                    Label(contact.outPathLen == 0 ? "direct" : "\(contact.outPathLen & 0x3F) hops", systemImage: "arrow.triangle.branch")
+                    contact.outPathLen == 0
+                        ? Label("direct", systemImage: "arrow.triangle.branch")
+                        : Label("\(contact.outPathLen & 0x3F) hops", systemImage: "arrow.triangle.branch")
                 }
                 .font(.caption)
                 .foregroundStyle(MeshTheme.textSecondary)

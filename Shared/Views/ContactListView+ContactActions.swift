@@ -24,8 +24,9 @@ extension ContactListView {
             nicknameText = contactStore.nickname(for: contact) ?? ""
             showNicknameSheet = true
         } label: {
-            Label(contactStore.nickname(for: contact) != nil ? "Edit Nickname" : "Set Nickname",
-                  systemImage: "pencil")
+            contactStore.nickname(for: contact) != nil
+                ? Label("Edit Nickname", systemImage: "pencil")
+                : Label("Set Nickname", systemImage: "pencil")
         }
 
         // Type-specific actions
@@ -127,8 +128,9 @@ extension ContactListView {
         Button {
             contactStore.toggleContactMuted(contact)
         } label: {
-            Label(contactStore.isContactMuted(contact) ? "Unmute" : "Mute",
-                  systemImage: contactStore.isContactMuted(contact) ? "bell" : "bell.slash")
+            contactStore.isContactMuted(contact)
+                ? Label("Unmute", systemImage: "bell")
+                : Label("Mute", systemImage: "bell.slash")
         }
 
         Divider()

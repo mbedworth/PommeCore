@@ -252,6 +252,7 @@ struct RemoteRoutingSection: View {
                     Button {
                         let n = regionPutName.trimmingCharacters(in: .whitespaces)
                         let p = regionPutParent.trimmingCharacters(in: .whitespaces)
+                        guard !n.contains(" "), !p.contains(" ") else { return }  // region names are single tokens
                         sendCLI(p.isEmpty ? "region put \(n)" : "region put \(n) \(p)")
                         sendCLI("region")
                         showFeedback($regionPutFeedback)
@@ -283,6 +284,7 @@ struct RemoteRoutingSection: View {
                     .listRowBackground(MeshTheme.surface)
                     Button {
                         let n = regionRemoveName.trimmingCharacters(in: .whitespaces)
+                        guard !n.contains(" ") else { return }  // region names are single tokens
                         sendCLI("region remove \(n)")
                         sendCLI("region")
                         showFeedback($regionRemoveFeedback)
@@ -383,7 +385,7 @@ struct RemoteAdvertSection: View {
                     }
                     showMapPicker = true
                 } label: {
-                    Label(mapPickFeedback ? "Location Set!" : "Pick on Map", systemImage: mapPickFeedback ? "checkmark.circle.fill" : "map")
+                    (mapPickFeedback ? Label("Location Set!", systemImage: "checkmark.circle.fill") : Label("Pick on Map", systemImage: "map"))
                         .foregroundStyle(mapPickFeedback ? .green : MeshTheme.accent)
                 }
                 .buttonStyle(.plain)
@@ -443,7 +445,7 @@ struct RemoteAdvertSection: View {
                     Button {
                         showAdvertOptions = true
                     } label: {
-                        Label(showAdvertSent ? "Sent!" : "Advertise", systemImage: "dot.radiowaves.left.and.right")
+                        (showAdvertSent ? Label("Sent!", systemImage: "dot.radiowaves.left.and.right") : Label("Advertise", systemImage: "dot.radiowaves.left.and.right"))
                             .foregroundStyle(showAdvertSent ? .green : MeshTheme.accent)
                     }
                     .buttonStyle(.plain)

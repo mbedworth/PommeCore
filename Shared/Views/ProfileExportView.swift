@@ -154,8 +154,7 @@ struct ProfileExportView: View {
                 Task { await applyImport(profile) }
             } label: {
                 HStack {
-                    Label(isApplying ? "Applying…" : "Apply Profile",
-                          systemImage: isApplying ? "hourglass" : "checkmark.circle")
+                    (isApplying ? Label("Applying…", systemImage: "hourglass") : Label("Apply Profile", systemImage: "checkmark.circle"))
                         .foregroundStyle(isApplying ? MeshTheme.textSecondary : MeshTheme.accent)
                     Spacer()
                     if isApplying { ProgressView().tint(MeshTheme.accent) }
