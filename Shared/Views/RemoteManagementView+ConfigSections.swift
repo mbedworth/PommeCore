@@ -99,6 +99,7 @@ struct RemoteTimingSection: View {
     @State private var txDelay = ""
     @State private var directTxDelay = ""
     @State private var floodMax = ""
+    @State private var floodMaxUnscoped = ""
     @State private var intThresh = ""
     @State private var agcReset = ""
     @State private var saveState: SaveButtonState = .idle
@@ -110,6 +111,7 @@ struct RemoteTimingSection: View {
             cliEditRow(icon: "arrow.up.circle", label: "TX Delay", text: $txDelay, current: session.settings["txdelay"])
             cliEditRow(icon: "arrow.right.circle", label: "Direct TX Delay", text: $directTxDelay, current: session.settings["direct.txdelay"])
             cliEditRow(icon: "arrow.triangle.branch", label: "Flood Max Hops", text: $floodMax, current: session.settings["flood.max"])
+            cliEditRow(icon: "arrow.triangle.branch", label: "Flood Max (Unscoped)", text: $floodMaxUnscoped, current: session.settings["flood.max.unscoped"])
             cliEditRow(icon: "waveform.badge.exclamationmark", label: "Interference Thresh", text: $intThresh, current: session.settings["int.thresh"])
             cliEditRow(icon: "dial.low", label: "AGC Reset Interval", text: $agcReset, current: session.settings["agc.reset.interval"])
 
@@ -121,6 +123,7 @@ struct RemoteTimingSection: View {
                     if !txDelay.isEmpty { sendCLI("set txdelay \(txDelay)") }
                     if !directTxDelay.isEmpty { sendCLI("set direct.txdelay \(directTxDelay)") }
                     if !floodMax.isEmpty { sendCLI("set flood.max \(floodMax)") }
+                    if !floodMaxUnscoped.isEmpty { sendCLI("set flood.max.unscoped \(floodMaxUnscoped)") }
                     if !intThresh.isEmpty { sendCLI("set int.thresh \(intThresh)") }
                     if !agcReset.isEmpty { sendCLI("set agc.reset.interval \(agcReset)") }
                     showSaved($saveState)
@@ -143,6 +146,14 @@ struct RemoteRoutingSection: View {
     @State private var floodScope = ""
     @State private var floodScopeSaveState: SaveButtonState = .idle
     @State private var saveState: SaveButtonState = .idle
+    // Region tree management (firmware 1.16+ `region def` builder)
+    @State private var regionDef = ""
+    @State private var regionPutName = ""
+    @State private var regionPutParent = ""
+    @State private var regionRemoveName = ""
+    @State private var regionDefSaveState: SaveButtonState = .idle
+    @State private var regionPutFeedback = false
+    @State private var regionRemoveFeedback = false
 
     var body: some View {
         Group {
@@ -204,6 +215,105 @@ struct RemoteRoutingSection: View {
                         }
                         .listRowBackground(MeshTheme.surface)
                     }
+                }
+
+                // Region tree (firmware 1.16+): view, build via `region def`, persist.
+                CLICommandButton(icon: "list.bullet.indent", label: "View Region Tree") {
+                    sendCLI("region")
+                }
+                if let tree = session.settings["region"], !tree.isEmpty {
+                    Text(tree)
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundStyle(MeshTheme.textPrimary)
+                        .listRowBackground(MeshTheme.surface)
+                }
+                if canEdit {
+                    cliEditRow(icon: "point.topleft.down.to.point.bottomright.curvepath", label: "Region Def Tokens", text: $regionDef, current: nil)
+                    SaveButton(state: regionDefSaveState, label: "Apply Region Def") {
+                        let tokens = regionDef.trimmingCharacters(in: .whitespaces)
+                        sendCLI("region def \(tokens)")
+                        sendCLI("region")
+                        showSaved($regionDefSaveState)
+                    }
+                    .disabled(regionDef.trimmingCharacters(in: .whitespaces).isEmpty)
+
+                    HStack {
+                        Image(systemName: "plus.circle")
+                            .foregroundStyle(MeshTheme.accent)
+                            .frame(width: 24)
+                        TextField("New region", text: $regionPutName)
+                            .foregroundStyle(MeshTheme.textPrimary)
+                            .textFieldStyle(MeshTextFieldStyle())
+                        TextField("Parent (optional)", text: $regionPutParent)
+                            .foregroundStyle(MeshTheme.textPrimary)
+                            .textFieldStyle(MeshTextFieldStyle())
+                    }
+                    .listRowBackground(MeshTheme.surface)
+                    Button {
+                        let n = regionPutName.trimmingCharacters(in: .whitespaces)
+                        let p = regionPutParent.trimmingCharacters(in: .whitespaces)
+                        sendCLI(p.isEmpty ? "region put \(n)" : "region put \(n) \(p)")
+                        sendCLI("region")
+                        showFeedback($regionPutFeedback)
+                        regionPutName = ""
+                        regionPutParent = ""
+                    } label: {
+                        HStack {
+                            Image(systemName: regionPutFeedback ? "checkmark.circle.fill" : "plus")
+                                .foregroundStyle(regionPutFeedback ? .green : MeshTheme.accent)
+                                .frame(width: 24)
+                            Text("Add Region")
+                                .foregroundStyle(MeshTheme.accent)
+                            Spacer()
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(regionPutName.trimmingCharacters(in: .whitespaces).isEmpty)
+                    .listRowBackground(MeshTheme.surface)
+
+                    HStack {
+                        Image(systemName: "minus.circle")
+                            .foregroundStyle(.red)
+                            .frame(width: 24)
+                        TextField("Region to remove", text: $regionRemoveName)
+                            .foregroundStyle(MeshTheme.textPrimary)
+                            .textFieldStyle(MeshTextFieldStyle())
+                    }
+                    .listRowBackground(MeshTheme.surface)
+                    Button {
+                        let n = regionRemoveName.trimmingCharacters(in: .whitespaces)
+                        sendCLI("region remove \(n)")
+                        sendCLI("region")
+                        showFeedback($regionRemoveFeedback)
+                        regionRemoveName = ""
+                    } label: {
+                        HStack {
+                            Image(systemName: regionRemoveFeedback ? "checkmark.circle.fill" : "minus")
+                                .foregroundStyle(regionRemoveFeedback ? .green : .red)
+                                .frame(width: 24)
+                            Text("Remove Region")
+                                .foregroundStyle(.red)
+                            Spacer()
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(regionRemoveName.trimmingCharacters(in: .whitespaces).isEmpty)
+                    .listRowBackground(MeshTheme.surface)
+
+                    CLICommandButton(icon: "tray.and.arrow.down", label: "Save Regions (persist)") {
+                        sendCLI("region save")
+                    }
+
+                    HStack(spacing: 6) {
+                        Image(systemName: "info.circle")
+                            .foregroundStyle(MeshTheme.accent)
+                        Text("Region def builds a tree in one line: each token is a child of the previous; use name|jump to branch to an existing region, or name|* to return to root. Review the tree, then Save to persist.")
+                            .font(.caption2)
+                            .foregroundStyle(MeshTheme.textSecondary)
+                    }
+                    .listRowBackground(MeshTheme.surface)
                 }
             }
         }
