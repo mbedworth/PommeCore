@@ -2,18 +2,20 @@
 set -euo pipefail
 
 # PommeCore Distribute Script
-# Archives and uploads to TestFlight.
+# Archives and uploads to App Store Connect (TestFlight + App Store).
 #
-# Two modes:
-#   TestFlight (default): bumps build number, archives, uploads.
-#   Release (--release):  sets version to YY.MM.R, resets build to 1, archives, uploads.
+# Versioning: marketing version = YY.MM.DD (one version per calendar day).
+# The build number resets to 1 on a new day and increments for repeat builds
+# the same day. A unique version every day means build 1 is always fresh, so
+# iOS and macOS never collide and macOS never rejects a build as "not higher
+# than the previously uploaded version". --release only changes the commit
+# message (release: vs chore:); both modes use the same date-based versioning.
 #
 # MUST run scripts/test_build.sh first to verify code compiles cleanly.
 #
 # Usage:
 #   ./build-and-distribute.sh [ios|macos|all]              # TestFlight build
 #   ./build-and-distribute.sh [ios|macos|all] --release    # App Store release
-#   ./build-and-distribute.sh [ios|macos|all] --release 2  # Second release this month
 
 SCHEME="PommeCore"
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -36,13 +38,11 @@ error() { echo -e "${RED}[ERROR]${NC} $1"; exit 1; }
 
 TARGET="all"
 RELEASE_MODE=0
-RELEASE_NUM=1
 
 for arg in "$@"; do
     case "$arg" in
         ios|macos|all) TARGET="$arg" ;;
         --release) RELEASE_MODE=1 ;;
-        [0-9]*) RELEASE_NUM="$arg" ;;
     esac
 done
 
@@ -68,16 +68,21 @@ fi
 
 # --- Determine version and build ---
 
-if [[ "$RELEASE_MODE" == "1" ]]; then
-    # Release mode: set version to YY.MM.R, reset build to 1
-    NEW_VERSION="$(date '+%y.%m').$RELEASE_NUM"
+# Marketing version = YY.MM.DD (one version per calendar day). Build resets to
+# 1 on a new day and increments for repeat builds the same day. A unique daily
+# version means build 1 is always fresh — iOS/macOS never collide, and macOS
+# never rejects a build as "not higher than the previously uploaded" one.
+NEW_VERSION="$(date '+%y.%m.%d')"
+if [[ "$CURRENT_VERSION" == "$NEW_VERSION" ]]; then
+    NEW_BUILD=$((CURRENT_BUILD + 1))
+else
     NEW_BUILD=1
+fi
+
+if [[ "$RELEASE_MODE" == "1" ]]; then
     log "RELEASE: v$CURRENT_VERSION ($CURRENT_BUILD) → v$NEW_VERSION ($NEW_BUILD) (target: $TARGET)"
 else
-    # TestFlight mode: bump build only
-    NEW_VERSION="$CURRENT_VERSION"
-    NEW_BUILD=$((CURRENT_BUILD + 1))
-    log "TestFlight: v$NEW_VERSION build $CURRENT_BUILD → $NEW_BUILD (target: $TARGET)"
+    log "TestFlight: v$CURRENT_VERSION ($CURRENT_BUILD) → v$NEW_VERSION ($NEW_BUILD) (target: $TARGET)"
 fi
 
 # Create directories
@@ -124,12 +129,8 @@ fi
 # App Store receives them.
 # ============================================================
 
-if [[ "$RELEASE_MODE" == "1" ]]; then
-    log "Setting version to $NEW_VERSION, build to $NEW_BUILD..."
-    sed -i '' "s/MARKETING_VERSION = [^;]*/MARKETING_VERSION = $NEW_VERSION/g" "$PBXPROJ"
-fi
-
-log "Setting build number to $NEW_BUILD..."
+log "Setting version to $NEW_VERSION, build to $NEW_BUILD..."
+sed -i '' "s/MARKETING_VERSION = [^;]*/MARKETING_VERSION = $NEW_VERSION/g" "$PBXPROJ"
 sed -i '' "s/CURRENT_PROJECT_VERSION = [0-9][0-9]*/CURRENT_PROJECT_VERSION = $NEW_BUILD/g" "$PBXPROJ"
 
 # Verify
@@ -137,11 +138,9 @@ WRONG_BUILD=$(grep "CURRENT_PROJECT_VERSION" "$PBXPROJ" | grep -v "= $NEW_BUILD;
 if [ -n "$WRONG_BUILD" ]; then
     error "Build number mismatch — some entries were NOT updated to $NEW_BUILD"
 fi
-if [[ "$RELEASE_MODE" == "1" ]]; then
-    WRONG_VER=$(grep "MARKETING_VERSION" "$PBXPROJ" | grep -v "= $NEW_VERSION;" || true)
-    if [ -n "$WRONG_VER" ]; then
-        error "Version mismatch — some entries were NOT updated to $NEW_VERSION"
-    fi
+WRONG_VER=$(grep "MARKETING_VERSION" "$PBXPROJ" | grep -v "= $NEW_VERSION;" || true)
+if [ -n "$WRONG_VER" ]; then
+    error "Version mismatch — some entries were NOT updated to $NEW_VERSION"
 fi
 log "Verified: version=$NEW_VERSION build=$NEW_BUILD"
 
