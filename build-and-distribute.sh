@@ -51,7 +51,7 @@ done
 cd "$PROJECT_DIR"
 PBXPROJ="PommeCore.xcodeproj/project.pbxproj"
 CURRENT_VERSION=$(grep "MARKETING_VERSION" "$PBXPROJ" | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
-CURRENT_BUILD=$(grep "CURRENT_PROJECT_VERSION" "$PBXPROJ" | grep -o '[0-9]*' | sort -n | tail -1)
+CURRENT_BUILD=$(grep -m1 "CURRENT_PROJECT_VERSION" "$PBXPROJ" | sed -E 's/.*= *([^;]*);.*/\1/')
 
 # App Store Connect credentials — set via environment or .asc.env file
 if [[ -f "$PROJECT_DIR/.asc.env" ]]; then
@@ -68,29 +68,23 @@ fi
 
 # --- Determine version and build ---
 
-# Marketing version = YY.MM.DD (one version per calendar day). Build resets to
-# 1 on a new day and increments for repeat builds the same day. A unique daily
-# version means build 1 is always fresh — iOS/macOS never collide, and macOS
-# never rejects a build as "not higher than the previously uploaded" one.
+# Marketing version (CFBundleShortVersionString) = YY.MM.DD — the number users
+# see, one per calendar day.
 NEW_VERSION="$(date '+%y.%m.%d')"
-if [[ "$CURRENT_VERSION" == "$NEW_VERSION" ]]; then
-    NEW_BUILD=$((CURRENT_BUILD + 1))
-else
-    NEW_BUILD=1
-fi
 
-if [[ "$RELEASE_MODE" == "1" ]]; then
-    log "RELEASE: v$CURRENT_VERSION ($CURRENT_BUILD) → v$NEW_VERSION ($NEW_BUILD) (target: $TARGET)"
-else
-    log "TestFlight: v$CURRENT_VERSION ($CURRENT_BUILD) → v$NEW_VERSION ($NEW_BUILD) (target: $TARGET)"
-fi
+# Build number (CFBundleVersion) is a YYYYMMDD.HHMMSS timestamp, stamped fresh
+# right before EACH archive in Phase 2. A timestamp strictly increases, so it
+# always exceeds the previously uploaded build — which the macOS App Store
+# requires (it rejects any build not higher than the prior one; iOS doesn't).
+# Upload order never matters: whichever archive is built later is automatically
+# higher. Apple caps each CFBundleVersion integer at 2^32-1, so we split
+# date.time (each component well under the cap) instead of one 14-digit number.
+log "Build: v$NEW_VERSION — timestamp build numbers (target: $TARGET; was $CURRENT_VERSION/$CURRENT_BUILD)"
 
 # Create directories
 mkdir -p "$ARCHIVE_DIR" "$EXPORT_DIR"
 
-# Archive names
-IOS_ARCHIVE="$ARCHIVE_DIR/PommeCore v$NEW_VERSION ($NEW_BUILD).xcarchive"
-MACOS_ARCHIVE="$ARCHIVE_DIR/PommeCore-macOS v$NEW_VERSION ($NEW_BUILD).xcarchive"
+# Archive paths are set per-platform in Phase 2 (build is a per-archive timestamp).
 
 # ============================================================
 # PRE-FLIGHT — Ensure connected iOS devices have device support
@@ -129,20 +123,18 @@ fi
 # App Store receives them.
 # ============================================================
 
-log "Setting version to $NEW_VERSION, build to $NEW_BUILD..."
+log "Setting version to $NEW_VERSION..."
 sed -i '' "s/MARKETING_VERSION = [^;]*/MARKETING_VERSION = $NEW_VERSION/g" "$PBXPROJ"
-sed -i '' "s/CURRENT_PROJECT_VERSION = [0-9][0-9]*/CURRENT_PROJECT_VERSION = $NEW_BUILD/g" "$PBXPROJ"
-
-# Verify
-WRONG_BUILD=$(grep "CURRENT_PROJECT_VERSION" "$PBXPROJ" | grep -v "= $NEW_BUILD;" || true)
-if [ -n "$WRONG_BUILD" ]; then
-    error "Build number mismatch — some entries were NOT updated to $NEW_BUILD"
-fi
 WRONG_VER=$(grep "MARKETING_VERSION" "$PBXPROJ" | grep -v "= $NEW_VERSION;" || true)
 if [ -n "$WRONG_VER" ]; then
     error "Version mismatch — some entries were NOT updated to $NEW_VERSION"
 fi
-log "Verified: version=$NEW_VERSION build=$NEW_BUILD"
+log "Verified: version=$NEW_VERSION"
+
+# Stamp a fresh YYYYMMDD.HHMMSS build number into every target's CURRENT_PROJECT_VERSION.
+set_build() {
+    sed -i '' "s/CURRENT_PROJECT_VERSION = [^;]*/CURRENT_PROJECT_VERSION = $1/g" "$PBXPROJ"
+}
 
 # ============================================================
 # PHASE 2 — ARCHIVE (with new version/build)
@@ -152,12 +144,15 @@ log "Verified: version=$NEW_VERSION build=$NEW_BUILD"
 rollback() {
     warn "Rolling back to v$CURRENT_VERSION build $CURRENT_BUILD..."
     sed -i '' "s/MARKETING_VERSION = [^;]*/MARKETING_VERSION = $CURRENT_VERSION/g" "$PBXPROJ"
-    sed -i '' "s/CURRENT_PROJECT_VERSION = [0-9][0-9]*/CURRENT_PROJECT_VERSION = $CURRENT_BUILD/g" "$PBXPROJ"
+    sed -i '' "s/CURRENT_PROJECT_VERSION = [^;]*/CURRENT_PROJECT_VERSION = $CURRENT_BUILD/g" "$PBXPROJ"
     error "Archive failed — rolled back to v$CURRENT_VERSION ($CURRENT_BUILD)"
 }
 
 if [[ "$TARGET" == "ios" || "$TARGET" == "all" ]]; then
-    log "Archiving iOS (v$NEW_VERSION build $NEW_BUILD)..."
+    IOS_BUILD="$(date '+%Y%m%d.%H%M%S')"
+    IOS_ARCHIVE="$ARCHIVE_DIR/PommeCore v$NEW_VERSION ($IOS_BUILD).xcarchive"
+    set_build "$IOS_BUILD"
+    log "Archiving iOS (v$NEW_VERSION build $IOS_BUILD)..."
     security unlock-keychain -p "" ~/Library/Keychains/login.keychain-db 2>/dev/null || true
     if ! xcodebuild archive \
         -project PommeCore.xcodeproj \
@@ -173,11 +168,14 @@ if [[ "$TARGET" == "ios" || "$TARGET" == "all" ]]; then
     if ! grep -q "ARCHIVE SUCCEEDED" /tmp/xcodebuild-ios.log; then
         rollback
     fi
-    log "iOS archive complete → v$NEW_VERSION build $NEW_BUILD"
+    log "iOS archive complete → v$NEW_VERSION build $IOS_BUILD"
 fi
 
 if [[ "$TARGET" == "macos" || "$TARGET" == "all" ]]; then
-    log "Archiving macOS (v$NEW_VERSION build $NEW_BUILD)..."
+    MACOS_BUILD="$(date '+%Y%m%d.%H%M%S')"
+    MACOS_ARCHIVE="$ARCHIVE_DIR/PommeCore-macOS v$NEW_VERSION ($MACOS_BUILD).xcarchive"
+    set_build "$MACOS_BUILD"
+    log "Archiving macOS (v$NEW_VERSION build $MACOS_BUILD)..."
     security unlock-keychain -p "" ~/Library/Keychains/login.keychain-db 2>/dev/null || true
     if ! xcodebuild archive \
         -project PommeCore.xcodeproj \
@@ -193,7 +191,7 @@ if [[ "$TARGET" == "macos" || "$TARGET" == "all" ]]; then
     if ! grep -q "ARCHIVE SUCCEEDED" /tmp/xcodebuild-macos.log; then
         rollback
     fi
-    log "macOS archive complete → v$NEW_VERSION build $NEW_BUILD"
+    log "macOS archive complete → v$NEW_VERSION build $MACOS_BUILD"
 fi
 
 # ============================================================
@@ -201,9 +199,9 @@ fi
 # ============================================================
 
 if [[ "$RELEASE_MODE" == "1" ]]; then
-    COMMIT_MSG="release: v$NEW_VERSION ($NEW_BUILD)"
+    COMMIT_MSG="release: v$NEW_VERSION (build ${MACOS_BUILD:-$IOS_BUILD})"
 else
-    COMMIT_MSG="chore: bump build to $NEW_BUILD (v$NEW_VERSION)"
+    COMMIT_MSG="chore: build v$NEW_VERSION (build ${MACOS_BUILD:-$IOS_BUILD})"
 fi
 
 log "Committing..."
@@ -223,7 +221,7 @@ if [[ "$TARGET" == "ios" || "$TARGET" == "all" ]]; then
     xcodebuild -exportArchive \
         -archivePath "$IOS_ARCHIVE" \
         -exportOptionsPlist "$PROJECT_DIR/ExportOptions-AppStore-iOS.plist" \
-        -exportPath "$EXPORT_DIR/iOS-$NEW_BUILD" \
+        -exportPath "$EXPORT_DIR/iOS-$IOS_BUILD" \
         -allowProvisioningUpdates \
         -authenticationKeyPath "$ASC_KEY_PATH" \
         -authenticationKeyID "$ASC_KEY_ID" \
@@ -240,7 +238,7 @@ if [[ "$TARGET" == "macos" || "$TARGET" == "all" ]]; then
     xcodebuild -exportArchive \
         -archivePath "$MACOS_ARCHIVE" \
         -exportOptionsPlist "$PROJECT_DIR/ExportOptions-AppStore-macOS.plist" \
-        -exportPath "$EXPORT_DIR/macOS-$NEW_BUILD" \
+        -exportPath "$EXPORT_DIR/macOS-$MACOS_BUILD" \
         -allowProvisioningUpdates \
         -authenticationKeyPath "$ASC_KEY_PATH" \
         -authenticationKeyID "$ASC_KEY_ID" \
@@ -253,9 +251,9 @@ if [[ "$TARGET" == "macos" || "$TARGET" == "all" ]]; then
 fi
 
 if [[ "$RELEASE_MODE" == "1" ]]; then
-    log "Done! RELEASE v$NEW_VERSION ($NEW_BUILD) uploaded"
+    log "Done! RELEASE v$NEW_VERSION uploaded (iOS build ${IOS_BUILD:-—}, macOS build ${MACOS_BUILD:-—})"
     log "Submit in App Store Connect → App Store"
 else
-    log "Done! v$NEW_VERSION build $NEW_BUILD uploaded to TestFlight"
+    log "Done! v$NEW_VERSION uploaded to TestFlight (iOS build ${IOS_BUILD:-—}, macOS build ${MACOS_BUILD:-—})"
     log "Check App Store Connect → TestFlight for processing status"
 fi
