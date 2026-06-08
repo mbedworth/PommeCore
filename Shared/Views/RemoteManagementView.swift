@@ -605,7 +605,7 @@ private extension RemoteManagementView {
                     }
                     contact.outPathLen == 0
                         ? Label("direct", systemImage: "arrow.triangle.branch")
-                        : Label("\(contact.outPathLen & 0x3F) hops", systemImage: "arrow.triangle.branch")
+                        : Label("\(Int(contact.outPathLen & 0x3F)) hops", systemImage: "arrow.triangle.branch")
                 }
                 .font(.caption)
                 .foregroundStyle(MeshTheme.textSecondary)

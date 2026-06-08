@@ -188,7 +188,7 @@ struct DebugLogView: View {
 }
 
 private struct FilterChip: View {
-    let label: String
+    let label: LocalizedStringKey
     let isSelected: Bool
     let action: () -> Void
 

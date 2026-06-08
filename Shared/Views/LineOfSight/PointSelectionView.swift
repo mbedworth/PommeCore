@@ -13,7 +13,7 @@ import CoreLocation
 import MeshCoreKit
 
 struct PointSelectionView: View {
-    let label: String
+    let label: LocalizedStringKey
     @Binding var source: LoSPointSource
     @Binding var contact: Contact?
     @Binding var mapPin: CLLocationCoordinate2D?

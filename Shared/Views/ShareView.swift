@@ -75,7 +75,7 @@ private struct QRImage: View {
 
 struct QRCodeView: View {
     let content: String
-    let label: String
+    let label: LocalizedStringKey
 
     var body: some View {
         VStack(spacing: 16) {
@@ -288,7 +288,7 @@ struct MyContactCodeSheet: View {
                 if let url = exportedURL {
                     QRCodeView(
                         content: url,
-                        label: deviceConfig.deviceName.isEmpty ? "My Contact Code" : deviceConfig.deviceName
+                        label: deviceConfig.deviceName.isEmpty ? "My Contact Code" : "\(deviceConfig.deviceName)"
                     )
                     Text("Others can scan this QR code to add you as a contact.")
                         .font(.caption)
