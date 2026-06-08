@@ -19,7 +19,7 @@ enum ProfileExportService {
                             appVersion: String) -> MeshProfileExport {
         let radio = MeshProfileRadio(
             deviceName: deviceConfig.deviceName,
-            advertName: deviceConfig.advertName,
+            advertName: deviceConfig.deviceName,
             radioFrequency: deviceConfig.radioFrequency,
             radioBandwidth: deviceConfig.radioBandwidth,
             radioSpreadingFactor: deviceConfig.radioSpreadingFactor,
@@ -97,8 +97,14 @@ enum ProfileExportService {
         connectionManager.setRadioTXPower(r.radioTXPower)
         try? await Task.sleep(nanoseconds: delay)
 
-        connectionManager.setAdvertName(r.advertName)
-        try? await Task.sleep(nanoseconds: delay)
+        // Name lives in `deviceName` (populated from SELF_INFO). Older profiles
+        // may carry an empty `advertName`, so fall back to it only if needed.
+        // Never push an empty name — that would blank the radio's existing name.
+        let nameToRestore = r.deviceName.isEmpty ? r.advertName : r.deviceName
+        if !nameToRestore.isEmpty {
+            connectionManager.setAdvertName(nameToRestore)
+            try? await Task.sleep(nanoseconds: delay)
+        }
 
         connectionManager.setOtherParams(
             manualAddContacts: r.manualAddContacts,

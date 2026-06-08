@@ -34,7 +34,7 @@ struct DistressBeaconView: View {
     }
 
     private var messagePreview: String {
-        let name = deviceConfig.advertName.isEmpty ? "Unknown" : deviceConfig.advertName
+        let name = deviceConfig.deviceName.isEmpty ? "Unknown" : deviceConfig.deviceName
         var text = "\u{1F198} DISTRESS from \(name)"
         if !locationText.isEmpty { text += " at \(locationText)" }
         return text

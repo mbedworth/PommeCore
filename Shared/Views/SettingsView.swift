@@ -250,7 +250,7 @@ struct SettingsView: View {
             NavigationStack {
                 NodeSetupWizardView(
                                 publicKeyHex: deviceConfig.publicKeyHex,
-                                currentAdvertName: deviceConfig.advertName,
+                                currentAdvertName: deviceConfig.deviceName,
                                 onApplyName: { name in connectionManager.setAdvertName(name) }
                             )
                     .toolbar {
@@ -320,7 +320,7 @@ struct SettingsView: View {
             NavigationStack {
                 NodeSetupWizardView(
                                 publicKeyHex: deviceConfig.publicKeyHex,
-                                currentAdvertName: deviceConfig.advertName,
+                                currentAdvertName: deviceConfig.deviceName,
                                 onApplyName: { name in connectionManager.setAdvertName(name) }
                             )
                     .toolbar {

@@ -87,7 +87,6 @@ public final class DeviceConfig {
 
     // MARK: - Identity & Advertising
 
-    public var advertName: String = ""
     public var latitude: Double = 0.0
     public var longitude: Double = 0.0
     public var advertLocPolicy: UInt8 = 0  // 0=don't share, 1=share
@@ -179,7 +178,6 @@ public final class DeviceConfig {
         maxContacts = 0
         maxChannels = 0
         batteryMillivolts = 0
-        advertName = ""
         latitude = 0.0
         longitude = 0.0
         advertLocPolicy = 0

@@ -207,7 +207,7 @@ struct RadioProfilesView: View {
 
     private func suggestedName() -> String {
         let freq = String(format: "%.3f", Double(deviceConfig.radioFrequency) / 1000.0)
-        let name = deviceConfig.advertName.isEmpty ? "" : "\(deviceConfig.advertName) · "
+        let name = deviceConfig.deviceName.isEmpty ? "" : "\(deviceConfig.deviceName) · "
         return "\(name)\(freq) MHz"
     }
 }

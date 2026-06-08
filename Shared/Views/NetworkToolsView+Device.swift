@@ -24,8 +24,8 @@ struct DeviceInfoPopover: View {
         List {
             Section {
                 infoRow("Device", value: connectionManager.connectedDeviceName ?? "Unknown")
-                if !config.advertName.isEmpty {
-                    infoRow("Advert Name", value: config.advertName)
+                if !config.deviceName.isEmpty {
+                    infoRow("Advert Name", value: config.deviceName)
                 }
                 if !config.semanticVersion.isEmpty {
                     infoRow("Firmware", value: config.semanticVersion)

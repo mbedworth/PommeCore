@@ -277,7 +277,7 @@ final class PommeCoreViewModel: ObservableObject {
         geofenceStore.distressAction = { [weak self] in
             guard let self else { return }
             self.connectionManager.sendAdvertise(type: 1)
-            let name = self.deviceConfig.advertName.isEmpty ? "Unknown" : self.deviceConfig.advertName
+            let name = self.deviceConfig.deviceName.isEmpty ? "Unknown" : self.deviceConfig.deviceName
             var text = "\u{1F198} DISTRESS from \(name)"
             if let loc = SharedLocation.manager.location {
                 text += String(format: " at %.5f, %.5f", loc.coordinate.latitude, loc.coordinate.longitude)

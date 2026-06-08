@@ -485,7 +485,7 @@ struct ContentView: View {
             NavigationStack {
                 NodeSetupWizardView(
                     publicKeyHex: deviceConfig.publicKeyHex,
-                    currentAdvertName: deviceConfig.advertName,
+                    currentAdvertName: deviceConfig.deviceName,
                     onApplyName: { name in connectionManager.setAdvertName(name) }
                 )
                     .toolbar {

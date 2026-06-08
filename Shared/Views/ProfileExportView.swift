@@ -185,7 +185,7 @@ struct ProfileExportView: View {
                 channelStore: channelStore,
                 appVersion: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "")
             exportURL = try ProfileExportService.exportURL(
-                from: profile, radioName: deviceConfig.advertName)
+                from: profile, radioName: deviceConfig.deviceName)
             showExportShare = true
         } catch {
             exportError = error.localizedDescription
