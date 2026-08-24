@@ -27,6 +27,21 @@ Used for USB CLI mode (repeater/room/sensor firmware) and BLE remote admin sessi
 - flood_max: 0–64 hops (repeater/room/sensor only)
 - name: no `[]:\,?*` characters
 
+## Firmware 1.17.x Commands
+
+| Command | Notes |
+|---------|-------|
+| `get/set cad on\|off` | New in 1.17.0. Hardware Channel Activity Detection before TX — fewer collisions, slightly higher latency/power. Repeater, room server, and sensor firmware honour it via `getCADEnabled()`; **companion firmware stores the pref but hardcodes CAD off**, so the app exposes the toggle for repeaters and room servers only. |
+| `get pwrmgt.bootreason` | Present since 1.16.0, extended to ESP targets in 1.17.0. Replies `> Reset: <reason>; Shutdown: <reason>`. Shown as the read-only Last Boot row in Maintenance. |
+| `get/set radio.fem.rxgain` | 1.17.1 (select Heltec boards). **Not exposed in the app** — 1.17.1 states companion firmware cannot configure FEM gain, so defaults apply. |
+| `get/set radio.fem.txgain` | 1.17.1, Station G3 only. Not exposed, same reason. |
+| `room.post` | 1.17.0, room server only — server-originated posts. Not yet exposed (see room permission manager work). |
+| `get radio.rxgain` | RX boosted gain on/off. Pre-existing, not currently fetched by the app. |
+
+**Detecting unsupported commands:** firmware answers an unknown command with `??: <command>` and a getter for
+missing hardware with `Error: unsupported`. Both are stored like any other response, so UI that gates on
+firmware support must read `RemoteDeviceSession.supportedValue(for:)` rather than `settings[key]` directly.
+
 ## Device-Type-Specific CLI Commands
 
 | Feature | Repeater | Room Server | Sensor |

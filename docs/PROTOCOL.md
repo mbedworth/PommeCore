@@ -345,6 +345,29 @@ Packets (type 2):
 | 0x90 | PUSH_CODE_CONTACTS_FULL | no payload |
 | 0x91+ | GROUP_DATA (binary) | Added in firmware 1.15.0. Binary data packets over channels. Format: channel_hash(1) + cipher_mac(2) + ciphertext(rest). Decrypted: data_type(2) + data_len(1) + data(N). App handles as `unknown(type:payload:)` — no crash, silently ignored. |
 
+### Telemetry payload (0x8B) — Cayenne LPP
+
+Encoded with ElectronicCats CayenneLPP 1.6.1. Entries are `channel(1) type(1) value(fixed length per type)`,
+and **all values are big-endian** — the exception to the little-endian rule everywhere else in the protocol.
+
+- **The channel byte matters.** Firmware puts the node's own values on `TELEM_CHANNEL_SELF` (1) and assigns
+  each attached sensor its own channel (`next_available_channel = TELEM_CHANNEL_SELF + 1`), so one response
+  can legitimately carry several readings of the same type. Readings must be keyed by channel + type, never
+  by type alone.
+- **Firmware 1.17.0 added MCU temperature on channel 1** (`board.getMCUTemperature()`, implemented for both
+  ESP32 and nRF52, NAN on unsupported boards). A node with an external temperature sensor now reports two
+  temperatures, and boards that already publish ambient temperature on channel 1 (t1000-e, wio-e5-mini,
+  meshtracker_x1) report two on the *same* channel.
+- **Order is not stable.** The self path (`CMD_SEND_TELEMETRY_REQ`, len 4) emits voltage, then MCU
+  temperature, then sensors; the remote-request path emits sensors first and MCU temperature last. Never
+  use position to identify a reading.
+- **A type's payload length is fixed and must be respected.** An unrecognised type has an unknown length,
+  so parsing has to stop there — skipping it by guesswork misreads every later entry in the response.
+
+Types the firmware emits: temperature (0x67), humidity (0x68), barometric pressure (0x73), altitude (0x79),
+voltage (0x74), analog input (0x02), current (0x75), power (0x80), percentage (0x78), distance (0x82),
+generic sensor (0x64), luminosity (0x65), presence (0x66), GPS (0x88).
+
 **Echo/repeat detection:** 0x88 LOG_RX_DATA fires when a repeater forwards a packet after a channel send.
 Arms `pendingChannelEcho` on channel send; if 0x88 arrives within 30s, sets message status to `.repeated`.
 The raw LoRa bytes are encrypted — use timing correlation only, not content.
