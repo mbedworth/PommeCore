@@ -142,6 +142,11 @@ final class ContactStore {
             if a.isFavourite != b.isFavourite {
                 return a.isFavourite
             }
+            // Nodes that have not identified themselves sort below real contacts in
+            // both modes — they carry no name and nothing to act on yet.
+            if a.isUnidentified != b.isUnidentified {
+                return b.isUnidentified
+            }
             if byLastSeen {
                 return lastActivityTimestamp(for: a) > lastActivityTimestamp(for: b)
             }
@@ -173,8 +178,15 @@ final class ContactStore {
     func displayName(for contact: Contact) -> String {
         if let nick = nickname(for: contact), !nick.isEmpty { return nick }
         if !contact.name.isEmpty { return contact.name }
+        let prefix = Data(contact.publicKey.prefix(4)).hexCompact
+        // Nodes the radio has heard from but that have not advertised a name yet
+        // (firmware 1.17+ returns these from CMD_GET_CONTACTS) — say so, rather than
+        // showing a bare hex string that looks like a broken contact.
+        if contact.isUnidentified {
+            return String(localized: "Unknown node") + " \u{00B7} " + prefix
+        }
         // Fallback for contacts with no name (e.g. factory-reset or new radios)
-        return Data(contact.publicKey.prefix(4)).hexCompact
+        return prefix
     }
 
     /// Resolve a channel message sender name to a nickname if one exists.
@@ -857,7 +869,7 @@ final class ContactStore {
     #if canImport(CoreSpotlight)
     func indexContactsForSpotlight() {
         var items: [CSSearchableItem] = []
-        for contact in contacts {
+        for contact in contacts where !contact.isUnidentified {
             let attrs = CSSearchableItemAttributeSet(contentType: .contact)
             attrs.displayName = displayName(for: contact)
             attrs.contentDescription = "PommeCore \(contact.type == .repeater ? "repeater" : contact.type == .room ? "room server" : "contact")"

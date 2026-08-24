@@ -59,6 +59,16 @@ public struct Contact: Identifiable, Codable, Sendable, Hashable {
     /// Use first 6 bytes of publicKey as stable ID.
     public var id: Data { publicKeyPrefix }
 
+    /// A contact the radio created for a node that has not identified itself.
+    ///
+    /// Firmware creates these (ADV_TYPE_NONE, no name) when a node that is not in our
+    /// contact list sends a telemetry or status request. Firmware 1.17.0 started
+    /// returning them from CMD_GET_CONTACTS — earlier firmware filtered them out.
+    /// They become normal contacts as soon as an advert names them.
+    public var isUnidentified: Bool {
+        type == .unknown && name.isEmpty
+    }
+
     /// First 6 bytes of the public key (used for message routing).
     public var publicKeyPrefix: Data {
         Data(publicKey.prefix(6))

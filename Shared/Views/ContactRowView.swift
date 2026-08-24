@@ -181,6 +181,14 @@ struct ContactRowView: View {
                 .foregroundStyle(MeshTheme.textSecondary)
         }
 
+        // The radio adds these when an unknown node requests data from us. Explain the
+        // row rather than leaving an unnamed contact with no apparent purpose.
+        if contact.isUnidentified {
+            Text("Requested data from this radio \u{2014} no advert received yet")
+                .font(.caption2)
+                .foregroundStyle(MeshTheme.textSecondary)
+        }
+
         // Infrastructure status summary (battery, uptime, contacts)
         if (contact.type == .repeater || contact.type == .room || contact.type == .sensor),
            let status = remoteSessionManager.statusByContact[contact.publicKeyPrefix] {
@@ -253,7 +261,7 @@ struct ContactRowView: View {
         case .repeater: return "antenna.radiowaves.left.and.right"
         case .room: return "server.rack"
         case .sensor: return "sensor.fill"
-        case .unknown: return "person.fill"
+        case .unknown: return "questionmark.circle"
         }
     }
 
