@@ -19,8 +19,16 @@ struct TelemetryChartView: View {
     @Environment(RFMonitorStore.self) private var rfStore
     @State private var selectedReading: String?
 
-    private var availableReadings: [String] {
+    private var availableReadings: [TelemetrySeries] {
         rfStore.availableReadings(for: contactKey)
+    }
+
+    /// Currently charted series — the user's pick, or the first available.
+    private var selectedSeries: TelemetrySeries? {
+        if let selectedReading, let match = availableReadings.first(where: { $0.key == selectedReading }) {
+            return match
+        }
+        return availableReadings.first
     }
 
     var body: some View {
@@ -51,17 +59,18 @@ struct TelemetryChartView: View {
             } else {
                 // Reading type picker
                 Picker("Reading", selection: Binding(
-                    get: { selectedReading ?? availableReadings.first ?? "" },
+                    get: { selectedSeries?.key ?? "" },
                     set: { selectedReading = $0 }
                 )) {
-                    ForEach(availableReadings, id: \.self) { name in
-                        Text(name).tag(name)
+                    ForEach(availableReadings) { series in
+                        Text(series.label).tag(series.key)
                     }
                 }
                 .pickerStyle(.segmented)
 
-                let readingName = selectedReading ?? availableReadings.first ?? ""
-                let data = rfStore.history(for: contactKey, named: readingName)
+                let series = selectedSeries
+                let readingName = series?.label ?? ""
+                let data = series.map { rfStore.history(for: contactKey, series: $0) } ?? []
 
                 if !data.isEmpty {
                     Chart(data, id: \.date) { point in
@@ -100,9 +109,8 @@ struct TelemetryChartView: View {
                     .frame(height: 200)
 
                     // Latest value
-                    if let latest = data.last {
-                        let unit = rfStore.telemetryHistory[contactKey]?.last?.readings
-                            .first(where: { $0.name == readingName })?.unit ?? ""
+                    if let latest = data.last, let series {
+                        let unit = rfStore.unit(for: contactKey, series: series)
                         Text("Latest: \(String(format: "%.1f", latest.value))\(unit)")
                             .font(.caption)
                             .foregroundStyle(MeshTheme.textSecondary)

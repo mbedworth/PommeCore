@@ -921,7 +921,12 @@ public enum FrameParser {
 
     /// PUSH_CODE_TELEMETRY_RESPONSE (0x8B) — LPP-encoded sensor data.
     /// Layout: reserved(1) pub_key_prefix(6) lpp_data(remainder)
-    /// LPP format: channel(1) type(1) value(variable)
+    /// LPP format: channel(1) type(1) value(payload — length fixed per type)
+    ///
+    /// Every value is big-endian (Cayenne LPP), unlike the rest of the protocol.
+    /// The channel byte identifies which sensor a reading came from: firmware puts the
+    /// node's own values on channel 1 and gives each attached sensor its own channel,
+    /// so the same type can appear more than once in one response.
     private static func parseTelemetryResponse(_ data: Data) -> ParsedResponse {
         var offset = 0
         _ = readUInt8(data, offset: &offset) // reserved
@@ -931,55 +936,109 @@ public enum FrameParser {
 
         var readings: [TelemetryReading] = []
 
-        while offset + 2 < data.count {
-            _ = readUInt8(data, offset: &offset) // channel
+        parseLoop: while offset + 2 <= data.count {
+            let channel = readUInt8(data, offset: &offset)
             let lppType = readUInt8(data, offset: &offset)
 
+            // Every LPP type has a fixed payload length. Bail out rather than guess if the
+            // type is unknown or the payload is truncated — continuing would misread the
+            // remaining bytes as readings.
+            guard let payloadSize = lppPayloadSize[lppType] else {
+                logger.debug("Unknown LPP type 0x\(String(format: "%02x", lppType)) at offset \(offset) — stopping")
+                break parseLoop
+            }
+            guard offset + payloadSize <= data.count else {
+                logger.debug("Truncated LPP payload for type 0x\(String(format: "%02x", lppType)) — stopping")
+                break parseLoop
+            }
+
+            let valueStart = offset
+            func add(_ name: String, _ value: Double, _ unit: String) {
+                readings.append(TelemetryReading(name: name, value: value, unit: unit, channel: channel))
+            }
+
             switch lppType {
-            case 0x67: // Temperature (int16 BE, 0.1 C)
-                let raw = Int16(bitPattern: readUInt16BE(data, offset: &offset))
-                readings.append(TelemetryReading(name: "Temperature", value: Double(raw) / 10.0, unit: "\u{00B0}C"))
-            case 0x68: // Humidity (uint8, 0.5 %)
-                let raw = readUInt8(data, offset: &offset)
-                readings.append(TelemetryReading(name: "Humidity", value: Double(raw) / 2.0, unit: "%"))
-            case 0x73: // Barometric Pressure (uint16 BE, 0.1 hPa)
-                let raw = readUInt16BE(data, offset: &offset)
-                readings.append(TelemetryReading(name: "Pressure", value: Double(raw) / 10.0, unit: "hPa"))
-            case 0x02: // Analog Input (uint16 BE, 0.01 V) — often battery
-                let raw = readUInt16BE(data, offset: &offset)
-                readings.append(TelemetryReading(name: "Battery", value: Double(raw) / 100.0, unit: "V"))
-            case 0x74: // Voltage (uint16 BE, 0.01 V) — battery voltage
-                let raw = readUInt16BE(data, offset: &offset)
-                readings.append(TelemetryReading(name: "Battery", value: Double(raw) / 100.0, unit: "V"))
-            case 0x65: // Illuminance (uint16 BE, 1 lux)
-                let raw = readUInt16BE(data, offset: &offset)
-                readings.append(TelemetryReading(name: "Light", value: Double(raw), unit: "lux"))
-            case 0x88: // GPS (9 bytes: lat 3, lon 3, alt 3 — all 24-bit signed)
-                guard offset + 9 <= data.count else { break }
-                // Read directly from data at correct offsets — do NOT slice then index
-                let latRaw = Int32(data[offset]) << 16 | Int32(data[offset+1]) << 8 | Int32(data[offset+2])
-                let lat = latRaw > 0x7FFFFF ? latRaw - 0x1000000 : latRaw
-                offset += 3
-                let lonRaw = Int32(data[offset]) << 16 | Int32(data[offset+1]) << 8 | Int32(data[offset+2])
-                let lon = lonRaw > 0x7FFFFF ? lonRaw - 0x1000000 : lonRaw
-                offset += 3
-                let altRaw = Int32(data[offset]) << 16 | Int32(data[offset+1]) << 8 | Int32(data[offset+2])
-                let alt = altRaw > 0x7FFFFF ? altRaw - 0x1000000 : altRaw
-                offset += 3
-                readings.append(TelemetryReading(name: "GPS Lat", value: Double(lat) / 10000.0, unit: "\u{00B0}"))
-                readings.append(TelemetryReading(name: "GPS Lon", value: Double(lon) / 10000.0, unit: "\u{00B0}"))
-                readings.append(TelemetryReading(name: "Altitude", value: Double(alt) / 100.0, unit: "m"))
+            case 0x67: // Temperature (int16, 0.1 C)
+                add("Temperature", Double(readInt16BE(data, offset: &offset)) / 10.0, "\u{00B0}C")
+            case 0x68: // Relative Humidity (uint8, 0.5 %)
+                add("Humidity", Double(readUInt8(data, offset: &offset)) / 2.0, "%")
+            case 0x73: // Barometric Pressure (uint16, 0.1 hPa)
+                add("Pressure", Double(readUInt16BE(data, offset: &offset)) / 10.0, "hPa")
+            case 0x02: // Analog Input (int16, 0.01) — used as battery voltage by some nodes
+                add("Battery", Double(readInt16BE(data, offset: &offset)) / 100.0, "V")
+            case 0x74: // Voltage (uint16, 0.01 V)
+                add("Battery", Double(readUInt16BE(data, offset: &offset)) / 100.0, "V")
+            case 0x75: // Current (uint16, 0.001 A)
+                add("Current", Double(readUInt16BE(data, offset: &offset)) / 1000.0, "A")
+            case 0x80: // Power (uint16, 1 W)
+                add("Power", Double(readUInt16BE(data, offset: &offset)), "W")
+            case 0x65: // Luminosity (uint16, 1 lux)
+                add("Light", Double(readUInt16BE(data, offset: &offset)), "lux")
+            case 0x78: // Percentage (uint8, 1 %) — e.g. soil moisture
+                add("Percentage", Double(readUInt8(data, offset: &offset)), "%")
+            case 0x79: // Altitude (int16, 1 m) — barometric, distinct from the GPS altitude below
+                add("Altitude", Double(readInt16BE(data, offset: &offset)), "m")
+            case 0x64: // Generic Sensor (uint32, 1) — BME680 gas resistance
+                add("Sensor", Double(readUInt32BE(data, offset: &offset)), "")
+            case 0x82: // Distance (uint32, 0.001 m)
+                add("Distance", Double(readUInt32BE(data, offset: &offset)) / 1000.0, "m")
+            case 0x66: // Presence (uint8, bool)
+                add("Presence", Double(readUInt8(data, offset: &offset)), "")
+            case 0x7D: // Concentration (uint16, 1 ppm)
+                add("Concentration", Double(readUInt16BE(data, offset: &offset)), "ppm")
+            case 0x88: // GPS (int24 lat, int24 lon, int24 alt)
+                let lat = readInt24BE(data, offset: &offset)
+                let lon = readInt24BE(data, offset: &offset)
+                let alt = readInt24BE(data, offset: &offset)
+                add("GPS Lat", Double(lat) / 10000.0, "\u{00B0}")
+                add("GPS Lon", Double(lon) / 10000.0, "\u{00B0}")
+                add("Altitude", Double(alt) / 100.0, "m")
             default:
-                // Unknown LPP type — skip remaining data
-                logger.debug("Unknown LPP type 0x\(String(format: "%02x", lppType)) at offset \(offset)")
+                // Known length but not surfaced (digital IO, motion, colour, timestamps).
+                // Skipping by its fixed length keeps the rest of the response parseable.
                 break
             }
+
+            offset = valueStart + payloadSize
         }
 
-        logger.info("TelemetryResponse: \(readings.count) readings from \(senderKey.hexCompact)")
+        let named = TelemetryReading.disambiguate(readings)
+        logger.info("TelemetryResponse: \(named.count) readings from \(senderKey.hexCompact)")
 
-        return .telemetryResponse(senderKey: senderKey, readings: readings)
+        return .telemetryResponse(senderKey: senderKey, readings: named)
     }
+
+    /// Cayenne LPP payload length per data type (ElectronicCats CayenneLPP 1.6.1, the
+    /// library the firmware encodes with). Types absent here are unknown to us — parsing
+    /// stops when one is seen, since the length is needed to find the next reading.
+    private static let lppPayloadSize: [UInt8: Int] = [
+        0x00: 1,  // Digital Input
+        0x01: 1,  // Digital Output
+        0x02: 2,  // Analog Input
+        0x03: 2,  // Analog Output
+        0x64: 4,  // Generic Sensor
+        0x65: 2,  // Luminosity
+        0x66: 1,  // Presence
+        0x67: 2,  // Temperature
+        0x68: 1,  // Relative Humidity
+        0x71: 6,  // Accelerometer
+        0x73: 2,  // Barometric Pressure
+        0x74: 2,  // Voltage
+        0x75: 2,  // Current
+        0x76: 4,  // Frequency
+        0x78: 1,  // Percentage
+        0x79: 2,  // Altitude
+        0x7D: 2,  // Concentration
+        0x80: 2,  // Power
+        0x82: 4,  // Distance
+        0x83: 4,  // Energy
+        0x84: 2,  // Direction
+        0x85: 4,  // Unix time
+        0x86: 6,  // Gyrometer
+        0x87: 3,  // Colour
+        0x88: 9,  // GPS
+        0x8E: 1,  // Switch
+    ]
 
     // MARK: - Path Discovery Response (0x8D)
 
@@ -1125,6 +1184,28 @@ public enum FrameParser {
         let v = UInt16(data[offset]) << 8 | UInt16(data[offset + 1])
         offset += 2
         return v
+    }
+
+    /// Read big-endian Int16 (signed Cayenne LPP fields — temperature, altitude, analog).
+    private static func readInt16BE(_ data: Data, offset: inout Int) -> Int16 {
+        Int16(bitPattern: readUInt16BE(data, offset: &offset))
+    }
+
+    /// Read big-endian UInt32 (4-byte Cayenne LPP fields — generic sensor, distance).
+    private static func readUInt32BE(_ data: Data, offset: inout Int) -> UInt32 {
+        guard offset + 4 <= data.count else { return 0 }
+        let v = UInt32(data[offset]) << 24 | UInt32(data[offset + 1]) << 16
+              | UInt32(data[offset + 2]) << 8 | UInt32(data[offset + 3])
+        offset += 4
+        return v
+    }
+
+    /// Read big-endian 24-bit signed value (Cayenne LPP GPS fields).
+    private static func readInt24BE(_ data: Data, offset: inout Int) -> Int32 {
+        guard offset + 3 <= data.count else { return 0 }
+        let raw = Int32(data[offset]) << 16 | Int32(data[offset + 1]) << 8 | Int32(data[offset + 2])
+        offset += 3
+        return raw > 0x7FFFFF ? raw - 0x1000000 : raw
     }
 
     private static func readUInt32(_ data: Data, offset: inout Int) -> UInt32 {

@@ -59,16 +59,73 @@ public struct TraceResult: Sendable {
 }
 
 /// A telemetry reading from a sensor contact.
+///
+/// Cayenne LPP groups readings into *data channels*: firmware puts the node's own
+/// values on `selfChannel` and gives every attached sensor its own channel, so a
+/// single response can legitimately carry several readings of the same type
+/// (firmware 1.17.0 added MCU temperature on the self channel alongside any
+/// external temperature sensor). `name` is the reading type; `key` and `label`
+/// are made unique across a response by `disambiguate(_:)`.
 public struct TelemetryReading: Identifiable, Sendable {
+    /// LPP data channel used by firmware for the node's own values (TELEM_CHANNEL_SELF).
+    public static let selfChannel: UInt8 = 1
+
     public let id = UUID()
+    /// Reading type, e.g. "Temperature". Not unique within a response.
     public let name: String
     public let value: Double
     public let unit: String
+    /// LPP data channel this reading arrived on.
+    public let channel: UInt8
+    /// Stable identity within a response — used to key history. Unique after `disambiguate(_:)`.
+    public let key: String
+    /// Human-readable label, channel-qualified only when `name` alone would be ambiguous.
+    public let label: String
 
-    public init(name: String, value: Double, unit: String) {
+    public init(name: String, value: Double, unit: String,
+                channel: UInt8 = TelemetryReading.selfChannel,
+                key: String? = nil, label: String? = nil) {
         self.name = name
         self.value = value
         self.unit = unit
+        self.channel = channel
+        self.key = key ?? name
+        self.label = label ?? name
+    }
+
+    /// Assign unique `key`/`label` values across a single response.
+    ///
+    /// A reading whose type appears once keeps its plain name — the common single-sensor
+    /// case is unchanged for the user. Repeated types are qualified by channel, and the
+    /// rare same-channel repeat (an ambient sensor plus MCU temperature, both on the self
+    /// channel) gets a trailing index. Order is preserved: firmware emits sensor values
+    /// and the node's own values in a different order depending on the request path, so
+    /// position is never used to identify a reading.
+    public static func disambiguate(_ readings: [TelemetryReading]) -> [TelemetryReading] {
+        var countByName: [String: Int] = [:]
+        for reading in readings { countByName[reading.name, default: 0] += 1 }
+
+        var seenByChannelName: [String: Int] = [:]
+        return readings.map { reading in
+            let channelName = "\(reading.channel):\(reading.name)"
+            let occurrence = (seenByChannelName[channelName] ?? 0) + 1
+            seenByChannelName[channelName] = occurrence
+
+            let suffix = occurrence > 1 ? "#\(occurrence)" : ""
+            let key = channelName + suffix
+            let isAmbiguous = (countByName[reading.name] ?? 0) > 1
+            let label: String
+            if !isAmbiguous {
+                label = reading.name
+            } else if occurrence > 1 {
+                label = "\(reading.name) (Ch \(reading.channel) #\(occurrence))"
+            } else {
+                label = "\(reading.name) (Ch \(reading.channel))"
+            }
+
+            return TelemetryReading(name: reading.name, value: reading.value, unit: reading.unit,
+                                    channel: reading.channel, key: key, label: label)
+        }
     }
 }
 

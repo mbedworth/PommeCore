@@ -21,15 +21,29 @@ struct TelemetrySnapshot: Identifiable, Codable {
     init(timestamp: Date, readings: [TelemetryReading]) {
         self.id = UUID()
         self.timestamp = timestamp
-        self.readings = readings.map { CodableTelemetryReading(name: $0.name, value: $0.value, unit: $0.unit) }
+        self.readings = readings.map { CodableTelemetryReading($0) }
     }
 
-    func value(named name: String) -> Double? {
-        readings.first(where: { $0.name == name })?.value
+    /// Look up a reading by its channel-qualified key.
+    ///
+    /// Snapshots recorded before telemetry became channel-aware keyed readings by name
+    /// alone, so an unmatched key falls back to a unique name match — that keeps history
+    /// continuous across the upgrade for nodes reporting a single sensor of each type.
+    func reading(forKey key: String, name: String) -> CodableTelemetryReading? {
+        if let exact = readings.first(where: { $0.key == key }) { return exact }
+        let byName = readings.filter { $0.name == name }
+        return byName.count == 1 ? byName[0] : nil
+    }
+
+    func value(forKey key: String, name: String) -> Double? {
+        reading(forKey: key, name: name)?.value
     }
 
     func toTelemetryReadings() -> [TelemetryReading] {
-        readings.map { TelemetryReading(name: $0.name, value: $0.value, unit: $0.unit) }
+        readings.map {
+            TelemetryReading(name: $0.name, value: $0.value, unit: $0.unit,
+                             channel: $0.channel, key: $0.key, label: $0.label)
+        }
     }
 }
 
@@ -39,13 +53,43 @@ struct CodableTelemetryReading: Codable, Identifiable {
     let name: String
     let value: Double
     let unit: String
+    /// LPP data channel. Absent in snapshots written before firmware 1.17 support.
+    let channel: UInt8
+    /// Channel-qualified identity. Absent in older snapshots — falls back to `name`.
+    let key: String
+    /// Display label. Absent in older snapshots — falls back to `name`.
+    let label: String
 
-    init(name: String, value: Double, unit: String) {
+    init(_ reading: TelemetryReading) {
         self.id = UUID()
-        self.name = name
-        self.value = value
-        self.unit = unit
+        self.name = reading.name
+        self.value = reading.value
+        self.unit = reading.unit
+        self.channel = reading.channel
+        self.key = reading.key
+        self.label = reading.label
     }
+
+    /// Backward-compatible decoder — snapshots persisted before channel-aware telemetry
+    /// carry only id/name/value/unit and must keep decoding.
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = (try? c.decode(UUID.self, forKey: .id)) ?? UUID()
+        name = try c.decode(String.self, forKey: .name)
+        value = try c.decode(Double.self, forKey: .value)
+        unit = (try? c.decode(String.self, forKey: .unit)) ?? ""
+        channel = (try? c.decode(UInt8.self, forKey: .channel)) ?? TelemetryReading.selfChannel
+        key = (try? c.decode(String.self, forKey: .key)) ?? name
+        label = (try? c.decode(String.self, forKey: .label)) ?? name
+    }
+}
+
+/// Identity of one telemetry series within a contact's history.
+struct TelemetrySeries: Identifiable, Hashable {
+    let key: String
+    let name: String
+    let label: String
+    var id: String { key }
 }
 
 /// A single SNR/RSSI sample from LOG_RX_DATA (0x88).
@@ -104,20 +148,31 @@ final class RFMonitorStore {
         scheduleSave()
     }
 
-    /// Get history for a specific reading type (e.g. "Battery", "Temperature").
-    func history(for contactKey: Data, named name: String) -> [(date: Date, value: Double)] {
+    /// Get history for one telemetry series (e.g. battery, or channel 2's temperature).
+    func history(for contactKey: Data, series: TelemetrySeries) -> [(date: Date, value: Double)] {
         guard let snapshots = telemetryHistory[contactKey] else { return [] }
         return snapshots.compactMap { snapshot in
-            guard let value = snapshot.value(named: name) else { return nil }
+            guard let value = snapshot.value(forKey: series.key, name: series.name) else { return nil }
             return (snapshot.timestamp, value)
         }
     }
 
-    /// Available reading names for a contact's history.
-    func availableReadings(for contactKey: Data) -> [String] {
+    /// Unit for one telemetry series, taken from the most recent snapshot carrying it.
+    func unit(for contactKey: Data, series: TelemetrySeries) -> String {
+        guard let snapshots = telemetryHistory[contactKey] else { return "" }
+        for snapshot in snapshots.reversed() {
+            if let reading = snapshot.reading(forKey: series.key, name: series.name) {
+                return reading.unit
+            }
+        }
+        return ""
+    }
+
+    /// Telemetry series available in a contact's history, newest snapshot first.
+    func availableReadings(for contactKey: Data) -> [TelemetrySeries] {
         guard let snapshots = telemetryHistory[contactKey],
               let latest = snapshots.last else { return [] }
-        return latest.readings.map(\.name)
+        return latest.readings.map { TelemetrySeries(key: $0.key, name: $0.name, label: $0.label) }
     }
 
     // MARK: - Noise Floor (RF Monitor)

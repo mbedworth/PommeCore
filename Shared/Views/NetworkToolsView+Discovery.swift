@@ -443,7 +443,7 @@ struct TelemetryView: View {
                             Image(systemName: telemetryIcon(for: reading.name))
                                 .foregroundStyle(MeshTheme.accent)
                                 .frame(width: 20)
-                            Text(reading.name)
+                            Text(reading.label)
                                 .foregroundStyle(MeshTheme.textPrimary)
                             Spacer()
                             if reading.name == "Altitude" {
@@ -471,9 +471,15 @@ struct TelemetryView: View {
         case "humidity": return "humidity"
         case "pressure": return "barometer"
         case "battery": return "battery.75"
-        case "illuminance": return "sun.max"
+        case "light": return "sun.max"
         case "altitude": return "arrow.up.to.line"
         case "gps lat", "gps lon": return "location"
+        case "current": return "bolt"
+        case "power": return "bolt.circle"
+        case "percentage": return "percent"
+        case "distance": return "ruler"
+        case "presence": return "sensor"
+        case "concentration": return "aqi.medium"
         default: return "gauge"
         }
     }
