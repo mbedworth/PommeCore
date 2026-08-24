@@ -240,6 +240,13 @@ struct RemoteMaintenanceSection: View {
         Group {
             CLIToggleRow(icon: "leaf", label: "Power Saving", settingKey: "powersaving", onCommand: "powersaving on", offCommand: "powersaving off", session: session, sendCLI: sendCLI, canEdit: permission.canEdit)
 
+            // Why the node last restarted — a watchdog or brownout reason explains an
+            // unexplained uptime reset. Boards without the reporting hardware answer
+            // "unsupported", in which case the row is hidden.
+            if let bootReason = session.supportedValue(for: "pwrmgt.bootreason") {
+                cliInfoRow(icon: "power", label: "Last Boot", value: bootReason)
+            }
+
             if permission.canEdit {
                 cliEditRow(icon: "bolt.batteryblock", label: "ADC Multiplier", text: $adcMultiplier, current: session.settings["adc.multiplier"])
 

@@ -442,13 +442,14 @@ final class RemoteSessionManager {
             "get radio", "get tx", "get repeat",
             "get dutycycle", "get af", "get rxdelay", "get txdelay", "get direct.txdelay",
             "get flood.max", "get flood.max.unscoped", "get int.thresh", "get agc.reset.interval",
+            "get cad",
             "get name", "get lat", "get lon", "get owner.info",
             "get advert.interval", "get flood.advert.interval", "get multi.acks",
             "get allow.read.only",
             "get adc.multiplier",
             "get loop.detect", "get path.hash.mode",
             "get role", "get public.key", "get guest.password",
-            "powersaving", "gps", "gps advert",
+            "powersaving", "get pwrmgt.bootreason", "gps", "gps advert",
         ]
 
         session.fetchTotalCount = commands.count
@@ -511,13 +512,14 @@ final class RemoteSessionManager {
         "info": ["ver", "clock", "get name", "get role", "get public.key"],
         "radio": ["get radio", "get tx", "get repeat"],
         "timing": ["get dutycycle", "get af", "get rxdelay", "get txdelay", "get direct.txdelay",
-                    "get flood.max", "get flood.max.unscoped", "get int.thresh", "get agc.reset.interval"],
+                    "get flood.max", "get flood.max.unscoped", "get int.thresh", "get agc.reset.interval",
+                    "get cad"],
         "routing": ["get loop.detect", "get path.hash.mode", "region default"],
         "advertising": ["get name", "get lat", "get lon", "get owner.info",
                         "get advert.interval", "get flood.advert.interval", "get multi.acks"],
         "gps": ["gps", "gps advert"],
         "security": ["get allow.read.only", "get guest.password", "get adc.multiplier"],
-        "maintenance": ["powersaving"],
+        "maintenance": ["powersaving", "get pwrmgt.bootreason"],
     ]
 
     /// Fetch commands for a specific section. Fire-and-forget.

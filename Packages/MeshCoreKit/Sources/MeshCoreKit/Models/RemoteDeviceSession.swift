@@ -112,7 +112,9 @@ public final class RemoteDeviceSession: ObservableObject {
 
     /// Keys that change automatically and should always be fetched fresh (never served from cache alone).
     public static let volatileKeys: Set<String> = [
-        "clock", "neighbors"
+        // Values that describe the moment they were read — caching them across launches
+        // would show state from before the device's last reboot.
+        "clock", "neighbors", "pwrmgt.bootreason"
     ]
 
     public init(contact: Contact) {
@@ -139,13 +141,28 @@ public final class RemoteDeviceSession: ObservableObject {
     private static let sectionSettingKeys: [String: [String]] = [
         "info": ["ver", "clock", "name", "role", "public.key"],
         "radio": ["radio", "tx", "repeat"],
-        "timing": ["af", "rxdelay", "txdelay", "direct.txdelay", "flood.max", "int.thresh", "agc.reset.interval"],
+        "timing": ["af", "rxdelay", "txdelay", "direct.txdelay", "flood.max", "int.thresh", "agc.reset.interval", "cad"],
         "routing": ["loop.detect", "path.hash.mode", "region default"],
         "advertising": ["name", "lat", "lon", "owner.info", "advert.interval", "flood.advert.interval", "multi.acks"],
         "gps": ["gps", "gps advert"],
         "security": ["allow.read.only", "guest.password", "adc.multiplier"],
-        "maintenance": ["powersaving"],
+        "maintenance": ["powersaving", "pwrmgt.bootreason"],
     ]
+
+    /// A setting's value, or nil when the device said it doesn't support the command.
+    ///
+    /// Firmware answers an unknown command with "??: <command>", and getters for hardware
+    /// a board lacks reply "Error: unsupported". Both are stored like any other response,
+    /// so callers that gate UI on firmware support must ask for the value this way rather
+    /// than reading `settings` directly.
+    public func supportedValue(for key: String) -> String? {
+        guard let raw = settings[key]?.trimmingCharacters(in: .whitespaces), !raw.isEmpty else { return nil }
+        let lower = raw.lowercased()
+        if lower.hasPrefix("??") || lower.hasPrefix("error") || lower.contains("unsupported") {
+            return nil
+        }
+        return raw
+    }
 
     /// Whether cached settings exist for any keys in the given section.
     public func hasCachedSettings(for section: String) -> Bool {

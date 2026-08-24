@@ -115,6 +115,16 @@ struct RemoteTimingSection: View {
             cliEditRow(icon: "waveform.badge.exclamationmark", label: "Interference Thresh", text: $intThresh, current: session.settings["int.thresh"])
             cliEditRow(icon: "dial.low", label: "AGC Reset Interval", text: $agcReset, current: session.settings["agc.reset.interval"])
 
+            // Firmware 1.17.0+, and only meaningful on nodes that forward traffic —
+            // companion radios accept the setting but never act on it. Hidden entirely
+            // when the device answers that it doesn't know the command.
+            if (contact.type == .repeater || contact.type == .room),
+               session.supportedValue(for: "cad") != nil {
+                CLIToggleRow(icon: "waveform.badge.magnifyingglass", label: "Listen Before Transmit",
+                             settingKey: "cad", onCommand: "set cad on", offCommand: "set cad off",
+                             session: session, sendCLI: sendCLI, canEdit: canEdit)
+            }
+
             if canEdit {
                 SaveButton(state: saveState, label: "Apply Settings") {
                     let dutycycleCmd = session.settings["dutycycle"] != nil ? "set dutycycle" : "set af"

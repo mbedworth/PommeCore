@@ -86,7 +86,7 @@ struct RemoteManagementView: View {
                     }
 
                     lazySection("Timing & Performance", expanded: $expandedTimingSection, sectionKey: "timing",
-                                info: "Advanced \u{2014} adjust timing parameters for mesh performance. Default values work well for most setups. Flood Max Hops supports 0\u{2013}64 (default 64). Flood Max (Unscoped) caps hops for floods with no region assigned (0\u{2013}64, default 64).") {
+                                info: "Advanced \u{2014} adjust timing parameters for mesh performance. Default values work well for most setups. Flood Max Hops supports 0\u{2013}64 (default 64). Flood Max (Unscoped) caps hops for floods with no region assigned (0\u{2013}64, default 64). Listen Before Transmit (firmware 1.17+) has the radio check the channel is clear before sending \u{2014} fewer collisions on busy meshes, slightly higher latency and power draw.") {
                         timingSection
                     }
 
@@ -117,7 +117,7 @@ struct RemoteManagementView: View {
                     }
 
                     lazySection("Maintenance", expanded: $expandedMaintenanceSection, sectionKey: "maintenance",
-                                info: "Reboot restarts the device (~30 seconds). Clear Stats resets packet counters and airtime. Log dump requires USB serial connection.") {
+                                info: "Reboot restarts the device (~30 seconds). Clear Stats resets packet counters and airtime. Log dump requires USB serial connection. Last Boot reports why the node restarted \u{2014} useful when uptime resets unexpectedly.") {
                         maintenanceSection
                     }
 
@@ -127,7 +127,7 @@ struct RemoteManagementView: View {
                     cliTerminalSection
                 } else if canRead {
                     lazySection("Maintenance", expanded: $expandedMaintenanceSection, sectionKey: "maintenance",
-                                info: "Reboot restarts the device (~30 seconds). Clear Stats resets packet counters and airtime. Log dump requires USB serial connection.") {
+                                info: "Reboot restarts the device (~30 seconds). Clear Stats resets packet counters and airtime. Log dump requires USB serial connection. Last Boot reports why the node restarted \u{2014} useful when uptime resets unexpectedly.") {
                         maintenanceSection
                     }
                 }
