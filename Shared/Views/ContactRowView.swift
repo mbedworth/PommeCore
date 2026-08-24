@@ -184,7 +184,7 @@ struct ContactRowView: View {
         // The radio adds these when an unknown node requests data from us. Explain the
         // row rather than leaving an unnamed contact with no apparent purpose.
         if contact.isUnidentified {
-            Text("Requested data from this radio \u{2014} no advert received yet")
+            Text("Requested data from this radio \u{2014} has not identified itself yet")
                 .font(.caption2)
                 .foregroundStyle(MeshTheme.textSecondary)
         }
