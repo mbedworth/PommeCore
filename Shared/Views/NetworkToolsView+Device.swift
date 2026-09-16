@@ -9,6 +9,7 @@
 //
 
 import SwiftUI
+import Combine
 import MeshCoreKit
 
 // MARK: - Device Info Popover

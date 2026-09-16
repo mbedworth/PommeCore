@@ -377,29 +377,34 @@ final class PommeCoreViewModel: ObservableObject {
     private var isSendingChange = false
     
     private func observeStores() {
-        func trackChanges() {
-            withObservationTracking {
-                // Only needed for WatchChatView (@EnvironmentObject viewModel).
-                // All iOS/macOS views use @Environment(Store.self) directly.
-                _ = self.contactStore.contacts
-                _ = self.channelStore.channels
-                _ = self.connectionManager.connectionState
-                _ = self.connectionManager.requestShowScanner
-            } onChange: {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) { [weak self] in
-                    guard let self, !self.isSendingChange else {
-                        // Re-register tracking even if we skip the send
-                        trackChanges()
-                        return
-                    }
-                    self.isSendingChange = true
-                    self.objectWillChange.send()
-                    self.isSendingChange = false
-                    trackChanges()
+        trackChanges()
+    }
+
+    /// Re-registers itself after each change — `withObservationTracking` is one-shot.
+    /// A method rather than a local function so the `[weak self]` below is meaningful:
+    /// a local function captures `self` strongly, which defeated the weak capture.
+    private func trackChanges() {
+        withObservationTracking {
+            // Only needed for WatchChatView (@EnvironmentObject viewModel).
+            // All iOS/macOS views use @Environment(Store.self) directly.
+            _ = self.contactStore.contacts
+            _ = self.channelStore.channels
+            _ = self.connectionManager.connectionState
+            _ = self.connectionManager.requestShowScanner
+        } onChange: { [weak self] in
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+                guard let self else { return }
+                guard !self.isSendingChange else {
+                    // Re-register tracking even if we skip the send
+                    self.trackChanges()
+                    return
                 }
+                self.isSendingChange = true
+                self.objectWillChange.send()
+                self.isSendingChange = false
+                self.trackChanges()
             }
         }
-        trackChanges()
     }
     
     private func persistMessages(for contactKeyHash: Data) {

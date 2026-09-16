@@ -52,56 +52,66 @@ final class PhoneWatchRelay: NSObject {
 
     // MARK: - Observation
 
+    /// Each tracker re-registers itself after firing — `withObservationTracking` is
+    /// one-shot. They are methods rather than local functions so the `[weak self]` in
+    /// the continuation is meaningful: a local function captures `self` strongly, which
+    /// silently defeated the weak capture and kept the relay alive through its own
+    /// observation loop.
     private func startObserving() {
-        func trackState() {
-            withObservationTracking {
-                _ = connectionManager?.connectionState
-                _ = connectionManager?.connectedDeviceName
-                _ = messageStoreManager?.unreadCounts
-            } onChange: {
-                Task { @MainActor [weak self] in
-                    self?.scheduleSendState()
-                    trackState()
-                }
-            }
-        }
         trackState()
-
-        func trackContacts() {
-            withObservationTracking {
-                _ = contactStore?.contacts
-            } onChange: {
-                Task { @MainActor [weak self] in
-                    self?.scheduleSendContacts()
-                    trackContacts()
-                }
-            }
-        }
         trackContacts()
-
-        func trackChannels() {
-            withObservationTracking {
-                _ = channelStore?.channels
-            } onChange: {
-                Task { @MainActor [weak self] in
-                    self?.scheduleSendChannels()
-                    trackChannels()
-                }
-            }
-        }
         trackChannels()
+        trackMessages()
+    }
 
-        func trackMessages() {
-            withObservationTracking {
-                _ = messageStoreManager?.messagesByContact
-            } onChange: {
-                Task { @MainActor [weak self] in
-                    self?.scheduleSendUnreadMessages()
-                    trackMessages()
-                }
+    private func trackState() {
+        withObservationTracking {
+            _ = connectionManager?.connectionState
+            _ = connectionManager?.connectedDeviceName
+            _ = messageStoreManager?.unreadCounts
+        } onChange: { [weak self] in
+            Task { @MainActor in
+                guard let self else { return }
+                self.scheduleSendState()
+                self.trackState()
             }
         }
-        trackMessages()
+    }
+
+    private func trackContacts() {
+        withObservationTracking {
+            _ = contactStore?.contacts
+        } onChange: { [weak self] in
+            Task { @MainActor in
+                guard let self else { return }
+                self.scheduleSendContacts()
+                self.trackContacts()
+            }
+        }
+    }
+
+    private func trackChannels() {
+        withObservationTracking {
+            _ = channelStore?.channels
+        } onChange: { [weak self] in
+            Task { @MainActor in
+                guard let self else { return }
+                self.scheduleSendChannels()
+                self.trackChannels()
+            }
+        }
+    }
+
+    private func trackMessages() {
+        withObservationTracking {
+            _ = messageStoreManager?.messagesByContact
+        } onChange: { [weak self] in
+            Task { @MainActor in
+                guard let self else { return }
+                self.scheduleSendUnreadMessages()
+                self.trackMessages()
+            }
+        }
     }
 
     private func scheduleSendState() {

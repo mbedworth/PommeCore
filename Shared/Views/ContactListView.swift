@@ -9,6 +9,7 @@
 //
 
 import SwiftUI
+import Combine
 import MeshCoreKit
 
 struct ContactListView: View {

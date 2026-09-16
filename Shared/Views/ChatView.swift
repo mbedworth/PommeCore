@@ -9,6 +9,7 @@
 //
 
 import SwiftUI
+import Combine
 import MeshCoreKit
 #if !os(watchOS)
 import CoreLocation
