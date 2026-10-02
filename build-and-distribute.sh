@@ -62,6 +62,15 @@ ASC_KEY_ID="${ASC_KEY_ID:?Set ASC_KEY_ID in environment or .asc.env}"
 ASC_KEY_ISSUER="${ASC_KEY_ISSUER:?Set ASC_KEY_ISSUER in environment or .asc.env}"
 ASC_KEY_PATH="${ASC_KEY_PATH:-$HOME/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8}"
 
+# Codesign is pinned to the login keychain so xcodebuild does not invalidate
+# Xcode's Apple ID session. $HOME, never ~: the value is passed through to
+# xcodebuild as a build setting, where no shell tilde expansion happens — a
+# literal "~/..." reaches codesign, which finds no keychain and reports the
+# misleading "no identity found". Harmless until Xcode 27, which stopped
+# falling back to the default keychain search list and now fails the archive.
+KEYCHAIN="$HOME/Library/Keychains/login.keychain-db"
+[[ -f "$KEYCHAIN" ]] || error "Login keychain not found at $KEYCHAIN"
+
 if [[ ! -f "$ASC_KEY_PATH" ]]; then
     error "App Store Connect API key not found at $ASC_KEY_PATH"
 fi
@@ -153,7 +162,7 @@ if [[ "$TARGET" == "ios" || "$TARGET" == "all" ]]; then
     IOS_ARCHIVE="$ARCHIVE_DIR/PommeCore v$NEW_VERSION ($IOS_BUILD).xcarchive"
     set_build "$IOS_BUILD"
     log "Archiving iOS (v$NEW_VERSION build $IOS_BUILD)..."
-    security unlock-keychain -p "" ~/Library/Keychains/login.keychain-db 2>/dev/null || true
+    security unlock-keychain -p "" "$KEYCHAIN" 2>/dev/null || true
     if ! xcodebuild archive \
         -project PommeCore.xcodeproj \
         -scheme "$SCHEME" \
@@ -161,7 +170,7 @@ if [[ "$TARGET" == "ios" || "$TARGET" == "all" ]]; then
         -archivePath "$IOS_ARCHIVE" \
         -allowProvisioningUpdates \
         CODE_SIGN_STYLE=Automatic \
-        OTHER_CODE_SIGN_FLAGS="--keychain ~/Library/Keychains/login.keychain-db" \
+        OTHER_CODE_SIGN_FLAGS="--keychain $KEYCHAIN" \
         2>&1 | tee /tmp/xcodebuild-ios.log | tail -20; then
         rollback
     fi
@@ -176,7 +185,7 @@ if [[ "$TARGET" == "macos" || "$TARGET" == "all" ]]; then
     MACOS_ARCHIVE="$ARCHIVE_DIR/PommeCore-macOS v$NEW_VERSION ($MACOS_BUILD).xcarchive"
     set_build "$MACOS_BUILD"
     log "Archiving macOS (v$NEW_VERSION build $MACOS_BUILD)..."
-    security unlock-keychain -p "" ~/Library/Keychains/login.keychain-db 2>/dev/null || true
+    security unlock-keychain -p "" "$KEYCHAIN" 2>/dev/null || true
     if ! xcodebuild archive \
         -project PommeCore.xcodeproj \
         -scheme "PommeCore-macOS" \
@@ -184,7 +193,7 @@ if [[ "$TARGET" == "macos" || "$TARGET" == "all" ]]; then
         -archivePath "$MACOS_ARCHIVE" \
         -allowProvisioningUpdates \
         CODE_SIGN_STYLE=Automatic \
-        OTHER_CODE_SIGN_FLAGS="--keychain ~/Library/Keychains/login.keychain-db" \
+        OTHER_CODE_SIGN_FLAGS="--keychain $KEYCHAIN" \
         2>&1 | tee /tmp/xcodebuild-macos.log | tail -20; then
         rollback
     fi
