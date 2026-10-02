@@ -17,7 +17,7 @@ this is the source of truth for firmware review state, not the local development
 | **Also compatible with** | v1.15.0 – v1.16.0 |
 | **Protocol version sent** | `app_target_ver = 3` in `CMD_DEVICE_QUERY` — must stay ≥ 3 (see the critical rules in the local development guide) |
 | **Last review** | 2026-08-24, covering v1.17.0 and v1.17.1 |
-| **Open** | Hardware smoke test on a real 1.17.1 node |
+| **Smoke test** | 2026-10-02 on Heltec Mesh Pocket `v1.17.1-d929643` — passed, see below |
 
 The app does **not** gate behaviour on `FIRMWARE_VER_CODE`. Version-specific behaviour keys off the
 semantic version string plus response probing (`dutycycle` vs `af`), or off
@@ -35,8 +35,8 @@ Tag SHAs are recorded so a re-pointed tag is detectable. Verify with:
 |---------|----------|-------------------|----------|----------|---------|------------|
 | v1.15.0 | 2026-04-19 | `3d999fe69629` | 11 | 2026-04 | Adopted — `dutycycle` rename, `DEFAULT_FLOOD_SCOPE` (0x3F/0x40/0x1C) | Passed |
 | v1.16.0 | 2026-06-06 | `24fe7d4b2d17` | 13 | 2026-06-06 | No protocol change; adopted `flood.max.unscoped` + region tree management (shipped build 18) | **Passed** 2026-06-08 — DM delivery ACK + round trip |
-| v1.17.0 | 2026-08-09 | `2af6126cfba7` | 13 | 2026-08-24 | No protocol change; three behaviour changes adopted (below) | Pending |
-| v1.17.1 | 2026-08-14 | `8fe15c89ed5a` | 13 | 2026-08-24 | Bug-fix release; nothing further to adopt | **Pending** |
+| v1.17.0 | 2026-08-09 | `2af6126cfba7` | 13 | 2026-08-24 | No protocol change; three behaviour changes adopted (below) | 2026-10-02 ✅ |
+| v1.17.1 | 2026-08-14 | `8fe15c89ed5a` | 13 | 2026-08-24 | Bug-fix release; nothing further to adopt | 2026-10-02 ✅ |
 
 Repeater and room-server tags for the same version are published within a minute of the companion tag
 and share the version number. The companion tag is the one that matters for protocol review; the other
@@ -146,4 +146,59 @@ gh api "repos/meshcore-dev/MeshCore/contents/<path>?ref=companion-v<version>" --
 - [ ] Update `docs/PROTOCOL.md` / `docs/CLI_REFERENCE.md` for any new frames or commands.
 - [ ] Register and translate any new UI strings (`docs/LOCALIZATION.md`).
 - [ ] `./scripts/test_build.sh` — zero errors, zero warnings.
-- [ ] Hardware smoke test on a real node, and record the result in the ledger.
+- [ ] Hardware smoke test on a real node, and record the result in the ledger:
+      `./scripts/meshctl.sh smoke` (see `Packages/MeshCoreKit/Sources/meshctl/`).
+
+---
+
+## Smoke test record
+
+Run with `./scripts/meshctl.sh smoke`, which talks to the radio over BLE with the same
+service UUIDs and frame format as the app. `--target <pubkey-prefix>` adds a remote
+telemetry request.
+
+### 2026-10-02 — Heltec Mesh Pocket, companion `v1.17.1-d929643`
+
+9 checks passed, 0 failed.
+
+| Check | Result |
+|---|---|
+| `CMD_DEVICE_QUERY` answers, semantic version reported | ✅ `v1.17.1-d929643`, build 14-Aug-2026 |
+| `FIRMWARE_VER_CODE` | ✅ 13, matching the ledger |
+| Contact sync | ✅ 103 contacts |
+| Self telemetry answers | ✅ 2 readings |
+| 1.17 MCU temperature present | ✅ 43.7 °C |
+| Temperature within a sane die range | ✅ |
+| Reading keys unique | ✅ 2 distinct |
+| A type appearing once keeps its plain label | ✅ |
+| Every reading carries an LPP channel | ✅ |
+
+**What this confirms.** Battery (`0x74`) and Temperature (`0x67`) both arrived on
+**LPP channel 1**, and both parsed into distinct readings with distinct keys
+(`1:Battery`, `1:Temperature`). That is the 1.17.0 change this release cycle was about:
+before 1.17.0 channel 1 carried only voltage, so a parser keyed on LPP type alone did not
+collide. It does now. See critical rule 14 in the development guide.
+
+The self-telemetry path (`CMD_SEND_TELEMETRY_REQ` with `len == 4`, no recipient) is used
+by the harness, not the app — the firmware answers it immediately with the same
+`PUSH_CODE_TELEMETRY_RESPONSE` (0x8B) frame shape as a remote request, with no mesh round
+trip, which makes it the only deterministic way to exercise this.
+
+**What hardware did not cover, and why.**
+
+- **Two temperatures in one response** (MCU on channel 1 plus an external sensor on its own
+  channel). This node has no external sensor fitted. Covered by
+  `TelemetryParsingTests.swift` instead, which asserts duplicate types stay distinct and
+  that same-channel duplicates get indexed keys.
+- **Remote telemetry.** Tried against three repeaters (`SOLARRSR4`, `WSO Solar`,
+  `🦖 InGen`); none answered. That is firmware policy, not a defect — a node only answers a
+  telemetry request from an admin, or when it has telemetry sharing enabled for everyone.
+- **Unidentified nodes** (`ADV_TYPE_NONE` contact entries, new in 1.17.0). This mesh
+  returned 0 of them, and they cannot be induced on demand — a node creates one only after
+  being asked for data by a radio that has not yet adverted. The handling is defensive
+  (placeholder name plus key prefix, sorted last, excluded from Spotlight) and is unit-free
+  by nature; re-check opportunistically.
+- **Listen Before Transmit (`get cad`) and `pwrmgt.bootreason` rows.** Both need a remote
+  admin login to a repeater. The UI gates each row on
+  `RemoteDeviceSession.supportedValue(for:)` returning non-nil, so on firmware without the
+  key the row is simply absent — the failure mode is a missing row, not a wrong value.
