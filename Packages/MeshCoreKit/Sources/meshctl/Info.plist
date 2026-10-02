@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleIdentifier</key>
+	<string>com.mbedworth.meshctl</string>
+	<key>CFBundleName</key>
+	<string>meshctl</string>
+	<key>CFBundleExecutable</key>
+	<string>meshctl</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>meshctl connects to a MeshCore LoRa radio over Bluetooth to run firmware tests.</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>meshctl connects to a MeshCore LoRa radio over Bluetooth to run firmware tests.</string>
+</dict>
+</plist>
