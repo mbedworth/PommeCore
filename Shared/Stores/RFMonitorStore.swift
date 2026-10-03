@@ -329,6 +329,16 @@ final class RFMonitorStore {
         DebugLogger.shared.log("TELEMETRY: cleared all history", level: .info)
     }
 
+    /// Drop the telemetry history for one contact.
+    ///
+    /// Called when a contact is deleted. Without this the snapshots outlive the
+    /// contact in both the on-disk history and the CloudKit mirror, and come
+    /// back attached to the same key if that contact is ever re-added.
+    func clearTelemetryHistory(for contactKey: Data) {
+        guard telemetryHistory.removeValue(forKey: contactKey) != nil else { return }
+        saveTelemetryHistory()
+    }
+
     /// Number of telemetry snapshots across all contacts.
     var totalSnapshotCount: Int {
         telemetryHistory.values.reduce(0) { $0 + $1.count }

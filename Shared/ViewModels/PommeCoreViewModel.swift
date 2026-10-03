@@ -206,6 +206,7 @@ final class PommeCoreViewModel: ObservableObject {
         contactStore.sendCommand = { [weak self] data, label in self?.connectionManager.sendCommand(data, label: label) }
         contactStore.activityDateProvider = { [weak self] key in self?.messageStoreManager.latestActivityDate(for: key) }
         contactStore.clearMessagesForContact = { [weak self] key in self?.messageStoreManager.clearMessages(for: key) }
+        contactStore.clearTelemetryForContact = { [weak self] key in self?.rfMonitorStore.clearTelemetryHistory(for: key) }
         contactStore.postEventNotification = { [weak self] title, body, threadId in self?.postEventNotification(title: title, body: body, threadId: threadId) }
         contactStore.radioPublicKeyHexProvider = { [weak self] in self?.deviceConfig.publicKeyHex ?? "" }
         
