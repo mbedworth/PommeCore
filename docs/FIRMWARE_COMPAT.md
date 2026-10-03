@@ -328,11 +328,23 @@ value the radio already has:
 | `set TX power` (unchanged) | link stayed up |
 | 4 settings at 300ms, then 11 contact frames at 150ms | link stayed up, all 11 landed |
 
-So neither any one command nor the burst shape reproduces it. The remaining difference
-between the probe and the failing import is the **5 `CMD_SET_CHANNEL` writes** the app
-sends in between, which write PSKs to flash. Not probed, because doing so means writing
-channel secrets to a live radio. Treat the trigger as **unidentified but inside the
-settings/channel phase**.
+Channel writes were then probed too — each channel read back and rewritten with the name
+and secret it already had — and the link held through all six. Finally `meshctl
+replayprofile` replayed an exported profile's **entire** apply sequence, the same order and
+the same 300ms spacing the app uses, including `setAutoAddConfig`, `setDefaultFloodScope`
+and `setTuningParams`, which are not in SELF_INFO and so could not be probed individually:
+
+| Probe | Result |
+|---|---|
+| 6 channel rewrites (unchanged values) @300ms | link held |
+| Full profile apply, all 11 commands @300ms | link held through a 10s settle |
+
+**Conclusion: the apply sequence does not drop the link.** No command, no channel write and
+not the full sequence reproduces it. Three `Timed out: Bluetooth power-on` failures during
+the same session point at an intermittent BLE problem on this Mac rather than radio
+behaviour. The "radio restarts on profile apply" theory is **not supported** by any of this
+— which does not make the drop harmless, only unpredictable, so the app is built to survive
+it rather than to avoid it.
 
 What the second run pins down precisely: contacts started at 16:41:53.719 and every frame
 drew a `RESP OK`; the disconnect came at **16:42:01.861**, well after the contacts were
@@ -351,3 +363,7 @@ written and during the settings phase. Ordering contacts first is what made the 
 - **A pending write survives a disconnect.** `reset()` runs on every disconnect and used to
   clear it, which is precisely how the 4 outstanding adds became unrecoverable. It is
   stamped with the radio's public key and discarded only if the radio changes.
+- **A partial apply is reported, not hidden.** Each settings step checks the link first and
+  stops if it is gone, and the UI says which step it stopped at instead of "Applied". The
+  commands are idempotent, so importing again fixes it — but only if the user knows it did
+  not finish.

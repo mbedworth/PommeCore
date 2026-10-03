@@ -124,6 +124,7 @@ COMMANDS
   seed                  Add test contacts and leave them (to drive the app's own UI)
   cleanup               Remove every test contact left on the radio
   restartprobe          Find which config command drops the BLE link
+  replayprofile         Replay a .meshprofile apply exactly as the app sends it
 
 OPTIONS
   -d, --device <name>   BLE name substring to connect to (default: strongest signal)
@@ -629,6 +630,57 @@ func cmdRestartProbe(_ opts: Options) async throws {
     // Same TX power.
     _ = await probe("set TX power (unchanged)", MeshCoreProtocol.buildSetRadioTXPower(radio.txPower))
 
+    // --- Channel writes, the one suspect left.
+    //
+    // Everything else held. The failing import differed only by sending five
+    // CMD_SET_CHANNEL frames, which commit PSKs to flash — by far the heaviest
+    // thing in the sequence.
+    //
+    // Each channel is read back first and rewritten with exactly the name and
+    // secret it already has, so a run changes no channel. It can still cause a
+    // reboot, which is what is being measured.
+    out("")
+    out("Channel writes")
+    var channels: [MeshChannel] = []
+    for index in UInt8(0)..<UInt8(8) {
+        guard link.isConnected else { break }
+        let frames = await link.request(MeshCoreProtocol.buildGetChannel(index: index), window: 1.5)
+        for frame in frames {
+            if case .channelInfo(let ch) = FrameParser.parse(frame) {
+                // An unused slot comes back empty; rewriting it would create a
+                // channel that did not exist.
+                if !ch.name.isEmpty { channels.append(ch) }
+            }
+        }
+    }
+    info("channels", "\(channels.count) in use")
+    guard !channels.isEmpty else {
+        out("  SKIP  channel writes — none configured to rewrite")
+        summarise()
+        return
+    }
+
+    var written = 0
+    var droppedAfter: Int?
+    for ch in channels {
+        guard link.isConnected else { droppedAfter = written; break }
+        link.send(MeshCoreProtocol.buildSetChannel(index: ch.index, name: ch.name, secret: ch.secret))
+        written += 1
+        note("rewrote channel \(ch.index) '\(ch.name)' (unchanged)")
+        try? await Task.sleep(nanoseconds: 300_000_000)
+    }
+    // Give a reboot time to show up after the last write.
+    for _ in 0..<40 {
+        if !link.isConnected { droppedAfter = droppedAfter ?? written; break }
+        try? await Task.sleep(nanoseconds: 250_000_000)
+    }
+    if let after = droppedAfter {
+        check(false, "channel writes kept the link up",
+              detail: "dropped after \(after) of \(channels.count) writes")
+    } else {
+        check(true, "channel writes kept the link up", detail: "\(written) rewritten")
+    }
+
     // --- The sequence that actually failed.
     //
     // No single command above drops the link, so the failure is the
@@ -684,6 +736,100 @@ func cmdRestartProbe(_ opts: Options) async throws {
         await cleanUpTestContacts(link)
     }
 
+    summarise()
+}
+
+/// Replay a `.meshprofile` apply exactly as the app performs it.
+///
+/// The probe above rules out each command on its own, but it cannot send
+/// `setAutoAddConfig`, `setDefaultFloodScope` or `setTuningParams` — those
+/// values are not in SELF_INFO. They *are* in an exported profile, so
+/// replaying one covers the whole sequence with the radio's own values.
+///
+/// Sends settings and channels only. Contacts are left out: the app now sends
+/// them first and they are known to land.
+func cmdReplayProfile(_ opts: Options) async throws {
+    guard let path = opts.outputPath else {
+        out("Usage: meshctl replayprofile --out <path-to.meshprofile>")
+        exit(64)
+    }
+    guard let data = FileManager.default.contents(atPath: path),
+          let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+          let radio = root["radio"] as? [String: Any] else {
+        out("Could not read a profile from \(path)")
+        exit(66)
+    }
+
+    out("Replaying a profile apply, exactly as the app sends it")
+    out("")
+
+    let link = try await connectAndHandshake(opts)
+    defer { link.disconnect() }
+
+    func u32(_ key: String) -> UInt32 { UInt32((radio[key] as? NSNumber)?.uint32Value ?? 0) }
+    func u8(_ key: String) -> UInt8 { UInt8((radio[key] as? NSNumber)?.uint8Value ?? 0) }
+
+    // Same order and same 300ms spacing as ProfileExportService.applyProfile.
+    var sequence: [(String, Data)] = [
+        ("radio params", MeshCoreProtocol.buildSetRadioParams(
+            frequency: u32("radioFrequency"), bandwidth: u32("radioBandwidth"),
+            spreadingFactor: u8("radioSpreadingFactor"), codingRate: u8("radioCodingRate"),
+            repeatMode: (radio["repeatMode"] as? Bool) ?? false)),
+        ("TX power", MeshCoreProtocol.buildSetRadioTXPower(u8("radioTXPower"))),
+    ]
+    if let name = radio["deviceName"] as? String, !name.isEmpty {
+        sequence.append(("advert name", MeshCoreProtocol.buildSetAdvertName(name)))
+    }
+    sequence.append(("other params", MeshCoreProtocol.buildSetOtherParams(
+        manualAddContacts: u8("manualAddContacts"),
+        telemetryBase: u8("telemetryBase"),
+        telemetryLocation: u8("telemetryLocation"),
+        advertLocPolicy: u8("advertLocPolicy"),
+        multiACK: u8("multiACK"))))
+    sequence.append(("auto-add config", MeshCoreProtocol.buildSetAutoAddConfig(bitmask: u8("autoAddBitmask"))))
+    if let scope = radio["defaultFloodScope"] as? String, !scope.isEmpty {
+        sequence.append(("default flood scope", MeshCoreProtocol.buildSetDefaultFloodScope(name: scope)))
+    }
+    if u32("rxDelayBase") > 0 || u32("airtimeFactor") > 0 {
+        sequence.append(("tuning params", MeshCoreProtocol.buildSetTuningParams(
+            rxDelayBase: u32("rxDelayBase"), airtimeFactor: u32("airtimeFactor"))))
+    }
+
+    // Channels, index > 0 only, exactly as the app filters them.
+    for ch in (root["channels"] as? [[String: Any]] ?? []) {
+        let index = UInt8((ch["index"] as? NSNumber)?.uint8Value ?? 0)
+        guard index > 0, let name = ch["name"] as? String else { continue }
+        let secret = (ch["secretHex"] as? String).flatMap { Data(hexString: $0) }
+        sequence.append(("channel \(index) '\(name)'",
+                         MeshCoreProtocol.buildSetChannel(index: index, name: name, secret: secret)))
+    }
+
+    info("commands", "\(sequence.count)")
+    var sent = 0
+    for (label, frame) in sequence {
+        guard link.isConnected else {
+            check(false, "link survived the full apply",
+                  detail: "dropped after \(sent) of \(sequence.count) — last sent: \(label)")
+            summarise()
+            return
+        }
+        link.send(frame)
+        sent += 1
+        note("[\(sent)/\(sequence.count)] \(label)")
+        try? await Task.sleep(nanoseconds: 300_000_000)
+    }
+
+    // A reboot takes a moment to show up after the final write.
+    for _ in 0..<40 {
+        if !link.isConnected {
+            check(false, "link survived the full apply",
+                  detail: "dropped after all \(sent) commands")
+            summarise()
+            return
+        }
+        try? await Task.sleep(nanoseconds: 250_000_000)
+    }
+    check(true, "link survived the full apply", detail: "\(sent) commands")
     summarise()
 }
 
@@ -950,6 +1096,7 @@ do {
     case "seed":      try await cmdSeed(opts)
     case "cleanup":   try await cmdCleanup(opts)
     case "restartprobe": try await cmdRestartProbe(opts)
+    case "replayprofile": try await cmdReplayProfile(opts)
     case "help", "-h", "--help":
         out(usage)
     default:
