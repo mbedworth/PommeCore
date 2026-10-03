@@ -38,7 +38,7 @@ struct USBTerminalView: View {
                 }
                 .onChange(of: remoteSessionManager.usbCLIOutput.count) {
                     if let last = remoteSessionManager.usbCLIOutput.last {
-                        withAnimation(.easeOut(duration: 0.2)) {
+                        withMeshAnimation(.easeOut(duration: 0.2)) {
                             proxy.scrollTo(last.id, anchor: .bottom)
                         }
                     }

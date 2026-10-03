@@ -486,7 +486,7 @@ struct TipJarView: View {
             .padding()
             .onChange(of: manager.purchasedProductID) { _, newValue in
                 if newValue != nil {
-                    withAnimation {
+                    withMeshAnimation {
                         proxy.scrollTo("thankYou", anchor: .bottom)
                     }
                 }

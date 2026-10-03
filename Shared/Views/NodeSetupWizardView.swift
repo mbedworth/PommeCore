@@ -204,20 +204,20 @@ struct NodeSetupWizardView: View {
             if remote.currentName?.lowercased() != name.lowercased() {
                 remote.sendCLI("set name \(name)")
                 remote.onNameApplied?(name)
-                withAnimation { nameApplied = true }
+                withMeshAnimation { nameApplied = true }
                 showRebootPrompt = true
             } else {
-                withAnimation { nameApplied = true }
+                withMeshAnimation { nameApplied = true }
                 dismiss()
             }
         } else {
             // Local (BLE / USB binary): send via binary protocol
             if currentAdvertName.lowercased() != name.lowercased() {
                 onApplyName?(name)
-                withAnimation { nameApplied = true }
+                withMeshAnimation { nameApplied = true }
                 showRebootPrompt = true
             } else {
-                withAnimation { nameApplied = true }
+                withMeshAnimation { nameApplied = true }
                 dismiss()
             }
         }
