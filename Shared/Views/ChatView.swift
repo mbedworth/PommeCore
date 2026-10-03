@@ -50,9 +50,12 @@ struct ChatView: View {
     }
     @State private var exportURL: URL?
     @State private var showExportSheet = false
-    /// Ticks every 30s to refresh the relative "last seen" text.
+    /// Ticks every 60s to refresh the relative "last seen" text.
     @State private var refreshTick = Date()
-    private let refreshTimer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
+    /// Held in @State so one publisher lives for the view's lifetime. As a
+    /// plain `let` it was reallocated — and a run-loop timer rescheduled —
+    /// on every re-init of this struct.
+    @State private var refreshTimer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 
     private let maxMessageLength = 160
 
