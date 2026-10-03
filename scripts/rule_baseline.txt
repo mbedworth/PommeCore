@@ -1,0 +1,48 @@
+# Accepted pre-existing findings, so that NEW ones stand out.
+#
+# One `path:line` per entry. A baselined site is silent; the same defect at a
+# different line is not, which is what makes this a ratchet rather than a
+# blanket suppression. Delete a line here when the site is fixed.
+#
+# Reviewed 2026-10-03.
+
+# --- rule 18: String reaching Text(), bypassing the string catalog --------
+# Real debt, each needs a judgement call about whether the value is a
+# composed English phrase (localize it) or user/radio data (leave it).
+# Tracked in CLAUDE.md; not a correctness bug, so not a build blocker.
+Shared/App/PommeCoreApp.swift:265
+Shared/App/PommeCoreApp.swift:532
+Shared/Views/ChatView+Channels.swift:395
+Shared/Views/ChatView.swift:161
+Shared/Views/ChatView.swift:201
+Shared/Views/ContactListView+ChannelsUI.swift:43
+Shared/Views/ContactRowView.swift:190
+Shared/Views/LineOfSight/LineOfSightView.swift:217
+Shared/Views/LineOfSight/LoSResultsView.swift:28
+Shared/Views/NetworkToolsView+Channels.swift:101
+Shared/Views/NetworkToolsView+Channels.swift:111
+Shared/Views/NetworkToolsView.swift:195
+Shared/Views/RemoteManagementView.swift:408
+Shared/Views/RemoteManagementView.swift:687
+Shared/Views/SettingsView+RadioPrivacy.swift:349
+Shared/Views/SettingsView+Sections.swift:295
+Shared/Views/SettingsView+Sections.swift:472
+Shared/Views/SettingsView+Sections.swift:732
+Shared/Views/SettingsView+TipJar.swift:441
+Shared/Views/SettingsView+TipJar.swift:463
+Shared/Views/SettingsView+TipJar.swift:466
+Shared/Views/LineOfSight/LoSResultsView.swift:200
+Shared/Views/LineOfSight/RepeaterConfigView.swift:58
+Shared/Views/LineOfSight/TerrainProfileRenderer.swift:234
+Shared/Views/NetworkToolsView+Device.swift:181
+Shared/Views/NetworkToolsView+Device.swift:503
+Shared/Views/NetworkToolsView+Device.swift:540
+
+# --- rules 1/2: Codable without a tolerant decoder -----------------------
+# MeshChannel and DeviceInfo are rebuilt from the radio on every connect,
+# and CommunityPresetManifest is re-fetched over the network, so a failed
+# decode costs a refresh rather than data. Contact and ContactBackup, which
+# ARE the persisted data, both have tolerant decoders.
+Packages/MeshCoreKit/Sources/MeshCoreKit/Models/Channel.swift:34
+Packages/MeshCoreKit/Sources/MeshCoreKit/Models/DeviceInfo.swift:14
+Shared/Models/CommunityPreset.swift:11
