@@ -5,11 +5,15 @@
 //  A restorable snapshot of the contact list and the data keyed to it.
 //
 //  Written because a bulk delete was unrecoverable. Contacts live on the
-//  radio, so deleting them there is final: there was no undo, no backup, and
-//  the configuration export (.meshprofile) carries radio settings and channels
-//  but not contacts. Roughly seventy contacts went in one confirmed tap, and
-//  nothing in the app could bring them back — only waiting for each node to
-//  advert again.
+//  radio, so deleting them there is final, and at the time nothing in the app
+//  kept a copy: roughly seventy contacts went in one confirmed tap, and the
+//  only way back was waiting for each node to advert again.
+//
+//  The configuration export (.meshprofile) can now carry contacts too, but it
+//  is a different thing: opt-in, meant to be shared, and radio-side records
+//  only. This is the automatic, local, complete copy — nicknames, notes,
+//  groups and mute state included — taken whether or not the user thought to
+//  export anything.
 //
 //  Created by Michael P. Bedworth on 10/03/26.
 //  Copyright © 2026 Michael P. Bedworth. All rights reserved.
@@ -114,31 +118,7 @@ public struct ContactBackup: Codable, Sendable, Identifiable {
     /// seventy contacts in a burst risks the same dropped writes as deleting
     /// them did.
     public func restoreFrames() -> [(frame: Data, name: String)] {
-        contacts.map { contact in
-            (
-                MeshCoreProtocol.buildAddUpdateContact(
-                    publicKey: contact.publicKey,
-                    type: contact.type.rawValue,
-                    flags: contact.flags,
-                    outPathLen: contact.outPathLen,
-                    outPath: contact.outPath,
-                    advName: contact.name,
-                    lastAdvert: contact.lastAdvert,
-                    latitude: Self.microDegrees(contact.latitude),
-                    longitude: Self.microDegrees(contact.longitude)
-                ),
-                contact.name
-            )
-        }
-    }
-
-    /// Degrees to the protocol's micro-degree `Int32`.
-    ///
-    /// Delegates to the protocol's guarded conversion: a plain
-    /// `Int32(degrees * 1_000_000)` traps on NaN or an out-of-range value, and
-    /// a crash on the recovery path is the worst possible place for one.
-    static func microDegrees(_ degrees: Double) -> Int32 {
-        MeshCoreProtocol.microDegrees(degrees)
+        contacts.map { (MeshCoreProtocol.buildAddUpdateContact($0), $0.name) }
     }
 }
 

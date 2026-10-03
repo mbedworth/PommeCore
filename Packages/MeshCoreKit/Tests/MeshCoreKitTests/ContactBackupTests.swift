@@ -188,6 +188,47 @@ final class ContactBackupTests: XCTestCase {
         XCTAssertEqual(frame[1..<33], c.publicKey, "the key must survive intact")
     }
 
+    /// The convenience builder is now the single path a `Contact` takes back
+    /// onto a radio, shared by restore and profile import. It must encode
+    /// byte-for-byte what spelling out every field did, or the refactor
+    /// silently changed what gets written.
+    func testContactConvenienceBuilderMatchesTheExplicitOne() {
+        let c = Contact(
+            publicKey: Data(repeating: 0x3C, count: 32),
+            name: "repeater-07",
+            type: .repeater,
+            flags: 0x05,
+            outPathLen: 2,
+            outPath: Data([0xAA, 0xBB]),
+            lastAdvert: 1_700_123_456,
+            latitude: 28.4974,
+            longitude: -81.70806,
+            lastmod: 99
+        )
+
+        let explicit = MeshCoreProtocol.buildAddUpdateContact(
+            publicKey: c.publicKey, type: c.type.rawValue, flags: c.flags,
+            outPathLen: c.outPathLen, outPath: c.outPath, advName: c.name,
+            lastAdvert: c.lastAdvert,
+            latitude: MeshCoreProtocol.microDegrees(c.latitude),
+            longitude: MeshCoreProtocol.microDegrees(c.longitude)
+        )
+
+        XCTAssertEqual(MeshCoreProtocol.buildAddUpdateContact(c), explicit)
+    }
+
+    /// Hardware caught the consequence of getting this wrong: a repeater
+    /// restored as a chat contact would break routing.
+    func testRestoreFramePreservesContactType() {
+        for type in [ContactType.chat, .repeater, .room, .sensor] {
+            let c = Contact(publicKey: Data(repeating: 0x11, count: 32),
+                            name: "n", type: type)
+            let frame = ContactBackup(reason: "r", radioPublicKeyHex: "aa", contacts: [c])
+                .restoreFrames()[0].frame
+            XCTAssertEqual(frame[33], type.rawValue, "\(type) must survive the round trip")
+        }
+    }
+
     func testRestoreFramesForAnEmptyBackupAreEmpty() {
         XCTAssertTrue(
             ContactBackup(reason: "r", radioPublicKeyHex: "aa", contacts: []).restoreFrames().isEmpty
