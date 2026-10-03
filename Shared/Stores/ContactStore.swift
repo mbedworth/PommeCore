@@ -53,6 +53,9 @@ final class ContactStore {
     var clearMessagesForContact: ((Data) -> Void)?
     /// Drops a deleted contact's telemetry history (wired to RFMonitorStore).
     var clearTelemetryForContact: ((Data) -> Void)?
+    /// Stores a snapshot before a destructive bulk operation (wired to
+    /// ContactBackupStore).
+    var backupContacts: ((ContactBackup) -> Void)?
     /// Drops telemetry for every contact outside the given live key-prefix set,
     /// returning how many were removed.
     var purgeOrphanedTelemetry: ((Set<Data>) -> Int)?
@@ -692,6 +695,16 @@ final class ContactStore {
             return
         }
 
+        // Snapshot the *whole* list before anything is sent. Contacts live on
+        // the radio, so removing them there is final — there is no undo, and
+        // the configuration export carries radio settings and channels but not
+        // contacts. Written synchronously: handing this to a task would race
+        // the deletion it exists to protect against.
+        //
+        // The whole list rather than just the doomed ones, because the failure
+        // worth protecting against is the selection being wrong.
+        backupContacts?(snapshot(reason: "deleting \(toRemove.count) contacts"))
+
         let prefixes = Set(toRemove.map(\.publicKeyPrefix))
         contacts.removeAll { prefixes.contains($0.publicKeyPrefix) }
 
@@ -704,6 +717,55 @@ final class ContactStore {
         Self.logger.info("Bulk remove: \(toRemove.count) contacts")
         DebugLogger.shared.log("Removing \(toRemove.count) contacts", level: .tx)
         sendRemoveContactFrames(for: toRemove)
+    }
+
+    /// Capture the current contact list and everything keyed to it.
+    func snapshot(reason: String) -> ContactBackup {
+        var membership: [String: [String]] = [:]
+        for group in contactGroups where !group.memberPubkeys.isEmpty {
+            membership[group.name] = group.memberPubkeys
+        }
+        return ContactBackup(
+            reason: reason,
+            radioPublicKeyHex: radioPublicKeyHexProvider?() ?? "",
+            contacts: contacts,
+            nicknames: nicknames,
+            notes: contactNotes,
+            mutedContacts: Array(mutedContacts),
+            groupMembership: membership
+        )
+    }
+
+    /// Re-apply the app-side data from a backup: nicknames, notes, mute state
+    /// and group membership.
+    ///
+    /// The contacts themselves go back to the radio and return through the
+    /// normal sync, so this only restores what the app owns. Merges rather
+    /// than replaces, so anything set since the backup is kept.
+    func restoreLocalData(from backup: ContactBackup) {
+        for (key, value) in backup.nicknames where nicknames[key] == nil {
+            nicknames[key] = value
+        }
+        for (key, value) in backup.notes where contactNotes[key] == nil {
+            contactNotes[key] = value
+        }
+        mutedContacts.formUnion(backup.mutedContacts)
+
+        for (groupName, members) in backup.groupMembership {
+            if let index = contactGroups.firstIndex(where: { $0.name == groupName }) {
+                let existing = Set(contactGroups[index].memberPubkeys)
+                contactGroups[index].memberPubkeys += members.filter { !existing.contains($0) }
+            } else {
+                contactGroups.append(ContactGroup(name: groupName, memberPubkeys: members))
+            }
+        }
+
+        saveNicknamesToiCloud()
+        saveContactNotesToiCloud()
+        saveMutedContactsToiCloud()
+        saveContactGroupsToiCloud()
+
+        Self.logger.info("Restored local data for \(backup.contacts.count) contacts from backup")
     }
 
     /// Send CMD_REMOVE_CONTACT for each contact, spaced out.
