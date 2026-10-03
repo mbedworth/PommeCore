@@ -44,6 +44,13 @@ PRESERVE_TERMS = [
     "watchOS", "SwiftUI", "Meshtastic", "Bluetooth", "JSON", "API", "URL",
     "SHA256", "PSK", "DFU", "OTA", "LPP", "Fresnel", "Cayenne", "ESP32",
     "nRF52", "GitHub", "CloudKit", "KeyValueStore", "Spotlight",
+    # Mesh-routing jargon. These have everyday meanings that models reach for
+    # first, and the result is confidently wrong rather than awkward: "flood"
+    # (flood routing) came back as water flooding in German, Spanish, Czech and
+    # Chinese — "Überschwemmungsbereich", "alcance de inundación", "rozsah
+    # záplavy", "淹没范围". Treating them as technical terms is the fix; it is
+    # also consistent with how LoRa, SNR and PSK are already handled.
+    "flood", "flooding", "advert", "repeater", "mesh", "hop", "traceroute",
 ]
 
 SYSTEM_PROMPT = """You are a professional app translator. Translate app UI strings from English to {lang_name}.

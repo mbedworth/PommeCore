@@ -1025,7 +1025,16 @@ final class ContactStore {
         guard let pending = pendingContactWrite else { return }
 
         if Date().timeIntervalSince(pending.createdAt) > Self.pendingWriteLifetime {
-            Self.logger.info("Discarding pending contact write — too old to trust")
+            // Say so. This is the one discard the user needs to hear about:
+            // the write was real, part of it may never have landed, and the
+            // restore or import UI has already reported success. Staying quiet
+            // here reproduces exactly the silent partial application the
+            // verification pass exists to prevent.
+            Self.logger.warning("Discarding pending contact write — too old to trust")
+            DebugLogger.shared.log(
+                "A contact write could not be verified before it expired", level: .warning
+            )
+            reportError?(pending.failureMessage(pending.contacts.count))
             pendingContactWrite = nil
             return
         }
@@ -1110,6 +1119,12 @@ final class ContactStore {
         }
 
         removeContactFromSpotlight(pubkeyHex: key)
+        // The fingerprint describes what is *indexed*, and that just changed
+        // without a full index running. Leaving it set means a contact which
+        // comes back later — a fresh advert, a manual re-add — produces the
+        // same hash as before the delete, matches, and is skipped, so it stays
+        // missing from Spotlight until something else perturbs the list.
+        spotlightFingerprint = nil
     }
 
     /// Remove persisted per-contact data that no longer has a contact.
