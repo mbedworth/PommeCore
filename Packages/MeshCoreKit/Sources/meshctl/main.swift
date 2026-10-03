@@ -123,6 +123,7 @@ COMMANDS
   bulkdelete            Exercise bulk contact deletion against real firmware
   seed                  Add test contacts and leave them (to drive the app's own UI)
   cleanup               Remove every test contact left on the radio
+  restartprobe          Find which config command drops the BLE link
 
 OPTIONS
   -d, --device <name>   BLE name substring to connect to (default: strongest signal)
@@ -562,6 +563,130 @@ func cmdCleanup(_ opts: Options) async throws {
     summarise()
 }
 
+/// Find out which configuration command drops the BLE link.
+///
+/// A profile import lost 4 of 11 contact adds because the link went down
+/// mid-burst, right after a run of settings commands. The suspicion is that
+/// one of them restarts the radio — the CLI rules already say `set name` and
+/// `set radio` must be the last command before a reboot, so the firmware is
+/// known to be sensitive here.
+///
+/// Every command below writes the value the radio already has, so a run
+/// changes no setting. It can still cause a reboot, which is the thing being
+/// measured.
+func cmdRestartProbe(_ opts: Options) async throws {
+    out("Which config command drops the link?")
+    out("")
+
+    let link = try await connectAndHandshake(opts)
+    defer { link.disconnect() }
+
+    var selfInfo: FrameParser.SelfInfoPayload?
+    for frame in link.capturedFrames {
+        if case .selfInfo(let s) = FrameParser.parse(frame) { selfInfo = s }
+    }
+    // Not named `info`: that is the output helper, and shadowing it here
+    // silently turns every log line into a compile error.
+    guard let radio = selfInfo else {
+        check(false, "read current radio settings")
+        summarise()
+        return
+    }
+    info("radio", "\(radio.name)")
+    info("params", "\(Double(radio.radioFreq) / 1000.0) MHz  BW \(radio.radioBW)  SF\(radio.radioSF)  CR\(radio.radioCR)")
+
+    /// Send one frame and report whether the link survived the next `settle`
+    /// seconds. A reboot shows up as the peripheral dropping.
+    func probe(_ label: String, _ frame: Data, settle: TimeInterval = 12) async -> Bool {
+        guard link.isConnected else {
+            out("  SKIP  \(label) — already disconnected")
+            return false
+        }
+        link.send(frame)
+        let deadline = Date().addingTimeInterval(settle)
+        while Date() < deadline {
+            if !link.isConnected {
+                let elapsed = settle - deadline.timeIntervalSinceNow
+                check(false, "\(label) kept the link up",
+                      detail: String(format: "link dropped after %.1fs", elapsed))
+                return false
+            }
+            try? await Task.sleep(nanoseconds: 250_000_000)
+        }
+        check(true, "\(label) kept the link up")
+        return true
+    }
+
+    // Same name the radio already has.
+    _ = await probe("set advert name (unchanged)", MeshCoreProtocol.buildSetAdvertName(radio.name))
+
+    // Same radio parameters the radio already has.
+    _ = await probe("set radio params (unchanged)", MeshCoreProtocol.buildSetRadioParams(
+        frequency: radio.radioFreq, bandwidth: radio.radioBW,
+        spreadingFactor: radio.radioSF, codingRate: radio.radioCR
+    ))
+
+    // Same TX power.
+    _ = await probe("set TX power (unchanged)", MeshCoreProtocol.buildSetRadioTXPower(radio.txPower))
+
+    // --- The sequence that actually failed.
+    //
+    // No single command above drops the link, so the failure is the
+    // combination: a profile import sends a dozen settings commands 300ms
+    // apart and then goes straight into 144-byte contact frames at 150ms.
+    // Replayed here with the radio's own values and throwaway contacts.
+    out("")
+    out("Replaying the profile-import sequence")
+    let settings: [(String, Data)] = [
+        ("radio params", MeshCoreProtocol.buildSetRadioParams(
+            frequency: radio.radioFreq, bandwidth: radio.radioBW,
+            spreadingFactor: radio.radioSF, codingRate: radio.radioCR)),
+        ("TX power", MeshCoreProtocol.buildSetRadioTXPower(radio.txPower)),
+        ("advert name", MeshCoreProtocol.buildSetAdvertName(radio.name)),
+        ("other params", MeshCoreProtocol.buildSetOtherParams(
+            manualAddContacts: radio.manualAddContacts,
+            telemetryBase: radio.telemetryByte,
+            telemetryLocation: 0,
+            advertLocPolicy: radio.advertLocPolicy,
+            multiACK: radio.multiACK)),
+    ]
+    for (label, frame) in settings {
+        guard link.isConnected else { break }
+        link.send(frame)
+        note("sent \(label)")
+        try? await Task.sleep(nanoseconds: 300_000_000)
+    }
+    check(link.isConnected, "link survived the settings burst")
+
+    let synthetic = (1...opts.bulkCount).map { bulkTestContact($0) }
+    var sentFrames = 0
+    for (offset, contact) in synthetic.enumerated() {
+        guard link.isConnected else {
+            check(false, "link survived the contact burst",
+                  detail: "dropped after \(sentFrames) of \(synthetic.count) frames")
+            break
+        }
+        link.send(addContactFrame(contact))
+        sentFrames += 1
+        if offset < synthetic.count - 1 {
+            try? await Task.sleep(nanoseconds: 150_000_000)
+        }
+    }
+    if link.isConnected {
+        check(true, "link survived the contact burst", detail: "\(sentFrames) frames")
+        try? await Task.sleep(nanoseconds: 1_500_000_000)
+        let after = await fullSync(link, window: 10)
+        let landed = Set(after.contacts.map(\.publicKeyPrefix))
+            .intersection(Set(synthetic.map(\.publicKeyPrefix))).count
+        check(landed == synthetic.count,
+              "every contact in the replay landed",
+              detail: "\(landed) of \(synthetic.count)")
+        await cleanUpTestContacts(link)
+    }
+
+    summarise()
+}
+
 /// Exercise bulk contact deletion against real firmware.
 ///
 /// This is the one thing no unit test can cover: the data loss came from
@@ -824,6 +949,7 @@ do {
     case "bulkdelete": try await cmdBulkDelete(opts)
     case "seed":      try await cmdSeed(opts)
     case "cleanup":   try await cmdCleanup(opts)
+    case "restartprobe": try await cmdRestartProbe(opts)
     case "help", "-h", "--help":
         out(usage)
     default:

@@ -20,6 +20,7 @@ this is the source of truth for firmware review state, not the local development
 | **Smoke test** | 2026-10-02 on Heltec Mesh Pocket `v1.17.1-d929643` — passed, see below |
 | **Bulk-delete test** | 2026-10-03, same radio — 17/17 passed; unpaced removals drop ~half their writes, see below |
 | **Restore test** | 2026-10-03, end to end through the macOS app UI — snapshot, delete and restore all verified, see below |
+| **Profile round trip** | 2026-10-03, app UI — passed after fixing lost contact adds on a mid-burst BLE drop, see below |
 
 The app does **not** gate behaviour on `FIRMWARE_VER_CODE`. Version-specific behaviour keys off the
 semantic version string plus response probing (`dutycycle` vs `af`), or off
@@ -294,3 +295,59 @@ cannot be inspected from a shell. Verification was by the app's own `com.pommeco
 stream plus an independent `meshctl info` afterwards. Restoring a backup that belongs to a
 *different* radio is still untested on hardware (it is refused by `belongs(toRadio:)`, which
 is unit-tested).
+
+### 2026-10-03 — profile round trip with contacts, and a defect it found
+
+Run through the real app UI against `v1.17.1`, with 8 disposable contacts seeded so no
+real contact was at risk.
+
+**Export.** Worked once a macOS save-panel bug was fixed (the panel was being presented
+from inside a SwiftUI sheet, so it never came forward — exporting was impossible on macOS).
+The file is version 2, 11 contacts, repeater correctly typed, `privateKeyHex` null, and
+each contact carries **only** radio-side fields — `flags, lastAdvert, lastmod, latitude,
+longitude, name, outPath, outPathLen, publicKey, type`. No nicknames, notes, groups or mute
+state, which is the privacy boundary the format claims.
+
+**Import, first attempt — failed.** 7 of 11 `CMD_ADD_UPDATE_CONTACT` frames went out, then
+BLE dropped ("connection timed out unexpectedly"). The remaining 4 were written into a dead
+connection, **none of the 11 landed**, and the UI still reported "Applied — reboot your
+radio to activate".
+
+**Import, after the fix — passed.** All 11 landed; `meshctl info` confirmed 11 on the radio
+afterwards.
+
+### Where the link drop comes from
+
+Not a single command. `meshctl restartprobe` writes each suspect setting back with the
+value the radio already has:
+
+| Probe | Result |
+|---|---|
+| `set advert name` (unchanged) | link stayed up through a 12s settle |
+| `set radio params` (unchanged) | link stayed up |
+| `set TX power` (unchanged) | link stayed up |
+| 4 settings at 300ms, then 11 contact frames at 150ms | link stayed up, all 11 landed |
+
+So neither any one command nor the burst shape reproduces it. The remaining difference
+between the probe and the failing import is the **5 `CMD_SET_CHANNEL` writes** the app
+sends in between, which write PSKs to flash. Not probed, because doing so means writing
+channel secrets to a live radio. Treat the trigger as **unidentified but inside the
+settings/channel phase**.
+
+What the second run pins down precisely: contacts started at 16:41:53.719 and every frame
+drew a `RESP OK`; the disconnect came at **16:42:01.861**, well after the contacts were
+written and during the settings phase. Ordering contacts first is what made the difference.
+
+### What changed because of this
+
+- **Contacts are applied first**, not last. They used to go last so that settings would
+  land even if the slow part failed. Hardware inverted the reasoning: settings are
+  idempotent and trivially re-applied, the contact list is the data.
+- **Adds are verified like removals.** `ContactStore.sendContactWrite` now covers both
+  directions, checking the radio's own list afterwards and re-sending whatever disagrees.
+  Backup restore goes through the same path — it had the identical assumption.
+- **A paced burst stops when the link drops** instead of writing the remainder into
+  nothing.
+- **A pending write survives a disconnect.** `reset()` runs on every disconnect and used to
+  clear it, which is precisely how the 4 outstanding adds became unrecoverable. It is
+  stamped with the radio's public key and discarded only if the radio changes.

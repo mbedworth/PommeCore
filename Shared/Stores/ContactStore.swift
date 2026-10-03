@@ -69,27 +69,57 @@ final class ContactStore {
     /// Closure to get the connected radio's public key hex (for per-radio data isolation).
     var radioPublicKeyHexProvider: (() -> String)?
 
+    /// Whether a transport is currently connected.
+    ///
+    /// Used to stop a paced burst of contact frames the moment the link drops,
+    /// instead of writing the remainder into nothing — which is exactly how a
+    /// profile import lost 4 of 11 adds and still reported success.
+    var isConnectedProvider: (() -> Bool)?
+
     /// Surfaces a message to the user (wired to `ConnectionManager.lastErrorMessage`).
     var reportError: ((String) -> Void)?
 
-    // MARK: - Removal verification
+    // MARK: - Contact write verification
 
-    /// A bulk removal awaiting confirmation from the radio.
-    private struct PendingRemovalVerification {
-        let keys: Set<Data>
-        let contacts: [Contact]
-        let pass: Int
+    /// Which way a pending bulk contact write goes.
+    enum ContactWriteDirection {
+        case add
+        case remove
+
+        /// Whether a contact still appearing in the radio's list means the
+        /// write did not take.
+        func isOutstanding(presentOnRadio: Bool) -> Bool {
+            switch self {
+            case .add: return !presentOnRadio      // should be there, is not
+            case .remove: return presentOnRadio    // should be gone, is not
+            }
+        }
     }
 
-    private var pendingRemovalVerification: PendingRemovalVerification?
+    /// A bulk contact write awaiting confirmation from the radio.
+    private struct PendingContactWrite {
+        let direction: ContactWriteDirection
+        let contacts: [Contact]
+        let pass: Int
+        /// The radio this was meant for. A pending write survives a
+        /// reconnect, so it must not be applied to a different radio.
+        let radioKeyHex: String
+        /// Shown to the user if every pass fails.
+        let failureMessage: (Int) -> String
+    }
 
-    /// How many times to re-send dropped removals before telling the user.
+    private var pendingContactWrite: PendingContactWrite?
+
+    /// How many times to re-send dropped writes before telling the user.
     ///
     /// Three because hardware showed a single unpaced burst losing half its
     /// writes: one retry could plausibly drop again, while a path that keeps
-    /// retrying forever would hammer the radio over a removal it may be
+    /// retrying forever would hammer the radio over a write it may be
     /// refusing for a reason we cannot see.
-    private static let maxRemovalVerificationPasses = 3
+    private static let maxContactWritePasses = 3
+
+    /// Spacing between contact frames.
+    private static let contactFrameSpacing: UInt64 = 150_000_000
 
     // MARK: - Private State
 
@@ -799,97 +829,150 @@ final class ContactStore {
     /// be tightened with `scripts/meshctl.sh` against real hardware.
     private func sendRemoveContactFrames(for toRemove: [Contact]) {
         Task { @MainActor [weak self] in
-            await self?.sendRemovalsAndVerify(toRemove, pass: 1)
+            await self?.sendContactWrite(
+                toRemove, direction: .remove, label: "REMOVE_CONTACT", pass: 1,
+                failureMessage: { count in
+                    String(format: String(localized: "%d contacts could not be removed. The radio still has them \u{2014} try deleting again."), count)
+                }
+            )
         }
     }
 
-    /// Send removals, then check the radio actually applied them, retrying any
-    /// it dropped.
+    /// Send a bulk contact write, then check the radio actually applied it,
+    /// retrying anything it dropped.
     ///
-    /// Hardware showed why this is needed (`meshctl bulkdelete`, firmware
-    /// v1.17.1): 60 removal frames written back to back left **30 contacts
-    /// still on the radio**. The firmware silently dropped half the writes,
-    /// and the following sync was internally consistent — it announced 33 and
-    /// delivered 33 — so nothing in the response said anything was wrong. The
-    /// user would simply have found half the contacts they deleted still
-    /// there.
+    /// Hardware showed why this cannot be left to pacing alone. Removals: 60
+    /// frames written back to back left **30 contacts still on the radio**,
+    /// with the following sync internally consistent, so nothing in any
+    /// response said a thing was wrong. Adds: a profile import sent 7 of 11
+    /// frames and then the BLE link dropped mid-burst — the remaining 4 were
+    /// written into a dead connection, none of the 11 landed, and the UI still
+    /// reported success.
     ///
-    /// 150ms spacing avoided it completely at the same scale, but pacing is a
-    /// timing assumption about one firmware build on one radio, and the whole
-    /// point of the delete path is that its failures are expensive. So the
-    /// radio's own contact list is the signal: whatever is still present was
-    /// not removed, and gets asked again.
-    private func sendRemovalsAndVerify(_ toRemove: [Contact], pass: Int) async {
-        for (offset, contact) in toRemove.enumerated() {
-            let frame = MeshCoreProtocol.buildRemoveContact(publicKey: contact.publicKey)
-            sendCommand?(frame, "REMOVE_CONTACT")
-            if offset < toRemove.count - 1 {
-                try? await Task.sleep(nanoseconds: 150_000_000)
+    /// So the radio's own contact list is the signal, in both directions:
+    /// whatever disagrees with what we asked for was not applied, and gets
+    /// asked again.
+    private func sendContactWrite(
+        _ contacts: [Contact],
+        direction: ContactWriteDirection,
+        label: String,
+        pass: Int,
+        failureMessage: @escaping (Int) -> String
+    ) async {
+        for (offset, contact) in contacts.enumerated() {
+            // Stop the moment the link is gone rather than writing the rest
+            // into nothing. Whatever has not been applied is picked up by the
+            // verification pass once a sync is possible again.
+            guard isConnectedProvider?() ?? true else {
+                Self.logger.warning("\(label): link lost after \(offset) of \(contacts.count) frames — stopping")
+                DebugLogger.shared.log("Connection lost part-way through \(label.lowercased())", level: .warning)
+                break
+            }
+            let frame = direction == .add
+                ? MeshCoreProtocol.buildAddUpdateContact(contact)
+                : MeshCoreProtocol.buildRemoveContact(publicKey: contact.publicKey)
+            sendCommand?(frame, label)
+            if offset < contacts.count - 1 {
+                try? await Task.sleep(nanoseconds: Self.contactFrameSpacing)
             }
         }
 
-        // Let the firmware commit the last removal before asking it to
-        // enumerate everything, so the removal responses are not still in
-        // flight when the contact stream starts.
+        // Let the firmware commit the last write before asking it to
+        // enumerate, so responses are not still in flight when the contact
+        // stream starts.
         try? await Task.sleep(nanoseconds: 1_000_000_000)
 
-        pendingRemovalVerification = PendingRemovalVerification(
-            keys: Set(toRemove.map(\.publicKeyPrefix)),
-            contacts: toRemove,
-            pass: pass
+        pendingContactWrite = PendingContactWrite(
+            direction: direction, contacts: contacts, pass: pass,
+            radioKeyHex: radioPublicKeyHexProvider?() ?? "",
+            failureMessage: failureMessage
         )
         requestContacts(fullSync: true)
     }
 
-    /// Re-send removals for anything the radio still reports.
+    /// Re-send anything the radio's list says did not take.
     ///
     /// Called once a full sync completes, which is the only moment the radio's
     /// actual contact list is known. Returns without acting when there is
     /// nothing outstanding.
-    func verifyPendingRemovals() {
-        guard let pending = pendingRemovalVerification else { return }
-        pendingRemovalVerification = nil
+    func verifyPendingContactWrite() {
+        discardPendingWriteIfRadioChanged()
+        guard let pending = pendingContactWrite else { return }
+        pendingContactWrite = nil
 
         let present = Set(contacts.map(\.publicKeyPrefix))
-        let survivors = pending.contacts.filter { present.contains($0.publicKeyPrefix) }
-        guard !survivors.isEmpty else {
+        let outstanding = pending.contacts.filter {
+            pending.direction.isOutstanding(presentOnRadio: present.contains($0.publicKeyPrefix))
+        }
+        guard !outstanding.isEmpty else {
             if pending.pass > 1 {
-                Self.logger.info("Removal verification: all contacts removed after \(pending.pass) passes")
+                Self.logger.info("Contact write verified after \(pending.pass) passes")
             }
             return
         }
 
-        guard pending.pass < Self.maxRemovalVerificationPasses else {
+        let label = pending.direction == .add ? "ADD_CONTACT" : "REMOVE_CONTACT"
+
+        guard pending.pass < Self.maxContactWritePasses else {
             // Out of retries. Say so plainly rather than leaving the user to
-            // discover it: the contacts are still on the radio, and the list
-            // now shown is the radio's truth, not a stale view.
-            Self.logger.error("Removal verification: \(survivors.count) contact(s) still present after \(pending.pass) passes — giving up")
+            // discover it — the list now shown is the radio's truth, so the
+            // disagreement is real and silence would read as success.
+            Self.logger.error("\(label): \(outstanding.count) contact(s) still wrong after \(pending.pass) passes — giving up")
             DebugLogger.shared.log(
-                "\(survivors.count) contact(s) could not be removed — the radio still reports them. Try again.",
+                "\(outstanding.count) contact(s) could not be written — the radio disagrees. Try again.",
                 level: .warning
             )
-            reportError?(String(
-                format: String(localized: "%d contacts could not be removed. The radio still has them — try deleting again."),
-                survivors.count
-            ))
+            reportError?(pending.failureMessage(outstanding.count))
             return
         }
 
-        Self.logger.warning("Removal verification: \(survivors.count) of \(pending.contacts.count) removals were dropped — retrying (pass \(pending.pass + 1))")
+        Self.logger.warning("\(label): \(outstanding.count) of \(pending.contacts.count) writes were dropped — retrying (pass \(pending.pass + 1))")
         DebugLogger.shared.log(
-            "Radio still reports \(survivors.count) deleted contact(s) — resending removals",
+            "Radio disagrees on \(outstanding.count) contact(s) — resending",
             level: .warning
         )
 
-        // Drop them from the local list again: the sync that just completed
-        // put them back, and they are on their way out.
-        let survivorKeys = Set(survivors.map(\.publicKeyPrefix))
-        contacts.removeAll { survivorKeys.contains($0.publicKeyPrefix) }
+        if pending.direction == .remove {
+            // The sync that just completed put them back; they are on their
+            // way out again.
+            let keys = Set(outstanding.map(\.publicKeyPrefix))
+            contacts.removeAll { keys.contains($0.publicKeyPrefix) }
+        }
 
         Task { @MainActor [weak self] in
-            await self?.sendRemovalsAndVerify(survivors, pass: pending.pass + 1)
+            await self?.sendContactWrite(
+                outstanding, direction: pending.direction, label: label,
+                pass: pending.pass + 1, failureMessage: pending.failureMessage
+            )
         }
     }
+
+    /// Drop a pending write that belongs to a different radio.
+    private func discardPendingWriteIfRadioChanged() {
+        guard let pending = pendingContactWrite else { return }
+        let current = radioPublicKeyHexProvider?() ?? ""
+        guard !pending.radioKeyHex.isEmpty, !current.isEmpty,
+              pending.radioKeyHex != current else { return }
+        Self.logger.info("Discarding pending contact write — different radio")
+        pendingContactWrite = nil
+    }
+
+    /// Add or update contacts on the radio, verifying they landed.
+    ///
+    /// Used by profile import and backup restore — both put contacts onto a
+    /// radio, and both previously assumed every frame arrived.
+    func addContacts(_ newContacts: [Contact]) async {
+        guard !newContacts.isEmpty else { return }
+        Self.logger.info("Adding \(newContacts.count) contacts")
+        DebugLogger.shared.log("Adding \(newContacts.count) contacts", level: .tx)
+        await sendContactWrite(
+            newContacts, direction: .add, label: "ADD_CONTACT", pass: 1,
+            failureMessage: { count in
+                String(format: String(localized: "%d contacts could not be added. The radio did not accept them \u{2014} try again."), count)
+            }
+        )
+    }
+
 
     /// Which persisted stores a purge touched, so saves happen once rather
     /// than once per contact.
@@ -1220,7 +1303,7 @@ final class ContactStore {
         // can be confirmed. Anything we asked it to delete that it still
         // reports was dropped, not deleted.
         if wasFullSync {
-            verifyPendingRemovals()
+            verifyPendingContactWrite()
         }
 
         // The orphan sweep is deliberately NOT run here. It used to be, on
@@ -1400,10 +1483,13 @@ final class ContactStore {
         contactSyncDebounceTask?.cancel()
         isSyncingContacts = false
         isIncrementalContactSync = false
-        // An unconfirmed removal does not carry across connections: the next
-        // radio may be a different one, and its contacts are not ours to
-        // delete.
-        pendingRemovalVerification = nil
+        // A pending write deliberately survives: reset() runs on every
+        // disconnect, and a link that drops mid-burst is precisely when the
+        // retry is needed. Clearing it here is how a profile import lost 4 of
+        // 11 contact adds for good — the link dropped, reset() discarded the
+        // outstanding work, and the reconnect sync had nothing to reconcile
+        // against. It is stamped with the radio's key and dropped on the next
+        // verification if that radio changed.
         lastContactsSync = 0
         incomingContacts = []
         pendingNewContacts = []

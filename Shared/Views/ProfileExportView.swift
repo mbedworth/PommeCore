@@ -48,11 +48,13 @@ struct ProfileExportView: View {
         .fileImporter(isPresented: $showFilePicker,
                       allowedContentTypes: [.data],
                       onCompletion: handleImportPick)
+        #if !os(macOS)
         .sheet(isPresented: $showExportShare) {
             if let url = exportURL {
                 ShareSheet(items: [url])
             }
         }
+        #endif
     }
 
     // MARK: - Export
@@ -237,13 +239,56 @@ struct ProfileExportView: View {
                 channelStore: channelStore,
                 contacts: includeContacts ? contactStore.contacts : nil,
                 appVersion: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "")
-            exportURL = try ProfileExportService.exportURL(
+            let url = try ProfileExportService.exportURL(
                 from: profile, radioName: deviceConfig.deviceName)
+            exportURL = url
+            #if os(macOS)
+            presentSavePanel(for: url)
+            #else
             showExportShare = true
+            #endif
         } catch {
             exportError = error.localizedDescription
         }
     }
+
+    #if os(macOS)
+    /// Run the save panel directly from the action, not from inside a sheet.
+    ///
+    /// It used to be presented inside a `.sheet` holding a 1×1 `Color.clear`,
+    /// which left an empty rounded rectangle on screen and no save panel at
+    /// all: the sheet window stays key, so the panel never comes forward, and
+    /// there is nothing in the sheet to dismiss it with. Exporting was
+    /// effectively impossible on macOS.
+    private func presentSavePanel(for url: URL) {
+        let panel = NSSavePanel()
+        panel.nameFieldStringValue = url.lastPathComponent
+        panel.allowedContentTypes = [.data]
+
+        let complete: (NSApplication.ModalResponse) -> Void = { response in
+            guard response == .OK, let destination = panel.url else { return }
+            do {
+                // The panel already asked about replacing, so an existing file
+                // here means the user said yes. `copyItem` throws onto an
+                // existing path, and that used to be swallowed by `try?` — the
+                // panel closed, nothing was written, and the export looked
+                // like it had succeeded.
+                if FileManager.default.fileExists(atPath: destination.path) {
+                    try FileManager.default.removeItem(at: destination)
+                }
+                try FileManager.default.copyItem(at: url, to: destination)
+            } catch {
+                exportError = error.localizedDescription
+            }
+        }
+
+        if let window = NSApp.keyWindow ?? NSApp.mainWindow {
+            panel.beginSheetModal(for: window, completionHandler: complete)
+        } else {
+            panel.begin(completionHandler: complete)
+        }
+    }
+    #endif
 
     private func handleImportPick(_ result: Result<URL, Error>) {
         switch result {
@@ -267,12 +312,8 @@ struct ProfileExportView: View {
         await ProfileExportService.applyProfile(profile,
                                                 connectionManager: connectionManager,
                                                 channelStore: channelStore,
+                                                contactStore: contactStore,
                                                 applyContacts: applyContacts)
-        if applyContacts, profile.contacts?.isEmpty == false {
-            // Reconcile against the radio so the list reflects what actually
-            // landed, rather than what was sent.
-            contactStore.requestContacts(fullSync: true)
-        }
         isApplying = false
         applyDone = true
     }
@@ -280,35 +321,17 @@ struct ProfileExportView: View {
 
 // MARK: - ShareSheet (iOS/macOS)
 
+// iOS only. macOS runs NSSavePanel directly from the export action — see
+// `presentSavePanel(for:)`, and the comment there for why it cannot live
+// inside a sheet.
+#if !os(macOS)
 private struct ShareSheet: View {
     let items: [Any]
-    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        #if os(macOS)
-        Color.clear.frame(width: 1, height: 1)
-            .onAppear { saveWithPanel() }
-        #else
         ShareSheetRepresentable(items: items)
-        #endif
     }
 
-    #if os(macOS)
-    private func saveWithPanel() {
-        guard let url = items.first as? URL else { dismiss(); return }
-        DispatchQueue.main.async {
-            let panel = NSSavePanel()
-            panel.nameFieldStringValue = url.lastPathComponent
-            panel.allowedContentTypes = [.data]
-            panel.begin { response in
-                if response == .OK, let dest = panel.url {
-                    try? FileManager.default.copyItem(at: url, to: dest)
-                }
-                dismiss()
-            }
-        }
-    }
-    #else
     private struct ShareSheetRepresentable: UIViewControllerRepresentable {
         let items: [Any]
         func makeUIViewController(context: Context) -> UIActivityViewController {
@@ -316,6 +339,6 @@ private struct ShareSheet: View {
         }
         func updateUIViewController(_ vc: UIActivityViewController, context: Context) {}
     }
-    #endif
 }
+#endif
 #endif

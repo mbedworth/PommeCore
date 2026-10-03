@@ -18,6 +18,7 @@ struct RadioProfilesView: View {
     @Environment(ConnectionManager.self) private var connectionManager
     @Environment(DeviceConfig.self) private var deviceConfig
     @Environment(ChannelStore.self) private var channelStore
+    @Environment(ContactStore.self) private var contactStore
 
     @State private var showSaveAlert = false
     @State private var newProfileName = ""
@@ -201,7 +202,8 @@ struct RadioProfilesView: View {
         profileToApply = nil
         await ProfileExportService.applyProfile(profile.config,
                                                 connectionManager: connectionManager,
-                                                channelStore: channelStore)
+                                                channelStore: channelStore,
+                                                contactStore: contactStore)
         isApplying = false
         appliedProfileID = profile.id
         DispatchQueue.main.asyncAfter(deadline: .now() + 3) {

@@ -141,6 +141,14 @@ final class BLELink: NSObject, @unchecked Sendable {
     // MARK: - I/O
 
     /// Write one frame, using the same write-type selection as the app.
+    /// Whether the peripheral is still connected with a writable characteristic.
+    ///
+    /// Needed to tell "the radio rebooted" from "the radio ignored us" when
+    /// probing which configuration command drops the link.
+    var isConnected: Bool {
+        queue.sync { peripheral?.state == .connected && rxCharacteristic != nil }
+    }
+
     func send(_ data: Data) {
         queue.sync {
             guard let peripheral, let rx = rxCharacteristic else { return }
