@@ -19,6 +19,7 @@ this is the source of truth for firmware review state, not the local development
 | **Last review** | 2026-08-24, covering v1.17.0 and v1.17.1 |
 | **Smoke test** | 2026-10-02 on Heltec Mesh Pocket `v1.17.1-d929643` — passed, see below |
 | **Bulk-delete test** | 2026-10-03, same radio — 17/17 passed; unpaced removals drop ~half their writes, see below |
+| **Restore test** | 2026-10-03, end to end through the macOS app UI — snapshot, delete and restore all verified, see below |
 
 The app does **not** gate behaviour on `FIRMWARE_VER_CODE`. Version-specific behaviour keys off the
 semantic version string plus response probing (`dutycycle` vs `af`), or off
@@ -261,3 +262,35 @@ keeping a stale list corrects itself on the next sync. But the original cause sh
 treated as **not established** — the reproducible defect on this firmware is dropped
 removal writes, not a truncated stream. Re-check if the data loss ever recurs, and note
 that the 2026-10-02 incident also involved an automatic orphan sweep that no longer runs.
+
+### 2026-10-03 — restore, end to end through the app
+
+Run on the macOS app (Debug build, same container as the shipping app) against the same
+radio, driven through the real UI rather than the harness. Eight disposable contacts were
+seeded with `meshctl seed --count 8` so no real contact was ever at risk.
+
+| Step | Observed |
+|---|---|
+| Connect, full sync | announced 11, received 11 |
+| Bulk delete 8 in the UI | `Wrote contact backup: 11 contacts` at 15:12:02.997, **then** `Bulk remove: 8 contacts` at 15:12:03.074 |
+| Post-delete sync | announced 3, received 3 — no removal-verification retry, so all 8 paced writes landed |
+| Restore from Settings › Storage › Contact Backups | `Restoring 11 contacts` → `Restored local data` 2.94s later (10 × 150ms + 1s settle, as designed) |
+| Post-restore sync | announced 11, received 11 |
+| Independent check via `meshctl info` | 11 contacts present, `US-FL-CLR-CR-38777` still typed `Repeater` |
+
+**What this establishes.** The snapshot is written before the first removal frame, not after
+— the ordering the whole design depends on. The snapshot captures the entire list (11), not
+just the selection (8), so a wrong selection is recoverable too. Contact *type* survives
+the JSON round trip and the `CMD_ADD_UPDATE_CONTACT` rebuild, which matters because a
+repeater restored as a chat contact would break routing.
+
+An incremental sync during the run delivered 1 contact against an `expectedContactCount` of
+3 and correctly **merged** rather than rejecting or shrinking — `ContactSyncReducer` only
+applies the completeness check to full syncs, and this exercised that live.
+
+**Not covered.** The UI was driven by hand: `osascript` has no assistive access here, so
+the taps cannot be automated, and the app container is TCC-protected so the backup file
+cannot be inspected from a shell. Verification was by the app's own `com.pommecore` log
+stream plus an independent `meshctl info` afterwards. Restoring a backup that belongs to a
+*different* radio is still untested on hardware (it is refused by `belongs(toRadio:)`, which
+is unit-tested).
