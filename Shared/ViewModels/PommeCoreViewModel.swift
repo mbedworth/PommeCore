@@ -221,6 +221,7 @@ final class PommeCoreViewModel: ObservableObject {
         contactStore.postEventNotification = { [weak self] title, body, threadId in self?.postEventNotification(title: title, body: body, threadId: threadId) }
         contactStore.radioPublicKeyHexProvider = { [weak self] in self?.deviceConfig.publicKeyHex ?? "" }
         contactStore.reportError = { [weak self] message in self?.connectionManager.lastErrorMessage = message }
+        contactStore.isConnectedProvider = { [weak self] in self?.connectionManager.isActivelyConnected ?? false }
         #if !os(watchOS)
         // Synchronous on purpose: the snapshot has to be on disk before the
         // first removal frame leaves, or it cannot protect the thing it is

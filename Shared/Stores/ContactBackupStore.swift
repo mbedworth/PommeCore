@@ -134,45 +134,24 @@ final class ContactBackupStore {
 
     // MARK: - Restore
 
-    /// Send the backup's contacts back to the radio, paced.
+    /// Mark a restore as running, so the UI can show progress and refuse to
+    /// start a second one.
     ///
-    /// Paced for the same reason deletions are: binary frames go straight to
-    /// the transport with no queue, and each add makes the firmware write its
-    /// persistent contact store, so a burst risks dropped writes — which on a
-    /// restore would mean silently getting some contacts back and not others.
-    ///
-    /// `onFinished` runs after the last frame so the caller can reconcile.
-    func restore(
-        _ backup: ContactBackup,
-        sendCommand: @escaping (Data, String) -> Void,
-        onFinished: @escaping () -> Void
-    ) {
-        guard restoreProgress == nil else {
-            Self.logger.warning("Restore already in progress")
-            return
-        }
-
-        let frames = backup.restoreFrames()
-        guard !frames.isEmpty else { return }
-
-        restoreProgress = (sent: 0, total: frames.count)
-        Self.logger.info("Restoring \(frames.count) contacts")
-        DebugLogger.shared.log("Restoring \(frames.count) contacts from backup", level: .tx)
-
-        Task { @MainActor [weak self] in
-            for (offset, entry) in frames.enumerated() {
-                sendCommand(entry.frame, "RESTORE_CONTACT")
-                self?.restoreProgress = (sent: offset + 1, total: frames.count)
-                if offset < frames.count - 1 {
-                    try? await Task.sleep(nanoseconds: 150_000_000)
-                }
-            }
-            // Let the firmware commit the last add before anything asks it to
-            // enumerate — the same settle the bulk delete needs.
-            try? await Task.sleep(nanoseconds: 1_000_000_000)
-            self?.restoreProgress = nil
-            DebugLogger.shared.log("Contact restore finished", level: .info)
-            onFinished()
-        }
+    /// The sending itself belongs to `ContactStore.addContacts`, which paces
+    /// the frames, stops if the link drops, and checks against the radio's own
+    /// list afterwards. This store used to send them directly and assume every
+    /// frame arrived — the same assumption that lost 4 of 11 contacts on a
+    /// profile import when BLE dropped mid-burst.
+    func beginRestore(count: Int) {
+        restoreProgress = (sent: 0, total: count)
+        Self.logger.info("Restoring \(count) contacts")
+        DebugLogger.shared.log("Restoring \(count) contacts from backup", level: .tx)
     }
+
+    func endRestore() {
+        restoreProgress = nil
+        DebugLogger.shared.log("Contact restore finished", level: .info)
+    }
+
+    var isRestoring: Bool { restoreProgress != nil }
 }

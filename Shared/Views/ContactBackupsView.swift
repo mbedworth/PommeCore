@@ -119,7 +119,7 @@ struct ContactBackupsView: View {
     private func row(for backup: ContactBackup) -> some View {
         let restorable = backup.belongs(toRadio: deviceConfig.publicKeyHex)
             && connectionManager.isActivelyConnected
-            && backupStore.restoreProgress == nil
+            && !backupStore.isRestoring
 
         // Tap restores, long-press offers everything — the standard
         // interaction for every row in the app.
@@ -171,16 +171,18 @@ struct ContactBackupsView: View {
 
     private func restore(_ backup: ContactBackup) {
         backupToRestore = nil
-        backupStore.restore(
-            backup,
-            sendCommand: { data, label in connectionManager.sendCommand(data, label: label) },
-            onFinished: {
-                // Nicknames, notes, mute state and groups are the app's own —
-                // the radio never had them, so they are re-applied here. The
-                // contacts themselves come back through the normal sync.
-                contactStore.restoreLocalData(from: backup)
-                contactStore.requestContacts(fullSync: true)
-            }
-        )
+        guard !backupStore.isRestoring else { return }
+        backupStore.beginRestore(count: backup.contacts.count)
+        Task { @MainActor in
+            // ContactStore owns the send: it paces the frames, stops if the
+            // link drops, and verifies against the radio's own list rather
+            // than assuming every frame arrived.
+            await contactStore.addContacts(backup.contacts)
+            // Nicknames, notes, mute state and groups are the app's own — the
+            // radio never had them, so they are re-applied here. The contacts
+            // themselves come back through the sync the add already triggers.
+            contactStore.restoreLocalData(from: backup)
+            backupStore.endRestore()
+        }
     }
 }
