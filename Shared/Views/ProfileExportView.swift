@@ -30,6 +30,9 @@ struct ProfileExportView: View {
     @State private var importError: String?
     @State private var isApplying = false
     @State private var applyDone = false
+    /// Set when the link dropped part-way through, so the radio is
+    /// part-configured and the user needs to know.
+    @State private var applyInterruptedAt: String?
     /// Off by default: a file may carry contacts the user does not want on
     /// this radio.
     @State private var applyContacts = false
@@ -186,6 +189,14 @@ struct ProfileExportView: View {
             Text("Connect to a radio to apply this profile.")
                 .font(.caption).foregroundStyle(.orange)
                 .listRowBackground(MeshTheme.surface)
+        } else if let step = applyInterruptedAt {
+            // Never report success for a partial apply: the settings are
+            // idempotent, so importing again fixes it — but only if the user
+            // knows it did not finish.
+            Label("Connection lost while applying \(step). The radio is part-configured \u{2014} reconnect and apply again.",
+                  systemImage: "exclamationmark.triangle.fill")
+                .font(.caption).foregroundStyle(.orange)
+                .listRowBackground(MeshTheme.surface)
         } else if applyDone {
             Label("Applied — reboot your radio to activate.", systemImage: "checkmark.circle.fill")
                 .font(.caption).foregroundStyle(.green)
@@ -299,6 +310,7 @@ struct ProfileExportView: View {
                 importedProfile = try ProfileExportService.parseImport(from: url)
                 importError = nil
                 applyDone = false
+                applyInterruptedAt = nil
             } catch {
                 importError = "Could not read file: \(error.localizedDescription)"
             }
@@ -309,13 +321,20 @@ struct ProfileExportView: View {
 
     private func applyImport(_ profile: MeshProfileExport) async {
         isApplying = true
-        await ProfileExportService.applyProfile(profile,
+        let outcome = await ProfileExportService.applyProfile(profile,
                                                 connectionManager: connectionManager,
                                                 channelStore: channelStore,
                                                 contactStore: contactStore,
                                                 applyContacts: applyContacts)
         isApplying = false
-        applyDone = true
+        switch outcome {
+        case .applied:
+            applyInterruptedAt = nil
+            applyDone = true
+        case .interrupted(let step):
+            applyInterruptedAt = step
+            applyDone = false
+        }
     }
 }
 

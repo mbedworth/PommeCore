@@ -90,13 +90,33 @@ enum ProfileExportService {
     /// someone else's contacts is a change they should choose rather than
     /// inherit from a file.
     @MainActor
+    @discardableResult
     static func applyProfile(_ profile: MeshProfileExport,
                               connectionManager: ConnectionManager,
                               channelStore: ChannelStore,
                               contactStore: ContactStore,
-                              applyContacts: Bool = false) async {
+                              applyContacts: Bool = false) async -> ApplyOutcome {
         let r = profile.radio
         let delay: UInt64 = 300_000_000  // 300 ms
+
+        /// Send one step, unless the link has gone.
+        ///
+        /// Hardware dropped the link part-way through an apply, and nothing
+        /// noticed: every later command was written into a dead connection and
+        /// the UI still said the profile had been applied. The commands are
+        /// idempotent, so the fix is not to retry them but to stop and say so
+        /// — a half-configured radio the user knows about is recoverable by
+        /// importing again, one they do not know about is not.
+        var interruptedAt: String?
+        func step(_ label: String, _ send: () -> Void) async {
+            guard interruptedAt == nil else { return }
+            guard connectionManager.isActivelyConnected else {
+                interruptedAt = label
+                return
+            }
+            send()
+            try? await Task.sleep(nanoseconds: delay)
+        }
 
         // Contacts first, and through ContactStore so they are verified
         // against the radio afterwards.
@@ -113,50 +133,50 @@ enum ProfileExportService {
             await contactStore.addContacts(contacts)
         }
 
-        connectionManager.setRadioParams(
-            frequency: r.radioFrequency, bandwidth: r.radioBandwidth,
-            spreadingFactor: r.radioSpreadingFactor, codingRate: r.radioCodingRate,
-            repeatMode: r.repeatMode)
-        try? await Task.sleep(nanoseconds: delay)
+        await step("radio parameters") {
+            connectionManager.setRadioParams(
+                frequency: r.radioFrequency, bandwidth: r.radioBandwidth,
+                spreadingFactor: r.radioSpreadingFactor, codingRate: r.radioCodingRate,
+                repeatMode: r.repeatMode)
+        }
 
-        connectionManager.setRadioTXPower(r.radioTXPower)
-        try? await Task.sleep(nanoseconds: delay)
+        await step("transmit power") { connectionManager.setRadioTXPower(r.radioTXPower) }
 
         // Name lives in `deviceName` (populated from SELF_INFO). Older profiles
         // may carry an empty `advertName`, so fall back to it only if needed.
         // Never push an empty name — that would blank the radio's existing name.
         let nameToRestore = r.deviceName.isEmpty ? r.advertName : r.deviceName
         if !nameToRestore.isEmpty {
-            connectionManager.setAdvertName(nameToRestore)
-            try? await Task.sleep(nanoseconds: delay)
+            await step("radio name") { connectionManager.setAdvertName(nameToRestore) }
         }
 
-        connectionManager.setOtherParams(
-            manualAddContacts: r.manualAddContacts,
-            telemetryBase: r.telemetryBase,
-            telemetryLocation: r.telemetryLocation,
-            advertLocPolicy: r.advertLocPolicy,
-            multiACK: r.multiACK)
-        try? await Task.sleep(nanoseconds: delay)
+        await step("access settings") {
+            connectionManager.setOtherParams(
+                manualAddContacts: r.manualAddContacts,
+                telemetryBase: r.telemetryBase,
+                telemetryLocation: r.telemetryLocation,
+                advertLocPolicy: r.advertLocPolicy,
+                multiACK: r.multiACK)
+        }
 
-        connectionManager.setAutoAddConfig(bitmask: r.autoAddBitmask)
-        try? await Task.sleep(nanoseconds: delay)
+        await step("auto-add settings") { connectionManager.setAutoAddConfig(bitmask: r.autoAddBitmask) }
 
         if !r.defaultFloodScope.isEmpty {
-            connectionManager.setDefaultFloodScope(r.defaultFloodScope)
-            try? await Task.sleep(nanoseconds: delay)
+            await step("flood scope") { connectionManager.setDefaultFloodScope(r.defaultFloodScope) }
         }
 
         if r.rxDelayBase > 0 || r.airtimeFactor > 0 {
-            connectionManager.setTuningParams(rxDelayBase: r.rxDelayBase,
-                                              airtimeFactor: r.airtimeFactor)
-            try? await Task.sleep(nanoseconds: delay)
+            await step("tuning") {
+                connectionManager.setTuningParams(rxDelayBase: r.rxDelayBase,
+                                                  airtimeFactor: r.airtimeFactor)
+            }
         }
 
         for ch in profile.channels where ch.index > 0 {
             let secret = ch.secretHex.flatMap { Data(hexString: $0) }
-            channelStore.setChannel(index: ch.index, name: ch.name, secret: secret)
-            try? await Task.sleep(nanoseconds: delay)
+            await step("channel \(ch.index)") {
+                channelStore.setChannel(index: ch.index, name: ch.name, secret: secret)
+            }
         }
 
         // Future: when firmware adds PIN-protected binary key export —
@@ -164,5 +184,18 @@ enum ProfileExportService {
         //     connectionManager.setPrivateKey(keyHex)
         //     try? await Task.sleep(nanoseconds: delay)
         // }
+
+        if let step = interruptedAt {
+            return .interrupted(atStep: step)
+        }
+        return .applied
+    }
+
+    /// Whether an apply finished.
+    enum ApplyOutcome: Equatable {
+        case applied
+        /// The link dropped before this step, so it and everything after it
+        /// were never sent. The radio is part-configured.
+        case interrupted(atStep: String)
     }
 }
