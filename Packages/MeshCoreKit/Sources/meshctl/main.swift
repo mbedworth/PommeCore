@@ -69,6 +69,10 @@ struct Options {
     var outputPath: String?
     var scanSeconds: TimeInterval = 6
     var window: TimeInterval = 25
+    /// How many contacts `bulkdelete` creates and then deletes. Enough to make
+    /// the firmware do real work per removal, few enough to leave the radio
+    /// quickly if something goes wrong.
+    var bulkCount = 12
     var reportPath: String?
 }
 
@@ -90,6 +94,8 @@ func parseArgs() -> Options {
             i += 1; opts.outputPath = i < args.count ? args[i] : nil
         case "--scan":
             i += 1; opts.scanSeconds = TimeInterval(i < args.count ? args[i] : "6") ?? 6
+        case "--count", "-n":
+            if i + 1 < args.count, let n = Int(args[i + 1]), n > 0 { opts.bulkCount = n; i += 1 }
         case "--window", "-w":
             i += 1; opts.window = TimeInterval(i < args.count ? args[i] : "25") ?? 25
         case "--report":
@@ -114,6 +120,7 @@ COMMANDS
   telemetry             Request telemetry from a contact and dump the readings
   smoke                 Run the firmware smoke-test assertions
   capture               Connect, exercise the radio, write frames as hex fixtures
+  bulkdelete            Exercise bulk contact deletion against real firmware
 
 OPTIONS
   -d, --device <name>   BLE name substring to connect to (default: strongest signal)
@@ -121,8 +128,14 @@ OPTIONS
   -o, --out <path>      Fixture output path for `capture`
       --scan <seconds>  Scan duration (default 6)
   -w, --window <secs>   How long to wait for mesh replies (default 25)
+  -n, --count <n>       Test contacts to create and delete for `bulkdelete` (default 12)
 
 NOTES
+  `bulkdelete` writes to the radio. It creates its own contacts, deletes only
+  those, and asserts every pre-existing contact survived — it never deletes a
+  real one. Leftovers from an interrupted run are named `meshctl-del-NN` and
+  are removed on the next run.
+
   Mesh replies travel over LoRa and are slow — a telemetry round trip can take
   20s or more. The default window is deliberately generous.
 """
@@ -420,6 +433,321 @@ func cmdCapture(_ opts: Options) async throws {
     out("Wrote \(link.capturedFrames.count) frames to \(path)")
 }
 
+// MARK: - Bulk delete
+
+/// Name prefix for the contacts this test creates, so a leftover from an
+/// interrupted run is identifiable and removable.
+let bulkTestNamePrefix = "meshctl-del-"
+
+/// A synthetic contact, with a key no real node can hold.
+///
+/// Byte 0 is 0xEE and byte 1 is the index, so prefixes are unique and visibly
+/// not a real public key. Keys are unverifiable from the companion bridge
+/// anyway — a contact entry is just a record.
+func bulkTestContact(_ index: Int) -> Contact {
+    var key = Data(repeating: 0, count: 32)
+    key[0] = 0xEE
+    key[1] = UInt8(index)
+    key[2] = 0xEE
+    for i in 3..<32 { key[i] = UInt8((index * 7 + i) & 0xFF) }
+    return Contact(
+        publicKey: key,
+        name: "\(bulkTestNamePrefix)\(String(format: "%02d", index))",
+        type: .chat,
+        lastAdvert: UInt32(Date().timeIntervalSince1970)
+    )
+}
+
+func addContactFrame(_ c: Contact) -> Data {
+    MeshCoreProtocol.buildAddUpdateContact(
+        publicKey: c.publicKey, type: c.type.rawValue, flags: c.flags,
+        outPathLen: c.outPathLen, outPath: c.outPath, advName: c.name,
+        lastAdvert: c.lastAdvert,
+        latitude: MeshCoreProtocol.microDegrees(c.latitude),
+        longitude: MeshCoreProtocol.microDegrees(c.longitude)
+    )
+}
+
+/// A full contact sync, returning the announced count alongside the contacts.
+///
+/// The announced count is the whole point: the data-loss bug was a sync that
+/// delivered fewer contacts than CONTACTS_START promised, and the app
+/// believing the shortfall.
+func fullSync(_ link: BLELink, window: TimeInterval = 8) async -> (announced: Int, contacts: [Contact], sawEnd: Bool) {
+    let frames = await link.request(MeshCoreProtocol.buildGetContacts(since: 0), window: window)
+    var announced = 0
+    var contacts: [Contact] = []
+    var sawEnd = false
+    for frame in frames {
+        switch FrameParser.parse(frame) {
+        case .contactsStart(let count): announced = Int(count)
+        case .contact(let c): contacts.append(c)
+        case .endOfContacts: sawEnd = true
+        default: break
+        }
+    }
+    return (announced, contacts, sawEnd)
+}
+
+/// Send frames spaced out, the way the app paces removals and restores.
+func sendPaced(_ link: BLELink, _ frames: [Data], spacing: TimeInterval = 0.15) async {
+    for (offset, frame) in frames.enumerated() {
+        link.send(frame)
+        if offset < frames.count - 1 {
+            try? await Task.sleep(nanoseconds: UInt64(spacing * 1_000_000_000))
+        }
+    }
+}
+
+/// Remove every leftover test contact, whatever happened above.
+func cleanUpTestContacts(_ link: BLELink) async {
+    let state = await fullSync(link)
+    let leftovers = state.contacts.filter { $0.name.hasPrefix(bulkTestNamePrefix) }
+    guard !leftovers.isEmpty else { return }
+    note("cleaning up \(leftovers.count) leftover test contact(s)")
+    await sendPaced(link, leftovers.map { MeshCoreProtocol.buildRemoveContact(publicKey: $0.publicKey) })
+    try? await Task.sleep(nanoseconds: 1_000_000_000)
+}
+
+/// Exercise bulk contact deletion against real firmware.
+///
+/// This is the one thing no unit test can cover: the data loss came from
+/// CMD_REMOVE_CONTACT responses interleaving with a contact sync requested too
+/// soon after, which is firmware timing. The reducer tests prove the app
+/// *rejects* a truncated sync; only hardware shows whether truncation still
+/// happens and whether the pacing avoids it.
+///
+/// Deliberately never touches a real contact: it creates its own, deletes only
+/// those, and asserts the pre-existing list is untouched.
+func cmdBulkDelete(_ opts: Options) async throws {
+    out("MeshCore bulk-delete test")
+    out("")
+
+    let link = try await connectAndHandshake(opts)
+    defer { link.disconnect() }
+
+    let count = opts.bulkCount
+    let baseline = await fullSync(link)
+    check(baseline.sawEnd, "baseline sync completed", detail: "\(baseline.contacts.count) contacts")
+    info("baseline", "announced \(baseline.announced), received \(baseline.contacts.count)")
+
+    let baselineKeys = Set(baseline.contacts.map(\.publicKeyPrefix))
+    let leftovers = baseline.contacts.filter { $0.name.hasPrefix(bulkTestNamePrefix) }
+    if !leftovers.isEmpty {
+        note("found \(leftovers.count) leftover test contact(s) from a previous run — removing first")
+        await cleanUpTestContacts(link)
+    }
+
+    // --- Create the contacts this test will delete.
+    //
+    // This is also the first hardware exercise of the restore path: restoring
+    // a backup sends exactly these frames.
+    let synthetic = (1...count).map { bulkTestContact($0) }
+    let syntheticKeys = Set(synthetic.map(\.publicKeyPrefix))
+    guard syntheticKeys.isDisjoint(with: baselineKeys) else {
+        check(false, "synthetic keys do not collide with real contacts")
+        summarise()
+        return
+    }
+
+    note("adding \(count) test contacts…")
+    await sendPaced(link, synthetic.map(addContactFrame))
+    try? await Task.sleep(nanoseconds: 1_000_000_000)
+
+    let afterAdd = await fullSync(link)
+    check(afterAdd.sawEnd, "sync after adds completed")
+    check(
+        afterAdd.announced == afterAdd.contacts.count,
+        "sync after adds delivered everything it announced",
+        detail: "announced \(afterAdd.announced), received \(afterAdd.contacts.count)"
+    )
+    let addedKeys = Set(afterAdd.contacts.map(\.publicKeyPrefix))
+    check(
+        syntheticKeys.isSubset(of: addedKeys),
+        "all \(count) added contacts are on the radio",
+        detail: "\(syntheticKeys.intersection(addedKeys).count)/\(count) present"
+    )
+    check(
+        baselineKeys.isSubset(of: addedKeys),
+        "adding contacts did not disturb the existing ones"
+    )
+
+    // --- Round 1: the app's sequence — paced removals, settle, then sync.
+    out("")
+    out("Round 1 — the app's sequence (150ms spacing, 1s settle)")
+    await sendPaced(link, synthetic.map { MeshCoreProtocol.buildRemoveContact(publicKey: $0.publicKey) })
+    try? await Task.sleep(nanoseconds: 1_000_000_000)
+
+    let afterDelete = await fullSync(link)
+    check(afterDelete.sawEnd, "sync after deletes completed")
+    check(
+        afterDelete.announced == afterDelete.contacts.count,
+        "sync after deletes delivered everything it announced",
+        detail: "announced \(afterDelete.announced), received \(afterDelete.contacts.count)"
+    )
+
+    let finalKeys = Set(afterDelete.contacts.map(\.publicKeyPrefix))
+    check(
+        finalKeys.isDisjoint(with: syntheticKeys),
+        "every deleted contact is gone",
+        detail: "\(finalKeys.intersection(syntheticKeys).count) still present"
+    )
+    // The assertion that matters: the data loss was the *survivors*
+    // disappearing, not the deletions failing.
+    check(
+        baselineKeys.isSubset(of: finalKeys),
+        "every contact that was NOT deleted survived",
+        detail: "\(baselineKeys.subtracting(finalKeys).count) of \(baselineKeys.count) lost"
+    )
+
+    // What the reducer would do with this sync, which is what the app does.
+    let outcome = ContactSyncReducer.reduce(
+        existing: afterAdd.contacts, incoming: afterDelete.contacts,
+        announced: afterDelete.announced, isIncremental: false
+    )
+    if case .replace = outcome {
+        check(true, "reducer accepts the post-delete sync as authoritative")
+    } else {
+        check(false, "reducer accepts the post-delete sync as authoritative", detail: "\(outcome)")
+    }
+
+    // --- Round 2: the original bug's timing — no settle at all.
+    //
+    // Run to find out whether truncation still occurs when the sync is
+    // requested immediately. A truncated sync here is not a failure: it is the
+    // firmware behaviour the guard exists for, and the assertion is that the
+    // reducer refuses it rather than collapsing the list.
+    out("")
+    out("Round 2 — no settle, the timing that caused the data loss")
+    await sendPaced(link, synthetic.map(addContactFrame))
+    try? await Task.sleep(nanoseconds: 1_000_000_000)
+    let before2 = await fullSync(link)
+    check(
+        syntheticKeys.isSubset(of: Set(before2.contacts.map(\.publicKeyPrefix))),
+        "test contacts re-added for round 2"
+    )
+
+    // No settle: sync immediately after the last removal frame.
+    await sendPaced(link, synthetic.map { MeshCoreProtocol.buildRemoveContact(publicKey: $0.publicKey) })
+    let racy = await fullSync(link)
+    info("round 2", "announced \(racy.announced), received \(racy.contacts.count), end-of-contacts \(racy.sawEnd)")
+
+    let racyOutcome = ContactSyncReducer.reduce(
+        existing: before2.contacts, incoming: racy.contacts,
+        announced: racy.announced, isIncremental: false
+    )
+    switch racyOutcome {
+    case .replace:
+        info("round 2", "sync was complete even with no settle — truncation not reproduced")
+        check(
+            racy.announced == racy.contacts.count,
+            "unsettled sync, when accepted, was genuinely complete",
+            detail: "announced \(racy.announced), received \(racy.contacts.count)"
+        )
+    case .rejectTruncated(let received, let announced):
+        info("round 2", "truncation REPRODUCED — announced \(announced), received \(received)")
+        check(true, "truncated sync is rejected, so the stored list is kept")
+    case .rejectUnverifiable:
+        info("round 2", "sync was unverifiable (no announced count)")
+        check(true, "unverifiable sync is rejected, so the stored list is kept")
+    case .merge, .noChange:
+        check(false, "a full sync must not reduce to a merge", detail: "\(racyOutcome)")
+    }
+
+    // --- Round 3: the actual pre-fix sequence.
+    //
+    // Round 2 removed only the settle; the removals were still paced. The code
+    // that lost the data did neither — it wrote every CMD_REMOVE_CONTACT back
+    // to back and then asked for a full sync immediately. Both mitigations
+    // have to be off to learn whether the firmware really truncates, and
+    // therefore whether the reducer's guard is load-bearing or merely
+    // belt-and-braces.
+    out("")
+    out("Round 3 — unpaced burst then immediate sync: the pre-fix sequence")
+    await sendPaced(link, synthetic.map(addContactFrame))
+    try? await Task.sleep(nanoseconds: 1_000_000_000)
+    let before3 = await fullSync(link, window: 10)
+    check(
+        syntheticKeys.isSubset(of: Set(before3.contacts.map(\.publicKeyPrefix))),
+        "test contacts re-added for round 3",
+        detail: "\(before3.contacts.count) contacts"
+    )
+
+    for contact in synthetic {
+        link.send(MeshCoreProtocol.buildRemoveContact(publicKey: contact.publicKey))
+    }
+    let burst = await fullSync(link, window: 10)
+    info("round 3", "announced \(burst.announced), received \(burst.contacts.count), end-of-contacts \(burst.sawEnd)")
+
+    let burstOutcome = ContactSyncReducer.reduce(
+        existing: before3.contacts, incoming: burst.contacts,
+        announced: burst.announced, isIncremental: false
+    )
+    switch burstOutcome {
+    case .rejectTruncated(let received, let announced):
+        info("round 3", "TRUNCATION REPRODUCED — announced \(announced), received \(received)")
+        info("round 3", "pre-fix, this shortfall became the whole contact list")
+        check(true, "truncated sync is rejected, so the stored list is kept")
+    case .rejectUnverifiable:
+        info("round 3", "sync delivered nothing verifiable")
+        check(true, "unverifiable sync is rejected, so the stored list is kept")
+    case .replace:
+        info("round 3", "firmware stayed consistent even unpaced — truncation not reproduced here")
+        check(
+            burst.announced == burst.contacts.count,
+            "unpaced sync, when accepted, was genuinely complete",
+            detail: "announced \(burst.announced), received \(burst.contacts.count)"
+        )
+    case .merge, .noChange:
+        check(false, "a full sync must not reduce to a merge", detail: "\(burstOutcome)")
+    }
+
+    // The finding this round actually produced: an unpaced burst loses
+    // writes. Reported rather than asserted, because it measures a sequence
+    // the app deliberately no longer uses, and a future firmware that fixed
+    // it should not read as a regression here.
+    let afterBurst = await fullSync(link, window: 10)
+    let dropped = Set(afterBurst.contacts.map(\.publicKeyPrefix)).intersection(syntheticKeys)
+    if dropped.isEmpty {
+        info("round 3", "all \(count) unpaced removals landed")
+    } else {
+        info("round 3", "\(dropped.count) of \(count) unpaced removals were DROPPED — firmware lost the writes")
+        info("round 3", "the sync reported this honestly, so only verification catches it, not the sync")
+    }
+
+    // What the app relies on, which is worth asserting: pacing lands every
+    // removal. Round 1 already deleted the same contacts cleanly at the same
+    // scale, so this re-states that as the comparison that justifies it.
+    if !dropped.isEmpty {
+        note("re-removing the \(dropped.count) survivor(s), paced, to confirm pacing recovers them")
+        let survivors = afterBurst.contacts.filter { syntheticKeys.contains($0.publicKeyPrefix) }
+        await sendPaced(link, survivors.map { MeshCoreProtocol.buildRemoveContact(publicKey: $0.publicKey) })
+        try? await Task.sleep(nanoseconds: 1_000_000_000)
+        let recovered = await fullSync(link, window: 10)
+        check(
+            Set(recovered.contacts.map(\.publicKeyPrefix)).isDisjoint(with: syntheticKeys),
+            "paced retry removed every contact the unpaced burst dropped",
+            detail: "\(Set(recovered.contacts.map(\.publicKeyPrefix)).intersection(syntheticKeys).count) still present"
+        )
+    }
+
+    // --- Always leave the radio as we found it.
+    out("")
+    await cleanUpTestContacts(link)
+    let restored = await fullSync(link)
+    check(
+        baselineKeys.isSubset(of: Set(restored.contacts.map(\.publicKeyPrefix))),
+        "radio left as found: all \(baselineKeys.count) original contacts present",
+        detail: "\(restored.contacts.count) contacts"
+    )
+    check(
+        !restored.contacts.contains { $0.name.hasPrefix(bulkTestNamePrefix) },
+        "no test contacts left behind"
+    )
+
+    summarise()
+}
+
 func summarise() {
     out("")
     out("\(passes.count) passed, \(failures.count) failed")
@@ -440,6 +768,7 @@ do {
     case "telemetry": try await cmdTelemetry(opts)
     case "smoke":     try await cmdSmoke(opts)
     case "capture":   try await cmdCapture(opts)
+    case "bulkdelete": try await cmdBulkDelete(opts)
     case "help", "-h", "--help":
         out(usage)
     default:

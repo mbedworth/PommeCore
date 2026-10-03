@@ -132,18 +132,13 @@ public struct ContactBackup: Codable, Sendable, Identifiable {
         }
     }
 
-    /// Degrees to the protocol's micro-degree `Int32`, safely.
+    /// Degrees to the protocol's micro-degree `Int32`.
     ///
-    /// A plain `Int32(degrees * 1_000_000)` traps on NaN, infinity, or any
-    /// value beyond `Int32`. That is a crash on the one path whose whole
-    /// purpose is recovering from a mistake, reachable from a corrupt or
-    /// hand-edited backup file, so a nonsense coordinate becomes zero (the
-    /// protocol's "no position") instead.
+    /// Delegates to the protocol's guarded conversion: a plain
+    /// `Int32(degrees * 1_000_000)` traps on NaN or an out-of-range value, and
+    /// a crash on the recovery path is the worst possible place for one.
     static func microDegrees(_ degrees: Double) -> Int32 {
-        guard degrees.isFinite else { return 0 }
-        let scaled = (degrees * 1_000_000).rounded()
-        guard scaled >= Double(Int32.min), scaled <= Double(Int32.max) else { return 0 }
-        return Int32(scaled)
+        MeshCoreProtocol.microDegrees(degrees)
     }
 }
 

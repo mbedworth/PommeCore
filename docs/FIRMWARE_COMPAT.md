@@ -18,6 +18,7 @@ this is the source of truth for firmware review state, not the local development
 | **Protocol version sent** | `app_target_ver = 3` in `CMD_DEVICE_QUERY` — must stay ≥ 3 (see the critical rules in the local development guide) |
 | **Last review** | 2026-08-24, covering v1.17.0 and v1.17.1 |
 | **Smoke test** | 2026-10-02 on Heltec Mesh Pocket `v1.17.1-d929643` — passed, see below |
+| **Bulk-delete test** | 2026-10-03, same radio — 17/17 passed; unpaced removals drop ~half their writes, see below |
 
 The app does **not** gate behaviour on `FIRMWARE_VER_CODE`. Version-specific behaviour keys off the
 semantic version string plus response probing (`dutycycle` vs `af`), or off
@@ -202,3 +203,61 @@ trip, which makes it the only deterministic way to exercise this.
   admin login to a repeater. The UI gates each row on
   `RemoteDeviceSession.supportedValue(for:)` returning non-nil, so on firmware without the
   key the row is simply absent — the failure mode is a missing row, not a wrong value.
+
+---
+
+## Bulk contact deletion — hardware record
+
+Run with `./scripts/meshctl.sh bulkdelete [--count N]`. It writes to the radio, but never
+to a real contact: it creates its own (`meshctl-del-NN`), deletes only those, and asserts
+every pre-existing contact survived. Leftovers from an interrupted run are removed on the
+next run.
+
+This exists because bulk deletion is the one destructive path whose failure mode cannot be
+unit-tested — it is firmware timing.
+
+### 2026-10-03 — Heltec Mesh Pocket, companion `v1.17.1-d929643`, 60 contacts
+
+17 checks passed, 0 failed.
+
+| Round | Sequence | Result |
+|---|---|---|
+| Adds | 60 `CMD_ADD_UPDATE_CONTACT`, 150ms spacing | ✅ all 60 present, existing 3 untouched |
+| 1 | Removals at 150ms, 1s settle, then full sync | ✅ all 60 gone, all 3 survivors intact, sync announced 3 / received 3 |
+| 2 | Removals at 150ms, **no settle**, immediate sync | ✅ sync still complete (announced 3 / received 3) |
+| 3 | Removals **unpaced**, immediate sync | ⚠️ **33 of 60 removals silently dropped** |
+| 3 retry | The 33 survivors re-sent at 150ms | ✅ all removed |
+
+### The finding
+
+**An unpaced burst of `CMD_REMOVE_CONTACT` loses roughly half its writes.** Two runs at 60
+contacts dropped 30 and 33 respectively. The firmware acknowledges nothing and the
+following sync is *internally consistent* — it announced 36 and delivered 36 — so no
+response says anything went wrong. A user would simply find half the contacts they deleted
+still there.
+
+150ms spacing avoided it completely at the same scale, twice. At 12 contacts even the
+unpaced burst landed everything, so the threshold is somewhere between 12 and 60 frames.
+
+**What the app does about it.** Pacing alone would be a timing assumption about one
+firmware build on one radio, on the path where being wrong is most expensive. So
+`ContactStore.sendRemovalsAndVerify` treats the radio's own contact list as the signal:
+after the settle and the full sync, anything still present was dropped rather than deleted,
+and gets re-sent — up to three passes, then the user is told plainly. This is the
+protocol-signal-over-timer rule applied to a destructive operation.
+
+### What this did *not* reproduce
+
+**The truncated sync.** `ContactSyncReducer.rejectTruncated` guards against a full sync
+delivering fewer contacts than `RESP_CODE_CONTACTS_START` announced, which is the shape the
+data loss of 2026-10-02 was diagnosed as. On this firmware it would not reproduce: neither
+removing the settle (round 2) nor removing the pacing as well (round 3) produced a sync
+whose received count disagreed with its announced count. Every sync observed was
+self-consistent.
+
+The guard stays, for an asymmetry rather than for evidence: accepting a short list once
+cascaded into permanent loss of messages, nicknames, notes, trails and telemetry, while
+keeping a stale list corrects itself on the next sync. But the original cause should be
+treated as **not established** — the reproducible defect on this firmware is dropped
+removal writes, not a truncated stream. Re-check if the data loss ever recurs, and note
+that the 2026-10-02 incident also involved an automatic orphan sweep that no longer runs.
