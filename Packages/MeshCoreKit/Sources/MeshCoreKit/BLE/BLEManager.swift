@@ -443,9 +443,16 @@ extension BLEManager: CBCentralManagerDelegate {
 
     public func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         #if os(iOS)
-        let bgState = DispatchQueue.main.sync { UIApplication.shared.applicationState }
-        let isBackground = bgState != .active
-        Self.logger.info("Connected to \(peripheral.name ?? "unknown") (background: \(isBackground))")
+        // applicationState must be read on the main thread, but this delegate
+        // runs on bleQueue and the value is only used to decorate a log line.
+        // Reading it with main.sync stalled the BLE serial queue until the main
+        // thread was free — in the connect path, for a diagnostic. Logged
+        // asynchronously instead.
+        let connectedName = peripheral.name ?? "unknown"
+        DispatchQueue.main.async {
+            let isBackground = UIApplication.shared.applicationState != .active
+            Self.logger.info("Connected to \(connectedName) (background: \(isBackground))")
+        }
         #else
         Self.logger.info("Connected to \(peripheral.name ?? "unknown")")
         #endif
@@ -494,9 +501,16 @@ extension BLEManager: CBCentralManagerDelegate {
         error: Error?
     ) {
         #if os(iOS)
-        let bgState = DispatchQueue.main.sync { UIApplication.shared.applicationState }
-        let isBackground = bgState != .active
-        Self.logger.info("Disconnected from \(peripheral.name ?? "unknown") (background: \(isBackground), error: \(error?.localizedDescription ?? "none"))")
+        // As in didConnect: read off the BLE queue rather than blocking it on
+        // the main thread for a log line. Disconnect handling is the one path
+        // that must not be delayed — critical rule 4 depends on it promptly
+        // re-arming auto-reconnect.
+        let disconnectedName = peripheral.name ?? "unknown"
+        let disconnectError = error?.localizedDescription ?? "none"
+        DispatchQueue.main.async {
+            let isBackground = UIApplication.shared.applicationState != .active
+            Self.logger.info("Disconnected from \(disconnectedName) (background: \(isBackground), error: \(disconnectError))")
+        }
         #else
         Self.logger.info("Disconnected from \(peripheral.name ?? "unknown"), error: \(error?.localizedDescription ?? "none")")
         #endif
