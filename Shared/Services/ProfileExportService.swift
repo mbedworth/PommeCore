@@ -70,7 +70,10 @@ enum ProfileExportService {
         let name = safe.isEmpty ? "radio" : safe
         let url = FileManager.default.temporaryDirectory
             .appendingPathComponent("\(name).meshprofile")
-        try data.write(to: url)
+        // Protected because this can carry the whole contact list — names,
+        // public keys and advertised positions. It is a staging file for the
+        // share sheet or save panel; the caller deletes it once that is done.
+        try data.write(to: url, options: [.atomic, .completeFileProtection])
         return url
     }
 
@@ -133,24 +136,24 @@ enum ProfileExportService {
             await contactStore.addContacts(contacts)
         }
 
-        await step("radio parameters") {
+        await step(String(localized: "radio parameters")) {
             connectionManager.setRadioParams(
                 frequency: r.radioFrequency, bandwidth: r.radioBandwidth,
                 spreadingFactor: r.radioSpreadingFactor, codingRate: r.radioCodingRate,
                 repeatMode: r.repeatMode)
         }
 
-        await step("transmit power") { connectionManager.setRadioTXPower(r.radioTXPower) }
+        await step(String(localized: "transmit power")) { connectionManager.setRadioTXPower(r.radioTXPower) }
 
         // Name lives in `deviceName` (populated from SELF_INFO). Older profiles
         // may carry an empty `advertName`, so fall back to it only if needed.
         // Never push an empty name — that would blank the radio's existing name.
         let nameToRestore = r.deviceName.isEmpty ? r.advertName : r.deviceName
         if !nameToRestore.isEmpty {
-            await step("radio name") { connectionManager.setAdvertName(nameToRestore) }
+            await step(String(localized: "radio name")) { connectionManager.setAdvertName(nameToRestore) }
         }
 
-        await step("access settings") {
+        await step(String(localized: "access settings")) {
             connectionManager.setOtherParams(
                 manualAddContacts: r.manualAddContacts,
                 telemetryBase: r.telemetryBase,
@@ -159,14 +162,14 @@ enum ProfileExportService {
                 multiACK: r.multiACK)
         }
 
-        await step("auto-add settings") { connectionManager.setAutoAddConfig(bitmask: r.autoAddBitmask) }
+        await step(String(localized: "auto-add settings")) { connectionManager.setAutoAddConfig(bitmask: r.autoAddBitmask) }
 
         if !r.defaultFloodScope.isEmpty {
-            await step("flood scope") { connectionManager.setDefaultFloodScope(r.defaultFloodScope) }
+            await step(String(localized: "flood scope")) { connectionManager.setDefaultFloodScope(r.defaultFloodScope) }
         }
 
         if r.rxDelayBase > 0 || r.airtimeFactor > 0 {
-            await step("tuning") {
+            await step(String(localized: "tuning")) {
                 connectionManager.setTuningParams(rxDelayBase: r.rxDelayBase,
                                                   airtimeFactor: r.airtimeFactor)
             }
@@ -174,7 +177,7 @@ enum ProfileExportService {
 
         for ch in profile.channels where ch.index > 0 {
             let secret = ch.secretHex.flatMap { Data(hexString: $0) }
-            await step("channel \(ch.index)") {
+            await step(String(format: String(localized: "channel %d"), Int(ch.index))) {
                 channelStore.setChannel(index: ch.index, name: ch.name, secret: secret)
             }
         }

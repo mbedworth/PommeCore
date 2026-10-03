@@ -226,7 +226,8 @@ final class PommeCoreViewModel: ObservableObject {
         // Synchronous on purpose: the snapshot has to be on disk before the
         // first removal frame leaves, or it cannot protect the thing it is
         // taken for.
-        contactStore.backupContacts = { [weak self] backup in self?.contactBackupStore.write(backup) }
+        // Returns whether it reached disk — the delete is abandoned if not.
+        contactStore.backupContacts = { [weak self] backup in self?.contactBackupStore.write(backup) ?? false }
         #endif
 
         // ChannelStore dependencies
