@@ -4,12 +4,13 @@ set -euo pipefail
 # PommeCore Distribute Script
 # Archives and uploads to App Store Connect (TestFlight + App Store).
 #
-# Versioning: marketing version = YY.MM.DD (one version per calendar day).
-# The build number resets to 1 on a new day and increments for repeat builds
-# the same day. A unique version every day means build 1 is always fresh, so
-# iOS and macOS never collide and macOS never rejects a build as "not higher
-# than the previously uploaded version". --release only changes the commit
-# message (release: vs chore:); both modes use the same date-based versioning.
+# Versioning: marketing version = YY.MM.DD (one version per calendar day),
+# build = a YYYYMMDD.HHMMSS timestamp stamped per archive and NEVER reset.
+# The macOS App Store requires every upload to be strictly higher than the
+# previous one, and rejects anything lower with a misleading "CFBundleVersion
+# [1] must be higher" error. A monotonic timestamp can never be rejected and
+# makes upload order irrelevant. --release only changes the commit message
+# (release: vs chore:); both modes use the same versioning.
 #
 # MUST run scripts/test_build.sh first to verify code compiles cleanly.
 #
@@ -218,8 +219,16 @@ git add "$PBXPROJ"
 git diff --cached --quiet || git commit -m "$COMMIT_MSG"
 
 log "Pushing to remote..."
-git push
-log "Committed and pushed"
+# Set the upstream when the branch has none. A bare `git push` fails on a
+# fresh branch, and under `set -e` that aborted the script *before* Phase 4 —
+# so a perfectly good pair of archives never reached App Store Connect and the
+# only symptom was a git message about upstreams.
+if ! git push -u origin HEAD; then
+    # The archives exist and uploading them is the point of the run. A remote
+    # that is unreachable is worth a warning, not a thrown-away build.
+    log "WARNING: push failed — continuing to upload. Push the build commit by hand."
+fi
+log "Committed"
 
 # ============================================================
 # PHASE 4 — UPLOAD TO APP STORE CONNECT

@@ -593,6 +593,12 @@ struct SaveButton: View {
     }
 }
 
+#if os(iOS)
+/// True on iPad, where a `.popover` stays a popover and needs its own width.
+/// On iPhone a popover adapts to a sheet, which rule 17 wants full-width.
+var isPadIdiom: Bool { UIDevice.current.userInterfaceIdiom == .pad }
+#endif
+
 private struct InfoPopoverContent: View {
     let text: LocalizedStringKey
 
@@ -614,7 +620,13 @@ private struct InfoPopoverContent: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(16)
         }
-        .frame(minWidth: 240, maxWidth: 300, minHeight: 60)
+        // A popover adapts to a sheet on iPhone, and rule 17 wants a sheet at
+        // its natural full width — a 300pt cap left the help text in a narrow
+        // column with dead margins, and wrapped it badly at large Dynamic Type
+        // sizes. On iPad the popover stays a popover and does need a width.
+        .frame(minWidth: isPadIdiom ? 240 : nil,
+               maxWidth: isPadIdiom ? 300 : nil,
+               minHeight: 60)
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
         #endif
