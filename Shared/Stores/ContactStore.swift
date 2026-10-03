@@ -53,6 +53,12 @@ final class ContactStore {
     var clearMessagesForContact: ((Data) -> Void)?
     /// Drops a deleted contact's telemetry history (wired to RFMonitorStore).
     var clearTelemetryForContact: ((Data) -> Void)?
+    /// Drops telemetry for every contact outside the given live key-prefix set,
+    /// returning how many were removed.
+    var purgeOrphanedTelemetry: ((Set<Data>) -> Int)?
+    /// Drops persisted messages and drafts for every contact outside the given
+    /// live key-prefix set, returning how many were removed.
+    var purgeOrphanedMessages: ((Set<Data>) -> Int)?
 
     /// Closure to post an event notification.
     var postEventNotification: ((String, String, String) -> Void)?
@@ -683,7 +689,9 @@ final class ContactStore {
         setNickname("", for: contact)
         setNote("", for: contact)
         clearMessagesForContact?(contact.publicKeyPrefix)
-        clearTelemetryForContact?(contact.publicKey)
+        // Telemetry is keyed by the 6-byte prefix, matching the recordTelemetry
+        // call site — not by the full public key, which never matches.
+        clearTelemetryForContact?(contact.publicKeyPrefix)
 
         if positionHistory.removeValue(forKey: key) != nil {
             savePositionHistory()
@@ -702,6 +710,76 @@ final class ContactStore {
         }
 
         removeContactFromSpotlight(pubkeyHex: key)
+    }
+
+    /// Remove persisted per-contact data that no longer has a contact.
+    ///
+    /// Per-contact cleanup on delete only helps contacts deleted from now on.
+    /// Anything removed before it existed left its position trail, mute state,
+    /// group membership, nickname, note and telemetry behind, and nothing ever
+    /// collected them. This reconciles what is persisted against the live
+    /// contact list and drops the remainder.
+    ///
+    /// **Only safe after a full contact sync.** The contact list is the
+    /// authority here, so running this against a partial list would delete
+    /// live data. The caller must have just replaced `contacts` wholesale from
+    /// the radio, and an empty list is refused outright — a wiped or
+    /// unreachable radio must not take the user's history with it.
+    ///
+    /// Idempotent: a second run over clean data removes nothing.
+    @discardableResult
+    func purgeOrphanedData() -> Int {
+        guard !contacts.isEmpty else {
+            Self.logger.info("Orphan sweep skipped — no contacts, refusing to treat that as authoritative")
+            return 0
+        }
+
+        let liveHexKeys = Set(contacts.map { $0.publicKey.hexCompact })
+        let livePrefixes = Set(contacts.map(\.publicKeyPrefix))
+        var removed = 0
+
+        let orphanedTrails = positionHistory.keys.filter { !liveHexKeys.contains($0) }
+        for key in orphanedTrails { positionHistory.removeValue(forKey: key) }
+        if !orphanedTrails.isEmpty { savePositionHistory() }
+        removed += orphanedTrails.count
+
+        let orphanedMutes = mutedContacts.filter { !liveHexKeys.contains($0) }
+        if !orphanedMutes.isEmpty {
+            mutedContacts.subtract(orphanedMutes)
+            saveMutedContactsToiCloud()
+            removed += orphanedMutes.count
+        }
+
+        let orphanedNicknames = nicknames.keys.filter { !liveHexKeys.contains($0) }
+        for key in orphanedNicknames { nicknames.removeValue(forKey: key) }
+        if !orphanedNicknames.isEmpty { saveNicknamesToiCloud() }
+        removed += orphanedNicknames.count
+
+        let orphanedNotes = contactNotes.keys.filter { !liveHexKeys.contains($0) }
+        for key in orphanedNotes { contactNotes.removeValue(forKey: key) }
+        if !orphanedNotes.isEmpty { saveContactNotesToiCloud() }
+        removed += orphanedNotes.count
+
+        var groupsChanged = false
+        for index in contactGroups.indices {
+            let stale = contactGroups[index].memberPubkeys.filter { !liveHexKeys.contains($0) }
+            guard !stale.isEmpty else { continue }
+            contactGroups[index].memberPubkeys.removeAll { stale.contains($0) }
+            groupsChanged = true
+            removed += stale.count
+        }
+        if groupsChanged { saveContactGroupsToiCloud() }
+
+        // Telemetry and messages live in other stores and are keyed by the
+        // 6-byte prefix, so they get the prefix set rather than the hex set.
+        removed += purgeOrphanedTelemetry?(livePrefixes) ?? 0
+        removed += purgeOrphanedMessages?(livePrefixes) ?? 0
+
+        if removed > 0 {
+            Self.logger.info("Orphan sweep removed \(removed) stale per-contact entries")
+            DebugLogger.shared.log("Cleanup: removed \(removed) orphaned entries for deleted contacts", level: .info)
+        }
+        return removed
     }
 
     func resetPath(for contact: Contact) {
@@ -844,6 +922,14 @@ final class ContactStore {
         indexContactsForSpotlight()
         #endif
 
+        // Only a full sync replaces `contacts` wholesale from the radio, so
+        // only then is the list authoritative enough to delete data against.
+        // After an incremental sync it is a merge, and anything the radio did
+        // not mention this time would look orphaned.
+        if wasFullSync {
+            purgeOrphanedData()
+        }
+
         return wasFullSync
     }
 
@@ -940,7 +1026,18 @@ final class ContactStore {
     // MARK: - Spotlight
 
     #if canImport(CoreSpotlight)
+    /// Domain for every contact this app indexes, so the whole set can be
+    /// replaced in one call.
+    private static let spotlightDomain = "com.mbedworth.meshcore.contacts"
+
     func indexContactsForSpotlight() {
+        // Replace the domain rather than adding to it. Items are indexed with
+        // expirationDate = .distantFuture, so an entry for a contact that no
+        // longer exists would otherwise stay searchable forever — including
+        // every contact deleted before per-contact cleanup existed. Clearing
+        // the domain first makes a full sync self-healing, with no migration.
+        CSSearchableIndex.default().deleteSearchableItems(withDomainIdentifiers: [Self.spotlightDomain])
+
         var items: [CSSearchableItem] = []
         for contact in contacts where !contact.isUnidentified {
             let attrs = CSSearchableItemAttributeSet(contentType: .contact)
@@ -949,7 +1046,7 @@ final class ContactStore {
             let pubkeyHex = contact.publicKey.hexCompact
             let item = CSSearchableItem(
                 uniqueIdentifier: "meshcore.contact.\(pubkeyHex)",
-                domainIdentifier: "com.mbedworth.meshcore.contacts",
+                domainIdentifier: Self.spotlightDomain,
                 attributeSet: attrs
             )
             item.expirationDate = .distantFuture

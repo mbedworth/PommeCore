@@ -339,6 +339,22 @@ final class RFMonitorStore {
         saveTelemetryHistory()
     }
 
+    /// Drop telemetry for every contact that is not in `liveKeyPrefixes`.
+    ///
+    /// Keys here are 6-byte public key prefixes, matching recordTelemetry.
+    /// Returns how many contacts' histories were removed. The caller is
+    /// responsible for only passing an authoritative contact list — see
+    /// ContactStore.purgeOrphanedData.
+    @discardableResult
+    func purgeOrphanedTelemetry(liveKeyPrefixes: Set<Data>) -> Int {
+        let orphaned = telemetryHistory.keys.filter { !liveKeyPrefixes.contains($0) }
+        guard !orphaned.isEmpty else { return 0 }
+        for key in orphaned { telemetryHistory.removeValue(forKey: key) }
+        saveTelemetryHistory()
+        DebugLogger.shared.log("TELEMETRY: dropped history for \(orphaned.count) deleted contacts", level: .info)
+        return orphaned.count
+    }
+
     /// Number of telemetry snapshots across all contacts.
     var totalSnapshotCount: Int {
         telemetryHistory.values.reduce(0) { $0 + $1.count }
