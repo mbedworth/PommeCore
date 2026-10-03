@@ -52,7 +52,15 @@ struct ProfileExportView: View {
                       allowedContentTypes: [.data],
                       onCompletion: handleImportPick)
         #if !os(macOS)
-        .sheet(isPresented: $showExportShare) {
+        .sheet(isPresented: $showExportShare, onDismiss: {
+            // Remove the staging copy once sharing is over — it can carry the
+            // whole contact list, and nothing else cleans the temporary
+            // directory.
+            if let url = exportURL {
+                try? FileManager.default.removeItem(at: url)
+                exportURL = nil
+            }
+        }) {
             if let url = exportURL {
                 ShareSheet(items: [url])
             }
@@ -291,6 +299,10 @@ struct ProfileExportView: View {
             } catch {
                 exportError = error.localizedDescription
             }
+            // The staging copy has served its purpose. Leaving it behind means
+            // the contact list sits in a temporary directory indefinitely.
+            try? FileManager.default.removeItem(at: url)
+            exportURL = nil
         }
 
         if let window = NSApp.keyWindow ?? NSApp.mainWindow {
@@ -312,7 +324,7 @@ struct ProfileExportView: View {
                 applyDone = false
                 applyInterruptedAt = nil
             } catch {
-                importError = "Could not read file: \(error.localizedDescription)"
+                importError = String(format: String(localized: "Could not read file: %@"), error.localizedDescription)
             }
         case .failure(let error):
             importError = error.localizedDescription

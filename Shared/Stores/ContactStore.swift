@@ -55,7 +55,9 @@ final class ContactStore {
     var clearTelemetryForContact: ((Data) -> Void)?
     /// Stores a snapshot before a destructive bulk operation (wired to
     /// ContactBackupStore).
-    var backupContacts: ((ContactBackup) -> Void)?
+    /// Returns whether the snapshot reached disk. A bulk delete must not
+    /// proceed on `false`.
+    var backupContacts: ((ContactBackup) -> Bool)?
     /// Drops telemetry for every contact outside the given live key-prefix set,
     /// returning how many were removed.
     var purgeOrphanedTelemetry: ((Set<Data>) -> Int)?
@@ -104,6 +106,9 @@ final class ContactStore {
         /// The radio this was meant for. A pending write survives a
         /// reconnect, so it must not be applied to a different radio.
         let radioKeyHex: String
+        /// When it was queued, so a write that never got verified cannot be
+        /// resurrected much later against an unrelated contact list.
+        let createdAt: Date
         /// Shown to the user if every pass fails.
         let failureMessage: (Int) -> String
     }
@@ -117,6 +122,18 @@ final class ContactStore {
     /// retrying forever would hammer the radio over a write it may be
     /// refusing for a reason we cannot see.
     private static let maxContactWritePasses = 3
+
+    /// How long a pending write stays eligible for retry.
+    ///
+    /// It survives a disconnect on purpose — a link dropping mid-burst is
+    /// exactly when the retry matters — but verification only runs when a full
+    /// sync completes and is accepted, so an entry can otherwise sit
+    /// indefinitely. Judged against a sync days later it would act on a list
+    /// that has moved on: re-deleting a contact the user has since re-added
+    /// from an advert, or re-adding one they have since deleted. Five minutes
+    /// covers a reconnect and the sync that follows it, and nothing longer is
+    /// a reconnect.
+    private static let pendingWriteLifetime: TimeInterval = 300
 
     /// Spacing between contact frames.
     private static let contactFrameSpacing: UInt64 = 150_000_000
@@ -201,7 +218,40 @@ final class ContactStore {
     }
 
     func sortedContacts(byLastSeen: Bool) -> [Contact] {
-        contacts.filter { !isBlocked($0) }.sorted { a, b in
+        // Every sort key is computed once per contact, not once per
+        // comparison.
+        //
+        // This used to call `lastActivityTimestamp` from inside the
+        // comparator, and that walks every message stored for the contact. A
+        // sort makes O(n log n) comparisons and each one did two of those
+        // scans, so 100 contacts holding 500 messages each came to hundreds of
+        // thousands of message iterations — recomputed on every render of the
+        // contact list, which a 60-second timer re-renders anyway, with
+        // `byLastSeen` on by default. The name path was cheaper but not cheap:
+        // it built two emoji-stripped strings per comparison.
+        //
+        // Decorating first makes it n key computations plus a sort over
+        // pre-computed values.
+        struct SortKey {
+            let contact: Contact
+            let isFavourite: Bool
+            let isUnidentified: Bool
+            let activity: TimeInterval
+            let name: String
+        }
+
+        let keys = contacts.compactMap { contact -> SortKey? in
+            guard !isBlocked(contact) else { return nil }
+            return SortKey(
+                contact: contact,
+                isFavourite: contact.isFavourite,
+                isUnidentified: contact.isUnidentified,
+                activity: byLastSeen ? lastActivityTimestamp(for: contact) : 0,
+                name: byLastSeen ? "" : displayName(for: contact).strippingEmoji
+            )
+        }
+
+        return keys.sorted { a, b in
             if a.isFavourite != b.isFavourite {
                 return a.isFavourite
             }
@@ -211,12 +261,10 @@ final class ContactStore {
                 return b.isUnidentified
             }
             if byLastSeen {
-                return lastActivityTimestamp(for: a) > lastActivityTimestamp(for: b)
+                return a.activity > b.activity
             }
-            let nameA = displayName(for: a).strippingEmoji
-            let nameB = displayName(for: b).strippingEmoji
-            return nameA.localizedCaseInsensitiveCompare(nameB) == .orderedAscending
-        }
+            return a.name.localizedCaseInsensitiveCompare(b.name) == .orderedAscending
+        }.map(\.contact)
     }
 
     // MARK: - Nicknames
@@ -755,7 +803,19 @@ final class ContactStore {
         //
         // The whole list rather than just the doomed ones, because the failure
         // worth protecting against is the selection being wrong.
-        backupContacts?(snapshot(reason: "deleting \(toRemove.count) contacts"))
+        //
+        // And the delete does not happen without it. A backup that silently
+        // failed to write — disk full, encode error, closure never wired —
+        // would leave this doing exactly the irreversible thing it exists to
+        // make reversible. Refusing is safe: the contacts are still there and
+        // the user can try again.
+        let backedUp = backupContacts?(snapshot(reason: "deleting \(toRemove.count) contacts")) ?? false
+        guard backedUp else {
+            Self.logger.error("Bulk remove aborted: contact backup could not be written")
+            DebugLogger.shared.log("Bulk delete cancelled — the backup could not be saved", level: .error)
+            reportError?(String(localized: "Could not save a backup, so nothing was deleted. Free up some space and try again."))
+            return
+        }
 
         let prefixes = Set(toRemove.map(\.publicKeyPrefix))
         contacts.removeAll { prefixes.contains($0.publicKeyPrefix) }
@@ -857,6 +917,7 @@ final class ContactStore {
         direction: ContactWriteDirection,
         label: String,
         pass: Int,
+        progress: ((Int, Int) -> Void)? = nil,
         failureMessage: @escaping (Int) -> String
     ) async {
         for (offset, contact) in contacts.enumerated() {
@@ -872,6 +933,7 @@ final class ContactStore {
                 ? MeshCoreProtocol.buildAddUpdateContact(contact)
                 : MeshCoreProtocol.buildRemoveContact(publicKey: contact.publicKey)
             sendCommand?(frame, label)
+            progress?(offset + 1, contacts.count)
             if offset < contacts.count - 1 {
                 try? await Task.sleep(nanoseconds: Self.contactFrameSpacing)
             }
@@ -882,11 +944,22 @@ final class ContactStore {
         // stream starts.
         try? await Task.sleep(nanoseconds: 1_000_000_000)
 
+        // Record the outstanding work before deciding whether a sync is even
+        // possible, so a reconnect can still pick it up.
         pendingContactWrite = PendingContactWrite(
             direction: direction, contacts: contacts, pass: pass,
             radioKeyHex: radioPublicKeyHexProvider?() ?? "",
+            createdAt: Date(),
             failureMessage: failureMessage
         )
+        // Only ask for a sync if there is a link to answer it. Asking while
+        // disconnected leaves `isSyncingContacts` set with nothing to clear
+        // it — a spinner that never stops. The pending write above is picked
+        // up by the sync that runs on reconnect.
+        guard isConnectedProvider?() ?? true else {
+            Self.logger.info("Link down — deferring verification to the reconnect sync")
+            return
+        }
         requestContacts(fullSync: true)
     }
 
@@ -896,7 +969,7 @@ final class ContactStore {
     /// actual contact list is known. Returns without acting when there is
     /// nothing outstanding.
     func verifyPendingContactWrite() {
-        discardPendingWriteIfRadioChanged()
+        discardPendingWriteIfStale()
         guard let pending = pendingContactWrite else { return }
         pendingContactWrite = nil
 
@@ -947,9 +1020,16 @@ final class ContactStore {
         }
     }
 
-    /// Drop a pending write that belongs to a different radio.
-    private func discardPendingWriteIfRadioChanged() {
+    /// Drop a pending write that is no longer safe to act on.
+    private func discardPendingWriteIfStale() {
         guard let pending = pendingContactWrite else { return }
+
+        if Date().timeIntervalSince(pending.createdAt) > Self.pendingWriteLifetime {
+            Self.logger.info("Discarding pending contact write — too old to trust")
+            pendingContactWrite = nil
+            return
+        }
+
         let current = radioPublicKeyHexProvider?() ?? ""
         guard !pending.radioKeyHex.isEmpty, !current.isEmpty,
               pending.radioKeyHex != current else { return }
@@ -961,12 +1041,13 @@ final class ContactStore {
     ///
     /// Used by profile import and backup restore — both put contacts onto a
     /// radio, and both previously assumed every frame arrived.
-    func addContacts(_ newContacts: [Contact]) async {
+    func addContacts(_ newContacts: [Contact], progress: ((Int, Int) -> Void)? = nil) async {
         guard !newContacts.isEmpty else { return }
         Self.logger.info("Adding \(newContacts.count) contacts")
         DebugLogger.shared.log("Adding \(newContacts.count) contacts", level: .tx)
         await sendContactWrite(
             newContacts, direction: .add, label: "ADD_CONTACT", pass: 1,
+            progress: progress,
             failureMessage: { count in
                 String(format: String(localized: "%d contacts could not be added. The radio did not accept them \u{2014} try again."), count)
             }
@@ -1417,7 +1498,29 @@ final class ContactStore {
     /// replaced in one call.
     private static let spotlightDomain = "com.mbedworth.meshcore.contacts"
 
+    /// Fingerprint of what is currently indexed, so an unchanged contact list
+    /// does not get re-indexed.
+    private var spotlightFingerprint: Int?
+
     func indexContactsForSpotlight() {
+        // A full sync happens on every connect, and this used to delete the
+        // whole Spotlight domain and rebuild it each time — hundreds of index
+        // writes for a list that almost never changed between syncs. Hash what
+        // would be indexed and skip when it matches.
+        var hasher = Hasher()
+        for contact in contacts where !contact.isUnidentified {
+            hasher.combine(contact.publicKeyPrefix)
+            hasher.combine(displayName(for: contact))
+            hasher.combine(contact.type)
+        }
+        let fingerprint = hasher.finalize()
+        guard fingerprint != spotlightFingerprint else { return }
+        spotlightFingerprint = fingerprint
+
+        indexContactsForSpotlightNow()
+    }
+
+    private func indexContactsForSpotlightNow() {
         // Replace the domain rather than adding to it. Items are indexed with
         // expirationDate = .distantFuture, so an entry for a contact that no
         // longer exists would otherwise stay searchable forever — including

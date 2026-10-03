@@ -177,7 +177,9 @@ struct ContactBackupsView: View {
             // ContactStore owns the send: it paces the frames, stops if the
             // link drops, and verifies against the radio's own list rather
             // than assuming every frame arrived.
-            await contactStore.addContacts(backup.contacts)
+            await contactStore.addContacts(backup.contacts) { sent, total in
+                backupStore.updateRestore(sent: sent, total: total)
+            }
             // Nicknames, notes, mute state and groups are the app's own — the
             // radio never had them, so they are re-applied here. The contacts
             // themselves come back through the sync the add already triggers.

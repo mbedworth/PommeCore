@@ -30,6 +30,14 @@ final class ContactBackupStore {
     /// refuse to start a second one.
     private(set) var restoreProgress: (sent: Int, total: Int)?
 
+    /// Where each loaded backup actually came from, keyed by `createdAt`.
+    ///
+    /// Deleting by reconstructing the file name breaks the moment the naming
+    /// scheme changes — files written under the old scheme would simply never
+    /// be found again, and would sit there forever. Remembering the real URL
+    /// works whatever wrote it.
+    private var fileURLs: [Date: URL] = [:]
+
     private static var directory: URL {
         let base = FileManager.default
             .urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
@@ -52,6 +60,7 @@ final class ContactBackupStore {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
         var loaded: [ContactBackup] = []
+        fileURLs = [:]
         for file in files where file.pathExtension == "json" {
             guard let data = try? Data(contentsOf: file),
                   let backup = try? decoder.decode(ContactBackup.self, from: data) else {
@@ -60,6 +69,7 @@ final class ContactBackupStore {
                 continue
             }
             loaded.append(backup)
+            fileURLs[backup.createdAt] = file
         }
         backups = loaded.sorted { $0.createdAt > $1.createdAt }
         Self.logger.info("Loaded \(self.backups.count) contact backups")
@@ -90,13 +100,12 @@ final class ContactBackupStore {
         encoder.dateEncodingStrategy = .iso8601
         encoder.outputFormatting = .prettyPrinted
 
-        let stamp = ISO8601DateFormatter().string(from: backup.createdAt)
-            .replacingOccurrences(of: ":", with: "-")
-        let url = Self.directory.appendingPathComponent("contacts-\(stamp).json")
+        let url = Self.directory.appendingPathComponent(Self.fileName(for: backup))
 
         do {
             let data = try encoder.encode(backup)
-            try data.write(to: url, options: .atomic)
+            try data.write(to: url, options: [.atomic, .completeFileProtection])
+            fileURLs[backup.createdAt] = url
             backups.insert(backup, at: 0)
             backups.sort { $0.createdAt > $1.createdAt }
             prune()
@@ -110,25 +119,40 @@ final class ContactBackupStore {
         }
     }
 
+    /// File name for a backup.
+    ///
+    /// The timestamp alone is not unique: ISO-8601 is second-granular while
+    /// `createdAt` keeps sub-second precision, so two backups in the same
+    /// second shared one file while both stayed in `backups` — duplicate
+    /// `ForEach` ids, and a delete that removed the other one too. Files
+    /// written before scoping decode to `.distantPast` and all collided the
+    /// same way. The fractional part disambiguates without changing the
+    /// readable prefix.
+    private static func fileName(for backup: ContactBackup) -> String {
+        let stamp = ISO8601DateFormatter().string(from: backup.createdAt)
+            .replacingOccurrences(of: ":", with: "-")
+        let fraction = Int((backup.createdAt.timeIntervalSince1970 * 1000).rounded()) % 1000
+        return String(format: "contacts-%@-%03d.json", stamp, fraction)
+    }
+
     private func prune() {
         let doomed = ContactBackupRetention.filesToPrune(backups, date: \.createdAt)
         guard !doomed.isEmpty else { return }
         let stamps = Set(doomed.map(\.createdAt))
         for backup in doomed {
-            let stamp = ISO8601DateFormatter().string(from: backup.createdAt)
-                .replacingOccurrences(of: ":", with: "-")
-            let url = Self.directory.appendingPathComponent("contacts-\(stamp).json")
-            try? FileManager.default.removeItem(at: url)
+            if let url = fileURLs[backup.createdAt] {
+                try? FileManager.default.removeItem(at: url)
+                fileURLs[backup.createdAt] = nil
+            }
         }
         backups.removeAll { stamps.contains($0.createdAt) }
     }
 
     func delete(_ backup: ContactBackup) {
-        let stamp = ISO8601DateFormatter().string(from: backup.createdAt)
-            .replacingOccurrences(of: ":", with: "-")
-        try? FileManager.default.removeItem(
-            at: Self.directory.appendingPathComponent("contacts-\(stamp).json")
-        )
+        if let url = fileURLs[backup.createdAt] {
+            try? FileManager.default.removeItem(at: url)
+            fileURLs[backup.createdAt] = nil
+        }
         backups.removeAll { $0.createdAt == backup.createdAt }
     }
 
@@ -146,6 +170,11 @@ final class ContactBackupStore {
         restoreProgress = (sent: 0, total: count)
         Self.logger.info("Restoring \(count) contacts")
         DebugLogger.shared.log("Restoring \(count) contacts from backup", level: .tx)
+    }
+
+    /// Advance the progress shown while a restore is sending frames.
+    func updateRestore(sent: Int, total: Int) {
+        restoreProgress = (sent: sent, total: total)
     }
 
     func endRestore() {
