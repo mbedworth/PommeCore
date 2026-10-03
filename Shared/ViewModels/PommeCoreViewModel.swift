@@ -217,6 +217,7 @@ final class PommeCoreViewModel: ObservableObject {
             self?.messageStoreManager.unreadCounts.removeValue(forKey: key)
         }
         channelStore.persistChannelMessages = { [weak self] key in self?.messageStoreManager.persistMessages(for: key) }
+        channelStore.reportError = { [weak self] message in self?.connectionManager.lastErrorMessage = message }
         
         // MessageStoreManager dependencies
         messageStoreManager.sendCommand = { [weak self] data, label in self?.connectionManager.sendCommand(data, label: label) }
