@@ -286,6 +286,26 @@ public enum MeshCoreProtocol {
         return frame
     }
 
+    /// CMD_ADD_UPDATE_CONTACT (code 9) for an existing `Contact`.
+    ///
+    /// The one place a `Contact` is turned back into a frame, so the field
+    /// order and the guarded coordinate conversion cannot drift between the
+    /// callers that put contacts onto a radio — restoring a backup, applying a
+    /// configuration profile, and updating flags.
+    public static func buildAddUpdateContact(_ contact: Contact) -> Data {
+        buildAddUpdateContact(
+            publicKey: contact.publicKey,
+            type: contact.type.rawValue,
+            flags: contact.flags,
+            outPathLen: contact.outPathLen,
+            outPath: contact.outPath,
+            advName: contact.name,
+            lastAdvert: contact.lastAdvert,
+            latitude: microDegrees(contact.latitude),
+            longitude: microDegrees(contact.longitude)
+        )
+    }
+
     /// Degrees to the protocol's micro-degree `Int32`.
     ///
     /// Every frame carrying a position needs this, and the obvious

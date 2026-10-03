@@ -185,8 +185,12 @@ struct RadioProfilesView: View {
         guard !trimmed.isEmpty else { return }
         newProfileName = ""
         let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
+        // No contacts: a saved profile is a set of radio parameters to switch
+        // between, and these get applied repeatedly. Carrying a contact list
+        // would mean every switch re-sent it.
         let export = ProfileExportService.buildExport(deviceConfig: deviceConfig,
                                                       channelStore: channelStore,
+                                                      contacts: nil,
                                                       appVersion: appVersion)
         let profile = RadioProfile(name: trimmed, config: export)
         profileStore.save(profile)

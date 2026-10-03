@@ -13,9 +13,17 @@ enum ProfileExportService {
 
     // MARK: - Export
 
+    /// Spacing between contact frames on import.
+    ///
+    /// Matches the restore path for the reason hardware gave us: a burst of
+    /// contact writes gets dropped silently by the firmware (60 unpaced
+    /// removals lost roughly half), while 150ms spacing landed every one.
+    private static let contactFrameSpacing: UInt64 = 150_000_000
+
     @MainActor
     static func buildExport(deviceConfig: DeviceConfig,
                             channelStore: ChannelStore,
+                            contacts: [Contact]?,
                             appVersion: String) -> MeshProfileExport {
         let radio = MeshProfileRadio(
             deviceName: deviceConfig.deviceName,
@@ -49,6 +57,7 @@ enum ProfileExportService {
             appVersion: appVersion,
             radio: radio,
             channels: channels,
+            contacts: contacts,
             privateKeyHex: nil,     // reserved — serial-only, not available here
             exportedWithPIN: nil
         )
@@ -81,10 +90,17 @@ enum ProfileExportService {
         return try decoder.decode(MeshProfileExport.self, from: data)
     }
 
+    /// Apply a profile to the connected radio.
+    ///
+    /// `applyContacts` is separate from the profile carrying them: a file may
+    /// hold contacts the user does not want added to *this* radio, and adding
+    /// someone else's contacts is a change they should choose rather than
+    /// inherit from a file.
     @MainActor
     static func applyProfile(_ profile: MeshProfileExport,
                               connectionManager: ConnectionManager,
-                              channelStore: ChannelStore) async {
+                              channelStore: ChannelStore,
+                              applyContacts: Bool = false) async {
         let r = profile.radio
         let delay: UInt64 = 300_000_000  // 300 ms
 
@@ -132,6 +148,25 @@ enum ProfileExportService {
             let secret = ch.secretHex.flatMap { Data(hexString: $0) }
             channelStore.setChannel(index: ch.index, name: ch.name, secret: secret)
             try? await Task.sleep(nanoseconds: delay)
+        }
+
+        // Contacts last: they are additive and the slowest part, so a failure
+        // part-way through still leaves the radio with every setting applied.
+        // Adding a contact the radio already has updates it rather than
+        // duplicating, so this is safe to re-run.
+        if applyContacts, let contacts = profile.contacts, !contacts.isEmpty {
+            for (offset, contact) in contacts.enumerated() {
+                connectionManager.sendCommand(
+                    MeshCoreProtocol.buildAddUpdateContact(contact),
+                    label: "PROFILE_ADD_CONTACT"
+                )
+                if offset < contacts.count - 1 {
+                    try? await Task.sleep(nanoseconds: contactFrameSpacing)
+                }
+            }
+            // Let the firmware commit the last write before anything asks it
+            // to enumerate.
+            try? await Task.sleep(nanoseconds: 1_000_000_000)
         }
 
         // Future: when firmware adds PIN-protected binary key export —

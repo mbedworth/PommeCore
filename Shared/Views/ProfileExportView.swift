@@ -16,17 +16,23 @@ struct ProfileExportView: View {
     @Environment(ConnectionManager.self) private var connectionManager
     @Environment(ChannelStore.self) private var channelStore
     @Environment(DeviceConfig.self) private var deviceConfig
+    @Environment(ContactStore.self) private var contactStore
     @Environment(\.dismiss) private var dismiss
 
     @State private var exportURL: URL?
     @State private var exportError: String?
     @State private var showExportShare = false
+    /// Off by default — see the toggle in `exportSection`.
+    @State private var includeContacts = false
 
     @State private var importedProfile: MeshProfileExport?
     @State private var showFilePicker = false
     @State private var importError: String?
     @State private var isApplying = false
     @State private var applyDone = false
+    /// Off by default: a file may carry contacts the user does not want on
+    /// this radio.
+    @State private var applyContacts = false
 
     private var isConnected: Bool {
         connectionManager.isActivelyConnected
@@ -74,6 +80,36 @@ struct ProfileExportView: View {
             } else {
                 LabelValueRow(label: "Export Config", value: "Connect to radio first")
                     .listRowBackground(MeshTheme.surface)
+            }
+
+            // Off by default, and says why when switched on. The export screen
+            // invites sharing the file, and a contact list is the user's
+            // social graph — that has to be a decision, not a default.
+            Toggle(isOn: $includeContacts) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Include Contacts")
+                        .foregroundStyle(MeshTheme.accent)
+                    Text(contactStore.contacts.isEmpty
+                         ? String(localized: "No contacts to include")
+                         : String(format: String(localized: "Adds %d contacts so another radio can be set up with the same mesh"),
+                                  contactStore.contacts.count))
+                        .font(.caption)
+                        .foregroundStyle(MeshTheme.textSecondary)
+                }
+            }
+            .disabled(contactStore.contacts.isEmpty)
+            .listRowBackground(MeshTheme.surface)
+
+            if includeContacts && !contactStore.contacts.isEmpty {
+                HStack(spacing: 4) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.caption2)
+                        .foregroundStyle(.orange)
+                    Text("This file will contain contact names, public keys and any positions they advertise. Don\u{2019}t share it with anyone you wouldn\u{2019}t share your contact list with.")
+                        .font(.caption2)
+                        .foregroundStyle(.orange)
+                }
+                .listRowBackground(MeshTheme.surface)
             }
 
             VStack(alignment: .leading, spacing: 4) {
@@ -131,6 +167,9 @@ struct ProfileExportView: View {
                                                    Double(profile.radio.radioFrequency) / 1000.0))
             previewRow("SF / BW", value: "SF\(profile.radio.radioSpreadingFactor) / \(profile.radio.radioBandwidth / 1000) kHz")
             previewRow("Channels", value: "\(profile.channels.filter { $0.index > 0 }.count) private")
+            if let contacts = profile.contacts {
+                previewRow("Contacts", value: "\(contacts.count)")
+            }
             if profile.privateKeyHex != nil {
                 HStack(spacing: 4) {
                     Image(systemName: "key.fill").font(.caption).foregroundStyle(.green)
@@ -150,6 +189,20 @@ struct ProfileExportView: View {
                 .font(.caption).foregroundStyle(.green)
                 .listRowBackground(MeshTheme.surface)
         } else {
+            if let contacts = profile.contacts, !contacts.isEmpty {
+                Toggle(isOn: $applyContacts) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Add Contacts")
+                            .foregroundStyle(MeshTheme.accent)
+                        Text(String(format: String(localized: "Adds the %d contacts in this file to your radio. Existing contacts are updated, never removed."),
+                                    contacts.count))
+                            .font(.caption)
+                            .foregroundStyle(MeshTheme.textSecondary)
+                    }
+                }
+                .listRowBackground(MeshTheme.surface)
+            }
+
             Button {
                 Task { await applyImport(profile) }
             } label: {
@@ -182,6 +235,7 @@ struct ProfileExportView: View {
             let profile = ProfileExportService.buildExport(
                 deviceConfig: deviceConfig,
                 channelStore: channelStore,
+                contacts: includeContacts ? contactStore.contacts : nil,
                 appVersion: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "")
             exportURL = try ProfileExportService.exportURL(
                 from: profile, radioName: deviceConfig.deviceName)
@@ -212,7 +266,13 @@ struct ProfileExportView: View {
         isApplying = true
         await ProfileExportService.applyProfile(profile,
                                                 connectionManager: connectionManager,
-                                                channelStore: channelStore)
+                                                channelStore: channelStore,
+                                                applyContacts: applyContacts)
+        if applyContacts, profile.contacts?.isEmpty == false {
+            // Reconcile against the radio so the list reflects what actually
+            // landed, rather than what was sent.
+            contactStore.requestContacts(fullSync: true)
+        }
         isApplying = false
         applyDone = true
     }
