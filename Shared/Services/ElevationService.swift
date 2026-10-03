@@ -21,7 +21,23 @@ actor ElevationService {
     private static let maxPointsPerRequest = 100
     private static let maxRetries = 3
 
+    /// Per-request timeout.
+    ///
+    /// URLSession's default is 60s. With `maxRetries` attempts per batch and
+    /// batches fetched one after another, a long line-of-sight profile could
+    /// sit unresponsive for several minutes before failing. The users of this
+    /// app are frequently on poor or absent connectivity — that is the point
+    /// of a mesh radio — so failing quickly matters more here than persisting.
+    /// Matches the explicit timeouts the sibling services already set.
+    private static let requestTimeout: TimeInterval = 10
+
+    /// Cached elevations, keyed to roughly 110m resolution.
+    ///
+    /// Capped because the key space is continuous: each line-of-sight analysis
+    /// over new terrain adds up to several hundred entries that are never
+    /// evicted, so a long session over a wide area grows this without limit.
     private var cache: [String: Double] = [:]
+    private static let maxCachedPoints = 10_000
 
     enum ElevationError: Error, LocalizedError {
         case networkError(String)
@@ -74,6 +90,7 @@ actor ElevationService {
                     let coord = coordinates[idx]
                     cache[cacheKey(coord.latitude, coord.longitude)] = elevations[j]
                 }
+                evictCacheIfNeeded()
             }
         }
 
@@ -145,6 +162,20 @@ actor ElevationService {
         String(format: "%.3f,%.3f", lat, lon)
     }
 
+    /// Drop cached points once over the cap.
+    ///
+    /// Elevation does not change, so any entry is as valid as any other and
+    /// there is no recency to preserve — this keeps the memory bounded without
+    /// pretending to be an LRU. Terrain just gets re-fetched if revisited.
+    private func evictCacheIfNeeded() {
+        guard cache.count > Self.maxCachedPoints else { return }
+        let excess = cache.count - Self.maxCachedPoints
+        for key in cache.keys.prefix(excess) {
+            cache.removeValue(forKey: key)
+        }
+        Self.logger.debug("Elevation cache trimmed to \(self.cache.count) points")
+    }
+
     private func fetchBatch(_ coordinates: [(latitude: Double, longitude: Double)]) async throws -> [Double] {
         let lats = coordinates.map { String(format: "%.6f", $0.latitude) }.joined(separator: ",")
         let lons = coordinates.map { String(format: "%.6f", $0.longitude) }.joined(separator: ",")
@@ -157,7 +188,9 @@ actor ElevationService {
         var lastError: Error?
         for attempt in 0..<Self.maxRetries {
             do {
-                let (data, response) = try await URLSession.shared.data(from: url)
+                var request = URLRequest(url: url)
+                request.timeoutInterval = Self.requestTimeout
+                let (data, response) = try await URLSession.shared.data(for: request)
 
                 guard let httpResponse = response as? HTTPURLResponse else {
                     throw ElevationError.invalidResponse

@@ -250,32 +250,7 @@ public final class WiFiConnectionManager: ObservableObject {
     /// Parses `>` (0x3E) + length(2 LE) + payload frames from readBuffer.
     /// Runs on the WiFi queue.
     private func parseBinaryFrames() {
-        while readBuffer.count >= 3 {
-            let si = readBuffer.startIndex
-            guard readBuffer[si] == 0x3E else {
-                // Skip garbage bytes until we find a frame marker
-                if let idx = readBuffer.firstIndex(of: 0x3E) {
-                    let skip = readBuffer.distance(from: si, to: idx)
-                    readBuffer.removeFirst(skip)
-                } else {
-                    readBuffer.removeAll()
-                    return
-                }
-                continue
-            }
-
-            var length: UInt16 = 0
-            _ = withUnsafeMutableBytes(of: &length) { dest in
-                readBuffer.copyBytes(to: dest, from: (si + 1)..<(si + 3))
-            }
-            length = UInt16(littleEndian: length)
-
-            let totalNeeded = 3 + Int(length)
-            guard readBuffer.count >= totalNeeded else { return }
-
-            let frameData = Data(readBuffer[(si + 3)..<(si + totalNeeded)])
-            readBuffer.removeFirst(totalNeeded)
-
+        for frameData in BinaryFraming.extractFrames(from: &readBuffer) {
             Self.logger.debug("RX WiFi frame [\(frameData.count) bytes]")
             DispatchQueue.main.async { [weak self] in
                 self?.receivedDataSubject.send(frameData)
