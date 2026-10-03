@@ -669,7 +669,83 @@ final class ContactStore {
         let frame = MeshCoreProtocol.buildRemoveContact(publicKey: contact.publicKey)
         sendCommand?(frame, "REMOVE_CONTACT")
         contacts.removeAll { $0.publicKeyPrefix == contact.publicKeyPrefix }
-        purgeLocalData(for: contact)
+        var dirty = PurgedStores()
+        purgeLocalData(for: contact, dirty: &dirty)
+        flushPurgeSaves(dirty)
+    }
+
+    /// Remove several contacts in one pass.
+    ///
+    /// Deleting in a loop over `removeContact` was correct but wasteful and
+    /// unreliable at scale. Each call re-saved the entire position-history
+    /// file and wrote to iCloud, so removing 50 contacts meant 50 encodes of
+    /// the whole history and 50 key-value writes; and each sent its removal
+    /// frame immediately, so the radio received a burst of 50 writes with no
+    /// pacing or flow control, which can silently drop some. Dropped removals
+    /// are invisible until the next sync, when the contact reappears.
+    ///
+    /// This mutates `contacts` once, purges all local data with the saves
+    /// coalesced to one per store, and paces the outgoing frames.
+    func removeContacts(_ toRemove: [Contact]) {
+        guard toRemove.count > 1 else {
+            if let only = toRemove.first { removeContact(only) }
+            return
+        }
+
+        let prefixes = Set(toRemove.map(\.publicKeyPrefix))
+        contacts.removeAll { prefixes.contains($0.publicKeyPrefix) }
+
+        var dirty = PurgedStores()
+        for contact in toRemove {
+            purgeLocalData(for: contact, dirty: &dirty)
+        }
+        flushPurgeSaves(dirty)
+
+        Self.logger.info("Bulk remove: \(toRemove.count) contacts")
+        DebugLogger.shared.log("Removing \(toRemove.count) contacts", level: .tx)
+        sendRemoveContactFrames(for: toRemove)
+    }
+
+    /// Send CMD_REMOVE_CONTACT for each contact, spaced out.
+    ///
+    /// Binary frames are written straight to the transport with no queue or
+    /// pacing, unlike the CLI path. Each removal makes the firmware update its
+    /// persistent contact store, so a tight burst risks writes being dropped.
+    /// The interval is deliberately conservative rather than measured; it can
+    /// be tightened with `scripts/meshctl.sh` against real hardware.
+    private func sendRemoveContactFrames(for toRemove: [Contact]) {
+        Task { @MainActor [weak self] in
+            for (offset, contact) in toRemove.enumerated() {
+                guard let self else { return }
+                let frame = MeshCoreProtocol.buildRemoveContact(publicKey: contact.publicKey)
+                self.sendCommand?(frame, "REMOVE_CONTACT")
+                if offset < toRemove.count - 1 {
+                    try? await Task.sleep(nanoseconds: 150_000_000)
+                }
+            }
+            // Reconcile against the radio: any removal the firmware missed
+            // brings that contact back, rather than leaving the two silently
+            // disagreeing.
+            self?.requestContacts(fullSync: true)
+        }
+    }
+
+    /// Which persisted stores a purge touched, so saves happen once rather
+    /// than once per contact.
+    private struct PurgedStores {
+        var positionHistory = false
+        var muted = false
+        var nicknames = false
+        var notes = false
+        var groups = false
+    }
+
+    private func flushPurgeSaves(_ dirty: PurgedStores) {
+        if dirty.positionHistory { savePositionHistory() }
+        if dirty.muted { saveMutedContactsToiCloud() }
+        if dirty.nicknames { saveNicknamesToiCloud() }
+        if dirty.notes { saveContactNotesToiCloud() }
+        if dirty.groups { saveContactGroupsToiCloud() }
     }
 
     /// Remove every piece of per-contact state the app persists.
@@ -683,30 +759,29 @@ final class ContactStore {
     ///
     /// Add to this function whenever a new per-contact collection is
     /// introduced.
-    private func purgeLocalData(for contact: Contact) {
+    ///
+    /// Records which stores it touched in `dirty` rather than saving as it
+    /// goes, so a bulk delete writes each store once instead of once per
+    /// contact. Callers must finish with `flushPurgeSaves`.
+    private func purgeLocalData(for contact: Contact, dirty: inout PurgedStores) {
         let key = contact.publicKey.hexCompact
 
-        setNickname("", for: contact)
-        setNote("", for: contact)
+        // Mutated directly rather than through setNickname/setNote, which save
+        // on every call.
+        if nicknames.removeValue(forKey: key) != nil { dirty.nicknames = true }
+        if contactNotes.removeValue(forKey: key) != nil { dirty.notes = true }
+
         clearMessagesForContact?(contact.publicKeyPrefix)
         // Telemetry is keyed by the 6-byte prefix, matching the recordTelemetry
         // call site — not by the full public key, which never matches.
         clearTelemetryForContact?(contact.publicKeyPrefix)
 
-        if positionHistory.removeValue(forKey: key) != nil {
-            savePositionHistory()
-        }
-        if mutedContacts.remove(key) != nil {
-            saveMutedContactsToiCloud()
-        }
+        if positionHistory.removeValue(forKey: key) != nil { dirty.positionHistory = true }
+        if mutedContacts.remove(key) != nil { dirty.muted = true }
 
-        var groupsChanged = false
         for index in contactGroups.indices where contactGroups[index].memberPubkeys.contains(key) {
             contactGroups[index].memberPubkeys.removeAll { $0 == key }
-            groupsChanged = true
-        }
-        if groupsChanged {
-            saveContactGroupsToiCloud()
+            dirty.groups = true
         }
 
         removeContactFromSpotlight(pubkeyHex: key)
