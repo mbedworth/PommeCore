@@ -36,3 +36,9 @@ docs/MESHTASTIC_FEASIBILITY.md
 # Build artifacts (archives go to ~/Library/Developer/Xcode/Archives/ — outside repo)
 # build/ is already ignored above; exports and logs live in /tmp or Xcode standard paths
 *.xcarchive
+
+# Xcode writes its clang module/index cache inside the .xcodeproj when a build
+# uses a custom SYMROOT or derived-data path. It is thousands of copies of
+# system headers — never source, and it sweeps straight into `git add -A`.
+*.xcodeproj/-Xcc/
+*.xcodeproj/project.xcworkspace/xcuserdata/

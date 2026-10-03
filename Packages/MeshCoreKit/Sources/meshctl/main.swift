@@ -121,6 +121,8 @@ COMMANDS
   smoke                 Run the firmware smoke-test assertions
   capture               Connect, exercise the radio, write frames as hex fixtures
   bulkdelete            Exercise bulk contact deletion against real firmware
+  seed                  Add test contacts and leave them (to drive the app's own UI)
+  cleanup               Remove every test contact left on the radio
 
 OPTIONS
   -d, --device <name>   BLE name substring to connect to (default: strongest signal)
@@ -509,6 +511,57 @@ func cleanUpTestContacts(_ link: BLELink) async {
     try? await Task.sleep(nanoseconds: 1_000_000_000)
 }
 
+/// Add test contacts and leave them on the radio.
+///
+/// For driving the app's own bulk-delete and restore UI against contacts that
+/// are safe to destroy, instead of the user's real ones.
+func cmdSeed(_ opts: Options) async throws {
+    let link = try await connectAndHandshake(opts)
+    defer { link.disconnect() }
+
+    let baseline = await fullSync(link)
+    let existing = Set(baseline.contacts.map(\.publicKeyPrefix))
+    let synthetic = (1...opts.bulkCount).map { bulkTestContact($0) }
+        .filter { !existing.contains($0.publicKeyPrefix) }
+
+    guard !synthetic.isEmpty else {
+        out("All \(opts.bulkCount) test contacts are already present.")
+        return
+    }
+
+    note("adding \(synthetic.count) test contacts…")
+    await sendPaced(link, synthetic.map(addContactFrame))
+    try? await Task.sleep(nanoseconds: 1_000_000_000)
+
+    let after = await fullSync(link)
+    let present = Set(after.contacts.map(\.publicKeyPrefix))
+    check(
+        Set(synthetic.map(\.publicKeyPrefix)).isSubset(of: present),
+        "all \(synthetic.count) test contacts added",
+        detail: "\(after.contacts.count) contacts on the radio"
+    )
+    for c in after.contacts.sorted(by: { $0.name < $1.name }) {
+        out("        \(hex(c.publicKeyPrefix))  \(c.name.isEmpty ? "(unnamed)" : c.name)")
+    }
+    summarise()
+}
+
+/// Remove every `meshctl-del-*` contact, whatever state a run left behind.
+func cmdCleanup(_ opts: Options) async throws {
+    let link = try await connectAndHandshake(opts)
+    defer { link.disconnect() }
+
+    await cleanUpTestContacts(link)
+    let after = await fullSync(link)
+    check(
+        !after.contacts.contains { $0.name.hasPrefix(bulkTestNamePrefix) },
+        "no test contacts remain",
+        detail: "\(after.contacts.count) contacts on the radio"
+    )
+    for c in after.contacts { out("        \(hex(c.publicKeyPrefix))  \(c.name.isEmpty ? "(unnamed)" : c.name)") }
+    summarise()
+}
+
 /// Exercise bulk contact deletion against real firmware.
 ///
 /// This is the one thing no unit test can cover: the data loss came from
@@ -769,6 +822,8 @@ do {
     case "smoke":     try await cmdSmoke(opts)
     case "capture":   try await cmdCapture(opts)
     case "bulkdelete": try await cmdBulkDelete(opts)
+    case "seed":      try await cmdSeed(opts)
+    case "cleanup":   try await cmdCleanup(opts)
     case "help", "-h", "--help":
         out(usage)
     default:
