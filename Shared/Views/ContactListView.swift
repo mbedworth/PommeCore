@@ -70,9 +70,12 @@ struct ContactListView: View {
     #if !os(watchOS)
     @State var shareContact: Contact?
     #endif
-    /// Single timer for all contact rows — ticks every 30s to refresh relative "last seen" text.
+    /// Single timer for all contact rows — ticks every 60s to refresh relative "last seen" text.
     @State var refreshTick = Date()
-    let refreshTimer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
+    /// Held in @State so one publisher lives for the view's lifetime. As a
+    /// plain `let` it was reallocated — and a run-loop timer rescheduled —
+    /// on every re-init of this struct.
+    @State var refreshTimer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
     @State var contactsExpanded = true
     @State var channelsExpanded = true
     @AppStorage("contactSortByLastSeen") var sortByLastSeen = true

@@ -92,7 +92,7 @@ public enum MeshCoreProtocol {
         // adv_name: 32 bytes null-padded
         var nameField = Data(repeating: 0, count: 32)
         if let nameData = advName.data(using: .utf8) {
-            let len = min(nameData.count, 31)
+            let len = min(nameData.count, channelNameMaxBytes)
             nameField.replaceSubrange(0..<len, with: nameData.prefix(len))
         }
         frame.append(nameField)
@@ -243,6 +243,17 @@ public enum MeshCoreProtocol {
 
     /// CMD_SET_CHANNEL (code 32) — add or update a channel.
     /// Frame: code(1) channel_idx(1) channel_name(32 null-padded) secret(32 null-padded)
+    /// Length of a channel PSK in bytes.
+    ///
+    /// Critical rule 8: the CMD_SET_CHANNEL name field is 32 bytes but the
+    /// secret is 16, not 32. Named here so callers validating an untrusted
+    /// key check against the protocol rather than a copied literal.
+    public static let channelSecretLength = 16
+
+    /// Usable bytes of a channel name, excluding the null terminator in the
+    /// 32-byte name field.
+    public static let channelNameMaxBytes = 31
+
     public static func buildSetChannel(index: UInt8, name: String, secret: Data? = nil) -> Data {
         var frame = Data([MeshCoreCommand.setChannel.rawValue])
         frame.append(index)
@@ -254,9 +265,9 @@ public enum MeshCoreProtocol {
         }
         frame.append(nameField)
         // secret/PSK: 16 bytes (128-bit key, matching meshcore.js format)
-        var secretField = Data(repeating: 0, count: 16)
+        var secretField = Data(repeating: 0, count: channelSecretLength)
         if let secret, !secret.isEmpty {
-            let len = min(secret.count, 16)
+            let len = min(secret.count, channelSecretLength)
             secretField.replaceSubrange(0..<len, with: secret.prefix(len))
         }
         frame.append(secretField)

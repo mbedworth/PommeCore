@@ -53,6 +53,10 @@ final class ChannelStore {
 
     /// Closure to persist messages after clearing.
     var persistChannelMessages: ((Data) -> Void)?
+    /// Surfaces a user-facing failure through the app-wide error alert
+    /// (wired to ConnectionManager.lastErrorMessage), the same surface the
+    /// contact import already uses.
+    var reportError: ((String) -> Void)?
 
     // MARK: - Private State
 
@@ -255,15 +259,50 @@ final class ChannelStore {
         return false
     }
 
+    /// Longest channel name the protocol can carry, from the protocol itself:
+    /// CMD_SET_CHANNEL has a 32-byte null-padded name field.
+    private static let maxChannelNameBytes = MeshCoreProtocol.channelNameMaxBytes
+
+    /// Most channels one link may carry, so a crafted URL cannot queue an
+    /// unbounded run of CMD_SET_CHANNEL frames at the radio.
+    private static let maxChannelsPerImport = 32
+
     private func parseChannelURL(_ urlString: String) -> PendingChannelImport? {
         guard let components = URLComponents(string: urlString),
               let nameItem = components.queryItems?.first(where: { $0.name == "name" }),
-              let name = nameItem.value, !name.isEmpty else { return nil }
+              let name = nameItem.value, !name.isEmpty else {
+            reportError?("Channel link is missing a channel name.")
+            return nil
+        }
+        guard let validated = validate(name: name, secretHex: components.queryItems?
+            .first(where: { $0.name == "secret" })?.value) else { return nil }
+        return validated
+    }
 
-        var secret: Data?
-        if let secretHex = components.queryItems?.first(where: { $0.name == "secret" })?.value,
-           !secretHex.isEmpty {
-            secret = Data(hexString: secretHex)
+    /// Validate one channel's name and PSK from an untrusted link.
+    ///
+    /// buildSetChannel clamps both fields, so over-long input cannot corrupt a
+    /// frame — but it clamps *silently*, which is worse here than refusing:
+    /// a truncated PSK yields a channel that imports and looks correct while
+    /// being unable to decrypt anything, with nothing shown to the user.
+    /// Per critical rule 8 the PSK is exactly 16 bytes, so anything else is a
+    /// malformed link.
+    private func validate(name: String, secretHex: String?) -> PendingChannelImport? {
+        guard name.utf8.count <= Self.maxChannelNameBytes else {
+            reportError?("Channel name is too long to import (limit \(Self.maxChannelNameBytes) characters).")
+            return nil
+        }
+
+        guard let secretHex, !secretHex.isEmpty else {
+            return PendingChannelImport(name: name, secret: nil)
+        }
+        guard let secret = Data(hexString: secretHex) else {
+            reportError?("Channel link contains an invalid key.")
+            return nil
+        }
+        guard secret.count == MeshCoreProtocol.channelSecretLength else {
+            reportError?("Channel link key is the wrong length — it cannot decrypt messages.")
+            return nil
         }
         return PendingChannelImport(name: name, secret: secret)
     }
@@ -278,11 +317,10 @@ final class ChannelStore {
         }
 
         var parsed: [PendingChannelImport] = []
-        for item in array {
-            guard let name = item["name"], !name.isEmpty else { continue }
-            let secretHex = item["secret"] ?? ""
-            let secret: Data? = secretHex.isEmpty ? nil : Data(hexString: secretHex)
-            parsed.append(PendingChannelImport(name: name, secret: secret))
+        for item in array.prefix(Self.maxChannelsPerImport) {
+            guard let name = item["name"], !name.isEmpty,
+                  let validated = validate(name: name, secretHex: item["secret"]) else { continue }
+            parsed.append(validated)
         }
         guard !parsed.isEmpty else { return nil }
         return PendingMultiChannelImport(channels: parsed)
@@ -293,6 +331,14 @@ final class ChannelStore {
         var nextSlot: UInt8 = 1
         while usedIndices.contains(nextSlot) && nextSlot < maxChannels {
             nextSlot += 1
+        }
+        // Valid slots are 0..<maxChannels. Without this guard a full channel
+        // list left nextSlot == maxChannels and wrote to a slot that does not
+        // exist, silently doing nothing. importMultiChannelsAdd already
+        // guarded; this path did not.
+        guard nextSlot < maxChannels else {
+            reportError?("Your radio's channel list is full. Remove a channel before importing another.")
+            return
         }
         setChannel(index: nextSlot, name: data.name, secret: data.secret)
     }

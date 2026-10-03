@@ -51,6 +51,8 @@ final class ContactStore {
 
     /// Closure to clear messages when a contact is deleted.
     var clearMessagesForContact: ((Data) -> Void)?
+    /// Drops a deleted contact's telemetry history (wired to RFMonitorStore).
+    var clearTelemetryForContact: ((Data) -> Void)?
 
     /// Closure to post an event notification.
     var postEventNotification: ((String, String, String) -> Void)?
@@ -557,11 +559,19 @@ final class ContactStore {
     }
 
     private func savePositionHistory() {
-        do {
-            let data = try JSONEncoder().encode(positionHistory)
-            try data.write(to: Self.positionHistoryFileURL, options: .atomic)
-        } catch {
-            DebugLogger.shared.log("POSITION: failed to save history: \(error.localizedDescription)", level: .warning)
+        // Snapshot on the main actor, then encode and write off it — capped at
+        // 50 points per contact this reaches a few hundred KB across a busy
+        // mesh, and an atomic write of that on every 10s batch is a visible
+        // hitch. Mirrors RFMonitorStore.saveTelemetryHistory().
+        let snapshot = positionHistory
+        let fileURL = Self.positionHistoryFileURL
+        Task.detached(priority: .utility) {
+            do {
+                let data = try JSONEncoder().encode(snapshot)
+                try data.write(to: fileURL, options: .atomic)
+            } catch {
+                DebugLogger.shared.log("POSITION: failed to save history: \(error.localizedDescription)", level: .warning)
+            }
         }
     }
 
@@ -625,10 +635,45 @@ final class ContactStore {
         let frame = MeshCoreProtocol.buildRemoveContact(publicKey: contact.publicKey)
         sendCommand?(frame, "REMOVE_CONTACT")
         contacts.removeAll { $0.publicKeyPrefix == contact.publicKeyPrefix }
-        // Clean up all local data for this contact
+        purgeLocalData(for: contact)
+    }
+
+    /// Remove every piece of per-contact state the app persists.
+    ///
+    /// Each collection here is keyed by public key and outlives `contacts`
+    /// unless explicitly cleared, across UserDefaults, iCloud key-value
+    /// storage, the Spotlight index and two on-disk JSON files. Leaving any of
+    /// them behind means a deleted contact keeps a searchable Spotlight entry,
+    /// and that its group membership, mute state, position trail and telemetry
+    /// all reattach if the same key is added again later.
+    ///
+    /// Add to this function whenever a new per-contact collection is
+    /// introduced.
+    private func purgeLocalData(for contact: Contact) {
+        let key = contact.publicKey.hexCompact
+
         setNickname("", for: contact)
         setNote("", for: contact)
         clearMessagesForContact?(contact.publicKeyPrefix)
+        clearTelemetryForContact?(contact.publicKey)
+
+        if positionHistory.removeValue(forKey: key) != nil {
+            savePositionHistory()
+        }
+        if mutedContacts.remove(key) != nil {
+            saveMutedContactsToiCloud()
+        }
+
+        var groupsChanged = false
+        for index in contactGroups.indices where contactGroups[index].memberPubkeys.contains(key) {
+            contactGroups[index].memberPubkeys.removeAll { $0 == key }
+            groupsChanged = true
+        }
+        if groupsChanged {
+            saveContactGroupsToiCloud()
+        }
+
+        removeContactFromSpotlight(pubkeyHex: key)
     }
 
     func resetPath(for contact: Contact) {
@@ -884,6 +929,19 @@ final class ContactStore {
         }
         CSSearchableIndex.default().indexSearchableItems(items)
     }
+
+    /// Remove one contact from the Spotlight index.
+    ///
+    /// Indexed items are created with `expirationDate = .distantFuture`, so
+    /// nothing expires them — a deleted contact stays searchable until it is
+    /// explicitly deleted here.
+    private func removeContactFromSpotlight(pubkeyHex: String) {
+        CSSearchableIndex.default().deleteSearchableItems(
+            withIdentifiers: ["meshcore.contact.\(pubkeyHex)"]
+        )
+    }
+    #else
+    private func removeContactFromSpotlight(pubkeyHex: String) {}
     #endif
 
     // MARK: - iCloud Changes

@@ -64,6 +64,24 @@ public struct BatteryCalibration: Codable, Sendable {
         self.correctionFactor = correctionFactor
     }
 
+    /// Tolerant decoder — every field falls back to its default.
+    ///
+    /// This value is persisted to iCloud key-value storage and read back with
+    /// `try?`, so a decode failure does not surface as an error: it silently
+    /// discards the user's calibration and the battery gauge quietly reverts
+    /// to uncorrected readings. With the synthesised decoder, adding a single
+    /// field would do exactly that to every calibration already in iCloud.
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        chemistry = (try? container.decode(String.self, forKey: .chemistry)) ?? BatteryChemistry.lipo.rawValue
+        measuredMaxVoltage = (try? container.decode(Double.self, forKey: .measuredMaxVoltage)) ?? 0
+        correctionFactor = (try? container.decode(Double.self, forKey: .correctionFactor)) ?? 1.0
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case chemistry, measuredMaxVoltage, correctionFactor
+    }
+
     public mutating func updateWithReading(_ rawVoltage: Double, theoreticalMax: Double) {
         guard rawVoltage > 0 else { return }
         if rawVoltage > measuredMaxVoltage {
