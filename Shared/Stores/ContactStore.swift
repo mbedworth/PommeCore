@@ -723,6 +723,14 @@ final class ContactStore {
                     try? await Task.sleep(nanoseconds: 150_000_000)
                 }
             }
+            // Let the firmware finish committing the last removal before
+            // asking it to enumerate everything. Requesting the sync straight
+            // after the final frame let the removal responses interleave with
+            // the contact stream, so the sync delivered fewer contacts than it
+            // announced — which is how a bulk delete came to look like it had
+            // deleted every contact.
+            try? await Task.sleep(nanoseconds: 1_000_000_000)
+
             // Reconcile against the radio: any removal the firmware missed
             // brings that contact back, rather than leaving the two silently
             // disagreeing.
@@ -795,15 +803,47 @@ final class ContactStore {
     /// collected them. This reconciles what is persisted against the live
     /// contact list and drops the remainder.
     ///
-    /// **Only safe after a full contact sync.** The contact list is the
-    /// authority here, so running this against a partial list would delete
-    /// live data. The caller must have just replaced `contacts` wholesale from
-    /// the radio, and an empty list is refused outright — a wiped or
-    /// unreachable radio must not take the user's history with it.
+    /// **User-initiated only, and only with a verified-complete contact list.**
     ///
+    /// This was originally run automatically after every full sync, and it
+    /// destroyed data: a truncated sync was accepted as the whole truth, so
+    /// the sweep deleted messages, nicknames, notes, trails, mute state and
+    /// telemetry for every contact missing from it. None of that is
+    /// recoverable. The lesson is not that the guard needed to be smarter —
+    /// it is that an irreversible pass over user data should not run by
+    /// itself, inferring its own authority, to reclaim a few hundred
+    /// kilobytes.
+    ///
+    /// Callers must pass `contactListVerifiedComplete: true`, which only
+    /// holds when the caller knows a full sync delivered every contact the
+    /// radio announced. `countOrphanedData()` reports what would be removed
+    /// without removing it, so the user can be shown a number first.
+    ///
+    /// How many orphaned entries a sweep would remove, without removing any.
+    ///
+    /// Lets the user be shown a number and decide, instead of the app deciding
+    /// for them. Counts only what this store owns; the cross-store totals are
+    /// reported by the sweep itself.
+    func countOrphanedData() -> Int {
+        guard !contacts.isEmpty else { return 0 }
+        let live = Set(contacts.map { $0.publicKey.hexCompact })
+        var count = positionHistory.keys.filter { !live.contains($0) }.count
+        count += mutedContacts.filter { !live.contains($0) }.count
+        count += nicknames.keys.filter { !live.contains($0) }.count
+        count += contactNotes.keys.filter { !live.contains($0) }.count
+        count += contactGroups.reduce(0) { total, group in
+            total + group.memberPubkeys.filter { !live.contains($0) }.count
+        }
+        return count
+    }
+
     /// Idempotent: a second run over clean data removes nothing.
     @discardableResult
-    func purgeOrphanedData() -> Int {
+    func purgeOrphanedData(contactListVerifiedComplete: Bool) -> Int {
+        guard contactListVerifiedComplete else {
+            Self.logger.error("Orphan sweep refused — contact list not verified complete")
+            return 0
+        }
         guard !contacts.isEmpty else {
             Self.logger.info("Orphan sweep skipped — no contacts, refusing to treat that as authoritative")
             return 0
@@ -961,32 +1001,51 @@ final class ContactStore {
     func handleEndOfContacts(lastmod: UInt32) -> Bool {
         Self.logger.info("Contacts sync complete: \(self.incomingContacts.count) contacts, lastmod=\(lastmod), incremental=\(self.isIncrementalContactSync)")
         DebugLogger.shared.log("Contacts done: \(self.incomingContacts.count) synced", level: .info)
-        if isIncrementalContactSync {
-            if !incomingContacts.isEmpty {
-                // Dictionary-based merge: O(n+m) instead of O(n*m)
-                var indexByPrefix: [Data: Int] = [:]
-                for (i, c) in contacts.enumerated() {
-                    indexByPrefix[c.publicKeyPrefix] = i
-                }
-                var merged = contacts
-                for incoming in incomingContacts {
-                    if let idx = indexByPrefix[incoming.publicKeyPrefix] {
-                        merged[idx] = incoming
-                    } else {
-                        indexByPrefix[incoming.publicKeyPrefix] = merged.count
-                        merged.append(incoming)
-                    }
-                }
-                contacts = merged
-            }
-        } else {
-            contacts = incomingContacts
-        }
-        incomingContacts = []
-        lastContactsSync = lastmod
+        // What a finished sync means for the stored list is decided by
+        // ContactSyncReducer, in MeshCoreKit, where it is covered by tests.
+        // It used to be inline here, in the app target, out of reach of the
+        // test suite — and it shipped a data-loss bug.
+        let outcome = ContactSyncReducer.reduce(
+            existing: contacts,
+            incoming: incomingContacts,
+            announced: Int(expectedContactCount),
+            isIncremental: isIncrementalContactSync
+        )
+
         let wasFullSync = !isIncrementalContactSync
+        incomingContacts = []
         isIncrementalContactSync = false
         isSyncingContacts = false
+        expectedContactCount = 0
+
+        switch outcome {
+        case .rejectTruncated(let received, let announced):
+            // The stream was cut short or interleaved with other traffic. The
+            // shortfall does not mean the radio forgot those contacts, so keep
+            // the list and let the next sync settle it.
+            Self.logger.error("Full sync truncated: \(received) of \(announced) contacts — keeping existing list")
+            DebugLogger.shared.log(
+                "Contacts sync incomplete (\(received)/\(announced)) — keeping existing contacts",
+                level: .warning
+            )
+            return false
+
+        case .rejectUnverifiable:
+            Self.logger.error("Full sync would have emptied the contact list with no announced count — keeping existing list")
+            DebugLogger.shared.log("Contacts sync returned none and announced none — keeping existing contacts", level: .warning)
+            return false
+
+        case .noChange:
+            lastContactsSync = lastmod
+            return wasFullSync
+
+        case .merge(let result), .replace(let result):
+            contacts = result
+            lastContactsSync = lastmod
+            // Only `.replace` is authoritative; nothing below deletes data
+            // keyed by contact, and nothing here may start doing so without
+            // checking for that case specifically.
+        }
 
         // Record position history for contacts with coordinates
         for contact in contacts {
@@ -997,13 +1056,16 @@ final class ContactStore {
         indexContactsForSpotlight()
         #endif
 
-        // Only a full sync replaces `contacts` wholesale from the radio, so
-        // only then is the list authoritative enough to delete data against.
-        // After an incremental sync it is a merge, and anything the radio did
-        // not mention this time would look orphaned.
-        if wasFullSync {
-            purgeOrphanedData()
-        }
+        // The orphan sweep is deliberately NOT run here. It used to be, on
+        // every full sync, and that caused real data loss: a truncated sync
+        // was accepted as authoritative, and the sweep then permanently
+        // deleted messages, nicknames, notes, position trails, mute state and
+        // telemetry for every contact missing from it. The reducer now stops
+        // the truncated sync, but a destructive maintenance pass should not
+        // depend on a single guard holding for its safety — the downside is
+        // unrecoverable and the upside is reclaiming a few hundred kilobytes.
+        // It is user-initiated, which also lets the user see what it found
+        // before anything is removed.
 
         return wasFullSync
     }
