@@ -103,6 +103,7 @@ struct PommeCoreApp: App {
                     .environment(viewModel.lineOfSightStore)
                     .environment(viewModel.rfMonitorStore)
                     .environment(viewModel.geofenceStore)
+                    .environment(viewModel.contactBackupStore)
                     #endif
                     .meshTheme()
                     .onAppear {

@@ -334,11 +334,22 @@ extension ContactListView {
             // Paste Link and Scan QR are in the contacts "+" header menu
             if isSelecting {
                 HStack {
-                    Button(selectedContacts.count == ungroupedContacts.count ? "Deselect All" : "Select All") {
-                        if selectedContacts.count == ungroupedContacts.count {
-                            selectedContacts.removeAll()
+                    // Compared as sets, not counts. Equal counts do not mean
+                    // equal membership — the list can change under a held
+                    // selection when a contact is grouped on another device or
+                    // a new one adverts in — and a count match would then show
+                    // "Deselect All" over a selection that is not in fact
+                    // everything, clearing the user's work instead of
+                    // completing it. Union and subtract for the same reason:
+                    // they only ever touch the keys this section owns.
+                    let visibleKeys = Set(ungroupedContacts.map(\.publicKeyPrefix))
+                    let allVisibleSelected = !visibleKeys.isEmpty
+                        && visibleKeys.isSubset(of: selectedContacts)
+                    Button(allVisibleSelected ? "Deselect All" : "Select All") {
+                        if allVisibleSelected {
+                            selectedContacts.subtract(visibleKeys)
                         } else {
-                            selectedContacts = Set(ungroupedContacts.map(\.publicKeyPrefix))
+                            selectedContacts.formUnion(visibleKeys)
                         }
                     }
                     .font(.caption)

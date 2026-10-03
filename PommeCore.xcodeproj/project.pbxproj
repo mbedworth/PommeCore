@@ -143,7 +143,9 @@
 		FWC10000000100000000002 /* Services/FirmwareUpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = FWC10000000000000000000 /* Services/FirmwareUpdateChecker.swift */; };
 		FWC10000000100000000003 /* Services/FirmwareUpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = FWC10000000000000000000 /* Services/FirmwareUpdateChecker.swift */; };
 		GFN10000000100000000002 /* GeofenceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = GFN10000000000000000000 /* GeofenceStore.swift */; };
+		CBK10000000100000000002 /* ContactBackupStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBK10000000000000000000 /* ContactBackupStore.swift */; };
 		GFN10000000100000000003 /* GeofenceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = GFN10000000000000000000 /* GeofenceStore.swift */; };
+		CBK10000000100000000003 /* ContactBackupStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBK10000000000000000000 /* ContactBackupStore.swift */; };
 		GFV10000000100000000002 /* GeofencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = GFV10000000000000000000 /* GeofencesView.swift */; };
 		GFV10000000100000000003 /* GeofencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = GFV10000000000000000000 /* GeofencesView.swift */; };
 		KCM1ABCD0002000000000001 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = KCM1ABCD0000000000000001 /* KeychainManager.swift */; };
@@ -197,7 +199,9 @@
 		SVS10000000100000000002 /* SettingsView+Sections.swift in Sources */ = {isa = PBXBuildFile; fileRef = SVS10000000000000000000 /* SettingsView+Sections.swift */; };
 		SVS10000000100000000003 /* SettingsView+Sections.swift in Sources */ = {isa = PBXBuildFile; fileRef = SVS10000000000000000000 /* SettingsView+Sections.swift */; };
 		SVT10000000100000000002 /* SettingsView+TipJar.swift in Sources */ = {isa = PBXBuildFile; fileRef = SVT10000000000000000000 /* SettingsView+TipJar.swift */; };
+		CBV10000000100000000002 /* ContactBackupsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBV10000000000000000000 /* ContactBackupsView.swift */; };
 		SVT10000000100000000003 /* SettingsView+TipJar.swift in Sources */ = {isa = PBXBuildFile; fileRef = SVT10000000000000000000 /* SettingsView+TipJar.swift */; };
+		CBV10000000100000000003 /* ContactBackupsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBV10000000000000000000 /* ContactBackupsView.swift */; };
 		SYN60000000100000000002 /* SyncedSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = SYN60000000000000000001 /* SyncedSettings.swift */; };
 		SYN60000000100000000003 /* SyncedSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = SYN60000000000000000001 /* SyncedSettings.swift */; };
 		TCK70000000100000000002 /* TelemetryCloudSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = TCK70000000000000000001 /* TelemetryCloudSync.swift */; };
@@ -340,6 +344,7 @@
 		F6BA0593D517B1467DBC1C42 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		FWC10000000000000000000 /* Services/FirmwareUpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/FirmwareUpdateChecker.swift; sourceTree = "<group>"; };
 		GFN10000000000000000000 /* GeofenceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeofenceStore.swift; sourceTree = "<group>"; };
+		CBK10000000000000000000 /* ContactBackupStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactBackupStore.swift; sourceTree = "<group>"; };
 		GFV10000000000000000000 /* GeofencesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeofencesView.swift; sourceTree = "<group>"; };
 		KCM1ABCD0000000000000001 /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
 		LNK10000000000000000000 /* Services/LinkPreviewService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/LinkPreviewService.swift; sourceTree = "<group>"; };
@@ -368,6 +373,7 @@
 		SVR10000000000000000000 /* SettingsView+RadioPrivacy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SettingsView+RadioPrivacy.swift"; sourceTree = "<group>"; };
 		SVS10000000000000000000 /* SettingsView+Sections.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SettingsView+Sections.swift"; sourceTree = "<group>"; };
 		SVT10000000000000000000 /* SettingsView+TipJar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SettingsView+TipJar.swift"; sourceTree = "<group>"; };
+		CBV10000000000000000000 /* ContactBackupsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactBackupsView.swift; sourceTree = "<group>"; };
 		SYN60000000000000000001 /* SyncedSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncedSettings.swift; sourceTree = "<group>"; };
 		TCK70000000000000000001 /* TelemetryCloudSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetryCloudSync.swift; sourceTree = "<group>"; };
 		USB10000000000000000000 /* USBSerialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = USBSerialView.swift; sourceTree = "<group>"; };
@@ -519,6 +525,7 @@
 				SVS10000000000000000000 /* SettingsView+Sections.swift */,
 				SVR10000000000000000000 /* SettingsView+RadioPrivacy.swift */,
 				SVT10000000000000000000 /* SettingsView+TipJar.swift */,
+				CBV10000000000000000000 /* ContactBackupsView.swift */,
 				SVE10000000000000000000 /* SettingsView+Editors.swift */,
 				LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */,
 				RMC10000000000000000000 /* RemoteManagementView+ConfigSections.swift */,
@@ -679,6 +686,7 @@
 				9B4226DA6FB1C6225C757D16 /* WatchUnlockManager.swift */,
 				TCK70000000000000000001 /* TelemetryCloudSync.swift */,
 				GFN10000000000000000000 /* GeofenceStore.swift */,
+				CBK10000000000000000000 /* ContactBackupStore.swift */,
 			);
 			path = Stores;
 			sourceTree = "<group>";
@@ -971,6 +979,7 @@
 				SVS10000000100000000002 /* SettingsView+Sections.swift in Sources */,
 				SVR10000000100000000002 /* SettingsView+RadioPrivacy.swift in Sources */,
 				SVT10000000100000000002 /* SettingsView+TipJar.swift in Sources */,
+				CBV10000000100000000002 /* ContactBackupsView.swift in Sources */,
 				SVE10000000100000000002 /* SettingsView+Editors.swift in Sources */,
 				96059FF0363E830C376C23ED /* Theme.swift in Sources */,
 				XUOVAQ6Y1NIWH1G3OMK55ENV /* RemoteManagementView.swift in Sources */,
@@ -1013,6 +1022,7 @@
 				0FD96D4B2F84A8CD0026DF54 /* RFMonitorStore.swift in Sources */,
 				0F29C3E32F84863E0007BF08 /* LineOfSight/PointSelectionView.swift in Sources */,
 				GFN10000000100000000002 /* GeofenceStore.swift in Sources */,
+				CBK10000000100000000002 /* ContactBackupStore.swift in Sources */,
 				GFV10000000100000000002 /* GeofencesView.swift in Sources */,
 				DSB10000000100000000002 /* DistressBeaconView.swift in Sources */,
 				WGS10000000100000000002 /* WidgetState.swift in Sources */,
@@ -1062,6 +1072,7 @@
 				SVS10000000100000000003 /* SettingsView+Sections.swift in Sources */,
 				SVR10000000100000000003 /* SettingsView+RadioPrivacy.swift in Sources */,
 				SVT10000000100000000003 /* SettingsView+TipJar.swift in Sources */,
+				CBV10000000100000000003 /* ContactBackupsView.swift in Sources */,
 				SVE10000000100000000003 /* SettingsView+Editors.swift in Sources */,
 				FAA4FA7E3E52FCF631D55675 /* Theme.swift in Sources */,
 				CATKUXG25PTVMENJWXQZY49X /* RemoteManagementView.swift in Sources */,
@@ -1104,6 +1115,7 @@
 				0FD96D4C2F84A8CD0026DF54 /* RFMonitorStore.swift in Sources */,
 				0F29C3DB2F84863E0007BF08 /* LineOfSight/PointSelectionView.swift in Sources */,
 				GFN10000000100000000003 /* GeofenceStore.swift in Sources */,
+				CBK10000000100000000003 /* ContactBackupStore.swift in Sources */,
 				GFV10000000100000000003 /* GeofencesView.swift in Sources */,
 				DSB10000000100000000003 /* DistressBeaconView.swift in Sources */,
 				WGS10000000100000000003 /* WidgetState.swift in Sources */,

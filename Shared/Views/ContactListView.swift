@@ -626,7 +626,17 @@ private extension ContactListView {
                 }
                 Button("Cancel", role: .cancel) {}
             } message: {
-                Text("This will remove the selected contacts from the device. This cannot be undone.")
+                // Deliberately specific about the scale, because the harm here
+                // is deleting far more than intended: contacts live on the
+                // radio, and the only other way back is waiting for every node
+                // to advert again. The snapshot is what makes this reversible,
+                // so the message says so rather than the old, now untrue,
+                // "this cannot be undone".
+                if selectedContacts.count >= contactStore.contacts.count && selectedContacts.count > 1 {
+                    Text("This removes every contact on the radio. A backup is saved first — restore it from Settings \u{203A} Storage \u{203A} Contact Backups.")
+                } else {
+                    Text("Removes \(selectedContacts.count) of \(contactStore.contacts.count) contacts from the radio, with their messages and telemetry. A backup is saved first — restore it from Settings \u{203A} Storage \u{203A} Contact Backups.")
+                }
             }
     }
 }

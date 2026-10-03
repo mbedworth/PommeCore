@@ -30,6 +30,7 @@ struct SettingsView: View {
     @Environment(MessageStoreManager.self) var messageStoreManager
     #if !os(watchOS)
     @Environment(RFMonitorStore.self) var rfMonitorStore
+    @Environment(ContactBackupStore.self) var contactBackupStore
     #endif
     @AppStorage("batteryChemistry") var batteryChemistryRaw: String = BatteryChemistry.lipo.rawValue
     @AppStorage("appTheme") var appTheme: String = AppTheme.system.rawValue

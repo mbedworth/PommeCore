@@ -92,10 +92,18 @@ public struct Contact: Identifiable, Codable, Sendable, Hashable {
     /// Last time this contact advertised (epoch seconds).
     public var lastAdvert: UInt32
 
-    /// Advertised latitude (degrees × 1,000,000).
+    /// Advertised latitude in degrees.
+    ///
+    /// The protocol carries micro-degrees; the parser divides, so this is
+    /// already plain degrees and must be multiplied by 1,000,000 again on the
+    /// way back out.
     public let latitude: Double
 
-    /// Advertised longitude (degrees × 1,000,000).
+    /// Advertised longitude in degrees.
+    ///
+    /// The protocol carries micro-degrees; the parser divides, so this is
+    /// already plain degrees and must be multiplied by 1,000,000 again on the
+    /// way back out.
     public let longitude: Double
 
     /// Raw outbound path hashes (up to 64 bytes of routing data for trace route).
@@ -138,6 +146,40 @@ public struct Contact: Identifiable, Codable, Sendable, Hashable {
             longitude: longitude,
             lastmod: lastmod
         )
+    }
+
+    /// Tolerant decoder, per critical rule 2.
+    ///
+    /// The synthesized decoder refuses a record missing any single field,
+    /// which means one added field makes every older persisted contact
+    /// undecodable — and because contacts are decoded as an array, one bad
+    /// record takes the whole list with it. That is how a contact backup, the
+    /// only thing standing between a mistaken bulk delete and permanent loss,
+    /// would fail to load.
+    ///
+    /// `publicKey` is the only requirement: it is the identity everything else
+    /// is keyed by, so a record without it cannot be used for anything.
+    /// `ContactType` already decodes unknown values to `.unknown`.
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        publicKey = try c.decode(Data.self, forKey: .publicKey)
+        name = (try? c.decode(String.self, forKey: .name)) ?? ""
+        type = (try? c.decode(ContactType.self, forKey: .type)) ?? .unknown
+        flags = (try? c.decode(UInt8.self, forKey: .flags)) ?? 0
+        // -1 means "no path known", the correct assumption when unrecorded:
+        // a wrong path would route messages into a dead end, whereas no path
+        // floods and rediscovers.
+        outPathLen = (try? c.decode(Int8.self, forKey: .outPathLen)) ?? -1
+        outPath = (try? c.decode(Data.self, forKey: .outPath)) ?? Data()
+        lastAdvert = (try? c.decode(UInt32.self, forKey: .lastAdvert)) ?? 0
+        latitude = (try? c.decode(Double.self, forKey: .latitude)) ?? 0
+        longitude = (try? c.decode(Double.self, forKey: .longitude)) ?? 0
+        lastmod = (try? c.decode(UInt32.self, forKey: .lastmod)) ?? 0
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case publicKey, name, type, flags, outPathLen, outPath
+        case lastAdvert, latitude, longitude, lastmod
     }
 
     public init(

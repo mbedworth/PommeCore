@@ -310,8 +310,29 @@ extension SettingsView {
                 #endif
                 Button("Cancel", role: .cancel) {}
             }
+            #if !os(watchOS)
+            NavigationLink {
+                ContactBackupsView()
+            } label: {
+                HStack {
+                    Label("Contact Backups", systemImage: "clock.arrow.circlepath")
+                        .foregroundStyle(MeshTheme.accent)
+                    Spacer()
+                    Text(contactBackupStore.backups.isEmpty
+                         ? String(localized: "None")
+                         : "\(contactBackupStore.backups.count)")
+                        .font(.caption)
+                        .foregroundStyle(MeshTheme.textSecondary)
+                }
+            }
+            .listRowBackground(MeshTheme.surface)
+            #endif
         } header: {
             sectionInfoHeader("Storage", info: "Maximum messages stored on this device per contact. Oldest are pruned automatically. iCloud syncs the last 50 per contact separately.")
+        } footer: {
+            #if !os(watchOS)
+            Text("Contacts are saved automatically just before a bulk deletion, so a mistake can be undone \u{2014} they cannot otherwise be recovered once removed from the radio.")
+            #endif
         }
     }
 

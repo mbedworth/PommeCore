@@ -121,6 +121,11 @@ final class PommeCoreViewModel: ObservableObject {
     }()
     let telemetryCloudSync = TelemetryCloudSync()
     let geofenceStore = GeofenceStore()
+    let contactBackupStore: ContactBackupStore = {
+        let store = ContactBackupStore()
+        store.load()
+        return store
+    }()
     #endif
     #if os(iOS)
     let phoneWatchRelay = PhoneWatchRelay()
@@ -215,7 +220,13 @@ final class PommeCoreViewModel: ObservableObject {
         }
         contactStore.postEventNotification = { [weak self] title, body, threadId in self?.postEventNotification(title: title, body: body, threadId: threadId) }
         contactStore.radioPublicKeyHexProvider = { [weak self] in self?.deviceConfig.publicKeyHex ?? "" }
-        
+        #if !os(watchOS)
+        // Synchronous on purpose: the snapshot has to be on disk before the
+        // first removal frame leaves, or it cannot protect the thing it is
+        // taken for.
+        contactStore.backupContacts = { [weak self] backup in self?.contactBackupStore.write(backup) }
+        #endif
+
         // ChannelStore dependencies
         channelStore.sendCommand = { [weak self] data, label in self?.connectionManager.sendCommand(data, label: label) }
         channelStore.clearChannelMessages = { [weak self] key in
