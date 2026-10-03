@@ -157,6 +157,24 @@ Run with `./scripts/meshctl.sh smoke`, which talks to the radio over BLE with th
 service UUIDs and frame format as the app. `--target <pubkey-prefix>` adds a remote
 telemetry request.
 
+### 2026-10-02 (second run) — after the BLE and deframing changes
+
+Re-run on the same node after round 2 of the code audit, which touched the BLE
+delegate path and replaced both stream transports' frame scanning with shared
+code. 9 checks passed, 0 failed — same assertions as the first run.
+
+Two differences from the morning run, both benign:
+
+- MCU temperature read 26.0 °C rather than 43.7 °C. The radio had been idle
+  rather than driving an active BLE connection, so this is the expected
+  direction and a useful sanity check that the value is a live reading and not
+  a cached constant.
+- Contact count was 73 rather than 103. Nothing in the app removes contacts
+  from a radio except an explicit user delete; the companion firmware evicts
+  old contacts when its store fills, which the app already surfaces via
+  `ERR`/contact-removed handling. Worth a glance if it keeps falling, but not
+  attributable to the audit changes.
+
 ### 2026-10-02 — Heltec Mesh Pocket, companion `v1.17.1-d929643`
 
 9 checks passed, 0 failed.
