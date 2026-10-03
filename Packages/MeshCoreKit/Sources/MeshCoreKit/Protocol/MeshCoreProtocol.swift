@@ -286,11 +286,26 @@ public enum MeshCoreProtocol {
         return frame
     }
 
+    /// Degrees to the protocol's micro-degree `Int32`.
+    ///
+    /// Every frame carrying a position needs this, and the obvious
+    /// `Int32(degrees * 1_000_000)` traps on NaN, infinity, or anything beyond
+    /// `Int32` — turning a bad coordinate into a crash. Coordinates reach these
+    /// builders from text fields, location services and persisted files, none
+    /// of which are guaranteed to be sane, so the conversion clamps to zero
+    /// (the protocol's "no position") instead.
+    public static func microDegrees(_ degrees: Double) -> Int32 {
+        guard degrees.isFinite else { return 0 }
+        let scaled = (degrees * 1_000_000).rounded()
+        guard scaled >= Double(Int32.min), scaled <= Double(Int32.max) else { return 0 }
+        return Int32(scaled)
+    }
+
     /// CMD_SET_ADVERT_LATLON (code 14). Lat/lon encoded as int32 × 1,000,000.
     public static func buildSetAdvertLatLon(latitude: Double, longitude: Double) -> Data {
         var frame = Data([MeshCoreCommand.setAdvertLatLon.rawValue])
-        appendInt32(&frame, Int32(latitude * 1_000_000))
-        appendInt32(&frame, Int32(longitude * 1_000_000))
+        appendInt32(&frame, microDegrees(latitude))
+        appendInt32(&frame, microDegrees(longitude))
         return frame
     }
 

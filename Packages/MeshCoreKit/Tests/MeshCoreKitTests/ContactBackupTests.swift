@@ -197,20 +197,38 @@ final class ContactBackupTests: XCTestCase {
     // MARK: - Coordinate conversion
 
     func testCoordinatesConvertToMicroDegrees() {
-        XCTAssertEqual(ContactBackup.microDegrees(51.5074), 51_507_400)
-        XCTAssertEqual(ContactBackup.microDegrees(-0.1278), -127_800)
-        XCTAssertEqual(ContactBackup.microDegrees(0), 0)
+        XCTAssertEqual(MeshCoreProtocol.microDegrees(51.5074), 51_507_400)
+        XCTAssertEqual(MeshCoreProtocol.microDegrees(-0.1278), -127_800)
+        XCTAssertEqual(MeshCoreProtocol.microDegrees(0), 0)
     }
 
-    /// The crash that must not happen: restore is the recovery path, so a
-    /// nonsense coordinate in a corrupt file has to become "no position", not
-    /// a trap.
+    /// The crash that must not happen: coordinates reach the builders from
+    /// text fields, location services and persisted files, so a nonsense value
+    /// has to become "no position" rather than a trap — and on the restore
+    /// path, a crash would be in the one place meant to recover from a
+    /// mistake.
     func testNonFiniteAndOutOfRangeCoordinatesBecomeZero() {
-        XCTAssertEqual(ContactBackup.microDegrees(.nan), 0)
-        XCTAssertEqual(ContactBackup.microDegrees(.infinity), 0)
-        XCTAssertEqual(ContactBackup.microDegrees(-.infinity), 0)
-        XCTAssertEqual(ContactBackup.microDegrees(1e12), 0)
-        XCTAssertEqual(ContactBackup.microDegrees(-1e12), 0)
+        XCTAssertEqual(MeshCoreProtocol.microDegrees(.nan), 0)
+        XCTAssertEqual(MeshCoreProtocol.microDegrees(.infinity), 0)
+        XCTAssertEqual(MeshCoreProtocol.microDegrees(-.infinity), 0)
+        XCTAssertEqual(MeshCoreProtocol.microDegrees(1e12), 0)
+        XCTAssertEqual(MeshCoreProtocol.microDegrees(-1e12), 0)
+    }
+
+    /// Every position-carrying frame shares the conversion, so the builder a
+    /// user's typed coordinates reach must be guarded too.
+    func testSetAdvertLatLonSurvivesANonsenseCoordinate() {
+        let frame = MeshCoreProtocol.buildSetAdvertLatLon(latitude: .nan, longitude: 1e300)
+        XCTAssertEqual(frame.count, 9, "code byte plus two int32s")
+        XCTAssertEqual(frame[1..<9], Data(repeating: 0, count: 8), "both clamp to no position")
+    }
+
+    func testSetAdvertLatLonEncodesARealCoordinate() {
+        let frame = MeshCoreProtocol.buildSetAdvertLatLon(latitude: 51.5074, longitude: -0.1278)
+        let lat = frame[1..<5].withUnsafeBytes { $0.loadUnaligned(as: Int32.self) }
+        let lon = frame[5..<9].withUnsafeBytes { $0.loadUnaligned(as: Int32.self) }
+        XCTAssertEqual(lat.littleEndian, 51_507_400)
+        XCTAssertEqual(lon.littleEndian, -127_800)
     }
 
     func testBuildingFramesSurvivesACorruptCoordinate() {

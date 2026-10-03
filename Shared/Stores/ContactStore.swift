@@ -69,6 +69,28 @@ final class ContactStore {
     /// Closure to get the connected radio's public key hex (for per-radio data isolation).
     var radioPublicKeyHexProvider: (() -> String)?
 
+    /// Surfaces a message to the user (wired to `ConnectionManager.lastErrorMessage`).
+    var reportError: ((String) -> Void)?
+
+    // MARK: - Removal verification
+
+    /// A bulk removal awaiting confirmation from the radio.
+    private struct PendingRemovalVerification {
+        let keys: Set<Data>
+        let contacts: [Contact]
+        let pass: Int
+    }
+
+    private var pendingRemovalVerification: PendingRemovalVerification?
+
+    /// How many times to re-send dropped removals before telling the user.
+    ///
+    /// Three because hardware showed a single unpaced burst losing half its
+    /// writes: one retry could plausibly drop again, while a path that keeps
+    /// retrying forever would hammer the radio over a removal it may be
+    /// refusing for a reason we cannot see.
+    private static let maxRemovalVerificationPasses = 3
+
     // MARK: - Private State
 
     private let iCloudStore = NSUbiquitousKeyValueStore.default
@@ -637,8 +659,8 @@ final class ContactStore {
             outPath: contact.outPath,
             advName: contact.name,
             lastAdvert: contact.lastAdvert,
-            latitude: Int32(contact.latitude * 1_000_000),
-            longitude: Int32(contact.longitude * 1_000_000)
+            latitude: MeshCoreProtocol.microDegrees(contact.latitude),
+            longitude: MeshCoreProtocol.microDegrees(contact.longitude)
         )
         sendCommand?(frame, "UPDATE_CONTACT_FLAGS")
 
@@ -656,8 +678,8 @@ final class ContactStore {
             outPath: contact.outPath,
             advName: contact.name,
             lastAdvert: contact.lastAdvert,
-            latitude: Int32(contact.latitude * 1_000_000),
-            longitude: Int32(contact.longitude * 1_000_000)
+            latitude: MeshCoreProtocol.microDegrees(contact.latitude),
+            longitude: MeshCoreProtocol.microDegrees(contact.longitude)
         )
         sendCommand?(frame, "UPDATE_CONTACT_FLAGS")
 
@@ -777,26 +799,95 @@ final class ContactStore {
     /// be tightened with `scripts/meshctl.sh` against real hardware.
     private func sendRemoveContactFrames(for toRemove: [Contact]) {
         Task { @MainActor [weak self] in
-            for (offset, contact) in toRemove.enumerated() {
-                guard let self else { return }
-                let frame = MeshCoreProtocol.buildRemoveContact(publicKey: contact.publicKey)
-                self.sendCommand?(frame, "REMOVE_CONTACT")
-                if offset < toRemove.count - 1 {
-                    try? await Task.sleep(nanoseconds: 150_000_000)
-                }
-            }
-            // Let the firmware finish committing the last removal before
-            // asking it to enumerate everything. Requesting the sync straight
-            // after the final frame let the removal responses interleave with
-            // the contact stream, so the sync delivered fewer contacts than it
-            // announced — which is how a bulk delete came to look like it had
-            // deleted every contact.
-            try? await Task.sleep(nanoseconds: 1_000_000_000)
+            await self?.sendRemovalsAndVerify(toRemove, pass: 1)
+        }
+    }
 
-            // Reconcile against the radio: any removal the firmware missed
-            // brings that contact back, rather than leaving the two silently
-            // disagreeing.
-            self?.requestContacts(fullSync: true)
+    /// Send removals, then check the radio actually applied them, retrying any
+    /// it dropped.
+    ///
+    /// Hardware showed why this is needed (`meshctl bulkdelete`, firmware
+    /// v1.17.1): 60 removal frames written back to back left **30 contacts
+    /// still on the radio**. The firmware silently dropped half the writes,
+    /// and the following sync was internally consistent — it announced 33 and
+    /// delivered 33 — so nothing in the response said anything was wrong. The
+    /// user would simply have found half the contacts they deleted still
+    /// there.
+    ///
+    /// 150ms spacing avoided it completely at the same scale, but pacing is a
+    /// timing assumption about one firmware build on one radio, and the whole
+    /// point of the delete path is that its failures are expensive. So the
+    /// radio's own contact list is the signal: whatever is still present was
+    /// not removed, and gets asked again.
+    private func sendRemovalsAndVerify(_ toRemove: [Contact], pass: Int) async {
+        for (offset, contact) in toRemove.enumerated() {
+            let frame = MeshCoreProtocol.buildRemoveContact(publicKey: contact.publicKey)
+            sendCommand?(frame, "REMOVE_CONTACT")
+            if offset < toRemove.count - 1 {
+                try? await Task.sleep(nanoseconds: 150_000_000)
+            }
+        }
+
+        // Let the firmware commit the last removal before asking it to
+        // enumerate everything, so the removal responses are not still in
+        // flight when the contact stream starts.
+        try? await Task.sleep(nanoseconds: 1_000_000_000)
+
+        pendingRemovalVerification = PendingRemovalVerification(
+            keys: Set(toRemove.map(\.publicKeyPrefix)),
+            contacts: toRemove,
+            pass: pass
+        )
+        requestContacts(fullSync: true)
+    }
+
+    /// Re-send removals for anything the radio still reports.
+    ///
+    /// Called once a full sync completes, which is the only moment the radio's
+    /// actual contact list is known. Returns without acting when there is
+    /// nothing outstanding.
+    func verifyPendingRemovals() {
+        guard let pending = pendingRemovalVerification else { return }
+        pendingRemovalVerification = nil
+
+        let present = Set(contacts.map(\.publicKeyPrefix))
+        let survivors = pending.contacts.filter { present.contains($0.publicKeyPrefix) }
+        guard !survivors.isEmpty else {
+            if pending.pass > 1 {
+                Self.logger.info("Removal verification: all contacts removed after \(pending.pass) passes")
+            }
+            return
+        }
+
+        guard pending.pass < Self.maxRemovalVerificationPasses else {
+            // Out of retries. Say so plainly rather than leaving the user to
+            // discover it: the contacts are still on the radio, and the list
+            // now shown is the radio's truth, not a stale view.
+            Self.logger.error("Removal verification: \(survivors.count) contact(s) still present after \(pending.pass) passes — giving up")
+            DebugLogger.shared.log(
+                "\(survivors.count) contact(s) could not be removed — the radio still reports them. Try again.",
+                level: .warning
+            )
+            reportError?(String(
+                format: String(localized: "%d contacts could not be removed. The radio still has them — try deleting again."),
+                survivors.count
+            ))
+            return
+        }
+
+        Self.logger.warning("Removal verification: \(survivors.count) of \(pending.contacts.count) removals were dropped — retrying (pass \(pending.pass + 1))")
+        DebugLogger.shared.log(
+            "Radio still reports \(survivors.count) deleted contact(s) — resending removals",
+            level: .warning
+        )
+
+        // Drop them from the local list again: the sync that just completed
+        // put them back, and they are on their way out.
+        let survivorKeys = Set(survivors.map(\.publicKeyPrefix))
+        contacts.removeAll { survivorKeys.contains($0.publicKeyPrefix) }
+
+        Task { @MainActor [weak self] in
+            await self?.sendRemovalsAndVerify(survivors, pass: pending.pass + 1)
         }
     }
 
@@ -998,8 +1089,8 @@ final class ContactStore {
             outPath: pathData,
             advName: contact.name,
             lastAdvert: contact.lastAdvert,
-            latitude: Int32(contact.latitude * 1_000_000),
-            longitude: Int32(contact.longitude * 1_000_000)
+            latitude: MeshCoreProtocol.microDegrees(contact.latitude),
+            longitude: MeshCoreProtocol.microDegrees(contact.longitude)
         )
         sendCommand?(frame, "SET_CONTACT_PATH(len=\(pathLen))")
 
@@ -1082,9 +1173,16 @@ final class ContactStore {
 
         switch outcome {
         case .rejectTruncated(let received, let announced):
-            // The stream was cut short or interleaved with other traffic. The
-            // shortfall does not mean the radio forgot those contacts, so keep
-            // the list and let the next sync settle it.
+            // A shortfall against the announced count does not mean the radio
+            // forgot those contacts, so keep the list and let the next sync
+            // settle it.
+            //
+            // Not reproduced on hardware (firmware v1.17.1, `meshctl
+            // bulkdelete`): even an unpaced 60-contact deletion produced a
+            // self-consistent sync. The guard stays because the cost of being
+            // wrong is asymmetric — accepting a short list once cascaded into
+            // permanent data loss, while keeping a stale list self-corrects on
+            // the next sync.
             Self.logger.error("Full sync truncated: \(received) of \(announced) contacts — keeping existing list")
             DebugLogger.shared.log(
                 "Contacts sync incomplete (\(received)/\(announced)) — keeping existing contacts",
@@ -1117,6 +1215,13 @@ final class ContactStore {
         #if canImport(CoreSpotlight)
         indexContactsForSpotlight()
         #endif
+
+        // The radio's list is now known, which is the only moment a removal
+        // can be confirmed. Anything we asked it to delete that it still
+        // reports was dropped, not deleted.
+        if wasFullSync {
+            verifyPendingRemovals()
+        }
 
         // The orphan sweep is deliberately NOT run here. It used to be, on
         // every full sync, and that caused real data loss: a truncated sync
@@ -1295,6 +1400,10 @@ final class ContactStore {
         contactSyncDebounceTask?.cancel()
         isSyncingContacts = false
         isIncrementalContactSync = false
+        // An unconfirmed removal does not carry across connections: the next
+        // radio may be a different one, and its contacts are not ours to
+        // delete.
+        pendingRemovalVerification = nil
         lastContactsSync = 0
         incomingContacts = []
         pendingNewContacts = []
