@@ -17,6 +17,7 @@ struct ContactRowView: View {
     @Environment(ContactStore.self) private var contactStore
     @Environment(MessageStoreManager.self) private var messageStoreManager
     @Environment(RemoteSessionManager.self) private var remoteSessionManager
+    @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiateWithoutColor
 
     /// Passed from parent list — ticks every 30s to refresh relative time text.
     var refreshTick: Date = Date()
@@ -92,6 +93,20 @@ struct ContactRowView: View {
                 .frame(width: 40, height: 40)
             Image(systemName: iconName(for: contact.type))
                 .foregroundStyle(statusColor)
+
+            // Activity status is otherwise carried by the icon's tint alone,
+            // and active/offline are green against red — the most common
+            // colour confusion there is. Under Differentiate Without Color,
+            // add a glyph identifiable by silhouette. Top-leading, because
+            // bottom-trailing already carries the lock/key badge.
+            if differentiateWithoutColor {
+                Image(systemName: contactStore.contactStatusSymbol(for: liveContact))
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundStyle(statusColor)
+                    .padding(1)
+                    .background(Circle().fill(.background))
+                    .offset(x: -14, y: -14)
+            }
 
             if isManaged {
                 if loggedIn {

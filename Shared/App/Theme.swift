@@ -353,6 +353,46 @@ func meshAnimation(_ animation: Animation?) -> Animation? {
     isReduceMotionEnabled ? nil : animation
 }
 
+// MARK: - Status Indicator
+
+/// A status indicator that stays readable when colour cannot be relied on.
+///
+/// Status in this app was conveyed by colour alone — a tinted dot or a tinted
+/// icon. The two most consequential states, active and offline, were green
+/// against red, the single most common confusion for colour-blind users. With
+/// Differentiate Without Color enabled this renders a glyph whose silhouette
+/// identifies the state; otherwise it stays the plain coloured dot, so the
+/// familiar look is unchanged for everyone else.
+///
+/// Always carries the spoken status, so VoiceOver announces the state rather
+/// than describing a dot.
+struct StatusIndicator: View {
+    @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiateWithoutColor
+
+    let symbolName: String
+    let color: Color
+    let label: String
+    var size: CGFloat = 10
+
+    var body: some View {
+        indicator
+            .accessibilityLabel(Text(label))
+    }
+
+    @ViewBuilder
+    private var indicator: some View {
+        if differentiateWithoutColor {
+            Image(systemName: symbolName)
+                .font(.system(size: size + 1, weight: .semibold))
+                .foregroundStyle(color)
+        } else {
+            Circle()
+                .fill(color)
+                .frame(width: size, height: size)
+        }
+    }
+}
+
 // MARK: - Feedback Utility
 
 /// Set a Bool binding to true, then reset to false after a delay. Animates both

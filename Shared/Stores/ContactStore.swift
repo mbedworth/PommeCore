@@ -241,6 +241,39 @@ final class ContactStore {
 
     enum ContactStatus {
         case active, recent, stale, offline
+
+        /// Status colour, per the colour standards in the development guide.
+        var color: Color {
+            switch self {
+            case .active: return .green
+            case .recent: return .yellow
+            case .stale: return .gray
+            case .offline: return .red
+            }
+        }
+
+        /// A glyph distinguishable by silhouette alone, for Differentiate
+        /// Without Color. Status was previously carried by colour only, which
+        /// is invisible to the ~8% of men with red/green colour blindness —
+        /// and active/offline were exactly green against red.
+        var symbolName: String {
+            switch self {
+            case .active: return "checkmark.circle.fill"
+            case .recent: return "clock.fill"
+            case .stale: return "moon.zzz.fill"
+            case .offline: return "xmark.circle.fill"
+            }
+        }
+
+        /// Spoken description for VoiceOver.
+        var label: String {
+            switch self {
+            case .active: return String(localized: "active")
+            case .recent: return String(localized: "recently seen")
+            case .stale: return String(localized: "stale")
+            case .offline: return String(localized: "offline")
+            }
+        }
     }
 
     func contactStatus(for contact: Contact) -> ContactStatus {
@@ -264,21 +297,16 @@ final class ContactStore {
     }
 
     func contactStatusColor(for contact: Contact) -> Color {
-        switch contactStatus(for: contact) {
-        case .active: return .green
-        case .recent: return .yellow
-        case .stale: return .gray
-        case .offline: return .red
-        }
+        contactStatus(for: contact).color
     }
 
     func contactStatusLabel(for contact: Contact) -> String {
-        switch contactStatus(for: contact) {
-        case .active: return "active"
-        case .recent: return "recently seen"
-        case .stale: return "stale"
-        case .offline: return "offline"
-        }
+        contactStatus(for: contact).label
+    }
+
+    /// Glyph for this contact's status, for Differentiate Without Color.
+    func contactStatusSymbol(for contact: Contact) -> String {
+        contactStatus(for: contact).symbolName
     }
 
     // MARK: - Contact Notes

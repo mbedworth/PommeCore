@@ -760,9 +760,12 @@ struct ForwardContactPicker: View {
                     onSelect(contact)
                 } label: {
                     HStack(spacing: 10) {
-                        Circle()
-                            .fill(contactStore.contactStatusColor(for: contact))
-                            .frame(width: 8, height: 8)
+                        StatusIndicator(
+                            symbolName: contactStore.contactStatusSymbol(for: contact),
+                            color: contactStore.contactStatusColor(for: contact),
+                            label: contactStore.contactStatusLabel(for: contact),
+                            size: 8
+                        )
                         Text(contactStore.displayName(for: contact))
                             .foregroundStyle(MeshTheme.textPrimary)
                     }
