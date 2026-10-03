@@ -1001,53 +1001,51 @@ final class ContactStore {
     func handleEndOfContacts(lastmod: UInt32) -> Bool {
         Self.logger.info("Contacts sync complete: \(self.incomingContacts.count) contacts, lastmod=\(lastmod), incremental=\(self.isIncrementalContactSync)")
         DebugLogger.shared.log("Contacts done: \(self.incomingContacts.count) synced", level: .info)
-        // A full sync replaces the contact list wholesale, so it must be known
-        // complete before it is believed. RESP_CODE_CONTACTS_START announces
-        // the count; if fewer arrive, the sync was truncated or interleaved
-        // with other traffic, and accepting it silently discards contacts that
-        // still exist on the radio. Keep what we have and let the next sync
-        // settle it.
-        let announced = Int(expectedContactCount)
-        let truncated = !isIncrementalContactSync && announced > 0 && incomingContacts.count < announced
-        if truncated {
-            Self.logger.error("Full sync truncated: \(self.incomingContacts.count) of \(announced) contacts — keeping existing list")
-            DebugLogger.shared.log(
-                "Contacts sync incomplete (\(incomingContacts.count)/\(announced)) — keeping existing contacts",
-                level: .warning
-            )
-            incomingContacts = []
-            isIncrementalContactSync = false
-            isSyncingContacts = false
-            expectedContactCount = 0
-            return false
-        }
+        // What a finished sync means for the stored list is decided by
+        // ContactSyncReducer, in MeshCoreKit, where it is covered by tests.
+        // It used to be inline here, in the app target, out of reach of the
+        // test suite — and it shipped a data-loss bug.
+        let outcome = ContactSyncReducer.reduce(
+            existing: contacts,
+            incoming: incomingContacts,
+            announced: Int(expectedContactCount),
+            isIncremental: isIncrementalContactSync
+        )
 
-        if isIncrementalContactSync {
-            if !incomingContacts.isEmpty {
-                // Dictionary-based merge: O(n+m) instead of O(n*m)
-                var indexByPrefix: [Data: Int] = [:]
-                for (i, c) in contacts.enumerated() {
-                    indexByPrefix[c.publicKeyPrefix] = i
-                }
-                var merged = contacts
-                for incoming in incomingContacts {
-                    if let idx = indexByPrefix[incoming.publicKeyPrefix] {
-                        merged[idx] = incoming
-                    } else {
-                        indexByPrefix[incoming.publicKeyPrefix] = merged.count
-                        merged.append(incoming)
-                    }
-                }
-                contacts = merged
-            }
-        } else {
-            contacts = incomingContacts
-        }
-        incomingContacts = []
-        lastContactsSync = lastmod
         let wasFullSync = !isIncrementalContactSync
+        incomingContacts = []
         isIncrementalContactSync = false
         isSyncingContacts = false
+        expectedContactCount = 0
+
+        switch outcome {
+        case .rejectTruncated(let received, let announced):
+            // The stream was cut short or interleaved with other traffic. The
+            // shortfall does not mean the radio forgot those contacts, so keep
+            // the list and let the next sync settle it.
+            Self.logger.error("Full sync truncated: \(received) of \(announced) contacts — keeping existing list")
+            DebugLogger.shared.log(
+                "Contacts sync incomplete (\(received)/\(announced)) — keeping existing contacts",
+                level: .warning
+            )
+            return false
+
+        case .rejectUnverifiable:
+            Self.logger.error("Full sync would have emptied the contact list with no announced count — keeping existing list")
+            DebugLogger.shared.log("Contacts sync returned none and announced none — keeping existing contacts", level: .warning)
+            return false
+
+        case .noChange:
+            lastContactsSync = lastmod
+            return wasFullSync
+
+        case .merge(let result), .replace(let result):
+            contacts = result
+            lastContactsSync = lastmod
+            // Only `.replace` is authoritative; nothing below deletes data
+            // keyed by contact, and nothing here may start doing so without
+            // checking for that case specifically.
+        }
 
         // Record position history for contacts with coordinates
         for contact in contacts {
@@ -1058,18 +1056,16 @@ final class ContactStore {
         indexContactsForSpotlight()
         #endif
 
-        expectedContactCount = 0
-
         // The orphan sweep is deliberately NOT run here. It used to be, on
         // every full sync, and that caused real data loss: a truncated sync
         // was accepted as authoritative, and the sweep then permanently
         // deleted messages, nicknames, notes, position trails, mute state and
-        // telemetry for every contact missing from it. The guard above stops
+        // telemetry for every contact missing from it. The reducer now stops
         // the truncated sync, but a destructive maintenance pass should not
         // depend on a single guard holding for its safety — the downside is
         // unrecoverable and the upside is reclaiming a few hundred kilobytes.
-        // It is now user-initiated from Settings, which also lets the user see
-        // what it found before anything is removed.
+        // It is user-initiated, which also lets the user see what it found
+        // before anything is removed.
 
         return wasFullSync
     }
