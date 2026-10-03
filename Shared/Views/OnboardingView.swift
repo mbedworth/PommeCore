@@ -33,14 +33,14 @@ struct OnboardingView: View {
             .tabViewStyle(.page(indexDisplayMode: .never))
             #endif
             .background(MeshTheme.background)
-            .animation(.easeInOut, value: currentPage)
+            .animation(meshAnimation(.easeInOut), value: currentPage)
 
             // Skip button (top-right, all pages except last)
             if currentPage < lastPage {
                 HStack {
                     Spacer()
                     Button {
-                        withAnimation { hasCompletedOnboarding = true }
+                        withMeshAnimation { hasCompletedOnboarding = true }
                     } label: {
                         Text("Skip")
                             .font(.subheadline)
@@ -215,7 +215,7 @@ struct OnboardingView: View {
             #if !os(watchOS)
             if navigateToSettings != nil {
                 Button {
-                    withAnimation { hasCompletedOnboarding = true }
+                    withMeshAnimation { hasCompletedOnboarding = true }
                     navigateToSettings?()
                 } label: {
                     Text("Open Settings Now")
@@ -252,7 +252,7 @@ struct OnboardingView: View {
                 .padding(.horizontal, 32)
             Spacer()
             Button {
-                withAnimation { hasCompletedOnboarding = true }
+                withMeshAnimation { hasCompletedOnboarding = true }
             } label: {
                 Text("Get Started")
                     .font(.headline)
@@ -303,7 +303,7 @@ struct OnboardingView: View {
         HStack(spacing: 20) {
             // Back arrow
             Button {
-                withAnimation { currentPage = max(0, currentPage - 1) }
+                withMeshAnimation { currentPage = max(0, currentPage - 1) }
             } label: {
                 Image(systemName: "chevron.left.circle.fill")
                     .font(.title2)
@@ -324,9 +324,9 @@ struct OnboardingView: View {
             // Forward arrow
             Button {
                 if currentPage < lastPage {
-                    withAnimation { currentPage += 1 }
+                    withMeshAnimation { currentPage += 1 }
                 } else {
-                    withAnimation { hasCompletedOnboarding = true }
+                    withMeshAnimation { hasCompletedOnboarding = true }
                 }
             } label: {
                 Image(systemName: "chevron.right.circle.fill")

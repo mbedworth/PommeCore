@@ -53,6 +53,12 @@ final class ContactStore {
     var clearMessagesForContact: ((Data) -> Void)?
     /// Drops a deleted contact's telemetry history (wired to RFMonitorStore).
     var clearTelemetryForContact: ((Data) -> Void)?
+    /// Drops telemetry for every contact outside the given live key-prefix set,
+    /// returning how many were removed.
+    var purgeOrphanedTelemetry: ((Set<Data>) -> Int)?
+    /// Drops persisted messages and drafts for every contact outside the given
+    /// live key-prefix set, returning how many were removed.
+    var purgeOrphanedMessages: ((Set<Data>) -> Int)?
 
     /// Closure to post an event notification.
     var postEventNotification: ((String, String, String) -> Void)?
@@ -241,6 +247,39 @@ final class ContactStore {
 
     enum ContactStatus {
         case active, recent, stale, offline
+
+        /// Status colour, per the colour standards in the development guide.
+        var color: Color {
+            switch self {
+            case .active: return .green
+            case .recent: return .yellow
+            case .stale: return .gray
+            case .offline: return .red
+            }
+        }
+
+        /// A glyph distinguishable by silhouette alone, for Differentiate
+        /// Without Color. Status was previously carried by colour only, which
+        /// is invisible to the ~8% of men with red/green colour blindness —
+        /// and active/offline were exactly green against red.
+        var symbolName: String {
+            switch self {
+            case .active: return "checkmark.circle.fill"
+            case .recent: return "clock.fill"
+            case .stale: return "moon.zzz.fill"
+            case .offline: return "xmark.circle.fill"
+            }
+        }
+
+        /// Spoken description for VoiceOver.
+        var label: String {
+            switch self {
+            case .active: return String(localized: "active")
+            case .recent: return String(localized: "recently seen")
+            case .stale: return String(localized: "stale")
+            case .offline: return String(localized: "offline")
+            }
+        }
     }
 
     func contactStatus(for contact: Contact) -> ContactStatus {
@@ -264,21 +303,16 @@ final class ContactStore {
     }
 
     func contactStatusColor(for contact: Contact) -> Color {
-        switch contactStatus(for: contact) {
-        case .active: return .green
-        case .recent: return .yellow
-        case .stale: return .gray
-        case .offline: return .red
-        }
+        contactStatus(for: contact).color
     }
 
     func contactStatusLabel(for contact: Contact) -> String {
-        switch contactStatus(for: contact) {
-        case .active: return "active"
-        case .recent: return "recently seen"
-        case .stale: return "stale"
-        case .offline: return "offline"
-        }
+        contactStatus(for: contact).label
+    }
+
+    /// Glyph for this contact's status, for Differentiate Without Color.
+    func contactStatusSymbol(for contact: Contact) -> String {
+        contactStatus(for: contact).symbolName
     }
 
     // MARK: - Contact Notes
@@ -635,7 +669,83 @@ final class ContactStore {
         let frame = MeshCoreProtocol.buildRemoveContact(publicKey: contact.publicKey)
         sendCommand?(frame, "REMOVE_CONTACT")
         contacts.removeAll { $0.publicKeyPrefix == contact.publicKeyPrefix }
-        purgeLocalData(for: contact)
+        var dirty = PurgedStores()
+        purgeLocalData(for: contact, dirty: &dirty)
+        flushPurgeSaves(dirty)
+    }
+
+    /// Remove several contacts in one pass.
+    ///
+    /// Deleting in a loop over `removeContact` was correct but wasteful and
+    /// unreliable at scale. Each call re-saved the entire position-history
+    /// file and wrote to iCloud, so removing 50 contacts meant 50 encodes of
+    /// the whole history and 50 key-value writes; and each sent its removal
+    /// frame immediately, so the radio received a burst of 50 writes with no
+    /// pacing or flow control, which can silently drop some. Dropped removals
+    /// are invisible until the next sync, when the contact reappears.
+    ///
+    /// This mutates `contacts` once, purges all local data with the saves
+    /// coalesced to one per store, and paces the outgoing frames.
+    func removeContacts(_ toRemove: [Contact]) {
+        guard toRemove.count > 1 else {
+            if let only = toRemove.first { removeContact(only) }
+            return
+        }
+
+        let prefixes = Set(toRemove.map(\.publicKeyPrefix))
+        contacts.removeAll { prefixes.contains($0.publicKeyPrefix) }
+
+        var dirty = PurgedStores()
+        for contact in toRemove {
+            purgeLocalData(for: contact, dirty: &dirty)
+        }
+        flushPurgeSaves(dirty)
+
+        Self.logger.info("Bulk remove: \(toRemove.count) contacts")
+        DebugLogger.shared.log("Removing \(toRemove.count) contacts", level: .tx)
+        sendRemoveContactFrames(for: toRemove)
+    }
+
+    /// Send CMD_REMOVE_CONTACT for each contact, spaced out.
+    ///
+    /// Binary frames are written straight to the transport with no queue or
+    /// pacing, unlike the CLI path. Each removal makes the firmware update its
+    /// persistent contact store, so a tight burst risks writes being dropped.
+    /// The interval is deliberately conservative rather than measured; it can
+    /// be tightened with `scripts/meshctl.sh` against real hardware.
+    private func sendRemoveContactFrames(for toRemove: [Contact]) {
+        Task { @MainActor [weak self] in
+            for (offset, contact) in toRemove.enumerated() {
+                guard let self else { return }
+                let frame = MeshCoreProtocol.buildRemoveContact(publicKey: contact.publicKey)
+                self.sendCommand?(frame, "REMOVE_CONTACT")
+                if offset < toRemove.count - 1 {
+                    try? await Task.sleep(nanoseconds: 150_000_000)
+                }
+            }
+            // Reconcile against the radio: any removal the firmware missed
+            // brings that contact back, rather than leaving the two silently
+            // disagreeing.
+            self?.requestContacts(fullSync: true)
+        }
+    }
+
+    /// Which persisted stores a purge touched, so saves happen once rather
+    /// than once per contact.
+    private struct PurgedStores {
+        var positionHistory = false
+        var muted = false
+        var nicknames = false
+        var notes = false
+        var groups = false
+    }
+
+    private func flushPurgeSaves(_ dirty: PurgedStores) {
+        if dirty.positionHistory { savePositionHistory() }
+        if dirty.muted { saveMutedContactsToiCloud() }
+        if dirty.nicknames { saveNicknamesToiCloud() }
+        if dirty.notes { saveContactNotesToiCloud() }
+        if dirty.groups { saveContactGroupsToiCloud() }
     }
 
     /// Remove every piece of per-contact state the app persists.
@@ -649,31 +759,102 @@ final class ContactStore {
     ///
     /// Add to this function whenever a new per-contact collection is
     /// introduced.
-    private func purgeLocalData(for contact: Contact) {
+    ///
+    /// Records which stores it touched in `dirty` rather than saving as it
+    /// goes, so a bulk delete writes each store once instead of once per
+    /// contact. Callers must finish with `flushPurgeSaves`.
+    private func purgeLocalData(for contact: Contact, dirty: inout PurgedStores) {
         let key = contact.publicKey.hexCompact
 
-        setNickname("", for: contact)
-        setNote("", for: contact)
+        // Mutated directly rather than through setNickname/setNote, which save
+        // on every call.
+        if nicknames.removeValue(forKey: key) != nil { dirty.nicknames = true }
+        if contactNotes.removeValue(forKey: key) != nil { dirty.notes = true }
+
         clearMessagesForContact?(contact.publicKeyPrefix)
-        clearTelemetryForContact?(contact.publicKey)
+        // Telemetry is keyed by the 6-byte prefix, matching the recordTelemetry
+        // call site — not by the full public key, which never matches.
+        clearTelemetryForContact?(contact.publicKeyPrefix)
 
-        if positionHistory.removeValue(forKey: key) != nil {
-            savePositionHistory()
-        }
-        if mutedContacts.remove(key) != nil {
-            saveMutedContactsToiCloud()
-        }
+        if positionHistory.removeValue(forKey: key) != nil { dirty.positionHistory = true }
+        if mutedContacts.remove(key) != nil { dirty.muted = true }
 
-        var groupsChanged = false
         for index in contactGroups.indices where contactGroups[index].memberPubkeys.contains(key) {
             contactGroups[index].memberPubkeys.removeAll { $0 == key }
-            groupsChanged = true
-        }
-        if groupsChanged {
-            saveContactGroupsToiCloud()
+            dirty.groups = true
         }
 
         removeContactFromSpotlight(pubkeyHex: key)
+    }
+
+    /// Remove persisted per-contact data that no longer has a contact.
+    ///
+    /// Per-contact cleanup on delete only helps contacts deleted from now on.
+    /// Anything removed before it existed left its position trail, mute state,
+    /// group membership, nickname, note and telemetry behind, and nothing ever
+    /// collected them. This reconciles what is persisted against the live
+    /// contact list and drops the remainder.
+    ///
+    /// **Only safe after a full contact sync.** The contact list is the
+    /// authority here, so running this against a partial list would delete
+    /// live data. The caller must have just replaced `contacts` wholesale from
+    /// the radio, and an empty list is refused outright — a wiped or
+    /// unreachable radio must not take the user's history with it.
+    ///
+    /// Idempotent: a second run over clean data removes nothing.
+    @discardableResult
+    func purgeOrphanedData() -> Int {
+        guard !contacts.isEmpty else {
+            Self.logger.info("Orphan sweep skipped — no contacts, refusing to treat that as authoritative")
+            return 0
+        }
+
+        let liveHexKeys = Set(contacts.map { $0.publicKey.hexCompact })
+        let livePrefixes = Set(contacts.map(\.publicKeyPrefix))
+        var removed = 0
+
+        let orphanedTrails = positionHistory.keys.filter { !liveHexKeys.contains($0) }
+        for key in orphanedTrails { positionHistory.removeValue(forKey: key) }
+        if !orphanedTrails.isEmpty { savePositionHistory() }
+        removed += orphanedTrails.count
+
+        let orphanedMutes = mutedContacts.filter { !liveHexKeys.contains($0) }
+        if !orphanedMutes.isEmpty {
+            mutedContacts.subtract(orphanedMutes)
+            saveMutedContactsToiCloud()
+            removed += orphanedMutes.count
+        }
+
+        let orphanedNicknames = nicknames.keys.filter { !liveHexKeys.contains($0) }
+        for key in orphanedNicknames { nicknames.removeValue(forKey: key) }
+        if !orphanedNicknames.isEmpty { saveNicknamesToiCloud() }
+        removed += orphanedNicknames.count
+
+        let orphanedNotes = contactNotes.keys.filter { !liveHexKeys.contains($0) }
+        for key in orphanedNotes { contactNotes.removeValue(forKey: key) }
+        if !orphanedNotes.isEmpty { saveContactNotesToiCloud() }
+        removed += orphanedNotes.count
+
+        var groupsChanged = false
+        for index in contactGroups.indices {
+            let stale = contactGroups[index].memberPubkeys.filter { !liveHexKeys.contains($0) }
+            guard !stale.isEmpty else { continue }
+            contactGroups[index].memberPubkeys.removeAll { stale.contains($0) }
+            groupsChanged = true
+            removed += stale.count
+        }
+        if groupsChanged { saveContactGroupsToiCloud() }
+
+        // Telemetry and messages live in other stores and are keyed by the
+        // 6-byte prefix, so they get the prefix set rather than the hex set.
+        removed += purgeOrphanedTelemetry?(livePrefixes) ?? 0
+        removed += purgeOrphanedMessages?(livePrefixes) ?? 0
+
+        if removed > 0 {
+            Self.logger.info("Orphan sweep removed \(removed) stale per-contact entries")
+            DebugLogger.shared.log("Cleanup: removed \(removed) orphaned entries for deleted contacts", level: .info)
+        }
+        return removed
     }
 
     func resetPath(for contact: Contact) {
@@ -816,6 +997,14 @@ final class ContactStore {
         indexContactsForSpotlight()
         #endif
 
+        // Only a full sync replaces `contacts` wholesale from the radio, so
+        // only then is the list authoritative enough to delete data against.
+        // After an incremental sync it is a merge, and anything the radio did
+        // not mention this time would look orphaned.
+        if wasFullSync {
+            purgeOrphanedData()
+        }
+
         return wasFullSync
     }
 
@@ -912,7 +1101,18 @@ final class ContactStore {
     // MARK: - Spotlight
 
     #if canImport(CoreSpotlight)
+    /// Domain for every contact this app indexes, so the whole set can be
+    /// replaced in one call.
+    private static let spotlightDomain = "com.mbedworth.meshcore.contacts"
+
     func indexContactsForSpotlight() {
+        // Replace the domain rather than adding to it. Items are indexed with
+        // expirationDate = .distantFuture, so an entry for a contact that no
+        // longer exists would otherwise stay searchable forever — including
+        // every contact deleted before per-contact cleanup existed. Clearing
+        // the domain first makes a full sync self-healing, with no migration.
+        CSSearchableIndex.default().deleteSearchableItems(withDomainIdentifiers: [Self.spotlightDomain])
+
         var items: [CSSearchableItem] = []
         for contact in contacts where !contact.isUnidentified {
             let attrs = CSSearchableItemAttributeSet(contentType: .contact)
@@ -921,7 +1121,7 @@ final class ContactStore {
             let pubkeyHex = contact.publicKey.hexCompact
             let item = CSSearchableItem(
                 uniqueIdentifier: "meshcore.contact.\(pubkeyHex)",
-                domainIdentifier: "com.mbedworth.meshcore.contacts",
+                domainIdentifier: Self.spotlightDomain,
                 attributeSet: attrs
             )
             item.expirationDate = .distantFuture

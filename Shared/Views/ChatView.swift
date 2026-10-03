@@ -205,7 +205,7 @@ struct ChatView: View {
                     .buttonStyle(.plain)
                     #endif
                     Button {
-                        withAnimation { isSearching.toggle() }
+                        withMeshAnimation { isSearching.toggle() }
                         if !isSearching { searchText = "" }
                     } label: {
                         Image(systemName: isSearching ? "magnifyingglass.circle.fill" : "magnifyingglass")
@@ -384,7 +384,7 @@ struct ChatView: View {
             #endif
             .onChange(of: messages.count) {
                 if let last = messages.last {
-                    withAnimation(.easeOut(duration: 0.2)) {
+                    withMeshAnimation(.easeOut(duration: 0.2)) {
                         proxy.scrollTo(last.id, anchor: .bottom)
                     }
                 }
@@ -394,14 +394,14 @@ struct ChatView: View {
                 #else
                 guard scenePhase == .active else { return }
                 #endif
-                withAnimation { unreadDividerIndex = nil }
+                withMeshAnimation { unreadDividerIndex = nil }
                 DispatchQueue.main.async {
                     messageStoreManager.markAsRead(contactKey: contact.publicKeyPrefix)
                 }
             }
             #if os(macOS)
             .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification).merge(with: NotificationCenter.default.publisher(for: NSWindow.didDeminiaturizeNotification))) { _ in
-                withAnimation { unreadDividerIndex = nil }
+                withMeshAnimation { unreadDividerIndex = nil }
                 DispatchQueue.main.async {
                     messageStoreManager.markAsRead(contactKey: contact.publicKeyPrefix)
                 }
@@ -409,7 +409,7 @@ struct ChatView: View {
             #else
             .onChange(of: scenePhase) { _, newPhase in
                 if newPhase == .active {
-                    withAnimation { unreadDividerIndex = nil }
+                    withMeshAnimation { unreadDividerIndex = nil }
                     DispatchQueue.main.async {
                         messageStoreManager.markAsRead(contactKey: contact.publicKeyPrefix)
                     }
@@ -429,7 +429,7 @@ struct ChatView: View {
                 // Clear the divider after user has had time to see it
                 if unreadDividerIndex != nil {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                        withAnimation { unreadDividerIndex = nil }
+                        withMeshAnimation { unreadDividerIndex = nil }
                     }
                 }
             }

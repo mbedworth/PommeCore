@@ -614,11 +614,13 @@ private extension ContactListView {
             }
             .confirmationDialog("Delete \(selectedContacts.count) Contact\(selectedContacts.count == 1 ? "" : "s")?", isPresented: $showBulkDeleteConfirm) {
                 Button("Delete", role: .destructive) {
-                    for key in selectedContacts {
-                        if let contact = contactStore.contacts.first(where: { $0.publicKeyPrefix == key }) {
-                            contactStore.removeContact(contact)
-                        }
+                    // One pass over contacts rather than a scan per selected
+                    // key, and one batch call so the saves and the outgoing
+                    // frames are coalesced and paced.
+                    let doomed = contactStore.contacts.filter {
+                        selectedContacts.contains($0.publicKeyPrefix)
                     }
+                    contactStore.removeContacts(doomed)
                     selectedContacts.removeAll()
                     isSelecting = false
                 }

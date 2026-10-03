@@ -111,7 +111,7 @@ struct DebugLogView: View {
                     .listStyle(.plain)
                     .onChange(of: logger.entries.count) {
                         if let last = filteredEntries.last {
-                            withAnimation {
+                            withMeshAnimation {
                                 proxy.scrollTo(last.id, anchor: .bottom)
                             }
                         }
@@ -164,12 +164,12 @@ struct DebugLogView: View {
     private func copyAll() {
         let text = logger.exportText()
         copyToClipboard(text)
-        withAnimation {
+        withMeshAnimation {
             showCopied = true
         }
         Task { @MainActor in
             try? await Task.sleep(nanoseconds: 1_500_000_000)
-            withAnimation {
+            withMeshAnimation {
                 showCopied = false
             }
         }

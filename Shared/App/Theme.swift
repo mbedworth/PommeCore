@@ -10,6 +10,15 @@
 
 import SwiftUI
 import MeshCoreKit
+#if canImport(UIKit)
+import UIKit
+#endif
+#if canImport(AppKit)
+import AppKit
+#endif
+#if canImport(WatchKit)
+import WatchKit
+#endif
 
 // MARK: - App Theme Preference
 
@@ -303,13 +312,95 @@ extension NSUbiquitousKeyValueStore {
     }
 }
 
+// MARK: - Reduced Motion
+
+/// True when the user has asked the system to reduce motion.
+///
+/// Read from the platform rather than `@Environment(\.accessibilityReduceMotion)`
+/// so that non-view code honours it too — `showFeedback` below, and anything in
+/// a store that animates a state change. Read at call time, so it always
+/// reflects the current setting without needing to observe a change
+/// notification.
+var isReduceMotionEnabled: Bool {
+    #if os(iOS) || targetEnvironment(macCatalyst)
+    return UIAccessibility.isReduceMotionEnabled
+    #elseif os(macOS)
+    return NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+    #elseif os(watchOS)
+    return WKAccessibilityIsReduceMotionEnabled()
+    #else
+    return false
+    #endif
+}
+
+/// `withAnimation`, honouring Reduce Motion.
+///
+/// Under Reduce Motion the state change is applied *without* animation rather
+/// than being skipped, so no behaviour is lost — only the movement. Use this in
+/// place of `withAnimation` everywhere; a bare `withAnimation` ignores the
+/// setting entirely, which is why the app could not claim Reduced Motion
+/// support.
+func withMeshAnimation<Result>(
+    _ animation: Animation? = .default,
+    _ body: () throws -> Result
+) rethrows -> Result {
+    try withAnimation(isReduceMotionEnabled ? nil : animation, body)
+}
+
+/// An animation for the `.animation(_:value:)` modifier, `nil` under Reduce
+/// Motion. Use in place of passing an animation directly.
+func meshAnimation(_ animation: Animation?) -> Animation? {
+    isReduceMotionEnabled ? nil : animation
+}
+
+// MARK: - Status Indicator
+
+/// A status indicator that stays readable when colour cannot be relied on.
+///
+/// Status in this app was conveyed by colour alone — a tinted dot or a tinted
+/// icon. The two most consequential states, active and offline, were green
+/// against red, the single most common confusion for colour-blind users. With
+/// Differentiate Without Color enabled this renders a glyph whose silhouette
+/// identifies the state; otherwise it stays the plain coloured dot, so the
+/// familiar look is unchanged for everyone else.
+///
+/// Always carries the spoken status, so VoiceOver announces the state rather
+/// than describing a dot.
+struct StatusIndicator: View {
+    @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiateWithoutColor
+
+    let symbolName: String
+    let color: Color
+    let label: String
+    var size: CGFloat = 10
+
+    var body: some View {
+        indicator
+            .accessibilityLabel(Text(label))
+    }
+
+    @ViewBuilder
+    private var indicator: some View {
+        if differentiateWithoutColor {
+            Image(systemName: symbolName)
+                .font(.system(size: size + 1, weight: .semibold))
+                .foregroundStyle(color)
+        } else {
+            Circle()
+                .fill(color)
+                .frame(width: size, height: size)
+        }
+    }
+}
+
 // MARK: - Feedback Utility
 
-/// Set a Bool binding to true, then reset to false after a delay. Animates both transitions.
+/// Set a Bool binding to true, then reset to false after a delay. Animates both
+/// transitions, unless Reduce Motion is on.
 func showFeedback(_ state: Binding<Bool>, duration: TimeInterval = 2) {
-    withAnimation { state.wrappedValue = true }
+    withMeshAnimation { state.wrappedValue = true }
     DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
-        withAnimation { state.wrappedValue = false }
+        withMeshAnimation { state.wrappedValue = false }
     }
 }
 
@@ -328,7 +419,7 @@ struct LinearProgressBar: View {
                 Capsule()
                     .fill(tint)
                     .frame(width: geo.size.width * max(0, min(progress, 1)))
-                    .animation(.linear(duration: 0.15), value: progress)
+                    .animation(meshAnimation(.linear(duration: 0.15)), value: progress)
             }
         }
         .frame(height: 6)
@@ -498,7 +589,7 @@ struct SaveButton: View {
         .buttonStyle(.plain)
         .contentShape(Rectangle())
         .listRowBackground(MeshTheme.surface)
-        .animation(.easeInOut(duration: 0.2), value: state)
+        .animation(meshAnimation(.easeInOut(duration: 0.2)), value: state)
     }
 }
 

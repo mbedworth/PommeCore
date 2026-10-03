@@ -739,7 +739,63 @@ final class MessageStoreManager {
         messagesByContact.removeValue(forKey: contactKey)
         unreadCounts.removeValue(forKey: contactKey)
         persistenceStore.deleteMessages(for: contactKey)
+        removeiCloudMessageData(for: contactKey)
         updateAppBadge()
+    }
+
+    /// Remove the iCloud-side traces of one conversation: the synced message
+    /// blob, the saved draft and the last-read marker.
+    ///
+    /// Clearing local messages alone left all three in key-value storage, so a
+    /// deleted contact kept consuming the iCloud budget and its draft and
+    /// unread position came back if the contact was ever re-added.
+    private func removeiCloudMessageData(for contactKey: Data) {
+        let contactHex = contactKey.hexCompact
+        for base in ["msg", "draft", "lastRead"] {
+            iCloudStore.removeObject(
+                forKey: iCloudStore.scopedKey(base, contactHex: contactHex, radioPrefix: radioPrefix12)
+            )
+            // Pre-scoping keys carried no radio prefix.
+            iCloudStore.removeObject(forKey: "\(base).\(contactHex)")
+        }
+    }
+
+    /// True when this conversation key belongs to a channel, not a contact.
+    ///
+    /// Channel threads share `messagesByContact` but are keyed by
+    /// `Data([channelIndex])` — one byte — where a contact is keyed by its
+    /// 6-byte public key prefix. A sweep that reconciles against the contact
+    /// list must skip these, or every channel's history goes with it.
+    private func isChannelKey(_ key: Data) -> Bool {
+        key.count == 1
+    }
+
+    /// Drop messages, drafts and last-read markers for every contact not in
+    /// `liveKeyPrefixes`, returning how many conversations were removed.
+    ///
+    /// Keys here are 6-byte public key prefixes. The caller is responsible for
+    /// passing an authoritative contact list — see
+    /// ContactStore.purgeOrphanedData.
+    @discardableResult
+    func purgeOrphanedMessages(liveKeyPrefixes: Set<Data>) -> Int {
+        var removed = 0
+
+        for key in messagesByContact.keys where !liveKeyPrefixes.contains(key) {
+            // Channel conversations are keyed separately and have no contact,
+            // so they must not be swept away with deleted contacts.
+            guard !isChannelKey(key) else { continue }
+            messagesByContact.removeValue(forKey: key)
+            unreadCounts.removeValue(forKey: key)
+            persistenceStore.deleteMessages(for: key)
+            removeiCloudMessageData(for: key)
+            removed += 1
+        }
+
+        if removed > 0 {
+            updateAppBadge()
+            DebugLogger.shared.log("MESSAGES: dropped \(removed) conversations for deleted contacts", level: .info)
+        }
+        return removed
     }
 
     func clearAllMessages() {

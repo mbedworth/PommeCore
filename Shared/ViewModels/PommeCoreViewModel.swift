@@ -207,6 +207,12 @@ final class PommeCoreViewModel: ObservableObject {
         contactStore.activityDateProvider = { [weak self] key in self?.messageStoreManager.latestActivityDate(for: key) }
         contactStore.clearMessagesForContact = { [weak self] key in self?.messageStoreManager.clearMessages(for: key) }
         contactStore.clearTelemetryForContact = { [weak self] key in self?.rfMonitorStore.clearTelemetryHistory(for: key) }
+        contactStore.purgeOrphanedTelemetry = { [weak self] live in
+            self?.rfMonitorStore.purgeOrphanedTelemetry(liveKeyPrefixes: live) ?? 0
+        }
+        contactStore.purgeOrphanedMessages = { [weak self] live in
+            self?.messageStoreManager.purgeOrphanedMessages(liveKeyPrefixes: live) ?? 0
+        }
         contactStore.postEventNotification = { [weak self] title, body, threadId in self?.postEventNotification(title: title, body: body, threadId: threadId) }
         contactStore.radioPublicKeyHexProvider = { [weak self] in self?.deviceConfig.publicKeyHex ?? "" }
         
