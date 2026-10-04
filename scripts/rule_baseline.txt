@@ -34,9 +34,9 @@ Shared/Views/SettingsView+RadioPrivacy.swift:349
 Shared/Views/SettingsView+Sections.swift:295
 Shared/Views/SettingsView+Sections.swift:472
 Shared/Views/SettingsView+Sections.swift:730
-Shared/Views/SettingsView+TipJar.swift:445
-Shared/Views/SettingsView+TipJar.swift:467
-Shared/Views/SettingsView+TipJar.swift:470
+Shared/Views/SettingsView+TipJar.swift:520
+Shared/Views/SettingsView+TipJar.swift:542
+Shared/Views/SettingsView+TipJar.swift:545
 
 # --- rules 1/2: Codable without a backward-compatible decoder ------------
 Packages/MeshCoreKit/Sources/MeshCoreKit/Models/Channel.swift:34
