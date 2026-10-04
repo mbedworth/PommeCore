@@ -444,6 +444,7 @@ struct MeshMapView: View {
     @Environment(NavigationStore.self) private var navigationStore
     @Environment(RFMonitorStore.self) private var rfStore
     @Environment(MessageStoreManager.self) private var messageStoreManager
+    @Environment(RemoteSessionManager.self) private var remoteSessionManager
     @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiateWithoutColor
     @StateObject private var locationManager = LocationManager()
     @State private var cameraPosition: MapCameraPosition = .automatic
@@ -454,7 +455,7 @@ struct MeshMapView: View {
     @State private var hasSetInitialCamera = false
     /// The selected cluster for the detail sheet/popover.
     @State private var selectedCluster: NodeCluster? = nil
-    private enum MapOverlay { case none, linkQuality, coverage }
+    private enum MapOverlay { case none, linkQuality, coverage, pathDiscovery }
     /// Which overlay (if any) is active on the map.
     @State private var mapOverlay: MapOverlay = .none
     @State private var showCoverageInfo = false
@@ -485,11 +486,59 @@ struct MeshMapView: View {
         return entries
     }
 
+    /// A discovered route, ready to draw.
+    ///
+    /// `complete` is false when a hop could not be placed on the map — either
+    /// the repeater is not a known contact or it has no coordinates. The line
+    /// is still worth drawing, but it then skips a real hop and would imply a
+    /// shorter route than the one the mesh actually used, so it is drawn
+    /// differently rather than silently.
+    private struct DiscoveredRoute: Identifiable {
+        let id: Data
+        let coordinates: [CLLocationCoordinate2D]
+        let hopCount: Int
+        let placedHops: Int
+        var complete: Bool { placedHops == hopCount }
+    }
+
+    private var discoveredRoutes: [DiscoveredRoute] {
+        guard let deviceCoord = locationManager.currentLocation?.coordinate else { return [] }
+        return remoteSessionManager.pathDiscoveryByContact.compactMap { prefix, result in
+            guard let destination = mappableContacts.first(where: { $0.publicKeyPrefix == prefix })
+            else { return nil }
+
+            // The top two bits of the length byte carry the hash size, the
+            // bottom six the hop count — the same encoding the path views use.
+            let hashSize = Int((result.outPathLen >> 6) + 1)
+            let hops = contactStore.resolveHops(pathBytes: result.outPathBytes,
+                                                hopCount: result.outHopCount,
+                                                hashSize: hashSize)
+
+            var coordinates = [deviceCoord]
+            var placed = 0
+            for hop in hops {
+                guard let contact = hop.contact,
+                      contact.latitude != 0 || contact.longitude != 0 else { continue }
+                coordinates.append(CLLocationCoordinate2D(latitude: contact.latitude,
+                                                          longitude: contact.longitude))
+                placed += 1
+            }
+            coordinates.append(CLLocationCoordinate2D(latitude: destination.latitude,
+                                                      longitude: destination.longitude))
+            guard coordinates.count >= 2 else { return nil }
+            return DiscoveredRoute(id: prefix,
+                                   coordinates: coordinates,
+                                   hopCount: hops.count,
+                                   placedHops: placed)
+        }
+    }
+
     private var overlayButtonIcon: String {
         switch mapOverlay {
         case .none: return "antenna.radiowaves.left.and.right.circle"
         case .linkQuality: return "antenna.radiowaves.left.and.right.circle.fill"
         case .coverage: return "map.fill"
+        case .pathDiscovery: return "point.topleft.down.to.point.bottomright.curvepath"
         }
     }
 
@@ -659,6 +708,26 @@ struct MeshMapView: View {
                     }
                 }
 
+                // Discovered routes — the hops the mesh actually used
+                if mapOverlay == .pathDiscovery {
+                    ForEach(discoveredRoutes) { route in
+                        MapPolyline(coordinates: route.coordinates)
+                            .stroke(
+                                MeshTheme.accent.opacity(0.9),
+                                style: StrokeStyle(
+                                    lineWidth: 3,
+                                    lineCap: .round,
+                                    lineJoin: .round,
+                                    // A route with a hop that could not be placed is
+                                    // drawn dashed: the segment spanning the gap is
+                                    // not a link that exists, and a solid line would
+                                    // claim a shorter route than the mesh used.
+                                    dash: route.complete ? [] : [7, 5]
+                                )
+                            )
+                    }
+                }
+
                 UserAnnotation()
             }
             .onMapCameraChange(frequency: .onEnd) { context in
@@ -725,6 +794,28 @@ struct MeshMapView: View {
                                 Text("< -120")
                             }
                             Text("dBm")
+                        }
+                        .font(.caption2)
+                        .foregroundStyle(MeshTheme.textSecondary)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(.thinMaterial)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                    } else if mapOverlay == .pathDiscovery {
+                        HStack(spacing: 6) {
+                            HStack(spacing: 3) {
+                                Capsule().fill(MeshTheme.accent)
+                                    .frame(width: 14, height: 3)
+                                Text("Route")
+                            }
+                            HStack(spacing: 3) {
+                                Capsule().fill(MeshTheme.accent.opacity(0.5))
+                                    .frame(width: 14, height: 3)
+                                Text("Hop not on map")
+                            }
+                            if discoveredRoutes.isEmpty {
+                                Text("Run Discover Path")
+                            }
                         }
                         .font(.caption2)
                         .foregroundStyle(MeshTheme.textSecondary)
@@ -799,6 +890,8 @@ struct MeshMapView: View {
                                 mapOverlay = .coverage
                             }
                         case .coverage:
+                            mapOverlay = .pathDiscovery
+                        case .pathDiscovery:
                             mapOverlay = .none
                         }
                     } label: {
