@@ -163,9 +163,21 @@ enum MeshTheme {
     // WCAG AA bar for body text — system green measures 1.99:1 and orange
     // 1.97:1 on the grouped background — and this app puts the status *text*
     // in the same color as the dot beside it. So light mode gets darker
-    // values, measured to clear 5:1, while dark mode keeps the system colors,
-    // which already pass comfortably (8.42:1 green, 8.28:1 orange, the
-    // tightest being red at 4.99:1). watchOS is always dark.
+    // values, measured to clear 5:1.
+    //
+    // Dark mode keeps Apple's system colors where they pass, and four of them
+    // do not. The first version of this measured only the grouped background
+    // and the card, where system red reaches 4.99:1 and looks fine. But the
+    // app also puts status text on `surfaceLight` — the *tertiary* grouped
+    // background, #2C2C2E on iOS and lighter again on macOS — and against
+    // that, system red falls to 4.09:1, blue to 3.82:1, the map violet to
+    // 3.96:1 and gray to 3.95:1. Those four are brightened 11–29% toward
+    // white: enough to clear 4.5:1 on every surface the app actually uses,
+    // while still plainly reading as red, blue, violet and gray.
+    //
+    // Choosing a dark-mode value against the darkest background is the easy
+    // mistake, because that is the case that always passes. Measure the
+    // lightest surface the color can land on. watchOS is always dark.
     private static func statusColor(light: (Double, Double, Double),
                                     dark: Color) -> Color {
         #if os(watchOS)
@@ -192,11 +204,16 @@ enum MeshTheme {
     /// Early or indeterminate. Light #7D6400 — 5.09:1.
     static let statusCaution = statusColor(light: (0.490, 0.392, 0.0), dark: .yellow)
     /// Failed, offline, out of range. Light #C62A22 — 5.01:1.
-    static let statusBad = statusColor(light: (0.776, 0.165, 0.133), dark: .red)
-    /// Informational, in progress. Light #0063D1 — 5.08:1.
-    static let statusInfo = statusColor(light: (0.0, 0.388, 0.820), dark: .blue)
+    /// Dark #FF7B73 — see the note below on why this is not `Color.red`.
+    static let statusBad = statusColor(light: (0.776, 0.165, 0.133),
+                                       dark: Color(red: 1.0, green: 0.482, blue: 0.451))
+    /// Informational, in progress. Light #0063D1 — 5.08:1. Dark #51A8FF.
+    static let statusInfo = statusColor(light: (0.0, 0.388, 0.820),
+                                        dark: Color(red: 0.318, green: 0.658, blue: 1.0))
     /// Dormant. Light #6C6C70 — 4.76:1; `Color.gray` is only 3.3:1 on white.
-    static let statusIdle = statusColor(light: (0.424, 0.424, 0.439), dark: .gray)
+    /// Dark #A3A3A8.
+    static let statusIdle = statusColor(light: (0.424, 0.424, 0.439),
+                                        dark: Color(red: 0.641, green: 0.641, blue: 0.658))
 
     static let connected = statusGood
     static let connecting = statusWarn
@@ -343,7 +360,10 @@ enum MeshTheme {
     /// Room-server pins on the map. Teal is taken there by the internet-map
     /// nodes, so rooms keep a violet — but a measured one. Light #8E3AB8 is
     /// 5.46:1; `Color.purple` is 3.70:1, under the bar even for a pin label.
-    static let mapRoom = statusColor(light: (0.557, 0.227, 0.722), dark: .purple)
+    /// Dark #D085F5, brightened from `Color.purple` for the same reason as
+    /// `statusBad` — see the note on `statusColor`.
+    static let mapRoom = statusColor(light: (0.557, 0.227, 0.722),
+                                     dark: Color(red: 0.814, green: 0.521, blue: 0.962))
 
     /// A tappable link *inside* a message bubble.
     ///

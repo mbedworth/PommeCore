@@ -1,15 +1,15 @@
 {
-  "originHash" : "45d14d80687957410e1e277a741c94ee3db531356b012895a88c64abc51c5e51",
-  "pins" : [
+  "originHash": "45d14d80687957410e1e277a741c94ee3db531356b012895a88c64abc51c5e51",
+  "pins": [
     {
-      "identity" : "pommecorewatchkit",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/mbedworth/PommeCoreWatchKit",
-      "state" : {
-        "revision" : "25fd0d514bfe13d385658db12d30b271589a7a27",
-        "version" : "1.4.1"
+      "identity": "pommecorewatchkit",
+      "kind": "remoteSourceControl",
+      "location": "https://github.com/mbedworth/PommeCoreWatchKit",
+      "state": {
+        "revision": "25ecf316dc3a1507a48b613fb1a8812d2500acc1",
+        "version": "1.4.2"
       }
     }
   ],
-  "version" : 3
+  "version": 3
 }
