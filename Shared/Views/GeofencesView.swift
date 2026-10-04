@@ -72,6 +72,7 @@ struct GeofencesView: View {
                     showAddZone = true
                 } label: {
                     Image(systemName: "plus")
+                        .accessibilityLabel("Add geofence")
                 }
                 .disabled(!geofenceStore.monitoringAvailable)
             }

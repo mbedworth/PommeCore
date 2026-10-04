@@ -619,6 +619,7 @@ extension SettingsView {
                 copyToClipboard(config.publicKeyHex)
             } label: {
                 Image(systemName: "doc.on.doc")
+                    .accessibilityLabel("Copy public key")
                     .font(.caption)
                     .foregroundStyle(MeshTheme.accent)
             }

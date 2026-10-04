@@ -508,6 +508,7 @@ struct CLITerminalSection: View {
                 #endif
                 Button(action: sendCommand) {
                     Image(systemName: "return")
+                        .accessibilityLabel("Send command")
                         .foregroundStyle(
                             commandText.isEmpty ? MeshTheme.textSecondary : MeshTheme.accent
                         )

@@ -552,6 +552,7 @@ private extension RemoteManagementView {
                             commitNameEdit()
                         } label: {
                             Image(systemName: "checkmark.circle.fill")
+                                .accessibilityLabel("Save name")
                                 .foregroundStyle(MeshTheme.accent)
                         }
                         .buttonStyle(.plain)

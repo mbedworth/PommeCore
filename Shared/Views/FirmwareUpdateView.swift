@@ -151,6 +151,7 @@ struct FirmwareUpdateView: View {
         Button(action: action) {
             HStack(spacing: 12) {
                 Image(systemName: "memorychip")
+                    .accessibilityLabel("Update firmware")
                     .font(.title3)
                     .foregroundStyle(MeshTheme.accent)
                     .frame(width: 36)

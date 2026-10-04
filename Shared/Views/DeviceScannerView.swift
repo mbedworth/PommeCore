@@ -241,6 +241,7 @@ struct DeviceScannerView: View {
                     // Manual port entry
                     HStack(spacing: 8) {
                         Image(systemName: "terminal")
+                            .accessibilityLabel("Open serial console")
                             .foregroundStyle(MeshTheme.accent)
                         TextField("/dev/cu.usbmodem...", text: $manualSerialPort)
                             .font(.system(.body, design: .monospaced))

@@ -133,6 +133,7 @@ struct ChannelManagementView: View {
                                 }
                             } label: {
                                 Image(systemName: "qrcode")
+                                    .accessibilityLabel("Share channel QR code")
                                     .foregroundStyle(MeshTheme.accent)
                             }
                             .buttonStyle(.plain)
@@ -141,6 +142,7 @@ struct ChannelManagementView: View {
                                 removeChannel(channel)
                             } label: {
                                 Image(systemName: "trash")
+                                    .accessibilityLabel("Delete channel")
                                     .foregroundStyle(MeshTheme.disconnected)
                             }
                             .buttonStyle(.plain)
