@@ -1198,30 +1198,6 @@ final class ContactStore {
         spotlightFingerprint = nil
     }
 
-    /// Remove persisted per-contact data that no longer has a contact.
-    ///
-    /// Per-contact cleanup on delete only helps contacts deleted from now on.
-    /// Anything removed before it existed left its position trail, mute state,
-    /// group membership, nickname, note and telemetry behind, and nothing ever
-    /// collected them. This reconciles what is persisted against the live
-    /// contact list and drops the remainder.
-    ///
-    /// **User-initiated only, and only with a verified-complete contact list.**
-    ///
-    /// This was originally run automatically after every full sync, and it
-    /// destroyed data: a truncated sync was accepted as the whole truth, so
-    /// the sweep deleted messages, nicknames, notes, trails, mute state and
-    /// telemetry for every contact missing from it. None of that is
-    /// recoverable. The lesson is not that the guard needed to be smarter —
-    /// it is that an irreversible pass over user data should not run by
-    /// itself, inferring its own authority, to reclaim a few hundred
-    /// kilobytes.
-    ///
-    /// Callers must pass `contactListVerifiedComplete: true`, which only
-    /// holds when the caller knows a full sync delivered every contact the
-    /// radio announced. `countOrphanedData()` reports what would be removed
-    /// without removing it, so the user can be shown a number first.
-    ///
     /// How many orphaned entries a sweep would remove, without removing any.
     ///
     /// Lets the user be shown a number and decide, instead of the app deciding
@@ -1253,6 +1229,30 @@ final class ContactStore {
         return report
     }
 
+    /// Remove persisted per-contact data that no longer has a contact.
+    ///
+    /// Per-contact cleanup on delete only helps contacts deleted from now on.
+    /// Anything removed before it existed left its position trail, mute state,
+    /// group membership, nickname, note and telemetry behind, and nothing ever
+    /// collected them. This reconciles what is persisted against the live
+    /// contact list and drops the remainder.
+    ///
+    /// **User-initiated only, and only with a verified-complete contact list.**
+    ///
+    /// This was originally run automatically after every full sync, and it
+    /// destroyed data: a truncated sync was accepted as the whole truth, so
+    /// the sweep deleted messages, nicknames, notes, trails, mute state and
+    /// telemetry for every contact missing from it. None of that is
+    /// recoverable. The lesson is not that the guard needed to be smarter —
+    /// it is that an irreversible pass over user data should not run by
+    /// itself, inferring its own authority, to reclaim a few hundred
+    /// kilobytes.
+    ///
+    /// Callers must pass `contactListVerifiedComplete: true`, which only
+    /// holds when the caller knows a full sync delivered every contact the
+    /// radio announced. `countOrphanedData()` reports what would be removed
+    /// without removing it, so the user can be shown a number first.
+    ///
     /// Idempotent: a second run over clean data removes nothing.
     @discardableResult
     func purgeOrphanedData(contactListVerifiedComplete: Bool) -> Int {
