@@ -10,14 +10,7 @@
       "shouldTranslate": false
     },
     "-10–0": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "-10–0"
-          }
-        }
-      }
+      "shouldTranslate": false
     },
     "-100–-120": {
       "shouldTranslate": false
@@ -298,12 +291,6 @@
             "value": "%@ · SF%@ · BW %@ kHz"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "SF%@ · BW %@ kHz"
-          }
-        },
         "ja": {
           "stringUnit": {
             "state": "translated",
@@ -335,6 +322,12 @@
           }
         },
         "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · SF%@ · BW %@ kHz"
+          }
+        },
+        "it": {
           "stringUnit": {
             "state": "translated",
             "value": "%@ · SF%@ · BW %@ kHz"
@@ -627,12 +620,6 @@
     },
     "%@ Login": {
       "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Přihlášení"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
@@ -663,18 +650,6 @@
             "value": "%@ ログイン"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inloggen"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zaloguj się"
-          }
-        },
         "pt": {
           "stringUnit": {
             "state": "translated",
@@ -691,6 +666,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@ 登录"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ Přihlášení"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ Inloggen"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ Logowanie"
           }
         }
       }
@@ -983,12 +976,6 @@
     },
     "%@ nodes in this area": {
       "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "u uzlů v této oblasti"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
@@ -1047,6 +1034,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "本区域的 %@ 节点"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "uzly %@ v této oblasti"
           }
         }
       }
@@ -1249,12 +1242,6 @@
             "value": "%@ kontakt(y) (zmień: prawdziwe) może poprosić o dane telemetryczne."
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "o contato %@ (%d) pode solicitar seus dados de telemetria."
-          }
-        },
         "uk": {
           "stringUnit": {
             "state": "translated",
@@ -1265,6 +1252,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@ 联系人（可变性：true）可以请求您的传感器数据。"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seu contato %@ pode solicitar seus dados de telemetria."
           }
         }
       }
@@ -1319,12 +1312,6 @@
             "value": "%@ kontakt(y) (zmień: prawdziwe) otrzyma Twoją lokalizację w danych telemetrycznych."
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "o contato %@ (%d) receberá sua localização na telemetria."
-          }
-        },
         "uk": {
           "stringUnit": {
             "state": "translated",
@@ -1335,6 +1322,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@ 联系人（可变性：true）将接收您的传感器中的位置信息。"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seu contato %@ receberá sua localização na telemetria."
           }
         }
       }
@@ -1389,12 +1382,6 @@
             "value": "%@ skocz (zmień: prawdziwe)"
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "salto %@ (%d)"
-          }
-        },
         "uk": {
           "stringUnit": {
             "state": "translated",
@@ -1405,6 +1392,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@ 跳跃（可变性：true）"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pular %@"
           }
         }
       }
@@ -1459,12 +1452,6 @@
             "value": "%@ węzeł (zmień: prawdziwe) Znaleziony"
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "nó %@ (%d) Encontrado"
-          }
-        },
         "uk": {
           "stringUnit": {
             "state": "translated",
@@ -1475,6 +1462,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@ 节点（可变性：true）找到"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nó %@ Encontrado"
           }
         }
       }
@@ -1529,12 +1522,6 @@
             "value": "%@ wynik (zmień: prawdziwe)"
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "resultado %@ (%d)"
-          }
-        },
         "uk": {
           "stringUnit": {
             "state": "translated",
@@ -1545,6 +1532,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@ 结果（可变性：true）"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O resultado %@"
           }
         }
       }
@@ -3310,18 +3303,6 @@
             "value": "15 Min"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "15 min - 15 minutos"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "15 min - Quinze minutes"
-          }
-        },
         "it": {
           "stringUnit": {
             "state": "translated",
@@ -3346,12 +3327,6 @@
             "value": "15 minut"
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "15 min - Quinze minutos"
-          }
-        },
         "uk": {
           "stringUnit": {
             "state": "translated",
@@ -3362,6 +3337,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "15分钟"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "15 min → 15 min"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "15 min → 15 min"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "15 min (manterá o formato original, pois é uma string simples e não contém termos técnicos)"
           }
         }
       }
@@ -3380,18 +3373,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "15 Minuten"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "15 minutes - 15 minutos"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "15 minutes - Quinze minutes"
           }
         },
         "it": {
@@ -3418,12 +3399,6 @@
             "value": "15 minut"
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "15 minutes - Quinze minutos"
-          }
-        },
         "uk": {
           "stringUnit": {
             "state": "translated",
@@ -3434,6 +3409,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "15分钟"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "15 minutes"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "15 minutos"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "15 minutos"
           }
         }
       }
@@ -3450,18 +3443,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "24 Stunden"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "24 hours - 24 horas"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "24 hours - Vingt-quatre heures"
           }
         },
         "it": {
@@ -3488,12 +3469,6 @@
             "value": "24 godziny"
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "24 hours - Vinte e quatro horas"
-          }
-        },
         "uk": {
           "stringUnit": {
             "state": "translated",
@@ -3504,6 +3479,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "24小时"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "24 heures"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "24 horas"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "24 horas"
           }
         }
       }
@@ -3520,18 +3513,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "30 Min"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "30 min - 30 minutos"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "30 min - Trente minutes"
           }
         },
         "it": {
@@ -3558,12 +3539,6 @@
             "value": "30 minut"
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "30 min - Trinta minutos"
-          }
-        },
         "uk": {
           "stringUnit": {
             "state": "translated",
@@ -3574,6 +3549,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "30分钟"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 minutes"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 min"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 min"
           }
         }
       }
@@ -3592,18 +3585,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "30 Minuten"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "30 minutes - 30 minutos"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "30 minutes - Trente minutes"
           }
         },
         "it": {
@@ -3630,12 +3611,6 @@
             "value": "30 minut"
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "30 minutes - Trinta minutos"
-          }
-        },
         "uk": {
           "stringUnit": {
             "state": "translated",
@@ -3646,6 +3621,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "30分钟"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 minutes [trente minutes]"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 minutos"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 minutos"
           }
         }
       }
@@ -3667,18 +3660,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "60 Min"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "60 min - 60 minutos"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "60 min - Soixante minutes"
           }
         },
         "it": {
@@ -3705,12 +3686,6 @@
             "value": "60 minut"
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "60 min - Sessenta minutos"
-          }
-        },
         "uk": {
           "stringUnit": {
             "state": "translated",
@@ -3721,6 +3696,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "60分钟"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "60 min [soixante minutes]"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "60 min"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "60 min"
           }
         }
       }
@@ -3737,18 +3730,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "90 Min"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "90 min - 90 minutos"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "90 min - Quatre-vingt-dix minutes"
           }
         },
         "it": {
@@ -3775,12 +3756,6 @@
             "value": "90 minut"
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "90 min - Noventa minutos"
-          }
-        },
         "uk": {
           "stringUnit": {
             "state": "translated",
@@ -3791,6 +3766,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "90分钟"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "90 min [neufante minutes]"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "90 min"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "90 min"
           }
         }
       }
@@ -3812,18 +3805,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "120 Min"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "120 min - 120 minutos"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "120 min - Cent vingt minutes"
           }
         },
         "it": {
@@ -3850,12 +3831,6 @@
             "value": "120 minut"
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "120 min - Cento e vinte minutos"
-          }
-        },
         "uk": {
           "stringUnit": {
             "state": "translated",
@@ -3866,6 +3841,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "120分钟"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "120 min [cent vingt minutes]"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "120 min"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "120 min"
           }
         }
       }
@@ -3882,18 +3875,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "180 Min"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "180 min - 180 minutos"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "180 min - Cent quatre-vingts minutes"
           }
         },
         "it": {
@@ -3920,12 +3901,6 @@
             "value": "180 minut"
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "180 min - Cento e oitenta minutos"
-          }
-        },
         "uk": {
           "stringUnit": {
             "state": "translated",
@@ -3936,6 +3911,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "180分钟"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allez dans Réglages → Bluetooth"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "180 min → 180 minutos"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vá para Configurações → Bluetooth"
           }
         }
       }
@@ -3957,18 +3950,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "240 Min"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "240 min - 240 minutos"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "240 min - Deux cent quarante minutes"
           }
         },
         "it": {
@@ -3995,12 +3976,6 @@
             "value": "240 minut"
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "240 min - Doiscentos e quarenta minutos"
-          }
-        },
         "uk": {
           "stringUnit": {
             "state": "translated",
@@ -4011,6 +3986,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "240分钟"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trouvez votre appareil MeshCore et appuyez sur ⓘ"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "240 min → 240 minutos"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encontre o seu dispositivo MeshCore e toque em ⓘ"
           }
         }
       }
@@ -8442,12 +8435,6 @@
             "value": "ビットレート"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bit Rate - Bits per seconde"
-          }
-        },
         "pl": {
           "stringUnit": {
             "state": "translated",
@@ -8470,6 +8457,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "比特率"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bitrate"
           }
         }
       }
@@ -8512,12 +8505,6 @@
             "value": "BLE PIN"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "BLE PIN - BLE PIN-code"
-          }
-        },
         "pl": {
           "stringUnit": {
             "state": "translated",
@@ -8537,6 +8524,12 @@
           }
         },
         "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BLE PIN"
+          }
+        },
+        "nl": {
           "stringUnit": {
             "state": "translated",
             "value": "BLE PIN"
@@ -8582,12 +8575,6 @@
             "value": "ブロック連絡先"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Block Contact - Blokkeer contact"
-          }
-        },
         "pl": {
           "stringUnit": {
             "state": "translated",
@@ -8610,6 +8597,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "阻止联系人"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contactblokkeren"
           }
         }
       }
@@ -8652,12 +8645,6 @@
             "value": "ブロックされた連絡先"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Blocked Contacts - Geblokkeerde contacten"
-          }
-        },
         "pl": {
           "stringUnit": {
             "state": "translated",
@@ -8680,6 +8667,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "已阻止的联系人不会出现在您的联系人列表中，并且他们的消息将被屏蔽。"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geblokkeerde contacten"
           }
         }
       }
@@ -8724,12 +8717,6 @@
             "value": "ブロックされた連絡先は連絡先リストに表示されず、メッセージは抑制されます。"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Blocked contacts won't appear in your contact list and their messages will be suppressed. - Geblokkeerde contacten verschijnen niet in je contactlijst en hun berichten worden onderdrukt."
-          }
-        },
         "pl": {
           "stringUnit": {
             "state": "translated",
@@ -8752,6 +8739,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Bluetooth 安全性"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geblokkeerde contacten zullen niet in uw contactlijst verschijnen en hun berichten zullen worden onderdrukt."
           }
         }
       }
@@ -8794,12 +8787,6 @@
             "value": "Bluetooth セキュリティ"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bluetooth Security - Bluetooth-beveiliging"
-          }
-        },
         "pl": {
           "stringUnit": {
             "state": "translated",
@@ -8822,6 +8809,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "无法连接到无线电？"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bluetooth-beveiliging"
           }
         }
       }
@@ -8864,12 +8857,6 @@
             "value": "ラジオに接続できませんか？"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Can't Connect to Radio? - Kan geen verbinding maken met de radio?"
-          }
-        },
         "pl": {
           "stringUnit": {
             "state": "translated",
@@ -8892,6 +8879,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "取消"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kan niet verbinden met radio?"
           }
         }
       }
@@ -8934,12 +8927,6 @@
             "value": "キャンセル"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cancel - Annuleren"
-          }
-        },
         "pl": {
           "stringUnit": {
             "state": "translated",
@@ -8962,6 +8949,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "中心"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ga naar Instellingen → Bluetooth"
           }
         }
       }
@@ -9004,12 +8997,6 @@
             "value": "中央"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Center - Centrum"
-          }
-        },
         "pl": {
           "stringUnit": {
             "state": "translated",
@@ -9032,6 +9019,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "更改登录后远程管理 → 安全中的默认密码。"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zoek je MeshCore-apparaat en tik ⓘ"
           }
         }
       }
@@ -9076,12 +9069,6 @@
             "value": "リモート管理によるログイン後にデフォルトパスワードを変更 → セキュリティ"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Change default passwords after login via Remote Management → Security. - Wijzig standaardwachtwoorden na inloggen via Afstandsbeheer → Beveiliging."
-          }
-        },
         "pl": {
           "stringUnit": {
             "state": "translated",
@@ -9104,6 +9091,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Change default passwords after login via Remote Management → Security."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tik ‘Dit apparaat vergeten’"
           }
         }
       }
@@ -22634,70 +22627,70 @@
       "comment": "A help message for troubleshooting radio connection issues.",
       "isCommentAutoGenerated": true,
       "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zapněte ho zpět a zkuste znovu skenovat"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Wenn Ihr Radio im Scanner nicht erscheint:\n\n1. Zu Einstellungen → Bluetooth gehen\n2. Ihr MeshCore-Gerät finden und ⓘ antippen\n3. „Disses Gerät vergessen“ antippen\n4. Radio 30 Sekunden ausschalten\n5. Wieder einschalten und erneut scannen\n\nEin erzwungenes Beenden der App kann den Bluetooth des Radios in einem blockierten Zustand hinterlassen. Ein vollständiger Neustart behebt dies."
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Enciéndela de nuevo y escanea nuevamente"
-          }
-        },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Redémarrez-la et scannez à nouveau"
+            "value": "Si votre radio n'apparaît pas dans le scanner :\n\n1. Allez dans Réglages → Bluetooth\n2. Trouvez votre appareil MeshCore et appuyez sur ⓘ\n3. Appuyez sur 'Oublier cet appareil'\n4. Éteignez la radio pendant 30 secondes\n5. Allumez-la à nouveau et scannez à nouveau\n\nL'arrêt forcé de l'application peut laisser le Bluetooth de la radio dans un état bloqué. Un cycle de puissance complet le débloque."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Si tu radio no aparece en el escáner:\n\n1. Ve a Ajustes → Bluetooth\n2. Encuentra tu dispositivo MeshCore y toca ⓘ\n3. Toca 'Olvidar este dispositivo'\n4. Apaga la radio durante 30 segundos\n5. Enciéndela de nuevo y escanea de nuevo\n\nCerrar de forma forzada la aplicación puede dejar el Bluetooth de la radio en un estado atascado. Un ciclo de energía completo lo limpia."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Riaccendilo e riprova a scansionare"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "再度スキャン"
+            "value": "Se la tua radio non appare nello scanner:\n\n1. Vai su Impostazioni → Bluetooth\n2. Trova il tuo dispositivo MeshCore e tocca ⓘ\n3. Tocca 'Dimentica questo dispositivo'\n4. Spegni la radio per 30 secondi\n5. Riaccendila e riprova a scansionare\n\nL'interruzione forzata dell'app può lasciare il Bluetooth della radio in uno stato bloccato. Un ciclo di alimentazione completo lo sblocca."
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zet hem weer aan en scan opnieuw"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Włącz je ponownie i skanuj ponownie"
+            "value": "Als je radio niet verschijnt in de scanner:\n\n1. Ga naar Instellingen → Bluetooth\n2. Zoek je MeshCore-apparaat en tik op ⓘ\n3. Tik op 'Dit apparaat vergeten'\n4. Schakel de radio uit voor 30 seconden\n5. Schakel hem weer in en scan opnieuw\n\nHet afsluiten van de app kan ervoor zorgen dat de Bluetooth van de radio vastloopt. Een volledige stroomcyclus lost het op."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ligue-o novamente e escaneie novamente"
+            "value": "Se o seu rádio não aparecer no scanner:\n\n1. Vá para Configurações → Bluetooth\n2. Encontre o seu dispositivo MeshCore e toque em ⓘ\n3. Toque em 'Esquecer este Dispositivo'\n4. Desligue o rádio por 30 segundos\n5. Ligue-o novamente e escaneie novamente\n\nEncerrar a app à força pode deixar o Bluetooth do rádio travado. Um ciclo completo de energia limpa isso."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pokud se váš rádio neobjeví ve skeneru:\n\n1. Přejděte do Nastavení → Bluetooth\n2. Najděte zařízení MeshCore a klepněte na ⓘ\n3. Klepněte na 'Zapomenout toto zařízení'\n4. Vypněte rádio na 30 sekund\n5. Zapněte ho zpět a skenujte znovu\n\nSilné ukončení aplikace může zanechat Bluetooth rádia v zablokovaném stavu. Plný cyklus napájení ho vyčistí."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jeśli radio nie pojawi się w skanerem:\n\n1. Przejdź do Ustawień → Bluetooth\n2. Znajdź urządzenie MeshCore i naciśnij ⓘ\n3. Naciśnij 'Zapomnij o tym urządzeniu'\n4. Wyłącz radio na 30 sekund\n5. Włącz je ponownie i spróbuj ponownie skanować\n\nZamykanie aplikacji w siłę może spowodować, że Bluetooth radia zostanie utkwiłe. Pełne cykliczne zasilania wyczyszcza to problem."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Увімкніть його знову і скануйте знову"
+            "value": "Якщо ваш пристрій не з'явиться в сканері:\n\n1. Перейдіть до Налаштувань → Bluetooth\n2. Знайдіть пристрій MeshCore і натисніть ⓘ\n3. Натисніть 'Забути цей пристрій'\n4. Вимкніть пристрій на 30 секунд\n5. Увімкніть його знову і скануйте знову\n\nЗакриття програми з силою може залишити Bluetooth пристрою в застряглому стані. Повний цикл живлення очищає його."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ラジオがスキャナーに表示されない場合は\n\n1. 設定 → Bluetoothに移動\n2. MeshCoreデバイスを見つけてⓘをタップ\n3. 「このデバイスを忘れる」をタップ\n4. 30秒間ラジオを電源オフ\n5. 再度スキャンするために電源を入れる\n\nアプリを強制終了すると、ラジオのBluetoothがロック状態になることがあります。完全な電源サイクルでクリアします。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "如果您的无线电无法出现在扫描器中："
+            "value": "如果你的收音机在扫描器中未出现：\n\n1. 前往设置 → 蓝牙\n2. 找到你的MeshCore设备并点击ⓘ\n3. 点击‘忘记此设备’\n4. 将收音机关机30秒\n5. 重新启动并再次扫描\n\n强制退出应用可能会使收音机的蓝牙陷入挂断状态。完整电源循环可清除它。"
           }
         }
       }
@@ -22774,70 +22767,70 @@
     },
     "Import %@?\n\nAdd will keep your existing channels. Replace will remove all current channels first.": {
       "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Importovat %@?"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Import %@?\n\nHinzufügen behält bestehende Kanäle. Ersetzen entfernt zunächst alle aktuellen Kanäle."
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "¿Importar %@?"
-          }
-        },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Importer %@ ?"
+            "value": "Importer %@ ?\n\nAjouter conservera vos canaux existants. Remplacer supprimera d'abord tous les canaux actuels."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Importar %@?\n\nAgregar conservará tus canales existentes. Reemplazar eliminará todos los canales actuales primero."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Importa %@?"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@をインポート?"
+            "value": "Importa %@?\n\nAggiungere conserverà i tuoi canali esistenti. Sostituire rimuoverà prima tutti i canali attuali."
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Importeer %@?"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Czy chcesz zaimportować %@?"
+            "value": "Importeer %@?\n\nToevoegen zal je bestaande kanalen behouden. Vervangen zal eerst alle huidige kanalen verwijderen."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Importar %@?"
+            "value": "Importar %@?\n\nAdicionar manterá seus canais existentes. Substituir removerá todos os canais atuais primeiro."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importovat %@?\n\nPřidat zachová vaše stávající kanály. Nahradit nejprve odstraní všechny současné kanály."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importuj %@?\n\nDodawanie zachowa Twoje istniejące kanały. Zamienianie usunie wszystkie bieżące kanały najpierw."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Імпорт %@?"
+            "value": "Імпортувати %@?\n\nДодати збереже ваші існуючі канали. Замінити видалить усі поточні канали спочатку."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@をインポートしますか？\n\n追加すると既存のチャンネルが保持されます。置き換えると、すべての現在のチャンネルが最初に削除されます。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "导入 %@？"
+            "value": "导入 %@？\n\n添加将保留您现有的频道。替换将首先删除所有当前频道。"
           }
         }
       }
@@ -26761,12 +26754,6 @@
             "value": "Menciones"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mentions - Mentions"
-          }
-        },
         "it": {
           "stringUnit": {
             "state": "translated",
@@ -26808,6 +26795,12 @@
             "state": "translated",
             "value": "提及"
           }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mentions"
+          }
         }
       }
     },
@@ -26831,12 +26824,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Canal de transmisión Mesh"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mesh broadcast channel - Chaîne de diffusion Mesh"
           }
         },
         "it": {
@@ -26880,6 +26867,12 @@
             "state": "translated",
             "value": "网格广播通道"
           }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Canal de diffusion Mesh"
+          }
         }
       }
     },
@@ -26901,12 +26894,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Mapa Mesh"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mesh Map - Carte Mesh"
           }
         },
         "it": {
@@ -26950,6 +26937,12 @@
             "state": "translated",
             "value": "网格地图"
           }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Carte Mesh"
+          }
         }
       }
     },
@@ -26973,12 +26966,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Proyecto MeshCore"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "MeshCore Project - Projet MeshCore"
           }
         },
         "it": {
@@ -27022,6 +27009,12 @@
             "state": "translated",
             "value": "MeshCore项目"
           }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Projet MeshCore"
+          }
         }
       }
     },
@@ -27043,12 +27036,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Entrega de mensaje"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Message Delivery - Livraison de message"
           }
         },
         "it": {
@@ -27092,6 +27079,12 @@
             "state": "translated",
             "value": "消息传递"
           }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Livraison du message"
+          }
         }
       }
     },
@@ -27115,12 +27108,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Mensaje que se enviará:"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Message that will be sent: - Message à envoyer :"
           }
         },
         "it": {
@@ -27164,6 +27151,12 @@
             "state": "translated",
             "value": "将要发送的消息："
           }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Message qui sera envoyé :"
+          }
         }
       }
     },
@@ -27187,12 +27180,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Los mensajes en este canal serán eliminados de tu dispositivo."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Messages in this channel will be deleted from your device. - Les messages sur cette chaîne seront supprimés de votre appareil."
           }
         },
         "it": {
@@ -27236,6 +27223,12 @@
             "state": "translated",
             "value": "此频道中的消息将从您的设备中删除。"
           }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les messages dans cette chaîne seront supprimés de votre appareil."
+          }
         }
       }
     },
@@ -27257,12 +27250,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Mensajes por contacto"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Messages Per Contact - Messages par contact"
           }
         },
         "it": {
@@ -27306,6 +27293,12 @@
             "state": "translated",
             "value": "每位联系人消息数"
           }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Messages par contact"
+          }
         }
       }
     },
@@ -27329,12 +27322,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Los mensajes enviados a este canal aparecerán aquí."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Messages sent to this channel will appear here. - Les messages envoyés vers cette chaîne apparaîtront ici."
           }
         },
         "it": {
@@ -27378,6 +27365,12 @@
             "state": "translated",
             "value": "发送到此频道的消息将出现在这里。"
           }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les messages envoyés à ce canal apparaîtront ici."
+          }
         }
       }
     },
@@ -27399,12 +27392,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Migrar"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Migrate - Migrer"
           }
         },
         "it": {
@@ -27447,6 +27434,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "迁移"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Migrer"
           }
         }
       }
@@ -36273,12 +36266,6 @@
             "value": "Radio, un dispositivo de comunicación inalámbrica."
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Radio — Radio"
-          }
-        },
         "it": {
           "stringUnit": {
             "state": "translated",
@@ -36320,6 +36307,12 @@
             "state": "translated",
             "value": "无线电"
           }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Radio"
+          }
         }
       }
     },
@@ -36341,12 +36334,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Radio %@... (sin traducción, se mantiene como está)"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Radio %@... — Radio %@..."
           }
         },
         "it": {
@@ -36390,6 +36377,12 @@
             "state": "translated",
             "value": "无线电 %@..."
           }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Radio %@..."
+          }
         }
       }
     },
@@ -36411,12 +36404,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Cálculo de radio"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Radio Calculator — Calculatrice radio"
           }
         },
         "it": {
@@ -36460,6 +36447,12 @@
             "state": "translated",
             "value": "无线电计算器"
           }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Calculateur radio"
+          }
         }
       }
     },
@@ -36481,12 +36474,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Configuración de radio"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Radio Configuration — Configuration radio"
           }
         },
         "it": {
@@ -36530,6 +36517,12 @@
             "state": "translated",
             "value": "无线电配置"
           }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configuration de la radio"
+          }
         }
       }
     },
@@ -36551,12 +36544,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Formato de radio: freq_MHz, ancho de banda_kHz, SF, CR (por ejemplo, 910.525, 62.5, 7, 5)"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Radio format: freq_MHz,bw_kHz,sf,cr (e.g. 910.525,62.5,7,5) — Format de la radio : freq_MHz, bw_kHz, sf, cr (par ex. 910.525, 62.5, 7, 5)"
           }
         },
         "it": {
@@ -36600,6 +36587,12 @@
             "state": "translated",
             "value": "无线电格式：频率_MHz，带宽_kHz，SF，CR（例如 910.525,62.5,7,5）"
           }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Format de la radio : freq_MHz, bw_kHz, sf, cr (par exemple 910.525, 62.5, 7, 5)"
+          }
         }
       }
     },
@@ -36623,12 +36616,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "La identidad de radio (clave privada) no está incluida. Para hacer una copia de seguridad de la identidad de tu radio, utiliza la aplicación PommeCore para Mac: Configuración → Dispositivo → Copia de seguridad de identidad mientras estés conectado vía USB."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Radio identity (private key) is not included. To back up your radio's identity, use the PommeCore Mac app: Settings → Device → Identity Backup while connected via USB. — L'identité de la radio (clé privée) n'est pas incluse. Pour sauvegarder l'identité de votre radio, utilisez l'application PommeCore Mac : Paramètres → Dispositif → Sauvegarde d'identité pendant la connexion USB."
           }
         },
         "it": {
@@ -36672,6 +36659,12 @@
             "state": "translated",
             "value": "无线电身份（私钥）未包含。要备份您的无线电身份，请使用 PommeCore Mac 应用程序：设置 → 设备 → 身份备份，在通过 USB 连接时。"
           }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'identité de la radio (clé privée) n'est pas incluse. Pour sauvegarder l'identité de votre radio, utilisez l'application PommeCore Mac : Paramètres → Dispositif → Sauvegarde de l'identité pendant la connexion USB."
+          }
         }
       }
     },
@@ -36693,12 +36686,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Parámetros de radio"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Radio Parameters — Paramètres radio"
           }
         },
         "it": {
@@ -36742,6 +36729,12 @@
             "state": "translated",
             "value": "无线电参数"
           }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paramètres de la radio"
+          }
         }
       }
     },
@@ -36763,12 +36756,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Preseta de radio"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Radio Preset — Prét radio"
           }
         },
         "it": {
@@ -36812,6 +36799,12 @@
             "state": "translated",
             "value": "无线电预设"
           }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prédéfini radio"
+          }
         }
       }
     },
@@ -36833,12 +36826,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Presetas de radio"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Radio Presets — Prêts radio"
           }
         },
         "it": {
@@ -36882,6 +36869,12 @@
             "state": "translated",
             "value": "无线电预设列表"
           }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prédéfinis radio"
+          }
         }
       }
     },
@@ -36903,12 +36896,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Configuración de radio"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Radio Settings — Paramètres radio"
           }
         },
         "it": {
@@ -36951,6 +36938,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "无线电设置"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paramètres radio"
           }
         }
       }
@@ -46305,70 +46298,70 @@
     },
     "Signal strength data is collected automatically while the RF Monitor is open and you're moving. Every received packet is GPS-tagged and plotted here as a colour-coded heat map.\n\nOpen the RF Monitor tab and move around with your radio to start building coverage data.": {
       "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Data o síle signálu se shromažďují automaticky při otevřeném monitoru RF a pohybujete se. Každý přijatý paket je označen GPS a zde zobrazen jako barevná teplem mapa."
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Signalstärkendaten werden automatisch gesammelt, wenn der HF-Monitor geöffnet ist und Sie sich bewegen. Jedes empfangene Paket wird GPS-markiert und hier als farbkodierte Heatmap dargestellt.\n\nÖffnen Sie den HF-Monitor-Tab und bewegen Sie sich mit Ihrem Radio, um Abdeckungsdaten aufzubauen."
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Los datos de fuerza de señal se recopilan automáticamente mientras el monitor RF está abierto y te mueves. Cada paquete recibido está etiquetado con GPS y se traza aquí como un mapa de calor codificado por color."
-          }
-        },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Les données de force du signal sont collectées automatiquement pendant que le moniteur RF est ouvert et que vous bougez. Chaque paquet reçu est étiqueté GPS et tracé ici sous forme de carte thermique codée par couleur."
+            "value": "Les données de force du signal sont collectées automatiquement pendant que le moniteur RF est ouvert et que vous vous déplacez. Chaque paquet reçu est étiqueté GPS et tracé ici sous forme de carte thermique codée par couleur.\n\nOuvrez l'onglet Moniteur RF et déplacez-vous avec votre radio pour commencer à construire les données de couverture."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los datos de la intensidad de la señal se recopilan automáticamente mientras se mantiene abierto el Monitor de RF y se mueve. Cada paquete recibido está etiquetado con GPS y se representa aquí como un mapa de calor codificado con colores.\n\nAbra la pestaña Monitor de RF y muévase con su radio para empezar a construir datos de cobertura."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "I dati sulla forza del segnale vengono raccolti automaticamente mentre il Monitor RF è aperto e ti muovi. Ogni pacchetto ricevuto viene etichettato con GPS e tracciato qui come mappa termica colorata."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "RFモニターが開いていて移動している間に自動的に信号強度データが収集されます。受信された各パケットはGPSタグ付けされ、ここに色分けされたヒートマップとしてプロットされます。"
+            "value": "I dati sulla forza del segnale vengono raccolti automaticamente mentre il monitor RF è aperto e ti muovi. Ogni pacchetto ricevuto è taggato GPS e visualizzato qui come mappa di calore codificata per colori.\n\nApri la scheda Monitor RF e muoviti con la tua radio per iniziare a costruire i dati di copertura."
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Signaalsterktegegevens worden automatisch verzameld terwijl de RF Monitor openstaat en je beweegt. Elke ontvangen pakket wordt gelabeld met GPS en hier weergegeven als gekleurde warmtekaart."
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dane o sile sygnału są zbierane automatycznie podczas otwarcia monitoru RF i poruszania się z radiem. Każdy odebrany pakiet jest oznaczany GPS i przedstawiany tutaj jako mapa ciepła kolorowa."
+            "value": "Signaalsterktegegevens worden automatisch verzameld terwijl de RF Monitor openstaat en je beweegt. Elke ontvangen pakket wordt geëtiketteerd met GPS en hier weergegeven als een gekleurde warmtekaart.\n\nOpen de RF Monitor tab en beweeg met je radio om te beginnen met het opbouwen van dekkingsgegevens."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dados de força do sinal são coletados automaticamente enquanto o Monitor RF está aberto e você se move. Cada pacote recebido é marcado com GPS e plotado aqui como um mapa de calor codificado por cor."
+            "value": "Os dados de força do sinal são coletados automaticamente enquanto o Monitor de RF está aberto e você se move. Cada pacote recebido é marcado com GPS e plotado aqui como um mapa de calor codificado por cor.\n\nAbra a guia Monitor de RF e se mova com o seu rádio para começar a construir dados de cobertura."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data o síle signálu se shromažďuje automaticky, když je otevřen monitor RF a vy se pohybujete. Každý přijatý balíček je označen GPS a zde zobrazen jako barevná teplem mapovaná mapa.\n\nOtevřete kartu monitoru RF a pohybujte se s rádiem, abyste začali vytvářet data o pokrytí."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dane siły sygnału są zbierane automatycznie, gdy monitor RF jest otwarty i poruszasz się. Każdy odebrany pakiet jest oznakowany GPS i przedstawiony tutaj jako mapa ciepła kolorowa.\n\nOtwórz kartę monitor RF i poruszaj się z radiem, aby rozpocząć budowanie danych o zasięgu."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Дані про силу сигналу збираються автоматично під час відкриття монітору RF і вашого пересування. Кожен отриманий пакет позначений GPS і зображений тут у вигляді кольорової теплової карти."
+            "value": "Дані про силу сигналу збираються автоматично, коли монітор RF відкритий і ви рухаєтеся. Кожен отриманий пакет позначений GPS і зображений тут як кольорова теплова карта.\n\nВідкрийте вкладку RF Монітор і рухайтеся з радіом, щоб почати збирати дані про покриття."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "信号強度データは、RFモニターが開いた状態で移動している間に自動的に収集されます。受信された各パケットはGPSタグ付けされ、ここに色分けされたヒートマップとしてプロットされます。\n\nRFモニタタブを開き、ラジオを持って移動して、カバレッジデータの構築を開始してください。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "信号强度数据在RF监控器打开并移动时自动收集。每个接收到的包都带有GPS标记，并在这里以彩色热图形式绘制。"
+            "value": "信号强度数据在RF监控打开并你移动时自动收集。每个接收到的包都带有GPS标记，并以彩色热图在这里显示。\n\n打开RF监控选项卡，用你的无线电移动以开始构建覆盖数据。"
           }
         }
       }
@@ -48157,12 +48150,6 @@
             "value": "Schalten Sie Ihr Radio auf %@? Dies ändert Ihre Frequenz, SF und Bandbreite."
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Changez de radio ? Cela modifie votre fréquence, SF et bande passante."
-          }
-        },
         "es": {
           "stringUnit": {
             "state": "translated",
@@ -48215,6 +48202,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "将您的无线电切换到 %@？这会改变您的频率、SF 和带宽。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Commutez votre radio vers %@ ? Cela modifie votre fréquence, SF et bande passante."
           }
         }
       }
@@ -50495,12 +50488,6 @@
     },
     "This will change your radio to %@, BW %@ kHz, SF%@, CR 4/%@.\n\nAll nodes on your mesh must use the same settings.": {
       "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "To změní vaše rádio na %@, BW %@ kHz, SF%@, CR 4/%@."
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
@@ -50513,58 +50500,64 @@
             "value": "This will change your radio to %1$@, BW %2$@ kHz, SF%3$@, CR 4/%4$@.\n\nAll nodes on your mesh must use the same settings."
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Esto cambiará tu radio a %@, BW %@ kHz, SF%@, CR 4/%@."
-          }
-        },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cela changera votre radio en %@, BW %@ kHz, SF%@, CR 4/%@."
+            "value": "Cela changera votre radio en %@, BW %@ kHz, SF%@, CR 4/%@.\n\nTous les nœuds de votre maillage doivent utiliser les mêmes paramètres."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esto cambiará tu radio a %@, BW %@ kHz, SF%@, CR 4/%@.\n\nTodos los nodos en tu mesh deben usar la misma configuración."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Questo cambierà la tua radio in %@, BW %@ kHz, SF%@, CR 4/%@."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "これにより、ラジオは %@ に変更され、BW %@ kHz、SF%@、CR 4/%@ になります。"
+            "value": "Questa cambierà la tua radio in %@, BW %@ kHz, SF%@, CR 4/%@.\n\nTutti i nodi sulla tua mesh devono utilizzare le stesse impostazioni."
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dit zal je radio veranderen naar %@, BW %@ kHz, SF%@, CR 4/%@."
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "To zmieni Twoje radio na %@, BW %@ kHz, SF%@, CR 4/%@."
+            "value": "Dit zal je radio veranderen naar %@, BW %@ kHz, SF%@, CR 4/%@.\n\nAlle knooppunten in je mesh moeten dezelfde instellingen gebruiken."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Isso mudará o seu rádio para %@, BW %@ kHz, SF%@, CR 4/%@."
+            "value": "Esta mudança transformará seu rádio em %@, BW %@ kHz, SF%@, CR 4/%@.\n\nTodos os nós em sua malha devem usar as mesmas configurações."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toto změní vaše rádio na %@, šířka pásma %@ kHz, formát %@, CR 4/%@.\n\nVšechny uzly v vaší mřížce musí používat stejné nastavení."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To zmieni Twoje radio na %@, BW %@ kHz, SF%@, CR 4/%@.\n\nWszystkie węzły w Twojej siatce muszą używać tych samych ustawień."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Це змінить ваше радіо на %@, BW %@ kHz, SF%@, CR 4/%@."
+            "value": "Це змінить вашу радіостанцію на %@, BW %@ kHz, SF%@, CR 4/%@.\n\nВсі вузли у вашій сітці повинні використовувати однакові налаштування."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この設定により、ラジオは %@、帯域幅 %@ kHz、SF %@、CR 4/%@ に変更されます。\n\nメッシュ上のすべてのノードは同じ設定を使用する必要があります。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这将更改您的无线电为 %@，带宽 %@ kHz，SF%@，CR 4/%@。"
+            "value": "这将改变你的收音机到 %@，带宽 %@ kHz，SF%@，CR 4/%@。\n\n你网格中的所有节点必须使用相同的设置。"
           }
         }
       }
@@ -50573,70 +50566,70 @@
       "comment": "A warning message displayed in the alert for the user to confirm that they want to reset their Mesh device.",
       "isCommentAutoGenerated": true,
       "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "To smaže všechna data a nelze to vrátit zpět."
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Alle Daten werden gelöscht und dies kann nicht rückgängig gemacht werden.\n\nRESET eingeben zur Bestätigung."
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Esto borrará todos los datos y no se puede deshacer."
-          }
-        },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cela effacera toutes les données et ne peut pas être annulé."
+            "value": "Cela effacera toutes les données et ne pourra pas être annulé.\n\nTapez RESET pour confirmer."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esto borrará todos los datos y no se puede deshacer.\n\nEscriba RESET para confirmar."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Questa operazione cancellerà tutti i dati e non può essere annullata."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "すべてのノードが同じ設定を使用する必要があります。"
+            "value": "Questo cancellerà tutti i dati e non può essere annullato.\n\nDigita RESET per confermare."
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dit zal alle gegevens wissen en kan niet ongedaan gemaakt worden."
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "To wyczyści wszystkie dane i nie można tego cofnąć."
+            "value": "Dit zal alle gegevens wissen en dit kan niet ongedaan gemaakt worden.\n\nTyp RESET om te bevestigen."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Isso apagará todos os dados e não pode ser desfeito."
+            "value": "Isso apagará todos os dados e não poderá ser desfeito.\n\nDigite RESET para confirmar."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toto smaže všechna data a nelze to vrátit zpět.\n\nZadejte RESET pro potvrzení."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To wyczyści wszystkie dane i nie można tego cofnąć.\n\nWpisz RESET, aby potwierdzić."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Це видалить всі дані і не може бути скасовано."
+            "value": "Це видалить усі дані і це неможливо скасувати.\n\nВведіть RESET для підтвердження."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この操作はすべてのデータを消去し、取り消すことはできません。\n\nリセットを入力して確認してください。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这将清除所有数据且无法恢复。"
+            "value": "这将删除所有数据，且不可恢复。\n\n输入 RESET 确认。"
           }
         }
       }
@@ -53732,12 +53725,6 @@
             "value": "ワイファイラジオ"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "WiFi Radio - Wifi-radio"
-          }
-        },
         "pl": {
           "stringUnit": {
             "state": "translated",
@@ -53761,145 +53748,151 @@
             "state": "translated",
             "value": "无线网络无线电"
           }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WiFi Radio"
+          }
         }
       }
     },
     "Your companion radio will act as a portable repeater.\n\nAllowed frequency ranges:\n%@\n\nThis is useful for camping, hiking, and search & rescue where repeater infrastructure doesn't exist.": {
       "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vaše společníkové rádio bude fungovat jako přenosný opakovač."
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Ihr Companion-Radio fungiert als tragbarer Repeater.\n\nErlaubte Frequenzbereiche:\n%@\n\nDies ist nützlich beim Camping, Wandern und bei Such- und Rettungsaktionen, wo keine Repeater-Infrastruktur vorhanden ist."
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tu radio compañera actuará como un repetidor portátil."
-          }
-        },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Votre radio compagnon agira comme un répéteur portable."
+            "value": "Votre radio compagnon agira comme un répéteur portable.\n\nPlages de fréquences autorisées :\n%@\n\nCela est utile pour le camping, la randonnée et les opérations de recherche et de sauvetage où l'infrastructure de répéteur n'existe pas."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu radio compañera actuará como un repetidor portátil.\n\nRango de frecuencias permitidas:\n%@\n\nEsto es útil para acampar, hacer senderismo y búsqueda y rescate donde no existe infraestructura de repetidor."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "La vostra radio compagna agirà come un ripetitore portatile."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "あなたの相棒ラジオはポータブルリピーターとして機能します。"
+            "value": "La vostra radio portatile agirà come un ripetitore portatile.\n\nIntervalli di frequenza consentiti:\n%@\n\nQuesto è utile per il campeggio, l'escursionismo e le operazioni di ricerca e salvataggio in cui non esiste un'infrastruttura di ripetitore."
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Uw begeleider-radio zal fungeren als een draagbare herhaler. - Uw begeleiderradio zal als een draagbare herhaler werken."
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Twoje towarzysze radio będą działać jako przenośny powtarzacz."
+            "value": "Uw begeleiderradio zal als draagbaar herhaler fungeren.\n\nToegestane frequentiebereiken:\n%@\n\nDit is nuttig voor kamperen, wandelen en zoek- en reddingsoperaties waar geen herhalingsinfrastructuur bestaat."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Seu rádio companheiro agirá como um repetidor portátil."
+            "value": "Seu rádio companheiro agirá como um repetidor portátil.\n\nFaixas de frequência permitidas:\n%@\n\nIsso é útil para acampar, caminhar e operações de busca e resgate onde a infraestrutura de repetidor não existe."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Váš společník v rádiu bude fungovat jako přenosný opakovač.\n\nPovolené frekvenční rozsahy:\n%@\n\nTo je užitečné pro kempování, turistiku a pátrání a záchranu, kde neexistuje infrastruktura opakovačů."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Twój radiokomplet towarzyszy będzie działał jako przenośny powtarzacz.\n\nDozwolone zakresy częstotliwości:\n%@\n\nTo przydatne w kempingu, wędrówkach i poszukiwaniach i ratownictwie, gdzie nie istnieje infrastruktura powtarzaczy."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ваш супутній пристрій-радіопередавач діятиме як портативний повторювач."
+            "value": "Ваш портативний радіоприймач діятиме як повторювач.\n\nДозволені діапазони частот:\n%@\n\nЦе корисно для кемпінгу, піших прогулянок та пошуку та порятунку, де інфраструктура повторювачів відсутня."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "あなたのポータブルラジオは、リピーターとして機能します。\n\n許可された周波数範囲：\n%@\n\nこれは、リピータインフラが存在しないキャンプ、ハイキング、および捜索救助に役立ちます。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "您的伴随无线电将作为便携式中继器工作。"
+            "value": "您的便携式收发机将作为移动中继器。\n\n允许频率范围：\n%@\n\n这对于露营、徒步和搜索与救援非常有用，因为没有中继基础设施。"
           }
         }
       }
     },
     "Your companion radio will act as a portable repeater.\n\nThis is useful for camping, hiking, and search & rescue where repeater infrastructure doesn't exist.\n\nRepeat mode is restricted to allowed frequency ranges configured on the device.": {
       "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vaše společníkové rádio bude fungovat jako přenosný opakovač."
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Ihr Companion-Radio fungiert als tragbarer Repeater.\n\nDies ist nützlich beim Camping, Wandern und bei Such- und Rettungsaktionen, wo keine Repeater-Infrastruktur vorhanden ist.\n\nWiederholungsmodus ist auf die am Gerät konfigurierten erlaubten Frequenzbereiche beschränkt."
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tu radio compañera actuará como un repetidor portátil. Esta función es útil para acampar, hacer senderismo y operaciones de búsqueda y rescate donde no existe infraestructura de repetidor."
-          }
-        },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Votre radio compagnon agira comme un répéteur portable. Le mode répétition est limité aux plages de fréquences autorisées configurées sur l'appareil."
+            "value": "Votre radio compagnon agira comme un répéteur portable.\n\nCela est utile pour le camping, la randonnée et les opérations de recherche et de sauvetage où l'infrastructure de répéteur n'existe pas.\n\nLe mode répéter est restreint aux plages de fréquences autorisées configurées sur l'appareil."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu radio compañera actuará como un repetidor portátil.\n\nEsto es útil para acampar, hacer senderismo y búsqueda y rescate donde no existe infraestructura de repetidor.\n\nEl modo de repetición está restringido a rangos de frecuencia permitidos configurados en el dispositivo."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Questa è utile per il campeggio, l'escursionismo e le operazioni di ricerca e soccorso dove non esiste infrastruttura di ripetitori."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "この機能は、キャンプ、ハイキング、捜索救助に役立ちます。リピーターインフラが存在しない場合に便利です。"
+            "value": "La vostra radio portatile agirà come un ripetitore portatile.\n\nQuesto è utile per il campeggio, l'escursionismo e le operazioni di ricerca e salvataggio in cui non esiste un'infrastruttura di ripetitore.\n\nIl modo ripetitore è limitato alle fasce di frequenza consentite configurate sul dispositivo."
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Uw begeleider-radio zal fungeren als een draagbare herhaler. Dit is handig voor kamperen, wandelen en zoek- en reddingsoperaties waar geen infrastructuur voor herhalers bestaat. - Uw begeleiderradio zal als een draagbare herhaler dienen. Dit is nuttig voor kampeertrips, wandelingen en zoek- en reddingsacties zonder herhalerinfrastructuur."
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Twoje towarzysze radio będą działać jako przenośny powtarzacz."
+            "value": "Uw begeleiderradio zal als draagbaar herhalingsapparaat fungeren.\n\nDit is nuttig voor kamperen, wandelen en zoek- en reddingsoperaties waar geen herhalingsinfrastructuur bestaat.\n\nHerhalingsmodus is beperkt tot toegestane frequentiebereiken die op het apparaat zijn geconfigureerd."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Seu rádio companheiro agirá como um repetidor portátil."
+            "value": "Seu rádio companheiro agirá como um repetidor portátil.\n\nIsso é útil para acampar, caminhar e operações de busca e resgate onde a infraestrutura de repetidor não existe.\n\nO modo repetidor é restrito a intervalos de frequência permitidos configurados no dispositivo."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Váš společník v rádiu bude fungovat jako přenosný opakovač.\n\nTo je užitečné pro kempování, turistiku a pátrání a záchranu, kde neexistuje infrastruktura opakovačů.\n\nRežim opakování je omezen na povolené rozsahy frekvencí nakonfigurované na zařízení."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Twoje towarzysze radio będą działać jako przenośny powtarzacz.\n\nTo przydatne dla biwaku, wędrówek i akcji ratunkowych, gdzie nie istnieje infrastruktura powtarzacza.\n\nTryb powtarzania jest ograniczony do dopuszczalnych zakresów częstotliwości skonfigurowanych na urządzeniu."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ваш супутній пристрій-радіопередавач діятиме як портативний повторювач."
+            "value": "Ваш портативний радіоприймач діятиме як портативний повторювач.\n\nЦе корисно для кемпінгу, піших прогулянок та пошуку та порятунку, де інфраструктура повторювачів відсутня.\n\nРежим повторення обмежений дозволеними діапазонами частот, налаштованими на пристрої."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "あなたのポケットラジオはポータブルリピーターとして機能します。\n\nこれはキャンプ、ハイキング、およびリピータインフラが存在しない捜索救助に役立ちます。\n\nリピートモードはデバイスに設定された許可された周波数範囲に制限されます。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "您的伴随无线电将作为便携式中继器工作。重复模式仅限于设备上配置的允许频率范围。"
+            "value": "您的便携式收发机将作为移动中继器。\n\n这对于露营、远足和搜索与救援非常有用，在这些场景中不存在中继基础设施。\n\n重复模式仅限于设备配置的允许频率范围。"
           }
         }
       }
