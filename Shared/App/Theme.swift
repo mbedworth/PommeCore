@@ -322,18 +322,30 @@ enum MeshTheme {
         seriesPalette[((index % seriesPalette.count) + seriesPalette.count) % seriesPalette.count]
     }
 
+    /// Line patterns for charting several series, one per palette entry.
+    ///
+    /// There are exactly as many patterns as colours on purpose. A caller that
+    /// advances this a full palette cycle per series — which is what
+    /// Differentiate Without Color asks for — then gets a distinct pattern for
+    /// every line the palette can distinguish, instead of running out first and
+    /// handing two lines the same pattern in different colours, which is the
+    /// one thing that setting says not to rely on.
+    static let seriesDashes: [[CGFloat]] = [
+        [],                 // solid
+        [6, 3],             // dashed
+        [2, 3],             // dotted
+        [9, 3, 2, 3],       // dash-dot
+        [14, 4],            // long dash
+        [9, 3, 2, 3, 2, 3], // dash-dot-dot
+    ]
+
     /// A dash pattern per series, so a multi-node chart stays readable for
     /// someone who cannot separate the colours — and once the palette wraps,
     /// for everyone. Changes only after a full cycle of the palette, keeping
     /// the first six lines solid.
     static func seriesDash(_ index: Int) -> [CGFloat] {
         guard index >= 0 else { return [] }
-        switch (index / seriesPalette.count) % 4 {
-        case 0: return []
-        case 1: return [6, 3]
-        case 2: return [2, 3]
-        default: return [8, 3, 2, 3]
-        }
+        return seriesDashes[(index / seriesPalette.count) % seriesDashes.count]
     }
 
     /// Noise floor. Green < -105 dBm, amber -105 to -95, red above -95.

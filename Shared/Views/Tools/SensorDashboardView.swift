@@ -251,6 +251,14 @@ struct SensorDashboardView: View {
             }
         }
         .chartYAxis { AxisMarks(position: .leading) }
+        // Charts include zero by default, which is right for a percentage and
+        // useless for anything with a large offset: atmospheric pressure varies
+        // over ~20 hPa around 1013, so a 0-based axis draws eight nodes as one
+        // flat line. A percentage keeps 0-100 so nodes stay comparable against
+        // a fixed scale rather than against whatever today's spread happens
+        // to be.
+        .chartYScale(domain: group.unit == "%" ? .automatic(includesZero: true)
+                                               : .automatic(includesZero: false))
         .chartLegend(.hidden)   // The legend below carries the latest value too.
         .frame(height: 180)
         .accessibilityLabel(Text(group.label))
