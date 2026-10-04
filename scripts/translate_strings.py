@@ -195,7 +195,7 @@ def specifier_mismatch(key, value):
     return f"added {sorted(set(got) - set(want)) or got}"
 
 
-def translation_problem(key, value):
+def translation_problem(key, value, lang=None):
     """Why `value` is not a usable translation of `key`, or None if it is.
 
     Three failure modes, all found in strings that had already shipped. Each is
@@ -253,6 +253,21 @@ def translation_problem(key, value):
         return (f"implausible expansion ({len(key)} chars in, {len(stripped)} out) — "
                 "misaligned reply or model commentary")
 
+    # Implausible contraction, the mirror image and the other half of a
+    # misaligned batch: a sentence that became a fragment. "Can't Connect to
+    # Radio?" was answered with 取消 — simply "Cancel" — and a paragraph about
+    # deleting synced messages was answered with the RESET confirmation line in
+    # three languages. Chinese and Japanese are genuinely far denser than
+    # English, so they get their own floor.
+    if len(key) >= 18:
+        # 0.15 for CJK, not 0.22: Chinese really is that dense. "Communicate
+        # Off-Grid" → 无网通信 is four characters and a good translation, so a
+        # tighter floor would reject correct work.
+        floor = 0.15 if lang in ("ja", "zh-Hans") else 0.40
+        if len(stripped) < floor * len(key):
+            return (f"implausible contraction ({len(key)} chars in, {len(stripped)} out) — "
+                    "misaligned reply or a summarised answer")
+
     return None
 
 
@@ -293,7 +308,7 @@ def write_translations(data, keys_texts, translations, lang):
     for (key, _src), translated in zip(keys_texts, translations):
         if key not in data["strings"]:
             continue
-        why = translation_problem(key, translated)
+        why = translation_problem(key, translated, lang)
         if why is not None:
             rejected.append((key, translated, why))
             continue
@@ -410,7 +425,7 @@ def main():
                 value = (loc.get("stringUnit") or {}).get("value")
                 if value is None:
                     continue
-                why = translation_problem(key, value)
+                why = translation_problem(key, value, lang)
                 if why is not None:
                     bad.append((lang, key, value, why))
 
