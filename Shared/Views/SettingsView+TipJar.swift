@@ -263,7 +263,7 @@ extension SettingsView {
                 Label("Messages Per Contact", systemImage: "number")
                     .foregroundStyle(MeshTheme.accent)
             }
-            .tint(.primary)
+            .tint(MeshTheme.textPrimary)
             .listRowBackground(MeshTheme.surface)
 
             Button {
@@ -277,16 +277,20 @@ extension SettingsView {
                     #if !os(watchOS)
                     let telCount = rfMonitorStore.totalSnapshotCount
                     let covCount = rfMonitorStore.coveragePoints.count
-                    let msgStatus: Color = msgCount > 20_000 ? .red : msgCount > 5_000 ? .orange : .green
-                    let telStatus: Color = telCount > 2_000 ? .red : telCount > 500 ? .orange : .green
-                    let worstStatus: Color = msgStatus == .red || telStatus == .red ? .red : msgStatus == .orange || telStatus == .orange ? .orange : .green
+                    // Worst of the two, chosen by severity rank rather than by
+                    // comparing Colors — the adaptive colours are resolved
+                    // per trait collection, so `==` is not a safe test.
+                    let msgSeverity = msgCount > 20_000 ? 2 : msgCount > 5_000 ? 1 : 0
+                    let telSeverity = telCount > 2_000 ? 2 : telCount > 500 ? 1 : 0
+                    let worstStatus = max(msgSeverity, telSeverity) == 2 ? MeshTheme.statusBad
+                        : max(msgSeverity, telSeverity) == 1 ? MeshTheme.statusWarn : MeshTheme.statusGood
                     Text("\(msgCount) msg, \(telCount) telemetry, \(covCount) coverage")
                         .font(.caption)
                         .foregroundStyle(worstStatus)
                     #else
                     Text("\(msgCount) messages")
                         .font(.caption)
-                        .foregroundStyle(msgCount > 20_000 ? .red : msgCount > 5_000 ? .orange : .green)
+                        .foregroundStyle(MeshTheme.messageCountColor(msgCount))
                     #endif
                 }
                 .contentShape(Rectangle())
@@ -387,7 +391,7 @@ extension SettingsView {
             } label: {
                 HStack {
                     Label("Supporters Wall", systemImage: "star.fill")
-                        .foregroundStyle(.yellow)
+                        .foregroundStyle(MeshTheme.statusCaution)
                     Spacer()
                     Image(systemName: "chevron.right")
                         .font(.caption)
@@ -484,7 +488,7 @@ struct TipJarView: View {
                 } label: {
                     HStack {
                         Image(systemName: "star.fill")
-                            .foregroundStyle(.yellow)
+                            .foregroundStyle(MeshTheme.statusCaution)
                         Text("View Supporters Wall")
                             .foregroundStyle(MeshTheme.accent)
                         Spacer()
@@ -608,7 +612,7 @@ struct TipButton: View {
                         .padding(.horizontal, 16)
                         .padding(.vertical, 8)
                         .background(MeshTheme.interactiveGreen)
-                        .foregroundStyle(.black)
+                        .foregroundStyle(MeshTheme.textOnBubble)
                         .clipShape(RoundedRectangle(cornerRadius: 10))
                 }
             }
@@ -658,7 +662,7 @@ struct SupportersView: View {
                     ForEach(manager.supporters) { supporter in
                         HStack {
                             Image(systemName: "star.fill")
-                                .foregroundStyle(.yellow)
+                                .foregroundStyle(MeshTheme.statusCaution)
                             Text(supporter.displayName)
                                 .font(.body)
                                 .foregroundStyle(MeshTheme.textPrimary)

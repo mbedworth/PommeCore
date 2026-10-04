@@ -218,7 +218,7 @@ struct RemoteRoutingSection: View {
                     if session.settings["region default"] != nil && scopeName.isEmpty {
                         HStack(spacing: 6) {
                             Image(systemName: "info.circle")
-                                .foregroundStyle(.orange)
+                                .foregroundStyle(MeshTheme.statusWarn)
                             Text("Flood scope can only be cleared via USB CLI on the repeater directly.")
                                 .font(.caption2)
                                 .foregroundStyle(MeshTheme.textSecondary)
@@ -271,7 +271,7 @@ struct RemoteRoutingSection: View {
                     } label: {
                         HStack {
                             Image(systemName: regionPutFeedback ? "checkmark.circle.fill" : "plus")
-                                .foregroundStyle(regionPutFeedback ? .green : MeshTheme.accent)
+                                .foregroundStyle(regionPutFeedback ? MeshTheme.statusGood : MeshTheme.accent)
                                 .frame(width: 24)
                             Text("Add Region")
                                 .foregroundStyle(MeshTheme.accent)
@@ -285,7 +285,7 @@ struct RemoteRoutingSection: View {
 
                     HStack {
                         Image(systemName: "minus.circle")
-                            .foregroundStyle(.red)
+                            .foregroundStyle(MeshTheme.statusBad)
                             .frame(width: 24)
                         TextField("Region to remove", text: $regionRemoveName)
                             .foregroundStyle(MeshTheme.textPrimary)
@@ -302,10 +302,10 @@ struct RemoteRoutingSection: View {
                     } label: {
                         HStack {
                             Image(systemName: regionRemoveFeedback ? "checkmark.circle.fill" : "minus")
-                                .foregroundStyle(regionRemoveFeedback ? .green : .red)
+                                .foregroundStyle(regionRemoveFeedback ? MeshTheme.statusGood : MeshTheme.statusBad)
                                 .frame(width: 24)
                             Text("Remove Region")
-                                .foregroundStyle(.red)
+                                .foregroundStyle(MeshTheme.statusBad)
                             Spacer()
                         }
                         .contentShape(Rectangle())
@@ -396,7 +396,7 @@ struct RemoteAdvertSection: View {
                     showMapPicker = true
                 } label: {
                     (mapPickFeedback ? Label("Location Set!", systemImage: "checkmark.circle.fill") : Label("Pick on Map", systemImage: "map"))
-                        .foregroundStyle(mapPickFeedback ? .green : MeshTheme.accent)
+                        .foregroundStyle(mapPickFeedback ? MeshTheme.statusGood : MeshTheme.accent)
                 }
                 .buttonStyle(.plain)
                 .listRowBackground(MeshTheme.surface)
@@ -416,7 +416,7 @@ struct RemoteAdvertSection: View {
                     Text("240 min").tag("240")
                 }
                 .foregroundStyle(MeshTheme.accent)
-                .tint(.primary)
+                .tint(MeshTheme.textPrimary)
             }
             .listRowBackground(MeshTheme.surface)
 
@@ -432,7 +432,7 @@ struct RemoteAdvertSection: View {
                     Text("24 hours").tag("24")
                 }
                 .foregroundStyle(MeshTheme.accent)
-                .tint(.primary)
+                .tint(MeshTheme.textPrimary)
             }
             .listRowBackground(MeshTheme.surface)
             CLIToggleRow(icon: "checkmark.message", label: "Multi-ACKs", settingKey: "multi.acks", onCommand: "set multi.acks 1", offCommand: "set multi.acks 0", session: session, sendCLI: sendCLI, canEdit: canEdit)
@@ -456,7 +456,7 @@ struct RemoteAdvertSection: View {
                         showAdvertOptions = true
                     } label: {
                         (showAdvertSent ? Label("Sent!", systemImage: "dot.radiowaves.left.and.right") : Label("Advertise", systemImage: "dot.radiowaves.left.and.right"))
-                            .foregroundStyle(showAdvertSent ? .green : MeshTheme.accent)
+                            .foregroundStyle(showAdvertSent ? MeshTheme.statusGood : MeshTheme.accent)
                     }
                     .buttonStyle(.plain)
                     .contentShape(Rectangle())

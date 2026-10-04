@@ -57,6 +57,7 @@ struct RemoteRoomSection: View {
                             .foregroundStyle(MeshTheme.accent)
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel("Edit guest password")
                 }
             }
             .listRowBackground(MeshTheme.surface)
@@ -80,9 +81,10 @@ struct RemoteRoomSection: View {
                         showGuestPwEdit = false
                     } label: {
                         Image(systemName: guestPwFeedback ? "checkmark.circle.fill" : "checkmark.circle")
-                            .foregroundStyle(guestPwFeedback ? .green : MeshTheme.accent)
+                            .foregroundStyle(guestPwFeedback ? MeshTheme.statusGood : MeshTheme.accent)
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel("Save guest password")
                 }
                 .listRowBackground(MeshTheme.surface)
             }
@@ -146,7 +148,7 @@ struct RemoteRoomSection: View {
                     Text("Admin").tag(3)
                 }
                 .foregroundStyle(MeshTheme.accent)
-                .tint(.primary)
+                .tint(MeshTheme.textPrimary)
                 .listRowBackground(MeshTheme.surface)
 
                 Button {
@@ -156,10 +158,10 @@ struct RemoteRoomSection: View {
                 } label: {
                     HStack {
                         Image(systemName: permFeedback ? "checkmark.circle.fill" : "lock.rotation")
-                            .foregroundStyle(permFeedback ? .green : MeshTheme.accent)
+                            .foregroundStyle(permFeedback ? MeshTheme.statusGood : MeshTheme.accent)
                             .frame(width: 24)
                         (permFeedback ? Text("Permission Set") : Text("Set Permission"))
-                            .foregroundStyle(permFeedback ? .green : MeshTheme.accent)
+                            .foregroundStyle(permFeedback ? MeshTheme.statusGood : MeshTheme.accent)
                         Spacer()
                     }
                     .contentShape(Rectangle())
@@ -210,7 +212,7 @@ struct RemoteSensorSection: View {
                     .foregroundStyle(MeshTheme.accent)
                     .buttonStyle(.plain)
                 Button("Reset") { sendCLI("io r\(gpioPin)") }
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(MeshTheme.statusWarn)
                     .buttonStyle(.plain)
                 Button("Toggle") { sendCLI("io t\(gpioPin)") }
                     .foregroundStyle(MeshTheme.accent)
@@ -276,7 +278,7 @@ struct RemoteMaintenanceSection: View {
                 }
                 .listRowBackground(MeshTheme.surface)
 
-                CLICommandButton(icon: "chart.bar.xaxis", label: "Clear Stats", color: .orange) {
+                CLICommandButton(icon: "chart.bar.xaxis", label: "Clear Stats", color: MeshTheme.statusWarn) {
                     sendCLI("clear stats")
                 }
 
@@ -285,10 +287,10 @@ struct RemoteMaintenanceSection: View {
                 } label: {
                     HStack {
                         Image(systemName: "arrow.counterclockwise.circle")
-                            .foregroundStyle(.red)
+                            .foregroundStyle(MeshTheme.statusBad)
                             .frame(width: 24)
                         Text("Reboot Device")
-                            .foregroundStyle(.red)
+                            .foregroundStyle(MeshTheme.statusBad)
                         Spacer()
                     }
                     .contentShape(Rectangle())
@@ -319,10 +321,10 @@ struct RemoteMaintenanceSection: View {
                 } label: {
                     HStack {
                         Image(systemName: "arrow.down.circle")
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(MeshTheme.statusWarn)
                             .frame(width: 24)
                         Text("Start OTA Mode Only")
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(MeshTheme.statusWarn)
                         Spacer()
                     }
                     .contentShape(Rectangle())
@@ -366,7 +368,7 @@ struct SerialOnlySection: View {
                 sendCLI("log")
             }
 
-            CLICommandButton(icon: "key.fill", label: "View Private Key", color: .orange) {
+            CLICommandButton(icon: "key.fill", label: "View Private Key", color: MeshTheme.statusWarn) {
                 sendCLI("get prv.key")
             }
 
@@ -377,10 +379,10 @@ struct SerialOnlySection: View {
             } label: {
                 HStack {
                     Image(systemName: "square.and.arrow.down")
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(MeshTheme.statusWarn)
                         .frame(width: 24)
                     (backupCopied ? Text("Key Shown in Terminal") : Text("Backup Identity Key"))
-                        .foregroundStyle(backupCopied ? .green : MeshTheme.accent)
+                        .foregroundStyle(backupCopied ? MeshTheme.statusGood : MeshTheme.accent)
                     Spacer()
                 }
                 .contentShape(Rectangle())
@@ -393,10 +395,10 @@ struct SerialOnlySection: View {
             } label: {
                 HStack {
                     Image(systemName: "square.and.arrow.up")
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(MeshTheme.statusWarn)
                         .frame(width: 24)
                     Text("Restore Identity Key")
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(MeshTheme.statusWarn)
                     Spacer()
                 }
                 .contentShape(Rectangle())
@@ -425,10 +427,10 @@ struct SerialOnlySection: View {
             } label: {
                 HStack {
                     Image(systemName: "exclamationmark.triangle")
-                        .foregroundStyle(.red)
+                        .foregroundStyle(MeshTheme.statusBad)
                         .frame(width: 24)
                     Text("Factory Reset")
-                        .foregroundStyle(.red)
+                        .foregroundStyle(MeshTheme.statusBad)
                     Spacer()
                 }
                 .contentShape(Rectangle())
@@ -561,14 +563,14 @@ func cliEditRow(icon: String, label: LocalizedStringKey, text: Binding<String>, 
             TextField(
                 "Enter value",
                 text: text,
-                prompt: Text(current ?? "value").foregroundColor(.primary)
+                prompt: Text(current ?? "value").foregroundColor(MeshTheme.textPrimary)
             )
             .foregroundStyle(MeshTheme.textPrimary)
             #else
             TextField(
                 "Enter value",
                 text: text,
-                prompt: Text(current ?? "value").foregroundColor(.primary)
+                prompt: Text(current ?? "value").foregroundColor(MeshTheme.textPrimary)
             )
             .foregroundStyle(MeshTheme.textPrimary)
             .textFieldStyle(MeshTextFieldStyle())

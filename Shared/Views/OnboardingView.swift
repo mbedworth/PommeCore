@@ -220,7 +220,7 @@ struct OnboardingView: View {
                 } label: {
                     Text("Open Settings Now")
                         .font(.headline)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(MeshTheme.textOnFill)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
                         .background(MeshTheme.accent)
@@ -256,7 +256,7 @@ struct OnboardingView: View {
             } label: {
                 Text("Get Started")
                     .font(.headline)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(MeshTheme.textOnFill)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
                     .background(MeshTheme.accent)
@@ -335,6 +335,7 @@ struct OnboardingView: View {
                     .foregroundStyle(MeshTheme.accent)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(currentPage < lastPage ? "Next" : "Get Started")
         }
         .padding(.bottom, 20)
     }

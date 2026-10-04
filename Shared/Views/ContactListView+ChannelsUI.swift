@@ -63,7 +63,7 @@ extension ContactListView {
                                 let pct = deviceConfig.batteryPercent()
                                 Text(String(format: "• %d%%", pct))
                                     .font(.caption2)
-                                    .foregroundStyle(pct > 50 ? .green : pct > 20 ? .yellow : .red)
+                                    .foregroundStyle(pct > 50 ? MeshTheme.statusGood : pct > 20 ? MeshTheme.statusCaution : MeshTheme.statusBad)
                             }
                         }
                     } else {
@@ -128,10 +128,10 @@ extension ContactListView {
                connectionManager.connectionState == .disconnected {
                 HStack(alignment: .top, spacing: 8) {
                     Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(MeshTheme.statusWarn)
                     Text(bleMsg)
                         .font(.caption)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(MeshTheme.statusWarn)
                 }
                 .listRowBackground(MeshTheme.surface)
             }
@@ -196,7 +196,7 @@ extension ContactListView {
         if count > 0 {
             Text("\(count)")
                 .font(.caption2.weight(.bold))
-                .foregroundStyle(.black)
+                .foregroundStyle(MeshTheme.textOnBubble)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
                 .background(MeshTheme.interactiveGreen)
@@ -350,7 +350,7 @@ extension ContactListView {
             if count > 0 {
                 Text("\(count)")
                     .font(.caption2.weight(.bold))
-                    .foregroundStyle(.black)
+                    .foregroundStyle(MeshTheme.textOnBubble)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
                     .background(MeshTheme.interactiveGreen)

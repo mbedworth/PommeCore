@@ -373,16 +373,16 @@ private extension SettingsView {
                     Spacer()
                     Text("\(usage.keys) keys, \(ByteCountFormatter.string(fromByteCount: Int64(usage.bytes), countStyle: .memory))")
                         .font(.caption)
-                        .foregroundStyle(usage.bytes > 900_000 ? .red : usage.bytes > 700_000 ? .orange : .green)
+                        .foregroundStyle(usage.bytes > 900_000 ? MeshTheme.statusBad : usage.bytes > 700_000 ? MeshTheme.statusWarn : MeshTheme.statusGood)
                 }
                 .listRowBackground(MeshTheme.surface)
                 if usage.bytes > 900_000 {
                     HStack(spacing: 6) {
                         Image(systemName: "exclamationmark.triangle.fill")
-                            .foregroundStyle(.red)
+                            .foregroundStyle(MeshTheme.statusBad)
                         Text("Approaching iCloud limit (1 MB). Consider deleting old radio data below.")
                             .font(.caption)
-                            .foregroundStyle(.red)
+                            .foregroundStyle(MeshTheme.statusBad)
                     }
                     .listRowBackground(MeshTheme.surface)
                 }

@@ -90,8 +90,8 @@ enum TerrainProfileRenderer {
     private static func drawSkyGradient(context: inout GraphicsContext, layout: Layout) {
         let rect = CGRect(x: 0, y: 0, width: layout.canvasSize.width, height: layout.canvasSize.height)
         let gradient = Gradient(colors: [
-            Color(red: 0.53, green: 0.81, blue: 0.92).opacity(0.3),
-            Color(red: 0.68, green: 0.85, blue: 0.90).opacity(0.1)
+            MeshTheme.terrainSkyTop.opacity(0.3),
+            MeshTheme.terrainSkyBottom.opacity(0.1)
         ])
         context.fill(Path(rect), with: .linearGradient(gradient, startPoint: .zero, endPoint: CGPoint(x: 0, y: layout.canvasSize.height)))
     }
@@ -113,8 +113,8 @@ enum TerrainProfileRenderer {
         path.closeSubpath()
 
         let gradient = Gradient(colors: [
-            Color(red: 0.4, green: 0.6, blue: 0.3),
-            Color(red: 0.55, green: 0.45, blue: 0.3)
+            MeshTheme.terrainGroundTop,
+            MeshTheme.terrainGroundBottom
         ])
         context.fill(path, with: .linearGradient(gradient, startPoint: CGPoint(x: 0, y: layout.margin.top), endPoint: CGPoint(x: 0, y: bottomY)))
     }
@@ -128,7 +128,7 @@ enum TerrainProfileRenderer {
                              y: layout.yForElevation(sample.groundElevation))
             if i == 0 { path.move(to: pt) } else { path.addLine(to: pt) }
         }
-        context.stroke(path, with: .color(.primary.opacity(0.4)), lineWidth: 1.5)
+        context.stroke(path, with: .color(MeshTheme.textPrimary.opacity(0.4)), lineWidth: 1.5)
     }
 
     // MARK: - Fresnel Zone
@@ -165,7 +165,7 @@ enum TerrainProfileRenderer {
         zonePath.closeSubpath()
 
         let worstPercent = samples.map(\.fresnelPercent).min() ?? 100
-        let zoneColor: Color = worstPercent >= 60 ? .green : worstPercent >= 0 ? .orange : .red
+        let zoneColor: Color = worstPercent >= 60 ? MeshTheme.statusGood : worstPercent >= 0 ? MeshTheme.statusWarn : MeshTheme.statusBad
         context.fill(zonePath, with: .color(zoneColor.opacity(0.15)))
         context.stroke(zonePath, with: .color(zoneColor.opacity(0.3)), lineWidth: 0.5)
     }
@@ -184,7 +184,7 @@ enum TerrainProfileRenderer {
         var directPath = Path()
         directPath.move(to: ptA)
         directPath.addLine(to: ptB)
-        let directColor: Color = result.directSegment.hasLineOfSight ? .green : .red
+        let directColor: Color = result.directSegment.hasLineOfSight ? MeshTheme.statusGood : MeshTheme.statusBad
         context.stroke(directPath, with: .color(directColor.opacity(hasRelays ? 0.35 : 1.0)),
                        style: StrokeStyle(lineWidth: hasRelays ? 1.5 : 2, dash: [6, 3]))
 
@@ -208,7 +208,7 @@ enum TerrainProfileRenderer {
             var path = Path()
             path.move(to: waypoints[i])
             path.addLine(to: waypoints[i + 1])
-            context.stroke(path, with: .color(segPass ? Color.green : Color.red),
+            context.stroke(path, with: .color(segPass ? MeshTheme.statusGood : MeshTheme.statusBad),
                            style: StrokeStyle(lineWidth: 2, dash: [6, 3]))
         }
     }
@@ -260,7 +260,7 @@ enum TerrainProfileRenderer {
             let yGround = layout.yForElevation(repeater.groundElevation)
             let yAntenna = layout.yForElevation(repeater.totalHeight)
             let label = useNumbers ? "R\(i + 1)" : "R"
-            drawAntennaMarker(context: &context, x: x, yGround: yGround, yAntenna: yAntenna, label: label, color: .orange)
+            drawAntennaMarker(context: &context, x: x, yGround: yGround, yAntenna: yAntenna, label: label, color: MeshTheme.statusWarn)
         }
     }
 
@@ -273,7 +273,7 @@ enum TerrainProfileRenderer {
             let dist = layout.totalDistance * Double(i) / Double(distSteps)
             let x = layout.xForDistance(dist)
             let label = GeoMath.formatDistance(dist)
-            let text = Text(label).font(.system(size: 9)).foregroundColor(.secondary)
+            let text = Text(label).font(.system(size: 9)).foregroundColor(MeshTheme.textSecondary)
             context.draw(text, at: CGPoint(x: x, y: layout.canvasSize.height - 5), anchor: .bottom)
         }
 
@@ -283,7 +283,7 @@ enum TerrainProfileRenderer {
             let elev = layout.minElevation + layout.elevationRange * Double(i) / Double(elevSteps)
             let y = layout.yForElevation(elev)
             let label = GeoMath.formatElevation(elev)
-            let text = Text(label).font(.system(size: 9)).foregroundColor(.secondary)
+            let text = Text(label).font(.system(size: 9)).foregroundColor(MeshTheme.textSecondary)
             context.draw(text, at: CGPoint(x: layout.margin.leading - 5, y: y), anchor: .trailing)
         }
     }
@@ -302,7 +302,7 @@ enum TerrainProfileRenderer {
         var line = Path()
         line.move(to: CGPoint(x: x, y: layout.margin.top))
         line.addLine(to: CGPoint(x: x, y: layout.margin.top + layout.plotHeight))
-        context.stroke(line, with: .color(.primary.opacity(0.3)), style: StrokeStyle(lineWidth: 1, dash: [3, 2]))
+        context.stroke(line, with: .color(MeshTheme.textPrimary.opacity(0.3)), style: StrokeStyle(lineWidth: 1, dash: [3, 2]))
 
         // Tooltip
         let elev = String(format: "%.0fm", nearest.groundElevation)
@@ -310,7 +310,7 @@ enum TerrainProfileRenderer {
         let pct = String(format: "%.0f%%", nearest.fresnelPercent)
         let tooltipText = Text("\(elev) | Clr: \(clr) | F1: \(pct)")
             .font(.system(size: 10).monospaced())
-            .foregroundColor(.primary)
+            .foregroundColor(MeshTheme.textPrimary)
 
         // Background for tooltip
         let tooltipY = layout.margin.top - 5

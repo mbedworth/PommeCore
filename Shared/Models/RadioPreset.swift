@@ -175,7 +175,7 @@ struct RadioPresetPicker: View {
                     }
                 }
                 .foregroundStyle(MeshTheme.accent)
-                .tint(.primary)
+                .tint(MeshTheme.textPrimary)
             }
             .listRowBackground(MeshTheme.surface)
 

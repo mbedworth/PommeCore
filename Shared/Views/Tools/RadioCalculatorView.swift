@@ -49,11 +49,11 @@ struct RadioCalculatorView: View {
                 resultRow("EIRP", value: String(format: "%.1f dBm", eirp))
                 resultRow("Received Power", value: String(format: "%.1f dBm", receivedPower))
                 resultRow("Link Margin", value: String(format: "%.1f dB", linkMargin),
-                          color: linkMargin > 10 ? .green : linkMargin > 0 ? .orange : .red)
+                          color: linkMargin > 10 ? MeshTheme.statusGood : linkMargin > 0 ? MeshTheme.statusWarn : MeshTheme.statusBad)
 
                 HStack {
                     Image(systemName: linkMargin > 10 ? "checkmark.circle.fill" : linkMargin > 0 ? "exclamationmark.triangle.fill" : "xmark.circle.fill")
-                        .foregroundStyle(linkMargin > 10 ? .green : linkMargin > 0 ? .orange : .red)
+                        .foregroundStyle(linkMargin > 10 ? MeshTheme.statusGood : linkMargin > 0 ? MeshTheme.statusWarn : MeshTheme.statusBad)
                     Text(linkVerdict)
                         .font(.subheadline.weight(.medium))
                         .foregroundStyle(MeshTheme.textSecondary)
@@ -145,7 +145,7 @@ struct RadioCalculatorView: View {
             TextField(unit, value: value, format: .number)
                 .frame(width: 80)
                 .multilineTextAlignment(.trailing)
-                .foregroundStyle(.primary)
+                .foregroundStyle(MeshTheme.textPrimary)
                 #if !os(watchOS)
                 .textFieldStyle(.roundedBorder)
                 #endif

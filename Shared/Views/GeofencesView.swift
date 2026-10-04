@@ -27,7 +27,7 @@ struct GeofencesView: View {
             if !geofenceStore.monitoringAvailable {
                 Section {
                     Label("Region monitoring is not available on this device.", systemImage: "exclamationmark.triangle")
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(MeshTheme.statusWarn)
                         .listRowBackground(MeshTheme.surface)
                 }
             }
@@ -102,7 +102,7 @@ struct ZoneRow: View {
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: zone.isEnabled ? "shield.fill" : "shield")
-                .foregroundStyle(zone.isEnabled ? .green : MeshTheme.textSecondary)
+                .foregroundStyle(zone.isEnabled ? MeshTheme.statusGood : MeshTheme.textSecondary)
                 .frame(width: 24)
 
             VStack(alignment: .leading, spacing: 2) {

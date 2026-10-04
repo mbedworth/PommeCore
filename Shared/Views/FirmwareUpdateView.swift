@@ -300,7 +300,7 @@ struct FirmwareUpdateView: View {
             } label: {
                 (asset.isZip ? Text("I've Started OTA Mode — Continue") : Text("I've Connected — Continue"))
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.black)
+                    .foregroundStyle(MeshTheme.textOnFill)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
                     .background(MeshTheme.accent)
@@ -374,7 +374,7 @@ struct FirmwareUpdateView: View {
         VStack(spacing: 24) {
             Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: 64))
-                .foregroundStyle(.green)
+                .foregroundStyle(MeshTheme.statusGood)
 
             VStack(spacing: 8) {
                 Text("Firmware Installed")
@@ -401,7 +401,7 @@ struct FirmwareUpdateView: View {
             } label: {
                 Text("Done")
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.black)
+                    .foregroundStyle(MeshTheme.textOnFill)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
                     .background(MeshTheme.accent)
@@ -418,7 +418,7 @@ struct FirmwareUpdateView: View {
         VStack(spacing: 24) {
             Image(systemName: "exclamationmark.triangle.fill")
                 .font(.system(size: 52))
-                .foregroundStyle(.orange)
+                .foregroundStyle(MeshTheme.statusWarn)
 
             VStack(spacing: 8) {
                 Text("Update Failed")
@@ -439,7 +439,7 @@ struct FirmwareUpdateView: View {
                 } label: {
                     Text("Try Again")
                         .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.black)
+                        .foregroundStyle(MeshTheme.textOnFill)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
                         .background(MeshTheme.accent)
@@ -586,7 +586,7 @@ struct FirmwareUpdateView: View {
             HStack(spacing: 8) {
                 Text(number)
                     .font(.caption.weight(.bold))
-                    .foregroundStyle(.black)
+                    .foregroundStyle(MeshTheme.textOnFill)
                     .frame(width: 20, height: 20)
                     .background(MeshTheme.accent)
                     .clipShape(Circle())

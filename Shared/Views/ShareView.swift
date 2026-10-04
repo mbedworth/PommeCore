@@ -129,7 +129,7 @@ class QRScannerViewController: UIViewController, AVCaptureMetadataOutputObjectsD
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .black
+        view.backgroundColor = UIColor(MeshTheme.shade(1.0))
 
         guard let device = AVCaptureDevice.default(for: .video),
               let input = try? AVCaptureDeviceInput(device: device),
@@ -153,7 +153,7 @@ class QRScannerViewController: UIViewController, AVCaptureMetadataOutputObjectsD
 
         // Scan target overlay
         let guide = UIView()
-        guide.layer.borderColor = UIColor.white.cgColor
+        guide.layer.borderColor = UIColor(MeshTheme.textOnDarkPanel).cgColor
         guide.layer.borderWidth = 2
         guide.layer.cornerRadius = 12
         guide.translatesAutoresizingMaskIntoConstraints = false
@@ -167,7 +167,7 @@ class QRScannerViewController: UIViewController, AVCaptureMetadataOutputObjectsD
 
         let hint = UILabel()
         hint.text = "Point camera at a meshcore:// QR code"
-        hint.textColor = .white
+        hint.textColor = UIColor(MeshTheme.textOnDarkPanel)
         hint.font = .systemFont(ofSize: 14)
         hint.textAlignment = .center
         hint.translatesAutoresizingMaskIntoConstraints = false
@@ -201,7 +201,7 @@ class QRScannerViewController: UIViewController, AVCaptureMetadataOutputObjectsD
     private func showError(_ message: String) {
         let label = UILabel()
         label.text = message
-        label.textColor = .white
+        label.textColor = UIColor(MeshTheme.textOnDarkPanel)
         label.textAlignment = .center
         label.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(label)
@@ -369,7 +369,7 @@ struct ShareChannelSheet: View {
                     if channel.secret == nil {
                         HStack(spacing: 6) {
                             Image(systemName: "exclamationmark.triangle")
-                                .foregroundStyle(.orange)
+                                .foregroundStyle(MeshTheme.statusWarn)
                             Text("Channel secret not available locally. Recipients will need the secret separately to join.")
                                 .font(.caption)
                                 .foregroundStyle(MeshTheme.textSecondary)
@@ -396,7 +396,7 @@ struct ShareChannelSheet: View {
                             }
                             .padding(.vertical, 10)
                             .background(MeshTheme.accent)
-                            .foregroundStyle(.white)
+                            .foregroundStyle(MeshTheme.textOnFill)
                             .clipShape(RoundedRectangle(cornerRadius: 10))
                         }
                         .buttonStyle(.plain)
@@ -413,7 +413,7 @@ struct ShareChannelSheet: View {
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 10)
                                 .background(MeshTheme.accent.opacity(0.1))
-                                .foregroundStyle(copiedQR ? MeshTheme.interactiveGreen : MeshTheme.accent)
+                                .foregroundStyle(copiedQR ? MeshTheme.statusGood : MeshTheme.accent)
                                 .clipShape(RoundedRectangle(cornerRadius: 10))
                         }
                         .buttonStyle(.plain)
@@ -499,7 +499,7 @@ struct ShareAllChannelsSheet: View {
                             }
                             .padding(.vertical, 10)
                             .background(MeshTheme.accent)
-                            .foregroundStyle(.white)
+                            .foregroundStyle(MeshTheme.textOnFill)
                             .clipShape(RoundedRectangle(cornerRadius: 10))
                         }
                         .buttonStyle(.plain)
@@ -516,7 +516,7 @@ struct ShareAllChannelsSheet: View {
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 10)
                                 .background(MeshTheme.accent.opacity(0.1))
-                                .foregroundStyle(copiedQR ? MeshTheme.interactiveGreen : MeshTheme.accent)
+                                .foregroundStyle(copiedQR ? MeshTheme.statusGood : MeshTheme.accent)
                                 .clipShape(RoundedRectangle(cornerRadius: 10))
                         }
                         .buttonStyle(.plain)

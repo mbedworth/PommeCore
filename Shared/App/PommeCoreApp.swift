@@ -354,7 +354,7 @@ struct ContentView: View {
                         }
                         .buttonStyle(.borderedProminent)
                         .tint(MeshTheme.interactiveGreen)
-                        .foregroundStyle(.black)
+                        .foregroundStyle(MeshTheme.textOnBubble)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
@@ -713,7 +713,7 @@ struct AppLockView: View {
             if appLock.showResetOption {
                 Text("Authentication failed \(appLock.authFailCount) times")
                     .font(.caption)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(MeshTheme.statusWarn)
             }
 
             Spacer()
@@ -723,7 +723,7 @@ struct AppLockView: View {
             } label: {
                 Label("Unlock", systemImage: biometricIcon)
                     .font(.headline)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(MeshTheme.textOnFill)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
                     .background(MeshTheme.accent)
@@ -738,7 +738,7 @@ struct AppLockView: View {
                 } label: {
                     Text("Disable App Lock")
                         .font(.subheadline)
-                        .foregroundStyle(.red)
+                        .foregroundStyle(MeshTheme.statusBad)
                 }
                 .buttonStyle(.plain)
                 .padding(.top, 8)
