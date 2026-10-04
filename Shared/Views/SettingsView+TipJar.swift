@@ -380,7 +380,14 @@ extension SettingsView {
                                     set: { if !$0 { orphanReport = nil } })) {
             if let report = orphanReport, !report.isEmpty {
                 Button("Remove", role: .destructive) {
-                    contactStore.purgeOrphanedData(contactListVerifiedComplete: true)
+                    // Re-read rather than passing a literal true. The alert can
+                    // outlive the condition that enabled the row: a disconnect
+                    // between counting and confirming clears the flag, and
+                    // hard-coding the argument would assert a fact that had
+                    // stopped being true — which is the whole thing this
+                    // parameter exists to prevent.
+                    contactStore.purgeOrphanedData(
+                        contactListVerifiedComplete: contactStore.hasCompletedFullContactSync)
                     orphanReport = nil
                 }
             }

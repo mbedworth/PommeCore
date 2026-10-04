@@ -42837,7 +42837,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Eine Nachricht an den Raum posten, die vom Server und nicht von dir verfasst wurde. Jedes Mitglied erhält sie beim nächsten Synchronisieren seines Geräts. Das Radio speichert 151 Bytes und schneidet längere Nachrichten ab."
+            "value": "Eine Nachricht an den Raum posten, die vom Server und nicht von dir verfasst wurde. Jedes Mitglied erhält sie beim nächsten Synchronisieren seines Geräts. Das Funkgerät speichert 151 Bytes und schneidet längere Nachrichten ab."
           }
         },
         "fr": {
@@ -42891,7 +42891,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "サーバーではなくあなた自身ではなく、部屋にメッセージを投稿します。デバイスが同期するたびにすべてのメンバーが受け取ります。ラジオは151バイトを保存し、長すぎるものは切り捨てられます。"
+            "value": "あなたではなくサーバーが投稿者となるメッセージをルームに送信します。各メンバーは次回のデバイス同期時に受け取ります。無線機は151バイトまで保存し、それを超える分は切り捨てられます。"
           }
         },
         "zh-Hans": {
@@ -46092,7 +46092,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "すでに収集されたテレメトリを読み取り、ラジオ接続は必要ありません。履歴は7日間保存されます。"
+            "value": "すでに収集されたテレメトリを読み取るため、無線機との接続は不要です。履歴は7日間保存されます。"
           }
         },
         "zh-Hans": {
@@ -63071,7 +63071,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dies entfernt Daten für Kontakte, die Ihr Radio nicht mehr hat:\n\n%@\n\nDies kann nicht rückgängig gemacht werden."
+            "value": "Dies entfernt Daten für Kontakte, die Ihr Funkgerät nicht mehr hat:\n\n%@\n\nDies kann nicht rückgängig gemacht werden."
           }
         },
         "fr": {
@@ -63125,7 +63125,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "この機能は、ラジオに登録されていない連絡先のデータを削除します。\n\n%@\n\nこの操作は取り消せません。"
+            "value": "無線機に登録されていない連絡先のデータを削除します。\n\n%@\n\nこの操作は取り消せません。"
           }
         },
         "zh-Hans": {
