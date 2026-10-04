@@ -101,7 +101,7 @@ struct MessageBubble: View {
                                     .lineLimit(2)
                             }
                             .padding(.bottom, 2)
-                            .accessibilityLabel("Quoted: \(quoted)")
+                            .accessibilityLabel(String(localized: "Quoted: \(quoted)"))
                         }
                         // Message text
                         linkifyMeshcoreURLs(quotedText != nil ? replyText : message.text)
@@ -280,7 +280,7 @@ struct MessageBubble: View {
                     .foregroundStyle(MeshTheme.statusWarn)
             }
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel("Retrying, attempt \(message.attempt + 1) of 3")
+            .accessibilityLabel(String(localized: "Retrying, attempt \(message.attempt + 1) of 3"))
         case .flooding:
             HStack(spacing: 2) {
                 Image(systemName: "dot.radiowaves.left.and.right")
@@ -306,7 +306,7 @@ struct MessageBubble: View {
                     Text(String(format: "%.1fs", Double(rtt) / 1000.0))
                         .font(.caption2)
                         .foregroundStyle(MeshTheme.accent)
-                        .accessibilityLabel("Round trip \(String(format: "%.1f", Double(rtt) / 1000.0)) seconds")
+                        .accessibilityLabel(String(localized: "Round trip \(String(format: "%.1f", Double(rtt) / 1000.0)) seconds"))
                 }
             }
         case .failed:
@@ -494,7 +494,7 @@ private struct ReactionBadge: View {
             }
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Reactions: \(reactions.joined(separator: ", "))")
+        .accessibilityLabel(String(localized: "Reactions: \(reactions.joined(separator: ", "))"))
     }
 }
 

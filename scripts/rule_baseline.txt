@@ -16,7 +16,7 @@ Shared/Views/ChatView+Channels.swift:400
 Shared/Views/ChatView.swift:163
 Shared/Views/ChatView.swift:203
 Shared/Views/ContactListView+ChannelsUI.swift:43
-Shared/Views/ContactRowView.swift:190
+Shared/Views/ContactRowView.swift:192
 Shared/Views/LineOfSight/LineOfSightView.swift:217
 Shared/Views/LineOfSight/LoSResultsView.swift:200
 Shared/Views/LineOfSight/LoSResultsView.swift:28

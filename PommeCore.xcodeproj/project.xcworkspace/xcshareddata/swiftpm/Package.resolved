@@ -6,8 +6,8 @@
       "kind": "remoteSourceControl",
       "location": "https://github.com/mbedworth/PommeCoreWatchKit",
       "state": {
-        "revision": "25ecf316dc3a1507a48b613fb1a8812d2500acc1",
-        "version": "1.4.2"
+        "revision": "3a43b60fd956c0eb364f464b4e3fcf1f42fb08f6",
+        "version": "1.4.3"
       }
     }
   ],

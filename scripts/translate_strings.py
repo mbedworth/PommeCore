@@ -67,6 +67,7 @@ Rules (strictly follow all):
 6. Maintain the same capitalization style (title case → title case, sentence case → sentence case).
 7. Translate the WHOLE string. Keep every sentence, every numbered step, and every line break (\\n) exactly as in the source. Never summarise, never shorten, never drop a sentence.
 8. Output the translation ONLY. Never repeat the English text, and never write "English - translation".
+9. If the correct translation is identical to the English — a unit like "15 min", or a word that is spelled the same in the target language — output it unchanged. Do NOT add a note, a gloss in brackets, or an explanation that it is unchanged. An identical answer is a valid answer.
 
 Output format — exactly like this (number, period, space, translation):
 1. [translation]

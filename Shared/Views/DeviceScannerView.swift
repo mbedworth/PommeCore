@@ -312,11 +312,11 @@ struct DeviceScannerView: View {
         let strength = signalStrength(rssi: rssi)
         let color = signalColor(strength: strength)
         let qualityLabel = switch strength {
-        case 4: "Excellent"
-        case 3: "Good"
-        case 2: "Fair"
-        case 1: "Weak"
-        default: "No signal"
+        case 4: String(localized: "Excellent")
+        case 3: String(localized: "Good")
+        case 2: String(localized: "Fair")
+        case 1: String(localized: "Weak")
+        default: String(localized: "No signal")
         }
         return HStack(spacing: 3) {
             HStack(spacing: 2) {
@@ -333,7 +333,7 @@ struct DeviceScannerView: View {
                 .frame(width: 52, alignment: .trailing)
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Signal: \(qualityLabel), \(rssi) dBm")
+        .accessibilityLabel(String(localized: "Signal: \(qualityLabel), \(rssi) dBm"))
     }
 
     private func signalStrength(rssi: Int) -> Int {
