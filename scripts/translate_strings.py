@@ -57,12 +57,131 @@ PRESERVE_TERMS = [
     "Tip Jar",
 ]
 
+# --------------------------------------------------------------------------
+# Per-language glossary for the two terms the model gets confidently wrong
+# --------------------------------------------------------------------------
+#
+# PRESERVE_TERMS does not work for these. It holds for LoRa, PSK and SNR —
+# tokens no model reads as English — but "flood" and "advert" look like
+# ordinary words, so the instruction is ignored. Measured 2026-10-04 by
+# clearing all 363 flood/advert translations and re-running with both terms
+# already on the preserve list: German "Flood Advert" came back as
+# "Flood-Werbung" (commercial advertising), French as "Inondation de
+# publicité", Czech kept "reklama". The output was worse than what it
+# replaced, so the terms are enforced here instead of merely requested.
+#
+# REQUIRED is the established networking term in that language; FORBIDDEN is
+# the everyday sense the model reaches for. A translation that misses the
+# required term or contains a forbidden one is rejected, and the key falls
+# back to English — incomplete but not wrong, which is the rule everywhere
+# else in this script.
+#
+# Verified against published sources: de, fr, es, ja, zh-Hans, pl, cs.
+# Reasoned by analogy and NOT verified by a native speaker: it, nl, pt, uk.
+
+GLOSSARY = {
+    # (required, forbidden). required[0] is a natural form, shown to the model
+    # in the prompt; the rest are stems so the check still matches inflections.
+    "de":      {"advert": (["Ankündigung", "ankündig", "advert"],
+                           ["werbung", "reklame", "anzeige"]),
+                "flood":  (["Flooding", "flood"],
+                           ["übertragung", "überflutung", "flut", "überlastung"])},
+    "fr":      {"advert": (["annonce", "annonc"], ["publicité"]),
+                "flood":  (["inondation", "inond"], [])},
+    "es":      {"advert": (["anuncio", "anunci"], ["publicidad"]),
+                "flood":  (["inundación", "inund"], [])},
+    "it":      {"advert": (["annuncio", "annunc"], ["pubblicità"]),
+                "flood":  (["flooding", "inond"], ["allarme", "allagamento"])},
+    "pt":      {"advert": (["anúncio", "anunci"], ["publicidade"]),
+                "flood":  (["inundação", "inund"], [])},
+    "nl":      {"advert": (["aankondiging", "aankondigen"], ["advertentie", "reclame"]),
+                "flood":  (["flooding"], ["overstroming"])},
+    "cs":      {"advert": (["oznámení", "oznám", "oznam"], ["reklam"]),
+                "flood":  (["zaplavování", "zaplav", "záplav"], [])},
+    "pl":      {"advert": (["rozgłoszenie", "rozgłosz", "rozgłas"], ["reklam"]),
+                "flood":  (["zalewanie", "zalewani", "zalew"], ["powód", "powodzi"])},
+    "uk":      {"advert": (["оголошення", "оголош"], ["реклам"]),
+                "flood":  (["лавинна розсилка", "лавинн", "флудинг"], ["повін", "повень"])},
+    "ja":      {"advert": (["アドバタイズ"], ["広告"]),
+                "flood":  (["フラッディング"], ["洪水", "フロード"])},
+    "zh-Hans": {"advert": (["通告"], ["广告"]),
+                "flood":  (["泛洪"], ["洪水", "淹没"])},
+}
+
+# Terms that must never be translated
+PRESERVE_TERMS = [
+    "PommeCore", "MeshCore", "MeshCoreKit", "LoRa", "BLE", "RSSI", "SNR",
+    "dBm", "MHz", "kHz", "SF", "BW", "CR", "WiFi", "USB", "GPS", "LPP",
+    "iCloud", "Siri", "Shortcuts", "TestFlight", "App Store", "iOS", "macOS",
+    "watchOS", "SwiftUI", "Meshtastic", "Bluetooth", "JSON", "API", "URL",
+    "SHA256", "PSK", "DFU", "OTA", "LPP", "Fresnel", "Cayenne", "ESP32",
+    "nRF52", "GitHub", "CloudKit", "KeyValueStore", "Spotlight",
+    # Mesh-routing jargon. These have everyday meanings that models reach for
+    # first, and the result is confidently wrong rather than awkward: "flood"
+    # (flood routing) came back as water flooding in German, Spanish, Czech and
+    # Chinese — "Überschwemmungsbereich", "alcance de inundación", "rozsah
+    # záplavy", "淹没范围". Treating them as technical terms is the fix; it is
+    # also consistent with how LoRa, SNR and PSK are already handled.
+    "flood", "flooding", "advert", "repeater", "mesh", "hop", "traceroute",
+    # Feature name, not a phrase to translate. Left to the model it produced
+    # "Jarro de Dicas" (a jar of *hints*), "Poteau de don" and "Tippotje".
+    "Tip Jar",
+]
+
+# --------------------------------------------------------------------------
+# Per-language glossary for the two terms the model gets confidently wrong
+# --------------------------------------------------------------------------
+#
+# PRESERVE_TERMS does not work for these. It holds for LoRa, PSK and SNR —
+# tokens no model reads as English — but "flood" and "advert" look like
+# ordinary words, so the instruction is ignored. Measured 2026-10-04 by
+# clearing all 363 flood/advert translations and re-running with both terms
+# already on the preserve list: German "Flood Advert" came back as
+# "Flood-Werbung" (commercial advertising), French as "Inondation de
+# publicité", Czech kept "reklama". The output was worse than what it
+# replaced, so the terms are enforced here instead of merely requested.
+#
+# REQUIRED is the established networking term in that language; FORBIDDEN is
+# the everyday sense the model reaches for. A translation that misses the
+# required term or contains a forbidden one is rejected, and the key falls
+# back to English — incomplete but not wrong, which is the rule everywhere
+# else in this script.
+#
+# Verified against published sources: de, fr, es, ja, zh-Hans, pl, cs.
+# Reasoned by analogy and NOT verified by a native speaker: it, nl, pt, uk.
+
+
+
+def glossary_problem(key, translated, lang):
+    """Reject a translation that mistranslates `flood` or `advert`.
+
+    Returns a reason string, or None when the translation is acceptable.
+    """
+    rules = GLOSSARY.get(lang)
+    if not rules:
+        return None
+    low = translated.lower()
+    for term, (required, forbidden) in rules.items():
+        if not re.search(r"\b" + term, key, re.I):
+            continue
+        for bad in forbidden:
+            if bad.lower() in low:
+                return f"{term}: uses {bad!r}, the everyday sense"
+        if required and not any(good.lower() in low for good in required):
+            return f"{term}: missing the technical term ({' / '.join(required)})"
+    return None
+
+
 SYSTEM_PROMPT = """You are a professional app translator. Translate app UI strings from English to {lang_name}.
 
 Rules (strictly follow all):
 1. Output ONLY a numbered list matching the input numbers. No extra text, no explanations.
 2. Preserve ALL format specifiers exactly as-is: %@, %d, %lld, %1$@, %2$@, etc.
 3. Never translate these technical terms: {preserve}.
+3a. MESH JARGON — this app is a LoRa mesh radio. "flood" means flood routing (a
+    packet relayed by every repeater until it crosses the whole mesh), NEVER a
+    river or a water disaster. "advert" / "advertisement" means a beacon packet
+    a node broadcasts to announce itself, NEVER commercial advertising.{glossary}
 4. Keep UI tone natural and concise — this is a mobile/desktop mesh radio app.
 5. If a string is a single symbol, number, or untranslatable term, output it unchanged.
 6. Maintain the same capitalization style (title case → title case, sentence case → sentence case).
@@ -105,13 +224,30 @@ def get_translatable_keys(data, lang):
         result.append((key, src))
     return result
 
+def glossary_hint(lang_name):
+    """The required terms for this language, as a line in the prompt.
+
+    Telling the model the answer costs nothing and saves a rejection. The
+    check in `glossary_problem` still runs: the prompt is the request, the
+    check is the guarantee.
+    """
+    code = next((c for c, n in TARGET_LANGUAGES.items() if n == lang_name), None)
+    rules = GLOSSARY.get(code)
+    if not rules:
+        return ""
+    parts = [f'"{term}" must be rendered as "{required[0]}"'
+             for term, (required, _) in rules.items() if required]
+    return "\n    In " + lang_name + ": " + "; ".join(parts) + "." if parts else ""
+
+
 def run_inference(texts, lang_name, dry_run=False):
     """Send a batch of texts to the local inference endpoint and return translated list."""
     if dry_run:
         return [f"[{lang_name}] {t}" for t in texts]
 
     preserve_list = ", ".join(PRESERVE_TERMS)
-    system = SYSTEM_PROMPT.format(lang_name=lang_name, preserve=preserve_list)
+    system = SYSTEM_PROMPT.format(lang_name=lang_name, preserve=preserve_list,
+                                  glossary=glossary_hint(lang_name))
 
     numbered = "\n".join(f"{i+1}. {t}" for i, t in enumerate(texts))
     prompt = f"{system}\n\nTranslate these {len(texts)} English strings to {lang_name}:\n\n{numbered}"
@@ -299,6 +435,14 @@ def translation_problem(key, value, lang=None):
         if len(stripped) < floor * len(key):
             return (f"implausible contraction ({len(key)} chars in, {len(stripped)} out) — "
                     "misaligned reply or a summarised answer")
+
+    # Mesh jargon the model translates into its everyday sense. Unlike the
+    # checks above this one is per-language, because the right answer differs:
+    # French and Spanish genuinely call flood routing "inondation" and
+    # "inundación", while Polish "powódź" is a river bursting its banks.
+    gloss = glossary_problem(key, value, lang)
+    if gloss is not None:
+        return gloss
 
     return None
 

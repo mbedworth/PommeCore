@@ -4290,6 +4290,77 @@
         }
       }
     },
+    "Add Contacts": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontakte hinzufügen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajouter des contacts"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agregar Contactos"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aggiungi Contatti"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contacten toevoegen"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adicionar Contatos"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přidat kontakty"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dodaj kontakty"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Додати контакти"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "連絡先を追加"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加联系人"
+          }
+        }
+      }
+    },
     "Add My Name": {
       "localizations": {
         "cs": {
@@ -4496,6 +4567,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "添加中继"
+          }
+        }
+      }
+    },
+    "Add Safe Zone": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sichere Zone hinzufügen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajouter une zone sûre"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agregar Zona Segura"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aggiungi Zona Sicura"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Veilige zone toevoegen"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adicionar Zona Segura"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přidat bezpečnou zónu"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dodaj strefę bezpieczną"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Додати безпечну зону"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安全ゾーンを追加"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加安全区域"
           }
         }
       }
@@ -5281,12 +5423,6 @@
     },
     "Advertise": {
       "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Propagovat"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
@@ -5299,64 +5435,64 @@
             "value": "Anunciar"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Promouvoir"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pubblicizza"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "広告"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Adverteren"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reklamuj"
-          }
-        },
         "pt": {
           "stringUnit": {
             "state": "translated",
             "value": "Anunciar"
           }
         },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "annoncer"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "annuncio"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "aankondiging"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oznámení"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rozgłoszenie"
+          }
+        },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Рекламувати"
+            "value": "Оголошення"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アドバタイズ"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "宣传"
+            "value": "通告"
           }
         }
       }
     },
     "Advertisement Sent": {
       "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reklama odeslána"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
@@ -5366,7 +5502,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Anuncio Enviado"
+            "value": "Anuncio enviado"
           }
         },
         "fr": {
@@ -5381,92 +5517,80 @@
             "value": "Annuncio Inviato"
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "広告送信済み"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Advertentie verzonden"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reklama wysłana"
-          }
-        },
         "pt": {
           "stringUnit": {
             "state": "translated",
             "value": "Anúncio Enviado"
           }
         },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aankondiging verzonden"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oznámení odesláno"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rozgłoszenie wysłane"
+          }
+        },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Реклама надіслана"
+            "value": "Надіслано оголошення"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アドバタイズを送信しました"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "广告已发送"
+            "value": "通告已发送"
           }
         }
       }
     },
     "Advertising": {
       "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reklamní"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wird angekündigt"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Publicando"
+            "value": "Ankündigung läuft"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Publicité"
+            "value": "Annonce en cours"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anunciando"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pubblicità"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "広告中"
+            "value": "Annuncio in corso"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "In advertentie modus"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reklamowanie"
+            "value": "Aankondigen…"
           }
         },
         "pt": {
@@ -5475,16 +5599,34 @@
             "value": "Anunciando"
           }
         },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oznamování"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rozgłaszanie"
+          }
+        },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Реклама"
+            "value": "Оголошення триває"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アドバタイズ中"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在广告"
+            "value": "正在通告"
           }
         }
       }
@@ -5495,12 +5637,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Po vyčerpání opakování vyčistit uloženou trasu a znovu odeslat jako síťový záplavový přenos."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nach Ablauf aller Wiederholungsversuche wird die gecachte Route gelöscht und als Mesh-Übertragung erneut gesendet."
           }
         },
         "es": {
@@ -5521,18 +5657,6 @@
             "value": "Dopo aver esaurito i tentativi, cancella la rotta memorizzata e rispedisci come inondazione mesh."
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "リトライが切れたら、キャッシュされたルートをクリアしてメッシュフロードとして再送信します。"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Na het uitputten van herproeven, wis de gecachede route en stuur opnieuw als een mesh flood."
-          }
-        },
         "pl": {
           "stringUnit": {
             "state": "translated",
@@ -5545,16 +5669,34 @@
             "value": "Após esgotar as tentativas, limpe a rota em cache e reenvie como inundação de malha."
           }
         },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach Erschöpfung der Wiederholungsversuche wird die zwischengespeicherte Route gelöscht und die Nachricht als Mesh-Flood neu gesendet."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Na het uitputten van herproeven, wis de gecachede route en stuur opnieuw als een mesh flooding."
+          }
+        },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Після вичерпання повторних спроб очистити кешований маршрут і повторно надіслати як мережевий повен."
+            "value": "Після вичерпання повторних спроб очистити кешований маршрут і переслати як лавинну розсилку."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再試行回数が尽きた後、キャッシュされたルートをクリアしてメッシュフラッディングで再送信します。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "在重试用完后，清除缓存路线并重新发送为网格洪流。"
+            "value": "尝试用时用完后，清除缓存路由并重新发送为网格泛洪。"
           }
         }
       }
@@ -6905,6 +7047,77 @@
         }
       }
     },
+    "Applied — reboot your radio to activate.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Angewendet – starte dein Radio neu, um es zu aktivieren."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appliqué — redémarrez votre radio pour activer."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aplicado — reinicia tu radio para activar."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Applicato — riavvia la tua radio per attivare."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toegepast - start je radio opnieuw op om te activeren."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aplicado — reinicie o rádio para ativar."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aplikováno — restartujte rádio k aktivaci."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zastosowano — zrestartuj radio, aby aktywować."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Застосовано — перезавантажте радіо для активації."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "適用 — ラジオを再起動してアクティブ化してください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已应用 — 重启您的无线电以激活。"
+          }
+        }
+      }
+    },
     "Apply": {
       "comment": "A button that applies a radio preset.",
       "isCommentAutoGenerated": true,
@@ -7113,6 +7326,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "应用并重启"
+          }
+        }
+      }
+    },
+    "Apply Community Preset?": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gemeinschafts-Preset anwenden?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appliquer un preset communautaire ?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aplicar Preseta Comunitaria?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Applica Preset Comunitario?"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gemeenschapsinstelling toepassen?"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aplicar Preset da Comunidade?"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Použít komunitní přednastavení?"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zastosuj preset społeczności?"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Застосувати спільну налаштування?"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "コミュニティプリセットを適用？"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用社区预设？"
           }
         }
       }
@@ -8041,40 +8325,10 @@
             "value": "Automatické opakování znovu odesílá selhání přímých zpráv až třikrát. Automatické resetování cesty vyčistí uloženou trasu a odešle jako záplavu. Multi-ACK odesílá potvrzení o doručení všem uzlům v trase."
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Automatisch wiederholen sendet fehlgeschlagene Direktnachrichten bis zu 3 Mal erneut. Pfad automatisch zurücksetzen löscht die gecachte Route und sendet als Übertragung. Multi-ACK sendet Zustellungsbestätigungen an alle Hops in der Route."
-          }
-        },
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Auto Retry vuelve a enviar mensajes directos fallidos hasta 3 veces. Auto Reset Path limpia la ruta almacenada en caché y vuelve a enviar como inundación. Multi-ACK envía confirmaciones de entrega a todos los saltos de la ruta."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Auto Retry relance les messages directs échoués jusqu'à 3 fois. Auto Reset Path efface la route mise en cache et relance comme un déluge."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Riprova automaticamente risende i messaggi diretti falliti fino a 3 volte. Cancella il percorso memorizzato e risende come allagamento. Multi-ACK invia conferme di consegna a tutti i salti del percorso."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "自動再試行は、失敗したダイレクトメッセージを最大3回再送信します。自動リセットパスは、キャッシュされたルートをクリアしてフラッドとして再送信します。マルチACKは、ルート内のすべてのホップに配信確認を送信します。"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Automatisch opnieuw proberen stuurt mislukte directe berichten tot 3 keer opnieuw. Auto-resetpad verwijdert de gecachede route en stuurt opnieuw als overstroming. Multi-ACK verzendt leveringsbevestigingen naar alle hops in de route."
           }
         },
         "pl": {
@@ -8089,16 +8343,46 @@
             "value": "Reenvia automaticamente mensagens diretas falhadas até 3 vezes. Limpa o caminho em cache e reenvia como inundação. Envia confirmações de entrega para todos os saltos na rota."
           }
         },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto-Wiederholung sendet fehlgeschlagene direkte Nachrichten bis zu 3 Mal neu. Auto-Pfad-Reset löscht die zwischengespeicherte Route und sendet als Flood neu. Multi-ACK sendet Bestätigungen für die Zustellung an alle Hops in der Route."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réessai automatique : les messages directs échoués sont relayés jusqu'à 3 fois. Réinitialisation automatique du chemin : efface la route mise en cache et relaye comme une inondation. Multi-ACK envoie des confirmations de livraison à tous les nœuds du chemin."
+          }
+        },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Автоматичне повторне надсилання невдалих прямих повідомлень до 3 разів. Очищення шляху за допомогою автоматичного скидання видаляє закешований маршрут і надсилає як повільну хвилю. Багаточасове підтвердження доставки надсилає підтвердження до всіх вузлів маршруту."
+            "value": "Автоматична повторна відправка невдалих прямих повідомлень до 3 разів. Автоматичне очищення шляху видаляє кешований маршрут і пересилає як лавинну розсилку. Багатократне підтвердження доставки надсилає підтвердження доставки всім вузлам на маршруті."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "オート再試行は、最大3回まで直接メッセージの再送信を行います。オートリセットパスでは、キャッシュされたルートをクリアしてフラッディングで再送信します。マルチACKは、ルート内のすべてのホップに配信確認を送信します。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "自动重试会重新发送失败的直接消息，最多重试3次。自动重置路径会清除缓存的路由并重新发送。多ACK向路由中的所有节点发送交付确认。"
+            "value": "自动重试重新发送失败的直接消息，最多重试3次。自动重置路径清除缓存路由并重新发送为泛洪。多ACK向路由中的所有节点发送交付确认。"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto Retry rinvia i messaggi diretti non riusciti fino a 3 volte. Auto Reset Path cancella la rotta in cache e rinvia tramite flooding. Multi-ACK invia conferme di consegna a tutti gli hop della rotta."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto Retry verzendt mislukte directe berichten tot 3 keer opnieuw. Auto Reset Path wist de route uit de cache en verzendt opnieuw via flooding. Multi-ACK stuurt bezorgbevestigingen naar alle hops in de route."
           }
         }
       }
@@ -8730,6 +9014,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "返回"
+          }
+        }
+      }
+    },
+    "Backup & Transfer": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sicherung & Übertragung"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sauvegarde et transfert"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copia de Seguridad y Transferencia"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Backup e Trasferimento"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Backup & overdracht"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Backup e Transferência"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zálohování a přenos"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopia zapasowa i transfer"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Резервне копіювання та передача"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "バックアップと転送"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "备份与传输"
           }
         }
       }
@@ -11203,6 +11558,77 @@
         }
       }
     },
+    "Choose .meshprofile File": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": ".meshprofile-Datei auswählen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choisir un fichier .meshprofile"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elegir Archivo .meshprofile"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scegli File .meshprofile"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kies .meshprofile-bestand"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escolher Arquivo .meshprofile"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vybrat soubor .meshprofile"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wybierz plik .meshprofile"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вибрати файл .meshprofile"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": ".meshprofileファイルを選択"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择 .meshprofile 文件"
+          }
+        }
+      }
+    },
     "Choose a contact or channel from the sidebar to start messaging.": {
       "localizations": {
         "cs": {
@@ -11483,6 +11909,148 @@
         }
       }
     },
+    "Clear All Messages": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle Nachrichten löschen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Effacer tous les messages"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Borrar Todos los Mensajes"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancella Tutti i Messaggi"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle berichten wissen"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limpar Todas as Mensagens"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vymazat všechny zprávy"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wyczyść wszystkie wiadomości"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Очистити всі повідомлення"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "すべてのメッセージをクリア"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清空所有消息"
+          }
+        }
+      }
+    },
+    "Clear Coverage Map": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abdeckungskarte löschen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Effacer la carte de couverture"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Borrar Mapa de Cobertura"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancella Mappa di Copertura"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dekkingskaart wissen"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limpar Mapa de Cobertura"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vymazat mapu pokrytí"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wyczyść mapę zasięgu"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Очистити карту покриття"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "カバレッジマップをクリア"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清空覆盖范围地图"
+          }
+        }
+      }
+    },
     "Clear Log": {
       "localizations": {
         "cs": {
@@ -11619,6 +12187,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "清空消息草稿"
+          }
+        }
+      }
+    },
+    "Clear Telemetry History": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Telemetrie-Verlauf löschen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Effacer l'historique de télémétrie"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Borrar Historial de Telemetría"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancella Cronologia Telemetria"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Telemetriegeschiedenis wissen"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limpar Histórico de Telemetria"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vymazat historii telemetrie"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wyczyść historię telemetrii"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Очистити історію телеметрії"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "テレメトリー履歴をクリア"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清空遥测历史"
           }
         }
       }
@@ -13895,6 +14534,77 @@
         }
       }
     },
+    "Contact Backups": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontakt-Sicherungen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sauvegardes de contacts"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copias de Seguridad de Contactos"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Backup Contatti"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contactback-ups"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Backups de Contato"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zálohy kontaktů"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopie zapasowe kontaktów"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Резервні копії контактів"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "連絡先バックアップ"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "联系人备份"
+          }
+        }
+      }
+    },
     "Contact Details": {
       "localizations": {
         "cs": {
@@ -14313,6 +15023,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "联系人"
+          }
+        }
+      }
+    },
+    "Contacts are saved automatically just before a bulk deletion, so a mistake can be undone — they cannot otherwise be recovered once removed from the radio.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontakte werden automatisch gespeichert, kurz bevor eine Massenlöschung durchgeführt wird, sodass ein Fehler korrigiert werden kann – sie können nach der Entfernung vom Radio nicht wiederhergestellt werden."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les contacts sont sauvegardés automatiquement juste avant une suppression en masse, afin qu'une erreur puisse être annulée — ils ne peuvent autrement pas être récupérés une fois supprimés de la radio."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los contactos se guardan automáticamente justo antes de una eliminación en masa, por lo que un error puede deshacerse — de lo contrario, no se pueden recuperar una vez eliminados del radio."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I contatti sono salvati automaticamente proprio prima di una cancellazione di massa, quindi un errore può essere annullato - non possono essere recuperati in caso di rimozione dal radio."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contacten worden automatisch opgeslagen net voor een massadeletie, zodat een fout kan worden ongedaan gemaakt - ze kunnen anders niet meer worden hersteld nadat ze uit de radio zijn verwijderd."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Os contatos são salvos automaticamente logo antes de uma exclusão em massa, para que um erro possa ser desfeito — não podem ser recuperados de outra forma após serem removidos do rádio."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontaktní údaje se automaticky uloží těsně před hromadným smazáním, takže chybu lze snadno napravit - po odstranění z rádia již nelze získat zpět."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontaktów zapisuje się automatycznie tuż przed masową usunięciem, więc błąd można cofnąć — w przeciwnym razie nie można ich odzyskać po usunięciu z radia."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Контакти зберігаються автоматично безпосередньо перед масовою видаленням, тому помилку можна виправити; інакше їх неможливо відновити після видалення з радіопередачі."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "削除前に自動的に連絡先が保存されるため、誤りを取り消すことができます。削除後はラジオから取り出すことができないため、復元できません。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "联系人将在批量删除之前自动保存，这样在出错时可以撤销——一旦从收音机中删除，它们就无法恢复。"
           }
         }
       }
@@ -17066,6 +17847,77 @@
         }
       }
     },
+    "Delete All Messages": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle Nachrichten löschen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimer tous les messages"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminar todos los mensajes"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elimina tutti i messaggi"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle berichten wissen"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Excluir Todas as Mensagens"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Smazat všechny zprávy"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuń wszystkie wiadomości"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Видалити всі повідомлення"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "すべてのメッセージを削除"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除所有消息"
+          }
+        }
+      }
+    },
     "Delete Contact": {
       "localizations": {
         "cs": {
@@ -17272,6 +18124,219 @@
           "stringUnit": {
             "state": "translated",
             "value": "删除无线电数据？"
+          }
+        }
+      }
+    },
+    "Delete Snapshot": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Snapshot löschen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimer l'instantané"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminar instantánea"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elimina Snapshot"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Snapshot wissen"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Excluir Snapshot"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Smazat snímek"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuń zrzut"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Видалити знімок"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "スナップショットを削除"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除快照"
+          }
+        }
+      }
+    },
+    "Delete Variable": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Variable löschen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimer la variable"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminar variable"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elimina Variabile"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Variabele wissen"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Excluir Variável"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Smazat proměnnou"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuń zmienną"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Видалити змінну"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "変数を削除"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除变量"
+          }
+        }
+      }
+    },
+    "Delete Zone": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zone löschen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimer la zone"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminar zona"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elimina Zona"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zone wissen"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Excluir Zona"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Smazat zónu"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuń strefę"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Видалити зону"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ゾーンを削除"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除区域"
           }
         }
       }
@@ -20110,6 +21175,77 @@
         }
       }
     },
+    "Edit": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bearbeiten"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modifier"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Editar"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modifica"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bewerken"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Editar"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upravit"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edytuj"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Редагувати"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "編集"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑"
+          }
+        }
+      }
+    },
     "Edit Nickname": {
       "localizations": {
         "de": {
@@ -21308,6 +22444,77 @@
         }
       }
     },
+    "Erase All Data": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle Daten löschen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Effacer toutes les données"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Borrar todos los datos"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancella tutti i dati"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle gegevens wissen"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apagar Todos os Dados"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Smazat všechna data"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wyczyść wszystkie dane"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Видалити всі дані"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "すべてのデータを消去"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清空所有数据"
+          }
+        }
+      }
+    },
     "Error": {
       "localizations": {
         "de": {
@@ -21870,6 +23077,148 @@
           "stringUnit": {
             "state": "translated",
             "value": "导出 (%@)"
+          }
+        }
+      }
+    },
+    "Export Chat": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chat exportieren"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exporter la discussion"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportar chat"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esporta Chat"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chat exporteren"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportar Chat"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportovat konverzaci"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eksportuj czat"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Експортувати чат"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "チャットをエクスポート"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导出聊天记录"
+          }
+        }
+      }
+    },
+    "Export Config": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konfiguration exportieren"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exporter la configuration"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportar configuración"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esporta Config"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configuratie exporteren"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportar Configuração"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportovat konfiguraci"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eksportuj konfigurację"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Експортувати налаштування"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定をエクスポート"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导出配置"
           }
         }
       }
@@ -22944,12 +24293,6 @@
             "value": "Zaplavit (poslat všem)"
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Übertragung (an alle senden)"
-          }
-        },
         "es": {
           "stringUnit": {
             "state": "translated",
@@ -22962,46 +24305,52 @@
             "value": "Inondation (diffusion à tous)"
           }
         },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flood (an alle senden)"
+          }
+        },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Allarme (trasmetti a tutti)"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "すべてのノードにブロードキャスト"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Overstroming (uitzending naar iedereen)"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Powódź (emisja do wszystkich)"
+            "value": "Inondazione (trasmissione a tutti)"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Enviar para todos"
+            "value": "Inundação (transmitir para todos)"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zalewanie (przesyłanie do wszystkich)"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Повний розсів (broadcast до всіх)"
+            "value": "Лавинна розсилка (транслюється всім)"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "フラッディング (すべてにブロードキャスト)"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "所有设备广播"
+            "value": "泛洪（广播给所有）"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flooding (naar iedereen verzenden)"
           }
         }
       }
@@ -23012,12 +24361,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zaplavit (celá mřížka)"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Übertragung (gesamtes Mesh)"
           }
         },
         "es": {
@@ -23032,64 +24375,58 @@
             "value": "Inondation (ensemble du maillage)"
           }
         },
-        "it": {
+        "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Allarme (intera rete mesh)"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "メッシュ全体"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Overstroming (het hele mesh)"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Powódź (cała siatka)"
+            "value": "Flood (das gesamte Mesh)"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Todo o mesh"
+            "value": "Inundação (toda a malha)"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zalewanie (cała siatka)"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Повний розсів (вся сітка)"
+            "value": "Лавинна розсилка (вся сітка)"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "フラッディング (メッシュ全体)"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "整个网格"
+            "value": "整个网格泛洪"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flooding (intera mesh)"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flooding (volledige mesh)"
           }
         }
       }
     },
     "Flood Advert": {
       "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reklamní zaplavení"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Übertragungsankündigung"
-          }
-        },
         "es": {
           "stringUnit": {
             "state": "translated",
@@ -23102,58 +24439,64 @@
             "value": "Annonce d'inondation"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Annuncio Allarme"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "フロード広告"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Overstromingsadvertentie"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reklama powodziowa"
-          }
-        },
         "pt": {
           "stringUnit": {
             "state": "translated",
             "value": "Anúncio de inundação"
           }
         },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flooding-Ankündigung"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annuncio di flooding"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flooding-aankondiging"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Záplavové oznámení"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rozgłoszenie zalewające"
+          }
+        },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Реклама повного розсіву"
+            "value": "Оголошення лавинної розсилки"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "フラッディングアドバタイズ"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "全网广播广告"
+            "value": "泛洪通告"
           }
         }
       }
     },
     "Flood Max (Unscoped)": {
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Überflutung maximieren (unbegrenzt)"
-          }
-        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -23164,18 +24507,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Inundación Máxima (Sin alcance)"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Allagamento Massimo (Non delimitato)"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Overstroming Max (Onbeperkt)"
           }
         },
         "pt": {
@@ -23190,28 +24521,46 @@
             "value": "Zaplavení maximální (neomezené)"
           }
         },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flood Max (unbeschränkt)"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flooding Massimo (Non Scoprito)"
+          }
+        },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Powódź Maks (Bez zakresu)"
+            "value": "Zalewanie Maks (Bez zakresu)"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Повний потік"
+            "value": "Лавинна розсилка Максимум (Без обмеження)"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "洪水最大（範囲なし）"
+            "value": "フラッディングマックス (アンスコープド)"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "洪水最大（未范围）"
+            "value": "泛洪最大（无范围）"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flooding max. (onbeperkt)"
           }
         }
       }
@@ -23220,12 +24569,6 @@
       "comment": "A label displayed next to the number of received flood packets.",
       "isCommentAutoGenerated": true,
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Übermittelt: Flut"
-          }
-        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -23238,52 +24581,58 @@
             "value": "Inundación recibida"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Flood ricevuto"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Overstroming ontvangen"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Flood recebido"
-          }
-        },
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Přijatý záplavový signál"
+            "value": "Záplava přijata"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Odbierane zalewy"
+            "value": "Zalewanie odebrane"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flooding empfangen"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flooding ricevuto"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inundação recebida"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Отримано повінь"
+            "value": "Отримано лавинну розсилку"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "フロード受信"
+            "value": "フラッディング受信"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "接收洪流"
+            "value": "已接收泛洪"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flooding ontvangen"
           }
         }
       }
@@ -23293,13 +24642,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rozsah zaplavení"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Übertragungsbereich"
+            "value": "Rozsah zaplavování"
           }
         },
         "es": {
@@ -23314,46 +24657,52 @@
             "value": "Portée d'inondation"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ambito Allarme"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "フロードスコープ"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Overstromingsbereik"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zakres powodziowy"
-          }
-        },
         "pt": {
           "stringUnit": {
             "state": "translated",
             "value": "Escopo de inundação"
           }
         },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flooding-Bereich"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ambito di flooding"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flooding-bereik"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zakres zalewania"
+          }
+        },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Область повного розсіву"
+            "value": "Область лавинної розсилки"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "フラッディングスコープ"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "广播范围"
+            "value": "泛洪范围"
           }
         }
       }
@@ -23362,12 +24711,6 @@
       "comment": "A label displayed next to the number of flood packets sent.",
       "isCommentAutoGenerated": true,
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Gesendet: Flut"
-          }
-        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -23380,52 +24723,129 @@
             "value": "Inundación enviada"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Flood inviato"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Overstroming verzonden"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Flood enviado"
-          }
-        },
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Odeslaná záplava"
+            "value": "Záplava odeslána"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wysyłane zalewy"
+            "value": "Zalewanie wysłane"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flooding gesendet"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flooding inviato"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inundação enviada"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Надіслано повінь"
+            "value": "Лавинну розсилку надіслано"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "フロード送信"
+            "value": "フラッディング送信"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "发送洪流"
+            "value": "已发送泛洪"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flooding verzonden"
+          }
+        }
+      }
+    },
+    "Flood route": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flooding-Route"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Route d'inondation"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ruta de inundación"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rotta di flooding"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rota de inundação"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trasa zaplavování"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trasa zalewania"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Маршрут лавинної розсилки"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "フラッディングルート"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "泛洪路由"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flooding-route"
           }
         }
       }
@@ -23434,12 +24854,6 @@
       "comment": "A warning message that flood scope can only be cleared via USB CLI on the repeater directly.",
       "isCommentAutoGenerated": true,
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Der Flutbereich kann nur über die USB-CLI direkt am Wiederholer gelöscht werden."
-          }
-        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -23450,24 +24864,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "El alcance de inundación solo se puede borrar a través del CLI USB en el repetidor directamente."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lo scope di flood può essere cancellato solo tramite USB CLI sul ripetitore direttamente."
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "De overstromingsbereik kan alleen worden leeggemaakt via USB CLI op de herhaler rechtstreeks."
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "O escopo de flood só pode ser limpo via USB CLI no repetidor diretamente."
           }
         },
         "cs": {
@@ -23482,22 +24878,46 @@
             "value": "Zakres zalewu można wyczyścić tylko za pomocą interfejsu USB CLI na powielaczu bezpośrednio."
           }
         },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'ambito di inondazione può essere cancellato solo tramite l'interfaccia a riga di comando USB direttamente sul ripetitore."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O escopo da inundação só pode ser limpo via USB CLI no repetidor diretamente."
+          }
+        },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Область повені можна очистити лише через USB CLI на повторювачі безпосередньо."
+            "value": "Лавинну розсилку можна очистити лише через USB CLI безпосередньо на повторювачі."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "フロードスコープは直接リピーターにUSB CLIを使用してのみクリアできます。"
+            "value": "フラッディングスコープは、直接リピーターのUSB CLI経由でのみクリアできます。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "洪流范围只能通过直接重复器的 USB CLI 清空。"
+            "value": "泛洪范围只能通过直接连接到重放器的USB CLI清除。"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Flooding-Bereich kann nur direkt über die USB-CLI am Repeater gelöscht werden."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Het flooding-bereik kan alleen rechtstreeks via de USB-CLI op de repeater worden gewist."
           }
         }
       }
@@ -23505,40 +24925,10 @@
     "Flooding mesh network": {
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mesh-Netzwerk überfluten"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inondant le réseau maillé"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inundando la red mesh"
-          }
-        },
         "it": {
           "stringUnit": {
             "state": "translated",
             "value": "Inondazione della rete mesh"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mesh netwerk overstromen"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inundando a rede mesh"
           }
         },
         "cs": {
@@ -23547,28 +24937,58 @@
             "value": "Zaplavení síťi mesh"
           }
         },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "inondations du réseau maillé"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inundación de red mesh"
+          }
+        },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Powodzenie sieci mesh"
+            "value": "Zalewanie sieci mesh"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Заповнення мережі Mesh"
+            "value": "Мережа лавинної розсилки"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "メッシュネットワークの洪水"
+            "value": "フラッディングメッシュネットワーク"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "淹没网格网络"
+            "value": "泛洪网格网络"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flooding im Mesh-Netzwerk"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inundação da rede mesh"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flooding van het mesh-netwerk"
           }
         }
       }
@@ -23577,70 +24997,70 @@
       "comment": "A message that indicates that a message is being sent to a network that is too congested.",
       "isCommentAutoGenerated": true,
       "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zaplňování..."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Wird gesendet…"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inundando..."
-          }
-        },
         "fr": {
           "stringUnit": {
             "state": "translated",
             "value": "Inondation..."
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inundación..."
+          }
+        },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Allarme..."
+            "value": "Flooding…"
           }
         },
-        "ja": {
+        "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "送信中..."
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Overstroming..."
+            "value": "Zaplavování..."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Powodowanie..."
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inundando..."
+            "value": "Zalewanie..."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Розсів..."
+            "value": "Лавинна розсилка..."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "フラッディング..."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在广播..."
+            "value": "泛洪..."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flooding…"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flooding…"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inundando…"
           }
         }
       }
@@ -25200,6 +26620,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "不错"
+          }
+        }
+      }
+    },
+    "Got It": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verstanden"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "J'ai compris"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entendido"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ho capito"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ik begrijp het"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entendi"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mám to"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rozumiem"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Розумію"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "わかりました"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "明白了"
           }
         }
       }
@@ -27110,6 +28601,77 @@
         }
       }
     },
+    "Include Contacts": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontakte einbeziehen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inclure les contacts"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Incluir contactos"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Includi contatti"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contacten opnemen"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Incluir Contatos"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zahrnout kontakty"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uwzględnij kontakty"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Включити контакти"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "連絡先を含める"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "包含联系人"
+          }
+        }
+      }
+    },
     "Include Location": {
       "localizations": {
         "cs": {
@@ -28237,6 +29799,77 @@
         }
       }
     },
+    "Later": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Später"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plus tard"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Más tarde"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Più tardi"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Later"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mais tarde"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Až později"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Później"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пізніше"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "後で"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "稍后"
+          }
+        }
+      }
+    },
     "Latest: %@%@": {
       "localizations": {
         "cs": {
@@ -28379,6 +30012,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "纬度"
+          }
+        }
+      }
+    },
+    "Leave": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verlassen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quitter"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salir"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esci"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verlaat"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sair"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odejít"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wyjdź"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Залишити"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "去る"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "离开"
           }
         }
       }
@@ -29945,6 +31649,77 @@
         }
       }
     },
+    "Location Unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standort nicht verfügbar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Emplacement indisponible"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ubicación no disponible"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Posizione non disponibile"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Locatie niet beschikbaar"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Localização indisponível"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Místo nedostupné"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lokalizacja niedostępna"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Місцезнаходження недоступне"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "場所不可用"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "位置不可用"
+          }
+        }
+      }
+    },
     "Location access denied. Enable in Settings → Privacy → Location Services.": {
       "localizations": {
         "cs": {
@@ -30017,12 +31792,6 @@
     },
     "Location in Advertisements": {
       "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Poloha v reklamách"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
@@ -30035,52 +31804,58 @@
             "value": "Ubicación en anuncios"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Emplacement dans les publicités"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Posizione negli annunci"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "広告での位置情報"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Locatie in advertenties"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lokalizacja w reklamach"
-          }
-        },
         "pt": {
           "stringUnit": {
             "state": "translated",
             "value": "Localização em Anúncios"
           }
         },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annonce de localisation"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annuncio di posizione"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Locatie in aankondigingen"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Umístění v oznámeních"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lokalizacja w rozgłoszeniach"
+          }
+        },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Місцезнаходження в рекламах"
+            "value": "Місцезнаходження в оголошеннях"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "在广告中显示位置"
+            "value": "在通告中显示位置"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アドバタイズに位置情報を含める"
           }
         }
       }
@@ -35954,6 +37729,77 @@
         }
       }
     },
+    "No Thanks": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Danke, nein"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non merci"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No gracias"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non grazie"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nee, bedankt"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não, obrigado"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Děkuji ne"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie dzięki"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Дякую, відмовляюся"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ありがとうございません"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不谢"
+          }
+        }
+      }
+    },
     "No chat contacts available": {
       "localizations": {
         "cs": {
@@ -36447,6 +38293,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "未找到设备"
+          }
+        }
+      }
+    },
+    "No known path — messages will flood": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay ruta conocida — los mensajes inundarán"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sem caminho conhecido — mensagens inundarão"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Žádná známá cesta - zprávy budou zaplavovat"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak znanego ścieżki — wiadomości będą zalewane"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun chemin connu — les messages inonderont"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Немає відомих шляхів — повідомлення будуть лавинною розсилкою"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "既知のパスなし - メッセージはフラッディングします"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无已知路径 — 消息将泛洪"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kein bekannter Pfad — Nachrichten werden per Flooding gesendet"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nessun percorso noto — i messaggi useranno il flooding"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geen bekend pad — berichten gebruiken flooding"
           }
         }
       }
@@ -37159,6 +39076,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "无信号"
+          }
+        }
+      }
+    },
+    "No snapshots yet.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch keine Screenshots"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pas de captures d'écran pour le moment."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin capturas de pantalla aún."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nessuna cattura ancora."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geen snapshots nog"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sem capturas de tela ainda."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Žádné snímky zatím."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jeszcze żadnych zrzutów ekranu"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ще немає знімків"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "まだスナップショットなし"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有快照"
           }
         }
       }
@@ -39574,6 +41562,77 @@
         }
       }
     },
+    "Other Radios": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Andere Funkgeräte"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autres radios"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otras radios"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Altre radio"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Andere radios"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outros rádios"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Další rádiové stanice"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inne radiostacje"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Інші радіостанції"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "他のラジオ"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "其他无线电"
+          }
+        }
+      }
+    },
     "Others can scan this QR code to add you as a contact.": {
       "comment": "A description of how to share a contact code.",
       "isCommentAutoGenerated": true,
@@ -41765,6 +43824,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "ping %lld/%lld"
+          }
+        }
+      }
+    },
+    "Ping Results": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ping-Ergebnisse"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Résultats du ping"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resultados de ping"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Risultati del ping"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ping-resultaten"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resultados do ping"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Výsledky pingů"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wyniki pinga"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Результати пінгу"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ピング結果"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回声结果"
           }
         }
       }
@@ -45253,6 +47383,77 @@
         }
       }
     },
+    "Radio Profiles": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Funkprofile"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profils radio"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Perfiles de radio"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profili Radio"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Radioprofielen"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Perfis de Rádio"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profilů rádia"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profil radio"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Радіопрофілі"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ラジオプロファイル"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无线电配置"
+          }
+        }
+      }
+    },
     "Radio Settings": {
       "localizations": {
         "cs": {
@@ -45319,6 +47520,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "Paramètres radio"
+          }
+        }
+      }
+    },
+    "Radio Stats": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Funkstatistiken"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Statistiques radio"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estadísticas de radio"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Statistiche Radio"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Radio-statistieken"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estatísticas de Rádio"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Statistiky rádia"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Statystyki radio"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Радіостатистика"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ラジオ統計"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无线电统计"
           }
         }
       }
@@ -46243,6 +48515,77 @@
         }
       }
     },
+    "Reboot": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neustart"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redémarrer"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reiniciar"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riavvia"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Herstart"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reiniciar"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restart"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ponowne uruchomienie"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перезавантаження"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "リセット"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重启"
+          }
+        }
+      }
+    },
     "Reboot Device": {
       "comment": "A button that reboots a device.",
       "isCommentAutoGenerated": true,
@@ -46381,6 +48724,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "重启设备？"
+          }
+        }
+      }
+    },
+    "Reboot Now": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jetzt neu starten"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redémarrer maintenant"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reiniciar ahora"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riavvia Ora"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nu herstarten"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reiniciar Agora"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restartovat nyní"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ponownie uruchom teraz"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перезавантажити зараз"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今すぐリセット"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "立即重启"
           }
         }
       }
@@ -47367,6 +49781,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "区域定义构建一条线上的树：每个标记都是前一个的孩童；使用名称|跳转到现有区域，或名称|* 返回根。审查树，然后保存以持久化。"
+          }
+        }
+      }
+    },
+    "Region monitoring is not available on this device.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Regionüberwachung ist auf diesem Gerät nicht verfügbar."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La surveillance de région n'est pas disponible sur cet appareil."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El monitoreo de región no está disponible en este dispositivo."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il monitoraggio della regione non è disponibile su questo dispositivo."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Regiobewaking is niet beschikbaar op dit apparaat."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Monitoramento de Região não está disponível neste dispositivo."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Monitorování regionu není na tomto zařízení k dispozici."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Monitorowanie regionu nie jest dostępne na tym urządzeniu."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Моніторинг регіонів недоступний на цьому пристрої."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このデバイスでは地域監視が利用できません。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该设备不支持区域监控。"
           }
         }
       }
@@ -48775,6 +51260,77 @@
         }
       }
     },
+    "Rename Profile": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profil umbenennen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Renommer le profil"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Renombrar perfil"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rinomina Profilo"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profiel hernoemen"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Renomear Perfil"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přepsat profil"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zmień nazwę profilu"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перейменувати профіль"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プロファイル名を変更"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重命名配置"
+          }
+        }
+      }
+    },
     "Repeat Mode": {
       "localizations": {
         "cs": {
@@ -48987,6 +51543,77 @@
         }
       }
     },
+    "Replace All Channels": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle Kanäle ersetzen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remplacer tous les canaux"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reemplazar todos los canales"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sostituisci Tutti i Canali"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle kanalen vervangen"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Substituir Todos os Canais"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nahradit všechny kanály"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zastąp wszystkie kanały"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Замінити всі канали"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "すべてのチャンネルを上書き"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "替换所有频道"
+          }
+        }
+      }
+    },
     "Request Status": {
       "localizations": {
         "cs": {
@@ -49123,6 +51750,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "请求传感器数据"
+          }
+        }
+      }
+    },
+    "Request telemetry again to start building history.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Senden Sie erneut Telemetrieanforderungen, um mit dem Aufbau der Historie zu beginnen."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demander à nouveau la télémétrie pour commencer à construire l'historique."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solicitar telemetría nuevamente para comenzar a construir el historial."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Richiedi nuovamente la telemetria per iniziare a costruire la cronologia."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vraag telemetrie opnieuw aan om een geschiedenis te beginnen."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solicite telemetria novamente para iniciar a construção de histórico."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Požádejte o telemetrii znovu, abyste mohli začít budovat historii."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poproś o telemetrię ponownie, aby rozpocząć budowanie historii."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Запитати телеметрію знову, щоб почати будувати історію."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "履歴の構築を開始するために、再度テレメトリを要求してください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再次请求传感器数据以开始构建历史记录。"
           }
         }
       }
@@ -50252,6 +52950,77 @@
         }
       }
     },
+    "Restore Contacts": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontakte wiederherstellen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restaurer les contacts"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restaurar contactos"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ripristina Contatti"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contacten herstellen"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restaurar Contatos"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obnovit kontakty"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przywróć kontakty"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Відновити контакти"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "コンタクトを復元"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复联系人"
+          }
+        }
+      }
+    },
     "Restore Identity Key": {
       "comment": "A button to restore a previous backup of the device's private key",
       "isCommentAutoGenerated": true,
@@ -50320,6 +53089,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "恢复身份密钥"
+          }
+        }
+      }
+    },
+    "Restoring adds these contacts back to the radio. Contacts it already has are updated, never removed, so restoring is safe to retry.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Wiederherstellung fügt diese Kontakte zurück zum Radio hinzu. Kontakte, die es bereits hat, werden aktualisiert, nie entfernt, daher ist die Wiederherstellung sicher, um erneut zu versuchen."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La restauration ajoute ces contacts à nouveau à la radio. Les contacts qu'elle possède déjà sont mis à jour, jamais supprimés, donc la restauration est sûre à réessayer."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restaurar añade estos contactos de nuevo a la radio. Los contactos que ya tiene se actualizan, nunca se eliminan, por lo que restaurar es seguro para volver a intentarlo."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ripristinando aggiunge questi contatti nuovamente alla radio. I contatti che ha già sono aggiornati, mai rimossi, quindi ripristinare è sicuro da ripetere."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Herstellen voegt deze contacten terug toe aan de radio. Contacten die het al heeft, worden bijgewerkt, nooit verwijderd, dus herstellen is veilig om opnieuw te proberen."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restaurar adiciona esses contatos de volta ao rádio. Contatos que ele já possui são atualizados, nunca removidos, então restaurar é seguro para tentar novamente."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obnovení přidá tyto kontakty zpět do rádia. Kontaktů, které již má, se aktualizují, nikdy se neodstraní, takže obnovení je bezpečné zopakovat."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przywracanie dodaje te kontakty z powrotem do radia. Kontakty, które już ma, są aktualizowane, nigdy nie usuwane, więc przywracanie jest bezpieczne do ponownego próby."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Відновлення додає ці контакти назад до радіопристрою. Контакти, які він вже має, оновлюються, ніколи не видаляються, тому відновлення безпечно повторити."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "復元により、ラジオにこれらのコンタクトが再追加されます。すでに持っているコンタクトは更新されますが、削除されることはありませんので、復元を再試行しても安全です。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复将这些联系人重新添加到无线电中。它已经拥有的联系人将被更新，不会被删除，因此恢复是安全的，可以重试。"
           }
         }
       }
@@ -51821,6 +54661,77 @@
         }
       }
     },
+    "SOS Sent": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SOS gesendet"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SOS envoyé"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SOS enviado"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inviato SOS"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SOS verzonden"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enviado SOS"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odesláno SOS"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wyślij SOS"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Надіслано SOS"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SOSが送信されました"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发送SOS"
+          }
+        }
+      }
+    },
     "Safe Zones": {
       "localizations": {
         "cs": {
@@ -51957,6 +54868,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "保存"
+          }
+        }
+      }
+    },
+    "Save Profile": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profil speichern"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistrer le profil"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guardar Perfil"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salva Profilo"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profiel opslaan"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salvar Perfil"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uložit profil"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisz profil"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Збережіть профіль"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プロファイルを保存"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存配置文件"
           }
         }
       }
@@ -52382,6 +55364,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "已保存"
+          }
+        }
+      }
+    },
+    "Scan": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scannen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rechercher"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escanear"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scansiona"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scannen"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Digitalizar"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Proskenovat"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skanuj"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сканувати"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "スキャン"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "扫描"
           }
         }
       }
@@ -54146,12 +57199,6 @@
     },
     "Send Advertisement": {
       "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Odeslat reklamu"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
@@ -54164,34 +57211,10 @@
             "value": "Enviar anuncio"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Envoyer une publicité"
-          }
-        },
         "it": {
           "stringUnit": {
             "state": "translated",
             "value": "Invia un annuncio"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "広告を送信"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Een advertentie verzenden"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Wyślij reklamę"
           }
         },
         "pt": {
@@ -54206,62 +57229,50 @@
             "value": "Надіслати оголошення"
           }
         },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "envoyer une annonce"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aankondiging verzenden"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odeslat oznámení"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wyślij rozgłoszenie"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アドバタイズを送信"
+          }
+        },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "发送广告"
+            "value": "发送通告"
           }
         }
       }
     },
     "Send Flood Advert": {
       "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Odeslat povodňovou reklamu"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Übertragungsankündigung senden"
-          }
-        },
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Enviar anuncio de inundación"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Envoyer une publicité de inondation"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Invia Flood Advert"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "フロード広告を送信"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Verzend een overstromingsadvertentie"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Wyślij reklamę powodziową"
           }
         },
         "pt": {
@@ -54270,16 +57281,58 @@
             "value": "Enviar Anúncio de Inundação"
           }
         },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flooding-Ankündigung senden"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Envoyer une annonce d'inondation"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invia annuncio di flooding"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odeslat záplavové oznámení"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wyślij rozgłoszenie zalewające"
+          }
+        },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Надіслати оголошення про повний покриття"
+            "value": "Надіслати оголошення лавинної розсилки"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "发送洪流广告"
+            "value": "发送泛洪通告"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "フラッディングアドバタイズを送信"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flooding-aankondiging verzenden"
           }
         }
       }
@@ -54430,12 +57483,6 @@
     },
     "Send an advertisement to announce your presence on the mesh. Other nodes will appear here as they respond.": {
       "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Odešlete reklamu k oznámení své přítomnosti v mřížce. Jiné uzly se zde objeví, jakmile odpoví."
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
@@ -54448,34 +57495,10 @@
             "value": "Enviar un anuncio para anunciar su presencia en la malla. Otros nodos aparecerán aquí a medida que respondan."
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Envoyer une publicité pour annoncer votre présence sur le maillage. Les autres nœuds apparaîtront ici au fur et à mesure de leur réponse."
-          }
-        },
         "it": {
           "stringUnit": {
             "state": "translated",
             "value": "Invia un annuncio per segnalare la tua presenza sulla mesh. Altri nodi appariranno qui mentre rispondono."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "メッシュ上で存在を知らせる広告を送信します。応答するノードがここに表示されます。"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Verzend een advertentie om je aanwezigheid in het mesh-netwerk aan te kondigen. Andere knooppunten verschijnen hier wanneer ze reageren."
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Wyślij reklamę, aby ogłosić swoją obecność w sieci mesh. Inne węzły pojawią się tutaj, gdy odpowiedzą."
           }
         },
         "pt": {
@@ -54490,10 +57513,40 @@
             "value": "Надіслати оголошення для повідомлення про свою присутність у мережі. Інші вузли з'являться тут, коли вони відповіють."
           }
         },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Envoyer une annonce pour signaler votre présence sur le maillage. D'autres nœuds apparaîtront ici lorsqu'ils répondront."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Een aankondiging verzenden om je aanwezigheid in het mesh te melden. Andere knooppunten verschijnen hier als ze reageren."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Posílá oznámení o oznámení vaší přítomnosti v mřížce. Jiné uzly se zde objeví, jakmile odpoví."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wyślij rozgłoszenie, aby ogłosić swoją obecność w sieci. Inne węzły pojawią się tutaj, gdy odpowiedzą."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "メッシュで存在を告げるためにアドバタイズを送信します。他のノードが応答するにつれて、ここに表示されます。"
+          }
+        },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "向网格发送广告以宣布您的存在。其他节点将在此处出现，因为它们响应。"
+            "value": "发送通告以宣布您在网格中的存在。其他节点将在此处出现，因为它们响应。"
           }
         }
       }
@@ -55281,70 +58334,70 @@
       "comment": "A description of the distress beacon.",
       "isCommentAutoGenerated": true,
       "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Posílá záplavu reklam a SOS zprávu do veřejného kanálu. Použijte pouze v reálné nouzi."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sendet eine Überlastungsanzeige und einen SOS-Nachricht an den öffentlichen Kanal. Verwenden Sie dies nur bei einem echten Notfall."
-          }
-        },
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Envía un anuncio inundación y mensaje SOS al canal público. Utilizar solo en una emergencia genuina."
           }
         },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sendet eine Flood-Ankündigung und SOS-Nachricht an den öffentlichen Kanal. Verwenden Sie dies nur bei einem echten Notfall."
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Envoie une publicité inondation et un message SOS sur le canal public. N'utilisez que dans une véritable urgence."
+            "value": "Envoie une annonce d'inondation et un message SOS sur le canal public. N'utilisez cela qu'en cas d'urgence réelle."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invia un annuncio allagato e messaggio SOS al canale pubblico. Utilizzare solo in caso di emergenza reale."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "公のチャネルに洪水広告とSOSメッセージを送信します。本物の緊急事態のみ使用してください。"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Verzendt een overstromingsadvertentie en SOS-bericht naar het openbare kanaal. Gebruik alleen in noodsituaties."
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Wysyła reklamę powodziową i wiadomość SOS do publicznego kanału. Użyj tylko w prawdziwej sytuacji awaryjnej."
+            "value": "Invia un annuncio di inondazione e messaggio SOS al canale pubblico. Utilizzare solo in una vera emergenza."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Envia um anúncio inundante e mensagem SOS para o canal público. Use apenas em uma emergência genuína."
+            "value": "Envia um anúncio de inundação e mensagem SOS para o canal público. Use apenas em uma emergência genuína."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Posílá zaplavování oznámením a SOS zprávu na veřejný kanál. Používejte pouze v reálné nouzi."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wysyła rozgłoszenie zalewające i komunikat SOS do publicznego kanału. Użyj tylko w prawdziwej sytuacji awaryjnej."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Надсилає повільне повідомлення про рекламу та SOS до громадського каналу. Використовуйте лише у справжній надзвичайній ситуації."
+            "value": "Надсилає оголошення лавинної розсилки та повідомлення SOS на публічний канал. Використовуйте лише у справжній надзвичайній ситуації."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公共チャンネルにフラッディングアドバタイズとSOSメッセージを送信します。本物の緊急事態のみ使用してください。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "向公共频道发送大量广告和SOS消息。仅在紧急情况下使用。"
+            "value": "向公共频道发送泛洪通告和紧急求救消息。仅在真实紧急情况下使用。"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verzendt een flooding-aankondiging en een SOS-bericht naar het openbare kanaal. Gebruik dit alleen bij een echte noodsituatie."
           }
         }
       }
@@ -55353,70 +58406,70 @@
       "comment": "A description of the timed discovery feature.",
       "isCommentAutoGenerated": true,
       "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Posílá periodické záplavy reklam na zadanou dobu trvání. Spotřebovává více baterie a vzdušného času než jeden sken."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sendet periodische Übertragungsankündigungen für die ausgewählte Dauer. Verbraucht mehr Akku und Sendezeit als ein einzelner Scan."
-          }
-        },
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Envía anuncios inundación periódicos para la duración seleccionada. Usa más batería y tiempo aire que un escaneo único."
           }
         },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sendet periodische Flood-Ankündigungen für die ausgewählte Dauer. Verbraucht mehr Batterie und Luftzeit als ein einzelner Scan."
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Envoie des publicités inondation périodiques pour la durée sélectionnée. Utilise plus de batterie et de temps air qu'un seul balayage."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Invia annunci allagati periodici per la durata selezionata. Utilizza più batteria e tempo aria rispetto a una singola scansione."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "選択された期間中に周期的に洪水広告を送信します。単一のスキャンよりもバッテリーとエアタイムを多く消費します。"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Verzendt periodieke overstromingsadvertenties voor de geselecteerde duur. Gebruikt meer batterij en lucht dan een enkele scan."
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Wysyła okresowe reklamy powodziowe na wybrany czas trwania. Zużywa więcej baterii i czasu transmisji niż pojedyncze skanowanie."
+            "value": "Envoie des annonces d'inondation périodiques pendant la durée sélectionnée. Utilise plus de batterie et de temps air qu'une seule balise."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Envia anúncios inundantes periódicos pela duração selecionada. Consome mais bateria e tempo de ar do que uma única varredura."
+            "value": "Envia anúncios periódicos de inundação pela duração selecionada. Usa mais bateria e tempo no ar do que uma única varredura."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Posílá periodická oznámení zaplavení pro vybranou dobu. Spotřebovává více baterie a času ve vzduchu než jednorázový sken."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wysyła okresowe rozgłoszenia zalewające przez wybraną długość czasu. Zużywa więcej baterii i czasu transmisji niż pojedyncze skanowanie."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Надсилає періодичні повільні реклами на вибрану тривалість. Використовує більше батареї та повітряного часу, ніж один скан."
+            "value": "Надсилає періодичні лавинні оголошення на вибрану тривалість. Використовує більше енергії та часу повітря, ніж один скан."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "发送选定持续时间的周期性大量广告。比单次扫描消耗更多电池和空气时间。"
+            "value": "定期发送选定持续时间的泛洪通告。使用比单次扫描更多的电池和空气时间。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選択した期間、定期的にフラッディングアドバタイズを送信します。単発のスキャンよりもバッテリーと電波占有時間を消費します。"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invia annunci di flooding periodici per la durata selezionata. Consuma più batteria e airtime di una singola scansione."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verzendt gedurende de geselecteerde periode periodiek flooding-aankondigingen. Verbruikt meer batterij en zendtijd dan één enkele scan."
           }
         }
       }
@@ -56706,70 +59759,70 @@
       "comment": "A description of the flood scope field.",
       "isCommentAutoGenerated": true,
       "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nastaví výchozí rozsah oblasti pro záplňové balíčky pocházející z tohoto zařízení. Nechte prázdné k vyčištění."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Legt den Standard-Regionsbereich für Übertragungspakete dieses Geräts fest. Zum Löschen leer lassen."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Establece el alcance predeterminado de la región para paquetes inundados originados desde este dispositivo. Deja vacío para borrar."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Définit la portée régionale par défaut pour les paquets inondés provenant de cet appareil. Laissez vide pour effacer."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Imposta lo scope di regione predefinito per i pacchetti allagamento originati da questo dispositivo. Lascia vuoto per cancellare."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "このデバイスから発信される洪水パケットのデフォルト地域範囲を設定します。空白にしてクリアします。"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Stelt het standaardregiobereik in voor overstromingspakketten die afkomstig zijn van dit apparaat. Laat leeg om te wissen."
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ustawia zakres domyślny dla pakietów powodziowych pochodzących z tego urządzenia. Pozostaw puste, aby wyczyścić."
-          }
-        },
         "pt": {
           "stringUnit": {
             "state": "translated",
             "value": "Define o escopo da região padrão para pacotes de inundação originados deste dispositivo. Deixe em branco para limpar."
           }
         },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Legt den Standard-Region-Bereich für Flood-Pakete fest, die von diesem Gerät stammen. Lässt es leer, um es zu löschen."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Définit la portée régionale par défaut pour les paquets d'inondation provenant de cet appareil. Laissez vide pour effacer."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Establece el alcance predeterminado del ámbito para los paquetes de inundación que originan desde este dispositivo. Dejar vacío para borrar."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imposta l'ambito regionale predefinito per i pacchetti di inondazione originati da questo dispositivo. Lasciare vuoto per cancellare."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nastavuje výchozí rozsah regionu pro balíčky zaplavení pocházející z tohoto zařízení. Nechte prázdné pro vymazání."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ustawia zakres regionu domyślny dla pakietów zalewających pochodzących z tego urządzenia. Pozostaw puste, aby wyczyścić."
+          }
+        },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Встановлює область за замовчуванням для пакетів повені, що походять з цього пристрою. Залиште порожнім, щоб очистити."
+            "value": "Встановлює стандартний регіональний масштаб для пакетів лавинної розсилки, що походять від цього пристрою. Залиште порожнім, щоб очистити."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このデバイスから発信されるフラッディングパケットのデフォルトの地域範囲を設定します。空白にするとクリアされます。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "设定来自该设备的洪流包的默认区域范围。留空以清除。"
+            "value": "设置从该设备发出的泛洪包的默认区域范围。留空以清除。"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stelt het standaard regiobereik in voor flooding-pakketten die van dit apparaat afkomstig zijn. Laat leeg om te wissen."
           }
         }
       }
@@ -57196,12 +60249,6 @@
     },
     "Share Location in Advert": {
       "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sdílet polohu v reklamě"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
@@ -57214,34 +60261,10 @@
             "value": "Compartir ubicación en el anuncio"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Partager l'emplacement dans la publicité"
-          }
-        },
         "it": {
           "stringUnit": {
             "state": "translated",
             "value": "Condividi Posizione nell'Annuncio"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "広告内の場所を共有"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Locatie delen in advertentie"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Udostępnij lokalizację w reklamie"
           }
         },
         "pt": {
@@ -57250,16 +60273,46 @@
             "value": "Compartilhar Localização no Anúncio"
           }
         },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partager l'emplacement dans l'annonce"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Locatie delen in de aankondiging"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sdílet umístění v oznámení"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Udostępnij lokalizację w rozgłoszeniu"
+          }
+        },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Поділитися розташуванням у рекламі"
+            "value": "Поділитися розташуванням в оголошенні"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "在广告中分享位置"
+            "value": "在通告中分享位置"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アドバタイズで位置情報を共有"
           }
         }
       }
@@ -57541,6 +60594,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "分享频道二维码"
+          }
+        }
+      }
+    },
+    "Show All": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle anzeigen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afficher tout"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar Todo"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostra Tutto"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle tonen"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar Tudo"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ukázat vše"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pokaż wszystko"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Показати все"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "すべて表示"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示所有"
           }
         }
       }
@@ -58181,6 +61305,77 @@
         }
       }
     },
+    "Snapshots taken on a different radio. Contact keys belong to the mesh they were discovered on, so these cannot be restored here.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Snapshots wurden auf einem anderen Radio aufgenommen. Die Kontaktschlüssel gehören zum Mesh, auf dem sie entdeckt wurden, daher können sie hier nicht wiederhergestellt werden."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Des captures d'écran prises sur une autre radio. Les clés de contact appartiennent au maillage où elles ont été découvertes, elles ne peuvent donc pas être restaurées ici."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capturas de pantalla tomadas en una radio diferente. Las claves de contacto pertenecen a la malla en la que fueron descubiertas, por lo que no se pueden restaurar aquí."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Snapshot presi su una radio diversa. Le chiavi di contatto appartengono alla mesh da cui sono stati scoperti, quindi non possono essere ripristinati qui."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Screenshots genomen op een andere radio. De contactsleutels behoren tot het mesh waar ze zijn ontdekt, dus deze kunnen hier niet worden hersteld."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capturas de tela feitas em um rádio diferente. As chaves de contato pertencem à malha em que foram descobertas, portanto, não podem ser restauradas aqui."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Snímky pořízené na jiném rádiu. Klíče kontaktů patří do mřížky, ve které byly objeveny, takže je nelze obnovit zde."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zdjęcia wykonane na innym radiu. Klucze kontaktowe należą do siatki, w której zostały odkryte, więc nie można ich przywrócić tutaj."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Знімки зроблені на іншому радіоприймачі. Ключі контактів належать до сітки, де вони були виявлені, тому їх не можна відновити тут."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "別のラジオで撮影されたスナップショット。発見されたメッシュに関連する連絡先キーが含まれているため、ここで復元できません。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在不同无线电上拍摄的快照。联系键属于它们被发现的网格，因此无法在此恢复。"
+          }
+        }
+      }
+    },
     "Some repeaters support basic telemetry. Waiting...": {
       "localizations": {
         "cs": {
@@ -58603,12 +61798,6 @@
     },
     "Standard Advert": {
       "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Standardní reklama"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
@@ -58627,134 +61816,128 @@
             "value": "Annonces standard"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pubblicità standard"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "標準広告"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Standaard advertentie"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Standardowa reklama"
-          }
-        },
         "pt": {
           "stringUnit": {
             "state": "translated",
             "value": "Anúncio Padrão"
           }
         },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annuncio standard"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standaard Aankondiging"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standardní oznámení"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rozgłoszenie standardowe"
+          }
+        },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Стандартна реклама"
+            "value": "Стандартне оголошення"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "標準アドバタイズ"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "标准广告"
+            "value": "标准通告"
           }
         }
       }
     },
     "Standard adverts are local (0-hop, 60-240 min). Flood adverts are relayed by all repeaters (min 3 hours). Minimum intervals enforced by firmware.": {
       "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Standardní reklamy jsou místní (0-hop, 60-240 min). Reklamy záplavy jsou přenášeny všemi opakovači (min 3 hodiny). Minimální intervaly vynucované firmwarem."
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Standard-Ankündigungen sind lokal (0-Hop, 60–240 Min.). Übertragungsankündigungen werden von allen Repeatern weitergeleitet (min. 3 Stunden). Mindestintervalle werden von der Firmware erzwungen."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Los anuncios estándar son locales (0-hop, 60-240 min). Los anuncios inundados son reenviados por todos los repetidores (mínimo 3 horas). Intervalos mínimos impuestos por el firmware."
+            "value": "Standard-Ankündigungen sind lokal (0-Sprung, 60-240 min). Flood-Ankündigungen werden von allen Wiederholern weitergeleitet (mindestens 3 Stunden). Mindestintervalle werden durch das Firmware erzwungen."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Les annonces standard sont locales (0-hop, 60-240 min). Les annonces Flood sont relayées par tous les répéteurs (min 3 heures). Intervalles minimaux imposés par le firmware."
+            "value": "Les annonces standard sont locales (0-hop, 60-240 min). Les annonces d'inondation sont relayées par tous les répéteurs (min 3 heures). Intervalles minimum imposés par le firmware."
           }
         },
-        "it": {
+        "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Le pubblicità standard sono locali (0-hop, 60-240 min). Le pubblicità flood vengono relayate da tutti i ripetitori (min 3 ore). Intervalli minimi imposti dal firmware."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "標準広告はローカル（0-ホップ、60-240分）です。フロード広告はすべてのリピーターによってリレーされます（最低3時間）。ファームウェアによって強制される最小間隔"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Standaard advertenties zijn lokaal (0-hop, 60-240 min). Flood advertenties worden door alle herhalers doorgegeven (min 3 uur). Minimale intervallen afgedwongen door firmware."
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Standardowe reklamy są lokalne (0-hop, 60-240 min). Reklamy powodziowe są przekazywane przez wszystkie powtarzacze (min 3 godziny). Minimalne interwały wymuszane przez oprogramowanie."
+            "value": "Anuncios estándar son locales (0-salto, 60-240 min). Anuncios de inundación son transmitidos por todos los repetidores (mínimo 3 horas). Intervalos mínimos impuestos por el firmware."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Anúncios padrão são locais (0-hop, 60-240 min). Anúncios inundados são transmitidos por todos os repetidores (mínimo 3 horas). Intervalos mínimos impostos pelo firmware."
+            "value": "Anúncios padrão são locais (0-hop, 60-240 min). Anúncios de inundação são transmitidos por todos os repetidores (mínimo 3 horas). Intervalos mínimos impostos pelo firmware."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standardní oznámení jsou místní (0-hop, 60-240 min). Oznámení zaplavení jsou přenášena všemi opakovači (minimálně 3 hodiny). Minimální intervaly vynucené firmwarem."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standardowe rozgłoszenia są lokalne (0-hop, 60-240 min). Rozgłoszenia zalewające są przekazywane przez wszystkie powiady (min 3 godziny). Minimalne odstępy wymuszane przez oprogramowanie."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Стандартні оголошення місцеві (0-хоп, 60-240 хв). Оголошення \"затоплення\" передаються всіма повторювачами (мін. 3 години). Мінімальні інтервали забезпечені програмним забезпеченням."
+            "value": "Стандартні оголошення локальні (0-перехоплення, 60-240 хв). Оголошення лавинної розсилки передаються всіма повторювачами (мінімум 3 години). Мінімальні інтервали забезпечуються фірмовим програмним забезпеченням."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "標準のアドバタイズはローカル（0ホップ、60～240分）。フラッディングのアドバタイズはすべてのリピーターによってリレーされます（最低3時間）。ファームウェアによって強制される最小間隔。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "标准广告是本地（0-跳，60-240分钟）。洪水广告由所有中继器转发（至少3小时）。固件强制最小间隔。"
+            "value": "标准通告是本地（0-hop，60-240分钟）。泛洪通告由所有中继器转发（至少3小时）。由固件强制执行的最小间隔。"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gli annunci standard sono locali (0-hop, 60-240 min). Gli annunci di flooding vengono ritrasmessi da tutti i repeater (min 3 ore). Gli intervalli minimi sono imposti dal firmware."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standaardaankondigingen zijn lokaal (0-hop, 60-240 min). Flooding-aankondigingen worden door alle repeaters doorgestuurd (min. 3 uur). Minimale intervallen worden door de firmware afgedwongen."
           }
         }
       }
     },
     "Standard adverts are local (0-hop, 60–240 min). Flood adverts are relayed by all repeaters (min 3 hours). Minimum intervals enforced by firmware.": {
       "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Standardní reklamy jsou místní (0-skok, 60–240 min). Zaplavené reklamy jsou přenášeny všemi opakovači (minimálně 3 hodiny). Minimální intervaly vynucované firmwarem."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Standard-Ankündigungen sind lokal (0-Hop, 60–240 Min.). Übertragungsankündigungen werden von allen Repeatern weitergeleitet (min. 3 Stunden). Mindestintervalle werden von der Firmware erzwungen."
-          }
-        },
         "es": {
           "stringUnit": {
             "state": "translated",
@@ -58767,46 +61950,58 @@
             "value": "Annonces standard locales (0-saut, 60–240 min). Annonces de type \"inondations\" relayées par tous les répéteurs (minimum 3 heures). Intervalles minimaux imposés par le firmware."
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Annunci standard sono locali (0-hop, 60–240 min). Annunci Flood sono relayati da tutti i ripetitori (min 3 ore). Intervalli minimi imposti dal firmware."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "標準広告はローカル（0ホップ、60〜240分）。洪水広告はすべてのリピーターによってリレーされます（最低3時間）。ファームウェアによって強制される最小間隔。"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Standaard advertenties zijn lokaal (0-hop, 60–240 min). Overstromingsadvertenties worden door alle herhalers doorgegeven (min 3 uur). Minimale intervallen afgedwongen door firmware."
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Standardowe reklamy są lokalne (0-skok, 60–240 min). Reklamy powtarzane są przez wszystkie powiady (min 3 godziny). Minimalne odstępy wymuszane przez oprogramowanie."
-          }
-        },
         "pt": {
           "stringUnit": {
             "state": "translated",
             "value": "Anúncios padrão são locais (0-salto, 60–240 min). Anúncios de inundação são retransmitidos por todos os repetidores (mínimo 3 horas). Intervalos mínimos impostos pelo firmware."
           }
         },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standard-Ankündigungen sind lokal (0-Sprung, 60–240 Min.). Flood-Ankündigungen werden von allen Wiederholern weitergeleitet (mindestens 3 Stunden). Mindestintervalle werden durch das Firmware erzwungen."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standardní oznámení jsou místní (0-hop, 60–240 min). Oznámení zaplavení jsou přenášena všemi opakovači (minimálně 3 hodiny). Minimální intervaly vynucené firmwarem."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standardowe rozgłoszenia są lokalne (0-hop, 60–240 min). Rozgłoszenia zalewające są przekazywane przez wszystkie powiady (min 3 godziny). Minimalne odstępy wymuszane przez oprogramowanie."
+          }
+        },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Стандартні оголошення локальні (0-стрибок, 60–240 хв). Оголошення масового поширення передаються всіма повторювачами (мінімум 3 години). Мінімальні інтервали встановлені програмним забезпеченням."
+            "value": "Стандартні оголошення локальні (0-перехоплення, 60-240 хв). Оголошення лавинної розсилки передаються всіма повторювачами (мінімум 3 години). Мінімальні інтервали накладаються фірмовим програмним забезпеченням."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "标准广告是本地（0-跳，60–240分钟）。洪流广告由所有中继器转发（至少3小时）。固件强制最小间隔。"
+            "value": "标准通告是本地（0-hop，60-240分钟）。泛洪通告由所有中继器转发（至少3小时）。由固件强制执行的最小间隔。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "標準アドバタイズはローカルです（0ホップ、60〜240分）。フラッディングアドバタイズはすべてのリピーターによって中継されます（最短3時間）。最小間隔はファームウェアによって強制されます。"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gli annunci standard sono locali (0-hop, 60–240 min). Gli annunci di flooding vengono ritrasmessi da tutti i repeater (min 3 ore). Gli intervalli minimi sono imposti dal firmware."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standaardaankondigingen zijn lokaal (0-hop, 60–240 min). Flooding-aankondigingen worden door alle repeaters doorgestuurd (min. 3 uur). Minimale intervallen worden door de firmware afgedwongen."
           }
         }
       }
@@ -59019,6 +62214,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "开始日志"
+          }
+        }
+      }
+    },
+    "Start OTA": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OTA starten"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Démarrer une mise à jour OTA"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iniciar OTA"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avvia OTA"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OTA starten"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iniciar OTA"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spustit OTA"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rozpocznij aktualizację OTA"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Почати OTA"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OTAを開始"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始OTA"
           }
         }
       }
@@ -62924,6 +66190,77 @@
         }
       }
     },
+    "This Radio": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Funkgerät"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cette radio"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta Radio"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questa Radio"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze radio"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este Rádio"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tento rádiový přijímač"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To radio"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Цей радіоприймач"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このラジオ"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此无线电"
+          }
+        }
+      }
+    },
     "This device generates a random PIN each time it starts. Check the device screen for the current PIN when pairing.": {
       "localizations": {
         "cs": {
@@ -62990,6 +66327,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "每次设备启动时，它都会生成一个随机PIN。配对时，请在设备屏幕上查看当前PIN。"
+          }
+        }
+      }
+    },
+    "This file will contain contact names, public keys and any positions they advertise. Don’t share it with anyone you wouldn’t share your contact list with.": {
+      "extractionState": "manual",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce fichier contiendra les noms de contact, les clés publiques et toutes les positions qu'elles annoncent. Ne le partagez avec personne à qui vous ne partageriez pas votre liste de contacts."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Datei werden Kontaktnamen, öffentliche Schlüssel und alle Positionen, die sie ankündigen, enthalten sein. Teilen Sie sie nicht mit jemandem, dem Sie Ihre Kontaktliste nicht anvertrauen würden."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este ficheiro conterá nomes de contactos, chaves públicas e quaisquer posições que anunciem. Não o partilhe com ninguém com quem não partilharia a sua lista de contactos."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este archivo contendrá nombres de contactos, claves públicas y las posiciones que anuncian. No lo compartas con nadie con quien no compartirías tu lista de contactos."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tento soubor bude obsahovat jména kontaktů, veřejné klíče a všechny pozice, které oznamují. Nesdílejte jej s nikým, komu byste nesvěřili svůj seznam kontaktů."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ten plik będzie zawierał nazwy kontaktów, klucze publiczne i wszystkie pozycje, które rozgłaszają. Nie udostępniaj go nikomu, komu nie udostępniłbyś swojej listy kontaktów."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Цей файл міститиме імена контактів, відкриті ключі та всі позиції, які вони оголошують. Не надсилайте його нікому, кому ви не довірили б свій список контактів."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此文件将包含联系人名称、公钥以及它们通告的任何位置。请勿与您不会共享联系人列表的人共享。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このファイルには連絡先の名前、公開鍵、アドバタイズされる位置情報が含まれます。連絡先リストを共有しない相手には渡さないでください。"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questo file conterrà i nomi dei contatti, le chiavi pubbliche e le posizioni che annunciano. Non condividerlo con nessuno con cui non condivideresti la tua lista contatti."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dit bestand bevat contactnamen, publieke sleutels en eventuele posities die ze aankondigen. Deel het niet met iemand met wie je je contactenlijst niet zou delen."
           }
         }
       }
@@ -63202,6 +66610,148 @@
           "stringUnit": {
             "state": "translated",
             "value": "这会删除您的收音机不再拥有的联系人数据：\n\n%@\n\n这无法撤销。"
+          }
+        }
+      }
+    },
+    "This removes every contact on the radio. A backup is saved first — restore it from Settings › Storage › Contact Backups.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dies entfernt jeden Kontakt vom Radio. Zuerst wird eine Sicherung erstellt – wiederherstellen Sie sie aus Einstellungen › Speicher › Kontakt-Sicherungen."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cela supprime tous les contacts sur la radio. Une sauvegarde est enregistrée en premier - restaurez-la depuis Paramètres › Stockage › Sauvegardes de contacts."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esto elimina todos los contactos en la radio. Primero se guarda una copia de seguridad — restaurarla desde Configuración › Almacenamiento › Copias de seguridad de contactos."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questo rimuove ogni contatto dalla radio. Prima viene salvato un backup - ripristinalo da Impostazioni › Archiviazione › Backup Contatti."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dit verwijdert alle contacten van de radio. Eerst wordt een back-up gemaakt - herstel het vanuit Instellingen › Opslag › Contactback-ups."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Isso remove todos os contatos do rádio. Um backup é salvo primeiro — restaure-o de Configurações › Armazenamento › Backups de Contatos."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To odstraní všechny kontakty na rádiu. Nejprve se uloží záloha - obnovte ji z Nastavení › Úložiště › Zálohy kontaktů."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuwa to każdy kontakt na radiu. Najpierw jest tworzona kopia zapasowa - przywróć ją z Ustawień › Pamięć › Kopie zapasowe kontaktów."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Це видаляє кожен контакт з радіоприймача. Спочатку зберігається резервна копія — відновіть її з Налаштування › Збереження › Резервні копії контактів."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ラジオ上のすべての連絡先を削除します。最初にバックアップが保存されます - 設定 > ストレージ > 連絡先バックアップから復元します。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这将从无线电上删除所有联系人。首先会保存备份 - 从设置 > 存储 > 联系人备份中恢复。"
+          }
+        }
+      }
+    },
+    "This removes the snapshot from this device. The contacts on the radio are not affected.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dies entfernt das Snapshot von diesem Gerät. Die Kontakte auf dem Radio werden nicht beeinflusst."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cela supprime la capture d'écran de cet appareil. Les contacts sur la radio ne sont pas affectés."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esto elimina la captura de pantalla de este dispositivo. Los contactos en la radio no se ven afectados."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questo rimuove lo snapshot da questo dispositivo. I contatti sulla radio non vengono influenzati."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dit verwijdert de screenshot van dit apparaat. De contacten op de radio worden niet beïnvloed."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Isso remove a captura de tela deste dispositivo. Os contatos no rádio não são afetados."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To odstraní snímek z tohoto zařízení. Kontakty na rádiu nejsou ovlivněny."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuwa to zdjęcie z tego urządzenia. Kontakty na radiu nie są dotknięte."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Це видаляє знімок з цього пристрою. Контакти на радіоприймачі не постраждають."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このデバイスからスナップショットを削除します。ラジオ上の連絡先は影響を受けません。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这将从此设备中删除快照。无线电上的联系人不会受到影响。"
           }
         }
       }
@@ -65900,6 +69450,77 @@
         }
       }
     },
+    "Use Current Location": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktuelle Position verwenden"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utiliser l'emplacement actuel"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utilizar la ubicación actual"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utilizza la posizione attuale"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gebruik Huidige Locatie"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utilize a localização atual"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Použijte aktuální polohu"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Użyj bieżącej lokalizacji"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Використовуйте поточне розташування"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現在の位置を使用する"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用当前位置"
+          }
+        }
+      }
+    },
     "Use Passcode": {
       "localizations": {
         "cs": {
@@ -67523,12 +71144,6 @@
     },
     "Your device advertisement has been broadcast to the mesh network.": {
       "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vaše zařízení bylo vysíláno do mřížkové sítě."
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
@@ -67541,52 +71156,58 @@
             "value": "Tu anuncio de dispositivo ha sido transmitido a la red mesh."
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Votre publicité d'appareil a été diffusée sur le réseau maillé."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La vostra pubblicità del dispositivo è stata trasmessa alla rete mesh."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "デバイスの広告がメッシュネットワークに送信されました。"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Uw apparaatadvertentie is uitgezonden naar het meshnetwerk. - Uw apparaatadvertentie is naar het meshnetwerk verzonden."
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Twoja reklama urządzenia została nadawana do sieci mesh."
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sua publicidade de dispositivo foi transmitida na rede mesh."
-          }
-        },
         "uk": {
           "stringUnit": {
             "state": "translated",
             "value": "Ваше оголошення пристрою було трансльовано в мережу Mesh."
           }
         },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Votre annonce d'appareil a été diffusée sur le réseau maillé."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il tuo annuncio di dispositivo è stato trasmesso alla rete mesh."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uw apparaataankondiging is uitgezonden naar het mesh-netwerk."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O anúncio do seu dispositivo foi transmitido para a rede mesh."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vaše zařízení oznámení bylo vysíláno do mřížkové sítě."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Twoje urządzenie zostało wyemitować rozgłoszenie do sieci mesh."
+          }
+        },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "您的设备广告已广播到网格网络。"
+            "value": "您的设备通告已广播到网格网络。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "デバイスのアドバタイズをメッシュネットワークに送信しました。"
           }
         }
       }
@@ -68021,22 +71642,10 @@
     },
     "Your radio’s stored coordinates. These are shared with other radios when advertising.": {
       "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Uložené souřadnice vašeho rádia. Tyto jsou sdíleny s ostatními rádiovými stanicemi při reklamě."
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Die gespeicherten Koordinaten Ihres Funkgeräte. Diese werden beim Ankündigen mit anderen Funkgeräte geteilt."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Las coordenadas almacenadas en tu radio. Estas se comparten con otras radios al hacer publicidad."
           }
         },
         "fr": {
@@ -68045,46 +71654,58 @@
             "value": "Les coordonnées stockées de votre radio. Celles-ci sont partagées avec d'autres radios lors de l'annonce."
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las coordenadas almacenadas de tu radio. Estas se comparten con otras radios cuando se emiten anuncios."
+          }
+        },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Le coordinate memorizzate della vostra radio. Queste sono condivise con altre radio durante la pubblicità."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "無線機に保存された座標。これらの情報は広告時に他の無線機と共有されます。"
+            "value": "Le coordinate memorizzate della tua radio. Queste vengono condivise con altre radio quando viene emesso un annuncio."
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "De opgeslagen coördinaten van uw radio. Deze worden gedeeld met andere radios bij het adverteren. - De opgeslagen coördinaten van uw radio. Deze gegevens worden gedeeld met andere radios wanneer er wordt geadverteerd."
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Skojarzone współrzędne Twojego radia. Są one udostępniane innym radiom podczas reklamy."
+            "value": "De opgeslagen coördinaten van uw radio. Deze worden gedeeld met andere radios wanneer er een aankondiging wordt uitgezonden."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Suas coordenadas armazenadas no rádio. Elas são compartilhadas com outros rádios durante a publicidade."
+            "value": "Suas coordenadas armazenadas no rádio. Elas são compartilhadas com outros rádios quando há um anúncio."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uložené souřadnice vašeho rádia. Tyto jsou sdíleny s ostatními rádiovými stanicemi při oznámení."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skojarzone współrzędne Twojego radia. Są one udostępniane innym radiom podczas rozgłoszenia."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Зберігані координати вашого пристрою. Вони діляться з іншими пристроями під час оголошень."
+            "value": "Зберігані координати вашого радіопристрою. Вони ділиться з іншими радіопристроями під час оголошення."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ラジオの保存座標。これらの座標は、アドバタイズメント時に他のラジオと共有されます。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "您的无线电存储坐标。这些坐标在广告时与其他无线电共享。"
+            "value": "您的收发机的存储坐标。在通告时，这些坐标会被其他收发机共享。"
           }
         }
       }
@@ -68161,52 +71782,10 @@
     },
     "Zero-hop reaches nearby nodes only. Flood is relayed by repeaters across the entire mesh network.": {
       "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nulový skok dosahuje pouze sousedních uzlů. Povodně jsou přenášeny opakovači napříč celým mřížkovým sítí."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zero-Hop erreicht nur nahe Knoten. Übertragung wird von Repeatern im gesamten Mesh-Netzwerk weitergeleitet."
-          }
-        },
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "El cero-salto solo alcanza nodos cercanos. La inundación es relayada por repetidores a través de toda la red mesh."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Le zéro-saut n'atteint que les nœuds à proximité. Le flood est relayé par des répéteurs à travers tout le réseau maillé."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lo zero-hop raggiunge solo i nodi nelle vicinanze. Il flood viene relayato da ripetitori attraverso l'intera rete mesh."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ゼロホップは近隣ノードのみに到達します。フロードはリピーターを通じてメッシュネットワーク全体にリレーされます。"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Null-hop bereikt alleen knooppunten in de buurt. Overstroming wordt gerelayeerd door herhalers over het hele mesh-netwerk."
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zero-hop dociera tylko do pobliskich węzłów. Powielanie przez powiady jest przekazywane przez całą sieć meszową."
           }
         },
         "pt": {
@@ -68215,16 +71794,58 @@
             "value": "O Zero-hop atinge apenas nós próximos. O inundação é relayada por repetidores em toda a rede mesh."
           }
         },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zero-Hop erreicht nur benachbarte Knoten. Flooding wird von Wiederholern über das gesamte Mesh-Netzwerk weitergeleitet."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zero-hop n'atteint que les nœuds voisins. L'inondation est relayée par les répéteurs à travers tout le réseau maillé."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le comunicazioni a zero-hop raggiungono solo i nodi vicini. Il flooding è relayato dai ripetitori attraverso l'intera rete mesh."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zero-hop bereikt alleen nabijgelegen knooppunten. Flooding wordt gerouteerd door herhalers over het hele mesh-netwerk."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nula-hop dosahuje pouze sousedních uzlů. Zaplavení je přenášeno opakovači napříč celou mřížkovou sítí."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zero-hop dociera tylko do pobliskich węzłów. Zalewanie jest przekazywane przez powiady na całej sieci mesh."
+          }
+        },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Безперешкодний доступ досягає лише сусідніх вузлів. Повен реплікація передається повторювачами через всю мережу Mesh."
+            "value": "Доступ лише до сусідніх вузлів без пересилання. Лавинна розсилка передається повторювачами через всю мережу."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ゼロホップは、近隣のノードのみに到達します。フラッディングは、リピーターによって全体的なメッシュネットワークにリレーされます。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "无跳数仅可达附近节点。整个网格网络的洪流由中继器转发。"
+            "value": "零跳仅到达附近的节点。泛洪由中继器在整个网格网络中转发。"
           }
         }
       }
@@ -69164,28 +72785,10 @@
             "value": "Flooding-Bereich"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "portée de diffusion"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "alcance de flooding"
-          }
-        },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ambito di inondazione"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "overstromingsbereik"
+            "value": "ambito di flooding"
           }
         },
         "pt": {
@@ -69200,18 +72803,6 @@
             "value": "rozsah zaplavování"
           }
         },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "zakres powodziowy"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "область flooding"
-          }
-        },
         "ja": {
           "stringUnit": {
             "state": "translated",
@@ -69222,6 +72813,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "泛洪范围"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "portée d'inondation"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "alcance de inundación"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zakres zalewania"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "лавинна розсилка"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "flooding-bereik"
           }
         }
       }
