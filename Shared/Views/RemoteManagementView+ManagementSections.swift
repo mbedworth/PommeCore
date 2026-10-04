@@ -33,7 +33,21 @@ struct RemoteRoomSection: View {
     /// Counting UTF-8 bytes rather than characters, because that is what the radio stores.
     private static let maxPostBytes = 151
 
-    private var announcementByteCount: Int { announcement.utf8.count }
+    /// The announcement as it will actually be sent: one line.
+    ///
+    /// The field grows to four lines, so the user can press Return in it. A CLI
+    /// command is a line — on the USB serial path a newline *is* the terminator,
+    /// so "room.post two⏎lines" would send `room.post two` and then try to run
+    /// `lines` as a command of its own. `sendCLICommand` trims the ends only, so
+    /// an interior newline survives. Collapse any run of whitespace to a single
+    /// space instead, which is also what a 151-byte buffer with no formatting
+    /// can represent.
+    private var postText: String {
+        announcement.split(whereSeparator: \.isWhitespace).joined(separator: " ")
+    }
+
+    // Counted on what is sent, not on what was typed.
+    private var announcementByteCount: Int { postText.utf8.count }
     private var announcementTooLong: Bool { announcementByteCount > Self.maxPostBytes }
 
     private var chatContacts: [Contact] {
@@ -209,7 +223,7 @@ struct RemoteRoomSection: View {
             }
             .listRowBackground(MeshTheme.surface)
 
-            if !announcement.isEmpty {
+            if !postText.isEmpty {
                 HStack {
                     Spacer()
                     Text("\(announcementByteCount)/\(Self.maxPostBytes)")
@@ -226,7 +240,7 @@ struct RemoteRoomSection: View {
             }
 
             Button {
-                sendCLI("room.post \(announcement)")
+                sendCLI("room.post \(postText)")
                 showFeedback($announcementFeedback)
                 announcement = ""
             } label: {
@@ -241,7 +255,7 @@ struct RemoteRoomSection: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .disabled(announcement.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || announcementTooLong)
+            .disabled(postText.isEmpty || announcementTooLong)
             .listRowBackground(MeshTheme.surface)
         } header: {
             SectionInfoHeader(title: "Announcements", info: "Post a message to the room authored by the server rather than by you. Every member receives it the next time their device syncs. The radio stores 151 bytes and truncates anything longer.")
