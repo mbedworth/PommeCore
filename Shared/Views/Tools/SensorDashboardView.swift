@@ -26,6 +26,7 @@ struct SensorDashboardView: View {
     @Environment(RFMonitorStore.self) private var rfStore
     @Environment(ContactStore.self) private var contactStore
     @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiateWithoutColor
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     @State private var range: TimeRange = .day
 
@@ -276,8 +277,14 @@ struct SensorDashboardView: View {
         }
         .chartYAxis { AxisMarks(position: .leading) }
         .chartYScale(domain: Self.yDomain(group))
+        // Axis labels are chrome drawn inside a fixed plot area. Left to scale
+        // with the rest, at the larger accessibility sizes they overlap into an
+        // illegible smear — six y labels stacked on each other, the x labels
+        // written straight through one another. Capped here and nowhere else,
+        // so the headings, legend and values all still scale.
+        .dynamicTypeSize(...DynamicTypeSize.xLarge)
         .chartLegend(.hidden)   // The legend below carries the latest value too.
-        .frame(height: 180)
+        .frame(height: dynamicTypeSize.isAccessibilitySize ? 260 : 180)
         .accessibilityLabel(Text(localizedTelemetryName(group.name)))
         .accessibilityValue(Text(chartSummary(group)))
     }
@@ -303,39 +310,62 @@ struct SensorDashboardView: View {
 
         VStack(spacing: 6) {
             ForEach(Array(group.series.enumerated()), id: \.element.id) { index, node in
-                HStack(spacing: 8) {
-                    SeriesSwatch(color: MeshTheme.seriesColor(index), dash: dash(index))
-                    Text(node.nodeName)
-                        .font(.caption)
-                        .foregroundStyle(MeshTheme.textPrimary)
-                        .lineLimit(1)
-                        // Which node it is matters more than which of its sensors,
-                        // so the channel label truncates first.
-                        .layoutPriority(1)
-                    // Shown only when a node reports more than one of this
-                    // measurement — firmware puts each sensor on its own LPP
-                    // channel, so one node can hold several temperatures.
-                    if multiSensor.contains(node.contactKey) {
-                        Text(localizedTelemetryLabel(name: node.series.name, label: node.series.label))
-                            .font(.caption2)
-                            .foregroundStyle(MeshTheme.textSecondary)
-                            .lineLimit(1)
-                    }
-                    Spacer(minLength: 4)
-                    if let latest = node.latest {
-                        Text("\(Self.format(latest.value))\(node.unit)")
-                            .font(.caption)
-                            .monospacedDigit()
-                            .foregroundStyle(MeshTheme.textPrimary)
-                        Text(latest.date, format: .relative(presentation: .numeric))
-                            .font(.caption2)
-                            .foregroundStyle(MeshTheme.textSecondary)
-                            .lineLimit(1)
-                    }
-                }
-                .accessibilityElement(children: .combine)
+                legendRow(node, index: index,
+                          showsChannel: multiSensor.contains(node.contactKey))
             }
         }
+    }
+
+    /// One legend row: swatch, who, what it last read, and when.
+    ///
+    /// Four columns on one line at normal sizes. At an accessibility size that
+    /// line cannot hold them — the name truncated to an ellipsis and the value
+    /// and age ran off the right edge entirely, so the row said nothing. It
+    /// stacks instead, which costs height and keeps the information.
+    @ViewBuilder
+    private func legendRow(_ node: NodeSeries, index: Int, showsChannel: Bool) -> some View {
+        let name = Text(node.nodeName)
+            .font(.caption)
+            .foregroundStyle(MeshTheme.textPrimary)
+        let channel = Text(localizedTelemetryLabel(name: node.series.name, label: node.series.label))
+            .font(.caption2)
+            .foregroundStyle(MeshTheme.textSecondary)
+        let reading = node.latest.map { latest in
+            HStack(spacing: 6) {
+                Text("\(Self.format(latest.value))\(node.unit)")
+                    .font(.caption)
+                    .monospacedDigit()
+                    .foregroundStyle(MeshTheme.textPrimary)
+                Text(latest.date, format: .relative(presentation: .numeric))
+                    .font(.caption2)
+                    .foregroundStyle(MeshTheme.textSecondary)
+            }
+        }
+
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 8) {
+                        SeriesSwatch(color: MeshTheme.seriesColor(index), dash: dash(index))
+                        name
+                    }
+                    if showsChannel { channel }
+                    reading
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                HStack(spacing: 8) {
+                    SeriesSwatch(color: MeshTheme.seriesColor(index), dash: dash(index))
+                    // Which node it is matters more than which of its sensors,
+                    // so the channel label truncates first.
+                    name.lineLimit(1).layoutPriority(1)
+                    if showsChannel { channel.lineLimit(1) }
+                    Spacer(minLength: 4)
+                    reading.lineLimit(1)
+                }
+            }
+        }
+        .accessibilityElement(children: .combine)
     }
 
     // MARK: - Formatting
