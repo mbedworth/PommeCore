@@ -184,9 +184,11 @@ struct SettingsView: View {
             // 9. Advanced
             Section {
                 if isConnected {
-                    if !deviceConfig.customVars.isEmpty {
-                        customVarsSection
-                    }
+                    // Not gated on the list being non-empty. The section holds
+                    // the only way to *add* a variable, so hiding it when there
+                    // are none made the first one impossible to create — the
+                    // editor appeared only once something else had populated it.
+                    customVarsSection
                     statsSection
                 }
                 troubleshootingSection
