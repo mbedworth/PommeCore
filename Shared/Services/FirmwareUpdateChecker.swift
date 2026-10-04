@@ -101,15 +101,14 @@ final class FirmwareUpdateChecker {
     }
 
     /// Compare semantic versions. Returns true if `latest` is newer than `current`.
+    ///
+    /// Either side failing to parse means no update is offered — pushing a firmware
+    /// flash on the strength of a version string nobody could read is the wrong way
+    /// to be wrong.
     private static func isNewer(_ latest: String, than current: String) -> Bool {
-        let latestParts = latest.split(separator: ".").compactMap { Int($0) }
-        let currentParts = current.split(separator: ".").compactMap { Int($0) }
-        for i in 0..<max(latestParts.count, currentParts.count) {
-            let l = i < latestParts.count ? latestParts[i] : 0
-            let c = i < currentParts.count ? currentParts[i] : 0
-            if l > c { return true }
-            if l < c { return false }
+        guard let latest = FirmwareVersion(latest), let current = FirmwareVersion(current) else {
+            return false
         }
-        return false
+        return latest > current
     }
 }

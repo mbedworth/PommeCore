@@ -164,6 +164,25 @@ public final class RemoteDeviceSession: ObservableObject {
         return raw
     }
 
+    /// The remote device's firmware version, as reported by `get ver`.
+    ///
+    /// Nil until the info section has been fetched, or if the reply is not
+    /// version-shaped.
+    public var firmwareVersion: FirmwareVersion? {
+        supportedValue(for: "ver").flatMap { FirmwareVersion($0) }
+    }
+
+    /// Whether the remote device runs at least the given firmware version.
+    ///
+    /// False when the version is not yet known, which hides a gated control until the
+    /// info section lands rather than offering a command the device may reject. Only
+    /// use this for commands that cannot be probed — prefer `supportedValue(for:)`
+    /// whenever a getter exists, since it reflects the board rather than the version.
+    public func firmwareAtLeast(_ major: Int, _ minor: Int, _ patch: Int = 0) -> Bool {
+        guard let version = firmwareVersion else { return false }
+        return version >= FirmwareVersion(major: major, minor: minor, patch: patch)
+    }
+
     /// Whether cached settings exist for any keys in the given section.
     public func hasCachedSettings(for section: String) -> Bool {
         guard let keys = Self.sectionSettingKeys[section] else { return false }
