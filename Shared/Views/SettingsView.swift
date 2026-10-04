@@ -343,6 +343,7 @@ struct SettingsView: View {
                     connectionManager.refreshAllSettings()
                 } label: {
                     Image(systemName: "arrow.clockwise")
+                        .accessibilityLabel("Refresh settings")
                         .foregroundStyle(MeshTheme.accent)
                 }
                 .help("Refresh all settings")

@@ -4,6 +4,9 @@
 # different line is not, which is what makes this a ratchet rather than a
 # blanket suppression. Delete a line here when the site is fixed.
 #
+# Line numbers move when code above them changes, so regenerate after a pass
+# that inserts lines: clear this file, run the checker, and refile the output.
+#
 # Reviewed 2026-10-03.
 
 # --- rule 18: String reaching Text(), bypassing the string catalog --------
@@ -12,9 +15,9 @@
 # Tracked in CLAUDE.md; not a correctness bug, so not a build blocker.
 Shared/App/PommeCoreApp.swift:265
 Shared/App/PommeCoreApp.swift:532
-Shared/Views/ChatView+Channels.swift:395
-Shared/Views/ChatView.swift:161
-Shared/Views/ChatView.swift:201
+Shared/Views/ChatView+Channels.swift:397
+Shared/Views/ChatView.swift:163
+Shared/Views/ChatView.swift:203
 Shared/Views/ContactListView+ChannelsUI.swift:43
 Shared/Views/ContactRowView.swift:190
 Shared/Views/LineOfSight/LineOfSightView.swift:217
@@ -23,11 +26,11 @@ Shared/Views/NetworkToolsView+Channels.swift:101
 Shared/Views/NetworkToolsView+Channels.swift:111
 Shared/Views/NetworkToolsView.swift:195
 Shared/Views/RemoteManagementView.swift:408
-Shared/Views/RemoteManagementView.swift:687
+Shared/Views/RemoteManagementView.swift:688
 Shared/Views/SettingsView+RadioPrivacy.swift:349
 Shared/Views/SettingsView+Sections.swift:295
 Shared/Views/SettingsView+Sections.swift:472
-Shared/Views/SettingsView+Sections.swift:732
+Shared/Views/SettingsView+Sections.swift:733
 Shared/Views/SettingsView+TipJar.swift:441
 Shared/Views/SettingsView+TipJar.swift:463
 Shared/Views/SettingsView+TipJar.swift:466

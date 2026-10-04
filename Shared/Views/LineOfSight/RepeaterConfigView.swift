@@ -75,6 +75,7 @@ private struct RelayCardView: View {
                         store.clearCache()
                     } label: {
                         Image(systemName: "minus.circle.fill")
+                            .accessibilityLabel("Clear cached repeaters")
                             .foregroundStyle(.red.opacity(0.8))
                     }
                     .buttonStyle(.plain)

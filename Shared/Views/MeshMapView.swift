@@ -793,6 +793,7 @@ struct MeshMapView: View {
                         }
                     } label: {
                         Image(systemName: overlayButtonIcon)
+                            .accessibilityLabel("Change map overlay")
                             .font(.system(size: 14, weight: .medium))
                             .foregroundStyle(mapOverlay == .none ? MeshTheme.textSecondary : MeshTheme.accent)
                             .frame(width: 32, height: 32)

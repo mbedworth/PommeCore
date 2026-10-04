@@ -306,6 +306,7 @@ struct OnboardingView: View {
                 withMeshAnimation { currentPage = max(0, currentPage - 1) }
             } label: {
                 Image(systemName: "chevron.left.circle.fill")
+                    .accessibilityLabel("Back")
                     .font(.title2)
                     .foregroundStyle(currentPage > 0 ? MeshTheme.accent : MeshTheme.textSecondary.opacity(0.3))
             }

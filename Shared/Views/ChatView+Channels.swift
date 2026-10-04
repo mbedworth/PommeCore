@@ -71,6 +71,7 @@ struct ChannelChatView: View {
                         sendLocationToChannel()
                     } label: {
                         Image(systemName: "location.fill")
+                            .accessibilityLabel("Send my location")
                             .foregroundStyle(MeshTheme.accent)
                     }
                     Button {
@@ -264,6 +265,7 @@ struct ChannelChatView: View {
 
                     Button(action: send) {
                         Image(systemName: "arrow.up.circle.fill")
+                            .accessibilityLabel("Send message")
                             .font(.title)
                             .foregroundStyle(
                                 messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -420,6 +422,7 @@ struct RoomChatView: View {
             ToolbarItem(placement: .automatic) {
                 Button { showContactDetail = true } label: {
                     Image(systemName: "info.circle")
+                        .accessibilityLabel("Channel info")
                         .foregroundStyle(MeshTheme.accent)
                 }
                 .help("Network Tools")
@@ -431,6 +434,7 @@ struct RoomChatView: View {
                         showManagement = true
                     } label: {
                         Image(systemName: "wrench.and.screwdriver")
+                            .accessibilityLabel("Channel tools")
                             .foregroundStyle(remoteAccent)
                     }
                     .help("Remote Management — \(contactStore.displayName(for: contact))")
@@ -528,6 +532,7 @@ struct RoomChatView: View {
 
                 Button(action: sendRoomMessage) {
                     Image(systemName: "arrow.up.circle.fill")
+                        .accessibilityLabel("Send message")
                         .font(.title)
                         .foregroundStyle(
                             messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty

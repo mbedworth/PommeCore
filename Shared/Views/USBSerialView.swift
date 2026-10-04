@@ -64,6 +64,7 @@ struct USBTerminalView: View {
                     sendCommand()
                 } label: {
                     Image(systemName: "arrow.up.circle.fill")
+                        .accessibilityLabel("Send command")
                         .font(.title2)
                         .foregroundStyle(MeshTheme.accent)
                 }

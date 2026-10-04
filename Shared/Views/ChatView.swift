@@ -111,6 +111,7 @@ struct ChatView: View {
     private var searchBar: some View {
         HStack(spacing: 8) {
             Image(systemName: "magnifyingglass")
+                .accessibilityLabel("Search messages")
                 .foregroundStyle(MeshTheme.textSecondary)
             TextField("Search messages...", text: $searchText)
                 .foregroundStyle(MeshTheme.textPrimary)
@@ -119,6 +120,7 @@ struct ChatView: View {
                     searchText = ""
                 } label: {
                     Image(systemName: "xmark.circle.fill")
+                        .accessibilityLabel("Clear search")
                         .foregroundStyle(MeshTheme.textSecondary)
                 }
                 .buttonStyle(.plain)
@@ -456,6 +458,7 @@ struct ChatView: View {
                     Spacer()
                     Button { quotedMessage = nil } label: {
                         Image(systemName: "xmark.circle.fill")
+                            .accessibilityLabel("Remove quoted message")
                             .foregroundStyle(MeshTheme.textSecondary)
                     }
                     .buttonStyle(.plain)
@@ -483,6 +486,7 @@ struct ChatView: View {
 
                 Button(action: send) {
                     Image(systemName: "arrow.up.circle.fill")
+                        .accessibilityLabel("Send message")
                         .font(.title)
                         .foregroundStyle(
                             messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty

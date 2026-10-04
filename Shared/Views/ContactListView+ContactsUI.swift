@@ -49,6 +49,7 @@ extension ContactListView {
                         contactStore.acceptPendingContact(contact)
                     } label: {
                         Image(systemName: "checkmark.circle.fill")
+                            .accessibilityLabel("Accept contact")
                             .foregroundStyle(MeshTheme.connected)
                     }
                     .buttonStyle(.plain)
@@ -56,6 +57,7 @@ extension ContactListView {
                         contactStore.rejectPendingContact(contact)
                     } label: {
                         Image(systemName: "xmark.circle.fill")
+                            .accessibilityLabel("Reject contact")
                             .foregroundStyle(MeshTheme.disconnected)
                     }
                     .buttonStyle(.plain)
@@ -203,6 +205,7 @@ extension ContactListView {
                     showNewGroupSheet = true
                 } label: {
                     Image(systemName: "plus.circle")
+                        .accessibilityLabel("Add contact")
                         .foregroundStyle(MeshTheme.accent)
                 }
                 .buttonStyle(.plain)
