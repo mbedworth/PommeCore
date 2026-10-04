@@ -63,7 +63,8 @@ struct TelemetryChartView: View {
                     set: { selectedReading = $0 }
                 )) {
                     ForEach(availableReadings) { series in
-                        Text(series.label).tag(series.key)
+                        Text(localizedTelemetryLabel(name: series.name, label: series.label))
+                            .tag(series.key)
                     }
                 }
                 .pickerStyle(.segmented)
