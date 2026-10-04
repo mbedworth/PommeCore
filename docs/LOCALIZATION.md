@@ -112,6 +112,46 @@ All entries in both catalogs should have `"translated"` state. After any build t
 
 All scripts are in `scripts/`. Run from the repo root.
 
+### `scripts/translate_strings.py` — the one to use
+
+Translates `Localizable.xcstrings` into all eleven target languages via local
+inference (Ollama, `aya-expanse:8b`). Resumable: it only touches keys that have
+no entry for a language, and saves after every batch.
+
+```bash
+python3 scripts/translate_strings.py                  # all languages
+python3 scripts/translate_strings.py --lang fr,ja     # just these
+python3 scripts/translate_strings.py --verify         # audit, exits 1 on problems
+python3 scripts/translate_strings.py --fix-invalid    # clear bad entries, then re-run
+```
+
+**Always finish with `--verify`.** Machine translation fails in ways that are
+invisible at build time — the catalog stays valid, the app compiles, and the
+wrong text simply appears. 120 such entries shipped before validation existed:
+
+- **Dropped or invented format specifiers.** Czech, Dutch and Polish each lost
+  the device name from a login title; five Portuguese strings gained a stray
+  `%d` that had no argument behind it.
+- **Structure loss.** Multi-line keys came back as a single sentence — the
+  Bluetooth troubleshooting text lost all five of its numbered steps in ten
+  languages.
+- **Echoed source.** The model answered `source - translation` and both halves
+  were stored, so a picker row read `15 min - Quinze minutes`.
+
+A translation failing any of those checks is **not written**, so the key falls
+back to English: visibly incomplete, but correct. Multi-line keys are
+translated line by line and rejoined at the original newline positions, which
+makes structure loss impossible.
+
+**Technical vocabulary needs a human.** Validation catches structural damage,
+never a well-formed translation that is simply wrong. "Flood", as in flood
+routing, came back as *water flooding* in four languages
+("Überschwemmungsbereich", "alcance de inundación", "rozsah záplavy",
+"淹没范围"), and Czech rendered "stale" as "stále" (*still*). Mesh jargon is now
+in `PRESERVE_TERMS` alongside LoRa, PSK and SNR — extend that list rather than
+fixing the output each time. Note also that German "Radio" and Japanese ラジオ
+mean a broadcast *receiver*; this radio is a transceiver (`Funk`, `無線`).
+
 ### `scripts/apply_german_translations.py`
 The initial bulk translation script. Applied the first ~650 German translations from a structured dictionary. Run once; do not re-run (it would duplicate work).
 
@@ -233,14 +273,26 @@ This catalog localizes the NSUsageDescription strings shown in system permission
 
 ---
 
-## Current Status (v26.04.24)
+## Current Status (2026-10-03)
 
-| Language | Localizable.xcstrings | InfoPlist.xcstrings |
-|----------|-----------------------|---------------------|
-| English (`en`) | 800 keys (source) | 8 keys (source) |
-| German (`de`) | 738 keys translated, 62 intentionally untranslated | 8 keys translated |
-| French (`fr`) | — | — |
-| Spanish (`es`) | — | — |
-| Japanese (`ja`) | — | — |
+`Shared/Localizable.xcstrings` holds **977 keys**, of which 65 are
+`shouldTranslate: false` (symbols, numeric ranges, unit abbreviations), leaving
+**912 translatable**. All twelve shipped languages are complete:
 
-French, Spanish, and Japanese are planned. Adding them is blocked on scope and translation tooling decisions (DeepL API vs. manual).
+| Language | Localizable | InfoPlist |
+|---|---|---|
+| English (`en`) | source | source |
+| German (`de`) | 912 / 912 | complete |
+| French (`fr`), Spanish (`es`), Italian (`it`), Dutch (`nl`), Portuguese (`pt`) | 912 / 912 | complete |
+| Czech (`cs`), Polish (`pl`), Ukrainian (`uk`) | 912 / 912 | complete |
+| Japanese (`ja`), Simplified Chinese (`zh-Hans`) | 912 / 912 | complete |
+
+`InfoPlist.xcstrings` omits `CFBundleDisplayName`, `CFBundleName` and
+`NSHumanReadableCopyright` in some locales. That is correct — the app name must
+not be translated, and the copyright falls back to the source.
+
+Verify with:
+
+```bash
+python3 scripts/translate_strings.py --verify   # 0 specifier/structure problems
+```

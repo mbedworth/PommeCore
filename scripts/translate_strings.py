@@ -51,6 +51,9 @@ PRESERVE_TERMS = [
     # záplavy", "淹没范围". Treating them as technical terms is the fix; it is
     # also consistent with how LoRa, SNR and PSK are already handled.
     "flood", "flooding", "advert", "repeater", "mesh", "hop", "traceroute",
+    # Feature name, not a phrase to translate. Left to the model it produced
+    # "Jarro de Dicas" (a jar of *hints*), "Poteau de don" and "Tippotje".
+    "Tip Jar",
 ]
 
 SYSTEM_PROMPT = """You are a professional app translator. Translate app UI strings from English to {lang_name}.
@@ -212,13 +215,43 @@ def translation_problem(key, value):
     if want_nl and got_nl != want_nl:
         return f"structure lost ({want_nl} newline(s) in source, {got_nl} here)"
 
-    # Echo. The model sometimes answers "source - translation" and both halves
-    # get stored, so a picker row reads "15 min - Quinze minutes".
+    # Misalignment. A numbered reply whose items do not correspond to the
+    # request writes each translation onto the wrong key, and the result is not
+    # broken-looking — it is another string's perfectly good translation. The
+    # French for "180 min" became "Allez dans Réglages → Bluetooth" this way,
+    # because a multi-line key in the same batch was answered as several
+    # numbered items and everything after it shifted. A single-line source whose
+    # translation gained newlines is the cheapest reliable tell.
+    if not want_nl and got_nl:
+        return f"misaligned (source is one line, translation has {got_nl} newline(s))"
+
+    # Echo. The model sometimes answers "source <sep> translation" and both
+    # halves get stored, so a picker row reads "15 min - Quinze minutes" or
+    # "180 min → 180 minutos".
     stripped = value.strip()
-    for sep in (" - ", " — ", " – "):
+    for sep in (" - ", " — ", " – ", " → ", " / ", ": "):
         head, _, tail = stripped.partition(sep)
         if tail and head.strip().casefold() == key.strip().casefold():
-            return "echoes the English source before the translation"
+            return f"echoes the English source before the translation ({sep.strip()!r})"
+
+    # Trailing commentary. "60 min [soixante minutes]" — the source kept intact
+    # with a gloss bolted on, which renders literally.
+    for open_, close in (("[", "]"), ("(", ")")):
+        if stripped.endswith(close) and open_ in stripped:
+            head = stripped[:stripped.rindex(open_)].strip()
+            if head.casefold() == key.strip().casefold():
+                return f"appends a {open_}{close} gloss to the untranslated source"
+
+    # Implausible expansion. A short label cannot honestly become a sentence,
+    # so this catches both halves of the damage a misaligned batch does and the
+    # model's own commentary leaking into the catalog. Real examples: "Cancel"
+    # became "Ga naar Instellingen → Bluetooth", "Icon" became "Tap 'Forget
+    # This Device'" in eight languages, and "Tip Jar" became "Tip Jar (non
+    # traduit, terme anglais conservé)". Bounded to short sources, because a
+    # long source expanding is normal prose variation.
+    if len(key) <= 14 and len(stripped) > 2.5 * len(key) + 8:
+        return (f"implausible expansion ({len(key)} chars in, {len(stripped)} out) — "
+                "misaligned reply or model commentary")
 
     return None
 
@@ -289,6 +322,28 @@ def translate_language(data, lang, lang_name, batch_size, dry_run, path):
     errors = 0
     rejected = 0
 
+    # A multi-line key must never share a batch with anything else. Asked for
+    # one, the model answers with its lines as separate numbered items, so the
+    # reply has more items than the request and every translation after it
+    # lands on the wrong key. That is how the French for "180 min" became
+    # "Allez dans Réglages → Bluetooth". These go one at a time, line by line.
+    multiline = [(k, s) for k, s in keys if "\n" in k]
+    keys = [(k, s) for k, s in keys if "\n" not in k]
+    total = len(keys)
+
+    for key, src in multiline:
+        print(f"  multi-line: {key[:40]!r}...", end="", flush=True)
+        merged = translate_multiline(key, lang_name, dry_run)
+        if merged is None:
+            print(" FAILED")
+            errors += 1
+            continue
+        rejected += write_translations(data, [(key, src)], [merged], lang)
+        done += 1
+        print(" done")
+        if not dry_run:
+            save_xcstrings(path, data)
+
     for batch_start in range(0, total, batch_size):
         batch = keys[batch_start:batch_start + batch_size]
         texts = [src for _, src in batch]
@@ -358,6 +413,34 @@ def main():
                 why = translation_problem(key, value)
                 if why is not None:
                     bad.append((lang, key, value, why))
+
+        # Misalignment is only visible across the whole catalog. A translation
+        # written onto the wrong key is some other key's perfectly good text,
+        # so the tell is one value sitting under two sources that could not
+        # plausibly share a translation. Sources of similar length are spared:
+        # "TX Power"/"transmit power" and "Unblock"/"Unlock" legitimately
+        # collide, whereas "180 min" and a line of Bluetooth instructions
+        # cannot.
+        seen = {}
+        for key, entry in data["strings"].items():
+            if entry.get("shouldTranslate") is False:
+                continue
+            for lang, loc in (entry.get("localizations") or {}).items():
+                if lang == "en":
+                    continue
+                value = ((loc.get("stringUnit") or {}).get("value") or "").strip()
+                if len(value) <= 6:
+                    continue
+                prev = seen.setdefault((lang, value), key)
+                if prev == key:
+                    continue
+                short, long_ = sorted((prev, key), key=len)
+                if len(long_) > 3 * max(len(short), 1) or (
+                        len(short) <= 10 and len(long_) >= 25):
+                    bad.append((lang, key, value,
+                                f"collides with the translation of {short[:34]!r} — "
+                                "almost certainly written onto the wrong key"))
+
         for lang, key, value, why in bad:
             print(f"  [{lang}] {why}: {key[:52]!r}\n        -> {value[:70]!r}")
         if args.fix_invalid:

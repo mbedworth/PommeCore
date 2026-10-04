@@ -1848,34 +1848,16 @@
             "value": "Moins de -10"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "< -10 (Meno di -10)"
-          }
-        },
         "ja": {
           "stringUnit": {
             "state": "translated",
             "value": "ヨーロッパ (< -10)"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "< -10 (minder dan -10)"
-          }
-        },
         "pl": {
           "stringUnit": {
             "state": "translated",
             "value": "poniżej -10"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "< -10 (Menor que -10)"
           }
         },
         "uk": {
@@ -1888,6 +1870,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "低于 -10"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "< -10"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "< -10"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menos que -10"
           }
         }
       }
@@ -1932,34 +1932,16 @@
             "value": "> 0 dB"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "> 0 dB (Superiore a 0 dB)"
-          }
-        },
         "ja": {
           "stringUnit": {
             "state": "translated",
             "value": "0 dB 以上"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "> 0 dB (meer dan 0 dB)"
-          }
-        },
         "pl": {
           "stringUnit": {
             "state": "translated",
             "value": "> 0 dB"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "> 0 dB (Maior que 0 dB)"
           }
         },
         "uk": {
@@ -1972,6 +1954,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "超出 0 dB"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "> 0 dB"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "> 0 dB"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "> 0 dB"
           }
         }
       }
@@ -2084,12 +2084,6 @@
             "value": "🇮🇳 インド"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "🇮🇳 India (India)"
-          }
-        },
         "pl": {
           "stringUnit": {
             "state": "translated",
@@ -2112,6 +2106,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "🇮🇳 印度"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🇮🇳 India"
           }
         }
       }
@@ -2154,12 +2154,6 @@
             "value": "🇯🇵 日本"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "🇯🇵 Japan (Japan)"
-          }
-        },
         "pl": {
           "stringUnit": {
             "state": "translated",
@@ -2182,6 +2176,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "🇯🇵 日本"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🇯🇵 Japan"
           }
         }
       }
@@ -3338,24 +3338,6 @@
             "state": "translated",
             "value": "15分钟"
           }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "15 min → 15 min"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "15 min → 15 min"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "15 min (manterá o formato original, pois é uma string simples e não contém termos técnicos)"
-          }
         }
       }
     },
@@ -3623,12 +3605,6 @@
             "value": "30分钟"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "30 minutes [trente minutes]"
-          }
-        },
         "es": {
           "stringUnit": {
             "state": "translated",
@@ -3698,12 +3674,6 @@
             "value": "60分钟"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "60 min [soixante minutes]"
-          }
-        },
         "es": {
           "stringUnit": {
             "state": "translated",
@@ -3766,12 +3736,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "90分钟"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "90 min [neufante minutes]"
           }
         },
         "es": {
@@ -3843,12 +3807,6 @@
             "value": "120分钟"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "120 min [cent vingt minutes]"
-          }
-        },
         "es": {
           "stringUnit": {
             "state": "translated",
@@ -3913,22 +3871,16 @@
             "value": "180分钟"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Allez dans Réglages → Bluetooth"
-          }
-        },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "180 min → 180 minutos"
+            "value": "180 minutos"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vá para Configurações → Bluetooth"
+            "value": "180 minutos"
           }
         }
       }
@@ -3988,22 +3940,16 @@
             "value": "240分钟"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Trouvez votre appareil MeshCore et appuyez sur ⓘ"
-          }
-        },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "240 min → 240 minutos"
+            "value": "240 minutos"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Encontre o seu dispositivo MeshCore e toque em ⓘ"
+            "value": "240 minutos"
           }
         }
       }
@@ -7885,12 +7831,6 @@
             "value": "Média"
           }
         },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Середнє значення"
-          }
-        },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
@@ -8954,7 +8894,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ga naar Instellingen → Bluetooth"
+            "value": "Annuleren"
           }
         }
       }
@@ -9024,7 +8964,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zoek je MeshCore-apparaat en tik ⓘ"
+            "value": "Midden"
           }
         }
       }
@@ -19414,16 +19354,16 @@
             "value": "Reiniciar fábrica?"
           }
         },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Чи підтвердити скидання до заводських налаштувань?"
-          }
-        },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
             "value": "确认重置工厂设置？"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скидання до заводських налаштувань?"
           }
         }
       }
@@ -22339,34 +22279,10 @@
     },
     "iCloud": {
       "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Přejděte do Nastavení → Bluetooth"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "iCloud"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ve a Ajustes → Bluetooth"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Allez dans Réglages → Bluetooth"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vai su Impostazioni → Bluetooth"
           }
         },
         "ja": {
@@ -22375,34 +22291,58 @@
             "value": "設定 → Bluetoothに移動"
           }
         },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "云端存储"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloud"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ga naar Instellingen → Bluetooth"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Przejdź do Ustawień → Bluetooth"
+            "value": "iCloud"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vá para Configurações → Bluetooth"
+            "value": "iCloud"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloud"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Перейдіть до Налаштувань → Bluetooth"
+            "value": "Хмарне сховище"
           }
         },
-        "zh-Hans": {
+        "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "云端存储"
+            "value": "iCloud"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloud"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloud"
           }
         }
       }
@@ -22429,12 +22369,6 @@
             "value": "Encuentra tu dispositivo MeshCore y toca ⓘ"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Trouvez votre appareil MeshCore et appuyez sur ⓘ"
-          }
-        },
         "it": {
           "stringUnit": {
             "state": "translated",
@@ -22459,12 +22393,6 @@
             "value": "Znajdź urządzenie MeshCore i naciśnij ⓘ"
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Encontre o dispositivo MeshCore e toque em ⓘ"
-          }
-        },
         "uk": {
           "stringUnit": {
             "state": "translated",
@@ -22476,6 +22404,18 @@
             "state": "translated",
             "value": "iCloud 存储"
           }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stockage iCloud"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Armazenamento iCloud"
+          }
         }
       }
     },
@@ -22483,34 +22423,10 @@
       "comment": "A label displayed above the emoji picker.",
       "isCommentAutoGenerated": true,
       "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Klepněte na 'Zapomenout toto zařízení'"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Symbol"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Toca 'Olvidar este dispositivo'"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Appuyez sur 'Oublier cet appareil'"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tocca 'Dimentica questo dispositivo'"
           }
         },
         "ja": {
@@ -22519,34 +22435,58 @@
             "value": "「このデバイスを忘れる」をタップ"
           }
         },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图标"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ícono"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Icona"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tik op 'Dit apparaat vergeten'"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Naciśnij ‘Zapomnij o tym urządzeniu’"
+            "value": "Icon"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Toque em 'Esquecer este Dispositivo'"
+            "value": "Ícone"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ikona (Icon)"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ikona"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Натисніть 'Забути цей пристрій'"
+            "value": "Іконка"
           }
         },
-        "zh-Hans": {
+        "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "图标"
+            "value": "Icône"
           }
         }
       }
@@ -26754,12 +26694,6 @@
             "value": "Menciones"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mentions [Mentioni]"
-          }
-        },
         "ja": {
           "stringUnit": {
             "state": "translated",
@@ -26801,6 +26735,12 @@
             "state": "translated",
             "value": "Mentions"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menzioni"
+          }
         }
       }
     },
@@ -26824,12 +26764,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Canal de transmisión Mesh"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mesh broadcast channel [Canale di trasmissione mesh]"
           }
         },
         "ja": {
@@ -26873,6 +26807,12 @@
             "state": "translated",
             "value": "Canal de diffusion Mesh"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Canale di broadcast Mesh"
+          }
         }
       }
     },
@@ -26894,12 +26834,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Mapa Mesh"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mesh Map [Mappa mesh]"
           }
         },
         "ja": {
@@ -26943,6 +26877,12 @@
             "state": "translated",
             "value": "Carte Mesh"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mappa Mesh"
+          }
         }
       }
     },
@@ -26966,12 +26906,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Proyecto MeshCore"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "MeshCore Project [Progetto MeshCore]"
           }
         },
         "ja": {
@@ -27015,6 +26949,12 @@
             "state": "translated",
             "value": "Projet MeshCore"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Progetto MeshCore"
+          }
         }
       }
     },
@@ -27036,12 +26976,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Entrega de mensaje"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Message Delivery [Consegna del messaggio]"
           }
         },
         "ja": {
@@ -27085,6 +27019,12 @@
             "state": "translated",
             "value": "Livraison du message"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Consegna del messaggio"
+          }
         }
       }
     },
@@ -27108,12 +27048,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Mensaje que se enviará:"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Message that will be sent: [Messaggio da inviare:]"
           }
         },
         "ja": {
@@ -27157,6 +27091,12 @@
             "state": "translated",
             "value": "Message qui sera envoyé :"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Messaggio che verrà inviato:"
+          }
         }
       }
     },
@@ -27180,12 +27120,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Los mensajes en este canal serán eliminados de tu dispositivo."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Messages in this channel will be deleted from your device. [I messaggi in questo canale saranno eliminati dal tuo dispositivo.]"
           }
         },
         "ja": {
@@ -27229,6 +27163,12 @@
             "state": "translated",
             "value": "Les messages dans cette chaîne seront supprimés de votre appareil."
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I messaggi in questa chat verranno eliminati dal tuo dispositivo."
+          }
         }
       }
     },
@@ -27250,12 +27190,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Mensajes por contacto"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Messages Per Contact [Messaggi per contatto]"
           }
         },
         "ja": {
@@ -27299,6 +27233,12 @@
             "state": "translated",
             "value": "Messages par contact"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Messaggi per contatto"
+          }
         }
       }
     },
@@ -27322,12 +27262,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Los mensajes enviados a este canal aparecerán aquí."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Messages sent to this channel will appear here. [I messaggi inviati a questo canale appariranno qui.]"
           }
         },
         "ja": {
@@ -27371,6 +27305,12 @@
             "state": "translated",
             "value": "Les messages envoyés à ce canal apparaîtront ici."
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I messaggi inviati a questa chat appariranno qui."
+          }
         }
       }
     },
@@ -27392,12 +27332,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Migrar"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Migrate [Migra]"
           }
         },
         "ja": {
@@ -27440,6 +27374,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Migrer"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Migra"
           }
         }
       }
@@ -36260,12 +36200,6 @@
             "value": "Radio"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Radio, un dispositivo de comunicación inalámbrica."
-          }
-        },
         "it": {
           "stringUnit": {
             "state": "translated",
@@ -36313,6 +36247,12 @@
             "state": "translated",
             "value": "Radio"
           }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Radio"
+          }
         }
       }
     },
@@ -36328,12 +36268,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Radio %@…"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Radio %@... (sin traducción, se mantiene como está)"
           }
         },
         "it": {
@@ -36379,6 +36313,12 @@
           }
         },
         "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Radio %@..."
+          }
+        },
+        "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Radio %@..."
@@ -47880,12 +47820,6 @@
             "value": "Riguroso"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Strict (rigoureux)"
-          }
-        },
         "it": {
           "stringUnit": {
             "state": "translated",
@@ -48898,12 +48832,6 @@
             "value": "Klik om opnieuw te proberen"
           }
         },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kliknij ponownie, aby spróbować ponownie."
-          }
-        },
         "pt": {
           "stringUnit": {
             "state": "translated",
@@ -48920,6 +48848,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "再次点击。"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dotknij, aby spróbować ponownie"
           }
         }
       }
@@ -50926,74 +50860,7 @@
       "shouldTranslate": false
     },
     "Tip Jar": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tipova láhev"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Trinkgeldglas"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Recipiente de propinas"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tip Jar (non traduit, terme anglais conservé)"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cesto delle offerte"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "チップジャール"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tippotje"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Koszyk na podarunki"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Jarro de Dicas"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Корзина для пожертв"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "提示罐"
-          }
-        }
-      }
+      "shouldTranslate": false
     },
     "TIP: Name your radio with your initials + first 4 of your public key (e.g., NMA-5abd). You can change this in Settings after connecting.": {
       "comment": "A tip for naming your MeshCore radio.",
@@ -58127,12 +57994,6 @@
             "value": "Sin Radio"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tempo in aria LoRa, ciclo di lavoro e pacchetti per ora"
-          }
-        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -58173,6 +58034,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "无无线电"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nessun Radio"
           }
         }
       }
