@@ -64,12 +64,14 @@
 		0FFEA59F2F9FF7050078A117 /* NoiseFloorMonitorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA59A2F9FF7050078A117 /* NoiseFloorMonitorView.swift */; };
 		0FFEA5A02F9FF7050078A117 /* LoRaAirtimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA5992F9FF7050078A117 /* LoRaAirtimeView.swift */; };
 		0FFEA5A12F9FF7050078A117 /* TelemetryChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA59D2F9FF7050078A117 /* TelemetryChartView.swift */; };
+		0FFEA5B12F9FF7050078A117 /* SensorDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA5B02F9FF7050078A117 /* SensorDashboardView.swift */; };
 		0FFEA5A22F9FF7050078A117 /* FrequencyScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA5982F9FF7050078A117 /* FrequencyScannerView.swift */; };
 		0FFEA5A32F9FF7050078A117 /* RadioCalculatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA59B2F9FF7050078A117 /* RadioCalculatorView.swift */; };
 		0FFEA5A42F9FF7050078A117 /* SensitivityTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA59C2F9FF7050078A117 /* SensitivityTableView.swift */; };
 		0FFEA5A52F9FF7050078A117 /* NoiseFloorMonitorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA59A2F9FF7050078A117 /* NoiseFloorMonitorView.swift */; };
 		0FFEA5A62F9FF7050078A117 /* LoRaAirtimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA5992F9FF7050078A117 /* LoRaAirtimeView.swift */; };
 		0FFEA5A72F9FF7050078A117 /* TelemetryChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA59D2F9FF7050078A117 /* TelemetryChartView.swift */; };
+		0FFEA5B22F9FF7050078A117 /* SensorDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA5B02F9FF7050078A117 /* SensorDashboardView.swift */; };
 		0FFEA5A82F9FF7050078A117 /* FrequencyScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA5982F9FF7050078A117 /* FrequencyScannerView.swift */; };
 		0FFEA5A92F9FF7050078A117 /* RadioCalculatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA59B2F9FF7050078A117 /* RadioCalculatorView.swift */; };
 		0FFEA5AA2F9FF7050078A117 /* SensitivityTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFEA59C2F9FF7050078A117 /* SensitivityTableView.swift */; };
@@ -309,6 +311,7 @@
 		0FFEA59B2F9FF7050078A117 /* RadioCalculatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RadioCalculatorView.swift; sourceTree = "<group>"; };
 		0FFEA59C2F9FF7050078A117 /* SensitivityTableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensitivityTableView.swift; sourceTree = "<group>"; };
 		0FFEA59D2F9FF7050078A117 /* TelemetryChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetryChartView.swift; sourceTree = "<group>"; };
+		0FFEA5B02F9FF7050078A117 /* SensorDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensorDashboardView.swift; sourceTree = "<group>"; };
 		21606E2B959E6496D3B0230D /* ContactListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactListView.swift; sourceTree = "<group>"; };
 		2377BED4FF5A7170783BA649 /* DeviceScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceScannerView.swift; sourceTree = "<group>"; };
 		2EEF439B8EDC4A5408C299FB /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = macOS/PrivacyInfo.xcprivacy; sourceTree = SOURCE_ROOT; };
@@ -587,6 +590,7 @@
 				0FFEA59A2F9FF7050078A117 /* NoiseFloorMonitorView.swift */,
 				0FFEA59B2F9FF7050078A117 /* RadioCalculatorView.swift */,
 				0FFEA59C2F9FF7050078A117 /* SensitivityTableView.swift */,
+				0FFEA5B02F9FF7050078A117 /* SensorDashboardView.swift */,
 				0FFEA59D2F9FF7050078A117 /* TelemetryChartView.swift */,
 			);
 			path = Tools;
@@ -1013,6 +1017,7 @@
 				0FFEA59F2F9FF7050078A117 /* NoiseFloorMonitorView.swift in Sources */,
 				0FFEA5A02F9FF7050078A117 /* LoRaAirtimeView.swift in Sources */,
 				0FFEA5A12F9FF7050078A117 /* TelemetryChartView.swift in Sources */,
+				0FFEA5B12F9FF7050078A117 /* SensorDashboardView.swift in Sources */,
 				0FFEA5A22F9FF7050078A117 /* FrequencyScannerView.swift in Sources */,
 				0FFEA5A32F9FF7050078A117 /* RadioCalculatorView.swift in Sources */,
 				0FFEA5A42F9FF7050078A117 /* SensitivityTableView.swift in Sources */,
@@ -1106,6 +1111,7 @@
 				0FFEA5A52F9FF7050078A117 /* NoiseFloorMonitorView.swift in Sources */,
 				0FFEA5A62F9FF7050078A117 /* LoRaAirtimeView.swift in Sources */,
 				0FFEA5A72F9FF7050078A117 /* TelemetryChartView.swift in Sources */,
+				0FFEA5B22F9FF7050078A117 /* SensorDashboardView.swift in Sources */,
 				0FFEA5A82F9FF7050078A117 /* FrequencyScannerView.swift in Sources */,
 				0FFEA5A92F9FF7050078A117 /* RadioCalculatorView.swift in Sources */,
 				0FFEA5AA2F9FF7050078A117 /* SensitivityTableView.swift in Sources */,

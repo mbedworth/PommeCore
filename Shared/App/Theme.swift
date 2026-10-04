@@ -309,6 +309,33 @@ enum MeshTheme {
         }
     }
 
+    /// Colours for charting several nodes on one set of axes.
+    ///
+    /// Reuses tokens that already carry a measured contrast ratio against every
+    /// surface the app draws on, rather than inventing six new ones. Six is the
+    /// practical ceiling for telling lines apart at a glance; past that the
+    /// palette repeats and `seriesDash` is what keeps the lines distinct.
+    static let seriesPalette: [Color] = [accent, statusInfo, statusWarn, mapRoom, remoteRoom, statusBad]
+
+    /// Palette colour for the nth series, wrapping.
+    static func seriesColor(_ index: Int) -> Color {
+        seriesPalette[((index % seriesPalette.count) + seriesPalette.count) % seriesPalette.count]
+    }
+
+    /// A dash pattern per series, so a multi-node chart stays readable for
+    /// someone who cannot separate the colours — and once the palette wraps,
+    /// for everyone. Changes only after a full cycle of the palette, keeping
+    /// the first six lines solid.
+    static func seriesDash(_ index: Int) -> [CGFloat] {
+        guard index >= 0 else { return [] }
+        switch (index / seriesPalette.count) % 4 {
+        case 0: return []
+        case 1: return [6, 3]
+        case 2: return [2, 3]
+        default: return [8, 3, 2, 3]
+        }
+    }
+
     /// Noise floor. Green < -105 dBm, amber -105 to -95, red above -95.
     static func noiseFloorColor(_ dBm: Int) -> Color {
         if dBm < -105 { return statusGood }
