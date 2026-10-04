@@ -409,6 +409,40 @@ final class ContactStore {
         contactStatus(for: contact).color
     }
 
+    // MARK: - Path hops
+
+    /// One hop in a routed path: the hash the radio reported, and the contact
+    /// it names when that contact is known.
+    struct ResolvedHop {
+        let hash: Data
+        let contact: Contact?
+
+        /// What to show when the hop cannot be matched to a contact.
+        var fallbackLabel: String { hash.hexCompact.uppercased() }
+    }
+
+    /// Resolve a path's hop hashes to the repeaters they name.
+    ///
+    /// Each hop is the first `hashSize` bytes of a repeater's public key, so a
+    /// hop can be matched against the contact list directly. A hop resolves to
+    /// nil when that repeater is not a known contact — which is ordinary, not
+    /// an error: the mesh routes through nodes this radio has never adverted
+    /// with. Callers must handle a nil rather than dropping it, because the
+    /// hops are ordered and a silent drop misrepresents the route.
+    func resolveHops(pathBytes: Data, hopCount: Int, hashSize: Int) -> [ResolvedHop] {
+        guard !pathBytes.isEmpty, hopCount > 0, hashSize > 0 else { return [] }
+        return (0..<hopCount).compactMap { i in
+            let start = i * hashSize
+            let end = start + hashSize
+            guard end <= pathBytes.count else { return nil }
+            let hash = Data(pathBytes[start..<end])
+            let match = contacts.first { contact in
+                contact.type == .repeater && contact.publicKeyPrefix.prefix(hashSize) == hash
+            }
+            return ResolvedHop(hash: hash, contact: match)
+        }
+    }
+
     func contactStatusLabel(for contact: Contact) -> String {
         contactStatus(for: contact).label
     }

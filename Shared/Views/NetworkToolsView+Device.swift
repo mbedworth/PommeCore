@@ -548,16 +548,9 @@ struct PathDiscoveryResultView: View {
     }
 
     private func resolveHops(pathBytes: Data, hopCount: Int, hashSize: Int) -> [String] {
-        guard !pathBytes.isEmpty, hopCount > 0 else { return [] }
-        return (0..<hopCount).compactMap { i in
-            let start = i * hashSize
-            let end = min(start + hashSize, pathBytes.count)
-            guard end <= pathBytes.count else { return nil }
-            let hash = Data(pathBytes[start..<end])
-            for c in contactStore.contacts where c.type == .repeater {
-                if c.publicKeyPrefix.prefix(hashSize) == hash { return contactStore.displayName(for: c) }
+        contactStore.resolveHops(pathBytes: pathBytes, hopCount: hopCount, hashSize: hashSize)
+            .map { hop in
+                hop.contact.map { contactStore.displayName(for: $0) } ?? hop.fallbackLabel
             }
-            return hash.hexCompact.uppercased()
-        }
     }
 }
