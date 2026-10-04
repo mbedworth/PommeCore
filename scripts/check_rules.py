@@ -21,6 +21,7 @@ Usage:
 """
 
 import argparse
+import json
 import pathlib
 import re
 import subprocess
@@ -389,6 +390,58 @@ def check_no_tool_references() -> None:
                            "reference to an AI tool — not permitted anywhere in the repo")
 
 
+# --------------------------------------------------------------------------
+# Rule 18 (catalog side) — a UI literal that never reached the catalog
+# --------------------------------------------------------------------------
+
+CATALOG_PATH = ROOT / "Shared" / "Localizable.xcstrings"
+
+UI_LITERAL = re.compile(
+    r'(?:Text|Label|navigationTitle|Button|confirmationDialog|alert)\(\s*"((?:[^"\\]|\\.)+)"'
+)
+
+
+def _unescape_swift(s: str) -> str:
+    s = re.sub(r"\\u\{([0-9a-fA-F]+)\}", lambda m: chr(int(m.group(1), 16)), s)
+    return (s.replace("\\n", "\n").replace("\\t", "\t")
+             .replace('\\"', '"').replace("\\\\", "\\"))
+
+
+def check_literals_in_catalog() -> None:
+    """A UI literal with no catalog entry ships English in every other locale.
+
+    Rule 18 catches a `String` *variable* reaching `Text()`. This catches the
+    other half: a perfectly correct `Text("literal")` whose key never made it
+    into `Localizable.xcstrings`. Nothing else looks — `SWIFT_EMIT_LOC_STRINGS`
+    adds keys only when the archive step extracts them, `translate_strings.py`
+    only translates keys the catalog already has, and the build is clean either
+    way. Fifty-one strings reached a release this way, found only by reading a
+    German screen. Interpolated literals are skipped: their key carries format
+    specifiers and is matched by `translate_strings.py --verify` instead.
+    """
+    if not CATALOG_PATH.exists():
+        return
+    try:
+        keys = set(json.loads(CATALOG_PATH.read_text())["strings"].keys())
+    except (json.JSONDecodeError, KeyError):
+        report("FAIL", "18", CATALOG_PATH, 1, "string catalog is unreadable")
+        return
+
+    for path in swift_files(["Shared", "watchOS"]):
+        for i, line in enumerate(lines_of(path), 1):
+            if line.lstrip().startswith("//"):
+                continue
+            for m in UI_LITERAL.finditer(line):
+                raw = m.group(1)
+                if "\\(" in raw:
+                    continue
+                key = _unescape_swift(raw)
+                if key not in keys:
+                    report("FAIL", "18", path, i,
+                           f'"{key[:60]}" is not in the string catalog — it will '
+                           "render in English in every other language")
+
+
 CHECKS = [
     check_sheet_frames,
     check_text_takes_string,
@@ -403,6 +456,7 @@ CHECKS = [
     check_secret_logging,
     check_deployment_targets,
     check_no_tool_references,
+    check_literals_in_catalog,
 ]
 
 
