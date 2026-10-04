@@ -16507,7 +16507,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Temný"
+            "value": "Tmavý"
           }
         },
         "de": {
@@ -16537,7 +16537,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "暗い"
+            "value": "ダーク"
           }
         },
         "nl": {
@@ -16561,13 +16561,13 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Темний режим"
+            "value": "Темна"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "黑暗模式"
+            "value": "深色"
           }
         }
       }
@@ -26760,6 +26760,76 @@
         }
       }
     },
+    "Illuminance": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beleuchtungsstärke"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Éclairement"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iluminancia"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Illuminamento"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verlichtingssterkte"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iluminância"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Osvětlenost"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Natężenie światła"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Освітленість"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "照度"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "光照度"
+          }
+        }
+      }
+    },
     "Import": {
       "localizations": {
         "cs": {
@@ -28545,37 +28615,37 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Světlo"
+            "value": "Světlý"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Helligkeit"
+            "value": "Hell"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Luz"
+            "value": "Claro"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lumière"
+            "value": "Clair"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Luce"
+            "value": "Chiaro"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "明るさ"
+            "value": "ライト"
           }
         },
         "nl": {
@@ -28587,25 +28657,25 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Światło"
+            "value": "Jasny"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Luz"
+            "value": "Claro"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Світло"
+            "value": "Світла"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "光照度"
+            "value": "浅色"
           }
         }
       }
