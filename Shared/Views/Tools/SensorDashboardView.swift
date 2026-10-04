@@ -87,8 +87,16 @@ struct SensorDashboardView: View {
 
         for contactKey in rfStore.telemetryHistory.keys {
             let contact = contactStore.contacts.first { $0.publicKeyPrefix == contactKey }
-            // A node whose contact has since been deleted still has history worth
-            // charting, so fall back to the key rather than dropping the series.
+            // History can outlive its contact, so fall back to the key prefix
+            // rather than dropping readings that were really collected.
+            //
+            // Deleting a contact *does* purge its telemetry
+            // (ContactStore.purgeLocalData). This covers the case the app
+            // cannot purge: the radio evicting a contact when its storage
+            // fills (PUSH contactDeleted), which is not the user asking to
+            // forget anything — the contact's next advert re-adds it and the
+            // history reconnects by key prefix. Until then it charts under the
+            // prefix instead of vanishing.
             let nodeName = contact.map { contactStore.displayName(for: $0) }
                 ?? contactKey.hexCompact.uppercased()
 
@@ -199,7 +207,7 @@ struct SensorDashboardView: View {
             HStack {
                 Image(systemName: Self.icon(for: group.name))
                     .foregroundStyle(MeshTheme.accent)
-                Text(group.label)
+                Text(localizedTelemetryName(group.name))
                     .font(.headline)
                     .foregroundStyle(MeshTheme.accent)
                 Spacer()
@@ -225,7 +233,7 @@ struct SensorDashboardView: View {
                 ForEach(node.points, id: \.date) { point in
                     LineMark(
                         x: .value("Time", point.date),
-                        y: .value(group.label, point.value),
+                        y: .value(localizedTelemetryName(group.name), point.value),
                         series: .value("Node", node.id)
                     )
                     .foregroundStyle(MeshTheme.seriesColor(index))
@@ -235,7 +243,7 @@ struct SensorDashboardView: View {
                     // A node polled once has no line to draw, so mark the point.
                     PointMark(
                         x: .value("Time", point.date),
-                        y: .value(group.label, point.value)
+                        y: .value(localizedTelemetryName(group.name), point.value)
                     )
                     .foregroundStyle(MeshTheme.seriesColor(index))
                     .symbolSize(node.points.count == 1 ? 90 : 0)
@@ -261,7 +269,7 @@ struct SensorDashboardView: View {
                                                : .automatic(includesZero: false))
         .chartLegend(.hidden)   // The legend below carries the latest value too.
         .frame(height: 180)
-        .accessibilityLabel(Text(group.label))
+        .accessibilityLabel(Text(localizedTelemetryName(group.name)))
         .accessibilityValue(Text(chartSummary(group)))
     }
 
@@ -293,7 +301,7 @@ struct SensorDashboardView: View {
                     // measurement — firmware puts each sensor on its own LPP
                     // channel, so one node can hold several temperatures.
                     if group.series.filter({ $0.contactKey == node.contactKey }).count > 1 {
-                        Text(node.series.label)
+                        Text(localizedTelemetryLabel(name: node.series.name, label: node.series.label))
                             .font(.caption2)
                             .foregroundStyle(MeshTheme.textSecondary)
                             .lineLimit(1)

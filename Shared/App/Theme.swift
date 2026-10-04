@@ -779,6 +779,52 @@ extension String {
     }
 }
 
+/// Localized name for an LPP telemetry type.
+///
+/// `TelemetryReading.name` is an English literal written by the frame parser —
+/// "Temperature", "Battery", "Pressure". It is protocol vocabulary, used as the
+/// stable key for history, the icon table and sort order, so it must not change
+/// with the user's language. It had also never reached the string catalog,
+/// which meant every telemetry screen showed English in all twelve languages
+/// while the chrome around it was translated.
+///
+/// So: translate at the point of display only, and leave the stored name alone.
+/// An LPP type the catalog does not know yet falls through unchanged, which is
+/// the same English it showed before — a new sensor type in firmware degrades
+/// to the old behaviour rather than to a blank.
+func localizedTelemetryName(_ name: String) -> String {
+    switch name {
+    case "Temperature": return String(localized: "Temperature")
+    case "Humidity": return String(localized: "Humidity")
+    case "Pressure": return String(localized: "Pressure")
+    case "Battery": return String(localized: "Battery")
+    case "Current": return String(localized: "Current")
+    case "Power": return String(localized: "Power")
+    case "Light": return String(localized: "Light")
+    case "Percentage": return String(localized: "Percentage")
+    case "Altitude": return String(localized: "Altitude")
+    case "Distance": return String(localized: "Distance")
+    case "Presence": return String(localized: "Presence")
+    case "Concentration": return String(localized: "Concentration")
+    case "Sensor": return String(localized: "Sensor")
+    case "GPS Lat": return String(localized: "GPS Lat")
+    case "GPS Lon": return String(localized: "GPS Lon")
+    default: return name
+    }
+}
+
+/// A reading's display label with its type name localized.
+///
+/// `label` is the name plus a channel qualifier when one node reports the same
+/// type more than once — "Temperature (Ch 2)". Only the name is translated; the
+/// qualifier is a channel number and stays as the firmware numbers it. Built by
+/// replacing the known prefix rather than by parsing the qualifier, so a label
+/// shape this does not recognise passes through untouched.
+func localizedTelemetryLabel(name: String, label: String) -> String {
+    guard label.hasPrefix(name) else { return label }
+    return localizedTelemetryName(name) + label.dropFirst(name.count)
+}
+
 /// Format raw SNR value (SNR * 4 from firmware) to human-readable dB string.
 func formatSNR<T: BinaryInteger>(_ rawSNR: T) -> String {
     String(format: "%.1f dB", Double(Int(rawSNR)) / 4.0)

@@ -432,7 +432,7 @@ struct TelemetryView: View {
                             Image(systemName: telemetryIcon(for: reading.name))
                                 .foregroundStyle(MeshTheme.accent)
                                 .frame(width: 20)
-                            Text(reading.label)
+                            Text(localizedTelemetryLabel(name: reading.name, label: reading.label))
                                 .foregroundStyle(MeshTheme.textPrimary)
                             Spacer()
                             if reading.name == "Altitude" {
