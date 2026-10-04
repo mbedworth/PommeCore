@@ -85,8 +85,14 @@ struct SensorDashboardView: View {
         let cutoff = Date().addingTimeInterval(-range.seconds)
         var byMetric: [String: [NodeSeries]] = [:]
 
+        // Indexed once: a linear search per history key is quadratic in the
+        // contact list, and both sides grow together on a busy mesh.
+        let contactsByPrefix = Dictionary(
+            contactStore.contacts.map { ($0.publicKeyPrefix, $0) },
+            uniquingKeysWith: { first, _ in first })
+
         for contactKey in rfStore.telemetryHistory.keys {
-            let contact = contactStore.contacts.first { $0.publicKeyPrefix == contactKey }
+            let contact = contactsByPrefix[contactKey]
             // History can outlive its contact, so fall back to the key prefix
             // rather than dropping readings that were really collected.
             //
@@ -114,8 +120,13 @@ struct SensorDashboardView: View {
         }
 
         return byMetric.map { name, series in
+            // Ends on the key, which is unique, so the order is total. Without
+            // that last component two nodes sharing a display name tie, and
+            // since this is built by walking a Dictionary the winner — and so
+            // the colour each one gets — changes between launches.
             let sorted = series.sorted {
-                ($0.nodeName.lowercased(), $0.series.label) < ($1.nodeName.lowercased(), $1.series.label)
+                ($0.nodeName.lowercased(), $0.series.label, $0.contactKey.hexCompact)
+                    < ($1.nodeName.lowercased(), $1.series.label, $1.contactKey.hexCompact)
             }
             return MetricGroup(name: name,
                                // The LPP type, never a series label: a label carries
@@ -123,9 +134,12 @@ struct SensorDashboardView: View {
                                // legend row for the node that has several, not on a
                                // header covering every node.
                                label: name,
-                               // Readings of one LPP type share a unit; take the
-                               // first rather than assuming every node agrees.
-                               unit: sorted.first(where: { !$0.unit.isEmpty })?.unit ?? "",
+                               // The heading's unit is the one most nodes report.
+                               // Taking whichever happened to sort first let a
+                               // single odd node relabel the axis for everyone;
+                               // snapshots written before units were recorded
+                               // decode with an empty unit and must not win.
+                               unit: Self.consensusUnit(sorted),
                                series: sorted)
         }
         .sorted { lhs, rhs in
@@ -230,7 +244,9 @@ struct SensorDashboardView: View {
     private func chart(_ group: MetricGroup) -> some View {
         Chart {
             ForEach(Array(group.series.enumerated()), id: \.element.id) { index, node in
-                ForEach(node.points, id: \.date) { point in
+                // Keyed by position, not by date: two snapshots can carry the
+                // same timestamp, and a duplicate ForEach id renders wrongly.
+                ForEach(Array(node.points.enumerated()), id: \.offset) { _, point in
                     LineMark(
                         x: .value("Time", point.date),
                         y: .value(localizedTelemetryName(group.name), point.value),
@@ -259,14 +275,7 @@ struct SensorDashboardView: View {
             }
         }
         .chartYAxis { AxisMarks(position: .leading) }
-        // Charts include zero by default, which is right for a percentage and
-        // useless for anything with a large offset: atmospheric pressure varies
-        // over ~20 hPa around 1013, so a 0-based axis draws eight nodes as one
-        // flat line. A percentage keeps 0-100 so nodes stay comparable against
-        // a fixed scale rather than against whatever today's spread happens
-        // to be.
-        .chartYScale(domain: group.unit == "%" ? .automatic(includesZero: true)
-                                               : .automatic(includesZero: false))
+        .chartYScale(domain: Self.yDomain(group))
         .chartLegend(.hidden)   // The legend below carries the latest value too.
         .frame(height: 180)
         .accessibilityLabel(Text(localizedTelemetryName(group.name)))
@@ -286,6 +295,12 @@ struct SensorDashboardView: View {
 
     @ViewBuilder
     private func legend(_ group: MetricGroup) -> some View {
+        // Which nodes report this measurement more than once, worked out once
+        // instead of re-scanning every series for every row.
+        let multiSensor = Set(
+            Dictionary(grouping: group.series, by: \.contactKey)
+                .filter { $0.value.count > 1 }.keys)
+
         VStack(spacing: 6) {
             ForEach(Array(group.series.enumerated()), id: \.element.id) { index, node in
                 HStack(spacing: 8) {
@@ -300,7 +315,7 @@ struct SensorDashboardView: View {
                     // Shown only when a node reports more than one of this
                     // measurement — firmware puts each sensor on its own LPP
                     // channel, so one node can hold several temperatures.
-                    if group.series.filter({ $0.contactKey == node.contactKey }).count > 1 {
+                    if multiSensor.contains(node.contactKey) {
                         Text(localizedTelemetryLabel(name: node.series.name, label: node.series.label))
                             .font(.caption2)
                             .foregroundStyle(MeshTheme.textSecondary)
@@ -324,6 +339,54 @@ struct SensorDashboardView: View {
     }
 
     // MARK: - Formatting
+
+    /// The unit most nodes report for a measurement.
+    ///
+    /// Readings of one LPP type do share a unit in practice, but snapshots
+    /// written before telemetry recorded units at all decode with an empty one,
+    /// so a node whose history predates that must not get to label the axis.
+    /// Ties break on the unit string to stay deterministic.
+    private static func consensusUnit(_ series: [NodeSeries]) -> String {
+        var tally: [String: Int] = [:]
+        for node in series where !node.unit.isEmpty { tally[node.unit, default: 0] += 1 }
+        return tally.max { ($0.value, $1.key) < ($1.value, $0.key) }?.key ?? ""
+    }
+
+    /// The y range to plot a measurement over.
+    ///
+    /// Computed rather than left to `.automatic` because automatic fails badly
+    /// at both ends of the range of real telemetry:
+    ///
+    ///   - Including zero, the default, flattens anything with a large offset.
+    ///     Atmospheric pressure moves about 20 hPa around 1013, so a 0-based
+    ///     axis drew eight distinct nodes as one line at the bottom.
+    ///   - Excluding zero, a series whose value never changes — a repeater on
+    ///     mains at 4.20 V, a still day's pressure — collapses the domain to a
+    ///     single point. Charts then drew the axis *inverted*, labelled 4 at the
+    ///     top and 5 at the bottom, and for a flat multi-point series dropped
+    ///     the labels altogether. Both were on screen before this existed.
+    ///
+    /// A percentage keeps 0-100 so nodes stay comparable against a fixed scale
+    /// rather than against today's spread, widening only if a reading exceeds
+    /// it. Everything else gets the data's own range plus a margin, and a flat
+    /// series gets a margin derived from its magnitude so the line lands in the
+    /// middle of a sensibly labelled axis.
+    private static func yDomain(_ group: MetricGroup) -> ClosedRange<Double> {
+        let values = group.series.flatMap { $0.points.map(\.value) }
+        guard let low = values.min(), let high = values.max() else { return 0...1 }
+
+        if group.unit == "%" {
+            return min(0, low)...max(100, high)
+        }
+
+        let span = high - low
+        guard span > 0 else {
+            let margin = Swift.max(abs(high) * 0.01, 0.5)
+            return (low - margin)...(high + margin)
+        }
+        let margin = span * 0.1
+        return (low - margin)...(high + margin)
+    }
 
     /// Telemetry carries no precision hint, so drop a decimal that says nothing.
     private static func format(_ value: Double) -> String {
