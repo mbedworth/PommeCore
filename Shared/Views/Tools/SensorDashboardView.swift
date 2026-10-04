@@ -349,7 +349,9 @@ struct SensorDashboardView: View {
     private static func consensusUnit(_ series: [NodeSeries]) -> String {
         var tally: [String: Int] = [:]
         for node in series where !node.unit.isEmpty { tally[node.unit, default: 0] += 1 }
-        return tally.max { ($0.value, $1.key) < ($1.value, $0.key) }?.key ?? ""
+        return tally.max { a, b in
+            a.value != b.value ? a.value < b.value : a.key > b.key
+        }?.key ?? ""
     }
 
     /// The y range to plot a measurement over.

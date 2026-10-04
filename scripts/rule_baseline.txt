@@ -1,44 +1,30 @@
-# Accepted pre-existing findings, so that NEW ones stand out.
-#
-# One `path:line` per entry. A baselined site is silent; the same defect at a
-# different line is not, which is what makes this a ratchet rather than a
-# blanket suppression. Delete a line here when the site is fixed.
-#
-# Line numbers move when code above them changes, so regenerate after a pass
-# that inserts lines: clear this file, run the checker, and refile the output.
-#
-# Reviewed 2026-10-03.
-
-# --- rule 18: String reaching Text(), bypassing the string catalog --------
-Shared/App/PommeCoreApp.swift:265
-Shared/App/PommeCoreApp.swift:532
-Shared/Views/ChatView+Channels.swift:400
-Shared/Views/ChatView.swift:163
-Shared/Views/ChatView.swift:203
-Shared/Views/ContactListView+ChannelsUI.swift:43
-Shared/Views/ContactRowView.swift:192
-Shared/Views/LineOfSight/LineOfSightView.swift:217
-Shared/Views/LineOfSight/LoSResultsView.swift:200
-Shared/Views/LineOfSight/LoSResultsView.swift:28
-Shared/Views/LineOfSight/RepeaterConfigView.swift:58
-Shared/Views/LineOfSight/TerrainProfileRenderer.swift:234
-Shared/Views/NetworkToolsView+Channels.swift:101
-Shared/Views/NetworkToolsView+Channels.swift:111
-Shared/Views/NetworkToolsView+Device.swift:181
-Shared/Views/NetworkToolsView+Device.swift:503
-Shared/Views/NetworkToolsView+Device.swift:540
-Shared/Views/NetworkToolsView.swift:195
-Shared/Views/RemoteManagementView.swift:399
-Shared/Views/RemoteManagementView.swift:674
-Shared/Views/SettingsView+RadioPrivacy.swift:349
-Shared/Views/SettingsView+Sections.swift:295
-Shared/Views/SettingsView+Sections.swift:472
-Shared/Views/SettingsView+Sections.swift:730
-Shared/Views/SettingsView+TipJar.swift:520
-Shared/Views/SettingsView+TipJar.swift:542
-Shared/Views/SettingsView+TipJar.swift:545
-
-# --- rules 1/2: Codable without a backward-compatible decoder ------------
-Packages/MeshCoreKit/Sources/MeshCoreKit/Models/Channel.swift:34
-Packages/MeshCoreKit/Sources/MeshCoreKit/Models/DeviceInfo.swift:14
-Shared/Models/CommunityPreset.swift:11
+Packages/MeshCoreKit/Sources/MeshCoreKit/Models/Channel.swift:34  # rule 1/2: MeshChannel
+Packages/MeshCoreKit/Sources/MeshCoreKit/Models/DeviceInfo.swift:14  # rule 1/2: DeviceInfo
+Shared/App/PommeCoreApp.swift:265  # rule 18: lastErrorMessage
+Shared/App/PommeCoreApp.swift:532  # rule 18: lastErrorMessage
+Shared/Models/CommunityPreset.swift:11  # rule 1/2: CommunityPresetManifest
+Shared/Views/ChatView+Channels.swift:400  # rule 18: loginStatusText
+Shared/Views/ChatView.swift:163  # rule 18: routeLabel
+Shared/Views/ChatView.swift:203  # rule 18: routeLabel
+Shared/Views/ContactListView+ChannelsUI.swift:43  # rule 18: connectionLabel
+Shared/Views/ContactRowView.swift:192  # rule 18: seenText
+Shared/Views/LineOfSight/LineOfSightView.swift:217  # rule 18: headerTitle
+Shared/Views/LineOfSight/LoSResultsView.swift:200  # rule 18: label: String
+Shared/Views/LineOfSight/LoSResultsView.swift:28  # rule 18: summaryText
+Shared/Views/LineOfSight/RepeaterConfigView.swift:58  # rule 18: title: String
+Shared/Views/LineOfSight/TerrainProfileRenderer.swift:234  # rule 18: label: String
+Shared/Views/NetworkToolsView+Channels.swift:101  # rule 18: actionButtonLabel
+Shared/Views/NetworkToolsView+Channels.swift:111  # rule 18: footerText
+Shared/Views/NetworkToolsView+Device.swift:181  # rule 18: label: String
+Shared/Views/NetworkToolsView+Device.swift:503  # rule 18: label: String
+Shared/Views/NetworkToolsView+Device.swift:540  # rule 18: label: String
+Shared/Views/NetworkToolsView.swift:195  # rule 18: errorMessage
+Shared/Views/RemoteManagementView.swift:399  # rule 18: statusLabel
+Shared/Views/RemoteManagementView.swift:674  # rule 18: neighborsText
+Shared/Views/SettingsView+RadioPrivacy.swift:349  # rule 18: rangeText
+Shared/Views/SettingsView+Sections.swift:295  # rule 18: gpsStatusLabel
+Shared/Views/SettingsView+Sections.swift:472  # rule 18: regionMessage
+Shared/Views/SettingsView+Sections.swift:730  # rule 18: connectionLabel
+Shared/Views/SettingsView+TipJar.swift:527  # rule 18: errorMessage
+Shared/Views/SettingsView+TipJar.swift:549  # rule 18: thankYouTitle
+Shared/Views/SettingsView+TipJar.swift:552  # rule 18: thankYouMessage
