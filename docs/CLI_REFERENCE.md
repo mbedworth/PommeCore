@@ -35,7 +35,7 @@ Used for USB CLI mode (repeater/room/sensor firmware) and BLE remote admin sessi
 | `get pwrmgt.bootreason` | Present since 1.16.0, extended to ESP targets in 1.17.0. Replies `> Reset: <reason>; Shutdown: <reason>`. Shown as the read-only Last Boot row in Maintenance. |
 | `get/set radio.fem.rxgain` | 1.17.1 (select Heltec boards). **Not exposed in the app** — 1.17.1 states companion firmware cannot configure FEM gain, so defaults apply. |
 | `get/set radio.fem.txgain` | 1.17.1, Station G3 only. Not exposed, same reason. |
-| `room.post` | 1.17.0, room server only — server-originated posts. Not yet exposed (see room permission manager work). |
+| `room.post <text>` | 1.17.0, room server only — the server posts as itself. Exposed as Remote Management → Room Server → Announcements. Replies `OK`, or `ERR empty message`. Admin-only (the firmware rejects all CLI data from non-admin clients). Firmware stores `MAX_POST_TEXT_LEN` = 160 − 9 = **151 bytes** and truncates past it without saying so, which is why the composer counts UTF-8 bytes rather than characters. There is no `get room.post`, so the UI is gated on `session.firmwareAtLeast(1, 17)` rather than on a probe. |
 | `get radio.rxgain` | RX boosted gain on/off. Pre-existing, not currently fetched by the app. |
 
 **Detecting unsupported commands:** firmware answers an unknown command with `??: <command>` and a getter for

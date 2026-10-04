@@ -26,6 +26,15 @@ struct RemoteRoomSection: View {
     @State private var newGuestPassword = ""
     @State private var guestPwFeedback = false
     @State private var showGuestPwEdit = false
+    @State private var announcement = ""
+    @State private var announcementFeedback = false
+
+    /// Firmware truncates a post at `MAX_POST_TEXT_LEN` (160 - 9) bytes, silently.
+    /// Counting UTF-8 bytes rather than characters, because that is what the radio stores.
+    private static let maxPostBytes = 151
+
+    private var announcementByteCount: Int { announcement.utf8.count }
+    private var announcementTooLong: Bool { announcementByteCount > Self.maxPostBytes }
 
     private var chatContacts: [Contact] {
         contactStore.contacts.filter { $0.type == .chat }.sorted { $0.name < $1.name }
@@ -172,6 +181,70 @@ struct RemoteRoomSection: View {
             } header: {
                 SectionInfoHeader(title: "Client Permissions", info: "Set access level for a connected client. Pick from known contacts or enter a pubkey hex prefix manually. Guest = read-only, Read-Write = can post, Admin = full control.")
             }
+
+            // room.post has no getter, so this is version-gated rather than probed.
+            if session.firmwareAtLeast(1, 17) {
+                announcementSection
+            }
+        }
+    }
+
+    /// Post a message to the room as the server itself (firmware 1.17.0+).
+    @ViewBuilder
+    private var announcementSection: some View {
+        Section {
+            HStack(alignment: .top) {
+                Image(systemName: "megaphone")
+                    .foregroundStyle(MeshTheme.accent)
+                    .frame(width: 24)
+                #if os(watchOS)
+                TextField("Message", text: $announcement)
+                    .foregroundStyle(MeshTheme.textPrimary)
+                #else
+                TextField("Message to post as the room", text: $announcement, axis: .vertical)
+                    .foregroundStyle(MeshTheme.textPrimary)
+                    .textFieldStyle(MeshTextFieldStyle())
+                    .lineLimit(1...4)
+                #endif
+            }
+            .listRowBackground(MeshTheme.surface)
+
+            if !announcement.isEmpty {
+                HStack {
+                    Spacer()
+                    Text("\(announcementByteCount)/\(Self.maxPostBytes)")
+                        .font(.caption)
+                        .monospacedDigit()
+                        .foregroundStyle(announcementTooLong ? MeshTheme.statusBad : MeshTheme.textSecondary)
+                        .accessibilityLabel(String(
+                            format: announcementTooLong
+                                ? String(localized: "Too long \u{2014} %1$d of %2$d bytes used")
+                                : String(localized: "%1$d of %2$d bytes used"),
+                            announcementByteCount, Self.maxPostBytes))
+                }
+                .listRowBackground(MeshTheme.surface)
+            }
+
+            Button {
+                sendCLI("room.post \(announcement)")
+                showFeedback($announcementFeedback)
+                announcement = ""
+            } label: {
+                HStack {
+                    Image(systemName: announcementFeedback ? "checkmark.circle.fill" : "paperplane")
+                        .foregroundStyle(announcementFeedback ? MeshTheme.statusGood : MeshTheme.accent)
+                        .frame(width: 24)
+                    (announcementFeedback ? Text("Posted") : Text("Post Announcement"))
+                        .foregroundStyle(announcementFeedback ? MeshTheme.statusGood : MeshTheme.accent)
+                    Spacer()
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .disabled(announcement.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || announcementTooLong)
+            .listRowBackground(MeshTheme.surface)
+        } header: {
+            SectionInfoHeader(title: "Announcements", info: "Post a message to the room authored by the server rather than by you. Every member receives it the next time their device syncs. The radio stores 151 bytes and truncates anything longer.")
         }
     }
 }
