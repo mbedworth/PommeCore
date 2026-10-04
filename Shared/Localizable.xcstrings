@@ -37014,7 +37014,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "半径 (fǎng xiào)"
+            "value": "半径"
           }
         }
       }
@@ -37084,7 +37084,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "随机化 (tóng yàng huà)"
+            "value": "随机化"
           }
         }
       }
@@ -37156,7 +37156,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "范围 (fàn wéi)"
+            "value": "范围"
           }
         }
       }
@@ -37228,7 +37228,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "原始电压 (yuán shǐ tōng jiā)"
+            "value": "原始电压"
           }
         }
       }
@@ -37268,7 +37268,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "反応"
+            "value": "リアクション"
           }
         },
         "nl": {
@@ -37298,7 +37298,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "反应 (fǎn ying)"
+            "value": "回应"
           }
         }
       }
@@ -37370,7 +37370,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "只读访问 — 发布不可用 (zhī dú fǎn wèi — fābù bù kěyòng)"
+            "value": "只读访问 — 发布不可用"
           }
         }
       }
@@ -37440,7 +37440,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "读写 (dú xiě)"
+            "value": "读写"
           }
         }
       }
@@ -37450,25 +37450,25 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Čtení"
+            "value": "Měření"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wird gelesen"
+            "value": "Messwert"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Leyendo"
+            "value": "Lectura"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lecture"
+            "value": "Mesure"
           }
         },
         "it": {
@@ -37480,37 +37480,37 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "読み取り中"
+            "value": "測定値"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lezen"
+            "value": "Meetwaarde"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Odczytywanie"
+            "value": "Odczyt"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lendo"
+            "value": "Leitura"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Читання"
+            "value": "Показник"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "阅读 (yuè dú)"
+            "value": "读数"
           }
         }
       }
@@ -37580,7 +37580,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "准备好 (zhì yǐ hǎo)"
+            "value": "准备好"
           }
         }
       }
@@ -37652,7 +37652,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重启设备 (chóng qǐ zhuò bèi)"
+            "value": "重启设备"
           }
         }
       }
@@ -67494,7 +67494,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "素晴らしい"
+            "value": "非常に良好"
           }
         },
         "zh-Hans": {
@@ -67566,7 +67566,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "良い"
+            "value": "良好"
           }
         },
         "zh-Hans": {
@@ -67638,7 +67638,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "公平"
+            "value": "普通"
           }
         },
         "zh-Hans": {
@@ -67716,7 +67716,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "弱 (wēi)"
+            "value": "弱"
           }
         }
       }
@@ -67788,7 +67788,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "无信号 (wú shǐjī)"
+            "value": "无信号"
           }
         }
       }

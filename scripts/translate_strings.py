@@ -14,6 +14,7 @@ import re
 import sys
 import time
 import argparse
+import unicodedata
 import urllib.request
 import urllib.error
 from copy import deepcopy
@@ -196,6 +197,16 @@ def specifier_mismatch(key, value):
     return f"added {sorted(set(got) - set(want)) or got}"
 
 
+def _is_latin(ch):
+    return "LATIN" in unicodedata.name(ch, "")
+
+
+def _has_cjk(text):
+    return any(any(script in unicodedata.name(c, "")
+                   for script in ("CJK", "HIRAGANA", "KATAKANA", "HANGUL"))
+               for c in text)
+
+
 def translation_problem(key, value, lang=None):
     """Why `value` is not a usable translation of `key`, or None if it is.
 
@@ -242,6 +253,20 @@ def translation_problem(key, value, lang=None):
             head = stripped[:stripped.rindex(open_)].strip()
             if head.casefold() == key.strip().casefold():
                 return f"appends a {open_}{close} gloss to the untranslated source"
+
+    # Romanization gloss. The check above only fires when the head is the
+    # English source. The nastier version translates correctly and then
+    # annotates its own answer: "重启设备 (chóng qǐ zhuò bèi)", "弱 (wēi)". The
+    # head is right, so nothing upstream objects, and the pinyin renders in the
+    # UI as part of the label. Twelve zh-Hans strings shipped this way, in one
+    # alphabetical run — the model started glossing partway through a batch and
+    # kept going. A parenthetical of Latin letters inside a CJK translation is
+    # never part of the string unless the English source had it too.
+    if stripped.endswith(")") and "(" in stripped and _has_cjk(stripped):
+        inner = stripped[stripped.rindex("(") + 1:-1]
+        letters = [c for c in inner if c.isalpha()]
+        if letters and all(_is_latin(c) for c in letters) and inner not in key:
+            return f"annotates the translation with a romanization gloss ({inner!r})"
 
     # Implausible expansion. A short label cannot honestly become a sentence,
     # so this catches both halves of the damage a misaligned batch does and the
