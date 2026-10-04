@@ -128,7 +128,9 @@ struct ContactRowView: View {
             }
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(contact.type.displayName), \(statusLabel)\(loggedIn ? ", logged in" : "")")
+        .accessibilityLabel(loggedIn
+            ? String(localized: "\(contact.type.displayName), \(statusLabel), logged in")
+            : String(localized: "\(contact.type.displayName), \(statusLabel)"))
     }
 
     @ViewBuilder
