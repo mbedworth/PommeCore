@@ -110,7 +110,11 @@ struct SensorDashboardView: View {
                 ($0.nodeName.lowercased(), $0.series.label) < ($1.nodeName.lowercased(), $1.series.label)
             }
             return MetricGroup(name: name,
-                               label: sorted.first?.series.label ?? name,
+                               // The LPP type, never a series label: a label carries
+                               // the channel ("Humidity (ch 2)"), which belongs on the
+                               // legend row for the node that has several, not on a
+                               // header covering every node.
+                               label: name,
                                // Readings of one LPP type share a unit; take the
                                // first rather than assuming every node agrees.
                                unit: sorted.first(where: { !$0.unit.isEmpty })?.unit ?? "",
@@ -274,6 +278,9 @@ struct SensorDashboardView: View {
                         .font(.caption)
                         .foregroundStyle(MeshTheme.textPrimary)
                         .lineLimit(1)
+                        // Which node it is matters more than which of its sensors,
+                        // so the channel label truncates first.
+                        .layoutPriority(1)
                     // Shown only when a node reports more than one of this
                     // measurement — firmware puts each sensor on its own LPP
                     // channel, so one node can hold several temperatures.
