@@ -1397,7 +1397,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pular %@"
+            "value": "pular (%@)"
           }
         }
       }
@@ -1848,34 +1848,16 @@
             "value": "Moins de -10"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "< -10 (Meno di -10)"
-          }
-        },
         "ja": {
           "stringUnit": {
             "state": "translated",
             "value": "ヨーロッパ (< -10)"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "< -10 (minder dan -10)"
-          }
-        },
         "pl": {
           "stringUnit": {
             "state": "translated",
             "value": "poniżej -10"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "< -10 (Menor que -10)"
           }
         },
         "uk": {
@@ -1888,6 +1870,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "低于 -10"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "< -10"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "< -10"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menos que -10"
           }
         }
       }
@@ -1932,34 +1932,16 @@
             "value": "> 0 dB"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "> 0 dB (Superiore a 0 dB)"
-          }
-        },
         "ja": {
           "stringUnit": {
             "state": "translated",
             "value": "0 dB 以上"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "> 0 dB (meer dan 0 dB)"
-          }
-        },
         "pl": {
           "stringUnit": {
             "state": "translated",
             "value": "> 0 dB"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "> 0 dB (Maior que 0 dB)"
           }
         },
         "uk": {
@@ -1972,6 +1954,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "超出 0 dB"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "> 0 dB"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "> 0 dB"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "> 0 dB"
           }
         }
       }
@@ -2084,12 +2084,6 @@
             "value": "🇮🇳 インド"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "🇮🇳 India (India)"
-          }
-        },
         "pl": {
           "stringUnit": {
             "state": "translated",
@@ -2112,6 +2106,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "🇮🇳 印度"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🇮🇳 India"
           }
         }
       }
@@ -2154,12 +2154,6 @@
             "value": "🇯🇵 日本"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "🇯🇵 Japan (Japan)"
-          }
-        },
         "pl": {
           "stringUnit": {
             "state": "translated",
@@ -2182,6 +2176,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "🇯🇵 日本"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🇯🇵 Japan"
           }
         }
       }
@@ -3339,22 +3339,10 @@
             "value": "15分钟"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "15 min → 15 min"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "15 min → 15 min"
-          }
-        },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "15 min (manterá o formato original, pois é uma string simples e não contém termos técnicos)"
+            "value": "15 min"
           }
         }
       }
@@ -3623,12 +3611,6 @@
             "value": "30分钟"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "30 minutes [trente minutes]"
-          }
-        },
         "es": {
           "stringUnit": {
             "state": "translated",
@@ -3698,12 +3680,6 @@
             "value": "60分钟"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "60 min [soixante minutes]"
-          }
-        },
         "es": {
           "stringUnit": {
             "state": "translated",
@@ -3766,12 +3742,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "90分钟"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "90 min [neufante minutes]"
           }
         },
         "es": {
@@ -3843,12 +3813,6 @@
             "value": "120分钟"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "120 min [cent vingt minutes]"
-          }
-        },
         "es": {
           "stringUnit": {
             "state": "translated",
@@ -3913,22 +3877,16 @@
             "value": "180分钟"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Allez dans Réglages → Bluetooth"
-          }
-        },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "180 min → 180 minutos"
+            "value": "180 minutos"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vá para Configurações → Bluetooth"
+            "value": "180 minutos"
           }
         }
       }
@@ -3988,22 +3946,16 @@
             "value": "240分钟"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Trouvez votre appareil MeshCore et appuyez sur ⓘ"
-          }
-        },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "240 min → 240 minutos"
+            "value": "240 minutos"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Encontre o seu dispositivo MeshCore e toque em ⓘ"
+            "value": "240 minutos"
           }
         }
       }
@@ -5366,7 +5318,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nachdem das Radio den OTA-Modus gestartet hat, auf das WiFi-Symbol in der Menüleiste klicken und verbinden mit:"
+            "value": "Nachdem das Funkgerät den OTA-Modus gestartet hat, auf das WiFi-Symbol in der Menüleiste klicken und verbinden mit:"
           }
         },
         "es": {
@@ -5390,7 +5342,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ラジオがOTAモードを開始した後、メニューバーにWi-Fiアイコンをクリックし、次の接続先へ："
+            "value": "無線機がOTAモードを開始した後、メニューバーにWi-Fiアイコンをクリックし、次の接続先へ："
           }
         },
         "nl": {
@@ -5438,7 +5390,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nachdem das Radio den OTA-Modus gestartet hat, zu Einstellungen → WLAN gehen und verbinden mit:"
+            "value": "Nachdem das Funkgerät den OTA-Modus gestartet hat, zu Einstellungen → WLAN gehen und verbinden mit:"
           }
         },
         "es": {
@@ -6008,7 +5960,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Alle Radios in Ihrem Mesh müssen dieselben Einstellungen verwenden. SF (Spreizfaktor): höher = größere Reichweite, langsamer. CR (Codierungsrate): höher = mehr Fehlerkorrektur. BW (Bandbreite): niedriger = größere Reichweite. Änderungen erfordern einen Neustart."
+            "value": "Alle Funkgeräte in Ihrem Mesh müssen dieselben Einstellungen verwenden. SF (Spreizfaktor): höher = größere Reichweite, langsamer. CR (Codierungsrate): höher = mehr Fehlerkorrektur. BW (Bandbreite): niedriger = größere Reichweite. Änderungen erfordern einen Neustart."
           }
         },
         "es": {
@@ -6032,7 +5984,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "メッシュ上のすべてのラジオは同じ設定を使用する必要があります。SF (広がり因子): 高い = 長距離、遅い。CR (符号化率): 高い = エラー訂正多し。BW (帯域幅): 低い = 長距離。変更には再起動が必要です。"
+            "value": "メッシュ上のすべての無線機は同じ設定を使用する必要があります。SF (広がり因子): 高い = 長距離、遅い。CR (符号化率): 高い = エラー訂正多し。BW (帯域幅): 低い = 長距離。変更には再起動が必要です。"
           }
         },
         "nl": {
@@ -6708,7 +6660,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wenden Sie \"%@\" auf Ihr verbundenes Radio an? Die aktuellen Einstellungen werden überschrieben. Nach der Anwendung ist ein Neustart erforderlich."
+            "value": "Wenden Sie \"%@\" auf Ihr verbundenes Funkgerät an? Die aktuellen Einstellungen werden überschrieben. Nach der Anwendung ist ein Neustart erforderlich."
           }
         },
         "fr": {
@@ -6762,7 +6714,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "接続されたラジオに \"%@\" を適用します。現在の設定が上書きされます。適用後、再起動が必要です。"
+            "value": "接続された無線機に \"%@\" を適用します。現在の設定が上書きされます。適用後、再起動が必要です。"
           }
         },
         "zh-Hans": {
@@ -6926,7 +6878,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Radio-Voreinstellung anwenden?"
+            "value": "Funkgerät-Voreinstellung anwenden?"
           }
         },
         "es": {
@@ -6950,7 +6902,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ラジオのプリセットを適用しますか？"
+            "value": "無線機のプリセットを適用しますか？"
           }
         },
         "nl": {
@@ -6998,7 +6950,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "iCloud-Limit (1 MB) wird erreicht. Alte Radiodaten unten löschen."
+            "value": "iCloud-Limit (1 MB) wird erreicht. Alte Funkgerätedaten unten löschen."
           }
         },
         "es": {
@@ -7022,7 +6974,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "iCloudの制限に近づいています（1MB）。古いラジオデータを削除することをお勧めします。"
+            "value": "iCloudの制限に近づいています（1MB）。古い無線機データを削除することをお勧めします。"
           }
         },
         "nl": {
@@ -7885,12 +7837,6 @@
             "value": "Média"
           }
         },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Середнє значення"
-          }
-        },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
@@ -8735,16 +8681,16 @@
             "value": "Блоковані контакти не з'являтимуться у вашому списку контактів, а їхні повідомлення будуть придушені."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bluetooth 安全性"
-          }
-        },
         "nl": {
           "stringUnit": {
             "state": "translated",
             "value": "Geblokkeerde contacten zullen niet in uw contactlijst verschijnen en hun berichten zullen worden onderdrukt."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "屏蔽的联系人不会出现在您的联系人列表中，他们的消息将被抑制。"
           }
         }
       }
@@ -8830,7 +8776,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verbindung zum Radio nicht möglich?"
+            "value": "Verbindung zum Funkgerät nicht möglich?"
           }
         },
         "es": {
@@ -8854,7 +8800,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ラジオに接続できませんか？"
+            "value": "無線機に接続できませんか？"
           }
         },
         "pl": {
@@ -8875,16 +8821,16 @@
             "value": "Не вдається підключитися до радіостанції?"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "取消"
-          }
-        },
         "nl": {
           "stringUnit": {
             "state": "translated",
             "value": "Kan niet verbinden met radio?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法连接到无线电？"
           }
         }
       }
@@ -8954,7 +8900,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ga naar Instellingen → Bluetooth"
+            "value": "Annuleren"
           }
         }
       }
@@ -9024,7 +8970,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zoek je MeshCore-apparaat en tik ⓘ"
+            "value": "Midden"
           }
         }
       }
@@ -9096,7 +9042,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tik ‘Dit apparaat vergeten’"
+            "value": "Wijzig standaardwachtwoorden na inloggen via Afstandsbeheer → Beveiliging."
           }
         }
       }
@@ -11016,7 +10962,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verbinden Sie sich mit einem Companion-Radio mit aktiviertem WiFi (TCP, Standardport 5000)."
+            "value": "Verbinden Sie sich mit einem Companion-Funkgerät mit aktiviertem WiFi (TCP, Standardport 5000)."
           }
         },
         "es": {
@@ -11040,7 +10986,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "WiFiを有効にしたコンパニオンラジオに接続します（TCP、デフォルトポート5000）。"
+            "value": "WiFiを有効にしたコンパニオン無線機に接続します（TCP、デフォルトポート5000）。"
           }
         },
         "nl": {
@@ -11088,7 +11034,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verbinden Sie sich mit einem MeshCore-Radio, um Geräteeinstellungen anzuzeigen und zu ändern."
+            "value": "Verbinden Sie sich mit einem MeshCore-Funkgerät, um Geräteeinstellungen anzuzeigen und zu ändern."
           }
         },
         "es": {
@@ -11112,7 +11058,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "メッシュコアラジオに接続して、デバイスの設定を表示および変更します。"
+            "value": "メッシュコア無線機に接続して、デバイスの設定を表示および変更します。"
           }
         },
         "nl": {
@@ -11160,7 +11106,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verbinde mit einem Radio, um dieses Profil anzuwenden."
+            "value": "Verbinde mit einem Funkgerät, um dieses Profil anzuwenden."
           }
         },
         "es": {
@@ -11184,7 +11130,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "このプロファイルを適用するためにラジオに接続します。"
+            "value": "このプロファイルを適用するために無線機に接続します。"
           }
         },
         "nl": {
@@ -11302,7 +11248,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Radio verbinden"
+            "value": "Funkgerät verbinden"
           }
         },
         "es": {
@@ -11326,7 +11272,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ラジオを接続"
+            "value": "無線機を接続"
           }
         },
         "nl": {
@@ -11356,7 +11302,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "连接您的收音机"
+            "value": "连接您的无线电"
           }
         }
       }
@@ -13214,7 +13160,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gesamten Nachrichtenverlauf vom alten Radio auf das aktuell verbundene Radio kopieren."
+            "value": "Gesamten Nachrichtenverlauf vom alten Funkgerät auf das aktuell verbundene Funkgerät kopieren."
           }
         },
         "es": {
@@ -13238,7 +13184,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "古いラジオから現在接続されているラジオにすべてのメッセージ履歴をコピーします。"
+            "value": "古い無線機から現在接続されている無線機にすべてのメッセージ履歴をコピーします。"
           }
         },
         "nl": {
@@ -13268,7 +13214,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "从旧收音机复制所有消息历史记录到您当前连接的收音机。"
+            "value": "从旧无线电复制所有消息历史记录到您当前连接的无线电。"
           }
         }
       }
@@ -14697,7 +14643,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Entferne \"%@\" vom Radio?"
+            "value": "Entferne \"%@\" vom Funkgerät?"
           }
         },
         "es": {
@@ -14721,7 +14667,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ラジオから \"%@\" を削除しますか？"
+            "value": "無線機から \"%@\" を削除しますか？"
           }
         },
         "nl": {
@@ -14751,7 +14697,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "从收音机中删除 \"%@\"？"
+            "value": "从无线电中删除 \"%@\"？"
           }
         }
       }
@@ -15047,7 +14993,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Radiodaten löschen?"
+            "value": "Funkgerätedaten löschen?"
           }
         },
         "es": {
@@ -15071,7 +15017,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ラジオデータを削除しますか？"
+            "value": "無線機データを削除しますか？"
           }
         },
         "nl": {
@@ -17522,7 +17468,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Jedes Radio speichert Nachrichten separat. Wenn Sie ein Radio ersetzen, verwenden Sie „Migrieren“, um den Verlauf auf Ihr neues Gerät zu übertragen."
+            "value": "Jedes Funkgerät speichert Nachrichten separat. Wenn Sie ein Funkgerät ersetzen, verwenden Sie „Migrieren“, um den Verlauf auf Ihr neues Gerät zu übertragen."
           }
         },
         "es": {
@@ -17546,7 +17492,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "各ラジオはメッセージを個別に保存します。ラジオを交換する場合は、「移行」を使用して履歴を新しいデバイスに移動してください。"
+            "value": "各無線機はメッセージを個別に保存します。無線機を交換する場合は、「移行」を使用して履歴を新しいデバイスに移動してください。"
           }
         },
         "nl": {
@@ -18436,7 +18382,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Geben Sie die auf dem Bildschirm Ihres Radios angezeigte BLE-PIN ein (falls erforderlich)."
+            "value": "Geben Sie die auf dem Bildschirm Ihres Funkgeräte angezeigte BLE-PIN ein (falls erforderlich)."
           }
         },
         "es": {
@@ -19181,7 +19127,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ラジオ名、周波数、スプレッディングファクター、帯域幅、送信電力、チャネル、アクセス設定をエクスポートします。"
+            "value": "無線機名、周波数、スプレッディングファクター、帯域幅、送信電力、チャネル、アクセス設定をエクスポートします。"
           }
         },
         "nl": {
@@ -19414,16 +19360,16 @@
             "value": "Reiniciar fábrica?"
           }
         },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Чи підтвердити скидання до заводських налаштувань?"
-          }
-        },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
             "value": "确认重置工厂设置？"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скидання до заводських налаштувань?"
           }
         }
       }
@@ -21349,7 +21295,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Geben Sie dieser Radioschaltung einen Namen."
+            "value": "Geben Sie dieser Funkgerätkonfiguration einen Namen."
           }
         },
         "fr": {
@@ -21403,7 +21349,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "このラジオ設定に名前を付けます。"
+            "value": "この無線機設定に名前を付けます。"
           }
         },
         "zh-Hans": {
@@ -21926,7 +21872,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hardware- und Firmware-Details von Ihrem Radio."
+            "value": "Hardware- und Firmware-Details von Ihrem Funkgerät."
           }
         },
         "es": {
@@ -21950,7 +21896,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "あなたのラジオのハードウェアとファームウェア詳細"
+            "value": "あなたの無線機のハードウェアとファームウェア詳細"
           }
         },
         "nl": {
@@ -22339,34 +22285,10 @@
     },
     "iCloud": {
       "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Přejděte do Nastavení → Bluetooth"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "iCloud"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ve a Ajustes → Bluetooth"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Allez dans Réglages → Bluetooth"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vai su Impostazioni → Bluetooth"
           }
         },
         "ja": {
@@ -22375,34 +22297,58 @@
             "value": "設定 → Bluetoothに移動"
           }
         },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "云端存储"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloud"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ga naar Instellingen → Bluetooth"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Przejdź do Ustawień → Bluetooth"
+            "value": "iCloud"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vá para Configurações → Bluetooth"
+            "value": "iCloud"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloud"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Перейдіть до Налаштувань → Bluetooth"
+            "value": "Хмарне сховище"
           }
         },
-        "zh-Hans": {
+        "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "云端存储"
+            "value": "iCloud"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloud"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloud"
           }
         }
       }
@@ -22429,12 +22375,6 @@
             "value": "Encuentra tu dispositivo MeshCore y toca ⓘ"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Trouvez votre appareil MeshCore et appuyez sur ⓘ"
-          }
-        },
         "it": {
           "stringUnit": {
             "state": "translated",
@@ -22459,12 +22399,6 @@
             "value": "Znajdź urządzenie MeshCore i naciśnij ⓘ"
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Encontre o dispositivo MeshCore e toque em ⓘ"
-          }
-        },
         "uk": {
           "stringUnit": {
             "state": "translated",
@@ -22476,6 +22410,18 @@
             "state": "translated",
             "value": "iCloud 存储"
           }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stockage iCloud"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Armazenamento iCloud"
+          }
         }
       }
     },
@@ -22483,34 +22429,10 @@
       "comment": "A label displayed above the emoji picker.",
       "isCommentAutoGenerated": true,
       "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Klepněte na 'Zapomenout toto zařízení'"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Symbol"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Toca 'Olvidar este dispositivo'"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Appuyez sur 'Oublier cet appareil'"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tocca 'Dimentica questo dispositivo'"
           }
         },
         "ja": {
@@ -22519,34 +22441,58 @@
             "value": "「このデバイスを忘れる」をタップ"
           }
         },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图标"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ícono"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Icona"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tik op 'Dit apparaat vergeten'"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Naciśnij ‘Zapomnij o tym urządzeniu’"
+            "value": "Icon"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Toque em 'Esquecer este Dispositivo'"
+            "value": "Ícone"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ikona (Icon)"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ikona"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Натисніть 'Забути цей пристрій'"
+            "value": "Іконка"
           }
         },
-        "zh-Hans": {
+        "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "图标"
+            "value": "Icône"
           }
         }
       }
@@ -22588,7 +22534,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "30秒間ラジオの電源を切る"
+            "value": "30秒間無線機の電源を切る"
           }
         },
         "nl": {
@@ -22630,7 +22576,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wenn Ihr Radio im Scanner nicht erscheint:\n\n1. Zu Einstellungen → Bluetooth gehen\n2. Ihr MeshCore-Gerät finden und ⓘ antippen\n3. „Disses Gerät vergessen“ antippen\n4. Radio 30 Sekunden ausschalten\n5. Wieder einschalten und erneut scannen\n\nEin erzwungenes Beenden der App kann den Bluetooth des Radios in einem blockierten Zustand hinterlassen. Ein vollständiger Neustart behebt dies."
+            "value": "Wenn Ihr Funkgerät im Scanner nicht erscheint:\n\n1. Zu Einstellungen → Bluetooth gehen\n2. Ihr MeshCore-Gerät finden und ⓘ antippen\n3. „Disses Gerät vergessen“ antippen\n4. Funkgerät 30 Sekunden ausschalten\n5. Wieder einschalten und erneut scannen\n\nEin erzwungenes Beenden der App kann den Bluetooth des Funkgeräts in einem blockierten Zustand hinterlassen. Ein vollständiger Neustart behebt dies."
           }
         },
         "fr": {
@@ -22684,13 +22630,13 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ラジオがスキャナーに表示されない場合は\n\n1. 設定 → Bluetoothに移動\n2. MeshCoreデバイスを見つけてⓘをタップ\n3. 「このデバイスを忘れる」をタップ\n4. 30秒間ラジオを電源オフ\n5. 再度スキャンするために電源を入れる\n\nアプリを強制終了すると、ラジオのBluetoothがロック状態になることがあります。完全な電源サイクルでクリアします。"
+            "value": "無線機がスキャナーに表示されない場合は\n\n1. 設定 → Bluetoothに移動\n2. MeshCoreデバイスを見つけてⓘをタップ\n3. 「このデバイスを忘れる」をタップ\n4. 30秒間無線機を電源オフ\n5. 再度スキャンするために電源を入れる\n\nアプリを強制終了すると、無線機のBluetoothがロック状態になることがあります。完全な電源サイクルでクリアします。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "如果你的收音机在扫描器中未出现：\n\n1. 前往设置 → 蓝牙\n2. 找到你的MeshCore设备并点击ⓘ\n3. 点击‘忘记此设备’\n4. 将收音机关机30秒\n5. 重新启动并再次扫描\n\n强制退出应用可能会使收音机的蓝牙陷入挂断状态。完整电源循环可清除它。"
+            "value": "如果你的无线电在扫描器中未出现：\n\n1. 前往设置 → 蓝牙\n2. 找到你的MeshCore设备并点击ⓘ\n3. 点击‘忘记此设备’\n4. 将无线电关机30秒\n5. 重新启动并再次扫描\n\n强制退出应用可能会使无线电的蓝牙陷入挂断状态。完整电源循环可清除它。"
           }
         }
       }
@@ -23052,7 +22998,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Enthält den Radionamen, die Frequenz, den Ausbreitungsfaktor, den Bandbreitenbereich, die Sendeleistung, die Kanäle und Routing-Einstellungen. In iCloud gespeichert. Maximal 10 Profile."
+            "value": "Enthält den Funkgerätnamen, die Frequenz, den Ausbreitungsfaktor, den Bandbreitenbereich, die Sendeleistung, die Kanäle und Routing-Einstellungen. In iCloud gespeichert. Maximal 10 Profile."
           }
         },
         "fr": {
@@ -23106,7 +23052,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ラジオ名、周波数、スプレッディングファクター、帯域幅、送信電力、チャネル、ルーティング設定が含まれます。iCloudに保存されます。最大10プロファイル。"
+            "value": "無線機名、周波数、スプレッディングファクター、帯域幅、送信電力、チャネル、ルーティング設定が含まれます。iCloudに保存されます。最大10プロファイル。"
           }
         },
         "zh-Hans": {
@@ -23902,7 +23848,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bekannte Radios"
+            "value": "Bekannte Funkgeräte"
           }
         },
         "es": {
@@ -23926,7 +23872,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "既知のラジオ"
+            "value": "既知の無線機"
           }
         },
         "nl": {
@@ -24627,7 +24573,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Live-Radiodiagnose. Rauschpegel ist der Hintergrundsignalpegel (niedriger ist besser). RSSI ist die Empfangssignalstärke. SNR ist das Signal-Rausch-Verhältnis (höher ist besser)."
+            "value": "Live-Funkgerätdiagnose. Rauschpegel ist der Hintergrundsignalpegel (niedriger ist besser). RSSI ist die Empfangssignalstärke. SNR ist das Signal-Rausch-Verhältnis (höher ist besser)."
           }
         },
         "es": {
@@ -24651,7 +24597,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ライブラジオ診断。ノイズフロアは背景信号レベル（低ければ良い）です。RSSIは受信信号強度です。SNRは信号対雑音比（高ければ良い）です。"
+            "value": "ライブ無線機診断。ノイズフロアは背景信号レベル（低ければ良い）です。RSSIは受信信号強度です。SNRは信号対雑音比（高ければ良い）です。"
           }
         },
         "nl": {
@@ -24697,7 +24643,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Live-Ablesung vom Akkusensor des Radios. Genauigkeit hängt von der richtigen Chemie-Auswahl unten ab."
+            "value": "Live-Ablesung vom Akkusensor des Funkgeräts. Genauigkeit hängt von der richtigen Chemie-Auswahl unten ab."
           }
         },
         "es": {
@@ -24721,7 +24667,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ラジオの電池センサーからのライブ読み取り。正確性は下記の正しい化学物質選択に依存します。"
+            "value": "無線機の電池センサーからのライブ読み取り。正確性は下記の正しい化学物質選択に依存します。"
           }
         },
         "nl": {
@@ -26754,12 +26700,6 @@
             "value": "Menciones"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mentions [Mentioni]"
-          }
-        },
         "ja": {
           "stringUnit": {
             "state": "translated",
@@ -26801,6 +26741,12 @@
             "state": "translated",
             "value": "Mentions"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menzioni"
+          }
         }
       }
     },
@@ -26824,12 +26770,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Canal de transmisión Mesh"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mesh broadcast channel [Canale di trasmissione mesh]"
           }
         },
         "ja": {
@@ -26873,6 +26813,12 @@
             "state": "translated",
             "value": "Canal de diffusion Mesh"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Canale di broadcast Mesh"
+          }
         }
       }
     },
@@ -26894,12 +26840,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Mapa Mesh"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mesh Map [Mappa mesh]"
           }
         },
         "ja": {
@@ -26943,6 +26883,12 @@
             "state": "translated",
             "value": "Carte Mesh"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mappa Mesh"
+          }
         }
       }
     },
@@ -26966,12 +26912,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Proyecto MeshCore"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "MeshCore Project [Progetto MeshCore]"
           }
         },
         "ja": {
@@ -27015,6 +26955,12 @@
             "state": "translated",
             "value": "Projet MeshCore"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Progetto MeshCore"
+          }
         }
       }
     },
@@ -27036,12 +26982,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Entrega de mensaje"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Message Delivery [Consegna del messaggio]"
           }
         },
         "ja": {
@@ -27085,6 +27025,12 @@
             "state": "translated",
             "value": "Livraison du message"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Consegna del messaggio"
+          }
         }
       }
     },
@@ -27108,12 +27054,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Mensaje que se enviará:"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Message that will be sent: [Messaggio da inviare:]"
           }
         },
         "ja": {
@@ -27157,6 +27097,12 @@
             "state": "translated",
             "value": "Message qui sera envoyé :"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Messaggio che verrà inviato:"
+          }
         }
       }
     },
@@ -27180,12 +27126,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Los mensajes en este canal serán eliminados de tu dispositivo."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Messages in this channel will be deleted from your device. [I messaggi in questo canale saranno eliminati dal tuo dispositivo.]"
           }
         },
         "ja": {
@@ -27229,6 +27169,12 @@
             "state": "translated",
             "value": "Les messages dans cette chaîne seront supprimés de votre appareil."
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I messaggi in questa chat verranno eliminati dal tuo dispositivo."
+          }
         }
       }
     },
@@ -27250,12 +27196,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Mensajes por contacto"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Messages Per Contact [Messaggi per contatto]"
           }
         },
         "ja": {
@@ -27299,6 +27239,12 @@
             "state": "translated",
             "value": "Messages par contact"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Messaggi per contatto"
+          }
         }
       }
     },
@@ -27322,12 +27268,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Los mensajes enviados a este canal aparecerán aquí."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Messages sent to this channel will appear here. [I messaggi inviati a questo canale appariranno qui.]"
           }
         },
         "ja": {
@@ -27371,6 +27311,12 @@
             "state": "translated",
             "value": "Les messages envoyés à ce canal apparaîtront ici."
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I messaggi inviati a questa chat appariranno qui."
+          }
         }
       }
     },
@@ -27392,12 +27338,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Migrar"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Migrate [Migra]"
           }
         },
         "ja": {
@@ -27440,6 +27380,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Migrer"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Migra"
           }
         }
       }
@@ -27527,7 +27473,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Radiodaten migrieren"
+            "value": "Funkgerätedaten migrieren"
           }
         },
         "es": {
@@ -27551,7 +27497,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ラジオデータを移行"
+            "value": "無線機データを移行"
           }
         },
         "nl": {
@@ -27597,7 +27543,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Auf aktuelles Radio migrieren"
+            "value": "Auf aktuelles Funkgerät migrieren"
           }
         },
         "es": {
@@ -27621,7 +27567,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "現在のラジオに移行"
+            "value": "現在の無線機に移行"
           }
         },
         "nl": {
@@ -30367,7 +30313,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kein Radio verbunden"
+            "value": "Kein Funkgerät verbunden"
           }
         },
         "es": {
@@ -30391,7 +30337,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "接続されたラジオなし"
+            "value": "接続された無線機なし"
           }
         },
         "nl": {
@@ -31293,7 +31239,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hinweis: Wenn Ihr Radio über WiFi verbunden ist, wird es beim Start des OTA-Modus getrennt — das ist erwartet."
+            "value": "Hinweis: Wenn Ihr Funkgerät über WiFi verbunden ist, wird es beim Start des OTA-Modus getrennt — das ist erwartet."
           }
         },
         "es": {
@@ -31317,7 +31263,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "注意：WiFi経由でラジオが接続されている場合、OTAモードが開始すると切断されます。これは正常な動作です。"
+            "value": "注意：WiFi経由で無線機が接続されている場合、OTAモードが開始すると切断されます。これは正常な動作です。"
           }
         },
         "nl": {
@@ -31643,7 +31589,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Benachrichtigen, wenn ein neues Radio im Mesh erkannt wird."
+            "value": "Benachrichtigen, wenn ein neues Funkgerät im Mesh erkannt wird."
           }
         },
         "es": {
@@ -31667,7 +31613,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "メッシュ上で新しいラジオが検出されたら通知します。"
+            "value": "メッシュ上で新しい無線機が検出されたら通知します。"
           }
         },
         "nl": {
@@ -31783,7 +31729,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Benachrichtigen, wenn Ihr Radio verbindet oder trennt."
+            "value": "Benachrichtigen, wenn Ihr Funkgerät verbindet oder trennt."
           }
         },
         "es": {
@@ -31807,7 +31753,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ラジオが接続または切断されたら通知します。"
+            "value": "無線機が接続または切断されたら通知します。"
           }
         },
         "nl": {
@@ -32137,7 +32083,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nach dem Verbinden tippen Sie auf das Zahnrad-Symbol oben in der Seitenleiste — oder tippen Sie auf die Verbindungsleiste — um die Einstellungen zu öffnen. Dort können Sie Radiofrequenz, Anzeigename, Datenschutzoptionen und mehr festlegen."
+            "value": "Nach dem Verbinden tippen Sie auf das Zahnrad-Symbol oben in der Seitenleiste — oder tippen Sie auf die Verbindungsleiste — um die Einstellungen zu öffnen. Dort können Sie Funkfrequenz, Anzeigename, Datenschutzoptionen und mehr festlegen."
           }
         },
         "es": {
@@ -32161,7 +32107,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "接続後、サイドバーのギアアイコンをタップ（または接続バーをタップ）して設定を開きます。そこからラジオ周波数、表示名、プライバシーオプションなどを設定できます。"
+            "value": "接続後、サイドバーのギアアイコンをタップ（または接続バーをタップ）して設定を開きます。そこから無線機周波数、表示名、プライバシーオプションなどを設定できます。"
           }
         },
         "nl": {
@@ -34979,7 +34925,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "PommeCore sucht automatisch nach Radios in der Nähe."
+            "value": "PommeCore sucht automatisch nach Funkgeräte in der Nähe."
           }
         },
         "es": {
@@ -35003,7 +34949,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ポムコアは自動的に近くのラジオをスキャンします"
+            "value": "ポムコアは自動的に近くの無線機をスキャンします"
           }
         },
         "nl": {
@@ -35331,7 +35277,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Schalten Sie Ihr MeshCore-Radio ein und stellen Sie sicher, dass Bluetooth auf Ihrem Gerät aktiviert ist."
+            "value": "Schalten Sie Ihr MeshCore-Funkgerät ein und stellen Sie sicher, dass Bluetooth auf Ihrem Gerät aktiviert ist."
           }
         },
         "es": {
@@ -35355,7 +35301,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "メッシュコアのラジオに電源を入れて、デバイスのBluetoothを有効にしてください。"
+            "value": "メッシュコアの無線機に電源を入れて、デバイスのBluetoothを有効にしてください。"
           }
         },
         "nl": {
@@ -36257,13 +36203,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Radio"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Radio, un dispositivo de comunicación inalámbrica."
+            "value": "Funkgerät"
           }
         },
         "it": {
@@ -36275,7 +36215,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ラジオ"
+            "value": "無線機"
           }
         },
         "nl": {
@@ -36313,6 +36253,12 @@
             "state": "translated",
             "value": "Radio"
           }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Radio"
+          }
         }
       }
     },
@@ -36327,13 +36273,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Radio %@…"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Radio %@... (sin traducción, se mantiene como está)"
+            "value": "Funkgerät %@…"
           }
         },
         "it": {
@@ -36345,7 +36285,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ラジオ %@... (変更なし)"
+            "value": "無線機 %@... (変更なし)"
           }
         },
         "nl": {
@@ -36383,6 +36323,12 @@
             "state": "translated",
             "value": "Radio %@..."
           }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Radio %@..."
+          }
         }
       }
     },
@@ -36397,7 +36343,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Radio-Rechner"
+            "value": "Funkgerät-Rechner"
           }
         },
         "es": {
@@ -36415,7 +36361,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ラジオ計算機"
+            "value": "無線機計算機"
           }
         },
         "nl": {
@@ -36467,7 +36413,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Radiokonfiguration"
+            "value": "Funkgerätkonfiguration"
           }
         },
         "es": {
@@ -36485,7 +36431,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ラジオ設定"
+            "value": "無線機設定"
           }
         },
         "nl": {
@@ -36537,7 +36483,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Radioformat: freq_MHz,bw_kHz,sf,cr (z. B. 910.525,62.5,7,5)"
+            "value": "Funkgerätformat: freq_MHz,bw_kHz,sf,cr (z. B. 910.525,62.5,7,5)"
           }
         },
         "es": {
@@ -36555,7 +36501,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ラジオ形式: freq_MHz,bw_kHz,sf,cr (例: 910.525,62.5,7,5)"
+            "value": "無線機形式: freq_MHz,bw_kHz,sf,cr (例: 910.525,62.5,7,5)"
           }
         },
         "nl": {
@@ -36627,7 +36573,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ラジオの識別情報（プライベートキー）は含まれていません。ラジオの識別情報をバックアップするには、PommeCore Macアプリを使用してください：USB接続時に「設定」→「デバイス」→「識別情報のバックアップ」を選択します。"
+            "value": "無線機の識別情報（プライベートキー）は含まれていません。無線機の識別情報をバックアップするには、PommeCore Macアプリを使用してください：USB接続時に「設定」→「デバイス」→「識別情報のバックアップ」を選択します。"
           }
         },
         "nl": {
@@ -36679,7 +36625,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Radioparameter"
+            "value": "Funkparameter"
           }
         },
         "es": {
@@ -36697,7 +36643,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ラジオパラメータ"
+            "value": "無線機パラメータ"
           }
         },
         "nl": {
@@ -36749,7 +36695,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Radio-Voreinstellung"
+            "value": "Funkgerät-Voreinstellung"
           }
         },
         "es": {
@@ -36767,7 +36713,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ラジオプリセット"
+            "value": "無線機プリセット"
           }
         },
         "nl": {
@@ -36819,7 +36765,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Radio-Voreinstellungen"
+            "value": "Funkgerät-Voreinstellungen"
           }
         },
         "es": {
@@ -36837,7 +36783,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ラジオプリセット（複数形）"
+            "value": "無線機プリセット（複数形）"
           }
         },
         "nl": {
@@ -36889,7 +36835,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Radioeinstellungen"
+            "value": "Funkgeräteinstellungen"
           }
         },
         "es": {
@@ -36907,7 +36853,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ラジオ設定"
+            "value": "無線機設定"
           }
         },
         "nl": {
@@ -42412,12 +42358,6 @@
             "value": "Escanee este código QR o comparta el enlace para agregar este contacto."
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Numéroteur"
-          }
-        },
         "it": {
           "stringUnit": {
             "state": "translated",
@@ -42458,6 +42398,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "扫描此二维码或分享链接以添加联系人。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Numérotez ce code QR ou partagez le lien pour ajouter ce contact."
           }
         }
       }
@@ -42607,7 +42553,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Die Durchführung einer Scan-Operation ändert vorübergehend Ihre Radiokonfigurationen. Während des Scans können eingehende Nachrichten verpasst werden (%@s insgesamt)."
+            "value": "Die Durchführung einer Scan-Operation ändert vorübergehend Ihre Funkgerätkonfigurationen. Während des Scans können eingehende Nachrichten verpasst werden (%@s insgesamt)."
           }
         },
         "fr": {
@@ -42661,7 +42607,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "スキャンは一時的にラジオ設定を変更します。スキャン中に受信メッセージが失われる可能性があります（%@件）。"
+            "value": "スキャンは一時的に無線機設定を変更します。スキャン中に受信メッセージが失われる可能性があります（%@件）。"
           }
         },
         "zh-Hans": {
@@ -44025,7 +43971,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nachrichten senden, Kanäle teilen und mit anderen per LoRa-Radio kommunizieren – kein Internet oder Mobilfunk erforderlich."
+            "value": "Nachrichten senden, Kanäle teilen und mit anderen per LoRa-Funkgerät kommunizieren – kein Internet oder Mobilfunk erforderlich."
           }
         },
         "es": {
@@ -44049,7 +43995,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "LoRaラジオを使用してメッセージを送信し、チャネルを共有し、インターネットや携帯電話サービスなしで他のユーザーと接続します。"
+            "value": "LoRa無線機を使用してメッセージを送信し、チャネルを共有し、インターネットや携帯電話サービスなしで他のユーザーと接続します。"
           }
         },
         "nl": {
@@ -45033,7 +44979,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Von Telefon-GPS setzen kopiert die Koordinaten Ihres Telefons zum Radio. Automatische Aktualisierung aktualisiert regelmäßig, während die App geöffnet ist."
+            "value": "Von Telefon-GPS setzen kopiert die Koordinaten Ihres Telefons zum Funkgerät. Automatische Aktualisierung aktualisiert regelmäßig, während die App geöffnet ist."
           }
         },
         "es": {
@@ -45057,7 +45003,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "電話のGPSからラジオに携帯電話の座標をコピーします。アプリがオープンしている間、定期的に自動更新されます。"
+            "value": "電話のGPSから無線機に携帯電話の座標をコピーします。アプリがオープンしている間、定期的に自動更新されます。"
           }
         },
         "nl": {
@@ -46301,7 +46247,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Signalstärkendaten werden automatisch gesammelt, wenn der HF-Monitor geöffnet ist und Sie sich bewegen. Jedes empfangene Paket wird GPS-markiert und hier als farbkodierte Heatmap dargestellt.\n\nÖffnen Sie den HF-Monitor-Tab und bewegen Sie sich mit Ihrem Radio, um Abdeckungsdaten aufzubauen."
+            "value": "Signalstärkendaten werden automatisch gesammelt, wenn der HF-Monitor geöffnet ist und Sie sich bewegen. Jedes empfangene Paket wird GPS-markiert und hier als farbkodierte Heatmap dargestellt.\n\nÖffnen Sie den HF-Monitor-Tab und bewegen Sie sich mit Ihrem Funkgerät, um Abdeckungsdaten aufzubauen."
           }
         },
         "fr": {
@@ -46355,7 +46301,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "信号強度データは、RFモニターが開いた状態で移動している間に自動的に収集されます。受信された各パケットはGPSタグ付けされ、ここに色分けされたヒートマップとしてプロットされます。\n\nRFモニタタブを開き、ラジオを持って移動して、カバレッジデータの構築を開始してください。"
+            "value": "信号強度データは、RFモニターが開いた状態で移動している間に自動的に収集されます。受信された各パケットはGPSタグ付けされ、ここに色分けされたヒートマップとしてプロットされます。\n\nRFモニタタブを開き、無線機を持って移動して、カバレッジデータの構築を開始してください。"
           }
         },
         "zh-Hans": {
@@ -47880,12 +47826,6 @@
             "value": "Riguroso"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Strict (rigoureux)"
-          }
-        },
         "it": {
           "stringUnit": {
             "state": "translated",
@@ -48147,7 +48087,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Schalten Sie Ihr Radio auf %@? Dies ändert Ihre Frequenz, SF und Bandbreite."
+            "value": "Schalten Sie Ihr Funkgerät auf %@? Dies ändert Ihre Frequenz, SF und Bandbreite."
           }
         },
         "es": {
@@ -48195,7 +48135,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ラジオを %@ に切り替えますか？これにより、周波数、SF、帯域幅が変更されます。"
+            "value": "無線機を %@ に切り替えますか？これにより、周波数、SF、帯域幅が変更されます。"
           }
         },
         "zh-Hans": {
@@ -48365,7 +48305,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Synchronisiert Spitznamen, Notizen, Kanalgeheimnisse, Anmeldedaten, aktuelle Nachrichten, App-Einstellungen und Telemetrieverlauf zwischen Ihren Apple-Geräten via iCloud. Daten werden von Apple während der Übertragung und im Ruhezustand verschlüsselt. Nachrichten und Telemetrie werden pro Radio gespeichert — ein Radiowechsel hält die Daten getrennt."
+            "value": "Synchronisiert Spitznamen, Notizen, Kanalgeheimnisse, Anmeldedaten, aktuelle Nachrichten, App-Einstellungen und Telemetrieverlauf zwischen Ihren Apple-Geräten via iCloud. Daten werden von Apple während der Übertragung und im Ruhezustand verschlüsselt. Nachrichten und Telemetrie werden pro Funkgerät gespeichert — ein Funkgerätwechsel hält die Daten getrennt."
           }
         },
         "es": {
@@ -48389,7 +48329,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ニックネーム、メモ、チャネルシークレット、ログイン資格情報、最近のメッセージ、アプリ設定、およびテレメトリ履歴を、Appleデバイス間でiCloudを通じて同期します。データはAppleによって転送中および静止中に暗号化されます。メッセージとテレメトリはラジオごとに保存されます — ラジオを切り替えるとデータが分離されます。"
+            "value": "ニックネーム、メモ、チャネルシークレット、ログイン資格情報、最近のメッセージ、アプリ設定、およびテレメトリ履歴を、Appleデバイス間でiCloudを通じて同期します。データはAppleによって転送中および静止中に暗号化されます。メッセージとテレメトリは無線機ごとに保存されます — 無線機を切り替えるとデータが分離されます。"
           }
         },
         "nl": {
@@ -48505,7 +48445,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tippen Sie auf eine Zeile, um die Einstellung Ihres verbundenen Radios anzuzeigen oder zu ändern."
+            "value": "Tippen Sie auf eine Zeile, um die Einstellung Ihres verbundenen Funkgeräte anzuzeigen oder zu ändern."
           }
         },
         "es": {
@@ -48529,7 +48469,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "接続されたラジオの任意の行にタップして、その設定を表示または変更します。"
+            "value": "接続された無線機の任意の行にタップして、その設定を表示または変更します。"
           }
         },
         "nl": {
@@ -48898,12 +48838,6 @@
             "value": "Klik om opnieuw te proberen"
           }
         },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kliknij ponownie, aby spróbować ponownie."
-          }
-        },
         "pt": {
           "stringUnit": {
             "state": "translated",
@@ -48920,6 +48854,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "再次点击。"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dotknij, aby spróbować ponownie"
           }
         }
       }
@@ -49005,7 +48945,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tippen Sie auf den Namen Ihres Radios, wenn es erscheint."
+            "value": "Tippen Sie auf den Namen Ihres Funkgeräte, wenn es erscheint."
           }
         },
         "es": {
@@ -49029,7 +48969,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ラジオの名前をタップして選択してください（表示されたら）。"
+            "value": "無線機の名前をタップして選択してください（表示されたら）。"
           }
         },
         "nl": {
@@ -49715,7 +49655,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Das Radio wird getrennt und neu gestartet. Sie müssen sich erneut über Bluetooth verbinden."
+            "value": "Das Funkgerät wird getrennt und neu gestartet. Sie müssen sich erneut über Bluetooth verbinden."
           }
         },
         "es": {
@@ -49739,7 +49679,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ラジオは切断して再起動します。Bluetooth経由で再度接続する必要があります。"
+            "value": "無線機は切断して再起動します。Bluetooth経由で再度接続する必要があります。"
           }
         },
         "nl": {
@@ -50143,7 +50083,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Diese Tools erfordern keine Radioverbindung."
+            "value": "Diese Tools erfordern keine Funkgerätverbindung."
           }
         },
         "es": {
@@ -50167,7 +50107,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "これらのツールにはラジオ接続は必要ありません。"
+            "value": "これらのツールには無線機接続は必要ありません。"
           }
         },
         "nl": {
@@ -50215,7 +50155,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Diese Tools erfordern eine Radioverbindung."
+            "value": "Diese Tools erfordern eine Funkgerätverbindung."
           }
         },
         "es": {
@@ -50239,7 +50179,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "これらのツールにはラジオ接続が必要です。"
+            "value": "これらのツールには無線機接続が必要です。"
           }
         },
         "nl": {
@@ -50357,7 +50297,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dies kann bis zu 30 Sekunden dauern, nachdem das Radio den OTA-Modus gestartet hat."
+            "value": "Dies kann bis zu 30 Sekunden dauern, nachdem das Funkgerät den OTA-Modus gestartet hat."
           }
         },
         "es": {
@@ -50381,7 +50321,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ラジオがOTAモードを開始してから最大30秒かかる場合があります。"
+            "value": "無線機がOTAモードを開始してから最大30秒かかる場合があります。"
           }
         },
         "nl": {
@@ -50427,7 +50367,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dieser Spitzname wird lokal auf Ihrem Gerät gespeichert. Er ändert nichts am Radio oder im Mesh-Netzwerk."
+            "value": "Dieser Spitzname wird lokal auf Ihrem Gerät gespeichert. Er ändert nichts am Funkgerät oder im Mesh-Netzwerk."
           }
         },
         "es": {
@@ -50451,7 +50391,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "このニックネームはデバイス内にローカルに保存されます。ラジオやメッシュネットワークには何も影響しません。"
+            "value": "このニックネームはデバイス内にローカルに保存されます。無線機やメッシュネットワークには何も影響しません。"
           }
         },
         "nl": {
@@ -50491,7 +50431,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Das Radio wird auf %@, BW %@ kHz, SF%@, CR 4/%@ umgestellt.\n\nAlle Knoten im Mesh müssen dieselben Einstellungen verwenden."
+            "value": "Das Funkgerät wird auf %@, BW %@ kHz, SF%@, CR 4/%@ umgestellt.\n\nAlle Knoten im Mesh müssen dieselben Einstellungen verwenden."
           }
         },
         "en": {
@@ -50551,13 +50491,13 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "この設定により、ラジオは %@、帯域幅 %@ kHz、SF %@、CR 4/%@ に変更されます。\n\nメッシュ上のすべてのノードは同じ設定を使用する必要があります。"
+            "value": "この設定により、無線機は %@、帯域幅 %@ kHz、SF %@、CR 4/%@ に変更されます。\n\nメッシュ上のすべてのノードは同じ設定を使用する必要があります。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这将改变你的收音机到 %@，带宽 %@ kHz，SF%@，CR 4/%@。\n\n你网格中的所有节点必须使用相同的设置。"
+            "value": "这将改变你的无线电到 %@，带宽 %@ kHz，SF%@，CR 4/%@。\n\n你网格中的所有节点必须使用相同的设置。"
           }
         }
       }
@@ -50638,28 +50578,16 @@
       "comment": "Confirmation dialog message for deleting radio data.",
       "isCommentAutoGenerated": true,
       "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Potvrďte zadáním RESET."
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Alle synchronisierten Nachrichten für dieses Radio werden dauerhaft aus iCloud und allen Ihren Geräten gelöscht. Dies kann nicht rückgängig gemacht werden."
+            "value": "Alle synchronisierten Nachrichten für dieses Funkgerät werden dauerhaft aus iCloud und allen Ihren Geräten gelöscht. Dies kann nicht rückgängig gemacht werden."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Esto eliminará permanentemente todos los mensajes sincronizados para esta radio desde iCloud y todos tus dispositivos. No se puede deshacer."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Type RESET pour confirmer."
           }
         },
         "it": {
@@ -50698,10 +50626,22 @@
             "value": "Це назавжди видалить усі синхронізовані повідомлення для цього радіодестинації з iCloud та всіх ваших пристроїв. Це не може бути скасовано."
           }
         },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cela supprimera définitivement tous les messages synchronisés pour cette radio d'iCloud et de tous vos appareils. Cela ne peut pas être annulé."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toto trvale smaže všechny synchronizované zprávy pro toto rádio z iCloud a všech vašich zařízení. Toto nelze vrátit zpět."
+          }
+        },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "输入 RESET 以确认。"
+            "value": "这将永久删除所有同步到 iCloud 的无线电消息，以及您的所有设备。这无法撤销。"
           }
         }
       }
@@ -50926,74 +50866,7 @@
       "shouldTranslate": false
     },
     "Tip Jar": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tipova láhev"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Trinkgeldglas"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Recipiente de propinas"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tip Jar (non traduit, terme anglais conservé)"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cesto delle offerte"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "チップジャール"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tippotje"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Koszyk na podarunki"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Jarro de Dicas"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Корзина для пожертв"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "提示罐"
-          }
-        }
-      }
+      "shouldTranslate": false
     },
     "TIP: Name your radio with your initials + first 4 of your public key (e.g., NMA-5abd). You can change this in Settings after connecting.": {
       "comment": "A tip for naming your MeshCore radio.",
@@ -51008,7 +50881,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "TIPP: Benennen Sie Ihr Radio mit Ihren Initialen + den ersten 4 Zeichen Ihres öffentlichen Schlüssels (z. B. NMA-5abd). Sie können dies in den Einstellungen nach dem Verbinden ändern."
+            "value": "TIPP: Benennen Sie Ihr Funkgerät mit Ihren Initialen + den ersten 4 Zeichen Ihres öffentlichen Schlüssels (z. B. NMA-5abd). Sie können dies in den Einstellungen nach dem Verbinden ändern."
           }
         },
         "es": {
@@ -51032,7 +50905,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "チップ: あなたのラジオに初期化子 + パブリックキーの最初の4文字 (例: NMA-5abd) を付けてください。接続後、設定で変更できます。"
+            "value": "チップ: あなたの無線機に初期化子 + パブリックキーの最初の4文字 (例: NMA-5abd) を付けてください。接続後、設定で変更できます。"
           }
         },
         "nl": {
@@ -51221,7 +51094,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Werkzeuge zur Diagnose von Verbindungsproblemen zwischen Ihrem Telefon und Radio."
+            "value": "Werkzeuge zur Diagnose von Verbindungsproblemen zwischen Ihrem Telefon und Funkgerät."
           }
         },
         "es": {
@@ -51245,7 +51118,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "電話とラジオの接続問題を診断するツール。"
+            "value": "電話と無線機の接続問題を診断するツール。"
           }
         },
         "nl": {
@@ -51645,7 +51518,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Schalten Sie Ihr MeshCore-Radio ein und tippen Sie auf Verbinden, um zu beginnen."
+            "value": "Schalten Sie Ihr MeshCore-Funkgerät ein und tippen Sie auf Verbinden, um zu beginnen."
           }
         },
         "es": {
@@ -51669,7 +51542,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "メッシュコアのラジオをオンにし、接続をタップして開始します。"
+            "value": "メッシュコアの無線機をオンにし、接続をタップして開始します。"
           }
         },
         "nl": {
@@ -51699,7 +51572,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "打开您的MeshCore收音机，然后点击“连接”开始。"
+            "value": "打开您的MeshCore无线电，然后点击“连接”开始。"
           }
         }
       }
@@ -51715,7 +51588,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Schalten Sie Ihr MeshCore-Radio ein und tippen Sie unten auf den Knopf, um nach Geräten in der Nähe zu suchen."
+            "value": "Schalten Sie Ihr MeshCore-Funkgerät ein und tippen Sie unten auf den Knopf, um nach Geräten in der Nähe zu suchen."
           }
         },
         "es": {
@@ -51739,7 +51612,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "メッシュコアのラジオをオンにし、下ボタンをタップして近くのデバイスをスキャンします。"
+            "value": "メッシュコアの無線機をオンにし、下ボタンをタップして近くのデバイスをスキャンします。"
           }
         },
         "nl": {
@@ -51769,7 +51642,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "打开您的MeshCore收音机，然后点击下面的按钮扫描附近设备。"
+            "value": "打开您的MeshCore无线电，然后点击下面的按钮扫描附近设备。"
           }
         }
       }
@@ -52775,7 +52648,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Einstellungen des verbundenen Radios verwenden"
+            "value": "Einstellungen des verbundenen Funkgeräte verwenden"
           }
         },
         "es": {
@@ -52799,7 +52672,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "接続されたラジオ設定を使用します"
+            "value": "接続された無線機設定を使用します"
           }
         },
         "nl": {
@@ -53274,7 +53147,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Radiokonfiguration überprüfen"
+            "value": "Funkgerätkonfiguration überprüfen"
           }
         },
         "es": {
@@ -53298,7 +53171,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ラジオ設定を確認"
+            "value": "無線機設定を確認"
           }
         },
         "nl": {
@@ -53698,7 +53571,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "WiFi-Radio"
+            "value": "WiFi-Funkgerät"
           }
         },
         "es": {
@@ -53722,7 +53595,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ワイファイラジオ"
+            "value": "ワイファイ無線機"
           }
         },
         "pl": {
@@ -53762,7 +53635,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ihr Companion-Radio fungiert als tragbarer Repeater.\n\nErlaubte Frequenzbereiche:\n%@\n\nDies ist nützlich beim Camping, Wandern und bei Such- und Rettungsaktionen, wo keine Repeater-Infrastruktur vorhanden ist."
+            "value": "Ihr Companion-Funkgerät fungiert als tragbarer Repeater.\n\nErlaubte Frequenzbereiche:\n%@\n\nDies ist nützlich beim Camping, Wandern und bei Such- und Rettungsaktionen, wo keine Repeater-Infrastruktur vorhanden ist."
           }
         },
         "fr": {
@@ -53816,7 +53689,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "あなたのポータブルラジオは、リピーターとして機能します。\n\n許可された周波数範囲：\n%@\n\nこれは、リピータインフラが存在しないキャンプ、ハイキング、および捜索救助に役立ちます。"
+            "value": "あなたのポータブル無線機は、リピーターとして機能します。\n\n許可された周波数範囲：\n%@\n\nこれは、リピータインフラが存在しないキャンプ、ハイキング、および捜索救助に役立ちます。"
           }
         },
         "zh-Hans": {
@@ -53832,7 +53705,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ihr Companion-Radio fungiert als tragbarer Repeater.\n\nDies ist nützlich beim Camping, Wandern und bei Such- und Rettungsaktionen, wo keine Repeater-Infrastruktur vorhanden ist.\n\nWiederholungsmodus ist auf die am Gerät konfigurierten erlaubten Frequenzbereiche beschränkt."
+            "value": "Ihr Companion-Funkgerät fungiert als tragbarer Repeater.\n\nDies ist nützlich beim Camping, Wandern und bei Such- und Rettungsaktionen, wo keine Repeater-Infrastruktur vorhanden ist.\n\nWiederholungsmodus ist auf die am Gerät konfigurierten erlaubten Frequenzbereiche beschränkt."
           }
         },
         "fr": {
@@ -53886,7 +53759,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "あなたのポケットラジオはポータブルリピーターとして機能します。\n\nこれはキャンプ、ハイキング、およびリピータインフラが存在しない捜索救助に役立ちます。\n\nリピートモードはデバイスに設定された許可された周波数範囲に制限されます。"
+            "value": "あなたのポケット無線機はポータブルリピーターとして機能します。\n\nこれはキャンプ、ハイキング、およびリピータインフラが存在しない捜索救助に役立ちます。\n\nリピートモードはデバイスに設定された許可された周波数範囲に制限されます。"
           }
         },
         "zh-Hans": {
@@ -54122,7 +53995,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ihr Radio ist über USB verbunden. Tippen Sie auf die Schaltfläche unten, um den Befehl zu senden."
+            "value": "Ihr Funkgerät ist über USB verbunden. Tippen Sie auf die Schaltfläche unten, um den Befehl zu senden."
           }
         },
         "es": {
@@ -54146,7 +54019,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ラジオはUSB経由で接続されています。下記のボタンをタップしてコマンドを送信してください。"
+            "value": "無線機はUSB経由で接続されています。下記のボタンをタップしてコマンドを送信してください。"
           }
         },
         "nl": {
@@ -54194,7 +54067,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ihr Radio ist über Remote-Admin angemeldet. Tippen Sie auf die Schaltfläche unten, um den Befehl zu senden."
+            "value": "Ihr Funkgerät ist über Remote-Admin angemeldet. Tippen Sie auf die Schaltfläche unten, um den Befehl zu senden."
           }
         },
         "es": {
@@ -54218,7 +54091,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ラジオはリモート管理者によってログインされています。下記のボタンをタップしてコマンドを送信してください。"
+            "value": "無線機はリモート管理者によってログインされています。下記のボタンをタップしてコマンドを送信してください。"
           }
         },
         "nl": {
@@ -54266,7 +54139,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ihr Radio muss die richtige Frequenz für Ihr Land verwenden. Die Verwendung der falschen Frequenz kann gegen lokale Vorschriften verstoßen."
+            "value": "Ihr Funkgerät muss die richtige Frequenz für Ihr Land verwenden. Die Verwendung der falschen Frequenz kann gegen lokale Vorschriften verstoßen."
           }
         },
         "es": {
@@ -54290,7 +54163,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ラジオは国に合った正しい周波数を使用する必要があります。誤った周波数を設定すると、地域の規制に違反する可能性があります。"
+            "value": "無線機は国に合った正しい周波数を使用する必要があります。誤った周波数を設定すると、地域の規制に違反する可能性があります。"
           }
         },
         "nl": {
@@ -54338,7 +54211,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Die Frequenz Ihres Radios wird beim Flashen eingestellt. Um sie zu ändern, gehen Sie nach dem Verbinden zu Einstellungen → Radio. Alle Radios im Mesh müssen dieselbe Frequenz, Bandbreite, Spreizfaktor und Kodierungsrate verwenden."
+            "value": "Die Frequenz Ihres Funkgeräte wird beim Flashen eingestellt. Um sie zu ändern, gehen Sie nach dem Verbinden zu Einstellungen → Funkgerät. Alle Funkgeräte im Mesh müssen dieselbe Frequenz, Bandbreite, Spreizfaktor und Kodierungsrate verwenden."
           }
         },
         "es": {
@@ -54362,7 +54235,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ラジオの周波数はフラッシュ時に設定されます。変更が必要な場合は、接続後に設定 → ラジオに移動してください。メッシュ内のすべてのラジオは、同じ周波数、帯域幅、スプレッディングファクター、コードレートを使用する必要があります。"
+            "value": "無線機の周波数はフラッシュ時に設定されます。変更が必要な場合は、接続後に設定 → 無線機に移動してください。メッシュ内のすべての無線機は、同じ周波数、帯域幅、スプレッディングファクター、コードレートを使用する必要があります。"
           }
         },
         "nl": {
@@ -54408,7 +54281,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Die gespeicherten Koordinaten Ihres Radios. Diese werden beim Ankündigen mit anderen Radios geteilt."
+            "value": "Die gespeicherten Koordinaten Ihres Funkgeräte. Diese werden beim Ankündigen mit anderen Funkgeräte geteilt."
           }
         },
         "es": {
@@ -54432,7 +54305,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ラジオに保存された座標。これらの情報は広告時に他のラジオと共有されます。"
+            "value": "無線機に保存された座標。これらの情報は広告時に他の無線機と共有されます。"
           }
         },
         "nl": {
@@ -57272,7 +57145,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Radio suchen"
+            "value": "Funkgerät suchen"
           }
         },
         "fr": {
@@ -57326,7 +57199,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ラジオを探す"
+            "value": "無線機を探す"
           }
         },
         "zh-Hans": {
@@ -57482,7 +57355,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Starten Sie den OTA-Modus auf Ihrem Radio"
+            "value": "Starten Sie den OTA-Modus auf Ihrem Funkgerät"
           }
         },
         "fr": {
@@ -57536,7 +57409,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ラジオのOTAモードを開始"
+            "value": "無線機のOTAモードを開始"
           }
         },
         "zh-Hans": {
@@ -57762,7 +57635,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ihr Radio befindet sich im DFU-Modus. Verwenden Sie die nRF Geräte-Firmware-Update App, um das Update abzuschließen."
+            "value": "Ihr Funkgerät befindet sich im DFU-Modus. Verwenden Sie die nRF Geräte-Firmware-Update App, um das Update abzuschließen."
           }
         },
         "fr": {
@@ -57816,7 +57689,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ラジオはDFUモードです。nRFデバイスファームウェアアップデートアプリを使用して更新を完了してください。"
+            "value": "無線機はDFUモードです。nRFデバイスファームウェアアップデートアプリを使用して更新を完了してください。"
           }
         },
         "zh-Hans": {
@@ -58057,12 +57930,6 @@
             "value": "Presupuesto de enlace, pérdida de ruta, longitud de onda y estimación de rango"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nessuna radio"
-          }
-        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -58104,6 +57971,12 @@
             "state": "translated",
             "value": "链接预算、路径损耗、波长和范围估计"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Budget di collegamento, perdita di percorso, lunghezza d'onda e stima della portata"
+          }
         }
       }
     },
@@ -58112,7 +57985,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kein Radio"
+            "value": "Kein Funkgerät"
           }
         },
         "fr": {
@@ -58125,12 +57998,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sin Radio"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tempo in aria LoRa, ciclo di lavoro e pacchetti per ora"
           }
         },
         "nl": {
@@ -58166,13 +58033,19 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ラジオなし"
+            "value": "無線機なし"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
             "value": "无无线电"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nessun Radio"
           }
         }
       }
@@ -63372,7 +63245,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Datenanfrage von diesem Radio — hat sich noch nicht identifiziert"
+            "value": "Datenanfrage von diesem Funkgerät — hat sich noch nicht identifiziert"
           }
         },
         "fr": {
@@ -63426,7 +63299,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "このラジオから要求されたデータ — まだ自己識別していません"
+            "value": "この無線機から要求されたデータ — まだ自己識別していません"
           }
         },
         "zh-Hans": {
@@ -64366,7 +64239,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "%d Kontakte konnten nicht gelöscht werden. Das Radio hat sie immer noch — versuche es erneut."
+            "value": "%d Kontakte konnten nicht gelöscht werden. Das Funkgerät hat sie immer noch — versuche es erneut."
           }
         },
         "fr": {
@@ -64420,7 +64293,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "%d 件の連絡先が削除できませんでした。ラジオにまだ残っています — もう一度削除してみてください。"
+            "value": "%d 件の連絡先が削除できませんでした。無線機にまだ残っています — もう一度削除してみてください。"
           }
         },
         "zh-Hans": {
@@ -64437,7 +64310,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "%d Kontakte konnten nicht hinzugefügt werden. Das Radio akzeptierte sie nicht — versuche es nochmal."
+            "value": "%d Kontakte konnten nicht hinzugefügt werden. Das Funkgerät akzeptierte sie nicht — versuche es nochmal."
           }
         },
         "fr": {
@@ -64491,7 +64364,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "%d 件の連絡先が追加できませんでした。ラジオが受け入れませんでした — もう一度お試しください。"
+            "value": "%d 件の連絡先が追加できませんでした。無線機が受け入れませんでした — もう一度お試しください。"
           }
         },
         "zh-Hans": {
@@ -64579,7 +64452,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Fügt %d Kontakte hinzu, damit ein weiteres Radio mit dem gleichen Mesh eingerichtet werden kann."
+            "value": "Fügt %d Kontakte hinzu, damit ein weiteres Funkgerät mit dem gleichen Mesh eingerichtet werden kann."
           }
         },
         "fr": {
@@ -64633,7 +64506,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "このメッシュと同じ設定の別のラジオを設定するために %d 件の連絡先を追加します。"
+            "value": "このメッシュと同じ設定の別の無線機を設定するために %d 件の連絡先を追加します。"
           }
         },
         "zh-Hans": {
@@ -64650,7 +64523,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Fügt die %d Kontakte in dieser Datei zu deinem Radio hinzu. Bestehende Kontakte werden aktualisiert, nie gelöscht."
+            "value": "Fügt die %d Kontakte in dieser Datei zu deinem Funkgerät hinzu. Bestehende Kontakte werden aktualisiert, nie gelöscht."
           }
         },
         "fr": {
@@ -64704,7 +64577,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "このファイルの %d 件の連絡先をラジオに追加します。既存の連絡先は更新されますが、削除されることはありません。"
+            "value": "このファイルの %d 件の連絡先を無線機に追加します。既存の連絡先は更新されますが、削除されることはありません。"
           }
         },
         "zh-Hans": {

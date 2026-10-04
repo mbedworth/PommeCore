@@ -17,7 +17,7 @@ this is the source of truth for firmware review state, not the local development
 | **Also compatible with** | v1.15.0 – v1.16.0 |
 | **Protocol version sent** | `app_target_ver = 3` in `CMD_DEVICE_QUERY` — must stay ≥ 3 (see the critical rules in the local development guide) |
 | **Last review** | 2026-08-24, covering v1.17.0 and v1.17.1 |
-| **Smoke test** | 2026-10-02 on Heltec Mesh Pocket `v1.17.1-d929643` — passed, see below |
+| **Smoke test** | 2026-10-03 on Heltec Mesh Pocket `v1.17.1-d929643` — 9/9 passed (release gate for v26.10.03); also 2026-10-02, see below |
 | **Bulk-delete test** | 2026-10-03, same radio — 17/17 passed; unpaced removals drop ~half their writes, see below |
 | **Restore test** | 2026-10-03, end to end through the macOS app UI — snapshot, delete and restore all verified, see below |
 | **Profile round trip** | 2026-10-03, app UI — passed after fixing lost contact adds on a mid-burst BLE drop, see below |
@@ -159,6 +159,31 @@ gh api "repos/meshcore-dev/MeshCore/contents/<path>?ref=companion-v<version>" --
 Run with `./scripts/meshctl.sh smoke`, which talks to the radio over BLE with the same
 service UUIDs and frame format as the app. `--target <pubkey-prefix>` adds a remote
 telemetry request.
+
+### 2026-10-03 — release gate for v26.10.03, companion `v1.17.1-d929643`
+
+Re-run as the hardware gate before submitting v26.10.03 for App Store review,
+since that release carries the 1.17 telemetry parsing changes. **9 passed, 0
+failed**, same as 2026-10-02 and on the same firmware.
+
+| Check | Result |
+|---|---|
+| `CMD_DEVICE_QUERY` answers, semantic version reported | ✅ `v1.17.1-d929643` |
+| `FIRMWARE_VER_CODE` | ✅ 13, matching the ledger |
+| Contact sync | ✅ 3 contacts |
+| Unidentified nodes | ⚪ 0 — normal; cannot be induced on demand |
+| Self telemetry answers | ✅ 2 readings |
+| 1.17 MCU temperature present | ✅ 22.7 °C |
+| Temperature within a sane die range | ✅ |
+| Reading keys unique | ✅ 2 distinct (`1:Battery`, `1:Temperature`) |
+| A type appearing once keeps its plain label | ✅ |
+| Every reading carries an LPP channel | ✅ |
+| Remote telemetry | ⏭ skipped — needs `--target`; repeaters do not answer non-admins |
+
+The point of the run: Battery and Temperature both arrive on **LPP channel 1**
+and still parse to distinct keys. That is the 1.17 change which would otherwise
+collapse two readings into one, and it is the reason channel is part of a
+reading's identity (critical rule 14).
 
 ### 2026-10-02 — Heltec Mesh Pocket, companion `v1.17.1-d929643`
 
