@@ -85,6 +85,41 @@ FILLS = {
     "textOnDarkPanel on darkPanel": ((1, 1, 1), (0.12, 0.12, 0.12), (1, 1, 1), (0.12, 0.12, 0.12)),
 }
 
+# watchOS, in PommeCoreWatchKit. The watch UI uses the system palette rather
+# than MeshTheme, and watchOS resolves it differently from iOS dark mode —
+# red is #FF4245 here, not #FF453A, and orange #FF9230, not #FF9F0A. These
+# values were measured, not assumed: a swatch app rendering each colour as a
+# solid band, run on a watchOS simulator, screenshotted, pixels sampled. Redo
+# it that way if the palette ever looks wrong; guessing from the iOS values
+# is what this comment exists to prevent.
+WATCH = {
+    "green": hex_rgb("30D158"),
+    "red": hex_rgb("FF4245"),
+    "orange": hex_rgb("FF9230"),
+    "yellow": hex_rgb("FFD600"),
+    "white": (1.0, 1.0, 1.0),
+    "primary": (1.0, 1.0, 1.0),
+    "secondary": hex_rgb("8D8D93"),
+    "bubbleIn": hex_rgb("333333"),
+    "panel": hex_rgb("262626"),
+    "black": (0.0, 0.0, 0.0),
+}
+
+# (description, foreground, background, is_text)
+WATCH_PAIRS = [
+    ("outgoing bubble text", "black", "green", True),
+    ("incoming bubble text", "primary", "bubbleIn", True),
+    ("total unread badge", "black", "red", True),
+    ("per-contact unread badge", "black", "green", True),
+    ("channel unread badge", "black", "orange", True),
+    ("sender / timestamp / hops", "secondary", "black", True),
+    ("accent text", "green", "black", True),
+    ("channel amber", "orange", "black", True),
+    ("activity yellow", "yellow", "black", True),
+    ("failed-status glyph", "red", "black", True),
+    ("connection dot", "green", "black", False),
+]
+
 TEXT_AA, NONTEXT_AA = 4.5, 3.0
 
 
@@ -113,6 +148,16 @@ def main():
         if worst < TEXT_AA:
             failures.append((name, worst, TEXT_AA))
         print(f"{mark}{name:33} {lv:8.2f} {dv:8.2f}")
+
+    print("\nwatchOS (PommeCoreWatchKit) — measured on a simulator")
+    print(f"{'pair':30} {'fg on bg':26} {'ratio':>7}")
+    for desc, fg, bg, is_text in WATCH_PAIRS:
+        v = contrast(WATCH[fg], WATCH[bg])
+        bar = TEXT_AA if is_text else NONTEXT_AA
+        mark = " " if v >= bar else "X"
+        if v < bar:
+            failures.append((f"watchOS {desc}", v, bar))
+        print(f"{mark}{desc:29} {fg + ' on ' + bg:26} {v:7.2f}")
 
     print(f"\nWCAG AA: {TEXT_AA}:1 body text, {NONTEXT_AA}:1 large text and "
           "non-text. Marks: blank passes text, ~ passes non-text only, X fails.")
