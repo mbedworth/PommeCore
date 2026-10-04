@@ -30,12 +30,21 @@ def hex_rgb(s):
     return tuple(int(s[i:i + 2], 16) / 255 for i in (0, 2, 4))
 
 
-# Backgrounds. The grouped background is the tightest case in light mode, the
-# card (secondarySystemGroupedBackground, pure white) the most common.
-LIGHT_GROUPED = hex_rgb("F2F2F7")
-LIGHT_CARD = (1.0, 1.0, 1.0)
+# Backgrounds, and the whole point of the list is that it is complete.
+#
+# The first version of this script measured only the grouped background and the
+# card, and so reported everything passing while four dark-mode colours were
+# under the bar on `surfaceLight`. Dark mode is where this bites: every
+# *lighter* surface reduces contrast for a bright foreground, which is the
+# opposite of the intuition built up in light mode, where the darkest surface
+# is the tightest. Any new surface in MeshTheme belongs here.
+LIGHT_GROUPED = hex_rgb("F2F2F7")      # systemGroupedBackground
+LIGHT_CARD = (1.0, 1.0, 1.0)           # secondarySystemGroupedBackground
+LIGHT_ELEVATED = hex_rgb("F2F2F7")     # surfaceLight / tertiary
 DARK_GROUPED = (0.0, 0.0, 0.0)
 DARK_CARD = hex_rgb("1C1C1E")
+DARK_ELEVATED = hex_rgb("2C2C2E")      # surfaceLight / tertiary, iOS
+DARK_MAC_ELEVATED = hex_rgb("3A3A3C")  # macOS unemphasizedSelectedContent
 
 # MeshTheme values, mirroring Shared/App/Theme.swift.
 LIGHT = {
@@ -49,17 +58,19 @@ LIGHT = {
     "remoteRoom": (0.122, 0.446, 0.504),
     "mapRoom": (0.557, 0.227, 0.722),
 }
-# Dark mode keeps Apple's system colours, which are tuned to be bright.
+# Dark mode keeps Apple's system colours where they pass. Red, blue, gray and
+# the map violet are brightened, because the system values fall under the bar
+# on the elevated surfaces.
 DARK = {
     "accent": (0.0, 0.85, 0.35),
     "statusGood": hex_rgb("30D158"),
     "statusWarn": hex_rgb("FF9F0A"),
     "statusCaution": hex_rgb("FFD60A"),
-    "statusBad": hex_rgb("FF453A"),
-    "statusInfo": hex_rgb("0A84FF"),
-    "statusIdle": hex_rgb("98989D"),
+    "statusBad": hex_rgb("FF7B73"),
+    "statusInfo": hex_rgb("51A8FF"),
+    "statusIdle": hex_rgb("A3A3A8"),
     "remoteRoom": hex_rgb("40C8E0"),
-    "mapRoom": hex_rgb("BF5AF2"),
+    "mapRoom": hex_rgb("D085F5"),
 }
 
 # Foreground-on-fill pairs: text sitting on a filled theme colour.
@@ -79,17 +90,19 @@ TEXT_AA, NONTEXT_AA = 4.5, 3.0
 
 def main():
     failures = []
-    print("MeshTheme colours as TEXT, on the app background")
-    print(f"{'colour':24} {'light grouped':>14} {'light card':>11} "
-          f"{'dark grouped':>13} {'dark card':>10}")
+    print("MeshTheme colours as TEXT, on every surface they can land on")
+    print(f"{'colour':17} {'lt grp':>7} {'lt card':>8} {'lt elev':>8} "
+          f"{'dk grp':>7} {'dk card':>8} {'dk elev':>8} {'mac elev':>9}")
     for name in LIGHT:
         row = [contrast(LIGHT[name], LIGHT_GROUPED), contrast(LIGHT[name], LIGHT_CARD),
-               contrast(DARK[name], DARK_GROUPED), contrast(DARK[name], DARK_CARD)]
+               contrast(LIGHT[name], LIGHT_ELEVATED),
+               contrast(DARK[name], DARK_GROUPED), contrast(DARK[name], DARK_CARD),
+               contrast(DARK[name], DARK_ELEVATED), contrast(DARK[name], DARK_MAC_ELEVATED)]
         worst = min(row)
         mark = " " if worst >= TEXT_AA else ("~" if worst >= NONTEXT_AA else "X")
         if worst < TEXT_AA:
             failures.append((f"{name} as text", worst, TEXT_AA))
-        print(f"{mark}{name:23} " + " ".join(f"{v:13.2f}" for v in row))
+        print(f"{mark}{name:16} " + " ".join(f"{v:8.2f}" for v in row))
 
     print("\nForegrounds ON a filled theme colour")
     print(f"{'pair':34} {'light':>8} {'dark':>8}")
