@@ -19,6 +19,7 @@ struct ToolsView: View {
     @State private var showAirtime = false
     @State private var showSensitivity = false
     @State private var showFreqScanner = false
+    @State private var showSensorDashboard = false
     var body: some View {
         List {
             Section {
@@ -84,6 +85,21 @@ struct ToolsView: View {
             } footer: {
                 Text("These tools require a radio connection.")
             }
+
+            Section {
+                toolButton(
+                    icon: "sensor",
+                    title: "Sensor Dashboard",
+                    subtitle: "Every node's readings on one chart per measurement",
+                    badge: "No Radio"
+                ) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { showSensorDashboard = true }
+                }
+            } header: {
+                Text("Sensors")
+            } footer: {
+                Text("Reads the telemetry already collected, so no radio connection is needed. History is kept for seven days.")
+            }
         }
         .meshTheme()
         .navigationTitle("Tools")
@@ -147,6 +163,20 @@ struct ToolsView: View {
             .meshTheme()
             #if os(macOS) || targetEnvironment(macCatalyst)
             .frame(minWidth: 400, minHeight: 500)
+            #endif
+        }
+        .sheet(isPresented: $showSensorDashboard) {
+            NavigationStack {
+                SensorDashboardView()
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Done") { showSensorDashboard = false }
+                        }
+                    }
+            }
+            .meshTheme()
+            #if os(macOS) || targetEnvironment(macCatalyst)
+            .frame(minWidth: 500, idealWidth: 700, minHeight: 600, idealHeight: 800)
             #endif
         }
         .sheet(isPresented: $showNoiseFloor) {

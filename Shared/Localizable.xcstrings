@@ -3146,6 +3146,76 @@
         }
       }
     },
+    "7 days": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "7 Tage"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "7 jours"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "7 días"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "7 giorni"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "7 dagen"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "7 dias"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "7 dní"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "7 dni"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "7 днів"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "7日"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "7 天"
+          }
+        }
+      }
+    },
     "90 min": {
       "localizations": {
         "cs": {
@@ -11907,6 +11977,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "编码率"
+          }
+        }
+      }
+    },
+    "Collected from telemetry requests you have already made. Nothing on this screen contacts the mesh.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aus den Telemetrieanforderungen, die Sie bereits gestellt haben, gesammelt. Nichts auf diesem Bildschirm kontaktiert das Mesh."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collecté à partir des requêtes de télémétrie que vous avez déjà effectuées. Rien sur cet écran ne contacte le maillage."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recogido de las solicitudes de telemetría que ya has realizado. Nada en esta pantalla contacta con la malla."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dati raccolti dalle richieste di telemetria che hai già effettuato. Nulla su questo schermo contatta la mesh."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verzameld uit telemetrieverzoeken die je al hebt gedaan. Niets op dit scherm maakt contact met het mesh."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coletado de pedidos de telemetria que você já fez. Nada nesta tela contata a malha."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shromážděno z telemetrických požadavků, které jste již provedli. Nic na této obrazovce nekontaktuje mřížku."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zbierane z żądań telemetrii, które już wysłałeś. Nic na tym ekranie nie kontaktuje się z siecią."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Збір даних з запитів телеметрії, які ви вже зробили. Нічого на цьому екрані не зв'язується з мережею."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "すでに送信したテレメトリリクエストから収集されたものです。この画面ではメッシュに連絡はありません。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从您已经发送的远程测量请求中收集。此屏幕上的任何内容都不会与网格联系。"
           }
         }
       }
@@ -20888,6 +21028,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "估计范围"
+          }
+        }
+      }
+    },
+    "Every node's readings on one chart per measurement": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Messwerte jedes Knotens auf einem Diagramm pro Messung"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les lectures de chaque nœud sur un graphique par mesure"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las lecturas de cada nodo en un gráfico por medición"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le letture di ogni nodo su un grafico per misurazione"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De metingen van elk knooppunt op één grafiek per meting"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As leituras de cada nó em um gráfico por medição"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Čtení každého uzlu na jednom grafu za měření"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odczyty każdego węzła na jednym wykresie na pomiar"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Показники кожного вузла на одному графіку за вимірювання"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1回の測定ごとにノードの読み取り値を1つのチャートに表示"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每个节点的测量值在一个图表上显示"
           }
         }
       }
@@ -35759,6 +35969,76 @@
         }
       }
     },
+    "No readings": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Messwerte"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune lecture"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin lecturas"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nessuna lettura"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geen metingen"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sem leituras"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Žádná čtení"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak odczytów"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Немає показників"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "読み取り値なし"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无读数"
+          }
+        }
+      }
+    },
     "No repeaters discovered": {
       "comment": "A message displayed when no repeaters are found.",
       "isCommentAutoGenerated": true,
@@ -36255,6 +36535,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "还没有传感器数据"
+          }
+        }
+      }
+    },
+    "No telemetry in this period": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Telemetrie in diesem Zeitraum"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune télémétrie pendant cette période"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin telemetría en este período"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nessuna telemetria in questo periodo"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geen telemetrie in deze periode"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sem telemetria neste período"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Žádná telemetrie v tomto období"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak telemetrii w tym okresie"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Немає телеметрії в цей період"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この期間はテレメトリなし"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此期间无传感器数据"
           }
         }
       }
@@ -44563,6 +44913,76 @@
         }
       }
     },
+    "Reads the telemetry already collected, so no radio connection is needed. History is kept for seven days.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Liest die bereits gesammelte Telemetrie, daher ist keine Funkverbindung erforderlich. Die Historie wird für sieben Tage aufbewahrt."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lit la télémétrie déjà collectée, donc aucune connexion radio n'est nécessaire. L'historique est conservé pendant sept jours."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lee la telemetría ya recogida, por lo que no se necesita conexión de radio. Se conserva el historial durante siete días."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Legge la telemetria già raccolta, quindi non è necessaria una connessione radio. La cronologia è conservata per sette giorni."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leest de al verzamelde telemetrie, dus geen radioverbinding nodig. De geschiedenis wordt 7 dagen bewaard."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lê a telemetria já coletada, então nenhuma conexão de rádio é necessária. O histórico é mantido por sete dias."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Čte již shromážděnou telemetrii, takže není potřeba rádiové připojení. Historie je uchovávána po dobu sedmi dní."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odczytuje już zebraną telemetrię, więc nie jest potrzebne połączenie radiowe. Historia jest przechowywana przez siedem dni."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Читає вже зібрану телеметрію, тому не потрібне радіозв'язок. Історія зберігається протягом семи днів."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "すでに収集されたテレメトリを読み取り、ラジオ接続は必要ありません。履歴は7日間保存されます。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取已收集的远程测量，因此不需要无线电连接。历史记录保存7天。"
+          }
+        }
+      }
+    },
     "Ready": {
       "localizations": {
         "cs": {
@@ -47513,6 +47933,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "请求传感器数据"
+          }
+        }
+      }
+    },
+    "Request telemetry from a node — from its detail sheet — and its readings collect here. History is kept for seven days.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fordern Sie Telemetrie von einem Knoten an - aus seiner Detailansicht - und seine Messwerte werden hier gesammelt. Die Historie wird für sieben Tage aufbewahrt."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demander la télémétrie d'un nœud - depuis sa feuille de détails - et ses lectures sont collectées ici. L'historique est conservé pendant sept jours."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solicitar telemetría de un nodo - desde su hoja de detalles - y sus lecturas se recogen aquí. Se conserva el historial durante siete días."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Richiesta di telemetria da un nodo - dalla sua scheda dettagli - e le sue letture vengono raccolte qui. La cronologia è conservata per sette giorni."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vraag telemetrie op van een knooppunt - van zijn detailblad - en zijn metingen verzamelen hier. De geschiedenis wordt 7 dagen bewaard."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solicite telemetria de um nó - da sua folha de detalhes - e suas leituras são coletadas aqui. O histórico é mantido por sete dias."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Požadavek telemetrie od uzlu - z jeho podrobného listu - a jeho čtení se zde shromažďují. Historie je uchovávána po dobu sedmi dní."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Żądaj telemetrii od węzła - z jego arkusza szczegółowego - a jego odczyty zbierane są tutaj. Historia jest przechowywana przez siedem dni."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Запит телеметрії від вузла — з його детального аркуша — і показники збираються тут. Історія зберігається протягом семи днів."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ノードからテレメトリをリクエスト — 詳細シートから — すると、その読み取り値がここに収集されます。履歴は7日間保存されます。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从节点请求远程测量 - 从其详细信息表中 - 其读数在此处收集。历史记录保存7天。"
           }
         }
       }
@@ -53892,6 +54382,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "根据扩展因子敏感度、比特率和范围"
+          }
+        }
+      }
+    },
+    "Sensor Dashboard": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sensor-Dashboard"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tableau de bord des capteurs"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tablero de sensores"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dashboard del sensore"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sensor Dashboard"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Painel do Sensor"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přehled senzorů"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pulpit sensoryczny"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Панель сенсорів"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "センサーダッシュボード"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "传感器仪表板"
           }
         }
       }
@@ -61604,6 +62164,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "时间"
+          }
+        }
+      }
+    },
+    "Time range": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeitbereich"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plage temporelle"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rango de tiempo"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Intervallo di tempo"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tijd bereik"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Intervalo de tempo"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Časové rozmezí"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zakres czasu"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Діапазон часу"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "時間範囲"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "时间范围"
           }
         }
       }
