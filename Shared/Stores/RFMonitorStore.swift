@@ -339,6 +339,16 @@ final class RFMonitorStore {
         saveTelemetryHistory()
     }
 
+    /// How much telemetry the sweep would drop, without dropping any.
+    ///
+    /// Counted here rather than by the caller because the keying rule — 6-byte
+    /// prefixes, matching `recordTelemetry` — must stay in one place; a report
+    /// that counts by a different rule than the purge is worse than no report.
+    func orphanedTelemetryCount(liveKeyPrefixes: Set<Data>) -> (contacts: Int, snapshots: Int) {
+        let orphaned = telemetryHistory.filter { !liveKeyPrefixes.contains($0.key) }
+        return (orphaned.count, orphaned.values.reduce(0) { $0 + $1.count })
+    }
+
     /// Drop telemetry for every contact that is not in `liveKeyPrefixes`.
     ///
     /// Keys here are 6-byte public key prefixes, matching recordTelemetry.

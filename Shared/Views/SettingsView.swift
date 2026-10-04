@@ -28,6 +28,7 @@ struct SettingsView: View {
     @Environment(ConnectionManager.self) var connectionManager
     @Environment(RemoteSessionManager.self) var remoteSessionManager
     @Environment(MessageStoreManager.self) var messageStoreManager
+    @Environment(ContactStore.self) var contactStore
     #if !os(watchOS)
     @Environment(RFMonitorStore.self) var rfMonitorStore
     @Environment(ContactBackupStore.self) var contactBackupStore
@@ -44,6 +45,7 @@ struct SettingsView: View {
     @State var showMigrateSheet = false
     @State var showConnectionHelp = false
     @State var showPurgeOptions = false
+    @State var orphanReport: OrphanReport?
     @State var showDebugLog = false
     @State var showSupportersSheet = false
     @State var supporterName = ""

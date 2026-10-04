@@ -770,6 +770,21 @@ final class MessageStoreManager {
         key.count == 1
     }
 
+    /// How many conversations and messages the sweep would drop, dropping none.
+    ///
+    /// Applies the same channel-key exclusion as the purge. Counting that
+    /// differently from the removal is how a confirmation dialog ends up
+    /// promising one thing and doing another.
+    func orphanedMessageCount(liveKeyPrefixes: Set<Data>) -> (conversations: Int, messages: Int) {
+        var conversations = 0, messages = 0
+        for (key, thread) in messagesByContact
+        where !liveKeyPrefixes.contains(key) && !isChannelKey(key) {
+            conversations += 1
+            messages += thread.count
+        }
+        return (conversations, messages)
+    }
+
     /// Drop messages, drafts and last-read markers for every contact not in
     /// `liveKeyPrefixes`, returning how many conversations were removed.
     ///

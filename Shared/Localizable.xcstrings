@@ -81,6 +81,76 @@
         }
       }
     },
+    "%1$d conversations (%2$d messages)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$d Konversationen (%2$d Nachrichten)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$d conversations (%2$d messages)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$d conversaciones (%2$d mensajes)"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$d conversazioni (%2$d messaggi)"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$d gesprekken (%2$d berichten)"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$d conversas (%2$d mensagens)"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$d konverzací (%2$d zpráv)"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$d rozmów (%2$d wiadomości)"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$d розмов (%2$d повідомлень)"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "会話 %1$d 件（メッセージ %2$d 件）"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$d 个会话（%2$d 条消息）"
+          }
+        }
+      }
+    },
     "%1$d of %2$d bytes used": {
       "localizations": {
         "de": {
@@ -147,6 +217,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "已用 %1$d / %2$d 字节"
+          }
+        }
+      }
+    },
+    "%1$d telemetry histories (%2$d readings)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$d Telemetrie-Protokolle (%2$d Messwerte)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$d historiques de télémétrie (%2$d lectures)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$d historiales de telemetría (%2$d lecturas)"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$d storie di telemetria (%2$d letture)"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$d telemetriegeschiedenis (%2$d metingen)"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$d históricos de telemetria (%2$d leituras)"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$d historie telemetrie (%2$d měření)"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$d historii telemetrycznych (%2$d odczytów)"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$d історії телеметрії (%2$d вимірювань)"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "テレメトリ履歴 %1$d 件（測定値 %2$d 件）"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$d 条遥测历史（%2$d 个读数）"
           }
         }
       }
@@ -1453,6 +1593,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "无法删除 %d 个联系人。无线电仍然有它们 — 再试一次。"
+          }
+        }
+      }
+    },
+    "%d saved names, notes, trails and settings": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d gespeicherte Namen, Notizen, Spuren und Einstellungen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d noms, notes, trajets et paramètres enregistrés"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d nombres, notas, rastros y configuraciones guardados"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d nomi, note, tracce e impostazioni salvate"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d opgeslagen namen, notities, sporen en instellingen"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d nomes, notas, trilhas e configurações salvos"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d uložená jména, poznámky, trasy a nastavení"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d zapisanych nazw, notatek, tras i ustawień"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d збережених імен, нотаток, слідів і налаштувань"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存された名前・メモ・軌跡・設定 %d 件"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d 项已保存的名称、备注、轨迹和设置"
           }
         }
       }
@@ -11199,6 +11409,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "选择触发通知的事件。应用程序内横幅即使应用打开也会显示提示。"
+          }
+        }
+      }
+    },
+    "Clean Up Deleted Contacts": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daten gelöschter Kontakte entfernen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nettoyer les contacts supprimés"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limpiar contactos eliminados"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pulisci i contatti eliminati"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contacten opkuisen"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limpar Contatos Excluídos"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vyčistit smazané kontakty"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wyczyść usunięte kontakty"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Очистити видалені контакти"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "削除された連絡先をクリーンアップ"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清理已删除的联系人"
           }
         }
       }
@@ -34332,6 +34612,76 @@
         }
       }
     },
+    "Needs a sync": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Benötigt eine Synchronisierung"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nécessite une synchronisation"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Necesita una sincronización"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Richiede una sincronizzazione"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heeft een synchronisatie nodig"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Necessita de sincronização"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Potřebuje synchronizaci"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wymaga synchronizacji"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Потребує синхронізації"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同期が必要です"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要同步"
+          }
+        }
+      }
+    },
     "Network Details": {
       "localizations": {
         "cs": {
@@ -37593,6 +37943,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "笔记"
+          }
+        }
+      }
+    },
+    "Nothing to clean up — no data is left over from deleted contacts.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nichts zu löschen – keine Daten bleiben von gelöschten Kontakten übrig."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rien à nettoyer — aucun donnée n'est laissée par les contacts supprimés"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay nada que limpiar — no quedan datos de contactos eliminados."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niente da pulire — non ci sono dati residui dai contatti eliminati"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niets om op te kuisen — er zijn geen gegevens over van verwijderde contacten."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nada para limpar — não há dados restantes de contatos excluídos."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nic k vyčištění — žádné údaje z mazaných kontaktů nezůstaly."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nic do wyczyszczenia — nie ma danych pozostawionych po usuniętych kontaktach."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нічого не потрібно очищати — від видалених контактів не залишилося даних."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クリーンアップするデータはありません — 削除された連絡先からデータが残っていません"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有要清理的内容 — 没有从已删除的联系人中留下任何数据。"
           }
         }
       }
@@ -62642,6 +63062,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "这个昵称会本地存储在您的设备上。它不会改变无线电或网格网络上的任何内容。"
+          }
+        }
+      }
+    },
+    "This removes data for contacts your radio no longer has:\n\n%@\n\nThis cannot be undone.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dies entfernt Daten für Kontakte, die Ihr Radio nicht mehr hat:\n\n%@\n\nDies kann nicht rückgängig gemacht werden."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cela supprime les données de contacts dont votre radio ne dispose plus :\n\n%@\n\nCela ne peut pas être annulé."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esto elimina los datos de contactos que tu radio ya no tiene.\n\n%@\n\nEsto no se puede deshacer."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questo rimuove i dati dei contatti che la tua radio non ha più.\n\n%@\n\nQuesto non può essere annullato."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dit verwijdert gegevens voor contacten waarvan je radio geen gebruik meer maakt:\n\n%@\n\nDit kan niet ongedaan gemaakt worden."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Isso remove dados de contatos que seu rádio não possui mais:\n\n%@\n\nIsso não pode ser desfeito."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odstraní data kontaktů, které vaše rádio již nemá.\n\n%@\n\nToto nelze vrátit zpět."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuwanie danych kontaktów, których radio już nie ma:\n\n%@\n\nNie można tego cofnąć."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Це видаляє дані для контактів, яких більше немає у вашому радіопристрої:\n\n%@\n\nЦе неможливо відмінити."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この機能は、ラジオに登録されていない連絡先のデータを削除します。\n\n%@\n\nこの操作は取り消せません。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这会删除您的收音机不再拥有的联系人数据：\n\n%@\n\n这无法撤销。"
           }
         }
       }
