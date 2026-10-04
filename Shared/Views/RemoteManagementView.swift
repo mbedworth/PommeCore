@@ -64,7 +64,7 @@ struct RemoteManagementView: View {
                 if !isAdmin && isLoggedIn {
                     HStack(spacing: 8) {
                         Image(systemName: permission == .guest ? "person" : "eye")
-                            .foregroundStyle(permissionBadgeColor)
+                            .foregroundStyle(MeshTheme.permissionColor(permission))
                         (permission == .guest ? Text("Logged in as Guest \u{2014} no access to settings") : Text("Logged in as \(permission.displayName) \u{2014} read-only access"))
                             .font(.caption)
                             .foregroundStyle(MeshTheme.textSecondary)
@@ -220,10 +220,10 @@ struct RemoteManagementView: View {
                     Spacer()
                     Text(permission.displayName)
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(.black)
+                        .foregroundStyle(MeshTheme.textOnBubble)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 3)
-                        .background(permissionBadgeColor)
+                        .background(MeshTheme.permissionColor(permission))
                         .clipShape(Capsule())
                 }
                 Text(isUSBDevice
@@ -317,7 +317,7 @@ struct RemoteManagementView: View {
                         } else if session.hasCachedSettings(for: sectionKey) {
                             Image(systemName: "arrow.triangle.2.circlepath.circle")
                                 .font(.caption2)
-                                .foregroundStyle(.orange)
+                                .foregroundStyle(MeshTheme.statusWarn)
                         }
                         Spacer()
                         if session.fetchingSection == sectionKey {
@@ -338,15 +338,6 @@ struct RemoteManagementView: View {
                 }
             }
             .textCase(nil)
-        }
-    }
-
-    private var permissionBadgeColor: Color {
-        switch permission {
-        case .guest: return MeshTheme.textSecondary
-        case .readOnly: return .yellow
-        case .readWrite: return .blue
-        case .admin: return MeshTheme.interactiveGreen
         }
     }
 
@@ -441,10 +432,10 @@ struct LoginSection: View {
                 if contact.type == .sensor {
                     HStack(spacing: 6) {
                         Image(systemName: "exclamationmark.triangle")
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(MeshTheme.statusWarn)
                         Text("Sensors require admin access. Guest login is not supported.")
                             .font(.caption)
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(MeshTheme.statusWarn)
                     }
                     .listRowBackground(MeshTheme.surface)
                 }
@@ -460,7 +451,7 @@ struct LoginSection: View {
                         Button("Cancel") {
                             remoteSessionManager.cancelLogin(for: contact)
                         }
-                        .foregroundStyle(.red)
+                        .foregroundStyle(MeshTheme.statusBad)
                     }
                     .listRowBackground(MeshTheme.surface)
                 } else {
@@ -484,10 +475,10 @@ struct LoginSection: View {
                 if case .loginFailed(let msg) = session.loginState {
                     HStack(alignment: .top) {
                         Image(systemName: "exclamationmark.triangle")
-                            .foregroundStyle(.red)
+                            .foregroundStyle(MeshTheme.statusBad)
                         Text(msg)
                             .font(.caption)
-                            .foregroundStyle(.red)
+                            .foregroundStyle(MeshTheme.statusBad)
                     }
                     .listRowBackground(MeshTheme.surface)
                 }
@@ -511,12 +502,7 @@ struct LoginSection: View {
     private var statusColor: Color {
         switch session.loginState {
         case .loggedIn(let permission):
-            switch permission {
-            case .guest: MeshTheme.textSecondary
-            case .readOnly: .yellow
-            case .readWrite: .blue
-            case .admin: MeshTheme.connected
-            }
+            MeshTheme.permissionColor(permission)
         case .loggingIn: MeshTheme.connecting
         case .loginFailed: MeshTheme.disconnected
         case .notLoggedIn: MeshTheme.textSecondary
@@ -582,7 +568,7 @@ private extension RemoteManagementView {
                     if !isAdmin {
                         Text("\u{2022} \(permission.displayName)")
                             .font(.caption)
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(MeshTheme.statusWarn)
                     }
                 }
                 .contentShape(Rectangle())
@@ -641,15 +627,15 @@ private extension RemoteManagementView {
                     HStack(spacing: 4) {
                         Image(systemName: showPubkeyCopied ? "checkmark" : "key")
                             .font(.caption2)
-                            .foregroundStyle(showPubkeyCopied ? MeshTheme.interactiveGreen : MeshTheme.textSecondary)
+                            .foregroundStyle(showPubkeyCopied ? MeshTheme.statusGood : MeshTheme.textSecondary)
                         Text(showPubkeyCopied ? "Copied!" : String(pubkey.prefix(16)) + "...")
                             .font(.caption2)
-                            .foregroundStyle(showPubkeyCopied ? MeshTheme.interactiveGreen : MeshTheme.textSecondary)
+                            .foregroundStyle(showPubkeyCopied ? MeshTheme.statusGood : MeshTheme.textSecondary)
                             .lineLimit(1)
                         Spacer()
                         Image(systemName: "doc.on.doc")
                             .font(.caption2)
-                            .foregroundStyle(showPubkeyCopied ? MeshTheme.interactiveGreen : MeshTheme.accent)
+                            .foregroundStyle(showPubkeyCopied ? MeshTheme.statusGood : MeshTheme.accent)
                     }
                     .contentShape(Rectangle())
                     .onTapGesture {

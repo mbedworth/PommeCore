@@ -38,7 +38,7 @@ struct DeviceScannerView: View {
                                 if connectionManager.scanRetryCount < 3 && connectionManager.scanRetryCount > 0 {
                                     Text("Retry \(3 - connectionManager.scanRetryCount) of 3")
                                         .font(.caption)
-                                        .foregroundStyle(.orange)
+                                        .foregroundStyle(MeshTheme.statusWarn)
                                 }
                             }
                         }
@@ -349,8 +349,8 @@ struct DeviceScannerView: View {
     private func signalColor(strength: Int) -> Color {
         switch strength {
         case 4, 3:  return MeshTheme.connected
-        case 2:     return .orange
-        case 1:     return .red
+        case 2:     return MeshTheme.statusWarn
+        case 1:     return MeshTheme.statusBad
         default:    return MeshTheme.textSecondary
         }
     }

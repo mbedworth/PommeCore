@@ -64,7 +64,7 @@ private struct RelayCardView: View {
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
                     Image(systemName: "antenna.radiowaves.left.and.right")
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(MeshTheme.statusWarn)
                         .frame(width: 20)
                     Text(title)
                         .font(.subheadline.weight(.medium))
@@ -76,7 +76,7 @@ private struct RelayCardView: View {
                     } label: {
                         Image(systemName: "minus.circle.fill")
                             .accessibilityLabel("Clear cached repeaters")
-                            .foregroundStyle(.red.opacity(0.8))
+                            .foregroundStyle(MeshTheme.statusBad.opacity(0.8))
                     }
                     .buttonStyle(.plain)
                 }
@@ -94,7 +94,7 @@ private struct RelayCardView: View {
                             .font(.caption)
                             .foregroundStyle(MeshTheme.textSecondary)
                         Slider(value: fractionBinding, in: 0.05...0.95)
-                            .tint(.orange)
+                            .tint(MeshTheme.statusWarn)
                     }
                 } else if relay.source == .contact {
                     if contactsWithLocation.isEmpty {
@@ -117,7 +117,7 @@ private struct RelayCardView: View {
                             }
                         }
                         .foregroundStyle(MeshTheme.accent)
-                        .tint(.primary)
+                        .tint(MeshTheme.textPrimary)
                     }
                 } else {
                     CoordinateInputField(label: "Latitude", placeholder: "e.g. 37.334900", text: $coordLatText, onChange: parseRelayCoordinates)
@@ -125,7 +125,7 @@ private struct RelayCardView: View {
                     if relay.coordinates == nil && !coordLatText.isEmpty && !coordLonText.isEmpty {
                         Text("Enter a valid latitude (−90 to 90) and longitude (−180 to 180)")
                             .font(.caption)
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(MeshTheme.statusWarn)
                     }
                 }
 

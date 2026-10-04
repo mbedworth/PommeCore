@@ -234,7 +234,7 @@ struct DeviceInfoSection: View {
                     .foregroundStyle(MeshTheme.textSecondary)
                 Text(presetName ?? "Custom")
                     .font(.caption2)
-                    .foregroundStyle(presetName != nil ? .green : .orange)
+                    .foregroundStyle(presetName != nil ? MeshTheme.statusGood : MeshTheme.statusWarn)
             }
         }
         .contentShape(Rectangle())
@@ -294,7 +294,7 @@ struct DeviceInfoSection: View {
                 }
                 Text(gpsStatusLabel)
                     .font(.caption2)
-                    .foregroundStyle(config.latitude == 0 && config.longitude == 0 ? .orange : .green)
+                    .foregroundStyle(config.latitude == 0 && config.longitude == 0 ? MeshTheme.statusWarn : MeshTheme.statusGood)
             }
         }
         .contentShape(Rectangle())
@@ -307,7 +307,7 @@ struct DeviceInfoSection: View {
             Spacer()
             let battV = String(format: "%.2f", Double(config.batteryMillivolts) / 1000.0)
             let battPct = config.batteryPercent()
-            let battColor: Color = battPct > 50 ? .green : battPct > 20 ? .yellow : battPct > 0 ? .red : MeshTheme.textSecondary
+            let battColor: Color = battPct > 0 ? MeshTheme.batteryColor(percent: battPct) : MeshTheme.textSecondary
             Text(battPct > 0 ? String(format: "%@V (%d%%)", battV, battPct) : "\(battV)V")
                 .foregroundStyle(battColor)
         }
@@ -325,7 +325,7 @@ struct DeviceInfoSection: View {
                 if !firmwareChecker.isUpdateAvailable && firmwareChecker.latestVersion != nil {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.caption)
-                        .foregroundStyle(.green)
+                        .foregroundStyle(MeshTheme.statusGood)
                 }
             }
         }
@@ -406,7 +406,7 @@ struct DeviceInfoSection: View {
                 } label: {
                     HStack(spacing: 8) {
                         Image(systemName: "arrow.down.circle.fill")
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(MeshTheme.statusWarn)
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Firmware Update Available")
                                 .font(.subheadline.weight(.semibold))
@@ -471,7 +471,7 @@ struct DeviceInfoSection: View {
                 Divider()
                 Text(result.regionMessage)
                     .font(.caption)
-                    .foregroundStyle(result.regionCheck == .pass ? .green : result.regionCheck == .fail ? .red : .orange)
+                    .foregroundStyle(result.regionCheck == .pass ? MeshTheme.statusGood : result.regionCheck == .fail ? MeshTheme.statusBad : MeshTheme.statusWarn)
             }
             .font(.caption)
             .listRowBackground(MeshTheme.surface)
@@ -581,7 +581,7 @@ extension SettingsView {
                 }
             }
             .foregroundStyle(MeshTheme.accent)
-            .tint(.primary)
+            .tint(MeshTheme.textPrimary)
             .onChange(of: batteryChemistryRaw) {
                 deviceConfig.resetBatteryCalibration()
             }
@@ -710,10 +710,7 @@ extension SettingsView {
     }
 
     var batteryColor: Color {
-        let pct = correctedBatteryPercent
-        if pct > 50 { return .green }
-        if pct > 20 { return .yellow }
-        return .red
+        MeshTheme.batteryColor(percent: correctedBatteryPercent)
     }
 }
 
@@ -809,9 +806,9 @@ struct WatchCompanionSection: View {
                         .foregroundStyle(MeshTheme.accent)
                     Spacer()
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(.green)
+                        .foregroundStyle(MeshTheme.statusGood)
                     Text("Active")
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(MeshTheme.textSecondary)
                         .font(.caption)
                 }
                 .listRowBackground(MeshTheme.surface)
@@ -819,11 +816,11 @@ struct WatchCompanionSection: View {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Send and receive mesh messages from your Apple Watch.")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(MeshTheme.textSecondary)
                     if let err = loadError {
                         Text(err)
                             .font(.caption2)
-                            .foregroundStyle(.red)
+                            .foregroundStyle(MeshTheme.statusBad)
                     }
                 }
                 .listRowBackground(MeshTheme.surface)
@@ -841,7 +838,7 @@ struct WatchCompanionSection: View {
                                     .tint(MeshTheme.accent)
                             } else {
                                 Text(product.displayPrice)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(MeshTheme.textSecondary)
                             }
                         }
                     }
@@ -860,7 +857,7 @@ struct WatchCompanionSection: View {
 
                 Text("$9.99 supporters also receive Watch Companion automatically.")
                     .font(.caption2)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(MeshTheme.textSecondary)
                     .listRowBackground(MeshTheme.surface)
             }
         } header: {

@@ -97,7 +97,7 @@ struct MessageBubble: View {
                                     .frame(width: 2)
                                 Text(quoted)
                                     .font(.caption)
-                                    .foregroundStyle(MeshTheme.textOnAccent.opacity(0.7))
+                                    .foregroundStyle(MeshTheme.textOnBubble.opacity(0.7))
                                     .lineLimit(2)
                             }
                             .padding(.bottom, 2)
@@ -115,7 +115,7 @@ struct MessageBubble: View {
                     .padding(.horizontal, 14)
                     .padding(.vertical, 9)
                     .background(message.isOutgoing ? MeshTheme.outgoingBubble : MeshTheme.incomingBubble)
-                    .foregroundStyle(MeshTheme.textOnAccent)
+                    .foregroundStyle(MeshTheme.textOnBubble)
                     .clipShape(RoundedRectangle(cornerRadius: 18))
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(bubbleAccessibilityLabel)
@@ -274,10 +274,10 @@ struct MessageBubble: View {
             HStack(spacing: 2) {
                 Image(systemName: "arrow.clockwise")
                     .font(.caption2)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(MeshTheme.statusWarn)
                 Text("Retrying (\(message.attempt + 1)/3)...")
                     .font(.caption2)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(MeshTheme.statusWarn)
             }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel("Retrying, attempt \(message.attempt + 1) of 3")
@@ -285,10 +285,10 @@ struct MessageBubble: View {
             HStack(spacing: 2) {
                 Image(systemName: "dot.radiowaves.left.and.right")
                     .font(.caption2)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(MeshTheme.statusWarn)
                 Text("Flooding...")
                     .font(.caption2)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(MeshTheme.statusWarn)
             }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel("Flooding mesh network")
@@ -355,7 +355,7 @@ struct ChannelMessageBubble: View {
                         .padding(.horizontal, 14)
                         .padding(.vertical, 9)
                         .background(message.isOutgoing ? MeshTheme.outgoingBubble : MeshTheme.incomingBubble)
-                        .foregroundStyle(MeshTheme.textOnAccent)
+                        .foregroundStyle(MeshTheme.textOnBubble)
                         .clipShape(RoundedRectangle(cornerRadius: 18))
                         .padding(.top, message.reactions.isEmpty ? 0 : 22)
 
@@ -486,7 +486,7 @@ private struct ReactionBadge: View {
                 ZStack {
                     Circle()
                         .fill(.regularMaterial)
-                        .shadow(color: .black.opacity(0.18), radius: 3, y: 1)
+                        .shadow(color: MeshTheme.shade(0.18), radius: 3, y: 1)
                     Text(emoji)
                         .font(.system(size: fontSize))
                 }
@@ -545,7 +545,7 @@ func highlightMentions(in text: String, myName: String) -> Text {
         let mentionName = nsText.substring(with: match.range(at: 1))
         let isMe = mentionName.localizedCaseInsensitiveCompare(myName) == .orderedSame
         result = result + Text(mention)
-            .foregroundColor(isMe ? .orange : MeshTheme.accent)
+            .foregroundColor(isMe ? MeshTheme.statusWarn : MeshTheme.accent)
             .bold()
         lastEnd = range.location + range.length
     }
@@ -580,7 +580,8 @@ func linkifyMeshcoreURLs(_ text: String) -> Text {
         if let emojiRange = text.range(of: "\u{1F4CD}"),
            let fullRange = attr.range(of: String(text[emojiRange.lowerBound...])) {
             attr[fullRange].link = mapsURL
-            attr[fullRange].foregroundColor = .accentColor
+            attr[fullRange].foregroundColor = MeshTheme.linkInBubble
+            attr[fullRange].underlineStyle = .single
         }
         return Text(attr)
     }
@@ -600,7 +601,8 @@ func linkifyMeshcoreURLs(_ text: String) -> Text {
     if let url = URL(string: urlString) {
         var linked = AttributedString(urlString)
         linked.link = url
-        linked.foregroundColor = .accentColor
+        linked.foregroundColor = MeshTheme.linkInBubble
+        linked.underlineStyle = .single
         return Text(before) + Text(linked) + Text(after)
     }
     return Text(text)
@@ -813,13 +815,13 @@ struct LinkPreviewCard: View {
                     if let title = metadata.title {
                         Text(title)
                             .font(.caption.weight(.semibold))
-                            .foregroundStyle(MeshTheme.textOnAccent)
+                            .foregroundStyle(MeshTheme.textOnBubble)
                             .lineLimit(2)
                     }
                     if let desc = metadata.description {
                         Text(desc)
                             .font(.caption2)
-                            .foregroundStyle(MeshTheme.textOnAccent.opacity(0.7))
+                            .foregroundStyle(MeshTheme.textOnBubble.opacity(0.7))
                             .lineLimit(2)
                     }
                     if let site = metadata.siteName {
@@ -832,7 +834,7 @@ struct LinkPreviewCard: View {
                 .padding(.vertical, 4)
             }
             .frame(maxWidth: 240)
-            .background(Color.black.opacity(0.15))
+            .background(MeshTheme.shade(0.15))
             .clipShape(RoundedRectangle(cornerRadius: 8))
         }
     }

@@ -121,7 +121,7 @@ struct NodeSetupWizardView: View {
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(MeshTheme.accent)
-                    .foregroundStyle(.black)
+                    .foregroundStyle(MeshTheme.textOnFill)
                     .clipShape(RoundedRectangle(cornerRadius: 10))
                 }
                 .buttonStyle(.plain)
@@ -157,13 +157,13 @@ struct NodeSetupWizardView: View {
                             Spacer()
                             if nameBytes <= 24 {
                                 Image(systemName: "checkmark.circle.fill")
-                                    .foregroundStyle(.green)
+                                    .foregroundStyle(MeshTheme.statusGood)
                             } else {
                                 Image(systemName: "exclamationmark.triangle.fill")
-                                    .foregroundStyle(.red)
+                                    .foregroundStyle(MeshTheme.statusBad)
                             }
                         }
-                        .foregroundStyle(nameBytes <= 24 ? MeshTheme.textSecondary : .red)
+                        .foregroundStyle(nameBytes <= 24 ? MeshTheme.textSecondary : MeshTheme.statusBad)
                     }
                 }
 
@@ -177,8 +177,8 @@ struct NodeSetupWizardView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(nameApplied ? Color.green.opacity(0.2) : MeshTheme.accent)
-                    .foregroundStyle(nameApplied ? .green : .black)
+                    .background(nameApplied ? MeshTheme.statusGood.opacity(0.2) : MeshTheme.accent)
+                    .foregroundStyle(nameApplied ? MeshTheme.statusGood : MeshTheme.textOnFill)
                     .clipShape(RoundedRectangle(cornerRadius: 10))
                 }
                 .buttonStyle(.plain)

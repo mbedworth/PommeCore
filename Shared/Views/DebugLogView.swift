@@ -94,12 +94,12 @@ struct DebugLogView: View {
                 VStack(spacing: 12) {
                     Image(systemName: "text.alignleft")
                         .font(.largeTitle)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(MeshTheme.textSecondary)
                     Text("No log entries")
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(MeshTheme.textSecondary)
                     Text("Protocol operations will appear here")
                         .font(.caption)
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(MeshTheme.textSecondary)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
@@ -129,7 +129,7 @@ struct DebugLogView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(entry.timestamp, style: .time)
                     .font(.caption2)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(MeshTheme.textSecondary)
                 Text(entry.message)
                     .font(.system(.caption, design: .monospaced))
                     .foregroundStyle(levelColor(entry.level))
@@ -153,11 +153,11 @@ struct DebugLogView: View {
 
     private func levelColor(_ level: DebugLogger.LogEntry.Level) -> Color {
         switch level {
-        case .tx: return .blue
-        case .rx: return .green
-        case .error: return .red
-        case .warning: return .orange
-        case .info: return .primary
+        case .tx: return MeshTheme.statusInfo
+        case .rx: return MeshTheme.statusGood
+        case .error: return MeshTheme.statusBad
+        case .warning: return MeshTheme.statusWarn
+        case .info: return MeshTheme.textPrimary
         }
     }
 
@@ -199,8 +199,8 @@ private struct FilterChip: View {
                 .fontWeight(isSelected ? .semibold : .regular)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
-                .background(isSelected ? Color.accentColor.opacity(0.2) : Color.secondary.opacity(0.1))
-                .foregroundStyle(isSelected ? Color.accentColor : .secondary)
+                .background(isSelected ? MeshTheme.accent.opacity(0.2) : MeshTheme.textSecondary.opacity(0.1))
+                .foregroundStyle(isSelected ? MeshTheme.accent : MeshTheme.textSecondary)
                 .clipShape(Capsule())
         }
         .buttonStyle(.plain)

@@ -182,10 +182,10 @@ struct DangerZoneSection: View {
             } label: {
                 HStack {
                     Image(systemName: "arrow.counterclockwise.circle")
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(MeshTheme.statusWarn)
                         .frame(width: 24)
                     Text("Reboot Device")
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(MeshTheme.statusWarn)
                     Spacer()
                 }
                 .contentShape(Rectangle())
@@ -207,10 +207,10 @@ struct DangerZoneSection: View {
             } label: {
                 HStack {
                     Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundStyle(.red)
+                        .foregroundStyle(MeshTheme.statusBad)
                         .frame(width: 24)
                     Text("Factory Reset")
-                        .foregroundStyle(.red)
+                        .foregroundStyle(MeshTheme.statusBad)
                     Spacer()
                 }
                 .contentShape(Rectangle())
@@ -236,7 +236,7 @@ struct DangerZoneSection: View {
                 Text("This will erase all data and cannot be undone.\n\nType RESET to confirm.")
             }
         } header: {
-            SectionInfoHeader(title: "Danger Zone", info: "Factory reset erases all contacts, channels, settings, and encryption keys from the device. This cannot be undone.", titleColor: .red)
+            SectionInfoHeader(title: "Danger Zone", info: "Factory reset erases all contacts, channels, settings, and encryption keys from the device. This cannot be undone.", titleColor: MeshTheme.statusBad)
         }
     }
 }
@@ -311,7 +311,7 @@ struct NameEditorSheet: View {
                         }
                     Text("\(name.count)/31")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(MeshTheme.textSecondary)
                     InfoButton(text: "TIP: Use your initials + first 4 of your public key (e.g., NMA-5abd). Max 31 characters.")
                 }
             }
@@ -626,7 +626,7 @@ struct GPSEditorSheet: View {
                     (gpsUnavailable
                         ? Label("GPS Not Available", systemImage: "location.slash")
                         : (gpsSyncFeedback ? Label("Location Set!", systemImage: "iphone.radiowaves.left.and.right") : Label("Set from Phone GPS", systemImage: "iphone.radiowaves.left.and.right")))
-                        .foregroundStyle(gpsUnavailable ? .red : gpsSyncFeedback ? .green : MeshTheme.accent)
+                        .foregroundStyle(gpsUnavailable ? MeshTheme.statusBad : gpsSyncFeedback ? MeshTheme.statusGood : MeshTheme.accent)
                 }
 
                 Button {
@@ -637,7 +637,7 @@ struct GPSEditorSheet: View {
                     showMapPicker = true
                 } label: {
                     (mapPickFeedback ? Label("Location Set!", systemImage: "checkmark.circle.fill") : Label("Pick on Map", systemImage: "map"))
-                        .foregroundStyle(mapPickFeedback ? .green : MeshTheme.accent)
+                        .foregroundStyle(mapPickFeedback ? MeshTheme.statusGood : MeshTheme.accent)
                 }
 
                 Toggle(isOn: $autoUpdateLocation) {
@@ -679,7 +679,7 @@ struct GPSEditorSheet: View {
                         Text("\u{00B1} 5km (~3 miles)").tag(5000.0)
                     }
                     .foregroundStyle(MeshTheme.accent)
-                    .tint(.primary)
+                    .tint(MeshTheme.textPrimary)
                 }
             } header: {
                 SectionInfoHeader(info: "Adds a random offset to your location before sharing. Only affects your personal device \u{2014} repeater and room server locations are always exact.")
@@ -748,7 +748,7 @@ struct BatteryEditorSheet: View {
                     Text("LiFePO4 (3.2V)").tag(BatteryChemistry.lifepo4.rawValue)
                     Text("Li-Ion (3.7V)").tag(BatteryChemistry.li18650.rawValue)
                 }
-                .tint(.primary)
+                .tint(MeshTheme.textPrimary)
             } header: {
                 SectionInfoHeader(info: "Select battery chemistry for accurate percentage calculation.")
             }

@@ -85,7 +85,7 @@ struct MapPointPickerView: View {
                         Annotation("Selected", coordinate: pin) {
                             Image(systemName: "mappin.circle.fill")
                                 .font(.title)
-                                .foregroundStyle(.red)
+                                .foregroundStyle(MeshTheme.statusBad)
                         }
                     }
                     UserAnnotation()
@@ -107,10 +107,10 @@ struct MapPointPickerView: View {
                     Spacer()
                     Text("Tap the map to place a pin")
                         .font(.subheadline)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(MeshTheme.textOnDarkPanel)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 8)
-                        .background(.black.opacity(0.6))
+                        .background(MeshTheme.shade(0.6))
                         .clipShape(Capsule())
                         .padding(.bottom, 40)
                 }
@@ -140,12 +140,12 @@ struct MapPointPickerView: View {
             VStack(spacing: 0) {
                 Image(systemName: "mappin")
                     .font(.system(size: 32, weight: .bold))
-                    .foregroundStyle(.red)
-                    .shadow(color: .black.opacity(0.3), radius: 2, y: 1)
+                    .foregroundStyle(MeshTheme.statusBad)
+                    .shadow(color: MeshTheme.shade(0.3), radius: 2, y: 1)
 
                 // Pin shadow dot
                 Circle()
-                    .fill(.black.opacity(0.2))
+                    .fill(MeshTheme.shade(0.2))
                     .frame(width: 6, height: 6)
                     .offset(y: -2)
             }
@@ -155,10 +155,10 @@ struct MapPointPickerView: View {
                 Spacer()
                 Text("Pan the map to position the pin, then click Place Pin Here")
                     .font(.subheadline)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(MeshTheme.textOnDarkPanel)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)
-                    .background(.black.opacity(0.6))
+                    .background(MeshTheme.shade(0.6))
                     .clipShape(Capsule())
                     .padding(.bottom, 20)
             }

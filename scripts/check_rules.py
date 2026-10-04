@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministic checks for the rules in CLAUDE.md.
+"""Deterministic checks for the project's critical development rules.
 
 Each check prints nothing when the tree is clean, so any output is a finding.
 That is the whole design: a check that always prints something teaches you to

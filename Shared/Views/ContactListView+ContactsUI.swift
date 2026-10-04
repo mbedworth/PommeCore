@@ -31,10 +31,10 @@ extension ContactListView {
                 HStack(spacing: 12) {
                     ZStack {
                         Circle()
-                            .fill(Color.orange.opacity(0.15))
+                            .fill(MeshTheme.statusWarn.opacity(0.15))
                             .frame(width: 40, height: 40)
                         Image(systemName: contactIconName(for: contact.type))
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(MeshTheme.statusWarn)
                     }
                     VStack(alignment: .leading, spacing: 2) {
                         Text(contact.name)
@@ -42,7 +42,7 @@ extension ContactListView {
                             .foregroundStyle(MeshTheme.textPrimary)
                         Text("New contact discovered")
                             .font(.caption)
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(MeshTheme.statusWarn)
                     }
                     Spacer()
                     Button {
@@ -66,7 +66,7 @@ extension ContactListView {
             }
         } header: {
             Text("Pending Contacts")
-                .foregroundStyle(.orange)
+                .foregroundStyle(MeshTheme.statusWarn)
         }
     }
 
@@ -112,7 +112,7 @@ extension ContactListView {
                         } else if group.notifyMode == .priority {
                             Image(systemName: "bell.badge")
                                 .font(.caption2)
-                                .foregroundStyle(.orange)
+                                .foregroundStyle(MeshTheme.statusWarn)
                         }
                         Spacer()
                         Text("\(group.memberPubkeys.count)")
@@ -268,7 +268,7 @@ extension ContactListView {
                     }
                     .buttonStyle(.borderedProminent)
                     .tint(MeshTheme.interactiveGreen)
-                    .foregroundStyle(.black)
+                    .foregroundStyle(MeshTheme.textOnBubble)
                     .controlSize(.small)
                 }
                 .padding(.vertical, 8)
@@ -294,6 +294,11 @@ extension ContactListView {
                             }
                         }
                         .buttonStyle(.plain)
+                        // The checkmark is the only thing that distinguishes a
+                        // selected row, so the trait has to say so out loud.
+                        .accessibilityAddTraits(
+                            selectedContacts.contains(contact.publicKeyPrefix) ? .isSelected : []
+                        )
                     } else {
                     NavigationLink(value: SidebarSelection.contact(contact.publicKeyPrefix)) {
                         contactRow(contact)
@@ -321,7 +326,7 @@ extension ContactListView {
                                 systemImage: contact.isFavourite ? "star.slash" : "star.fill"
                             )
                         }
-                        .tint(.yellow)
+                        .tint(MeshTheme.statusCaution)
                     }
                     .listRowBackground(
                         navigationStore.selectedContactKey == contact.publicKeyPrefix

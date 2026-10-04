@@ -54,7 +54,11 @@ enum MeshTheme {
             if appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua {
                 return NSColor(red: 0.0, green: 0.85, blue: 0.35, alpha: 1.0)
             } else {
-                return NSColor(red: 0.0, green: 0.60, blue: 0.25, alpha: 1.0)
+                // #00762F — 5.18:1 on the grouped background, 5.78:1 on a
+                // card. The previous 0.60/0.25 green measured 3.34:1, under
+                // the 4.5:1 bar for body text, and rule 1 puts every label in
+                // this color.
+                return NSColor(red: 0.0, green: 0.463, blue: 0.184, alpha: 1.0)
             }
         })
         #elseif os(watchOS)
@@ -64,7 +68,7 @@ enum MeshTheme {
             if traitCollection.userInterfaceStyle == .dark {
                 return UIColor(red: 0.0, green: 0.85, blue: 0.35, alpha: 1.0)
             } else {
-                return UIColor(red: 0.0, green: 0.60, blue: 0.25, alpha: 1.0)
+                return UIColor(red: 0.0, green: 0.463, blue: 0.184, alpha: 1.0)
             }
         })
         #endif
@@ -152,20 +156,213 @@ enum MeshTheme {
     }
 
     // Status colors — these system colors adapt automatically
-    static let connected = Color.green
-    static let connecting = Color.orange
-    static let initialConnected = Color.yellow
-    static let scanning = Color.blue
-    static let disconnected = Color.red
+    // Status colors.
+    //
+    // Apple's system colors are tuned to look vivid on a filled dot, not to be
+    // read as text. Against a light background they are far below the 4.5:1
+    // WCAG AA bar for body text — system green measures 1.99:1 and orange
+    // 1.97:1 on the grouped background — and this app puts the status *text*
+    // in the same color as the dot beside it. So light mode gets darker
+    // values, measured to clear 5:1, while dark mode keeps the system colors,
+    // which already pass comfortably (8.42:1 green, 8.28:1 orange, the
+    // tightest being red at 4.99:1). watchOS is always dark.
+    private static func statusColor(light: (Double, Double, Double),
+                                    dark: Color) -> Color {
+        #if os(watchOS)
+        return dark
+        #elseif os(macOS)
+        return Color(nsColor: NSColor(name: nil) { appearance in
+            appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+                ? NSColor(dark)
+                : NSColor(red: light.0, green: light.1, blue: light.2, alpha: 1.0)
+        })
+        #else
+        return Color(uiColor: UIColor { traits in
+            traits.userInterfaceStyle == .dark
+                ? UIColor(dark)
+                : UIColor(red: light.0, green: light.1, blue: light.2, alpha: 1.0)
+        })
+        #endif
+    }
+
+    /// Good, healthy, in range. Light #1E7533 — 5.16:1 on the grouped background.
+    static let statusGood = statusColor(light: (0.118, 0.459, 0.200), dark: .green)
+    /// Degraded but working. Light #965800 — 5.10:1.
+    static let statusWarn = statusColor(light: (0.588, 0.345, 0.0), dark: .orange)
+    /// Early or indeterminate. Light #7D6400 — 5.09:1.
+    static let statusCaution = statusColor(light: (0.490, 0.392, 0.0), dark: .yellow)
+    /// Failed, offline, out of range. Light #C62A22 — 5.01:1.
+    static let statusBad = statusColor(light: (0.776, 0.165, 0.133), dark: .red)
+    /// Informational, in progress. Light #0063D1 — 5.08:1.
+    static let statusInfo = statusColor(light: (0.0, 0.388, 0.820), dark: .blue)
+    /// Dormant. Light #6C6C70 — 4.76:1; `Color.gray` is only 3.3:1 on white.
+    static let statusIdle = statusColor(light: (0.424, 0.424, 0.439), dark: .gray)
+
+    static let connected = statusGood
+    static let connecting = statusWarn
+    static let initialConnected = statusCaution
+    static let scanning = statusInfo
+    static let disconnected = statusBad
 
     // Text — adaptive
     static let textPrimary = Color.primary
     static let textSecondary = Color.secondary
-    static let textOnAccent = Color.black
+
+    /// Text and icons sitting *on* a filled accent, status or remote-accent
+    /// background — the colours that flip from a darkened light-mode value to
+    /// a bright system colour in dark mode. The readable foreground has to
+    /// flip with them: white on the dark light-mode fill (accent 5.78:1,
+    /// statusBad 5.60:1, remoteRoom 5.57:1), black on the bright dark-mode one
+    /// (accent 11.04:1, system red 6.16:1, system teal 10.56:1).
+    ///
+    /// This replaces the old `textOnAccent = .black`. That was right while the
+    /// accent was a mid green, but darkening it to #00762F for contrast took
+    /// black down to 3.64:1 — under the 4.5:1 bar — so a constant can no
+    /// longer serve both modes.
+    static let textOnFill = statusColor(light: (1, 1, 1), dark: .black)
+
+    /// Text and icons on a pale fill: the message bubbles, `interactiveGreen`
+    /// badges and pills. Both mode variants of those fills are light enough
+    /// that black wins outright (16.18:1 light, 6.54:1 dark), so this one is
+    /// genuinely constant.
+    static let textOnBubble = Color.black
+
+    /// Text on an always-dark panel or photographic overlay, where there is no
+    /// light-mode variant to adapt to. 16.56:1 on the terrain panel.
+    static let textOnDarkPanel = Color.white
+
+    /// The opaque panel behind the terrain-profile legend — dark in both modes
+    /// because it sits on the rendered profile, not on the app background.
+    static let darkPanel = Color(white: 0.12)
+
+    /// The ring that separates a map pin from the map underneath it.
+    static let mapPinOutline = Color.white
+
+    /// Neutral black shading for scrims, pin shadows and subtle tints over
+    /// imagery. A single entry point, so no view needs a raw `Color.black`.
+    static func shade(_ opacity: Double) -> Color { Color.black.opacity(opacity) }
+
+    // MARK: Signal and status mapping
+    //
+    // One implementation per quantity, using the thresholds documented as the
+    // app's status colour standards. These were previously copied into five
+    // views; the copies had drifted — one SNR version used >= 5 / >= 0 and so
+    // could never return red at all, while the documented scale puts anything
+    // below -10 dB in red.
+
+    /// LoRa signal-to-noise ratio. Green > 0 dB, amber 0 to -10, red < -10.
+    static func snrColor(_ snr: Double) -> Color {
+        if snr > 0 { return statusGood }
+        if snr > -10 { return statusWarn }
+        return statusBad
+    }
+
+    /// Whole-decibel convenience. Taken separately rather than by converting
+    /// at the call site, because truncating a fractional SNR would move a
+    /// reading like +0.5 dB from green into amber.
+    static func snrColor(_ snr: Int) -> Color { snrColor(Double(snr)) }
+
+    /// LoRa received signal strength. Green > -100 dBm, amber -100 to -120,
+    /// red < -120.
+    static func rssiColor(_ rssi: Int) -> Color {
+        if rssi > -100 { return statusGood }
+        if rssi > -120 { return statusWarn }
+        return statusBad
+    }
+
+    /// Which band a signal reading falls into: 0 good, 1 marginal, 2 bad —
+    /// the same three bands `snrColor`/`rssiColor` paint.
+    static func signalTier(snr: Double) -> Int { snr > 0 ? 0 : snr > -10 ? 1 : 2 }
+
+    /// As above, for received signal strength in dBm.
+    static func signalTier(rssi: Int) -> Int { rssi > -100 ? 0 : rssi > -120 ? 1 : 2 }
+
+    /// A dash pattern that tells the three signal bands apart *without*
+    /// colour: solid, dashed, dotted.
+    ///
+    /// The map's link-quality and coverage overlays encoded signal strength in
+    /// the line colour and nothing else, which is precisely what Differentiate
+    /// Without Color exists to catch. Apply this under that setting and the
+    /// band survives for someone who cannot separate the green from the red.
+    static func signalDash(tier: Int) -> [CGFloat] {
+        switch tier {
+        case 0: return []
+        case 1: return [6, 3]
+        default: return [2, 3]
+        }
+    }
+
+    /// Noise floor. Green < -105 dBm, amber -105 to -95, red above -95.
+    static func noiseFloorColor(_ dBm: Int) -> Color {
+        if dBm < -105 { return statusGood }
+        if dBm < -95 { return statusWarn }
+        return statusBad
+    }
+
+    /// Stored message count. Green < 5,000, amber to 20,000, red beyond.
+    static func messageCountColor(_ count: Int) -> Color {
+        if count > 20_000 { return statusBad }
+        if count > 5_000 { return statusWarn }
+        return statusGood
+    }
+
+    /// Stored telemetry reading count. Green < 500, amber to 2,000, red beyond.
+    static func telemetryCountColor(_ count: Int) -> Color {
+        if count > 2_000 { return statusBad }
+        if count > 500 { return statusWarn }
+        return statusGood
+    }
+
+    /// Battery charge. Green > 50%, amber > 20%, red at or below 20%.
+    static func batteryColor(percent: Int) -> Color {
+        if percent > 50 { return statusGood }
+        if percent > 20 { return statusCaution }
+        return statusBad
+    }
+
+    /// Remote-session permission level, for the badge in contact rows and the
+    /// remote management header.
+    static func permissionColor(_ permission: RemotePermission) -> Color {
+        switch permission {
+        case .guest: return textSecondary
+        case .readOnly: return statusCaution
+        case .readWrite: return statusInfo
+        case .admin: return interactiveGreen
+        }
+    }
 
     // Remote management accent colors
-    static let remoteRoom = Color.teal
-    static let remoteRepeater = Color.orange
+    // Both of these reach text through `remoteAccent`, so they need the same
+    // treatment as the status colours: Color.teal measures 2.31:1 on the light
+    // grouped background and Color.orange 1.97:1.
+    /// Room servers. Light #1F7281 — 5.00:1.
+    static let remoteRoom = statusColor(light: (0.122, 0.446, 0.504), dark: .teal)
+    /// Repeaters. Shares the warning amber, which is already measured.
+    static let remoteRepeater = statusWarn
+
+    /// Room-server pins on the map. Teal is taken there by the internet-map
+    /// nodes, so rooms keep a violet — but a measured one. Light #8E3AB8 is
+    /// 5.46:1; `Color.purple` is 3.70:1, under the bar even for a pin label.
+    static let mapRoom = statusColor(light: (0.557, 0.227, 0.722), dark: .purple)
+
+    /// A tappable link *inside* a message bubble.
+    ///
+    /// The accent cannot do this job. On the light bubbles it measures
+    /// 4.45:1, a hair under the bar, and on the dark-mode bubbles it collapses
+    /// to 1.69:1 — the bright green all but disappears into the medium green
+    /// fill. Nothing coloured survives on those mid-tone dark fills: even
+    /// white only reaches 3.21:1. So dark mode uses the same black as the
+    /// bubble's body text (6.54:1) and both modes underline, which is what
+    /// actually marks the link, and marks it without relying on colour.
+    static let linkInBubble = statusColor(light: (0.0, 0.302, 0.122), dark: .black)
+
+    // Terrain profile — the line-of-sight drawing renders its own landscape,
+    // so these are picture colours rather than UI colours. They live here so
+    // the renderer holds no literals of its own.
+    static let terrainSkyTop = Color(red: 0.53, green: 0.81, blue: 0.92)
+    static let terrainSkyBottom = Color(red: 0.68, green: 0.85, blue: 0.90)
+    static let terrainGroundTop = Color(red: 0.4, green: 0.6, blue: 0.3)
+    static let terrainGroundBottom = Color(red: 0.55, green: 0.45, blue: 0.3)
 }
 
 // MARK: - TextField Style
@@ -446,7 +643,7 @@ struct CopyButton: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 10)
                 .background(MeshTheme.accent.opacity(0.1))
-                .foregroundStyle(copied ? MeshTheme.interactiveGreen : MeshTheme.accent)
+                .foregroundStyle(copied ? MeshTheme.statusGood : MeshTheme.accent)
                 .clipShape(RoundedRectangle(cornerRadius: 10))
         }
         .buttonStyle(.plain)
@@ -577,9 +774,9 @@ struct SaveButton: View {
             HStack(spacing: 4) {
                 if state == .saved {
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(.green)
+                        .foregroundStyle(MeshTheme.statusGood)
                     Text("Saved")
-                        .foregroundStyle(.green)
+                        .foregroundStyle(MeshTheme.statusGood)
                 } else {
                     Text(label)
                         .foregroundStyle(MeshTheme.accent)
@@ -645,6 +842,7 @@ struct InfoButton: View {
                 .foregroundStyle(MeshTheme.textSecondary.opacity(0.75))
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("More information")
         .popover(isPresented: $showPopover) {
             InfoPopoverContent(text: text)
         }
@@ -704,6 +902,7 @@ struct SectionInfoHeader: View {
                     .foregroundStyle(color.opacity(0.75))
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("More information")
             .popover(isPresented: $showInfo) {
                 InfoPopoverContent(text: info)
             }

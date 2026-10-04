@@ -99,7 +99,7 @@ struct ChatView: View {
     private var routeColor: Color {
         let c = liveContact
         if c.outPathLen == 0 { return MeshTheme.connected }
-        if c.outPathLen < 0 { return c.outPath.isEmpty ? MeshTheme.textSecondary : .orange }
+        if c.outPathLen < 0 { return c.outPath.isEmpty ? MeshTheme.textSecondary : MeshTheme.statusWarn }
         return MeshTheme.accent
     }
 
@@ -281,7 +281,7 @@ struct ChatView: View {
                         .font(.headline)
                     Text(url.lastPathComponent)
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(MeshTheme.textSecondary)
                     Button("Copy File Path") {
                         copyToClipboard(url.path)
                         showExportSheet = false
@@ -506,7 +506,7 @@ struct ChatView: View {
                         .font(.caption2)
                         .foregroundStyle(
                             messageText.count > maxMessageLength - 10
-                                ? Color.orange
+                                ? MeshTheme.statusWarn
                                 : MeshTheme.textSecondary
                         )
                 }

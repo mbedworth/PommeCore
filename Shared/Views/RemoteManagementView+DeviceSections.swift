@@ -117,7 +117,7 @@ struct RemoteGPSSection: View {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 2) { sendCLI("clock") }
                     } label: {
                         (gpsSyncFeedback ? Label("Clock Synced", systemImage: "checkmark.circle.fill") : Label("Sync Time", systemImage: "clock.arrow.2.circlepath"))
-                            .foregroundStyle(gpsSyncFeedback ? .green : MeshTheme.accent)
+                            .foregroundStyle(gpsSyncFeedback ? MeshTheme.statusGood : MeshTheme.accent)
                     }
                     .buttonStyle(.plain)
 
@@ -132,7 +132,7 @@ struct RemoteGPSSection: View {
                         }
                     } label: {
                         (gpsLocFeedback ? Label("Location Set", systemImage: "checkmark.circle.fill") : Label("Set from Hardware GPS", systemImage: "antenna.radiowaves.left.and.right"))
-                            .foregroundStyle(gpsLocFeedback ? .green : MeshTheme.accent)
+                            .foregroundStyle(gpsLocFeedback ? MeshTheme.statusGood : MeshTheme.accent)
                     }
                     .buttonStyle(.plain)
                 }
@@ -148,7 +148,7 @@ struct RemoteGPSSection: View {
                         Text("Manual \u{2014} use saved lat/lon settings").tag("prefs")
                     }
                     .foregroundStyle(MeshTheme.accent)
-                    .tint(.primary)
+                    .tint(MeshTheme.textPrimary)
                 }
                 .listRowBackground(MeshTheme.surface)
             }
@@ -231,11 +231,11 @@ struct RemoteClockRow: View {
             HStack(spacing: 6) {
                 if isClockStale {
                     Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(MeshTheme.statusWarn)
                         .font(.caption)
                     Text("Clock out of sync")
                         .font(.caption)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(MeshTheme.statusWarn)
                 }
                 Spacer()
                 Button {

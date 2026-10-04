@@ -81,7 +81,7 @@ struct ProfileExportView: View {
                             .foregroundStyle(MeshTheme.accent)
                         Spacer()
                         if let err = exportError {
-                            Text(err).font(.caption).foregroundStyle(.red)
+                            Text(err).font(.caption).foregroundStyle(MeshTheme.statusBad)
                         } else {
                             Image(systemName: "chevron.right")
                                 .font(.caption).foregroundStyle(MeshTheme.textSecondary)
@@ -117,10 +117,10 @@ struct ProfileExportView: View {
                 HStack(spacing: 4) {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .font(.caption2)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(MeshTheme.statusWarn)
                     Text("This file will contain contact names, public keys and any positions they advertise. Don\u{2019}t share it with anyone you wouldn\u{2019}t share your contact list with.")
                         .font(.caption2)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(MeshTheme.statusWarn)
                 }
                 .listRowBackground(MeshTheme.surface)
             }
@@ -132,10 +132,10 @@ struct ProfileExportView: View {
                 HStack(spacing: 4) {
                     Image(systemName: "key.slash")
                         .font(.caption2)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(MeshTheme.statusWarn)
                     Text("Radio identity (private key) is not included. To back up your radio's identity, use the PommeCore Mac app: Settings → Device → Identity Backup while connected via USB.")
                         .font(.caption2)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(MeshTheme.statusWarn)
                 }
             }
             .listRowBackground(MeshTheme.surface)
@@ -159,7 +159,7 @@ struct ProfileExportView: View {
             .listRowBackground(MeshTheme.surface)
 
             if let err = importError {
-                Text(err).font(.caption).foregroundStyle(.red)
+                Text(err).font(.caption).foregroundStyle(MeshTheme.statusBad)
                     .listRowBackground(MeshTheme.surface)
             }
 
@@ -185,8 +185,8 @@ struct ProfileExportView: View {
             }
             if profile.privateKeyHex != nil {
                 HStack(spacing: 4) {
-                    Image(systemName: "key.fill").font(.caption).foregroundStyle(.green)
-                    Text("Identity key included").font(.caption).foregroundStyle(.green)
+                    Image(systemName: "key.fill").font(.caption).foregroundStyle(MeshTheme.statusGood)
+                    Text("Identity key included").font(.caption).foregroundStyle(MeshTheme.statusGood)
                 }
             }
         }
@@ -195,7 +195,7 @@ struct ProfileExportView: View {
 
         if !isConnected {
             Text("Connect to a radio to apply this profile.")
-                .font(.caption).foregroundStyle(.orange)
+                .font(.caption).foregroundStyle(MeshTheme.statusWarn)
                 .listRowBackground(MeshTheme.surface)
         } else if let step = applyInterruptedAt {
             // Never report success for a partial apply: the settings are
@@ -203,11 +203,11 @@ struct ProfileExportView: View {
             // knows it did not finish.
             Label("Connection lost while applying \(step). The radio is part-configured \u{2014} reconnect and apply again.",
                   systemImage: "exclamationmark.triangle.fill")
-                .font(.caption).foregroundStyle(.orange)
+                .font(.caption).foregroundStyle(MeshTheme.statusWarn)
                 .listRowBackground(MeshTheme.surface)
         } else if applyDone {
             Label("Applied — reboot your radio to activate.", systemImage: "checkmark.circle.fill")
-                .font(.caption).foregroundStyle(.green)
+                .font(.caption).foregroundStyle(MeshTheme.statusGood)
                 .listRowBackground(MeshTheme.surface)
         } else {
             if let contacts = profile.contacts, !contacts.isEmpty {

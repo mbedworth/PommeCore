@@ -76,7 +76,7 @@ struct DeviceInfoPopover: View {
                         Text("Disconnect")
                         Spacer()
                     }
-                    .foregroundStyle(.red)
+                    .foregroundStyle(MeshTheme.statusBad)
                 }
                 .listRowBackground(MeshTheme.surface)
             }
@@ -147,7 +147,7 @@ struct PathViewer: View {
                     .foregroundStyle(MeshTheme.connected)
             } else if contact.outPathLen < 0 {
                 Label("No known path \u{2014} messages will flood", systemImage: "antenna.radiowaves.left.and.right")
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(MeshTheme.statusWarn)
             } else {
                 let hops = parsePathHops(from: contact.outPath, pathLen: Int(contact.outPathLen))
 
@@ -284,7 +284,7 @@ struct ManualPathEditor: View {
                 Text("Manual (select repeaters)").tag(2)
             }
             .pickerStyle(.inline)
-            .tint(.primary)
+            .tint(MeshTheme.textPrimary)
         }
     }
 
@@ -415,7 +415,7 @@ struct PingResultsView: View {
                     if let ms = result.latencyMs {
                         Text(String(format: "%.0f ms", ms))
                             .font(.caption.monospaced().weight(.medium))
-                            .foregroundStyle(ms < 5000 ? .green : ms < 15000 ? .orange : .red)
+                            .foregroundStyle(ms < 5000 ? MeshTheme.statusGood : ms < 15000 ? MeshTheme.statusWarn : MeshTheme.statusBad)
                         if result.hops > 0 {
                             Text("^[\(result.hops) hop](inflect: true)")
                                 .font(.caption2)
@@ -424,7 +424,7 @@ struct PingResultsView: View {
                     } else {
                         Text("timeout")
                             .font(.caption.monospaced())
-                            .foregroundStyle(.red)
+                            .foregroundStyle(MeshTheme.statusBad)
                     }
                 }
             }
@@ -513,11 +513,11 @@ struct PathDiscoveryResultView: View {
             if pathLen == 0xFF || (pathLen == 0 && pathBytes.isEmpty && hopCount == 0) {
                 Label("Flood route", systemImage: "antenna.radiowaves.left.and.right")
                     .font(.subheadline)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(MeshTheme.statusWarn)
             } else if hopCount == 0 {
                 Label("Direct (\(fromLabel) \u{2192} \(toLabel))", systemImage: "arrow.right")
                     .font(.subheadline)
-                    .foregroundStyle(.green)
+                    .foregroundStyle(MeshTheme.statusGood)
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 4) {

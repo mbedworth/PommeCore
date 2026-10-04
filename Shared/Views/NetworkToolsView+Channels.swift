@@ -84,10 +84,10 @@ struct ChannelManagementView: View {
                 if let error = errorMessage {
                     HStack {
                         Image(systemName: "exclamationmark.triangle")
-                            .foregroundStyle(.red)
+                            .foregroundStyle(MeshTheme.statusBad)
                         Text(error)
                             .font(.caption)
-                            .foregroundStyle(.red)
+                            .foregroundStyle(MeshTheme.statusBad)
                     }
                     .listRowBackground(MeshTheme.surface)
                 }

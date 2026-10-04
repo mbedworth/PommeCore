@@ -59,7 +59,7 @@ struct RadioStatsView: View {
                 }
                 if deviceConfig.statsReceiveErrors > 0 {
                     statRow("Receive Errors", value: "\(deviceConfig.statsReceiveErrors)",
-                            color: .red)
+                            color: MeshTheme.statusBad)
                 } else {
                     statRow("Receive Errors", value: "0", color: MeshTheme.connected)
                 }
@@ -135,17 +135,17 @@ struct RadioStatsView: View {
 
     private var noiseFloorColor: Color {
         let v = Int(deviceConfig.statsNoiseFloor)
-        return v < -105 ? MeshTheme.connected : v < -95 ? .orange : MeshTheme.disconnected
+        return MeshTheme.noiseFloorColor(v)
     }
 
     private var rssiColor: Color {
         let v = Int(deviceConfig.statsLastRSSI)
-        return v > -100 ? MeshTheme.connected : v > -120 ? .orange : MeshTheme.disconnected
+        return MeshTheme.rssiColor(v)
     }
 
     private var snrColor: Color {
         let v = Double(deviceConfig.statsLastSNR) / 4.0
-        return v > 0 ? MeshTheme.connected : v > -10 ? .orange : MeshTheme.disconnected
+        return MeshTheme.snrColor(v)
     }
 }
 #endif

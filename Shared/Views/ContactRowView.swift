@@ -44,7 +44,7 @@ struct ContactRowView: View {
             if messageStoreManager.hasDraft(for: contact.publicKeyPrefix) {
                 Text("Draft")
                     .font(.caption2)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(MeshTheme.statusWarn)
             }
             if contactStore.isContactMuted(contact) {
                 Image(systemName: "bell.slash")
@@ -60,7 +60,7 @@ struct ContactRowView: View {
             }
             if contact.isFavourite {
                 Image(systemName: "star.fill")
-                    .foregroundStyle(.yellow)
+                    .foregroundStyle(MeshTheme.statusCaution)
                     .font(.caption)
                     .accessibilityLabel("Favourite")
             }
@@ -139,10 +139,10 @@ struct ContactRowView: View {
             case .loggedIn(let permission):
                 Text(permission.displayName)
                     .font(.caption2.weight(.medium))
-                    .foregroundStyle(.black)
+                    .foregroundStyle(MeshTheme.textOnBubble)
                     .padding(.horizontal, 5)
                     .padding(.vertical, 1)
-                    .background(permissionBadgeColor(permission).opacity(0.8))
+                    .background(MeshTheme.permissionColor(permission).opacity(0.8))
                     .clipShape(Capsule())
             default:
                 EmptyView()
@@ -227,19 +227,13 @@ struct ContactRowView: View {
         return "battery.0"
     }
 
-    private func batteryColor(for pct: Int) -> Color {
-        if pct > 50 { return .green }
-        if pct > 20 { return .yellow }
-        return .red
-    }
-
     @ViewBuilder
     private var unreadBadge: some View {
         let count = messageStoreManager.unreadCount(for: contact)
         if count > 0 {
             Text("\(count)")
                 .font(.caption2.weight(.bold))
-                .foregroundStyle(.black)
+                .foregroundStyle(MeshTheme.textOnBubble)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
                 .background(MeshTheme.interactiveGreen)
@@ -300,12 +294,4 @@ struct ContactRowView: View {
         return hops.joined(separator: " \u{2192} ")
     }
 
-    private func permissionBadgeColor(_ permission: RemotePermission) -> Color {
-        switch permission {
-        case .guest: return MeshTheme.textSecondary
-        case .readOnly: return .yellow
-        case .readWrite: return .blue
-        case .admin: return MeshTheme.interactiveGreen
-        }
-    }
 }

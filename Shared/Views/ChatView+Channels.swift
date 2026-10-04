@@ -90,6 +90,9 @@ struct ChannelChatView: View {
                         Image(systemName: notifyMode == "muted" ? "bell.slash" : notifyMode == "mentions" ? "at" : "bell.fill")
                             .foregroundStyle(MeshTheme.accent)
                     }
+                    .accessibilityLabel(notifyMode == "muted" ? "Notifications: muted"
+                        : notifyMode == "mentions" ? "Notifications: mentions only"
+                        : "Notifications: all messages")
                 }
             }
         }
@@ -284,7 +287,7 @@ struct ChannelChatView: View {
                             .font(.caption2)
                             .foregroundStyle(
                                 messageText.count > maxMessageLength - 10
-                                    ? Color.orange
+                                    ? MeshTheme.statusWarn
                                     : MeshTheme.textSecondary
                             )
                     }
@@ -380,8 +383,8 @@ struct RoomChatView: View {
     private var statusBarColor: Color {
         switch permission {
         case .guest: return MeshTheme.textSecondary
-        case .readOnly: return .yellow
-        case .readWrite: return .blue
+        case .readOnly: return MeshTheme.statusCaution
+        case .readWrite: return MeshTheme.statusInfo
         case .admin: return MeshTheme.connected
         }
     }
@@ -551,7 +554,7 @@ struct RoomChatView: View {
                         .font(.caption2)
                         .foregroundStyle(
                             messageText.count > maxMessageLength - 10
-                                ? Color.orange
+                                ? MeshTheme.statusWarn
                                 : MeshTheme.textSecondary
                         )
                 }
@@ -631,9 +634,9 @@ struct RoomChatView: View {
                     }
                     HStack(spacing: 4) {
                         Image(systemName: "exclamationmark.shield")
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(MeshTheme.statusWarn)
                         Text("Change default passwords after login via Remote Management \u{2192} Security.")
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(MeshTheme.statusWarn)
                     }
                 }
                 .font(.caption)
@@ -660,7 +663,7 @@ struct RoomChatView: View {
                         Button("Cancel") {
                             remoteSessionManager.cancelLogin(for: contact)
                         }
-                        .foregroundStyle(.red)
+                        .foregroundStyle(MeshTheme.statusBad)
                     }
                 } else {
                     Button(action: login) {
@@ -671,7 +674,7 @@ struct RoomChatView: View {
                         .frame(maxWidth: 200)
                         .padding(.vertical, 10)
                         .background(MeshTheme.interactiveGreen)
-                        .foregroundStyle(MeshTheme.textOnAccent)
+                        .foregroundStyle(MeshTheme.textOnBubble)
                         .clipShape(RoundedRectangle(cornerRadius: 10))
                     }
                 }
@@ -679,10 +682,10 @@ struct RoomChatView: View {
                 if case .loginFailed(let msg) = session.loginState {
                     HStack {
                         Image(systemName: "exclamationmark.triangle")
-                            .foregroundStyle(.red)
+                            .foregroundStyle(MeshTheme.statusBad)
                         Text(msg)
                             .font(.caption)
-                            .foregroundStyle(.red)
+                            .foregroundStyle(MeshTheme.statusBad)
                     }
                 }
 
@@ -781,7 +784,7 @@ struct RoomMessageBubble: View {
                     .padding(.horizontal, 14)
                     .padding(.vertical, 9)
                     .background(message.isOutgoing ? MeshTheme.outgoingBubble : MeshTheme.incomingBubble)
-                    .foregroundStyle(MeshTheme.textOnAccent)
+                    .foregroundStyle(MeshTheme.textOnBubble)
                     .clipShape(RoundedRectangle(cornerRadius: 18))
 
                 HStack(spacing: 4) {
@@ -804,19 +807,19 @@ struct RoomMessageBubble: View {
                             HStack(spacing: 2) {
                                 Image(systemName: "arrow.clockwise")
                                     .font(.caption2)
-                                    .foregroundStyle(.orange)
+                                    .foregroundStyle(MeshTheme.statusWarn)
                                 Text("Retrying (attempt \(message.attempt + 1))...")
                                     .font(.caption2)
-                                    .foregroundStyle(.orange)
+                                    .foregroundStyle(MeshTheme.statusWarn)
                             }
                         case .flooding:
                             HStack(spacing: 2) {
                                 Image(systemName: "dot.radiowaves.left.and.right")
                                     .font(.caption2)
-                                    .foregroundStyle(.orange)
+                                    .foregroundStyle(MeshTheme.statusWarn)
                                 Text("Flooding...")
                                     .font(.caption2)
-                                    .foregroundStyle(.orange)
+                                    .foregroundStyle(MeshTheme.statusWarn)
                             }
                         case .delivered:
                             HStack(spacing: 2) {
@@ -985,7 +988,7 @@ struct RepeaterLoginView: View {
                             Button("Cancel") {
                                 remoteSessionManager.cancelLogin(for: contact)
                             }
-                            .foregroundStyle(.red)
+                            .foregroundStyle(MeshTheme.statusBad)
                         }
                     } else {
                         Button(action: login) {
@@ -996,7 +999,7 @@ struct RepeaterLoginView: View {
                             .frame(maxWidth: 200)
                             .padding(.vertical, 10)
                             .background(MeshTheme.interactiveGreen)
-                            .foregroundStyle(MeshTheme.textOnAccent)
+                            .foregroundStyle(MeshTheme.textOnBubble)
                             .clipShape(RoundedRectangle(cornerRadius: 10))
                         }
                     }
@@ -1004,10 +1007,10 @@ struct RepeaterLoginView: View {
                     if case .loginFailed(let msg) = session.loginState {
                         HStack {
                             Image(systemName: "exclamationmark.triangle")
-                                .foregroundStyle(.red)
+                                .foregroundStyle(MeshTheme.statusBad)
                             Text(msg)
                                 .font(.caption)
-                                .foregroundStyle(.red)
+                                .foregroundStyle(MeshTheme.statusBad)
                         }
                     }
 

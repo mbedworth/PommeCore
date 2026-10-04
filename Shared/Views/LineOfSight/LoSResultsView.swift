@@ -41,7 +41,7 @@ struct LoSResultsView: View {
 
                 let (activeClearance, activeFresnel) = worstCaseStats
                 statCard("Min Clearance", value: String(format: "%.1f m", activeClearance), icon: "arrow.up.and.down",
-                         color: activeClearance >= 0 ? .green : .red)
+                         color: activeClearance >= 0 ? MeshTheme.statusGood : MeshTheme.statusBad)
                 statCard("Fresnel Zone", value: String(format: "%.0f%%", activeFresnel), icon: "circle.dashed",
                          color: fresnelColor(activeFresnel))
             }
@@ -50,7 +50,7 @@ struct LoSResultsView: View {
             if !result.relaySegments.isEmpty && !result.directSegment.hasLineOfSight {
                 HStack(spacing: 6) {
                     Image(systemName: "xmark.circle")
-                        .foregroundStyle(.red)
+                        .foregroundStyle(MeshTheme.statusBad)
                         .font(.caption)
                     Text("Direct path blocked — relay required")
                         .font(.caption)
@@ -109,9 +109,9 @@ struct LoSResultsView: View {
 
         var color: Color {
             switch self {
-            case .clear:         return .green
-            case .fresnelPartial: return .orange
-            case .blocked:       return .red
+            case .clear:         return MeshTheme.statusGood
+            case .fresnelPartial: return MeshTheme.statusWarn
+            case .blocked:       return MeshTheme.statusBad
             }
         }
     }
@@ -204,7 +204,7 @@ struct LoSResultsView: View {
             HStack(spacing: 4) {
                 Image(systemName: segPass ? "checkmark.circle.fill" : segPartial ? "exclamationmark.triangle.fill" : "xmark.circle.fill")
                     .font(.caption)
-                    .foregroundStyle(segPass ? Color.green : segPartial ? Color.orange : Color.red)
+                    .foregroundStyle(segPass ? MeshTheme.statusGood : segPartial ? MeshTheme.statusWarn : MeshTheme.statusBad)
                 Text(verbatim: label)
                     .font(.caption.weight(.medium))
                     .foregroundStyle(MeshTheme.accent)
@@ -222,8 +222,8 @@ struct LoSResultsView: View {
     }
 
     private func fresnelColor(_ percent: Double) -> Color {
-        if percent >= 60 { return .green }
-        if percent >= 0  { return .orange }
-        return .red
+        if percent >= 60 { return MeshTheme.statusGood }
+        if percent >= 0  { return MeshTheme.statusWarn }
+        return MeshTheme.statusBad
     }
 }

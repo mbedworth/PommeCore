@@ -186,7 +186,7 @@ struct ContactListView: View {
                 } label: {
                     Image(systemName: showAdvertSent?.wrappedValue == true
                           ? "checkmark.circle.fill" : "antenna.radiowaves.left.and.right")
-                        .foregroundStyle(showAdvertSent?.wrappedValue == true ? .green : MeshTheme.accent)
+                        .foregroundStyle(showAdvertSent?.wrappedValue == true ? MeshTheme.statusGood : MeshTheme.accent)
                 }
                 .accessibilityLabel("Advertise")
                 .disabled(connectionManager.connectionState != .ready)
@@ -351,7 +351,7 @@ struct ContactListView: View {
                         #endif
                             Text("\(nicknameText.count)/32")
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(MeshTheme.textSecondary)
                         }
                     } header: {
                         Text("Custom Nickname")

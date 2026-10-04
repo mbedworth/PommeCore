@@ -249,7 +249,13 @@ def translation_problem(key, value, lang=None):
     # This Device'" in eight languages, and "Tip Jar" became "Tip Jar (non
     # traduit, terme anglais conservé)". Bounded to short sources, because a
     # long source expanding is normal prose variation.
-    if len(key) <= 14 and len(stripped) > 2.5 * len(key) + 8:
+    #
+    # Sources of four characters or fewer are exempt. They are abbreviations
+    # and units — "Avg", "SNR", "dBm" — and most languages have no short form,
+    # so the honest translation is the spelled-out phrase: Ukrainian renders
+    # "Avg" as "Середнє значення". Below five characters the ratio carries no
+    # signal, and enforcing it only pushes correct translations out.
+    if 5 <= len(key) <= 14 and len(stripped) > 2.5 * len(key) + 8:
         return (f"implausible expansion ({len(key)} chars in, {len(stripped)} out) — "
                 "misaligned reply or model commentary")
 

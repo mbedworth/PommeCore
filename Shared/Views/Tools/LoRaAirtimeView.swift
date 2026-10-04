@@ -45,7 +45,7 @@ struct LoRaAirtimeView: View {
                     }
                 }
                 .foregroundStyle(MeshTheme.accent)
-                .tint(.primary)
+                .tint(MeshTheme.textPrimary)
                 .listRowBackground(MeshTheme.surface)
 
                 Picker("Bandwidth", selection: $bandwidthKHz) {
@@ -54,7 +54,7 @@ struct LoRaAirtimeView: View {
                     }
                 }
                 .foregroundStyle(MeshTheme.accent)
-                .tint(.primary)
+                .tint(MeshTheme.textPrimary)
                 .listRowBackground(MeshTheme.surface)
 
                 Picker("Coding Rate", selection: $codingRate) {
@@ -63,7 +63,7 @@ struct LoRaAirtimeView: View {
                     }
                 }
                 .foregroundStyle(MeshTheme.accent)
-                .tint(.primary)
+                .tint(MeshTheme.textPrimary)
                 .listRowBackground(MeshTheme.surface)
 
                 paramRow("Payload Size", value: $payloadBytes, unit: "bytes", range: 1...255)
@@ -197,7 +197,7 @@ struct LoRaAirtimeView: View {
             TextField(unit, value: value, format: .number)
                 .frame(width: 70)
                 .multilineTextAlignment(.trailing)
-                .foregroundStyle(.primary)
+                .foregroundStyle(MeshTheme.textPrimary)
                 #if !os(watchOS)
                 .textFieldStyle(.roundedBorder)
                 #endif

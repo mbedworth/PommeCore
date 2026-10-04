@@ -28,7 +28,7 @@ struct SensitivityTableView: View {
                     }
                 }
                 .foregroundStyle(MeshTheme.accent)
-                .tint(.primary)
+                .tint(MeshTheme.textPrimary)
                 .listRowBackground(MeshTheme.surface)
             } header: {
                 Text("Select Bandwidth")

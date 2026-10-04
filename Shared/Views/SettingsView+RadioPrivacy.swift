@@ -71,7 +71,7 @@ struct RadioSection: View {
                     }
                 }
                 .foregroundStyle(MeshTheme.accent)
-                .tint(.primary)
+                .tint(MeshTheme.textPrimary)
             }
             .listRowBackground(MeshTheme.surface)
         } header: {
@@ -159,7 +159,7 @@ struct RadioSection: View {
                     }
                 }
                 .foregroundStyle(MeshTheme.accent)
-                .tint(.primary)
+                .tint(MeshTheme.textPrimary)
             }
             .listRowBackground(MeshTheme.surface)
 
@@ -174,7 +174,7 @@ struct RadioSection: View {
                     }
                 }
                 .foregroundStyle(MeshTheme.accent)
-                .tint(.primary)
+                .tint(MeshTheme.textPrimary)
             }
             .listRowBackground(MeshTheme.surface)
 
@@ -190,7 +190,7 @@ struct RadioSection: View {
                     Text("4/8").tag(UInt8(8))
                 }
                 .foregroundStyle(MeshTheme.accent)
-                .tint(.primary)
+                .tint(MeshTheme.textPrimary)
             }
             .listRowBackground(MeshTheme.surface)
 
@@ -501,7 +501,7 @@ struct PrivacySection: View {
                     Text("Allow All").tag(UInt8(2))
                 }
                 .foregroundStyle(MeshTheme.accent)
-                .tint(.primary)
+                .tint(MeshTheme.textPrimary)
             }
             .listRowBackground(MeshTheme.surface)
 
@@ -515,7 +515,7 @@ struct PrivacySection: View {
                     Text("Allow All").tag(UInt8(2))
                 }
                 .foregroundStyle(MeshTheme.accent)
-                .tint(.primary)
+                .tint(MeshTheme.textPrimary)
             }
             .listRowBackground(MeshTheme.surface)
 
@@ -913,6 +913,7 @@ struct CustomVarsSection: View {
                 }
                 .buttonStyle(.plain)
                 .contentShape(Rectangle())
+                .accessibilityLabel("Add variable")
             }
             .listRowBackground(MeshTheme.surface)
         } header: {
@@ -949,7 +950,7 @@ extension SettingsView {
                 // Core
                 infoRow(icon: "battery.75", label: "Battery (stats)", value: statsBatteryDisplay, valueColor: statsBatteryColor)
                 infoRow(icon: "clock.arrow.circlepath", label: "Uptime", value: config.statsUptime > 0 ? formatUptime(config.statsUptime) : "\u{2014}")
-                infoRow(icon: "exclamationmark.triangle", label: "Error Flags", value: config.statsErrorFlags > 0 ? "0x\(String(format: "%04x", config.statsErrorFlags))" : "None", valueColor: config.statsErrorFlags > 0 ? .red : .green)
+                infoRow(icon: "exclamationmark.triangle", label: "Error Flags", value: config.statsErrorFlags > 0 ? "0x\(String(format: "%04x", config.statsErrorFlags))" : "None", valueColor: config.statsErrorFlags > 0 ? MeshTheme.statusBad : MeshTheme.statusGood)
                 infoRow(icon: "tray", label: "Queue Length", value: "\(config.statsQueueLength)")
 
                 // Radio
@@ -1000,36 +1001,32 @@ extension SettingsView {
         guard config.statsBatteryMV != 0 else { return MeshTheme.textSecondary }
         let mv = Int(config.statsBatteryMV)
         let pct = batteryChemistry.profile.percentage(forMillivolts: mv)
-        if pct > 50 { return .green }
-        if pct > 20 { return .yellow }
-        return .red
+        if pct > 50 { return MeshTheme.statusGood }
+        if pct > 20 { return MeshTheme.statusCaution }
+        return MeshTheme.statusBad
     }
 
     /// Noise floor: lower is better (thermal floor ~-120 dBm at 125 kHz BW)
     var noiseFloorColor: Color {
         let nf = Int(config.statsNoiseFloor)
         if nf == 0 { return MeshTheme.textSecondary }
-        if nf < -105 { return .green }
-        if nf < -95 { return .orange }
-        return .red
+        if nf < -105 { return MeshTheme.statusGood }
+        if nf < -95 { return MeshTheme.statusWarn }
+        return MeshTheme.statusBad
     }
 
     /// RSSI: LoRa demodulates down to ~-130 dBm
     var rssiColor: Color {
         let rssi = Int(config.statsLastRSSI)
         if rssi == 0 { return MeshTheme.textSecondary }
-        if rssi > -100 { return .green }
-        if rssi > -120 { return .orange }
-        return .red
+        return MeshTheme.rssiColor(rssi)
     }
 
     /// SNR: LoRa demod thresholds SF7=-7.5dB to SF12=-20dB (raw value is SNR * 4)
     var snrColor: Color {
         let snrDB = Double(Int(config.statsLastSNR)) / 4.0
         if config.statsLastSNR == 0 && config.statsLastRSSI == 0 { return MeshTheme.textSecondary }
-        if snrDB > 0 { return .green }
-        if snrDB > -10 { return .orange }
-        return .red
+        return MeshTheme.snrColor(snrDB)
     }
 
 }

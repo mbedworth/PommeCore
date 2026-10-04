@@ -444,6 +444,7 @@ struct MeshMapView: View {
     @Environment(NavigationStore.self) private var navigationStore
     @Environment(RFMonitorStore.self) private var rfStore
     @Environment(MessageStoreManager.self) private var messageStoreManager
+    @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiateWithoutColor
     @StateObject private var locationManager = LocationManager()
     @State private var cameraPosition: MapCameraPosition = .automatic
     /// Mirrors the camera's current region. Set explicitly when we move the camera
@@ -482,13 +483,6 @@ struct MeshMapView: View {
             }
         }
         return entries
-    }
-
-    private func snrColor(_ snr: Int8) -> Color {
-        let db = Int(snr)
-        if db > 0 { return .green }
-        if db > -10 { return .orange }
-        return .red
     }
 
     private var overlayButtonIcon: String {
@@ -588,13 +582,13 @@ struct MeshMapView: View {
                             } label: {
                                 VStack(spacing: 2) {
                                     Image(systemName: Self.internetNodeIcon(type: cluster.nodes[0].type))
-                                        .foregroundStyle(.white)
+                                        .foregroundStyle(MeshTheme.textOnFill)
                                         .font(.caption)
                                         .frame(width: 28, height: 28)
-                                        .background(Circle().fill(Color.teal))
+                                        .background(Circle().fill(MeshTheme.remoteRoom))
                                         .shadow(radius: 2)
                                     Text(cluster.nodes[0].name)
-                                        .font(.system(size: 9))
+                                        .font(.caption2)
                                         .foregroundStyle(MeshTheme.textSecondary)
                                         .lineLimit(1)
                                         .frame(maxWidth: 80)
@@ -608,17 +602,17 @@ struct MeshMapView: View {
                             } label: {
                                 ZStack {
                                     Circle()
-                                        .fill(Color.teal.opacity(0.85))
+                                        .fill(MeshTheme.remoteRoom)
                                         .frame(width: clusterSize(cluster.count),
                                                height: clusterSize(cluster.count))
                                         .overlay(
                                             Circle()
-                                                .strokeBorder(Color.white, lineWidth: 2)
+                                                .strokeBorder(MeshTheme.mapPinOutline, lineWidth: 2)
                                         )
                                         .shadow(radius: 3)
                                     Text(clusterLabel(cluster.count))
                                         .font(.system(size: clusterFontSize(cluster.count), weight: .bold))
-                                        .foregroundStyle(.white)
+                                        .foregroundStyle(MeshTheme.textOnFill)
                                 }
                             }
                             .buttonStyle(.plain)
@@ -633,8 +627,16 @@ struct MeshMapView: View {
                             center: CLLocationCoordinate2D(latitude: point.latitude, longitude: point.longitude),
                             radius: 60
                         )
-                        .foregroundStyle(coverageColor(rssi: point.rssi).opacity(0.35))
-                        .stroke(coverageColor(rssi: point.rssi).opacity(0.6), lineWidth: 1)
+                        .foregroundStyle(MeshTheme.rssiColor(Int(point.rssi)).opacity(0.35))
+                        .stroke(
+                            MeshTheme.rssiColor(Int(point.rssi)).opacity(0.6),
+                            style: StrokeStyle(
+                                lineWidth: 1,
+                                dash: differentiateWithoutColor
+                                    ? MeshTheme.signalDash(tier: MeshTheme.signalTier(rssi: Int(point.rssi)))
+                                    : []
+                            )
+                        )
                     }
                 }
 
@@ -645,7 +647,15 @@ struct MeshMapView: View {
                             deviceCoord,
                             CLLocationCoordinate2D(latitude: entry.contact.latitude, longitude: entry.contact.longitude)
                         ])
-                        .stroke(snrColor(entry.snr).opacity(0.8), lineWidth: 3)
+                        .stroke(
+                            MeshTheme.snrColor(Int(entry.snr)).opacity(0.8),
+                            style: StrokeStyle(
+                                lineWidth: 3,
+                                dash: differentiateWithoutColor
+                                    ? MeshTheme.signalDash(tier: MeshTheme.signalTier(snr: Double(entry.snr)))
+                                    : []
+                            )
+                        )
                     }
                 }
 
@@ -681,15 +691,15 @@ struct MeshMapView: View {
                     } else if mapOverlay == .linkQuality {
                         HStack(spacing: 6) {
                             HStack(spacing: 3) {
-                                Circle().fill(Color.green).frame(width: 8, height: 8)
+                                Circle().fill(MeshTheme.snrColor(5)).frame(width: 8, height: 8)
                                 Text("> 0 dB")
                             }
                             HStack(spacing: 3) {
-                                Circle().fill(Color.orange).frame(width: 8, height: 8)
+                                Circle().fill(MeshTheme.snrColor(-5)).frame(width: 8, height: 8)
                                 Text("-10–0")
                             }
                             HStack(spacing: 3) {
-                                Circle().fill(Color.red).frame(width: 8, height: 8)
+                                Circle().fill(MeshTheme.snrColor(-15)).frame(width: 8, height: 8)
                                 Text("< -10")
                             }
                             Text("SNR")
@@ -703,15 +713,15 @@ struct MeshMapView: View {
                     } else if mapOverlay == .coverage {
                         HStack(spacing: 6) {
                             HStack(spacing: 3) {
-                                Circle().fill(Color.green).frame(width: 8, height: 8)
+                                Circle().fill(MeshTheme.rssiColor(-90)).frame(width: 8, height: 8)
                                 Text("> -100")
                             }
                             HStack(spacing: 3) {
-                                Circle().fill(Color.orange).frame(width: 8, height: 8)
+                                Circle().fill(MeshTheme.rssiColor(-110)).frame(width: 8, height: 8)
                                 Text("-100–-120")
                             }
                             HStack(spacing: 3) {
-                                Circle().fill(Color.red).frame(width: 8, height: 8)
+                                Circle().fill(MeshTheme.rssiColor(-130)).frame(width: 8, height: 8)
                                 Text("< -120")
                             }
                             Text("dBm")
@@ -731,7 +741,7 @@ struct MeshMapView: View {
                                     .foregroundStyle(MeshTheme.textSecondary)
                             }
                             HStack(spacing: 4) {
-                                Circle().fill(Color.teal.opacity(0.85)).frame(width: 8, height: 8)
+                                Circle().fill(MeshTheme.remoteRoom).frame(width: 8, height: 8)
                                 Text("Internet map (\(internetMapNodes.count))")
                                     .font(.caption2)
                                     .foregroundStyle(MeshTheme.textSecondary)
@@ -754,7 +764,7 @@ struct MeshMapView: View {
                    locationManager.authorizationStatus == .restricted {
                     Text("Location access denied. Enable in Settings → Privacy → Location Services.")
                         .font(.caption)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(MeshTheme.statusWarn)
                         .padding(8)
                         .background(.thinMaterial)
                         .clipShape(RoundedRectangle(cornerRadius: 8))
@@ -853,13 +863,6 @@ struct MeshMapView: View {
 
     // MARK: - Coverage layer
 
-    private func coverageColor(rssi: Int8) -> Color {
-        let dBm = Int(rssi)
-        if dBm > -100 { return .green }
-        if dBm > -120 { return .orange }
-        return .red
-    }
-
     /// Coverage points filtered to the visible map region for performance.
     private var visibleCoveragePoints: [CoveragePoint] {
         guard let region = visibleRegion else { return rfStore.coveragePoints }
@@ -913,11 +916,11 @@ struct MeshMapView: View {
 
     private func contactTypeColor(_ contact: Contact) -> Color {
         switch contact.type {
-        case .chat: return .blue
+        case .chat: return MeshTheme.statusInfo
         case .repeater: return MeshTheme.accent
-        case .room: return .purple
-        case .sensor: return .orange
-        case .unknown: return .gray
+        case .room: return MeshTheme.mapRoom
+        case .sensor: return MeshTheme.statusWarn
+        case .unknown: return MeshTheme.statusIdle
         }
     }
 
@@ -1029,7 +1032,7 @@ struct ClusterDetailView: View {
         } label: {
             HStack(spacing: 10) {
                 Image(systemName: MeshMapView.internetNodeIcon(type: node.type))
-                    .foregroundStyle(.teal)
+                    .foregroundStyle(MeshTheme.remoteRoom)
                     .frame(width: 24)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(node.name)

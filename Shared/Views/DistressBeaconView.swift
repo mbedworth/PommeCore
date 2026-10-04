@@ -48,7 +48,7 @@ struct DistressBeaconView: View {
                 // Warning icon
                 Image(systemName: "exclamationmark.triangle.fill")
                     .font(.system(size: 64))
-                    .foregroundStyle(.red)
+                    .foregroundStyle(MeshTheme.statusBad)
 
                 Text("Emergency Beacon")
                     .font(.title.bold())
@@ -81,7 +81,7 @@ struct DistressBeaconView: View {
                     VStack(spacing: 8) {
                         Label("SOS Sent", systemImage: "checkmark.circle.fill")
                             .font(.headline)
-                            .foregroundStyle(.green)
+                            .foregroundStyle(MeshTheme.statusGood)
                         if cooldownRemaining > 0 {
                             Text("Resend available in \(cooldownRemaining)s")
                                 .font(.caption)
@@ -98,10 +98,10 @@ struct DistressBeaconView: View {
                             Text("Send SOS")
                                 .font(.headline)
                         }
-                        .foregroundStyle(.white)
+                        .foregroundStyle(MeshTheme.textOnFill)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 18)
-                        .background(.red)
+                        .background(MeshTheme.statusBad)
                         .clipShape(RoundedRectangle(cornerRadius: 14))
                     }
                     .buttonStyle(.plain)

@@ -139,7 +139,7 @@ struct RadioProfilesView: View {
                     if justApplied {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.caption)
-                            .foregroundStyle(.green)
+                            .foregroundStyle(MeshTheme.statusGood)
                     }
                 }
                 Text(summary)

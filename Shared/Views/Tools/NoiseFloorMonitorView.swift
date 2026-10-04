@@ -39,10 +39,10 @@ struct NoiseFloorMonitorView: View {
                         (rfStore.isMonitoring ? Text("Stop") : Text("Start"))
                             .font(.caption.weight(.medium))
                     }
-                    .foregroundStyle(rfStore.isMonitoring ? .red : MeshTheme.accent)
+                    .foregroundStyle(rfStore.isMonitoring ? MeshTheme.statusBad : MeshTheme.accent)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 4)
-                    .background(rfStore.isMonitoring ? Color.red.opacity(0.1) : MeshTheme.surfaceLight)
+                    .background(rfStore.isMonitoring ? MeshTheme.statusBad.opacity(0.1) : MeshTheme.surfaceLight)
                     .clipShape(Capsule())
                 }
                 .buttonStyle(.plain)
@@ -78,7 +78,7 @@ struct NoiseFloorMonitorView: View {
                             x: .value("Time", sample.timestamp),
                             y: .value("SNR", sample.snr)
                         )
-                        .foregroundStyle(.green)
+                        .foregroundStyle(MeshTheme.statusGood)
                         .interpolationMethod(.catmullRom)
                     }
                     .chartXAxis {
@@ -103,7 +103,7 @@ struct NoiseFloorMonitorView: View {
                             x: .value("Time", sample.timestamp),
                             y: .value("RSSI", Int(sample.rssi))
                         )
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(MeshTheme.statusWarn)
                         .interpolationMethod(.catmullRom)
                     }
                     .chartXAxis {
@@ -190,10 +190,10 @@ struct PacketLogView: View {
                                     .foregroundStyle(MeshTheme.textSecondary)
                                 Text(String(format: "%.1f dB", sample.snr))
                                     .frame(width: 60, alignment: .trailing)
-                                    .foregroundStyle(sample.snr > 0 ? MeshTheme.connected : sample.snr > -10 ? .orange : MeshTheme.disconnected)
+                                    .foregroundStyle(MeshTheme.snrColor(sample.snr))
                                 Text("\(sample.rssi) dBm")
                                     .frame(width: 60, alignment: .trailing)
-                                    .foregroundStyle(sample.rssi > -100 ? MeshTheme.connected : sample.rssi > -120 ? .orange : MeshTheme.disconnected)
+                                    .foregroundStyle(MeshTheme.rssiColor(Int(sample.rssi)))
                             }
                             .font(.caption.monospacedDigit())
                             .padding(.horizontal, 4)

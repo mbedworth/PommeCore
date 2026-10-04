@@ -115,7 +115,7 @@ struct FrequencyScannerView: View {
             if result.packetsReceived > 0 {
                 Text("\(result.packetsReceived) pkt")
                     .font(.caption2)
-                    .foregroundStyle(.green)
+                    .foregroundStyle(MeshTheme.statusGood)
             }
         }
         .contentShape(Rectangle())
@@ -139,7 +139,7 @@ struct FrequencyScannerView: View {
                 .frame(width: 24)
         case .detected:
             Image(systemName: "antenna.radiowaves.left.and.right")
-                .foregroundStyle(.green)
+                .foregroundStyle(MeshTheme.statusGood)
                 .frame(width: 24)
         case .clear:
             Image(systemName: "xmark")

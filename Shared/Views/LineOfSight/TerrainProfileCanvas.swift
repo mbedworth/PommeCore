@@ -35,7 +35,7 @@ struct TerrainProfileCanvas: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.primary.opacity(0.1), lineWidth: 0.5)
+                .stroke(MeshTheme.textPrimary.opacity(0.1), lineWidth: 0.5)
         )
         .background(MeshTheme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 12))

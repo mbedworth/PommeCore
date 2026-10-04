@@ -354,10 +354,10 @@ final class ContactStore {
         /// Status colour, per the colour standards in the development guide.
         var color: Color {
             switch self {
-            case .active: return .green
-            case .recent: return .yellow
-            case .stale: return .gray
-            case .offline: return .red
+            case .active: return MeshTheme.statusGood
+            case .recent: return MeshTheme.statusCaution
+            case .stale: return MeshTheme.statusIdle
+            case .offline: return MeshTheme.statusBad
             }
         }
 

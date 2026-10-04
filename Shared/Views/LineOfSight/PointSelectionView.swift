@@ -46,10 +46,10 @@ struct PointSelectionView: View {
                 } else {
                     HStack {
                         Image(systemName: "location.slash")
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(MeshTheme.statusWarn)
                         Text("Location unavailable")
                             .font(.caption)
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(MeshTheme.statusWarn)
                     }
                     .listRowBackground(MeshTheme.surface)
                 }
@@ -76,7 +76,7 @@ struct PointSelectionView: View {
                         }
                     }
                     .foregroundStyle(MeshTheme.accent)
-                    .tint(.primary)
+                    .tint(MeshTheme.textPrimary)
                     .listRowBackground(MeshTheme.surface)
 
                     if let c = contact {
@@ -109,7 +109,7 @@ struct PointSelectionView: View {
                 } else if !latText.isEmpty && !lonText.isEmpty {
                     Text("Enter a valid latitude (−90 to 90) and longitude (−180 to 180)")
                         .font(.caption)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(MeshTheme.statusWarn)
                         .listRowBackground(MeshTheme.surface)
                 }
             }

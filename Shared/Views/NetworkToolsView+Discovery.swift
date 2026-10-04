@@ -52,15 +52,15 @@ struct DiscoverView: View {
                     } label: {
                         HStack {
                             Image(systemName: "stop.circle")
-                                .foregroundStyle(.orange)
+                                .foregroundStyle(MeshTheme.statusWarn)
                                 .frame(width: 24)
                             Text("Stop Scan")
-                                .foregroundStyle(.orange)
+                                .foregroundStyle(MeshTheme.statusWarn)
                             Spacer()
                             if isTimedDiscovery && timeRemaining > 0 {
                                 Text(formatTimeRemaining(timeRemaining))
                                     .font(.caption)
-                                    .foregroundStyle(.orange)
+                                    .foregroundStyle(MeshTheme.statusWarn)
                                     .monospacedDigit()
                             }
                         }
@@ -78,7 +78,7 @@ struct DiscoverView: View {
                 if let fallbackMsg = remoteSessionManager.discoverFallbackMessage {
                     HStack(spacing: 6) {
                         Image(systemName: "info.circle")
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(MeshTheme.statusWarn)
                         Text(fallbackMsg)
                             .font(.caption)
                             .foregroundStyle(MeshTheme.textSecondary)
@@ -99,7 +99,7 @@ struct DiscoverView: View {
                         Text("30 minutes").tag(TimeInterval(1800))
                     }
                     .foregroundStyle(MeshTheme.accent)
-                    .tint(.primary)
+                    .tint(MeshTheme.textPrimary)
                 }
                 .listRowBackground(MeshTheme.surface)
 
@@ -199,7 +199,7 @@ struct DiscoverView: View {
             VStack(alignment: .trailing, spacing: 2) {
                 Text("SNR \(node.snr)")
                     .font(.caption2)
-                    .foregroundStyle(snrColor(node.snr))
+                    .foregroundStyle(MeshTheme.snrColor(Int(node.snr)))
                 Text("RSSI \(node.rssi)")
                     .font(.caption2)
                     .foregroundStyle(MeshTheme.textSecondary)
@@ -226,12 +226,6 @@ struct DiscoverView: View {
         case .sensor: return "Sensor"
         case .unknown: return "Unknown"
         }
-    }
-
-    private func snrColor(_ snr: Int8) -> Color {
-        if snr >= 5 { return MeshTheme.connected }
-        if snr >= 0 { return .yellow }
-        return .orange
     }
 
     private func startTimedDiscovery() {
@@ -410,11 +404,6 @@ struct StatusInfoView: View {
         return "battery.0"
     }
 
-    private func batteryColor(for pct: Int) -> Color {
-        if pct > 50 { return .green }
-        if pct > 20 { return .yellow }
-        return .red
-    }
 }
 
 // MARK: - Telemetry View
