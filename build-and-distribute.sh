@@ -215,6 +215,21 @@ else
 fi
 
 log "Committing..."
+
+# `main` carries a ruleset requiring a pull request, so the build commit gets
+# its own branch like every other change. Pushing HEAD straight from main only
+# ever landed because the account holds an admin bypass, and GitHub logged a
+# "Bypassed rule violations" entry each time — the rule is there so it still
+# means something the day a collaborator is added.
+CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+if [[ "$CURRENT_BRANCH" == "main" ]]; then
+    BUILD_BRANCH="chore/build-${MACOS_BUILD:-$IOS_BUILD}"
+    log "On main — moving the build commit to $BUILD_BRANCH"
+    git checkout -b "$BUILD_BRANCH"
+else
+    BUILD_BRANCH="$CURRENT_BRANCH"
+fi
+
 git add "$PBXPROJ"
 git diff --cached --quiet || git commit -m "$COMMIT_MSG"
 
@@ -223,7 +238,17 @@ log "Pushing to remote..."
 # fresh branch, and under `set -e` that aborted the script *before* Phase 4 —
 # so a perfectly good pair of archives never reached App Store Connect and the
 # only symptom was a git message about upstreams.
-if ! git push -u origin HEAD; then
+if git push -u origin HEAD; then
+    # Open the PR here rather than leaving it to be remembered later. Merging
+    # stays a deliberate step.
+    if command -v gh >/dev/null 2>&1 && [[ "$BUILD_BRANCH" != "main" ]]; then
+        gh pr create --title "$COMMIT_MSG" \
+            --body "Version bump for the $NEW_VERSION upload. Project file only." \
+            >/dev/null 2>&1 \
+            && log "Opened a pull request for $BUILD_BRANCH" \
+            || log "NOTE: no pull request opened — open one for $BUILD_BRANCH by hand."
+    fi
+else
     # The archives exist and uploading them is the point of the run. A remote
     # that is unreachable is worth a warning, not a thrown-away build.
     log "WARNING: push failed — continuing to upload. Push the build commit by hand."
