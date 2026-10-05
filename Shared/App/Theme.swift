@@ -309,6 +309,45 @@ enum MeshTheme {
         }
     }
 
+    /// Colours for charting several nodes on one set of axes.
+    ///
+    /// Reuses tokens that already carry a measured contrast ratio against every
+    /// surface the app draws on, rather than inventing six new ones. Six is the
+    /// practical ceiling for telling lines apart at a glance; past that the
+    /// palette repeats and `seriesDash` is what keeps the lines distinct.
+    static let seriesPalette: [Color] = [accent, statusInfo, statusWarn, mapRoom, remoteRoom, statusBad]
+
+    /// Palette colour for the nth series, wrapping.
+    static func seriesColor(_ index: Int) -> Color {
+        seriesPalette[((index % seriesPalette.count) + seriesPalette.count) % seriesPalette.count]
+    }
+
+    /// Line patterns for charting several series, one per palette entry.
+    ///
+    /// There are exactly as many patterns as colours on purpose. A caller that
+    /// advances this a full palette cycle per series — which is what
+    /// Differentiate Without Color asks for — then gets a distinct pattern for
+    /// every line the palette can distinguish, instead of running out first and
+    /// handing two lines the same pattern in different colours, which is the
+    /// one thing that setting says not to rely on.
+    static let seriesDashes: [[CGFloat]] = [
+        [],                 // solid
+        [6, 3],             // dashed
+        [2, 3],             // dotted
+        [9, 3, 2, 3],       // dash-dot
+        [14, 4],            // long dash
+        [9, 3, 2, 3, 2, 3], // dash-dot-dot
+    ]
+
+    /// A dash pattern per series, so a multi-node chart stays readable for
+    /// someone who cannot separate the colours — and once the palette wraps,
+    /// for everyone. Changes only after a full cycle of the palette, keeping
+    /// the first six lines solid.
+    static func seriesDash(_ index: Int) -> [CGFloat] {
+        guard index >= 0 else { return [] }
+        return seriesDashes[(index / seriesPalette.count) % seriesDashes.count]
+    }
+
     /// Noise floor. Green < -105 dBm, amber -105 to -95, red above -95.
     static func noiseFloorColor(_ dBm: Int) -> Color {
         if dBm < -105 { return statusGood }
@@ -738,6 +777,52 @@ extension String {
     var strippingEmoji: String {
         unicodeScalars.filter { !$0.properties.isEmoji || $0.properties.isASCIIHexDigit }.map(String.init).joined()
     }
+}
+
+/// Localized name for an LPP telemetry type.
+///
+/// `TelemetryReading.name` is an English literal written by the frame parser —
+/// "Temperature", "Battery", "Pressure". It is protocol vocabulary, used as the
+/// stable key for history, the icon table and sort order, so it must not change
+/// with the user's language. It had also never reached the string catalog,
+/// which meant every telemetry screen showed English in all twelve languages
+/// while the chrome around it was translated.
+///
+/// So: translate at the point of display only, and leave the stored name alone.
+/// An LPP type the catalog does not know yet falls through unchanged, which is
+/// the same English it showed before — a new sensor type in firmware degrades
+/// to the old behaviour rather than to a blank.
+func localizedTelemetryName(_ name: String) -> String {
+    switch name {
+    case "Temperature": return String(localized: "Temperature")
+    case "Humidity": return String(localized: "Humidity")
+    case "Pressure": return String(localized: "Pressure")
+    case "Battery": return String(localized: "Battery")
+    case "Current": return String(localized: "Current")
+    case "Power": return String(localized: "Power")
+    case "Light": return String(localized: "Light")
+    case "Percentage": return String(localized: "Percentage")
+    case "Altitude": return String(localized: "Altitude")
+    case "Distance": return String(localized: "Distance")
+    case "Presence": return String(localized: "Presence")
+    case "Concentration": return String(localized: "Concentration")
+    case "Sensor": return String(localized: "Sensor")
+    case "GPS Lat": return String(localized: "GPS Lat")
+    case "GPS Lon": return String(localized: "GPS Lon")
+    default: return name
+    }
+}
+
+/// A reading's display label with its type name localized.
+///
+/// `label` is the name plus a channel qualifier when one node reports the same
+/// type more than once — "Temperature (Ch 2)". Only the name is translated; the
+/// qualifier is a channel number and stays as the firmware numbers it. Built by
+/// replacing the known prefix rather than by parsing the qualifier, so a label
+/// shape this does not recognise passes through untouched.
+func localizedTelemetryLabel(name: String, label: String) -> String {
+    guard label.hasPrefix(name) else { return label }
+    return localizedTelemetryName(name) + label.dropFirst(name.count)
 }
 
 /// Format raw SNR value (SNR * 4 from firmware) to human-readable dB string.
