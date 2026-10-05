@@ -26,6 +26,29 @@ struct RemoteRoomSection: View {
     @State private var newGuestPassword = ""
     @State private var guestPwFeedback = false
     @State private var showGuestPwEdit = false
+    @State private var announcement = ""
+    @State private var announcementFeedback = false
+
+    /// Firmware truncates a post at `MAX_POST_TEXT_LEN` (160 - 9) bytes, silently.
+    /// Counting UTF-8 bytes rather than characters, because that is what the radio stores.
+    private static let maxPostBytes = 151
+
+    /// The announcement as it will actually be sent: one line.
+    ///
+    /// The field grows to four lines, so the user can press Return in it. A CLI
+    /// command is a line — on the USB serial path a newline *is* the terminator,
+    /// so "room.post two⏎lines" would send `room.post two` and then try to run
+    /// `lines` as a command of its own. `sendCLICommand` trims the ends only, so
+    /// an interior newline survives. Collapse any run of whitespace to a single
+    /// space instead, which is also what a 151-byte buffer with no formatting
+    /// can represent.
+    private var postText: String {
+        announcement.split(whereSeparator: \.isWhitespace).joined(separator: " ")
+    }
+
+    // Counted on what is sent, not on what was typed.
+    private var announcementByteCount: Int { postText.utf8.count }
+    private var announcementTooLong: Bool { announcementByteCount > Self.maxPostBytes }
 
     private var chatContacts: [Contact] {
         contactStore.contacts.filter { $0.type == .chat }.sorted { $0.name < $1.name }
@@ -172,6 +195,70 @@ struct RemoteRoomSection: View {
             } header: {
                 SectionInfoHeader(title: "Client Permissions", info: "Set access level for a connected client. Pick from known contacts or enter a pubkey hex prefix manually. Guest = read-only, Read-Write = can post, Admin = full control.")
             }
+
+            // room.post has no getter, so this is version-gated rather than probed.
+            if session.firmwareAtLeast(1, 17) {
+                announcementSection
+            }
+        }
+    }
+
+    /// Post a message to the room as the server itself (firmware 1.17.0+).
+    @ViewBuilder
+    private var announcementSection: some View {
+        Section {
+            HStack(alignment: .top) {
+                Image(systemName: "megaphone")
+                    .foregroundStyle(MeshTheme.accent)
+                    .frame(width: 24)
+                #if os(watchOS)
+                TextField("Message", text: $announcement)
+                    .foregroundStyle(MeshTheme.textPrimary)
+                #else
+                TextField("Message to post as the room", text: $announcement, axis: .vertical)
+                    .foregroundStyle(MeshTheme.textPrimary)
+                    .textFieldStyle(MeshTextFieldStyle())
+                    .lineLimit(1...4)
+                #endif
+            }
+            .listRowBackground(MeshTheme.surface)
+
+            if !postText.isEmpty {
+                HStack {
+                    Spacer()
+                    Text("\(announcementByteCount)/\(Self.maxPostBytes)")
+                        .font(.caption)
+                        .monospacedDigit()
+                        .foregroundStyle(announcementTooLong ? MeshTheme.statusBad : MeshTheme.textSecondary)
+                        .accessibilityLabel(String(
+                            format: announcementTooLong
+                                ? String(localized: "Too long \u{2014} %1$d of %2$d bytes used")
+                                : String(localized: "%1$d of %2$d bytes used"),
+                            announcementByteCount, Self.maxPostBytes))
+                }
+                .listRowBackground(MeshTheme.surface)
+            }
+
+            Button {
+                sendCLI("room.post \(postText)")
+                showFeedback($announcementFeedback)
+                announcement = ""
+            } label: {
+                HStack {
+                    Image(systemName: announcementFeedback ? "checkmark.circle.fill" : "paperplane")
+                        .foregroundStyle(announcementFeedback ? MeshTheme.statusGood : MeshTheme.accent)
+                        .frame(width: 24)
+                    (announcementFeedback ? Text("Posted") : Text("Post Announcement"))
+                        .foregroundStyle(announcementFeedback ? MeshTheme.statusGood : MeshTheme.accent)
+                    Spacer()
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .disabled(postText.isEmpty || announcementTooLong)
+            .listRowBackground(MeshTheme.surface)
+        } header: {
+            SectionInfoHeader(title: "Announcements", info: "Post a message to the room authored by the server rather than by you. Every member receives it the next time their device syncs. The radio stores 151 bytes and truncates anything longer.")
         }
     }
 }
