@@ -800,7 +800,10 @@ func localizedTelemetryName(_ name: String) -> String {
     case "Battery": return String(localized: "Battery")
     case "Current": return String(localized: "Current")
     case "Power": return String(localized: "Power")
-    case "Light": return String(localized: "Light")
+    // Not the "Light" key: that one is the appearance theme, and sharing it
+    // put "Helligkeit" in the German theme picker. An LPP light reading is
+    // illuminance in lux.
+    case "Light": return String(localized: "Illuminance")
     case "Percentage": return String(localized: "Percentage")
     case "Altitude": return String(localized: "Altitude")
     case "Distance": return String(localized: "Distance")

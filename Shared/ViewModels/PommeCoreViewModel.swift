@@ -215,6 +215,12 @@ final class PommeCoreViewModel: ObservableObject {
         contactStore.purgeOrphanedTelemetry = { [weak self] live in
             self?.rfMonitorStore.purgeOrphanedTelemetry(liveKeyPrefixes: live) ?? 0
         }
+        contactStore.countOrphanedTelemetry = { [weak self] live in
+            self?.rfMonitorStore.orphanedTelemetryCount(liveKeyPrefixes: live) ?? (0, 0)
+        }
+        contactStore.countOrphanedMessages = { [weak self] live in
+            self?.messageStoreManager.orphanedMessageCount(liveKeyPrefixes: live) ?? (0, 0)
+        }
         contactStore.purgeOrphanedMessages = { [weak self] live in
             self?.messageStoreManager.purgeOrphanedMessages(liveKeyPrefixes: live) ?? 0
         }

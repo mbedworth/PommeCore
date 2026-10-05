@@ -314,6 +314,11 @@ extension SettingsView {
                 #endif
                 Button("Cancel", role: .cancel) {}
             }
+
+            #if !os(watchOS)
+            orphanCleanupRow
+            #endif
+
             #if !os(watchOS)
             NavigationLink {
                 ContactBackupsView()
@@ -338,6 +343,83 @@ extension SettingsView {
             Text("Contacts are saved automatically just before a bulk deletion, so a mistake can be undone \u{2014} they cannot otherwise be recovered once removed from the radio.")
             #endif
         }
+    }
+
+    /// Clear data belonging to contacts the radio no longer has.
+    ///
+    /// Two taps, never one: the first counts and shows what would go, the
+    /// second removes it. The sweep is irreversible and an earlier version of
+    /// it ran automatically and destroyed conversations, so the number comes
+    /// first and the user decides. Disabled until a full contact sync has
+    /// completed on this connection, because a partial list makes every
+    /// missing contact look orphaned.
+    @ViewBuilder
+    private var orphanCleanupRow: some View {
+        #if !os(watchOS)
+        let ready = contactStore.hasCompletedFullContactSync && !contactStore.contacts.isEmpty
+        Button {
+            orphanReport = contactStore.countOrphanedData()
+        } label: {
+            HStack {
+                Label("Clean Up Deleted Contacts", systemImage: "trash.slash")
+                    .foregroundStyle(ready ? MeshTheme.accent : MeshTheme.textSecondary)
+                Spacer()
+                if !ready {
+                    Text("Needs a sync")
+                        .font(.caption)
+                        .foregroundStyle(MeshTheme.textSecondary)
+                }
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .disabled(!ready)
+        .listRowBackground(MeshTheme.surface)
+        .alert("Clean Up Deleted Contacts",
+               isPresented: Binding(get: { orphanReport != nil },
+                                    set: { if !$0 { orphanReport = nil } })) {
+            if let report = orphanReport, !report.isEmpty {
+                Button("Remove", role: .destructive) {
+                    // Re-read rather than passing a literal true. The alert can
+                    // outlive the condition that enabled the row: a disconnect
+                    // between counting and confirming clears the flag, and
+                    // hard-coding the argument would assert a fact that had
+                    // stopped being true — which is the whole thing this
+                    // parameter exists to prevent.
+                    contactStore.purgeOrphanedData(
+                        contactListVerifiedComplete: contactStore.hasCompletedFullContactSync)
+                    orphanReport = nil
+                }
+            }
+            Button("Cancel", role: .cancel) { orphanReport = nil }
+        } message: {
+            if let report = orphanReport {
+                Text(orphanSummary(report))
+            }
+        }
+        #endif
+    }
+
+    /// Spells out what would be removed, leading with what cannot be replaced.
+    private func orphanSummary(_ report: OrphanReport) -> String {
+        guard !report.isEmpty else {
+            return String(localized: "Nothing to clean up \u{2014} no data is left over from deleted contacts.")
+        }
+        var lines: [String] = []
+        if report.messageConversations > 0 {
+            lines.append(String(format: String(localized: "%1$d conversations (%2$d messages)"),
+                                report.messageConversations, report.messages))
+        }
+        if report.telemetryContacts > 0 {
+            lines.append(String(format: String(localized: "%1$d telemetry histories (%2$d readings)"),
+                                report.telemetryContacts, report.telemetrySnapshots))
+        }
+        if report.minorEntries > 0 {
+            lines.append(String(format: String(localized: "%d saved names, notes, trails and settings"),
+                                report.minorEntries))
+        }
+        return String(format: String(localized: "This removes data for contacts your radio no longer has:\n\n%@\n\nThis cannot be undone."),
+                      lines.joined(separator: "\n"))
     }
 
     var tipJarSection: some View {

@@ -18,6 +18,30 @@ import MeshCoreKit
 
 /// Observable store for contacts, nicknames, notes, groups, and activity status.
 /// Extracted from PommeCoreViewModel to enable fine-grained view observation.
+/// What an orphan sweep would remove, so the user can see it before agreeing.
+///
+/// The sweep is irreversible and once ran by itself, on an inference about its
+/// own authority, and permanently deleted conversations. It is user-initiated
+/// now, and this is what makes that meaningful: a count the user reads first.
+/// Messages and telemetry are reported separately from the small per-contact
+/// entries because they are what people care about losing.
+struct OrphanReport {
+    var positionTrails = 0
+    var mutes = 0
+    var nicknames = 0
+    var notes = 0
+    var groupMemberships = 0
+    var telemetryContacts = 0
+    var telemetrySnapshots = 0
+    var messageConversations = 0
+    var messages = 0
+
+    /// Per-contact odds and ends — small, and nobody will miss them.
+    var minorEntries: Int { positionTrails + mutes + nicknames + notes + groupMemberships }
+    var total: Int { minorEntries + telemetryContacts + messageConversations }
+    var isEmpty: Bool { total == 0 }
+}
+
 @MainActor @Observable
 final class ContactStore {
     private static let logger = Logger(subsystem: "com.pommecore", category: "ContactStore")
@@ -64,6 +88,10 @@ final class ContactStore {
     /// Drops persisted messages and drafts for every contact outside the given
     /// live key-prefix set, returning how many were removed.
     var purgeOrphanedMessages: ((Set<Data>) -> Int)?
+    /// Counts what `purgeOrphanedTelemetry` would drop, dropping nothing.
+    var countOrphanedTelemetry: ((Set<Data>) -> (contacts: Int, snapshots: Int))?
+    /// Counts what `purgeOrphanedMessages` would drop, dropping nothing.
+    var countOrphanedMessages: ((Set<Data>) -> (conversations: Int, messages: Int))?
 
     /// Closure to post an event notification.
     var postEventNotification: ((String, String, String) -> Void)?
@@ -149,6 +177,15 @@ final class ContactStore {
     var isSyncingContacts = false
     var isIncrementalContactSync = false
     var lastContactsSync: UInt32 = 0
+
+    /// Whether a full contact sync has completed since the radio connected.
+    ///
+    /// The orphan sweep deletes data keyed to contacts that are missing from
+    /// the list, so it is only safe when the list is known to be the radio's
+    /// whole list. An incremental sync does not establish that, and neither
+    /// does a cached list from a previous session. Cleared by `reset()` on
+    /// every disconnect, so it never outlives the connection that earned it.
+    private(set) var hasCompletedFullContactSync = false
     var expectedContactCount: UInt32 = 0
     private var contactSyncDebounceTask: Task<Void, Never>?
 
@@ -1161,6 +1198,37 @@ final class ContactStore {
         spotlightFingerprint = nil
     }
 
+    /// How many orphaned entries a sweep would remove, without removing any.
+    ///
+    /// Lets the user be shown a number and decide, instead of the app deciding
+    /// for them. Counts only what this store owns; the cross-store totals are
+    /// reported by the sweep itself.
+    func countOrphanedData() -> OrphanReport {
+        guard !contacts.isEmpty else { return OrphanReport() }
+        let live = Set(contacts.map { $0.publicKey.hexCompact })
+        let livePrefixes = Set(contacts.map(\.publicKeyPrefix))
+
+        var report = OrphanReport()
+        report.positionTrails = positionHistory.keys.filter { !live.contains($0) }.count
+        report.mutes = mutedContacts.filter { !live.contains($0) }.count
+        report.nicknames = nicknames.keys.filter { !live.contains($0) }.count
+        report.notes = contactNotes.keys.filter { !live.contains($0) }.count
+        report.groupMemberships = contactGroups.reduce(0) { total, group in
+            total + group.memberPubkeys.filter { !live.contains($0) }.count
+        }
+
+        // The two that actually take space, and the two the user most needs
+        // warning about before agreeing — a conversation is not recoverable.
+        let telemetry = countOrphanedTelemetry?(livePrefixes) ?? (contacts: 0, snapshots: 0)
+        report.telemetryContacts = telemetry.contacts
+        report.telemetrySnapshots = telemetry.snapshots
+        let messages = countOrphanedMessages?(livePrefixes) ?? (conversations: 0, messages: 0)
+        report.messageConversations = messages.conversations
+        report.messages = messages.messages
+
+        return report
+    }
+
     /// Remove persisted per-contact data that no longer has a contact.
     ///
     /// Per-contact cleanup on delete only helps contacts deleted from now on.
@@ -1185,24 +1253,6 @@ final class ContactStore {
     /// radio announced. `countOrphanedData()` reports what would be removed
     /// without removing it, so the user can be shown a number first.
     ///
-    /// How many orphaned entries a sweep would remove, without removing any.
-    ///
-    /// Lets the user be shown a number and decide, instead of the app deciding
-    /// for them. Counts only what this store owns; the cross-store totals are
-    /// reported by the sweep itself.
-    func countOrphanedData() -> Int {
-        guard !contacts.isEmpty else { return 0 }
-        let live = Set(contacts.map { $0.publicKey.hexCompact })
-        var count = positionHistory.keys.filter { !live.contains($0) }.count
-        count += mutedContacts.filter { !live.contains($0) }.count
-        count += nicknames.keys.filter { !live.contains($0) }.count
-        count += contactNotes.keys.filter { !live.contains($0) }.count
-        count += contactGroups.reduce(0) { total, group in
-            total + group.memberPubkeys.filter { !live.contains($0) }.count
-        }
-        return count
-    }
-
     /// Idempotent: a second run over clean data removes nothing.
     @discardableResult
     func purgeOrphanedData(contactListVerifiedComplete: Bool) -> Int {
@@ -1436,6 +1486,11 @@ final class ContactStore {
             verifyPendingContactWrite()
         }
 
+        // A full sync that reached here was not truncated and not rejected, so
+        // the list is the radio's whole list. That is the one fact the orphan
+        // sweep needs, and the only place it can be established.
+        if wasFullSync { hasCompletedFullContactSync = true }
+
         // The orphan sweep is deliberately NOT run here. It used to be, on
         // every full sync, and that caused real data loss: a truncated sync
         // was accepted as authoritative, and the sweep then permanently
@@ -1498,6 +1553,19 @@ final class ContactStore {
         }
     }
 
+    /// The radio evicted a contact to make room, and told us.
+    ///
+    /// Deliberately does **not** run `purgeLocalData`, unlike `removeContact`.
+    /// Eviction is the radio reclaiming space when its contact store fills; the
+    /// user did not ask to forget this person, and the contact's next advert
+    /// re-adds it, at which point messages, telemetry and position history all
+    /// reconnect by key prefix. Purging here would destroy conversations nobody
+    /// asked to delete, to reclaim space on a device that is not short of it.
+    ///
+    /// The cost is that data for a contact which never returns is orphaned.
+    /// That is what the user-initiated sweep in Settings → Storage is for —
+    /// bounded, visible, and the user's call rather than a side effect of the
+    /// radio running out of room.
     func handleContactDeleted(publicKey: Data) {
         let keyPrefix = publicKey.prefix(6)
         let name = contacts.first(where: { $0.publicKeyPrefix == keyPrefix })?.name ?? "Unknown"
@@ -1635,6 +1703,9 @@ final class ContactStore {
         contactSyncDebounceTask?.cancel()
         isSyncingContacts = false
         isIncrementalContactSync = false
+        // Authority to sweep belongs to the connection that proved the list,
+        // and does not survive it.
+        hasCompletedFullContactSync = false
         // A pending write deliberately survives: reset() runs on every
         // disconnect, and a link that drops mid-burst is precisely when the
         // retry is needed. Clearing it here is how a profile import lost 4 of
