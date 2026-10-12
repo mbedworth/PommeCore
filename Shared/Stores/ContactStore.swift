@@ -53,6 +53,10 @@ final class ContactStore {
     var contactGroups: [ContactGroup] = []
     var mutedContacts: Set<String> = []
 
+    /// Contacts the user has marked Keep, which the stale sweep must never
+    /// propose. Hex public keys, same keying as `mutedContacts`.
+    var keptContacts: Set<String> = []
+
     // MARK: - Position History
 
     struct PositionPoint: Codable {
@@ -72,6 +76,11 @@ final class ContactStore {
 
     /// Closure to get latest activity date for a contact (checks messages).
     var activityDateProvider: ((Data) -> Date?)?
+
+    /// Whether any message is stored for this contact. The stale sweep uses it
+    /// as a "the user has history here" signal, so a quiet contact with a
+    /// conversation behind it is never proposed for removal.
+    var hasStoredMessages: ((Data) -> Bool)?
 
     /// Closure to clear messages when a contact is deleted.
     var clearMessagesForContact: ((Data) -> Void)?
@@ -234,6 +243,7 @@ final class ContactStore {
         // They are loaded in handleSelfInfo when the radio connects.
         loadContactGroupsFromiCloud()
         loadMutedContactsFromiCloud()
+        loadKeptContactsFromiCloud()
         loadBlockedFromiCloud()
         loadPositionHistory()
         observeiCloudChanges()
@@ -712,6 +722,86 @@ final class ContactStore {
         guard iCloudSyncEnabled else { return }
         iCloudStore.set(Array(mutedContacts), forKey: "mutedContacts")
         iCloudStore.synchronize()
+    }
+
+    // MARK: - Keep (exempt from the stale sweep)
+
+    func isContactKept(_ contact: Contact) -> Bool {
+        keptContacts.contains(contact.publicKey.hexCompact)
+    }
+
+    func toggleContactKept(_ contact: Contact) {
+        let key = contact.publicKey.hexCompact
+        if keptContacts.contains(key) {
+            keptContacts.remove(key)
+        } else {
+            keptContacts.insert(key)
+        }
+        saveKeptContactsToiCloud()
+    }
+
+    func loadKeptContactsFromiCloud() {
+        if let array = iCloudStore.array(forKey: "keptContacts") as? [String] {
+            keptContacts = Set(array)
+        }
+    }
+
+    private func saveKeptContactsToiCloud() {
+        guard iCloudSyncEnabled else { return }
+        iCloudStore.set(Array(keptContacts), forKey: "keptContacts")
+        iCloudStore.synchronize()
+    }
+
+    // MARK: - Stale Contacts
+
+    /// Which contacts the stale sweep is allowed to consider.
+    ///
+    /// The distinction is not cosmetic. **Companion radios never auto-advert**
+    /// — an advert from one is always user-initiated — so a chat contact that
+    /// has not been heard from in a month may be powered on, in range and
+    /// perfectly fine. Infrastructure does advert on a timer (repeaters every
+    /// 60–240 minutes, flood at least every 3 hours), so silence from one
+    /// really is evidence of absence. The same age means opposite things, and
+    /// that is why the default is infrastructure only.
+    enum StaleScope: String, CaseIterable, Codable, Sendable {
+        case off
+        case infrastructure
+        case all
+    }
+
+    /// Contacts older than `days` that the sweep would propose removing.
+    ///
+    /// Never proposes a contact the user has shown any sign of caring about:
+    /// marked Keep, filed in a group, given a nickname or a note, or holding
+    /// messages. Those are cheap to check and each one is a person saying "I
+    /// meant to have this", which outranks an age threshold.
+    ///
+    /// Returns [] for `.off`, and for a zero or negative period — a sweep that
+    /// proposed everything because a setting was mis-read is the failure worth
+    /// engineering against.
+    func staleContacts(scope: StaleScope, days: Int, now: Date = Date()) -> [Contact] {
+        guard scope != .off, days > 0 else { return [] }
+        let cutoff = now.timeIntervalSince1970 - Double(days) * 86_400
+        let grouped = Set(contactGroups.flatMap(\.memberPubkeys))
+
+        return contacts.filter { contact in
+            let key = contact.publicKey.hexCompact
+
+            if scope == .infrastructure {
+                guard contact.type == .repeater || contact.type == .sensor else { return false }
+            }
+            if keptContacts.contains(key) { return false }
+            if grouped.contains(key) { return false }
+            if nicknames[key]?.isEmpty == false { return false }
+            if contactNotes[key]?.isEmpty == false { return false }
+            if hasStoredMessages?(contact.publicKeyPrefix) == true { return false }
+
+            // A contact the radio has never dated cannot be judged stale: a
+            // zero timestamp is missing information, not an old one.
+            let seen = lastActivityTimestamp(for: contact)
+            guard seen > 0 else { return false }
+            return seen < cutoff
+        }
     }
 
     // MARK: - Position History
@@ -1692,6 +1782,7 @@ final class ContactStore {
                 }
                 self?.loadContactGroupsFromiCloud()
                 self?.loadMutedContactsFromiCloud()
+                self?.loadKeptContactsFromiCloud()
                 self?.loadBlockedFromiCloud()
             }
         }

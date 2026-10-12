@@ -17,10 +17,23 @@ import MeshCoreKit
 extension ContactListView {
 
     /// Contacts not assigned to any group — shown in the main Contacts section.
+    /// Contacts shown in the main list: everything not filed in a user group
+    /// and not infrastructure, which gets its own collapsed section per type.
     var ungroupedContacts: [Contact] {
         let grouped = Set(contactStore.contactGroups.flatMap(\.memberPubkeys))
         return contactStore.sortedContacts(byLastSeen: sortByLastSeen).filter {
-            !grouped.contains($0.publicKey.hexCompact)
+            !grouped.contains($0.publicKey.hexCompact) && !Self.infrastructureTypes.contains($0.type)
+        }
+    }
+
+    /// The types that get their own collapsed section. A user group still wins:
+    /// a repeater the user filed somewhere deliberately stays where they put it.
+    static let infrastructureTypes: Set<ContactType> = [.repeater, .sensor, .room]
+
+    func infrastructureContacts(_ type: ContactType) -> [Contact] {
+        let grouped = Set(contactStore.contactGroups.flatMap(\.memberPubkeys))
+        return contactStore.sortedContacts(byLastSeen: sortByLastSeen).filter {
+            $0.type == type && !grouped.contains($0.publicKey.hexCompact)
         }
     }
 
@@ -477,6 +490,83 @@ extension ContactListView {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("Zero-hop reaches nearby nodes only. Flood is relayed by repeaters across the entire mesh network.")
+        }
+    }
+}
+
+// MARK: - Infrastructure Sections
+
+extension ContactListView {
+
+    /// Repeaters, sensors and room servers, each in their own section,
+    /// collapsed by default.
+    ///
+    /// They are split out because they are what multiplies: a busy mesh turns
+    /// a contact list into a list of repeaters with the people buried in it.
+    /// Collapsed is the default for the same reason — but a collapsed section
+    /// must never hide something that wants attention, so the header carries
+    /// the unread count. That matters most for rooms, which are a conversation
+    /// rather than plumbing and are only here because a per-type split was
+    /// asked for.
+    @ViewBuilder
+    var infrastructureSections: some View {
+        infrastructureSection(.repeater, title: "Repeaters",
+                              systemImage: "antenna.radiowaves.left.and.right",
+                              isExpanded: $repeatersExpanded)
+        infrastructureSection(.sensor, title: "Sensors",
+                              systemImage: "sensor",
+                              isExpanded: $sensorsExpanded)
+        infrastructureSection(.room, title: "Rooms",
+                              systemImage: "bubble.left.and.bubble.right",
+                              isExpanded: $roomsExpanded)
+    }
+
+    @ViewBuilder
+    func infrastructureSection(_ type: ContactType,
+                               title: LocalizedStringKey,
+                               systemImage: String,
+                               isExpanded: Binding<Bool>) -> some View {
+        let members = infrastructureContacts(type)
+        if !members.isEmpty {
+            let unread = members.reduce(0) { $0 + messageStoreManager.unreadCount(for: $1) }
+            Section(isExpanded: isExpanded) {
+                ForEach(members) { contact in
+                    #if os(watchOS)
+                    NavigationLink {
+                        contactDestination(contact)
+                    } label: {
+                        contactRow(contact)
+                    }
+                    .listRowBackground(MeshTheme.surface)
+                    #else
+                    NavigationLink(value: SidebarSelection.contact(contact.publicKeyPrefix)) {
+                        contactRow(contact)
+                    }
+                    .listRowBackground(MeshTheme.surface)
+                    #endif
+                }
+            } header: {
+                HStack {
+                    Label(title, systemImage: systemImage)
+                        .foregroundStyle(MeshTheme.accent)
+                    Spacer()
+                    if unread > 0 {
+                        // The whole point of collapsing is that you stop
+                        // looking in here, so an unread message has to come out
+                        // to the header or it is simply lost.
+                        Text("\(unread)")
+                            .font(.caption2)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Capsule().fill(MeshTheme.accent))
+                            .foregroundStyle(MeshTheme.textOnFill)
+                    }
+                    Text("\(members.count)")
+                        .font(.caption)
+                        .foregroundStyle(MeshTheme.textSecondary)
+                }
+                .accessibilityElement(children: .combine)
+            }
         }
     }
 }

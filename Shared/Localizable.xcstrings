@@ -2182,6 +2182,77 @@
         }
       }
     },
+    "14 days": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "14 Tage"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "14 jours"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "14 días"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "14 giorni"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "14 dagen"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "14 dias"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "14 dní"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "14 dni"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "14 днів"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "14日"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "14 天"
+          }
+        }
+      }
+    },
     "15 min": {
       "localizations": {
         "cs": {
@@ -2320,6 +2391,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "15 minutos"
+          }
+        }
+      }
+    },
+    "180 days": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "180 Tage"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "180 jours"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "180 días"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "180 giorni"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "180 dagen"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "180 dias"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "180 dní"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "180 dni"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "180 днів"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "180日"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "180 天"
           }
         }
       }
@@ -2759,6 +2901,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "选择你保存的 ZIP 文件"
+          }
+        }
+      }
+    },
+    "30 days": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 Tage"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 jours"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 días"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 giorni"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 dagen"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 dias"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 dní"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 dni"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 днів"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30日"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 天"
           }
         }
       }
@@ -3422,6 +3635,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "7 天"
+          }
+        }
+      }
+    },
+    "90 days": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "90 Tage"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "90 jours"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "90 días"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "90 giorni"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "90 dagen"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "90 dias"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "90 dní"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "90 dni"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "90 днів"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "90日"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "90 天"
           }
         }
       }
@@ -6201,6 +6485,77 @@
         }
       }
     },
+    "All Contacts": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle Kontakte"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tous les contacts"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todos los contactos"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tutti i contatti"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle contacten"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todos os contatos"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Všechny kontakty"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wszystkie kontakty"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Всі контакти"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "すべての連絡先"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所有联系人"
+          }
+        }
+      }
+    },
     "All boards": {
       "comment": "A label displayed below a list of firmware builds.",
       "isCommentAutoGenerated": true,
@@ -6409,6 +6764,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "允许所有"
+          }
+        }
+      }
+    },
+    "Allow Cleanup": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bereinigung erlauben"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autoriser le nettoyage"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permitir limpieza"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Consenti pulizia"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opschonen toestaan"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permitir Limpeza"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Povolit vyčištění"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zezwól na czyszczenie"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Дозволити очищення"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クリーンアップを許可"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "允许清理"
           }
         }
       }
@@ -11909,6 +12335,77 @@
         }
       }
     },
+    "Clean Up Stale Contacts": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Veraltete Kontakte bereinigen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nettoyer les contacts obsolètes"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limpiar contactos obsoletos"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pulisci contatti obsoleti"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oude contacten opschonen"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limpar contatos desatualizados"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vyčistit zastaralé kontakty"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wyczyść stare kontakty"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Очистити застарілі контакти"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "古い連絡先をクリーンアップ"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清理过期联系人"
+          }
+        }
+      }
+    },
     "Clear All Messages": {
       "extractionState": "manual",
       "localizations": {
@@ -13108,6 +13605,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "无网通信"
+          }
+        }
+      }
+    },
+    "Companion radios only advertise when their owner asks them to, so a quiet contact is not necessarily gone. Repeaters and sensors advertise on a timer, which is why they are the safer choice here. Nothing is ever removed without showing you the list first, and contacts marked Keep are never listed.": {
+      "extractionState": "manual",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les radios compagnons n'envoient des annonces que lorsque leur propriétaire le leur demande, donc un contact silencieux n'est pas nécessairement parti. Les répéteurs et les capteurs envoient des annonces selon un minuteur, c'est pourquoi ils sont le choix le plus sûr ici. Rien n'est jamais supprimé sans vous montrer la liste d'abord, et les contacts marqués \"Garder\" ne sont jamais listés."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las radios compañeras solo anuncian cuando su propietario lo solicita, por lo que un contacto tranquilo no está necesariamente ido. Los repetidores y sensores anuncian con un temporizador, por lo que son la mejor opción aquí. Nada se elimina sin mostrarle primero la lista, y los contactos marcados como \"Mantener\" nunca se enumeran."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Os rádios companheiros só anunciam quando seu proprietário os pede, então um contato silencioso não está necessariamente desaparecido. Os repetidores e sensores anunciam em um temporizador, por isso são a escolha mais segura aqui. Nada é removido sem mostrar a lista primeiro, e os contatos marcados como \"Manter\" nunca são listados."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kompanyónní rádiové stanice oznamují pouze na žádost majitele, takže klidný kontakt nemusí nutně zmizet. Opakovače a senzory oznamují podle časovače, proto jsou bezpečnější volbou zde. Nic není nikdy odstraněno bez zobrazení seznamu nejprve a kontakty označené jako Zachovat se nikdy neobjeví v seznamu."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Радіостанції-компаньйони оголошують про себе лише за згодою власника, тому тихий контакт не обов'язково зник. Повторювачі та сенсори оголошують про себе за таймером, тому вони є безпечнішим вибором тут. Нічого не видаляється без показу вам списку спочатку, а контакти, позначені як \"Зберегти\", ніколи не включаються до списку."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Begleitgeräte senden nur dann eine Ankündigung, wenn ihr Besitzer es verlangt — ein stiller Kontakt ist also nicht zwangsläufig verschwunden. Repeater und Sensoren kündigen sich nach einem Zeitplan an, weshalb sie hier die sicherere Wahl sind. Es wird nie etwas entfernt, ohne Ihnen zuvor die Liste zu zeigen, und als „Behalten“ markierte Kontakte erscheinen nie darin."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I radio compagni inviano un annuncio solo quando il proprietario lo richiede, quindi un contatto silenzioso non è necessariamente scomparso. Ripetitori e sensori inviano annunci a intervalli regolari, ed è per questo che qui sono la scelta più sicura. Nulla viene mai rimosso senza mostrarti prima l'elenco, e i contatti contrassegnati come Mantieni non compaiono mai."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Begeleidende radio's versturen alleen een aankondiging wanneer de eigenaar daarom vraagt, dus een stil contact is niet per se verdwenen. Repeaters en sensoren versturen aankondigingen volgens een vast schema, daarom zijn ze hier de veiligere keuze. Er wordt nooit iets verwijderd zonder je eerst de lijst te tonen, en contacten met Behouden staan er nooit in."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Radia towarzyszące wysyłają rozgłoszenie tylko wtedy, gdy zażąda tego właściciel, więc milczący kontakt niekoniecznie zniknął. Powtarzacze i czujniki rozgłaszają się w stałych odstępach, dlatego są tu bezpieczniejszym wyborem. Nic nie zostanie usunięte bez wcześniejszego pokazania listy, a kontakty oznaczone jako Zachowaj nigdy się na niej nie pojawią."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "コンパニオン無線機は所有者が指示したときにのみアドバタイズを送信するため、応答のない連絡先が必ずしも失われたとは限りません。リピーターとセンサーは一定間隔でアドバタイズを送信するため、ここではより安全な選択肢です。一覧を表示せずに削除されることはなく、「保持」を設定した連絡先が一覧に載ることはありません。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "随身电台仅在其所有者请求时才发送通告，因此长时间没有消息的联系人不一定已经消失。中继器和传感器会按固定间隔发送通告，因此在此处是更安全的选择。系统绝不会在未向您显示列表的情况下删除任何内容，标记为「保留」的联系人也绝不会出现在列表中。"
           }
         }
       }
@@ -23999,6 +24567,77 @@
         }
       }
     },
+    "Find Stale Contacts": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Veraltete Kontakte finden"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trouver les contacts obsolètes"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encontrar contactos obsoletos"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trova contatti obsoleti"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oude contacten vinden"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encontrar contatos desatualizados"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Najít zastaralé kontakty"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Znajdź stare kontakty"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Знайти застарілі контакти"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "古い連絡先を検索"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查找过期联系人"
+          }
+        }
+      }
+    },
     "Firmware": {
       "localizations": {
         "cs": {
@@ -29512,6 +30151,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "加入支持者墙？"
+          }
+        }
+      }
+    },
+    "Keep": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Behalten"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Garder"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mantener"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mantieni"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Behouden"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manter"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zachovat"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zachowaj"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Зберегти"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保持"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留"
           }
         }
       }
@@ -39651,6 +40361,77 @@
         }
       }
     },
+    "Not Heard From For": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nichts gehört seit"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sans nouvelles depuis"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin noticias desde hace"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nessuna notizia da"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niets gehoord sinds"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sem notícias há"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bez odezvy déle než"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak kontaktu od"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Без зв'язку понад"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最終受信からの経過"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "超过此时间未收到消息"
+          }
+        }
+      }
+    },
     "Not delivered": {
       "comment": "A message displayed when a message fails to send.",
       "isCommentAutoGenerated": true,
@@ -40798,7 +41579,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Apagado"
+            "value": "Desactivado"
           }
         },
         "fr": {
@@ -40810,7 +41591,7 @@
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Off"
+            "value": "Disattivato"
           }
         },
         "ja": {
@@ -50979,6 +51760,77 @@
         }
       }
     },
+    "Remove Stale Contacts": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Veraltete Kontakte entfernen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimer les contacts obsolètes"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminar contactos obsoletos"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rimuovi contatti obsoleti"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verwijder verouderde contacten"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remover contatos desatualizados"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odstranit zastaralé kontakty"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuń przestarzałe kontakty"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Видалити застарілі контакти"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "古いコンタクトを削除"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除过时的联系人"
+          }
+        }
+      }
+    },
     "Remove quoted message": {
       "extractionState": "manual",
       "localizations": {
@@ -51478,7 +52330,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Opakovací zařízení"
+            "value": "Opakovače"
           }
         },
         "de": {
@@ -51508,19 +52360,19 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "リピータ"
+            "value": "リピーター"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Herhalers"
+            "value": "Repeaters"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Powiadywacze"
+            "value": "Powtarzacze"
           }
         },
         "pt": {
@@ -51538,7 +52390,149 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重复器"
+            "value": "中继器"
+          }
+        }
+      }
+    },
+    "Repeaters & Sensors": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repeater und Sensoren"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Répéteurs et capteurs"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repetidores y sensores"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ripetitori e sensori"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repeaters en sensoren"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repetidores e sensores"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opakovače a senzory"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Powtarzacze i czujniki"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Повторювачі та сенсори"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "リピーターとセンサー"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中继器和传感器"
+          }
+        }
+      }
+    },
+    "Repeaters and sensors advertise on a timer, so silence from one is a good sign it has gone. Nothing is ever removed without showing you the list first, and contacts marked Keep are never listed.": {
+      "extractionState": "manual",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les répéteurs et capteurs diffusent des annonces à intervalles réguliers, donc le silence d'un est un bon signe qu'il est parti. Rien n'est supprimé sans vous montrer la liste d'abord, et les contacts marqués \"Garder\" ne sont jamais listés."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los repetidores y sensores anuncian en un temporizador, por lo que el silencio de uno es una buena señal de que se ha ido. Nada se elimina sin mostrarle primero la lista, y los contactos marcados como \"Mantener\" nunca se enumeran."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I ripetitori e i sensori si annunciano con un timer, quindi il silenzio da uno di essi è un buon segno che se n'è andato. Nulla viene mai rimosso senza mostrarti prima l'elenco, e i contatti contrassegnati come \"Conservare\" non vengono mai elencati."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Os repetidores e sensores anunciam em intervalos de tempo, então o silêncio de um é um bom sinal de que ele se foi. Nada é removido sem mostrar a lista primeiro, e os contatos marcados como \"Manter\" nunca são listados."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opakovače a senzory vysílají oznámení na časovač, takže mlčení od jednoho je dobrým znamením, že odešel. Nic není nikdy odstraněno bez toho, aby vám bylo nejprve zobrazeno seznam, a kontakty označené jako Zachovat se nikdy neuvádějí."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Powtarzacze i czujniki wysyłają rozgłoszenia na podstawie timera, więc cisza od jednego z nich jest dobrym znakiem, że zniknął. Nic nie jest usuwane bez pokazania ci najpierw listy, a kontakty oznaczone jako \"Zachowaj\" nigdy nie są wyświetlane."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Повторювачі і сенсори оголошують про себе за таймером, тому відсутність сигналу від одного з них є ознакою того, що він зник. Нічого не видаляється без показу вам списку спочатку, а контакти, позначені як \"Зберегти\", ніколи не включаються до списку."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repeater und Sensoren senden ihre Ankündigung nach einem Zeitplan, daher ist Funkstille von einem ein guter Hinweis darauf, dass es verschwunden ist. Es wird nie etwas entfernt, ohne Ihnen zuvor die Liste zu zeigen, und als „Behalten“ markierte Kontakte erscheinen nie darin."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repeaters en sensoren versturen aankondigingen volgens een vast schema, dus stilte van een ervan is een goed teken dat het weg is. Er wordt nooit iets verwijderd zonder je eerst de lijst te tonen, en contacten met Behouden staan er nooit in."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "リピーターとセンサーは一定間隔でアドバタイズを送信するため、応答がないことはその機器が失われた有力な手がかりになります。一覧を表示せずに削除されることはなく、「保持」を設定した連絡先が一覧に載ることはありません。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中继器和传感器会按固定间隔发送通告，因此某个设备长时间没有消息，很可能已经不在了。系统绝不会在未向您显示列表的情况下删除任何内容，标记为「保留」的联系人也绝不会出现在列表中。"
           }
         }
       }
@@ -53875,7 +54869,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pokoje"
+            "value": "Místnosti"
           }
         },
         "de": {
@@ -53887,13 +54881,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Habitaciones"
+            "value": "Salas"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pièces"
+            "value": "Salles"
           }
         },
         "it": {
@@ -53905,7 +54899,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "部屋"
+            "value": "ルーム"
           }
         },
         "nl": {
@@ -53917,7 +54911,7 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pokój"
+            "value": "Pokoje"
           }
         },
         "pt": {
@@ -66046,6 +67040,77 @@
         }
       }
     },
+    "These have not been heard from in %1$d days:\n\n%2$@\n\nThey are removed from the radio as well as this device. A backup is saved first.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dies wurden seit %1$d Tagen nicht gehört:\n\n%2$@\n\nSie werden sowohl aus dem Radio als auch aus diesem Gerät entfernt. Zuerst wird eine Sicherung erstellt."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ces appareils n'ont pas été entendus depuis %1$d jours.\n\n%2$@\n\nIls sont supprimés de la radio ainsi que de cet appareil. Une sauvegarde est effectuée en premier."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se han escuchado en %1$d días:\n\n%2$@\n\nSe eliminan del radio así como de este dispositivo. Se guarda una copia de seguridad primero."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non sono stati sentiti per %1$d giorni:\n\n%2$@\n\nVengono rimossi dalla radio e da questo dispositivo. Prima viene salvato un backup."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze zijn niet gehoord in %1$d dagen:\n\n%2$@\n\nZe zijn verwijderd uit de radio en dit apparaat. Een back-up wordt eerst opgeslagen."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não ouvimos deles em %1$d dias:\n\n%2$@\n\nEles são removidos do rádio, bem como deste dispositivo. Um backup é salvo primeiro."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nebyly slyšeny po %1$d dnech.\n\n%2$@\n\nJsou odstraněny z rádia i z tohoto zařízení. Nejprve je uložena záloha."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie słycho było od nich od %1$d dni.\n\n%2$@\n\nUsunięte z radia oraz tego urządzenia. Najpierw zapisywana jest kopia zapasowa."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не було жодних звісток від них протягом %1$d днів.\n\n%2$@\n\nЇх видалено з радіозв'язку, а також з цього пристрою. Спочатку зберігається резервна копія."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "これらのデバイスは %1$d 日間音沙汰がありません:\n\n%2$@\n\nこれらのデバイスはラジオからもこのデバイスからも削除されます。バックアップは最初に保存されます。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这些在 %1$d 天内未曾出现过：\n\n%2$@\n\n它们被从收音机和这个设备中移除。首先保存备份。"
+          }
+        }
+      }
+    },
     "These tools don't require a radio connection.": {
       "comment": "A footer for the tools section, explaining that these tools don't require a radio connection.",
       "isCommentAutoGenerated": true,
@@ -72552,6 +73617,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "之前"
+          }
+        }
+      }
+    },
+    "and %d more": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "und %d weitere"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "et %d de plus"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "y %d más"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e altri %d"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "en %d meer"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e %d mais"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "a %d dalších"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "i %d więcej"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "і %d більше"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "そして%d以上"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "和%d更多"
           }
         }
       }

@@ -46,6 +46,11 @@ struct SettingsView: View {
     @State var showConnectionHelp = false
     @State var showPurgeOptions = false
     @State var orphanReport: OrphanReport?
+    #if !os(watchOS)
+    @State var staleCandidates: [Contact]?
+    #endif
+    @AppStorage("staleCleanupScope") var staleCleanupScope = "off"
+    @AppStorage("staleCleanupDays") var staleCleanupDays = 30
     @State var showDebugLog = false
     @State var showSupportersSheet = false
     @State var supporterName = ""
