@@ -25,7 +25,7 @@ Shared/Views/SettingsView+RadioPrivacy.swift:349  # rule 18: rangeText
 Shared/Views/SettingsView+Sections.swift:295  # rule 18: gpsStatusLabel
 Shared/Views/SettingsView+Sections.swift:472  # rule 18: regionMessage
 Shared/Views/SettingsView+Sections.swift:730  # rule 18: connectionLabel
-Shared/Views/SettingsView+TipJar.swift:527  # rule 18: errorMessage
-Shared/Views/SettingsView+TipJar.swift:549  # rule 18: thankYouTitle
-Shared/Views/SettingsView+TipJar.swift:552  # rule 18: thankYouMessage
-Shared/Views/ContactListView.swift:435  # rule 17: idiom, but falls through to horizontalSizeClass for non-pad — correct on a foldable
+Shared/Views/SettingsView+TipJar.swift:558  # rule 18: errorMessage
+Shared/Views/SettingsView+TipJar.swift:580  # rule 18: thankYouTitle
+Shared/Views/SettingsView+TipJar.swift:583  # rule 18: thankYouMessage
+Shared/Views/ContactListView.swift:440  # rule 17: idiom, but falls through to horizontalSizeClass for non-pad — correct on a foldable

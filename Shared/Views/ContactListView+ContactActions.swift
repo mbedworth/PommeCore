@@ -133,6 +133,17 @@ extension ContactListView {
                 : Label("Mute", systemImage: "bell.slash")
         }
 
+        // Exempts this contact from the stale sweep for good. Shown always,
+        // not only while the sweep is switched on: the point of marking one is
+        // to decide before it ever becomes a question.
+        Button {
+            contactStore.toggleContactKept(contact)
+        } label: {
+            contactStore.isContactKept(contact)
+                ? Label("Allow Cleanup", systemImage: "pin.slash")
+                : Label("Keep", systemImage: "pin")
+        }
+
         Divider()
 
         Button(role: .destructive) {

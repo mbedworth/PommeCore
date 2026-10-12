@@ -210,6 +210,9 @@ final class PommeCoreViewModel: ObservableObject {
         // ContactStore dependencies
         contactStore.sendCommand = { [weak self] data, label in self?.connectionManager.sendCommand(data, label: label) }
         contactStore.activityDateProvider = { [weak self] key in self?.messageStoreManager.latestActivityDate(for: key) }
+        contactStore.hasStoredMessages = { [weak self] key in
+            !(self?.messageStoreManager.messagesByContact[key]?.isEmpty ?? true)
+        }
         contactStore.clearMessagesForContact = { [weak self] key in self?.messageStoreManager.clearMessages(for: key) }
         contactStore.clearTelemetryForContact = { [weak self] key in self?.rfMonitorStore.clearTelemetryHistory(for: key) }
         contactStore.purgeOrphanedTelemetry = { [weak self] live in

@@ -317,6 +317,7 @@ extension SettingsView {
 
             #if !os(watchOS)
             orphanCleanupRow
+            staleCleanupRow
             #endif
 
             #if !os(watchOS)
@@ -336,11 +337,41 @@ extension SettingsView {
             }
             .listRowBackground(MeshTheme.surface)
             #endif
+            #if !os(watchOS)
+            Picker(selection: $staleCleanupScope) {
+                Text("Off").tag("off")
+                Text("Repeaters & Sensors").tag("infrastructure")
+                Text("All Contacts").tag("all")
+            } label: {
+                Label("Find Stale Contacts", systemImage: "person.badge.clock")
+                    .foregroundStyle(MeshTheme.accent)
+            }
+            .listRowBackground(MeshTheme.surface)
+
+            if staleCleanupScope != "off" {
+                Picker(selection: $staleCleanupDays) {
+                    Text("7 days").tag(7)
+                    Text("14 days").tag(14)
+                    Text("30 days").tag(30)
+                    Text("90 days").tag(90)
+                    Text("180 days").tag(180)
+                } label: {
+                    Label("Not Heard From For", systemImage: "calendar.badge.clock")
+                        .foregroundStyle(MeshTheme.accent)
+                }
+                .listRowBackground(MeshTheme.surface)
+            }
+            #endif
         } header: {
             sectionInfoHeader("Storage", info: "Maximum messages stored on this device per contact. Oldest are pruned automatically. iCloud syncs the last 50 per contact separately.")
         } footer: {
             #if !os(watchOS)
             Text("Contacts are saved automatically just before a bulk deletion, so a mistake can be undone \u{2014} they cannot otherwise be recovered once removed from the radio.")
+            if staleCleanupScope == "all" {
+                Text("Companion radios only advertise when their owner asks them to, so a quiet contact is not necessarily gone. Repeaters and sensors advertise on a timer, which is why they are the safer choice here. Nothing is ever removed without showing you the list first, and contacts marked Keep are never listed.")
+            } else if staleCleanupScope == "infrastructure" {
+                Text("Repeaters and sensors advertise on a timer, so silence from one is a good sign it has gone. Nothing is ever removed without showing you the list first, and contacts marked Keep are never listed.")
+            }
             #endif
         }
     }
@@ -795,3 +826,74 @@ struct SupportersView: View {
     }
 }
 
+
+// MARK: - Stale Contact Cleanup
+
+#if !os(watchOS)
+extension SettingsView {
+
+    /// Propose removing contacts that have not been heard from.
+    ///
+    /// Review first, then confirm — never a timer that deletes on its own.
+    /// Contacts live on the radio, so removing one is final; the only reason
+    /// this is safe at all is that `removeContacts` snapshots the whole list
+    /// first and refuses to proceed if the backup cannot be written.
+    ///
+    /// Scope defaults to off. Enabling it is the user's call, because what
+    /// counts as "gone" differs by kind: **companion radios never auto-advert**,
+    /// so a silent chat contact may be powered on and in range, while a
+    /// repeater that has missed its 60–240 minute advert really has gone.
+    @ViewBuilder
+    var staleCleanupRow: some View {
+        let scope = ContactStore.StaleScope(rawValue: staleCleanupScope) ?? .off
+        let stale = contactStore.staleContacts(scope: scope, days: staleCleanupDays)
+
+        if scope != .off {
+            Button {
+                staleCandidates = stale
+            } label: {
+                HStack {
+                    Label("Clean Up Stale Contacts", systemImage: "person.badge.minus")
+                        .foregroundStyle(stale.isEmpty ? MeshTheme.textSecondary : MeshTheme.accent)
+                    Spacer()
+                    Text(stale.isEmpty ? String(localized: "None") : "\(stale.count)")
+                        .font(.caption)
+                        .foregroundStyle(MeshTheme.textSecondary)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .disabled(stale.isEmpty)
+            .listRowBackground(MeshTheme.surface)
+            .alert("Remove Stale Contacts", isPresented: Binding(
+                get: { !(staleCandidates ?? []).isEmpty },
+                set: { if !$0 { staleCandidates = nil } })) {
+                Button("Remove", role: .destructive) {
+                    if let doomed = staleCandidates, !doomed.isEmpty {
+                        contactStore.removeContacts(doomed)
+                    }
+                    staleCandidates = nil
+                }
+                Button("Cancel", role: .cancel) { staleCandidates = nil }
+            } message: {
+                if let doomed = staleCandidates {
+                    Text(staleSummary(doomed))
+                }
+            }
+        }
+    }
+
+    /// Names them rather than just counting them. A number is not reviewable —
+    /// the user is being asked to approve a deletion from the radio, so they
+    /// have to be able to see what is about to go.
+    func staleSummary(_ doomed: [Contact]) -> String {
+        let names = doomed.prefix(8).map(\.name).joined(separator: "\n")
+        let extra = doomed.count - min(doomed.count, 8)
+        let list = extra > 0
+            ? names + "\n" + String(format: String(localized: "and %d more"), extra)
+            : names
+        return String(format: String(localized: "These have not been heard from in %1$d days:\n\n%2$@\n\nThey are removed from the radio as well as this device. A backup is saved first."),
+                      staleCleanupDays, list)
+    }
+}
+#endif

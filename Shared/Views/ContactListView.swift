@@ -77,6 +77,11 @@ struct ContactListView: View {
     /// on every re-init of this struct.
     @State var refreshTimer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
     @State var contactsExpanded = true
+    // Collapsed by default and remembered per type: these are the rows that
+    // multiply on a busy mesh, which is the whole reason they are folded away.
+    @AppStorage("expand.repeaters") var repeatersExpanded = false
+    @AppStorage("expand.sensors") var sensorsExpanded = false
+    @AppStorage("expand.rooms") var roomsExpanded = false
     @State var channelsExpanded = true
     @AppStorage("contactSortByLastSeen") var sortByLastSeen = true
     @AppStorage("channelsFirst") var channelsFirst = false
@@ -498,6 +503,7 @@ private extension ContactListView {
                 groupsSection
             }
             contactsSection
+            infrastructureSections
             if !channelsFirst {
                 channelsSection
             }

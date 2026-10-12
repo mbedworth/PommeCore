@@ -26,6 +26,11 @@ struct SyncedSettingsPayload: Codable {
     var channelsFirst: Bool
     var autoRetry: Bool
     var autoResetPath: Bool
+    /// `ContactStore.StaleScope` raw value. String rather than the enum so an
+    /// unknown value from a newer build decodes to the safe default instead of
+    /// failing the whole payload (rules 1 and 2).
+    var staleCleanupScope: String
+    var staleCleanupDays: Int
     var lastModified: Date
 }
 
@@ -43,6 +48,10 @@ extension SyncedSettingsPayload {
         channelsFirst = try c.decodeIfPresent(Bool.self, forKey: .channelsFirst) ?? false
         autoRetry = try c.decodeIfPresent(Bool.self, forKey: .autoRetry) ?? true
         autoResetPath = try c.decodeIfPresent(Bool.self, forKey: .autoResetPath) ?? true
+        // Off by default: the sweep proposes removals from the radio, and that
+        // is the user's call to switch on, not ours to assume.
+        staleCleanupScope = try c.decodeIfPresent(String.self, forKey: .staleCleanupScope) ?? "off"
+        staleCleanupDays = try c.decodeIfPresent(Int.self, forKey: .staleCleanupDays) ?? 30
         lastModified = try c.decodeIfPresent(Date.self, forKey: .lastModified) ?? Date()
     }
 }
@@ -60,7 +69,8 @@ final class SyncedSettings {
         "appTheme", "batteryChemistry", "maxMessagesPerContact",
         "locationPrivacyRadius", "shareOnMeshMap", "autoUpdateLocation",
         "locationUpdateInterval", "contactSortByLastSeen", "channelsFirst",
-        "autoRetry", "autoResetPath"
+        "autoRetry", "autoResetPath",
+        "staleCleanupScope", "staleCleanupDays"
     ]
 
     private var isApplyingCloud = false
@@ -140,6 +150,8 @@ final class SyncedSettings {
         setBoolIfDifferent("channelsFirst", payload.channelsFirst)
         setBoolIfDifferent("autoRetry", payload.autoRetry)
         setBoolIfDifferent("autoResetPath", payload.autoResetPath)
+        setIfDifferent("staleCleanupScope", payload.staleCleanupScope)
+        setIntIfDifferent("staleCleanupDays", payload.staleCleanupDays)
     }
 
     // MARK: - Local → Cloud
@@ -161,6 +173,9 @@ final class SyncedSettings {
             channelsFirst: defaults.bool(forKey: "channelsFirst"),
             autoRetry: defaults.bool(forKey: "autoRetry"),
             autoResetPath: defaults.bool(forKey: "autoResetPath"),
+            staleCleanupScope: defaults.string(forKey: "staleCleanupScope") ?? "off",
+            staleCleanupDays: defaults.object(forKey: "staleCleanupDays") != nil
+                ? defaults.integer(forKey: "staleCleanupDays") : 30,
             lastModified: Date()
         )
         iCloudStore.saveCodable(payload, forKey: Self.kvsKey)
