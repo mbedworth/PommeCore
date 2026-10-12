@@ -213,8 +213,23 @@ class MacAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterD
     }
 
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-        // Show banners, badges, and sound even when the app is frontmost
-        completionHandler([.banner, .sound, .badge])
+        // Honour the same preference iOS honours. This used to return
+        // [.banner, .sound, .badge] unconditionally, with a comment saying it
+        // showed them "even when the app is frontmost" — so Settings →
+        // Notifications → "while the app is open" did nothing on macOS, and a
+        // sound played over a conversation the user was already reading.
+        //
+        // Hopped to the main actor because `NSApplicationDelegate` is not
+        // main-actor-isolated the way `UIApplicationDelegate` is, and the
+        // preference is. Same `Task { @MainActor in }` shape the iOS delegate
+        // uses for its own callbacks.
+        Task { @MainActor in
+            if NotificationPreferences.shared.notifyForeground {
+                completionHandler([.banner, .sound, .badge])
+            } else {
+                completionHandler([])
+            }
+        }
     }
 }
 #endif

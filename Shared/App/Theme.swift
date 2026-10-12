@@ -898,14 +898,12 @@ struct SaveButton: View {
     }
 }
 
-#if os(iOS)
-/// True on iPad, where a `.popover` stays a popover and needs its own width.
-/// On iPhone a popover adapts to a sheet, which rule 17 wants full-width.
-var isPadIdiom: Bool { UIDevice.current.userInterfaceIdiom == .pad }
-#endif
-
 private struct InfoPopoverContent: View {
     let text: LocalizedStringKey
+
+    #if os(iOS)
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    #endif
 
     var body: some View {
         #if os(macOS) || targetEnvironment(macCatalyst)
@@ -925,12 +923,19 @@ private struct InfoPopoverContent: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(16)
         }
-        // A popover adapts to a sheet on iPhone, and rule 17 wants a sheet at
-        // its natural full width — a 300pt cap left the help text in a narrow
-        // column with dead margins, and wrapped it badly at large Dynamic Type
-        // sizes. On iPad the popover stays a popover and does need a width.
-        .frame(minWidth: isPadIdiom ? 240 : nil,
-               maxWidth: isPadIdiom ? 300 : nil,
+        // Whether this needs a width depends on the presentation width, not
+        // on the hardware: UIKit adapts a popover to a sheet in compact and
+        // leaves it floating in regular. Adapted, rule 17 wants its natural
+        // full width — a 300pt cap left the help text in a narrow column with
+        // dead margins and wrapped it badly at large Dynamic Type sizes.
+        // Floating, it does need one.
+        //
+        // This was `isPadIdiom`, which is wrong in both directions: an iPad in
+        // Slide Over is compact and got a cap it should not have, and a
+        // foldable iPhone reports `.phone` while unfolded at regular width, so
+        // the one case the cap exists for got no width at all.
+        .frame(minWidth: horizontalSizeClass == .regular ? 240 : nil,
+               maxWidth: horizontalSizeClass == .regular ? 300 : nil,
                minHeight: 60)
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
