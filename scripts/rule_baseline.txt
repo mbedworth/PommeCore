@@ -1,7 +1,7 @@
 Packages/MeshCoreKit/Sources/MeshCoreKit/Models/Channel.swift:34  # rule 1/2: MeshChannel
 Packages/MeshCoreKit/Sources/MeshCoreKit/Models/DeviceInfo.swift:14  # rule 1/2: DeviceInfo
-Shared/App/PommeCoreApp.swift:265  # rule 18: lastErrorMessage
-Shared/App/PommeCoreApp.swift:532  # rule 18: lastErrorMessage
+Shared/App/PommeCoreApp.swift:280  # rule 18: lastErrorMessage
+Shared/App/PommeCoreApp.swift:547  # rule 18: lastErrorMessage
 Shared/Models/CommunityPreset.swift:11  # rule 1/2: CommunityPresetManifest
 Shared/Views/ChatView+Channels.swift:400  # rule 18: loginStatusText
 Shared/Views/ChatView.swift:163  # rule 18: routeLabel
@@ -28,3 +28,4 @@ Shared/Views/SettingsView+Sections.swift:730  # rule 18: connectionLabel
 Shared/Views/SettingsView+TipJar.swift:527  # rule 18: errorMessage
 Shared/Views/SettingsView+TipJar.swift:549  # rule 18: thankYouTitle
 Shared/Views/SettingsView+TipJar.swift:552  # rule 18: thankYouMessage
+Shared/Views/ContactListView.swift:435  # rule 17: idiom, but falls through to horizontalSizeClass for non-pad — correct on a foldable

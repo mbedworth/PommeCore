@@ -966,15 +966,24 @@ final class MessageStoreManager {
 
         let content = UNMutableNotificationContent()
 
-        // Apply group-specific sound
-        var notifSound: UNNotificationSound = .default
+        // Apply group-specific sound.
+        //
+        // `nil` is the only way to say "no sound". A `UNNotificationSound`
+        // named "" is not silence — the name does not resolve, so the system
+        // falls back to the default sound and a user who chose None heard one
+        // anyway. That is the app overriding a setting the user had set, which
+        // is exactly what a sound preference exists to prevent.
+        //
+        // Optional, not `.default`, so the None case can reach `content.sound`
+        // as nil rather than being coerced back to a sound.
+        var notifSound: UNNotificationSound? = .default
         if let contact, let groupSound = contactSoundProvider?(contact) {
             switch groupSound {
             case .default: break
             case .chime: notifSound = UNNotificationSound(named: UNNotificationSoundName("chime.caf"))
             case .pulse: notifSound = UNNotificationSound(named: UNNotificationSoundName("pulse.caf"))
             case .alert: notifSound = UNNotificationSound(named: UNNotificationSoundName("alert.caf"))
-            case .none: notifSound = UNNotificationSound(named: UNNotificationSoundName(""))
+            case .none: notifSound = nil
             }
         }
         content.sound = notifSound

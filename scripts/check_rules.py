@@ -92,11 +92,15 @@ def check_sheet_frames() -> None:
                 if stack:
                     stack.pop()
             elif ".frame(minWidth:" in line and not any(stack):
-                # An iPad idiom check satisfies the rule on its own: the rule is
-                # about iPhone sheets, and on iPad a popover stays a popover and
-                # legitimately needs a width.
-                if re.search(r"isPadIdiom|userInterfaceIdiom\s*==\s*\.pad|"
-                             r"horizontalSizeClass\s*==\s*\.regular", line):
+                # A regular-width check satisfies the rule on its own: the
+                # rule is about the *adapted* (compact) presentation, and a
+                # popover that stays floating legitimately needs a width.
+                #
+                # An idiom check used to be accepted here too. It is not any
+                # more — idiom and presentation width disagree on iPad Slide
+                # Over and on unfolded foldables, so it is not evidence of
+                # anything about width. `check_idiom_layout` flags it instead.
+                if re.search(r"horizontalSizeClass\s*==\s*\.regular", line):
                     continue
                 report("FAIL", "15/17", path, i,
                        "`.frame(minWidth:)` is not inside a macOS/Catalyst #if — "
@@ -442,6 +446,37 @@ def check_literals_in_catalog() -> None:
                            "render in English in every other language")
 
 
+# --------------------------------------------------------------------------
+# Rule 17 (companion) — layout decided by device idiom rather than size class
+# --------------------------------------------------------------------------
+
+IDIOM_CHECK = re.compile(r"userInterfaceIdiom\s*==\s*\.(pad|phone)")
+
+
+def check_idiom_layout() -> None:
+    """`userInterfaceIdiom` is not a layout signal, and foldables broke it.
+
+    Rule 17 is about presentation width: a sheet or popover adapts on compact
+    and stays put on regular. Idiom is hardware, and the two stopped agreeing.
+    An iPad in Slide Over is compact; a foldable iPhone reports `.phone` while
+    unfolded at regular width. Keying layout off idiom is therefore wrong in
+    both directions, and the help popover was — it gave an adapted sheet a
+    300pt cap on iPad Slide Over, and gave an actual floating popover no width
+    at all on an unfolded foldable.
+
+    WARN, not FAIL: idiom is still legitimate for non-layout questions.
+    """
+    for path in swift_files(["Shared", "watchOS"]):
+        for i, line in enumerate(lines_of(path), 1):
+            if line.lstrip().startswith("//"):
+                continue
+            if IDIOM_CHECK.search(line):
+                report("WARN", "17", path, i,
+                       "layout keyed off userInterfaceIdiom — use "
+                       "horizontalSizeClass; idiom and width disagree on "
+                       "iPad Slide Over and on unfolded foldables")
+
+
 CHECKS = [
     check_sheet_frames,
     check_text_takes_string,
@@ -457,6 +492,7 @@ CHECKS = [
     check_deployment_targets,
     check_no_tool_references,
     check_literals_in_catalog,
+    check_idiom_layout,
 ]
 
 
