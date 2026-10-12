@@ -77,6 +77,19 @@ extension SettingsView {
             }
             .listRowBackground(MeshTheme.surface)
 
+            NavigationLink {
+                ManualView()
+            } label: {
+                HStack {
+                    Text("Manual")
+                        .foregroundStyle(MeshTheme.accent)
+                    Spacer()
+                    Image(systemName: "book.closed")
+                        .foregroundStyle(MeshTheme.textSecondary)
+                }
+            }
+            .listRowBackground(MeshTheme.surface)
+
             Button {
                 UserDefaults.standard.set(false, forKey: "hasCompletedOnboarding")
             } label: {

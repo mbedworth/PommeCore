@@ -447,6 +447,69 @@ def check_literals_in_catalog() -> None:
 
 
 # --------------------------------------------------------------------------
+# Rule 18 (help registry) — a manual string with no catalog entry
+# --------------------------------------------------------------------------
+
+HELP_SOURCES = [
+    pathlib.Path("Shared/Models/HelpCatalog.swift"),
+    pathlib.Path("Shared/Models/HelpTopic.swift"),
+]
+
+
+def check_help_catalog() -> None:
+    """Help-registry prose with no catalog entry renders English everywhere.
+
+    `check_literals_in_catalog` only looks inside `Text(...)` and friends. The
+    manual's text lives in a `HelpText` registry instead, so none of it is
+    inside a call that check recognises, and Xcode's extraction cannot see it
+    either — `HelpText` resolves its key at runtime by design, because a
+    searchable manual needs a `String` and `String(localized:)` takes only a
+    literal.
+
+    That leaves the registry as exactly the kind of place 51 untranslated
+    strings accumulated in before: real user-facing text that every existing
+    tool is blind to. This is the one check that looks, so it is load-bearing
+    rather than belt-and-braces.
+    """
+    if not CATALOG_PATH.exists():
+        return
+    try:
+        keys = set(json.loads(CATALOG_PATH.read_text())["strings"].keys())
+    except (json.JSONDecodeError, KeyError):
+        report("FAIL", "18", CATALOG_PATH, 1, "string catalog is unreadable")
+        return
+
+    for rel in HELP_SOURCES:
+        path = ROOT / rel
+        if not path.exists():
+            continue
+        for i, line in enumerate(lines_of(path), 1):
+            stripped = line.lstrip()
+            if stripped.startswith("//") or stripped.startswith("*"):
+                continue
+            for m in re.finditer(r'"((?:[^"\\]|\\.)*)"', line):
+                raw = m.group(1)
+                # Interpolated keys carry format specifiers, so the source
+                # literal is not the key; translate_strings.py --verify owns
+                # those. Same carve-out as check_literals_in_catalog.
+                if "\\(" in raw:
+                    continue
+                key = _unescape_swift(raw)
+                # Identifiers, SF Symbol names and topic slugs are not prose:
+                # all-lowercase with dots or hyphens, or no letters at all.
+                if len(key) < 3 or not re.search(r"[A-Za-z]", key):
+                    continue
+                if re.fullmatch(r"[a-z0-9.\-]+", key):
+                    continue
+                if not (key[0].isupper() or " " in key):
+                    continue
+                if key not in keys:
+                    report("FAIL", "18", path, i,
+                           f'"{key[:60]}" is help text with no catalog entry — '
+                           "it will render in English in every other language")
+
+
+# --------------------------------------------------------------------------
 # Rule 17 (companion) — layout decided by device idiom rather than size class
 # --------------------------------------------------------------------------
 
@@ -492,6 +555,7 @@ CHECKS = [
     check_deployment_targets,
     check_no_tool_references,
     check_literals_in_catalog,
+    check_help_catalog,
     check_idiom_layout,
 ]
 

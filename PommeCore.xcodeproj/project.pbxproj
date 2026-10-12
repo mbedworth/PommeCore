@@ -204,6 +204,12 @@
 		CBV10000000100000000002 /* ContactBackupsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBV10000000000000000000 /* ContactBackupsView.swift */; };
 		SVT10000000100000000003 /* SettingsView+TipJar.swift in Sources */ = {isa = PBXBuildFile; fileRef = SVT10000000000000000000 /* SettingsView+TipJar.swift */; };
 		CBV10000000100000000003 /* ContactBackupsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBV10000000000000000000 /* ContactBackupsView.swift */; };
+		D0C0000000000000000000A1 /* HelpTopic.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C0000000000000000000A0 /* HelpTopic.swift */; };
+		D0C0000000000000000000A2 /* HelpTopic.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C0000000000000000000A0 /* HelpTopic.swift */; };
+		D0C0000000000000000000B1 /* HelpCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C0000000000000000000B0 /* HelpCatalog.swift */; };
+		D0C0000000000000000000B2 /* HelpCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C0000000000000000000B0 /* HelpCatalog.swift */; };
+		D0C0000000000000000000C1 /* ManualView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C0000000000000000000C0 /* ManualView.swift */; };
+		D0C0000000000000000000C2 /* ManualView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C0000000000000000000C0 /* ManualView.swift */; };
 		SYN60000000100000000002 /* SyncedSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = SYN60000000000000000001 /* SyncedSettings.swift */; };
 		SYN60000000100000000003 /* SyncedSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = SYN60000000000000000001 /* SyncedSettings.swift */; };
 		TCK70000000100000000002 /* TelemetryCloudSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = TCK70000000000000000001 /* TelemetryCloudSync.swift */; };
@@ -377,6 +383,9 @@
 		SVS10000000000000000000 /* SettingsView+Sections.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SettingsView+Sections.swift"; sourceTree = "<group>"; };
 		SVT10000000000000000000 /* SettingsView+TipJar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SettingsView+TipJar.swift"; sourceTree = "<group>"; };
 		CBV10000000000000000000 /* ContactBackupsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactBackupsView.swift; sourceTree = "<group>"; };
+		D0C0000000000000000000A0 /* HelpTopic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpTopic.swift; sourceTree = "<group>"; };
+		D0C0000000000000000000B0 /* HelpCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpCatalog.swift; sourceTree = "<group>"; };
+		D0C0000000000000000000C0 /* ManualView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualView.swift; sourceTree = "<group>"; };
 		SYN60000000000000000001 /* SyncedSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncedSettings.swift; sourceTree = "<group>"; };
 		TCK70000000000000000001 /* TelemetryCloudSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetryCloudSync.swift; sourceTree = "<group>"; };
 		USB10000000000000000000 /* USBSerialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = USBSerialView.swift; sourceTree = "<group>"; };
@@ -529,6 +538,7 @@
 				SVR10000000000000000000 /* SettingsView+RadioPrivacy.swift */,
 				SVT10000000000000000000 /* SettingsView+TipJar.swift */,
 				CBV10000000000000000000 /* ContactBackupsView.swift */,
+				D0C0000000000000000000C0 /* ManualView.swift */,
 				SVE10000000000000000000 /* SettingsView+Editors.swift */,
 				LP9PDGZGN1LKSGLAB8EQ67PF /* RemoteManagementView.swift */,
 				RMC10000000000000000000 /* RemoteManagementView+ConfigSections.swift */,
@@ -639,6 +649,8 @@
 			children = (
 				0FFEA57F2F9FEC2B0078A117 /* RadioProfile.swift */,
 				5E616344CEDCD1ADC41548B7 /* RadioPreset.swift */,
+				D0C0000000000000000000A0 /* HelpTopic.swift */,
+				D0C0000000000000000000B0 /* HelpCatalog.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -984,6 +996,9 @@
 				SVR10000000100000000002 /* SettingsView+RadioPrivacy.swift in Sources */,
 				SVT10000000100000000002 /* SettingsView+TipJar.swift in Sources */,
 				CBV10000000100000000002 /* ContactBackupsView.swift in Sources */,
+				D0C0000000000000000000A2 /* HelpTopic.swift in Sources */,
+				D0C0000000000000000000B2 /* HelpCatalog.swift in Sources */,
+				D0C0000000000000000000C2 /* ManualView.swift in Sources */,
 				SVE10000000100000000002 /* SettingsView+Editors.swift in Sources */,
 				96059FF0363E830C376C23ED /* Theme.swift in Sources */,
 				XUOVAQ6Y1NIWH1G3OMK55ENV /* RemoteManagementView.swift in Sources */,
@@ -1078,6 +1093,9 @@
 				SVR10000000100000000003 /* SettingsView+RadioPrivacy.swift in Sources */,
 				SVT10000000100000000003 /* SettingsView+TipJar.swift in Sources */,
 				CBV10000000100000000003 /* ContactBackupsView.swift in Sources */,
+				D0C0000000000000000000A1 /* HelpTopic.swift in Sources */,
+				D0C0000000000000000000B1 /* HelpCatalog.swift in Sources */,
+				D0C0000000000000000000C1 /* ManualView.swift in Sources */,
 				SVE10000000100000000003 /* SettingsView+Editors.swift in Sources */,
 				FAA4FA7E3E52FCF631D55675 /* Theme.swift in Sources */,
 				CATKUXG25PTVMENJWXQZY49X /* RemoteManagementView.swift in Sources */,

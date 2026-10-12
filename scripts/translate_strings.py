@@ -83,9 +83,14 @@ GLOSSARY = {
     # (required, forbidden). required[0] is a natural form, shown to the model
     # in the prompt; the rest are stems so the check still matches inflections.
     "de":      {"advert": (["Ankündigung", "ankündig", "advert"],
-                           ["werbung", "reklame", "anzeige"]),
+                           ["werb", "reklame", "anzeige"]),
                 "flood":  (["Flooding", "flood"],
-                           ["übertragung", "überflutung", "flut", "überlastung"])},
+                           ["übertragung", "überflutung", "flut", "überlastung"]),
+                # A MeshCore radio is a transceiver. German "Radio" is the
+                # broadcast receiver, and the app already says Funkgerät
+                # everywhere else — the manual's first draft said "von Radio zu
+                # Radio", which reads as "from stereo to stereo".
+                "radio":  (["Funkgerät", "funkgerät"], ["radio"])},
     "fr":      {"advert": (["annonce", "annonc"], ["publicité"]),
                 "flood":  (["inondation", "inond"], [])},
     "es":      {"advert": (["anuncio", "anunci"], ["publicidad"]),
@@ -103,9 +108,11 @@ GLOSSARY = {
     "uk":      {"advert": (["оголошення", "оголош"], ["реклам"]),
                 "flood":  (["лавинна розсилка", "лавинн", "флудинг"], ["повін", "повень"])},
     "ja":      {"advert": (["アドバタイズ"], ["広告"]),
-                "flood":  (["フラッディング"], ["洪水", "フロード"])},
+                "flood":  (["フラッディング"], ["洪水", "フロード"]),
+                "radio":  (["無線機"], ["ラジオ"])},
     "zh-Hans": {"advert": (["通告"], ["广告"]),
-                "flood":  (["泛洪"], ["洪水", "淹没"])},
+                "flood":  (["泛洪"], ["洪水", "淹没"]),
+                "radio":  (["无线电"], ["收音机"])},
 }
 
 # Terms that must never be translated
@@ -152,8 +159,18 @@ PRESERVE_TERMS = [
 
 
 
+# Terms checked only for the *wrong* word, never for the presence of the right
+# one. `radio` is here because a correct translation often does not contain the
+# noun at all: German compounds it away ("Funkparameter", "Funkprofile"), and
+# Chinese drops it where English repeats it ("关机再开机" for "power the radio off
+# and on"). Demanding the term would fail all of those while catching nothing
+# the forbidden list misses — every real defect used an outright wrong word
+# ("Radioreglungen", 收音机, ラジオ).
+FORBIDDEN_ONLY = {"radio"}
+
+
 def glossary_problem(key, translated, lang):
-    """Reject a translation that mistranslates `flood` or `advert`.
+    """Reject a translation that mistranslates a term of art.
 
     Returns a reason string, or None when the translation is acceptable.
     """
@@ -167,6 +184,8 @@ def glossary_problem(key, translated, lang):
         for bad in forbidden:
             if bad.lower() in low:
                 return f"{term}: uses {bad!r}, the everyday sense"
+        if term in FORBIDDEN_ONLY:
+            continue
         if required and not any(good.lower() in low for good in required):
             return f"{term}: missing the technical term ({' / '.join(required)})"
     return None
