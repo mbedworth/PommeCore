@@ -9207,7 +9207,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Aktivieren — starte dein Funkgerät neu, um es zu aktivieren."
+            "value": "Angewendet — starte dein Funkgerät neu, um es zu aktivieren."
           }
         },
         "ja": {
@@ -70238,13 +70238,13 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Screenshots, die auf einem anderen Funkgerät aufgenommen wurden. Die Kontakt-Schlüssel gehören zum Mesh, auf dem sie entdeckt wurden, daher können sie hier nicht wiederhergestellt werden."
+            "value": "Snapshots, die auf einem anderen Funkgerät aufgenommen wurden. Die Kontakt-Schlüssel gehören zum Mesh, auf dem sie entdeckt wurden, daher können sie hier nicht wiederhergestellt werden."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "異なる無線機で撮影されたスナップショット。発見されたメッシュに関連する連絡キーが属しているため、ここでは復元できません。"
+            "value": "異なる無線機で撮影されたスナップショット。連絡先キーは発見されたメッシュに属しているため、ここでは復元できません。"
           }
         }
       }
