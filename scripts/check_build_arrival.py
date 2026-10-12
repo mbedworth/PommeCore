@@ -29,6 +29,13 @@ the symptom was a perfectly good build being reported as a failed upload.
 
 So: page through every build via the paging cursor, and never conclude a build
 is missing from a partial listing.
+
+The second trap is the comparison itself. App Store Connect parses
+`CFBundleVersion` as dot-separated *integers* and stores it back normalised, so
+the build uploaded as `20261012.083146` is listed as `20261012.83146`. An exact
+string match therefore reports every build cut before 10:00 as absent, however
+healthy it is — which is exactly what happened to all four builds on
+2026-10-12. Compare on the normalised form, never on the raw string.
 """
 import json
 import os
@@ -99,8 +106,21 @@ def call(path):
         sys.exit(f"{e.code} GET {path}\n{e.read().decode()[:600]}")
 
 
+def normalise(version):
+    """The form App Store Connect stores a build number in.
+
+    ASC treats `CFBundleVersion` as dot-separated integers, so it drops a
+    leading zero from any component: `20261012.083146` comes back as
+    `20261012.83146`. Both sides of every comparison go through here.
+    """
+    parts = []
+    for part in str(version).strip().split("."):
+        parts.append(str(int(part)) if part.isdigit() else part)
+    return ".".join(parts)
+
+
 def all_builds():
-    """Every build for the app, as {version: (id, processingState)}.
+    """Every build for the app, as {normalised version: (id, processingState)}.
 
     Pages to exhaustion. The endpoint caps a page below the number of builds
     this app has and will not accept a sort, so anything less than this is a
@@ -116,7 +136,8 @@ def all_builds():
         pages += 1
         for item in page.get("data", []):
             attrs = item["attributes"]
-            builds[attrs["version"]] = (item["id"], attrs["processingState"])
+            builds[normalise(attrs["version"])] = (
+                item["id"], attrs["processingState"])
         cursor = page.get("meta", {}).get("paging", {}).get("nextCursor")
         if not cursor:
             return builds, pages
@@ -150,19 +171,21 @@ def main(argv):
             args.append(argv[i])
             i += 1
 
-    wanted = set(args) or set(versions_from_project())
-    if not wanted:
+    asked = set(args) or set(versions_from_project())
+    if not asked:
         sys.exit("no build numbers given and none found in the project file")
-    print(f"waiting for: {', '.join(sorted(wanted))}")
+    # Keyed by the form ASC stores, valued by the spelling to report back.
+    wanted = {normalise(v): v for v in asked}
+    print(f"waiting for: {', '.join(sorted(asked))}")
 
     deadline = time.time() + timeout_min * 60
     while True:
         builds, pages = all_builds()
         seen = {v: builds[v] for v in wanted if v in builds}
-        missing = sorted(wanted - set(seen))
+        missing = sorted(wanted[v] for v in set(wanted) - set(seen))
         stamp = time.strftime("%H:%M:%S")
         if seen:
-            summary = ", ".join(f"{v}={seen[v][1]}" for v in sorted(seen))
+            summary = ", ".join(f"{wanted[v]}={seen[v][1]}" for v in sorted(seen))
         else:
             summary = "none visible yet"
         print(f"  {stamp}  [{pages} page(s)] {summary}"
@@ -172,13 +195,13 @@ def main(argv):
             print("\nAll builds VALID:")
             for v in sorted(seen):
                 build_id, _ = seen[v]
-                print(f"  {v}  {platform_of(build_id):7} id={build_id}")
+                print(f"  {wanted[v]}  {platform_of(build_id):7} id={build_id}")
             return 0
 
         if time.time() >= deadline:
             print("\nTimed out.")
             for v in sorted(wanted):
-                print(f"  {v}: {seen.get(v, ('—', 'NOT PRESENT'))[1]}")
+                print(f"  {wanted[v]}: {seen.get(v, ('—', 'NOT PRESENT'))[1]}")
             print("\nNot present does not always mean the upload failed — but a"
                   "\ncomplete listing was searched, so it is not a paging"
                   "\nartefact either. Check the ASC activity page before"
