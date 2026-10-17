@@ -184,14 +184,16 @@ struct DiscoverView: View {
                     Text(typeName(for: node.type))
                         .font(.caption2)
                         .foregroundStyle(MeshTheme.textSecondary)
-                    if node.pathLen == 0 {
+                    // PathLen.hopCount, never the raw byte: path_len also
+                    // carries the hash size and is not a count.
+                    if let hopCount = PathLen.hopCount(node.pathLen), hopCount > 0 {
+                        Text("^[\(hopCount) hop](inflect: true)")
+                            .font(.caption2)
+                            .foregroundStyle(MeshTheme.textSecondary)
+                    } else {
                         Text("direct")
                             .font(.caption2)
                             .foregroundStyle(MeshTheme.connected)
-                    } else {
-                        Text("^[\(node.pathLen) hop](inflect: true)")
-                            .font(.caption2)
-                            .foregroundStyle(MeshTheme.textSecondary)
                     }
                 }
             }
@@ -496,7 +498,8 @@ struct AdvertPathView: View {
                     Text("Hops")
                         .foregroundStyle(MeshTheme.textPrimary)
                     Spacer()
-                    Text("\(pathInfo.pathLen)")
+                    // Decoded: the raw byte carries the hash size too.
+                    Text("\(PathLen.hopCount(pathInfo.pathLen) ?? 0)")
                         .foregroundStyle(MeshTheme.textPrimary)
                 }
 
