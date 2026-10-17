@@ -417,7 +417,10 @@ extension PommeCoreViewModel {
         // Touch contact activity — proves the contact is alive
         contactStore.touchContact(publicKeyPrefix: message.contactKeyHash)
         // Auto-reset stale routed path when contact is back in direct range
-        if let hops = message.hops, hops == 0,
+        // hopCount, not the raw byte: path_len also carries the hash size, so a
+        // direct message arrives as 0x40 whenever the mesh uses 2-byte hashes
+        // and `hops == 0` would never match it.
+        if message.hopCount == 0,
            let contact = contactStore.contacts.first(where: { $0.publicKeyPrefix == message.contactKeyHash }),
            contact.outPathLen > 0 {
             DebugLogger.shared.log("PATH AUTO-RESET: \(contact.name) sent direct msg but outPathLen=\(contact.outPathLen) — resetting", level: .info)
