@@ -91,10 +91,24 @@ All uint32 values are **Little Endian**.
   - `0xFF` = `OUT_PATH_UNKNOWN` — forces flood routing. Set by CMD_RESET_PATH.
   - `1-63` (lower 6 bits) = hop count
   - Upper 2 bits = hash_mode: `byte = (hash_mode << 6) | (hop_count & 0x3F)`
-  - hash_mode 0 = 1-byte hashes, 1 = 2-byte, 2 = 4-byte, 3 = 8-byte
+  - hash_mode 0 = 1-byte hashes, 1 = 2-byte, 2 = 3-byte, 3 = 4-byte
   - Firmware decodes: `hash_count = byte & 63; hash_size = (byte >> 6) + 1`
   - out_path contains `hash_count * hash_size` bytes of repeater hashes
 - **Display:** Use `outPathLen & 0x3F` for hop count display (strip hash_mode bits)
+
+> This line previously read "2 = 4-byte, 3 = 8-byte", which contradicts the decode
+> on the line below it and is wrong. `Packet.h` is the authority and defines the
+> size as `(path_len >> 6) + 1`, so the four modes are 1, 2, 3 and 4 bytes. The
+> code was always right; only this table was wrong.
+
+**This encoding applies to every `path_len` in the protocol, including the one
+inside a received message** — it is the same packet-header field. Reading that
+byte whole is how a six-hop message came to be displayed as "70 hops": `0x46` is
+`(1 << 6) | 6`, six hops carrying two-byte hashes. A hop count lives in six bits,
+so **anything above 63 on screen means the raw byte leaked through.** In the app,
+`Message.hopCount` is the only correct reading; `Message.hops` is deliberately the
+undecoded byte, because messages are persisted and decoding on read is what
+repairs the ones already on disk.
 
 ### CMD_SET_RADIO_PARAMS (11 / 0x0B)
 ```
@@ -255,7 +269,7 @@ Byte 0: 0x10
 Byte 1: SNR * 4 (int8)
 Bytes 2-3: Reserved
 Bytes 4-9: Sender pubkey prefix (6 bytes)
-Byte 10: Path length (0xFF = direct routed)
+Byte 10: Path length — encoded, see out_path_len above (0xFF = direct routed)
 Byte 11: Text type (0=plain, 1=signed, 2=CLI data)
 Bytes 12-15: Sender timestamp (uint32 LE)
 Bytes 16+: Message text (UTF-8)
@@ -267,7 +281,7 @@ Byte 0: 0x11
 Byte 1: SNR * 4 (int8)
 Bytes 2-3: Reserved (2 bytes — NOT channel_idx)
 Byte 4: Channel index
-Byte 5: Path length (0xFF = direct)
+Byte 5: Path length — encoded, see out_path_len above (0xFF = direct)
 Byte 6: Text type (0=plain)
 Bytes 7-10: Sender timestamp (uint32 LE)
 Bytes 11+: Text as "SenderName: message" (UTF-8, split on ": " to extract sender)

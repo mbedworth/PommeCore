@@ -835,16 +835,18 @@ struct RoomMessageBubble: View {
                     }
 
                     if !message.isOutgoing {
-                        if let hops = message.hops {
+                        if message.hops != nil {
                             Text("\u{2022}")
                                 .font(.caption2)
                                 .foregroundStyle(MeshTheme.textSecondary)
-                            if hops == 0 || hops == 0xFF {
-                                Text("direct")
+                            // hopCount decodes path_len; the raw byte also
+                            // carries the hash size and is not a count.
+                            if let hopCount = message.hopCount, hopCount > 0 {
+                                Text("^[\(hopCount) hop](inflect: true)")
                                     .font(.caption2)
                                     .foregroundStyle(MeshTheme.textSecondary)
                             } else {
-                                Text("^[\(hops) hop](inflect: true)")
+                                Text("direct")
                                     .font(.caption2)
                                     .foregroundStyle(MeshTheme.textSecondary)
                             }

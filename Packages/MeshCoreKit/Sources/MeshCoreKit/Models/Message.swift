@@ -55,8 +55,38 @@ public struct Message: Identifiable, Codable, Sendable {
     /// SNR of the received message (raw value from protocol, divide by 4.0 for dB).
     public let snr: Int8?
 
-    /// Hop count from the received message (0 = direct, 0xFF = routed/unknown, >0 = number of hops).
+    /// The protocol's raw `path_len` byte, exactly as the radio sent it.
+    ///
+    /// **This is not a hop count — read `hopCount` instead.** The byte packs two
+    /// fields, and reading it whole is how a six-hop message came to be
+    /// displayed as "70 hops": `0x46` is six hops carrying two-byte hashes, not
+    /// seventy of anything. The firmware's own accessors are the definition
+    /// (`Packet.h`):
+    ///
+    ///     getPathHashCount() { return path_len & 63; }
+    ///     getPathHashSize()  { return (path_len >> 6) + 1; }
+    ///
+    /// It stays raw here, rather than being masked at parse time, for two
+    /// reasons. Messages are persisted, so narrowing the stored meaning would
+    /// need a decoder migration (Critical Rules 1 and 2) — and every message
+    /// already on disk was stored raw, so decoding on read is also what repairs
+    /// the history rather than only new traffic.
     public let hops: UInt8?
+
+    /// `path_len` for a path that is unknown or flooded rather than counted.
+    ///
+    /// Not a hop count at all: read whole it would decode to 63 hops of 4-byte
+    /// hashes, which is why it has to be tested before the mask is applied.
+    public static let pathLenUnknown: UInt8 = 0xFF
+
+    /// Hops this message travelled, or `nil` when the path is unknown.
+    ///
+    /// `0` means direct. The ceiling is 63, not 64: six bits cannot hold more,
+    /// so any larger number on screen means the raw byte leaked through.
+    public var hopCount: Int? {
+        guard let hops, hops != Self.pathLenUnknown else { return nil }
+        return Int(hops & 0x3F)
+    }
 
     /// Channel index (for channel messages, nil for direct).
     public let channelIndex: UInt8?

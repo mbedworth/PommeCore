@@ -364,7 +364,9 @@ final class PhoneWatchRelay: NSObject {
             statusRaw: message.status.rawValue,
             senderName: message.senderName,
             channelIndex: message.channelIndex,
-            hops: message.hops,
+            // Decoded, not raw: the watch renders this number directly, so it
+            // showed the same "70 hops" the phone did.
+            hops: message.hopCount.map { UInt8($0) },
             reactions: message.reactions
         )
     }
