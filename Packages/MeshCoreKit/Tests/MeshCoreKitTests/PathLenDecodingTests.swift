@@ -92,6 +92,46 @@ final class PathLenDecodingTests: XCTestCase {
         XCTAssertNil(message(pathLen: nil).hopCount)
     }
 
+    // MARK: - The shared decoder
+
+    func testHashSizeIsOneToFour() {
+        // PROTOCOL.md claimed 1/2/4/8. Packet.h says (path_len >> 6) + 1.
+        XCTAssertEqual(PathLen.hashSize(0x00), 1)
+        XCTAssertEqual(PathLen.hashSize(0x46), 2)
+        XCTAssertEqual(PathLen.hashSize(0x86), 3)
+        XCTAssertEqual(PathLen.hashSize(0xC6), 4)
+    }
+
+    func testByteLengthMatchesTheFirmwareFormula() {
+        // getPathByteLen() = hash_count * hash_size. Six hops, two bytes each.
+        XCTAssertEqual(PathLen.byteLength(0x46), 12)
+        XCTAssertEqual(PathLen.byteLength(0x06), 6)
+        XCTAssertEqual(PathLen.byteLength(PathLen.unknown), 0)
+    }
+
+    func testSignedPathLenTreatsNegativeAsNoPath() {
+        // Contact.outPathLen is Int8: negative means flood or auto.
+        XCTAssertNil(PathLen.hopCount(Int8(-1)))
+        XCTAssertEqual(PathLen.hopCount(Int8(0)), 0)
+        XCTAssertEqual(PathLen.hopCount(Int8(0x46)), 6)
+    }
+
+    func testNoByteDecodesAboveTheSixBitCeiling() {
+        for raw in UInt8.min...UInt8.max {
+            guard let count = PathLen.hopCount(raw) else { continue }
+            XCTAssertLessThanOrEqual(count, PathLen.maxHops,
+                                     "path_len \(raw) decoded to \(count)")
+        }
+    }
+
+    func testMessageDecodeMatchesTheSharedDecoder() {
+        // Message.hopCount must stay a delegation, not a second copy — five
+        // copies of this decode is how four of them stayed wrong.
+        for raw in UInt8.min...UInt8.max {
+            XCTAssertEqual(message(pathLen: raw).hopCount, PathLen.hopCount(raw))
+        }
+    }
+
     // MARK: - Persistence
 
     func testRawByteSurvivesACodableRoundTrip() throws {

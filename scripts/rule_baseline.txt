@@ -7,7 +7,7 @@ Shared/Views/ChatView+Channels.swift:400  # rule 18: loginStatusText
 Shared/Views/ChatView.swift:163  # rule 18: routeLabel
 Shared/Views/ChatView.swift:203  # rule 18: routeLabel
 Shared/Views/ContactListView+ChannelsUI.swift:43  # rule 18: connectionLabel
-Shared/Views/ContactRowView.swift:192  # rule 18: seenText
+Shared/Views/ContactRowView.swift:198  # rule 18: seenText
 Shared/Views/LineOfSight/LineOfSightView.swift:217  # rule 18: headerTitle
 Shared/Views/LineOfSight/LoSResultsView.swift:200  # rule 18: label: String
 Shared/Views/LineOfSight/LoSResultsView.swift:28  # rule 18: summaryText
@@ -15,9 +15,9 @@ Shared/Views/LineOfSight/RepeaterConfigView.swift:58  # rule 18: title: String
 Shared/Views/LineOfSight/TerrainProfileRenderer.swift:234  # rule 18: label: String
 Shared/Views/NetworkToolsView+Channels.swift:101  # rule 18: actionButtonLabel
 Shared/Views/NetworkToolsView+Channels.swift:111  # rule 18: footerText
-Shared/Views/NetworkToolsView+Device.swift:181  # rule 18: label: String
-Shared/Views/NetworkToolsView+Device.swift:503  # rule 18: label: String
-Shared/Views/NetworkToolsView+Device.swift:540  # rule 18: label: String
+Shared/Views/NetworkToolsView+Device.swift:185  # rule 18: label: String
+Shared/Views/NetworkToolsView+Device.swift:507  # rule 18: label: String
+Shared/Views/NetworkToolsView+Device.swift:544  # rule 18: label: String
 Shared/Views/NetworkToolsView.swift:195  # rule 18: errorMessage
 Shared/Views/RemoteManagementView.swift:399  # rule 18: statusLabel
 Shared/Views/RemoteManagementView.swift:674  # rule 18: neighborsText

@@ -447,6 +447,51 @@ def check_literals_in_catalog() -> None:
 
 
 # --------------------------------------------------------------------------
+# Protocol — a raw path_len rendered as if it were a hop count
+# --------------------------------------------------------------------------
+
+# A path_len field formatted straight into a string, rather than decoded.
+#
+# `.hops` is matched only on a message, because it is the sole raw-byte field
+# with that name: `TraceResult.hops` and `PingResult.hops` are already counts,
+# and flagging them would be noise that teaches the check to be ignored.
+RAW_PATH_LEN = re.compile(
+    r'(?:Text|Label|append|String)\([^)]*\\\('
+    r'(?:[A-Za-z_][A-Za-z0-9_.]*\.(?:pathLen|outPathLen|inPathLen)\b'
+    r'|[A-Za-z_][A-Za-z0-9_]*[Mm]essage\.hops\b'
+    r'|message\.hops\b)'
+)
+
+
+def check_path_len_decoding() -> None:
+    """`path_len` is two fields; rendering the byte whole prints a wrong number.
+
+    The firmware packs the hop count into the low six bits and the hash size
+    into the top two (`Packet.h`), so `0x46` is six hops with two-byte hashes,
+    not seventy. A mesh using 2-byte hashes therefore shows every routed
+    message as hops + 64.
+
+    This exists because the first fix corrected one of the five places that
+    render a hop count and missed the other four — the reported number did not
+    change, and a build shipped that looked identical to the user. Nothing was
+    checking, so nothing said the other four were still wrong.
+
+    `PathLen.hopCount` is the only correct reading. The raw field may still be
+    compared or passed around; what this forbids is formatting it for display.
+    """
+    for path in swift_files(["Shared", "watchOS"]):
+        for i, line in enumerate(lines_of(path), 1):
+            stripped = line.lstrip()
+            if stripped.startswith("//"):
+                continue
+            if RAW_PATH_LEN.search(line):
+                report("FAIL", "protocol", path, i,
+                       "a raw path_len is being displayed — it packs the hash "
+                       "size in its top 2 bits, so this prints hops + 64 on a "
+                       "2-byte-hash mesh. Use PathLen.hopCount()")
+
+
+# --------------------------------------------------------------------------
 # Rule 18 (help registry) — a manual string with no catalog entry
 # --------------------------------------------------------------------------
 
@@ -556,6 +601,7 @@ CHECKS = [
     check_no_tool_references,
     check_literals_in_catalog,
     check_help_catalog,
+    check_path_len_decoding,
     check_idiom_layout,
 ]
 

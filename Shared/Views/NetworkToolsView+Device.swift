@@ -149,7 +149,11 @@ struct PathViewer: View {
                 Label("No known path \u{2014} messages will flood", systemImage: "antenna.radiowaves.left.and.right")
                     .foregroundStyle(MeshTheme.statusWarn)
             } else {
-                let hops = parsePathHops(from: contact.outPath, pathLen: Int(contact.outPathLen))
+                // Decoded count and encoded hash size, not the raw byte.
+                let hops = parsePathHops(
+                    from: contact.outPath,
+                    hopCount: PathLen.hopCount(contact.outPathLen) ?? 0,
+                    bytesPerHop: PathLen.hashSize(UInt8(bitPattern: contact.outPathLen)))
 
                 // Visual path
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -188,11 +192,11 @@ struct PathViewer: View {
             .foregroundStyle(MeshTheme.textPrimary)
     }
 
-    private func parsePathHops(from pathData: Data, pathLen: Int) -> [String] {
-        guard !pathData.isEmpty, pathLen > 0 else { return [] }
-        let bytesPerHop = max(1, min(3, pathData.count / pathLen))
+    private func parsePathHops(from pathData: Data, hopCount: Int, bytesPerHop: Int) -> [String] {
+        guard !pathData.isEmpty, hopCount > 0, bytesPerHop >= 1 else { return [] }
+        guard hopCount * bytesPerHop <= pathData.count else { return [] }
         var hops: [String] = []
-        for i in 0..<pathLen {
+        for i in 0..<hopCount {
             let start = i * bytesPerHop
             let end = min(start + bytesPerHop, pathData.count)
             guard end <= pathData.count else { break }

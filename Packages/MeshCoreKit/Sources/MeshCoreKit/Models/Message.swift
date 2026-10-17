@@ -74,18 +74,15 @@ public struct Message: Identifiable, Codable, Sendable {
     public let hops: UInt8?
 
     /// `path_len` for a path that is unknown or flooded rather than counted.
-    ///
-    /// Not a hop count at all: read whole it would decode to 63 hops of 4-byte
-    /// hashes, which is why it has to be tested before the mask is applied.
-    public static let pathLenUnknown: UInt8 = 0xFF
+    public static let pathLenUnknown = PathLen.unknown
 
     /// Hops this message travelled, or `nil` when the path is unknown.
     ///
     /// `0` means direct. The ceiling is 63, not 64: six bits cannot hold more,
     /// so any larger number on screen means the raw byte leaked through.
     public var hopCount: Int? {
-        guard let hops, hops != Self.pathLenUnknown else { return nil }
-        return Int(hops & 0x3F)
+        guard let hops else { return nil }
+        return PathLen.hopCount(hops)
     }
 
     /// Channel index (for channel messages, nil for direct).

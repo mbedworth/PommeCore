@@ -158,10 +158,16 @@ struct ContactRowView: View {
             Text("direct")
                 .font(.caption2)
                 .foregroundStyle(MeshTheme.connected)
-        } else if contact.outPathLen > 0 {
-            let pathStr = formatPathHashes(contact.outPath, hopCount: Int(contact.outPathLen))
+        } else if let hopCount = PathLen.hopCount(contact.outPathLen), hopCount > 0 {
+            // Decoded count and the encoded hash size — the raw byte is not a
+            // count, and dividing to guess the hash size fails whenever it is
+            // wrong.
+            let pathStr = formatPathHashes(
+                contact.outPath,
+                hopCount: hopCount,
+                bytesPerHop: PathLen.hashSize(UInt8(bitPattern: contact.outPathLen)))
             if pathStr.isEmpty {
-                Text("^[\(contact.outPathLen) hop](inflect: true)")
+                Text("^[\(hopCount) hop](inflect: true)")
                     .font(.caption2)
                     .foregroundStyle(MeshTheme.textSecondary)
             } else {
@@ -276,10 +282,9 @@ struct ContactRowView: View {
         }
     }
 
-    private func formatPathHashes(_ pathData: Data, hopCount: Int) -> String {
+    private func formatPathHashes(_ pathData: Data, hopCount: Int, bytesPerHop: Int) -> String {
         guard !pathData.isEmpty, hopCount > 0 else { return "" }
-        let bytesPerHop = pathData.count / hopCount
-        guard bytesPerHop >= 1 && bytesPerHop <= 3 else { return "" }
+        guard bytesPerHop >= 1, hopCount * bytesPerHop <= pathData.count else { return "" }
         var hops: [String] = []
         for i in 0..<hopCount {
             let start = i * bytesPerHop

@@ -59,8 +59,14 @@ struct MessageBubble: View {
         if !message.reactions.isEmpty { parts.append("Reactions: \(message.reactions.joined(separator: ", "))") }
         if message.isSigned { parts.append("Verified") }
         if !message.isOutgoing {
-            if let hops = message.hops {
-                parts.append(hops == 0 || hops == 0xFF ? "Direct" : "\(hops) \(hops == 1 ? "hop" : "hops")")
+            if message.hops != nil {
+                // hopCount, never the raw byte: path_len also carries the hash
+                // size, so reading it whole announces "70 hops" for six.
+                if let hopCount = message.hopCount, hopCount > 0 {
+                    parts.append("\(hopCount) \(hopCount == 1 ? "hop" : "hops")")
+                } else {
+                    parts.append("Direct")
+                }
             }
             if let snr = message.snr { parts.append(formatSNR(snr)) }
         }
@@ -137,16 +143,18 @@ struct MessageBubble: View {
                     }
 
                     if !message.isOutgoing {
-                        if let hops = message.hops {
+                        if message.hops != nil {
                             Text("\u{2022}")
                                 .font(.caption2)
                                 .foregroundStyle(MeshTheme.textSecondary)
-                            if hops == 0 || hops == 0xFF {
-                                Text("direct")
+                            // hopCount decodes path_len; the raw byte also
+                            // carries the hash size and is not a count.
+                            if let hopCount = message.hopCount, hopCount > 0 {
+                                Text("^[\(hopCount) hop](inflect: true)")
                                     .font(.caption2)
                                     .foregroundStyle(MeshTheme.textSecondary)
                             } else {
-                                Text("^[\(hops) hop](inflect: true)")
+                                Text("direct")
                                     .font(.caption2)
                                     .foregroundStyle(MeshTheme.textSecondary)
                             }
@@ -392,17 +400,19 @@ struct ChannelMessageBubble: View {
                     }
 
                     if !message.isOutgoing {
-                        if let hops = message.hops {
+                        if message.hops != nil {
                             Text("\u{2022}")
                                 .font(.caption2)
                                 .foregroundStyle(MeshTheme.textSecondary)
                                 .accessibilityHidden(true)
-                            if hops == 0 || hops == 0xFF {
-                                Text("direct")
+                            // hopCount decodes path_len; the raw byte also
+                            // carries the hash size and is not a count.
+                            if let hopCount = message.hopCount, hopCount > 0 {
+                                Text("^[\(hopCount) hop](inflect: true)")
                                     .font(.caption2)
                                     .foregroundStyle(MeshTheme.textSecondary)
                             } else {
-                                Text("^[\(hops) hop](inflect: true)")
+                                Text("direct")
                                     .font(.caption2)
                                     .foregroundStyle(MeshTheme.textSecondary)
                             }
