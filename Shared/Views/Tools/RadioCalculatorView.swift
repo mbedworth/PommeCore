@@ -158,15 +158,7 @@ struct RadioCalculatorView: View {
     }
 
     private func resultRow(_ label: LocalizedStringKey, value: String, color: Color = MeshTheme.textSecondary) -> some View {
-        HStack {
-            Text(label)
-                .foregroundStyle(MeshTheme.accent)
-            Spacer()
-            Text(value)
-                .font(.body.monospaced())
-                .foregroundStyle(color)
-        }
-        .listRowBackground(MeshTheme.surface)
+        LabelValueRow(label: label, value: value, valueColor: color, monospacedValue: true)
     }
 }
 #endif

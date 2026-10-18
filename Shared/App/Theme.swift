@@ -788,6 +788,10 @@ struct LabelValueRow: View {
     let value: String
     var labelColor: Color = MeshTheme.accent
     var valueColor: Color = MeshTheme.textSecondary
+    /// Monospaced value, for figures meant to line up down a column.
+    var monospacedValue: Bool = false
+    /// Applied to label and value together; `nil` keeps the inherited style.
+    var font: Font?
 
     var body: some View {
         HStack {
@@ -796,7 +800,10 @@ struct LabelValueRow: View {
             Spacer()
             Text(value)
                 .foregroundStyle(valueColor)
+                .multilineTextAlignment(.trailing)
+                .monospaced(monospacedValue)
         }
+        .font(font)
         .listRowBackground(MeshTheme.surface)
         // Read label + value as one VoiceOver element (e.g. "Firmware, 1.15.0").
         .accessibilityElement(children: .combine)
@@ -907,6 +914,19 @@ func formatSNR<T: BinaryInteger>(_ rawSNR: T) -> String {
 /// Format frequency from kHz to MHz display string.
 func formatFrequency(_ kHz: Double) -> String {
     String(format: "%.3f MHz", kHz / 1000.0)
+}
+
+/// Format a LoRa bandwidth in kHz, dropping a trailing `.0` (250 kHz, 62.5 kHz).
+///
+/// This was a `private func formatBW` in three views, and the three had already
+/// stopped matching: two guarded `bw >= 1`, the third did not. No LoRa bandwidth
+/// is below 1 kHz, so nothing was wrong on screen — which is the point. Copies
+/// drift before they break, and the drift is the only warning you get.
+func formatBandwidth(_ kHz: Double) -> String {
+    if kHz == kHz.rounded() && kHz >= 1 {
+        return "\(Int(kHz)) kHz"
+    }
+    return "\(kHz) kHz"
 }
 
 /// Format battery voltage from millivolts to volts string.

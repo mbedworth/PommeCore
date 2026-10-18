@@ -241,11 +241,8 @@ struct ProfileExportView: View {
     }
 
     private func previewRow(_ label: LocalizedStringKey, value: String) -> some View {
-        HStack {
-            Text(label).foregroundStyle(MeshTheme.accent).font(.subheadline)
-            Spacer()
-            Text(value).foregroundStyle(MeshTheme.textPrimary).font(.subheadline)
-        }
+        LabelValueRow(label: label, value: value,
+                      valueColor: MeshTheme.textPrimary, font: .subheadline)
     }
 
     // MARK: - Actions

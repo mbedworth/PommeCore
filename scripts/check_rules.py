@@ -307,18 +307,47 @@ def check_codable_decoders() -> None:
 # Design principle 4 — formatting helpers live in Theme.swift only
 # --------------------------------------------------------------------------
 def check_duplicate_formatters() -> None:
-    allowed = {"Shared/App/Theme.swift",
-               "Packages/MeshCoreKit/Sources/MeshCoreKit/GeoMath/GeoMath.swift"}
-    pattern = re.compile(r"\bfunc\s+(format(?:Frequency|Coordinate|Duration|Distance|Elevation)\w*)\b")
+    """Formatting belongs in Theme.swift / GeoMath, and a copy of it anywhere else.
+
+    This used to match a fixed list of five names, so it could only catch a
+    second copy of a formatter someone had already thought to list. It could
+    not see a *new* one: `formatBW` sat in three views for months, and the
+    three had already stopped matching — two guarded `bw >= 1` and the third
+    did not. A check that only knows yesterday's duplicates is not a check
+    against duplication.
+
+    Now it collects every `format*` in the tree and reports two things: one
+    defined outside the two homes that those homes already provide, and one
+    defined in more than one file at all, whatever it is called.
+    """
+    homes = {"Shared/App/Theme.swift",
+             "Packages/MeshCoreKit/Sources/MeshCoreKit/GeoMath/GeoMath.swift"}
+    decl = re.compile(r"\bfunc\s+(format[A-Z]\w*)\s*[(<]")
+    where: dict[str, list[tuple[pathlib.Path, int]]] = {}
     for path in swift_files(["Shared", "Packages/MeshCoreKit/Sources", "watchOS"]):
-        rel = str(path.relative_to(ROOT))
-        if rel in allowed:
-            continue
         for i, line in enumerate(lines_of(path), 1):
-            m = pattern.search(line)
+            if line.lstrip().startswith("//"):
+                continue
+            m = decl.search(line)
             if m:
-                report("WARN", "DP4", path, i,
-                       f"`{m.group(1)}` duplicates a Theme.swift/GeoMath helper")
+                where.setdefault(m.group(1), []).append((path, i))
+
+    shared = {n for n, sites in where.items()
+              if any(str(p.relative_to(ROOT)) in homes for p, _ in sites)}
+
+    for name, sites in sorted(where.items()):
+        outside = [(p, i) for p, i in sites
+                   if str(p.relative_to(ROOT)) not in homes]
+        if name in shared:
+            for p, i in outside:
+                report("WARN", "DP4", p, i,
+                       f"`{name}` duplicates a Theme.swift/GeoMath helper")
+        elif len({p for p, _ in outside}) > 1:
+            others = ", ".join(sorted({str(p.relative_to(ROOT)) for p, _ in outside}))
+            for p, i in outside:
+                report("WARN", "DP4", p, i,
+                       f"`{name}` is defined in more than one file ({others}) — "
+                       "move it to Theme.swift")
 
 
 # --------------------------------------------------------------------------
