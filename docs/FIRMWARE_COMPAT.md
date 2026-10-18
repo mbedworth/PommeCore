@@ -16,7 +16,7 @@ this is the source of truth for firmware review state, not the local development
 | **Reference firmware** | Companion v1.17.1 (Heltec Mesh Pocket) |
 | **Also compatible with** | v1.15.0 – v1.16.0 |
 | **Protocol version sent** | `app_target_ver = 3` in `CMD_DEVICE_QUERY` — must stay ≥ 3 (see the critical rules in the local development guide) |
-| **Last review** | 2026-08-24, covering v1.17.0 and v1.17.1 |
+| **Last review** | 2026-10-17, covering v1.18.0 (reviewed, not adopted). v1.17.0/v1.17.1 reviewed 2026-08-24 |
 | **Smoke test** | 2026-10-03 on Heltec Mesh Pocket `v1.17.1-d929643` — 9/9 passed (release gate for v26.10.03); also 2026-10-02, see below |
 | **Bulk-delete test** | 2026-10-03, same radio — 17/17 passed; unpaced removals drop ~half their writes, see below |
 | **Restore test** | 2026-10-03, end to end through the macOS app UI — snapshot, delete and restore all verified, see below |
@@ -40,6 +40,7 @@ Tag SHAs are recorded so a re-pointed tag is detectable. Verify with:
 | v1.16.0 | 2026-06-06 | `24fe7d4b2d17` | 13 | 2026-06-06 | No protocol change; adopted `flood.max.unscoped` + region tree management (shipped build 18) | **Passed** 2026-06-08 — DM delivery ACK + round trip |
 | v1.17.0 | 2026-08-09 | `2af6126cfba7` | 13 | 2026-08-24 | No protocol change; three behaviour changes adopted (below) | 2026-10-02 ✅ |
 | v1.17.1 | 2026-08-14 | `8fe15c89ed5a` | 13 | 2026-08-24 | Bug-fix release; nothing further to adopt | 2026-10-02 ✅ |
+| v1.18.0 | 2026-10-15 | `7d6d255104ea` | **14** | 2026-10-17 | **Protocol surface changed** — companion CLI (`CMD_RUN_CLI_COMMAND` / `RESP_CODE_CLI_REPLY` / `TXT_TYPE_CLI_COMMAND`). Reviewed, nothing adopted yet | Not yet |
 
 Repeater and room-server tags for the same version are published within a minute of the companion tag
 and share the version number. The companion tag is the one that matters for protocol review; the other
@@ -51,10 +52,62 @@ two matter only for CLI commands used by Remote Management.
 | v1.16.0 | `dfc17c8f7f2a` | `efdca54d7bea` |
 | v1.17.0 | `1e0818934edd` | `d7760a2849a7` |
 | v1.17.1 | `d2ab960a1d5d` | `2e7880b0d293` |
+| v1.18.0 | `d95fd9199b19` | `51f552d8ac15` |
 
 ---
 
 ## What each version changed for the app
+
+### v1.18.0 — reviewed 2026-10-17, nothing adopted yet
+
+**The first protocol surface change since 1.15.0, and the first `FIRMWARE_VER_CODE` bump since
+1.16.0: 13 → 14.** The app does not gate on that byte and must not start — see the baseline note
+above — but it is the signal that this release is not like the last two.
+
+**Two new companion frames**, both `// v14+` in `examples/companion_radio/MyMesh.cpp`:
+
+| Frame | Code | Shape |
+|---|---|---|
+| `CMD_RUN_CLI_COMMAND` | 66 (0x42) | `code(1)` + command text. Firmware requires `len >= 3`. |
+| `RESP_CODE_CLI_REPLY` | 29 (0x1D) | `code(1)` + reply text, null-free, up to the frame limit. |
+
+The radio runs the command through the same `handleCommand` the serial CLI uses and returns the
+text reply, so **a BLE-connected companion can now be driven by CLI without USB.** An unrecognised
+command comes back as the literal string `Unknown command` rather than an error frame.
+
+**One new text type** — `TXT_TYPE_CLI_COMMAND = 3` (`src/helpers/TxtDataHelpers.h`, which is where
+the full set lives: 0 plain, 1 CLI data, 2 signed plain, 3 CLI command). `CMD_SEND_TXT_MSG` now
+accepts it alongside `TXT_TYPE_PLAIN` and `TXT_TYPE_CLI_DATA`, which sends a CLI command **to
+another companion over the mesh**, gated by a new Remote CLI permission on the receiving node. Two
+details the app must respect if it ever sends one: the firmware substitutes its own RTC timestamp
+(`getCurrentTimeUnique()`) to avoid tripping replay protection, and **no ACK is expected**
+(`expected_ack = 0`), so the usual delivery tracking does not apply. A CLI command arriving from a
+contact that lacks permission is queued as an ordinary message of type 3, so a client that assumes
+"not 2, therefore plain text" will render it as chat.
+
+**CLI parameters moved, none were lost.** `src/helpers/CommonRadioPrefs.cpp` is new and now owns the
+15 radio parameters that used to live in `CommonCLI.cpp` — `af`, `dutycycle`, `cad`, `radio`,
+`radio.rxgain`, `rxdelay`, `txdelay`, `direct.txdelay`, `tx`, `int.thresh`, `multi.acks`,
+`path.hash.mode`, `agc.reset.interval` and the rest. A file-level diff makes this look like a mass
+deletion; it is a refactor, and `CommonCLI.cpp` shrinking by 152 lines is the whole of it. The only
+parameters genuinely gone are `radio.fem.rxgain` / `radio.fem.txgain`, which this ledger already
+records as deliberately not adopted.
+
+**New CLI commands**, in `examples/companion_radio/MyMesh.cpp` rather than `CommonCLI.cpp`:
+`get/set tz.offset`, `get/set wifi.ssid`, `get/set wifi.pwd`, `get/set wifi.enabled`,
+`set wifi.clear`, `get wifi.ip`, `get wifi.status`; and in `CommonCLI.cpp`, `power` (battery, USB,
+solar, charger state in one line) and `gps diag`. `SensorManager` gained `isGPSDetected()`.
+
+**Upstream's own protocol doc gained 54 lines of limits that were always true**, and they are worth
+reading as constraints we were never told: `max_channels` is byte 3 of `DEVICE_INFO` and ships as
+1, 8 or 40 depending on board (the app already reads it rather than assuming 8); a channel payload
+is capped at **165** bytes radio-side while the host-frame check allows 167, so 166–167 passes the
+first check and fails the second with `ERR_CODE_TABLE_FULL` — a code that normally means "retry
+later" but here is permanent; and an all-zero channel secret is not a private channel but a
+well-known one, since `SHA256` of 16 zero bytes is globally fixed.
+
+**Nothing adopted yet.** What the companion CLI is worth to this app, and what it would cost, is a
+design question rather than a mechanical port — see the open item in the development guide.
 
 ### v1.17.0 / v1.17.1 — reviewed 2026-08-24, adopted
 
@@ -110,6 +163,21 @@ Diff the firmware tags directly. **Do not review from the release notes** — fo
 actually affected the app.
 
 `curl` to raw.githubusercontent is blocked in the sandbox; `gh api` works.
+
+**A file-level diff is not enough.** For 1.18.0, `CommonCLI.cpp` lost 15 CLI parameters and 152
+lines, which reads as a mass deletion of `dutycycle`, `cad`, `radio` and the rest — commands this
+app depends on. They had moved to a new file, `CommonRadioPrefs.cpp`, and nothing was lost. Always
+ask the compare API which files were **added** before concluding anything was removed:
+
+```bash
+gh api "repos/meshcore-dev/MeshCore/compare/companion-v<old>...companion-v<new>" \
+  --jq '.files[] | "\(.status)  \(.changes)  \(.filename)"' | sort -k2 -rn | head -25
+```
+
+Likewise, a grep for command strings has to match the *variable* each file uses: `CommonCLI.cpp`
+parses out of `config`, `CommonRadioPrefs.cpp` out of `command`, and companion-only commands
+(`tz.offset`, `wifi.*`) live in `examples/companion_radio/MyMesh.cpp`. A pattern pinned to one of
+them silently reports the others as absent.
 
 ```bash
 # 1. Has anything new been published?
