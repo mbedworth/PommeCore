@@ -297,19 +297,22 @@ extension ContactListView {
             }
         } label: {
             HStack(spacing: 4) {
-                Label(listFilter.title, systemImage: listFilter.systemImage)
+                // Deliberately not a `Label`: inside a `Menu`, macOS renders a
+                // Label's image as a template tinted with the *system* accent
+                // and ignores the `foregroundStyle` applied to the Label — the
+                // blue layers glyph the Mac build shipped with. Styling the
+                // image and the text separately is what actually holds.
+                Image(systemName: listFilter.systemImage)
                     .foregroundStyle(MeshTheme.textSecondary)
-                // iOS draws no indicator for a Menu used as a plain label, so
-                // it needs one to read as a control. macOS draws its own and
-                // ignores `.menuIndicator(.hidden)` under a plain button style,
-                // so adding ours there gives the two chevrons side by side that
-                // the Mac build shipped with. One each, from whichever source
-                // the platform actually provides.
-                #if !os(macOS) && !targetEnvironment(macCatalyst)
+                Text(listFilter.title)
+                    .foregroundStyle(MeshTheme.textSecondary)
+                // `.buttonStyle(.plain)` below suppresses the platform's own
+                // menu indicator on macOS as well as iOS, so without this the
+                // control has nothing saying it can be changed. One chevron,
+                // ours, on every platform.
                 Image(systemName: "chevron.up.chevron.down")
                     .font(.caption2)
                     .foregroundStyle(MeshTheme.accent)
-                #endif
                 if unreadElsewhere > 0 {
                     Text("\(unreadElsewhere)")
                         .font(.caption2.weight(.bold))
