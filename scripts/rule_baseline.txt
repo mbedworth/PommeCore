@@ -3,9 +3,9 @@ Packages/MeshCoreKit/Sources/MeshCoreKit/Models/DeviceInfo.swift:14  # rule 1/2:
 Shared/App/PommeCoreApp.swift:280  # rule 18: lastErrorMessage
 Shared/App/PommeCoreApp.swift:547  # rule 18: lastErrorMessage
 Shared/Models/CommunityPreset.swift:11  # rule 1/2: CommunityPresetManifest
-Shared/Views/ChatView+Channels.swift:400  # rule 18: loginStatusText
-Shared/Views/ChatView.swift:163  # rule 18: routeLabel
-Shared/Views/ChatView.swift:203  # rule 18: routeLabel
+Shared/Views/ChatView+Channels.swift:349  # rule 18: loginStatusText
+Shared/Views/ChatView.swift:161  # rule 18: routeLabel
+Shared/Views/ChatView.swift:201  # rule 18: routeLabel
 Shared/Views/ContactListView+ChannelsUI.swift:43  # rule 18: connectionLabel
 Shared/Views/ContactRowView.swift:198  # rule 18: seenText
 Shared/Views/LineOfSight/LineOfSightView.swift:217  # rule 18: headerTitle

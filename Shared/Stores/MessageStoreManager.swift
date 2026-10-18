@@ -156,10 +156,11 @@ final class MessageStoreManager {
         unreadCounts[contactKey] = 0
         updateAppBadge()
         onUnreadChanged?()
-        guard let prefix = radioPrefix12 else { return }
-        let contactHex = contactKey.hexCompact
-        let key = "lastRead.\(prefix).\(contactHex)"
-        iCloudStore.setAndSync(Date().timeIntervalSince1970, forKey: key)
+        guard radioPrefix12 != nil else { return }
+        iCloudStore.setScopedDouble(Date().timeIntervalSince1970,
+                                    base: "lastRead",
+                                    contactHex: contactKey.hexCompact,
+                                    radioPrefix: radioPrefix12)
     }
 
     func firstUnreadIndex(in messages: [Message], for contactKey: Data) -> Int? {
@@ -248,15 +249,14 @@ final class MessageStoreManager {
     // MARK: - Drafts
 
     func saveDraft(_ text: String, for contactKey: Data) {
-        guard let prefix = radioPrefix12 else { return }
-        let contactHex = contactKey.hexCompact
-        let key = "draft.\(prefix).\(contactHex)"
-        if text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            iCloudStore.removeObject(forKey: key)
-        } else {
-            iCloudStore.set(text, forKey: key)
-        }
-        iCloudStore.synchronize()
+        // No `guard let prefix = radioPrefix12 else { return }`. That early
+        // return meant a draft could not be cleared at all while no radio was
+        // connected, and `loadDraft` reads the unscoped key regardless — so
+        // the clear was skipped while the restore still happened.
+        iCloudStore.setScopedString(text,
+                                    base: "draft",
+                                    contactHex: contactKey.hexCompact,
+                                    radioPrefix: radioPrefix12)
     }
 
     func loadDraft(for contactKey: Data) -> String {
@@ -752,11 +752,11 @@ final class MessageStoreManager {
     private func removeiCloudMessageData(for contactKey: Data) {
         let contactHex = contactKey.hexCompact
         for base in ["msg", "draft", "lastRead"] {
-            iCloudStore.removeObject(
-                forKey: iCloudStore.scopedKey(base, contactHex: contactHex, radioPrefix: radioPrefix12)
-            )
-            // Pre-scoping keys carried no radio prefix.
-            iCloudStore.removeObject(forKey: "\(base).\(contactHex)")
+            // removeScoped clears the pre-scoping key too; that knowledge used
+            // to live only here, which is why saveDraft went without it.
+            iCloudStore.removeScoped(base: base,
+                                     contactHex: contactHex,
+                                     radioPrefix: radioPrefix12)
         }
     }
 
@@ -883,13 +883,17 @@ final class MessageStoreManager {
         guard !radioKey.isEmpty else { return }
 
         let contactHex = contactKeyHash.hexCompact
-        let key = "msg.\(radioKey.prefix(12)).\(contactHex)"
+        let key = iCloudStore.scopedKey("msg",
+                                        contactHex: contactHex,
+                                        radioPrefix: String(radioKey.prefix(12)))
 
         guard let messages = messagesByContact[contactKeyHash] else { return }
         let recent = Array(messages.suffix(50))
 
         if let data = try? JSONEncoder().encode(recent), data.count < 60_000 {
             iCloudStore.set(data, forKey: key)
+            // The scoped key wins on read; a stale unscoped one would shadow it.
+            iCloudStore.removeObject(forKey: iCloudStore.legacyKey("msg", contactHex: contactHex))
         }
     }
 

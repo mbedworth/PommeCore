@@ -118,6 +118,8 @@
 		CLU10000000100000000003 /* ContactListView+ContactsUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLU10000000000000000000 /* ContactListView+ContactsUI.swift */; };
 		CPS10000000100000000002 /* CommunityPreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = CPS10000000000000000000 /* CommunityPreset.swift */; };
 		CPS10000000100000000003 /* CommunityPreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = CPS10000000000000000000 /* CommunityPreset.swift */; };
+		MCMP00000000100000000002 /* MessageComposer.swift in Sources */ = {isa = PBXBuildFile; fileRef = MCMP00000000000000000000 /* MessageComposer.swift */; };
+		MCMP00000000100000000003 /* MessageComposer.swift in Sources */ = {isa = PBXBuildFile; fileRef = MCMP00000000000000000000 /* MessageComposer.swift */; };
 		CVC10000000100000000002 /* ChatView+Channels.swift in Sources */ = {isa = PBXBuildFile; fileRef = CVC10000000000000000000 /* ChatView+Channels.swift */; };
 		CVC10000000100000000003 /* ChatView+Channels.swift in Sources */ = {isa = PBXBuildFile; fileRef = CVC10000000000000000000 /* ChatView+Channels.swift */; };
 		CVP10000000100000000002 /* ChatView+Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = CVP10000000000000000000 /* ChatView+Components.swift */; };
@@ -341,6 +343,7 @@
 		CLC10000000000000000000 /* ContactListView+ChannelsUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContactListView+ChannelsUI.swift"; sourceTree = "<group>"; };
 		CLU10000000000000000000 /* ContactListView+ContactsUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContactListView+ContactsUI.swift"; sourceTree = "<group>"; };
 		CPS10000000000000000000 /* CommunityPreset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CommunityPreset.swift; path = Shared/Models/CommunityPreset.swift; sourceTree = SOURCE_ROOT; };
+		MCMP00000000000000000000 /* MessageComposer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageComposer.swift; sourceTree = "<group>"; };
 		CVC10000000000000000000 /* ChatView+Channels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatView+Channels.swift"; sourceTree = "<group>"; };
 		CVP10000000000000000000 /* ChatView+Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatView+Components.swift"; sourceTree = "<group>"; };
 		D2AEF5C51E98EC24A3CCA95F /* MeshCoreKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = MeshCoreKit; path = Packages/MeshCoreKit; sourceTree = SOURCE_ROOT; };
@@ -520,6 +523,7 @@
 				0F29C3D32F84863E0007BF08 /* LineOfSight/TerrainProfileRenderer.swift */,
 				86334BBA19C5E5E981032313 /* NodeSetupWizardView.swift */,
 				7EFFE2BF3488F0C0647632CD /* ChatView.swift */,
+				MCMP00000000000000000000 /* MessageComposer.swift */,
 				CVC10000000000000000000 /* ChatView+Channels.swift */,
 				CVP10000000000000000000 /* ChatView+Components.swift */,
 				DB24E21D8CDBE0500C92E469 /* NetworkToolsView.swift */,
@@ -968,6 +972,7 @@
 				0FFEA5862F9FEC750078A117 /* RadioProfilesView.swift in Sources */,
 				3B5A0845138A331E632F1FA8 /* NodeSetupWizardView.swift in Sources */,
 				3749B94D818310AD5ACF3B87 /* ChatView.swift in Sources */,
+				MCMP00000000100000000002 /* MessageComposer.swift in Sources */,
 				CVC10000000100000000002 /* ChatView+Channels.swift in Sources */,
 				CVP10000000100000000002 /* ChatView+Components.swift in Sources */,
 				9D7EAB7850F077EF373AC84F /* NetworkToolsView.swift in Sources */,
@@ -1065,6 +1070,7 @@
 				0FFEA5872F9FEC750078A117 /* RadioProfilesView.swift in Sources */,
 				F686EC73BF362831969DC6D5 /* NodeSetupWizardView.swift in Sources */,
 				9144822AD9EB38340AF2317E /* ChatView.swift in Sources */,
+				MCMP00000000100000000003 /* MessageComposer.swift in Sources */,
 				CVC10000000100000000003 /* ChatView+Channels.swift in Sources */,
 				CVP10000000100000000003 /* ChatView+Components.swift in Sources */,
 				F01FFE8B0B7AB2F62D296F88 /* NetworkToolsView.swift in Sources */,
@@ -1181,7 +1187,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = iOS/PommeCore.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 20261012.091359;
+				CURRENT_PROJECT_VERSION = 20261016.214953;
 				DEVELOPMENT_TEAM = 7R925EW7AT;
 				INFOPLIST_FILE = iOS/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = PommeCore;
@@ -1191,7 +1197,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 26.10.12;
+				MARKETING_VERSION = 26.10.16;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mbedworth.meshcore;
 				PRODUCT_NAME = PommeCore;
 				SDKROOT = iphoneos;
@@ -1271,7 +1277,7 @@
 				CODE_SIGN_ENTITLEMENTS = "PommeCore Watch Complications/PommeCore_Watch_Complications.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 20261012.091359;
+				CURRENT_PROJECT_VERSION = 20261016.214953;
 				DEVELOPMENT_TEAM = 7R925EW7AT;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -1289,7 +1295,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 26.10.12;
+				MARKETING_VERSION = 26.10.16;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.mbedworth.meshcore.watchos.PommeCore-Watch-Complications";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
@@ -1317,7 +1323,7 @@
 				CODE_SIGN_ENTITLEMENTS = "PommeCore Watch Complications/PommeCore_Watch_Complications.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 20261012.091359;
+				CURRENT_PROJECT_VERSION = 20261016.214953;
 				DEVELOPMENT_TEAM = 7R925EW7AT;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1331,7 +1337,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 26.10.12;
+				MARKETING_VERSION = 26.10.16;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.mbedworth.meshcore.watchos.PommeCore-Watch-Complications";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
@@ -1357,7 +1363,7 @@
 				CODE_SIGN_ENTITLEMENTS = "PommeCore Widgets/PommeCore_Widgets.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 20261012.091359;
+				CURRENT_PROJECT_VERSION = 20261016.214953;
 				DEVELOPMENT_TEAM = 7R925EW7AT;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -1375,7 +1381,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 26.10.12;
+				MARKETING_VERSION = 26.10.16;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.mbedworth.meshcore.PommeCore-Widgets";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -1400,7 +1406,7 @@
 				CODE_SIGN_ENTITLEMENTS = "PommeCore Widgets/PommeCore_Widgets.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 20261012.091359;
+				CURRENT_PROJECT_VERSION = 20261016.214953;
 				DEVELOPMENT_TEAM = 7R925EW7AT;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1414,7 +1420,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 26.10.12;
+				MARKETING_VERSION = 26.10.16;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.mbedworth.meshcore.PommeCore-Widgets";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -1436,11 +1442,11 @@
 				CODE_SIGN_ENTITLEMENTS = watchOS/PommeCore-watchOS.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 20261012.091359;
+				CURRENT_PROJECT_VERSION = 20261016.214953;
 				DEVELOPMENT_TEAM = 7R925EW7AT;
 				INFOPLIST_FILE = watchOS/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = PommeCore;
-				MARKETING_VERSION = 26.10.12;
+				MARKETING_VERSION = 26.10.16;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mbedworth.meshcore.watchos;
 				PRODUCT_NAME = "PommeCore Watch";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1459,7 +1465,7 @@
 				CODE_SIGN_ENTITLEMENTS = "macOS/PommeCore-macOS.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 20261012.091359;
+				CURRENT_PROJECT_VERSION = 20261016.214953;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 7R925EW7AT;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -1469,7 +1475,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 26.10.12;
+				MARKETING_VERSION = 26.10.16;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mbedworth.meshcore;
 				PRODUCT_NAME = PommeCore;
 				SDKROOT = macosx;
@@ -1484,7 +1490,7 @@
 				CODE_SIGN_ENTITLEMENTS = "macOS/PommeCore-macOS.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 20261012.091359;
+				CURRENT_PROJECT_VERSION = 20261016.214953;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 7R925EW7AT;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -1494,7 +1500,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 26.10.12;
+				MARKETING_VERSION = 26.10.16;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mbedworth.meshcore;
 				PRODUCT_NAME = PommeCore;
 				SDKROOT = macosx;
@@ -1508,7 +1514,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = iOS/PommeCore.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 20261012.091359;
+				CURRENT_PROJECT_VERSION = 20261016.214953;
 				DEVELOPMENT_TEAM = 7R925EW7AT;
 				INFOPLIST_FILE = iOS/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = PommeCore;
@@ -1518,7 +1524,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 26.10.12;
+				MARKETING_VERSION = 26.10.16;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mbedworth.meshcore;
 				PRODUCT_NAME = PommeCore;
 				SDKROOT = iphoneos;
@@ -1601,11 +1607,11 @@
 				CODE_SIGN_ENTITLEMENTS = watchOS/PommeCore-watchOS.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 20261012.091359;
+				CURRENT_PROJECT_VERSION = 20261016.214953;
 				DEVELOPMENT_TEAM = 7R925EW7AT;
 				INFOPLIST_FILE = watchOS/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = PommeCore;
-				MARKETING_VERSION = 26.10.12;
+				MARKETING_VERSION = 26.10.16;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mbedworth.meshcore.watchos;
 				PRODUCT_NAME = "PommeCore Watch";
 				PROVISIONING_PROFILE_SPECIFIER = "";
