@@ -78,8 +78,9 @@ extension ContactListView {
                 .listRowBackground(MeshTheme.surface)
             }
         } header: {
-            Text("Pending Contacts")
-                .foregroundStyle(MeshTheme.statusWarn)
+            // Amber on purpose: here the colour *is* the signal that something
+            // is waiting. It is the only header that asks for a tint.
+            SectionHeader("Pending Contacts", tint: MeshTheme.statusWarn)
         }
     }
 
@@ -209,9 +210,7 @@ extension ContactListView {
                 }
             }
         } header: {
-            HStack {
-                Text("Groups")
-                    .foregroundStyle(MeshTheme.textSecondary)
+            SectionHeader("Groups") {
                 Spacer()
                 Button {
                     groupContactForNew = nil
@@ -227,9 +226,7 @@ extension ContactListView {
     }
 
     var contactsSectionHeader: some View {
-        HStack {
-            Text("Contacts")
-                .foregroundStyle(MeshTheme.textSecondary)
+        SectionHeader("Contacts") {
             Spacer()
             Button {
                 sortByLastSeen.toggle()
@@ -546,9 +543,7 @@ extension ContactListView {
                     #endif
                 }
             } header: {
-                HStack {
-                    Label(title, systemImage: systemImage)
-                        .foregroundStyle(MeshTheme.accent)
+                SectionHeader(title, systemImage: systemImage) {
                     Spacer()
                     if unread > 0 {
                         // The whole point of collapsing is that you stop

@@ -281,9 +281,7 @@ extension ContactListView {
                 #endif
             }
         } header: {
-            HStack {
-                Text("Channels")
-                    .foregroundStyle(MeshTheme.textSecondary)
+            SectionHeader("Channels") {
                 if channelStore.isSyncingChannels {
                     ProgressView()
                         .controlSize(.mini)
