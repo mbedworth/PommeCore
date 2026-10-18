@@ -15,9 +15,9 @@ Shared/Views/LineOfSight/RepeaterConfigView.swift:58  # rule 18: title: String
 Shared/Views/LineOfSight/TerrainProfileRenderer.swift:234  # rule 18: label: String
 Shared/Views/NetworkToolsView+Channels.swift:101  # rule 18: actionButtonLabel
 Shared/Views/NetworkToolsView+Channels.swift:111  # rule 18: footerText
-Shared/Views/NetworkToolsView+Device.swift:185  # rule 18: label: String
-Shared/Views/NetworkToolsView+Device.swift:507  # rule 18: label: String
-Shared/Views/NetworkToolsView+Device.swift:544  # rule 18: label: String
+Shared/Views/NetworkToolsView+Device.swift:178  # rule 18: label: String
+Shared/Views/NetworkToolsView+Device.swift:500  # rule 18: label: String
+Shared/Views/NetworkToolsView+Device.swift:537  # rule 18: label: String
 Shared/Views/NetworkToolsView.swift:195  # rule 18: errorMessage
 Shared/Views/RemoteManagementView.swift:399  # rule 18: statusLabel
 Shared/Views/RemoteManagementView.swift:674  # rule 18: neighborsText

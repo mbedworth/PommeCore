@@ -50,7 +50,7 @@ struct LoRaAirtimeView: View {
 
                 Picker("Bandwidth", selection: $bandwidthKHz) {
                     ForEach(bandwidthOptions, id: \.self) { bw in
-                        Text(formatBW(bw)).tag(bw)
+                        Text(formatBandwidth(bw)).tag(bw)
                     }
                 }
                 .foregroundStyle(MeshTheme.accent)
@@ -182,13 +182,6 @@ struct LoRaAirtimeView: View {
         lowDataRateOptimize = symbolDurationMs > 16
     }
 
-    private func formatBW(_ bw: Double) -> String {
-        if bw == bw.rounded() && bw >= 1 {
-            return "\(Int(bw)) kHz"
-        }
-        return "\(bw) kHz"
-    }
-
     private func paramRow(_ label: LocalizedStringKey, value: Binding<Int>, unit: LocalizedStringKey, range: ClosedRange<Int>) -> some View {
         HStack {
             Text(label)
@@ -210,15 +203,7 @@ struct LoRaAirtimeView: View {
     }
 
     private func resultRow(_ label: LocalizedStringKey, value: String, color: Color = MeshTheme.textSecondary) -> some View {
-        HStack {
-            Text(label)
-                .foregroundStyle(MeshTheme.accent)
-            Spacer()
-            Text(value)
-                .font(.body.monospaced())
-                .foregroundStyle(color)
-        }
-        .listRowBackground(MeshTheme.surface)
+        LabelValueRow(label: label, value: value, valueColor: color, monospacedValue: true)
     }
 }
 #endif

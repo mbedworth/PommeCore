@@ -24,7 +24,7 @@ struct SensitivityTableView: View {
             Section {
                 Picker("Bandwidth", selection: $selectedBandwidth) {
                     ForEach(bandwidthOptions, id: \.self) { bw in
-                        Text(formatBW(bw)).tag(bw)
+                        Text(formatBandwidth(bw)).tag(bw)
                     }
                 }
                 .foregroundStyle(MeshTheme.accent)
@@ -158,13 +158,6 @@ struct SensitivityTableView: View {
     }
 
     // MARK: - Formatting
-
-    private func formatBW(_ bw: Double) -> String {
-        if bw == bw.rounded() && bw >= 1 {
-            return "\(Int(bw)) kHz"
-        }
-        return "\(bw) kHz"
-    }
 
     private func formatBitRate(_ bps: Double) -> String {
         if bps >= 1000 {

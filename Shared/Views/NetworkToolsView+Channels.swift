@@ -292,20 +292,3 @@ struct ChannelManagementView: View {
     }
 }
 
-// MARK: - Hex String Data Extension
-
-private extension Data {
-    init?(hexString: String) {
-        let hex = hexString.replacingOccurrences(of: " ", with: "")
-        guard hex.count % 2 == 0 else { return nil }
-        var data = Data()
-        var index = hex.startIndex
-        while index < hex.endIndex {
-            let nextIndex = hex.index(index, offsetBy: 2)
-            guard let byte = UInt8(hex[index..<nextIndex], radix: 16) else { return nil }
-            data.append(byte)
-            index = nextIndex
-        }
-        self = data
-    }
-}

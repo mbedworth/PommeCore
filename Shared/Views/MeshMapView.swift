@@ -1145,13 +1145,9 @@ struct ClusterDetailView: View {
     }
 
     private func detailRow(_ label: LocalizedStringKey, _ value: String) -> some View {
-        HStack {
-            Text(label)
-                .foregroundStyle(MeshTheme.textSecondary)
-            Spacer()
-            Text(value)
-                .multilineTextAlignment(.trailing)
-        }
+        LabelValueRow(label: label, value: value,
+                      labelColor: MeshTheme.textSecondary,
+                      valueColor: MeshTheme.textPrimary)
     }
 
     private func formatDate(_ iso: String) -> String {

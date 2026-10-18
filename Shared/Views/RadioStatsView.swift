@@ -104,12 +104,7 @@ struct RadioStatsView: View {
     // MARK: - Row helpers
 
     private func statRow(_ label: LocalizedStringKey, value: String, color: Color = MeshTheme.textSecondary) -> some View {
-        HStack {
-            Text(label).foregroundStyle(MeshTheme.accent)
-            Spacer()
-            Text(value).foregroundStyle(color)
-        }
-        .listRowBackground(MeshTheme.surface)
+        LabelValueRow(label: label, value: value, valueColor: color)
     }
 
     private var errorFlagsRow: some View {

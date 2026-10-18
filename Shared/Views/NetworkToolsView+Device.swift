@@ -86,14 +86,7 @@ struct DeviceInfoPopover: View {
     }
 
     private func infoRow(_ label: LocalizedStringKey, value: String) -> some View {
-        HStack {
-            Text(label)
-                .foregroundStyle(MeshTheme.accent)
-            Spacer()
-            Text(value)
-                .foregroundStyle(MeshTheme.textPrimary)
-        }
-        .listRowBackground(MeshTheme.surface)
+        LabelValueRow(label: label, value: value, valueColor: MeshTheme.textPrimary)
     }
 
 }

@@ -155,7 +155,7 @@ struct RadioSection: View {
                     .frame(width: 24)
                 Picker("Bandwidth", selection: $selectedBW) {
                     ForEach(loraBandwidths, id: \.self) { bw in
-                        Text(formatBW(bw)).tag(bw)
+                        Text(formatBandwidth(bw)).tag(bw)
                     }
                 }
                 .foregroundStyle(MeshTheme.accent)
@@ -352,11 +352,6 @@ struct RadioSection: View {
             }
         }
         .listRowBackground(MeshTheme.surface)
-    }
-
-    private func formatBW(_ bw: Double) -> String {
-        if bw == bw.rounded() { return "\(Int(bw)) kHz" }
-        return "\(bw) kHz"
     }
 
     private func applyPreset(_ preset: RadioPreset) {
