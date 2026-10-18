@@ -47,7 +47,7 @@ struct RemoteRoomSection: View {
     }
 
     // Counted on what is sent, not on what was typed.
-    private var announcementByteCount: Int { postText.utf8.count }
+    private var announcementByteCount: Int { postText.utf8ByteCount }
     private var announcementTooLong: Bool { announcementByteCount > Self.maxPostBytes }
 
     private var chatContacts: [Contact] {
