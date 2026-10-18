@@ -33,8 +33,6 @@ struct ChannelChatView: View {
     @State private var showChannelDetail = false
     @State private var showLocationUnavailableAlert = false
 
-    private let maxMessageLength = 160
-
     private var channelKey: Data { Data([channelIndex]) }
 
     private var messages: [Message] {
@@ -99,15 +97,10 @@ struct ChannelChatView: View {
         #endif
         .onAppear {
             notifyMode = channelStore.channelNotifyMode(for: channelName).rawValue
-            if messageText.isEmpty {
-                messageText = messageStoreManager.loadDraft(for: channelKey)
-            }
+            // The draft is loaded and saved by MessageComposer, not here.
             DispatchQueue.main.async {
                 messageStoreManager.markAsRead(contactKey: channelKey)
             }
-        }
-        .onDisappear {
-            messageStoreManager.saveDraft(messageText, for: channelKey)
         }
         .onReceive(NotificationCenter.default.publisher(for: .insertMention)) { notification in
             if let sender = notification.object as? String {
@@ -220,7 +213,12 @@ struct ChannelChatView: View {
     }
 
     private var messageInput: some View {
-        VStack(spacing: 0) {
+        MessageComposer(text: $messageText,
+                        conversationKey: channelKey,
+                        onSend: send,
+                        overlay: {
+            // overlay:, not accessory: — the mention list sits above the
+            // composer's own background, where it was before.
             if mentionQuery != nil && !mentionCandidates.isEmpty {
                 ScrollView {
                     VStack(spacing: 0) {
@@ -247,55 +245,9 @@ struct ChannelChatView: View {
                 .frame(maxHeight: 200)
                 .background(MeshTheme.surface)
             }
-
-            VStack(spacing: 4) {
-                HStack(spacing: 10) {
-                    TextField("Type a message...", text: $messageText)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 10)
-                        .background(MeshTheme.surfaceLight)
-                        .clipShape(RoundedRectangle(cornerRadius: 20))
-                        .foregroundStyle(MeshTheme.textPrimary)
-                        .onChange(of: messageText) { _, newValue in
-                            if newValue.count > maxMessageLength {
-                                messageText = String(newValue.prefix(maxMessageLength))
-                            }
-                            mentionQuery = detectMentionQuery(in: newValue)
-                        }
-                        #if !os(watchOS)
-                        .onSubmit { send() }
-                        #endif
-
-                    Button(action: send) {
-                        Image(systemName: "arrow.up.circle.fill")
-                            .accessibilityLabel("Send message")
-                            .font(.title)
-                            .foregroundStyle(
-                                messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                                    ? MeshTheme.textSecondary
-                                    : MeshTheme.accent
-                            )
-                    }
-                    .disabled(messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                }
-                .padding(.horizontal, 12)
-
-                if !messageText.isEmpty {
-                    HStack {
-                        Spacer()
-                        Text("\(messageText.count)/\(maxMessageLength)")
-                            .font(.caption2)
-                            .foregroundStyle(
-                                messageText.count > maxMessageLength - 10
-                                    ? MeshTheme.statusWarn
-                                    : MeshTheme.textSecondary
-                            )
-                    }
-                    .padding(.horizontal, 16)
-                }
-            }
-            .padding(.vertical, 8)
-            .background(MeshTheme.surface)
+        })
+        .onChange(of: messageText) { _, newValue in
+            mentionQuery = detectMentionQuery(in: newValue)
         }
     }
 
@@ -316,12 +268,11 @@ struct ChannelChatView: View {
         mentionQuery = nil
     }
 
+    /// Only what is specific to a channel. Clearing the field, the haptic and
+    /// the draft belong to `MessageComposer`.
     private func send() {
         messageStoreManager.sendChannelMessage(messageText, channelIndex: channelIndex)
-        messageStoreManager.playHapticFeedback()
-        messageText = ""
         mentionQuery = nil
-        messageStoreManager.saveDraft("", for: channelKey)
     }
 
     private func sendLocationToChannel() {
@@ -351,8 +302,6 @@ struct RoomChatView: View {
     @State private var rememberPassword = true
     @State private var showManagement = false
     @State private var showContactDetail = false
-
-    private let maxMessageLength = 160
 
     /// Accent for remote management icon.
     private var remoteAccent: Color { MeshTheme.remoteRoom }
@@ -516,53 +465,9 @@ struct RoomChatView: View {
     }
 
     private var roomMessageInput: some View {
-        VStack(spacing: 4) {
-            HStack(spacing: 10) {
-                TextField("Type a message...", text: $messageText)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 10)
-                    .background(MeshTheme.surfaceLight)
-                    .clipShape(RoundedRectangle(cornerRadius: 20))
-                    .foregroundStyle(MeshTheme.textPrimary)
-                    .onChange(of: messageText) { _, newValue in
-                        if newValue.count > maxMessageLength {
-                            messageText = String(newValue.prefix(maxMessageLength))
-                        }
-                    }
-                    #if !os(watchOS)
-                    .onSubmit { sendRoomMessage() }
-                    #endif
-
-                Button(action: sendRoomMessage) {
-                    Image(systemName: "arrow.up.circle.fill")
-                        .accessibilityLabel("Send message")
-                        .font(.title)
-                        .foregroundStyle(
-                            messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                                ? MeshTheme.textSecondary
-                                : MeshTheme.accent
-                        )
-                }
-                .disabled(messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-            }
-            .padding(.horizontal, 12)
-
-            if !messageText.isEmpty {
-                HStack {
-                    Spacer()
-                    Text("\(messageText.count)/\(maxMessageLength)")
-                        .font(.caption2)
-                        .foregroundStyle(
-                            messageText.count > maxMessageLength - 10
-                                ? MeshTheme.statusWarn
-                                : MeshTheme.textSecondary
-                        )
-                }
-                .padding(.horizontal, 16)
-            }
-        }
-        .padding(.vertical, 8)
-        .background(MeshTheme.surface)
+        MessageComposer(text: $messageText,
+                        conversationKey: contact.publicKeyPrefix,
+                        onSend: sendRoomMessage)
     }
 
     private var readOnlyInputBar: some View {
@@ -730,9 +635,9 @@ struct RoomChatView: View {
     }
 
     private func sendRoomMessage() {
+        // Clearing the field, the haptic and the draft belong to the composer;
+        // each screen doing its own was how they drifted apart.
         messageStoreManager.sendRoomMessage(messageText, to: contact)
-        messageStoreManager.playHapticFeedback()
-        messageText = ""
     }
 }
 

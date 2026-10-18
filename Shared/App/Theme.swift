@@ -515,12 +515,22 @@ extension View {
 
 extension NSUbiquitousKeyValueStore {
 
+    /// The unscoped key an install carried before radio scoping existed.
+    ///
+    /// **Every reader below falls back to this, so every writer has to clear
+    /// it.** Spelling it out at each site is what let `saveDraft` clear the
+    /// scoped key and leave `draft.00` behind. One function means a reader and
+    /// a writer cannot disagree about what the key is.
+    func legacyKey(_ base: String, contactHex: String) -> String {
+        "\(base).\(contactHex)"
+    }
+
     /// Build a radio-scoped iCloud key. Returns scoped key if radio prefix available, else legacy key.
     func scopedKey(_ base: String, contactHex: String, radioPrefix: String?) -> String {
         if let prefix = radioPrefix, !prefix.isEmpty {
             return "\(base).\(prefix).\(contactHex)"
         }
-        return "\(base).\(contactHex)"
+        return legacyKey(base, contactHex: contactHex)
     }
 
     /// Read a string from iCloud, trying scoped key first then legacy fallback.
@@ -531,9 +541,70 @@ extension NSUbiquitousKeyValueStore {
                 return value
             }
         }
-        let legacyKey = "\(base).\(contactHex)"
-        let value = string(forKey: legacyKey)
+        let legacy = legacyKey(base, contactHex: contactHex)
+        let value = string(forKey: legacy)
         return (value?.isEmpty == true) ? nil : value
+    }
+
+    /// Write a scoped value, clearing the legacy key so a read cannot resurrect it.
+    ///
+    /// **The readers above fall back to an unscoped legacy key, so every writer
+    /// must clear it too.** `saveDraft` did not: it hand-built the scoped key
+    /// and removed only that, so clearing a draft left `draft.00` in place and
+    /// the next `loadDraft` fell through and restored it. That is why the
+    /// public channel's compose field refused to empty after sending while a
+    /// direct message's did — `draft.00` is the one key every install has
+    /// carried since before radio scoping existed.
+    ///
+    /// Writing through here keeps the two sides symmetrical by construction.
+    /// Passing an empty string removes the value, which is how a draft is
+    /// cleared.
+    ///
+    /// **With no radio connected the two keys are the same key.** `scopedKey`
+    /// falls back to the unscoped form when it has no prefix, so clearing "the
+    /// legacy one" afterwards would delete the value just written — which it
+    /// did, and drafts stopped surviving navigation until the simulator said
+    /// so. `clearLegacy` exists to make that case impossible to write.
+    func setScopedString(_ value: String,
+                         base: String,
+                         contactHex: String,
+                         radioPrefix: String?) {
+        let scoped = scopedKey(base, contactHex: contactHex, radioPrefix: radioPrefix)
+        if value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            removeObject(forKey: scoped)
+            clearLegacy(base, contactHex: contactHex, otherThan: scoped)
+        } else {
+            set(value, forKey: scoped)
+            // The scoped key is now authoritative; a stale legacy value would
+            // only ever shadow it on a later read.
+            clearLegacy(base, contactHex: contactHex, otherThan: scoped)
+        }
+        synchronize()
+    }
+
+    /// Write a scoped number, clearing the legacy key. See `setScopedString`.
+    func setScopedDouble(_ value: Double,
+                         base: String,
+                         contactHex: String,
+                         radioPrefix: String?) {
+        let scoped = scopedKey(base, contactHex: contactHex, radioPrefix: radioPrefix)
+        set(value, forKey: scoped)
+        clearLegacy(base, contactHex: contactHex, otherThan: scoped)
+        synchronize()
+    }
+
+    /// Remove the unscoped key, unless it *is* the key just written.
+    private func clearLegacy(_ base: String, contactHex: String, otherThan scoped: String) {
+        let legacy = legacyKey(base, contactHex: contactHex)
+        guard legacy != scoped else { return }
+        removeObject(forKey: legacy)
+    }
+
+    /// Remove both the scoped and legacy forms of a key.
+    func removeScoped(base: String, contactHex: String, radioPrefix: String?) {
+        removeObject(forKey: scopedKey(base, contactHex: contactHex, radioPrefix: radioPrefix))
+        removeObject(forKey: legacyKey(base, contactHex: contactHex))
+        synchronize()
     }
 
     /// Read a double from iCloud, trying scoped key first then legacy fallback.
@@ -543,8 +614,8 @@ extension NSUbiquitousKeyValueStore {
             let val = double(forKey: key)
             if val > 0 { return val }
         }
-        let legacyKey = "\(base).\(contactHex)"
-        return double(forKey: legacyKey)
+        let legacy = legacyKey(base, contactHex: contactHex)
+        return double(forKey: legacy)
     }
 
     /// Save a Codable value to iCloud KV store.

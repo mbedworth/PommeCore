@@ -57,8 +57,6 @@ struct ChatView: View {
     /// on every re-init of this struct.
     @State private var refreshTimer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 
-    private let maxMessageLength = 160
-
     private var messages: [Message] {
         messageStoreManager.messages(for: contact)
     }
@@ -319,15 +317,10 @@ struct ChatView: View {
         }
         #endif
         .onAppear {
-            if messageText.isEmpty {
-                messageText = messageStoreManager.loadDraft(for: contact.publicKeyPrefix)
-            }
+            // The draft is loaded and saved by MessageComposer, not here.
             DispatchQueue.main.async {
                 messageStoreManager.markAsRead(contact)
             }
-        }
-        .onDisappear {
-            messageStoreManager.saveDraft(messageText, for: contact.publicKeyPrefix)
         }
     }
 
@@ -439,8 +432,12 @@ struct ChatView: View {
     }
 
     private var messageInput: some View {
-        VStack(spacing: 4) {
-            // Quote preview bar
+        MessageComposer(text: $messageText,
+                        conversationKey: contact.publicKeyPrefix,
+                        onSend: send,
+                        accessory: {
+            // The quote bar is the only part of this screen's compose area that
+            // is not shared with channels and rooms.
             if let quoted = quotedMessage {
                 HStack(spacing: 8) {
                     Rectangle()
@@ -467,56 +464,11 @@ struct ChatView: View {
                 .padding(.vertical, 6)
                 .background(MeshTheme.surfaceLight)
             }
-            HStack(spacing: 10) {
-                TextField("Type a message...", text: $messageText)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 10)
-                    .background(MeshTheme.surfaceLight)
-                    .clipShape(RoundedRectangle(cornerRadius: 20))
-                    .foregroundStyle(MeshTheme.textPrimary)
-                    .onChange(of: messageText) { _, newValue in
-                        if newValue.count > maxMessageLength {
-                            messageText = String(newValue.prefix(maxMessageLength))
-                        }
-                    }
-                    #if !os(watchOS)
-                    .onSubmit { send() }
-                    #endif
-
-
-                Button(action: send) {
-                    Image(systemName: "arrow.up.circle.fill")
-                        .accessibilityLabel("Send message")
-                        .font(.title)
-                        .foregroundStyle(
-                            messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                                ? MeshTheme.textSecondary
-                                : MeshTheme.accent
-                        )
-                }
-                .disabled(messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                .accessibilityLabel("Send")
-            }
-            .padding(.horizontal, 12)
-
-            if !messageText.isEmpty {
-                HStack {
-                    Spacer()
-                    Text("\(messageText.count)/\(maxMessageLength)")
-                        .font(.caption2)
-                        .foregroundStyle(
-                            messageText.count > maxMessageLength - 10
-                                ? MeshTheme.statusWarn
-                                : MeshTheme.textSecondary
-                        )
-                }
-                .padding(.horizontal, 16)
-            }
-        }
-        .padding(.vertical, 8)
-        .background(MeshTheme.surface)
+        })
     }
 
+    /// Only what is specific to a direct message. Clearing the field, the
+    /// haptic and the draft belong to `MessageComposer`.
     private func send() {
         var text = messageText
         if let quoted = quotedMessage {
@@ -527,11 +479,8 @@ struct ChatView: View {
             text = "@[\(senderName)]\n>\(preview)\(suffix)\n\(text)"
         }
         messageStoreManager.sendTextMessage(text, to: contact, signed: signNextMessage)
-        messageStoreManager.playHapticFeedback()
         signNextMessage = false
-        messageText = ""
         quotedMessage = nil
-        messageStoreManager.saveDraft("", for: contact.publicKeyPrefix)
     }
 
     #if !os(watchOS)

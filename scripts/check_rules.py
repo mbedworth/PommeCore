@@ -585,6 +585,50 @@ def check_idiom_layout() -> None:
                        "iPad Slide Over and on unfolded foldables")
 
 
+# A key is built by interpolating something into a string literal and handed
+# straight to the store. `scopedKey` / `legacyKey` are the two legitimate
+# spellings, and both live in Theme.swift, so a literal anywhere else is a
+# second definition of a key that already has one.
+HAND_BUILT_KEY = re.compile(
+    r'\b(?:set|string|double|bool|data|array|dictionary|object|removeObject)'
+    r'\(\s*(?:[^,()]*,\s*)?forKey:\s*"[^"]*\\\('
+)
+
+KEY_HELPER_HOME = pathlib.Path("Shared/App/Theme.swift")
+
+
+def check_hand_built_icloud_keys() -> None:
+    """A key spelled out at the call site is a key with two definitions.
+
+    `scopedString` and `scopedDouble` read a radio-scoped key and fall back to
+    the unscoped one an install carried before scoping existed. So a writer has
+    to clear *both*, and `saveDraft` spelled its own key out and cleared only
+    the scoped half — leaving `draft.00`, which the next read dutifully restored
+    into the compose field. The public channel's field would not empty after
+    sending; a direct message's did, because its key is per-contact and so was
+    rarely stale. `removeiCloudMessageData` already knew about both halves. The
+    knowledge existed; it just was not in the one place every caller goes
+    through.
+
+    `scopedKey` and `legacyKey` in Theme.swift are that place. Anything that
+    interpolates a key into a string literal at the call site has opted out of
+    the pairing, and nothing will say so until a stale value surfaces as a bug
+    in a screen that looks unrelated.
+    """
+    for path in swift_files(["Shared", "watchOS"]):
+        if path == KEY_HELPER_HOME:
+            continue  # where the two key forms are defined
+        for i, line in enumerate(lines_of(path), 1):
+            if line.lstrip().startswith("//"):
+                continue
+            if HAND_BUILT_KEY.search(line):
+                report("FAIL", "DP4", path, i,
+                       "an iCloud key is interpolated at the call site — a "
+                       "reader falls back to the unscoped form, so a writer "
+                       "that spells its own key clears only half of it. Use "
+                       "scopedKey/legacyKey or the setScoped* helpers")
+
+
 CHECKS = [
     check_sheet_frames,
     check_text_takes_string,
@@ -602,6 +646,7 @@ CHECKS = [
     check_literals_in_catalog,
     check_help_catalog,
     check_path_len_decoding,
+    check_hand_built_icloud_keys,
     check_idiom_layout,
 ]
 
