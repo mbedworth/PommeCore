@@ -85,6 +85,9 @@ struct ContactListView: View {
     @State var channelsExpanded = true
     @AppStorage("contactSortByLastSeen") var sortByLastSeen = true
     @AppStorage("channelsFirst") var channelsFirst = false
+
+    /// Which type the list is showing. `.all` is the grouped list as it was.
+    @AppStorage("contactListFilter") var listFilter: ContactListFilter = .all
     #if os(iOS)
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
     @State var navigateToMap = false
@@ -490,23 +493,28 @@ private extension ContactListView {
             }
     }
 
+    /// The list's contents under the current filter.
+    ///
+    /// `.all` renders exactly the list that was here before; a specific type
+    /// renders only its own section. Gating the existing sections rather than
+    /// rebuilding rows keeps selection mode, swipe actions and the platform
+    /// variants in one place — extracted from `mainList` because inlining it
+    /// put the body past what the type-checker will do in reasonable time.
+    @ViewBuilder
+    var filteredSections: some View {
+        // Pending contacts are not a type — they are an inbox, and they are
+        // the one thing on this screen that is asking to be dealt with. They
+        // stay above whatever the filter is showing.
+        if !contactStore.pendingNewContacts.isEmpty {
+            pendingContactsSection
+        }
+        unifiedSection
+    }
+
     var mainList: some View {
         List(selection: $localSelection) {
             connectionSection
-            if channelsFirst {
-                channelsSection
-            }
-            if !contactStore.pendingNewContacts.isEmpty {
-                pendingContactsSection
-            }
-            if !contactStore.contactGroups.isEmpty {
-                groupsSection
-            }
-            contactsSection
-            infrastructureSections
-            if !channelsFirst {
-                channelsSection
-            }
+            filteredSections
             #if os(macOS) || targetEnvironment(macCatalyst)
             if isUSBCLIConnected {
                 Section {

@@ -810,6 +810,62 @@ struct LabelValueRow: View {
     }
 }
 
+// MARK: - Section Header
+
+/// The header above a `Section`, in one place.
+///
+/// Every header restated its own styling, and most of them drifted: of 52 in
+/// the app, 32 set no colour at all and took SwiftUI's default. The contact
+/// list showed the result in a single screen — Repeaters, Sensors and Rooms in
+/// accent green with an icon, Contacts, Groups and Channels in grey without
+/// one, Pending Contacts in amber. Nothing chose that; it is just where three
+/// people stopped.
+///
+/// Grey is the resting state, which is both the majority here and the iOS
+/// convention. `tint` exists for the one header that genuinely means something
+/// by its colour — Pending Contacts, where amber *is* the signal that
+/// something is waiting — and the fact that it has to be asked for is the
+/// point. `trailing` carries whatever the section puts on the right: a sort
+/// toggle, an add menu, an unread count.
+struct SectionHeader<Trailing: View>: View {
+    let title: LocalizedStringKey
+    var systemImage: String?
+    var tint: Color = MeshTheme.textSecondary
+    @ViewBuilder var trailing: () -> Trailing
+
+    var body: some View {
+        HStack {
+            if let systemImage {
+                Label(title, systemImage: systemImage)
+                    .foregroundStyle(tint)
+            } else {
+                Text(title)
+                    .foregroundStyle(tint)
+            }
+            trailing()
+        }
+    }
+}
+
+extension SectionHeader where Trailing == EmptyView {
+    init(_ title: LocalizedStringKey,
+         systemImage: String? = nil,
+         tint: Color = MeshTheme.textSecondary) {
+        self.init(title: title, systemImage: systemImage, tint: tint,
+                  trailing: { EmptyView() })
+    }
+}
+
+extension SectionHeader {
+    init(_ title: LocalizedStringKey,
+         systemImage: String? = nil,
+         tint: Color = MeshTheme.textSecondary,
+         @ViewBuilder trailing: @escaping () -> Trailing) {
+        self.init(title: title, systemImage: systemImage, tint: tint,
+                  trailing: trailing)
+    }
+}
+
 // MARK: - Coordinate Input Field
 
 /// Reusable lat/lon text field row for List/Form contexts.

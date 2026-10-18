@@ -78,14 +78,28 @@ extension ContactListView {
                 .listRowBackground(MeshTheme.surface)
             }
         } header: {
-            Text("Pending Contacts")
-                .foregroundStyle(MeshTheme.statusWarn)
+            // Amber on purpose: here the colour *is* the signal that something
+            // is waiting. It is the only header that asks for a tint.
+            SectionHeader("Pending Contacts", tint: MeshTheme.statusWarn)
         }
     }
 
     @ViewBuilder
     var groupsSection: some View {
         Section {
+            groupRows
+        } header: {
+            SectionHeader("Groups") {
+                Spacer()
+                groupsHeaderButton
+            }
+        }
+    }
+
+    /// The group rows on their own, so the unified section can show them.
+    @ViewBuilder
+    var groupRows: some View {
+        Group {
             ForEach(contactStore.contactGroups) { group in
                 DisclosureGroup {
                     let members = sortedGroupMembers(contactStore.contactsInGroup(group))
@@ -208,11 +222,13 @@ extension ContactListView {
                     }
                 }
             }
-        } header: {
-            HStack {
-                Text("Groups")
-                    .foregroundStyle(MeshTheme.textSecondary)
-                Spacer()
+        }
+    }
+
+    /// The groups section's own button.
+    @ViewBuilder
+    var groupsHeaderButton: some View {
+        Group {
                 Button {
                     groupContactForNew = nil
                     showNewGroupSheet = true
@@ -223,14 +239,168 @@ extension ContactListView {
                 }
                 .buttonStyle(.plain)
             }
+    }
+
+    // MARK: - The list
+
+    /// The whole list, as one section whose header names what it is showing.
+    ///
+    /// There used to be a section per type, and their headers had drifted into
+    /// three different colours because nothing owned them. Showing one type at
+    /// a time removes the question instead of answering it: one header, one
+    /// kind of row. The buttons on the right are each type's own, in the place
+    /// they already occupied — only the title changed, into the control that
+    /// picks what is below it.
+    @ViewBuilder
+    var unifiedSection: some View {
+        Section {
+            switch listFilter {
+            case .all:
+                contactRows(contactStore.sortedContacts(byLastSeen: sortByLastSeen))
+                channelRows
+            case .contacts, .repeaters, .sensors, .rooms:
+                contactRows(contacts(for: listFilter))
+            case .channels:
+                channelRows
+            case .groups:
+                groupRows
+            }
+        } header: {
+            HStack {
+                typeSelector
+                Spacer()
+                filterTrailingButtons
+            }
         }
     }
 
-    var contactsSectionHeader: some View {
-        HStack {
-            Text("Contacts")
+    /// The section title, turned into the control that chooses it.
+    ///
+    /// Styled as a header rather than as a button: it sits where the title sat
+    /// and reads as one, with the chevron the only thing saying it can be
+    /// changed. Each entry carries its own unread count, and the control
+    /// carries the total for every type it is hiding — a filter hides a whole
+    /// type, which is stronger than collapsing a section, and the list must
+    /// never be the reason a message goes unseen.
+    var typeSelector: some View {
+        Menu {
+            ForEach(ContactListFilter.allCases) { filter in
+                Button {
+                    listFilter = filter
+                } label: {
+                    Label(filter.title, systemImage: filter.systemImage)
+                    let unread = unreadCount(for: filter)
+                    if unread > 0 {
+                        Text("\(unread)")
+                    }
+                }
+            }
+        } label: {
+            HStack(spacing: 4) {
+                Label(listFilter.title, systemImage: listFilter.systemImage)
+                    .foregroundStyle(MeshTheme.textSecondary)
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.caption2)
+                    .foregroundStyle(MeshTheme.accent)
+                if unreadElsewhere > 0 {
+                    Text("\(unreadElsewhere)")
+                        .font(.caption2.weight(.bold))
+                        .foregroundStyle(MeshTheme.textOnBubble)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Capsule().fill(MeshTheme.interactiveGreen))
+                }
+            }
+            .contentShape(Rectangle())
+        }
+        .accessibilityLabel(unreadElsewhere > 0
+            ? String(format: String(localized: "Showing %1$@, %2$d unread elsewhere"),
+                     listFilter.localizedTitle, unreadElsewhere)
+            : String(format: String(localized: "Showing %1$@"), listFilter.localizedTitle))
+    }
+
+    /// Each type keeps its own buttons, in the place they already occupied.
+    @ViewBuilder
+    var filterTrailingButtons: some View {
+        switch listFilter {
+        case .all, .contacts:
+            contactsHeaderButtons
+        case .channels:
+            channelsHeaderButtons
+        case .groups:
+            groupsHeaderButton
+        case .repeaters, .sensors, .rooms:
+            let members = contacts(for: listFilter)
+            let unread = members.reduce(0) { $0 + messageStoreManager.unreadCount(for: $1) }
+            if unread > 0 {
+                Text("\(unread)")
+                    .font(.caption2)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Capsule().fill(MeshTheme.accent))
+                    .foregroundStyle(MeshTheme.textOnFill)
+            }
+            Text("\(members.count)")
+                .font(.caption)
                 .foregroundStyle(MeshTheme.textSecondary)
+        }
+    }
+
+    /// The contacts a filter shows. `.all` is handled by the caller, which
+    /// needs the channels too.
+    func contacts(for filter: ContactListFilter) -> [Contact] {
+        guard let type = filter.contactType else { return [] }
+        return contactStore.sortedContacts(byLastSeen: sortByLastSeen)
+            .filter { $0.type == type }
+    }
+
+    // MARK: - Type filter
+
+    /// Unread waiting in a type that the current filter is hiding.
+    func unreadCount(for filter: ContactListFilter) -> Int {
+        switch filter {
+        case .all:
+            return ContactListFilter.allCases
+                .filter { $0 != .all }
+                .reduce(0) { $0 + unreadCount(for: $1) }
+        case .channels:
+            return channelStore.channels.reduce(0) {
+                $0 + (messageStoreManager.unreadCounts[Data([$1.index])] ?? 0)
+            }
+        case .contacts:
+            return ungroupedContacts.reduce(0) { $0 + messageStoreManager.unreadCount(for: $1) }
+        case .groups:
+            let members = Set(contactStore.contactGroups.flatMap(\.memberPubkeys))
+            return contactStore.contacts
+                .filter { members.contains($0.publicKeyPrefix.hexCompact) }
+                .reduce(0) { $0 + messageStoreManager.unreadCount(for: $1) }
+        case .repeaters, .sensors, .rooms:
+            guard let type = filter.contactType else { return 0 }
+            return infrastructureContacts(type).reduce(0) {
+                $0 + messageStoreManager.unreadCount(for: $1)
+            }
+        }
+    }
+
+    /// Unread sitting in everything the current filter is *not* showing.
+    var unreadElsewhere: Int {
+        guard listFilter != .all else { return 0 }
+        return ContactListFilter.allCases
+            .filter { $0 != .all && $0 != listFilter }
+            .reduce(0) { $0 + unreadCount(for: $1) }
+    }
+
+    var contactsSectionHeader: some View {
+        SectionHeader("Contacts") {
             Spacer()
+            contactsHeaderButtons
+        }
+    }
+
+    /// The contacts section's own buttons: sort, and the add menu.
+    @ViewBuilder
+    var contactsHeaderButtons: some View {
+        Group {
             Button {
                 sortByLastSeen.toggle()
             } label: {
@@ -263,7 +433,23 @@ extension ContactListView {
 
     var contactsSection: some View {
         Section(isExpanded: $contactsExpanded) {
-            if ungroupedContacts.isEmpty {
+            contactRows(ungroupedContacts)
+        } header: {
+            contactsSectionHeader
+        }
+    }
+
+    /// The rows for a set of contacts, with everything a contact row carries:
+    /// selection mode, the context menu, the swipe actions and the selected-row
+    /// highlight.
+    ///
+    /// Infrastructure contacts used to get a plainer row built separately —
+    /// a bare `NavigationLink` with no context menu and no swipe actions. One
+    /// builder means a repeater behaves like a contact, because it is one.
+    @ViewBuilder
+    func contactRows(_ contacts: [Contact]) -> some View {
+        Group {
+            if contacts.isEmpty {
                 VStack(spacing: 12) {
                     Image(systemName: "person.2.slash")
                         .font(.title)
@@ -287,7 +473,7 @@ extension ContactListView {
                 .padding(.vertical, 8)
                 .listRowBackground(MeshTheme.surface)
             } else {
-                ForEach(ungroupedContacts) { contact in
+                ForEach(contacts) { contact in
                     #if os(watchOS)
                     NavigationLink {
                         contactDestination(contact)
@@ -363,7 +549,7 @@ extension ContactListView {
                     // everything, clearing the user's work instead of
                     // completing it. Union and subtract for the same reason:
                     // they only ever touch the keys this section owns.
-                    let visibleKeys = Set(ungroupedContacts.map(\.publicKeyPrefix))
+                    let visibleKeys = Set(contacts.map(\.publicKeyPrefix))
                     let allVisibleSelected = !visibleKeys.isEmpty
                         && visibleKeys.isSubset(of: selectedContacts)
                     Button(allVisibleSelected ? "Deselect All" : "Select All") {
@@ -396,8 +582,6 @@ extension ContactListView {
                 }
                 .listRowBackground(MeshTheme.surface)
             }
-        } header: {
-            contactsSectionHeader
         }
         // Delete alerts live in deleteAlertsOverlay (deferred presentation avoids swipe/context menu conflicts).
         .alert("Import from Link", isPresented: $showImportSheet) {
@@ -510,15 +694,32 @@ extension ContactListView {
     /// asked for.
     @ViewBuilder
     var infrastructureSections: some View {
-        infrastructureSection(.repeater, title: "Repeaters",
-                              systemImage: "antenna.radiowaves.left.and.right",
-                              isExpanded: $repeatersExpanded)
-        infrastructureSection(.sensor, title: "Sensors",
-                              systemImage: "sensor",
-                              isExpanded: $sensorsExpanded)
-        infrastructureSection(.room, title: "Rooms",
-                              systemImage: "bubble.left.and.bubble.right",
-                              isExpanded: $roomsExpanded)
+        // Asking for a type is asking to see it, so a section the filter
+        // selects is open whatever its remembered collapsed state says.
+        if listFilter == .all || listFilter == .repeaters {
+            infrastructureSection(.repeater, title: "Repeaters",
+                                  systemImage: "antenna.radiowaves.left.and.right",
+                                  isExpanded: expansion(for: .repeaters, remembered: $repeatersExpanded))
+        }
+        if listFilter == .all || listFilter == .sensors {
+            infrastructureSection(.sensor, title: "Sensors",
+                                  systemImage: "sensor",
+                                  isExpanded: expansion(for: .sensors, remembered: $sensorsExpanded))
+        }
+        if listFilter == .all || listFilter == .rooms {
+            infrastructureSection(.room, title: "Rooms",
+                                  systemImage: "bubble.left.and.bubble.right",
+                                  isExpanded: expansion(for: .rooms, remembered: $roomsExpanded))
+        }
+    }
+
+    /// Collapsed state only has meaning in the grouped list. When the filter
+    /// has picked this type, the section is the whole screen, so it is open —
+    /// and writes still go to the remembered value, so nothing is forgotten.
+    func expansion(for filter: ContactListFilter,
+                   remembered: Binding<Bool>) -> Binding<Bool> {
+        guard listFilter == filter else { return remembered }
+        return Binding(get: { true }, set: { remembered.wrappedValue = $0 })
     }
 
     @ViewBuilder
@@ -546,9 +747,7 @@ extension ContactListView {
                     #endif
                 }
             } header: {
-                HStack {
-                    Label(title, systemImage: systemImage)
-                        .foregroundStyle(MeshTheme.accent)
+                SectionHeader(title, systemImage: systemImage) {
                     Spacer()
                     if unread > 0 {
                         // The whole point of collapsing is that you stop

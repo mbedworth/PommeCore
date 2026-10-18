@@ -28,4 +28,4 @@ Shared/Views/SettingsView+Sections.swift:730  # rule 18: connectionLabel
 Shared/Views/SettingsView+TipJar.swift:558  # rule 18: errorMessage
 Shared/Views/SettingsView+TipJar.swift:580  # rule 18: thankYouTitle
 Shared/Views/SettingsView+TipJar.swift:583  # rule 18: thankYouMessage
-Shared/Views/ContactListView.swift:440  # rule 17: idiom, but falls through to horizontalSizeClass for non-pad — correct on a foldable
+Shared/Views/ContactListView.swift:443  # rule 17: idiom, but falls through to horizontalSizeClass for non-pad — correct on a foldable
