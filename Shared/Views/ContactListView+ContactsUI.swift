@@ -326,9 +326,13 @@ extension ContactListView {
         case .all, .contacts:
             contactsHeaderButtons
         case .channels:
+            // The only filter that lists no contacts, so the only one with no
+            // sort and no multi-select.
             channelsHeaderButtons
         case .groups:
             groupsHeaderButton
+            sortButton
+            editButton
         case .repeaters, .sensors, .rooms:
             let members = contacts(for: listFilter)
             let unread = members.reduce(0) { $0 + messageStoreManager.unreadCount(for: $1) }
@@ -343,6 +347,8 @@ extension ContactListView {
             Text("\(members.count)")
                 .font(.caption)
                 .foregroundStyle(MeshTheme.textSecondary)
+            sortButton
+            editButton
         }
     }
 
@@ -401,34 +407,51 @@ extension ContactListView {
     @ViewBuilder
     var contactsHeaderButtons: some View {
         Group {
-            Button {
-                sortByLastSeen.toggle()
-            } label: {
-                Image(systemName: sortByLastSeen ? "clock" : "textformat.abc")
-                    .foregroundStyle(MeshTheme.accent)
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(sortByLastSeen ? Text("Sort alphabetically") : Text("Sort by last seen"))
-            Menu {
-                Button { showImportSheet = true } label: {
-                    Label("Paste Contact Link", systemImage: "doc.on.clipboard")
-                }
-                Button { connectionManager.sendAdvertise(type: 1) } label: {
-                    Label("Send Flood Advert", systemImage: "antenna.radiowaves.left.and.right")
-                }
-            } label: {
-                Image(systemName: "plus")
-                    .foregroundStyle(MeshTheme.accent)
-            }
-            .accessibilityLabel("Add contact")
-            .menuIndicator(.hidden)
-            Button(String(localized: isSelecting ? "Done" : "Edit")) {
-                isSelecting.toggle()
-                if !isSelecting { selectedContacts.removeAll() }
-            }
-            .font(.caption)
-            .foregroundStyle(MeshTheme.accent)
+            sortButton
+            addContactMenu
+            editButton
         }
+    }
+
+    /// Sorting applies to any list of contacts, not just the Contacts filter.
+    /// It was briefly reachable only from All and Contacts, which lost it for
+    /// Repeaters, Sensors, Rooms and Groups — all of which are contact lists.
+    var sortButton: some View {
+        Button {
+            sortByLastSeen.toggle()
+        } label: {
+            Image(systemName: sortByLastSeen ? "clock" : "textformat.abc")
+                .foregroundStyle(MeshTheme.accent)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(sortByLastSeen ? Text("Sort alphabetically") : Text("Sort by last seen"))
+    }
+
+    /// Multi-select is a contact operation, so it travels with the contacts.
+    var editButton: some View {
+        Button(String(localized: isSelecting ? "Done" : "Edit")) {
+            isSelecting.toggle()
+            if !isSelecting { selectedContacts.removeAll() }
+        }
+        .font(.caption)
+        .foregroundStyle(MeshTheme.accent)
+    }
+
+    /// Adding is the part that is genuinely type-specific.
+    var addContactMenu: some View {
+        Menu {
+            Button { showImportSheet = true } label: {
+                Label("Paste Contact Link", systemImage: "doc.on.clipboard")
+            }
+            Button { connectionManager.sendAdvertise(type: 1) } label: {
+                Label("Send Flood Advert", systemImage: "antenna.radiowaves.left.and.right")
+            }
+        } label: {
+            Image(systemName: "plus")
+                .foregroundStyle(MeshTheme.accent)
+        }
+        .accessibilityLabel("Add contact")
+        .menuIndicator(.hidden)
     }
 
     var contactsSection: some View {
