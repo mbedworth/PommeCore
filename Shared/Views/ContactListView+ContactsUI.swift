@@ -299,9 +299,17 @@ extension ContactListView {
             HStack(spacing: 4) {
                 Label(listFilter.title, systemImage: listFilter.systemImage)
                     .foregroundStyle(MeshTheme.textSecondary)
+                // iOS draws no indicator for a Menu used as a plain label, so
+                // it needs one to read as a control. macOS draws its own and
+                // ignores `.menuIndicator(.hidden)` under a plain button style,
+                // so adding ours there gives the two chevrons side by side that
+                // the Mac build shipped with. One each, from whichever source
+                // the platform actually provides.
+                #if !os(macOS) && !targetEnvironment(macCatalyst)
                 Image(systemName: "chevron.up.chevron.down")
                     .font(.caption2)
                     .foregroundStyle(MeshTheme.accent)
+                #endif
                 if unreadElsewhere > 0 {
                     Text("\(unreadElsewhere)")
                         .font(.caption2.weight(.bold))
@@ -313,6 +321,9 @@ extension ContactListView {
             }
             .contentShape(Rectangle())
         }
+        // Without this macOS renders the menu as a bordered button and tints
+        // its icon with the system accent instead of the theme's.
+        .buttonStyle(.plain)
         .accessibilityLabel(unreadElsewhere > 0
             ? String(format: String(localized: "Showing %1$@, %2$d unread elsewhere"),
                      listFilter.localizedTitle, unreadElsewhere)
