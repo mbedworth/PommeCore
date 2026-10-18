@@ -207,6 +207,19 @@ extension ContactListView {
     @ViewBuilder
     var channelsSection: some View {
         Section(isExpanded: $channelsExpanded) {
+            channelRows
+        } header: {
+            SectionHeader("Channels") {
+                channelsHeaderButtons
+            }
+        }
+    }
+
+    /// The channel rows on their own, so one section can show them beside
+    /// contacts.
+    @ViewBuilder
+    var channelRows: some View {
+        Group {
             // Public channel is always the first item
             #if os(watchOS)
             NavigationLink {
@@ -280,9 +293,14 @@ extension ContactListView {
                 )
                 #endif
             }
-        } header: {
-            SectionHeader("Channels") {
-                if channelStore.isSyncingChannels {
+        }
+    }
+
+    /// The channels section's own buttons: the sync spinner and the add menu.
+    @ViewBuilder
+    var channelsHeaderButtons: some View {
+        Group {
+            if channelStore.isSyncingChannels {
                     ProgressView()
                         .controlSize(.mini)
                 }
@@ -316,7 +334,6 @@ extension ContactListView {
                 #endif
             }
         }
-    }
 
     func channelRow(_ channel: MeshChannel) -> some View {
         HStack(spacing: 12) {
