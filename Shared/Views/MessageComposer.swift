@@ -26,6 +26,7 @@
 //
 
 import SwiftUI
+import MeshCoreKit
 
 struct MessageComposer<Accessory: View, Overlay: View>: View {
 
@@ -50,8 +51,11 @@ struct MessageComposer<Accessory: View, Overlay: View>: View {
 
     @Environment(MessageStoreManager.self) private var messageStoreManager
 
-    /// Firmware's limit for a single message.
-    private let maxMessageLength = 160
+    /// The radio counts UTF-8 bytes, so the field does too. For English the two
+    /// are the same number, which is exactly why counting Characters here went
+    /// unnoticed in twelve languages — see `MessageText`.
+    private var byteCount: Int { text.utf8ByteCount }
+    private var maxBytes: Int { MessageText.maxBytes }
 
     private var trimmed: String {
         text.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -72,9 +76,8 @@ struct MessageComposer<Accessory: View, Overlay: View>: View {
                         .clipShape(RoundedRectangle(cornerRadius: 20))
                         .foregroundStyle(MeshTheme.textPrimary)
                         .onChange(of: text) { _, newValue in
-                            if newValue.count > maxMessageLength {
-                                text = String(newValue.prefix(maxMessageLength))
-                            }
+                            let clamped = newValue.truncated(toUTF8Bytes: maxBytes)
+                            if clamped != newValue { text = clamped }
                         }
                         #if !os(watchOS)
                         .onSubmit(send)
@@ -93,10 +96,10 @@ struct MessageComposer<Accessory: View, Overlay: View>: View {
                 if !text.isEmpty {
                     HStack {
                         Spacer()
-                        Text("\(text.count)/\(maxMessageLength)")
+                        Text("\(byteCount)/\(maxBytes)")
                             .font(.caption2)
                             .foregroundStyle(
-                                text.count > maxMessageLength - 10
+                                byteCount > maxBytes - 10
                                     ? MeshTheme.statusWarn
                                     : MeshTheme.textSecondary
                             )

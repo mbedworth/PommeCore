@@ -303,7 +303,8 @@ struct ChatView: View {
             ForwardContactPicker { targetContact in
                 if let msg = forwardMessage {
                     let fwdText = "Fwd from \(contactStore.displayName(for: contact)): \(msg.text)"
-                    messageStoreManager.sendTextMessage(String(fwdText.prefix(160)), to: targetContact)
+                    messageStoreManager.sendTextMessage(fwdText.truncated(toUTF8Bytes: MessageText.maxBytes),
+                                                        to: targetContact)
                 }
                 forwardMessage = nil
                 showForwardPicker = false

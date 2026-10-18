@@ -122,8 +122,9 @@ public enum MeshCoreProtocol {
         appendUInt32(&frame, Date().epochUInt32)
         // pubkey_prefix: first 6 bytes of recipient's public key hash
         frame.append(recipientKeyHash.prefix(6))
-        if let textData = text.data(using: .utf8) {
-            frame.append(textData.prefix(160)) // max 160 bytes
+        // Truncating the String, not the Data: cutting bytes splits characters.
+        if let textData = text.truncated(toUTF8Bytes: MessageText.maxBytes).data(using: .utf8) {
+            frame.append(textData)
         }
         return frame
     }
@@ -135,8 +136,8 @@ public enum MeshCoreProtocol {
         frame.append(txtType)
         frame.append(channelIndex)
         appendUInt32(&frame, Date().epochUInt32)
-        if let textData = text.data(using: .utf8) {
-            frame.append(textData.prefix(160))
+        if let textData = text.truncated(toUTF8Bytes: MessageText.maxBytes).data(using: .utf8) {
+            frame.append(textData)
         }
         return frame
     }
