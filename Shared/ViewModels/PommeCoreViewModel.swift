@@ -250,6 +250,7 @@ final class PommeCoreViewModel: ObservableObject {
         
         // MessageStoreManager dependencies
         messageStoreManager.sendCommand = { [weak self] data, label in self?.connectionManager.sendCommand(data, label: label) }
+        messageStoreManager.canSend = { [weak self] in self?.connectionManager.canSendCommand ?? false }
         messageStoreManager.displayNameProvider = { [weak self] key in
             guard let self, let contact = self.contactStore.contacts.first(where: { $0.publicKeyPrefix == key }) else { return "Unknown" }
             return self.contactStore.displayName(for: contact)

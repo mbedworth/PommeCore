@@ -42,6 +42,13 @@ final class MessageStoreManager {
     /// Closure to send a command frame to the device.
     var sendCommand: ((Data, String) -> Void)?
 
+    /// Whether `sendCommand` would actually reach a transport.
+    ///
+    /// `sendCommand` returns `Void` and silently drops the frame when nothing is
+    /// connected, so asking first is the only way to avoid recording a send that
+    /// never left the phone.
+    var canSend: (() -> Bool)?
+
     /// Closure to get the display name for a contact key prefix.
     var displayNameProvider: ((Data) -> String)?
 
@@ -103,6 +110,20 @@ final class MessageStoreManager {
 
     /// Tracks the most recent outgoing channel message for echo detection.
     var pendingChannelEcho: (id: UUID, channelKey: Data, sent: Date)?
+
+    /// The channel message waiting for the radio to say it accepted the frame.
+    ///
+    /// A channel send gets no end-to-end acknowledgement — nothing ever reports
+    /// that another station received it — but the *local radio* answers every
+    /// command frame, with `PACKET_OK` or an error. That answer is knowable, so
+    /// the message stays `.sending` until it arrives.
+    private var pendingChannelSend: (id: UUID, channelKey: Data, sent: Date)?
+    private var channelSendTimeoutTask: Task<Void, Never>?
+
+    /// How long to wait for the radio's answer before calling the send failed.
+    /// The radio replies as soon as it has parsed the frame, so this only has to
+    /// outlast a slow BLE write, not mesh propagation.
+    private let channelSendTimeout: Duration = .seconds(10)
 
     /// Whether we're currently syncing queued messages.
     var isSyncingMessages = false
@@ -364,22 +385,89 @@ final class MessageStoreManager {
         DebugLogger.shared.log("CH TX: text='\(trimmed)'", level: .tx)
 
         // Store before sending — echo response can arrive before message is persisted.
+        //
+        // `.sending`, not `.sent`: this used to claim the message was sent before
+        // the frame had even been handed to a transport, so a channel message
+        // composed while disconnected showed a confident "Sent" having never left
+        // the phone — `sendCommand` drops the frame and returns `Void`. It now
+        // follows the same rule as a direct message: the radio decides.
         let channelKey = Data([channelIndex])
         let outgoing = Message(
             contactKeyHash: channelKey,
             text: trimmed,
             timestamp: Date(),
             isOutgoing: true,
-            status: .sent,
+            status: .sending,
             channelIndex: channelIndex,
             isSigned: signed
         )
         messagesByContact[channelKey, default: []].append(outgoing)
         persistMessages(for: channelKey)
 
+        guard canSend?() ?? true else {
+            Self.logger.warning("CHANNEL TX: no transport — marking \(outgoing.id) failed")
+            DebugLogger.shared.log("CH TX: no transport, marked failed", level: .error)
+            markChannelMessage(outgoing.id, in: channelKey, as: .failed)
+            return
+        }
+
         sendCommand?(frame, "SEND_CHANNEL_TXT")
+        pendingChannelSend = (id: outgoing.id, channelKey: channelKey, sent: Date())
         pendingChannelEcho = (id: outgoing.id, channelKey: channelKey, sent: Date())
         DebugLogger.shared.log("ECHO: armed pending echo for ch=\(channelIndex)", level: .info)
+
+        // A radio that never answers must not leave the message claiming to be
+        // in flight for the rest of the session.
+        channelSendTimeoutTask?.cancel()
+        channelSendTimeoutTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: self?.channelSendTimeout ?? .seconds(10))
+            guard !Task.isCancelled, let self, let pending = self.pendingChannelSend,
+                  pending.id == outgoing.id else { return }
+            Self.logger.warning("CHANNEL TX: no response from radio — marking \(pending.id) failed")
+            DebugLogger.shared.log("CH TX: no radio response, marked failed", level: .error)
+            self.markChannelMessage(pending.id, in: pending.channelKey, as: .failed)
+            self.pendingChannelSend = nil
+        }
+    }
+
+    /// The radio answered a command frame. Promote a waiting channel send.
+    ///
+    /// `PACKET_OK` carries no indication of which command it answers, so this
+    /// resolves the pending send on the *next* answer after it was armed. BLE
+    /// writes are serialised and the firmware answers each frame before reading
+    /// the next, so in practice the next answer is this one's — and even where it
+    /// is not, a status derived from a real reply beats the unconditional "Sent"
+    /// this replaced.
+    func handleCommandAccepted() {
+        guard let pending = pendingChannelSend else { return }
+        channelSendTimeoutTask?.cancel()
+        pendingChannelSend = nil
+        Self.logger.info("CHANNEL TX: radio accepted \(pending.id)")
+        markChannelMessage(pending.id, in: pending.channelKey, as: .sent)
+    }
+
+    /// The radio rejected a command frame. Fail a waiting channel send, if any.
+    /// Returns whether it claimed the error, so direct-message handling is only
+    /// consulted when this did not.
+    func handleCommandRejected() -> Bool {
+        guard let pending = pendingChannelSend else { return false }
+        channelSendTimeoutTask?.cancel()
+        pendingChannelSend = nil
+        Self.logger.warning("CHANNEL TX: radio rejected \(pending.id)")
+        markChannelMessage(pending.id, in: pending.channelKey, as: .failed)
+        return true
+    }
+
+    /// Set a channel message's status by id, leaving a later one alone.
+    private func markChannelMessage(_ id: UUID, in channelKey: Data, as status: DeliveryStatus) {
+        guard var messages = messagesByContact[channelKey],
+              let idx = messages.firstIndex(where: { $0.id == id }) else { return }
+        // An echo may already have reported the mesh repeated it, which is a
+        // stronger statement than either of the ones made here.
+        guard messages[idx].status != .repeated else { return }
+        messages[idx].status = status
+        messagesByContact[channelKey] = messages
+        persistMessages(for: channelKey)
     }
 
     func sendRoomMessage(_ text: String, to contact: Contact) {
@@ -617,6 +705,13 @@ final class MessageStoreManager {
                     msgs[msgIdx].status = .repeated
                     messagesByContact[pending.channelKey] = msgs
                     persistMessages(for: pending.channelKey)
+                }
+                // A repeater repeating it is proof the radio transmitted it, so
+                // the wait for the radio's own answer is over and its timeout
+                // must not later contradict what the mesh already demonstrated.
+                if pendingChannelSend?.id == pending.id {
+                    channelSendTimeoutTask?.cancel()
+                    pendingChannelSend = nil
                 }
                 pendingChannelEcho = nil
             } else {
@@ -1126,5 +1221,14 @@ final class MessageStoreManager {
         isSyncingMessages = false
         pendingACKs.removeAll()
         pendingChannelEcho = nil
+        // The radio is gone, so its answer is never coming. Fail the waiting
+        // message here rather than leaving it to a timeout that would fire after
+        // the disconnect that already settled the question.
+        channelSendTimeoutTask?.cancel()
+        channelSendTimeoutTask = nil
+        if let pending = pendingChannelSend {
+            markChannelMessage(pending.id, in: pending.channelKey, as: .failed)
+            pendingChannelSend = nil
+        }
     }
 }
