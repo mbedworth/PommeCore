@@ -44,6 +44,7 @@ extension PommeCoreViewModel {
         switch response {
         case .ok:
             Self.logger.info("RESP OK — last command accepted by device")
+            messageStoreManager.handleCommandAccepted()
 
         case .error(let code, let description):
             Self.logger.warning("Error response: code=\(code) \(description)")
@@ -390,9 +391,14 @@ extension PommeCoreViewModel {
 
     func handleErrorResponse(code: UInt8, description: String) {
         if remoteSessionManager.handleErrorResponse(code: code, description: description) { return }
-        // If there's a message stuck in .sending when the error arrives, it will never get
-        // a RESP_SENT (no expectedACK → no timeout task). Mark it failed immediately.
-        messageStoreManager.failPendingSendingMessage()
+        // A waiting channel send knows which message it is, so it claims the error
+        // first. `failPendingSendingMessage` only searches for *a* message in
+        // `.sending` and would otherwise fail whichever it found first.
+        if !messageStoreManager.handleCommandRejected() {
+            // If there's a message stuck in .sending when the error arrives, it will never get
+            // a RESP_SENT (no expectedACK → no timeout task). Mark it failed immediately.
+            messageStoreManager.failPendingSendingMessage()
+        }
         switch MeshCoreErrorCode(rawValue: code) {
         case .unsupportedCmd:
             Self.logger.warning("ERR_CODE_UNSUPPORTED_CMD — firmware does not support this command (older firmware version), not user-actionable")
