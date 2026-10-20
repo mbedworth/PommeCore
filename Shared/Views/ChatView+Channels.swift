@@ -107,6 +107,13 @@ struct ChannelChatView: View {
                 messageText += "@\(sender) "
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .insertQuickReply)) { notification in
+            // Replaces rather than appends: this is a whole reply, not a
+            // fragment, and it still sits in the field for editing.
+            if let reply = notification.object as? String {
+                messageText = reply
+            }
+        }
         .alert("Location Unavailable", isPresented: $showLocationUnavailableAlert) {
             Button("OK", role: .cancel) {}
         } message: {

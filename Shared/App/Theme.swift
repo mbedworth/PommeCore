@@ -990,6 +990,27 @@ func formatBatteryVoltage<T: BinaryInteger>(_ mV: T) -> String {
     String(format: "%.2fV", Double(Int(mV)) / 1000.0)
 }
 
+/// A time of day for text that goes **out over the mesh**, as 24-hour `HH:mm`.
+///
+/// Deliberately not locale-aware, and deliberately not the `.short` time style
+/// the chat timestamps use. Those are read by the person holding the phone, so
+/// they should follow that person's locale. This one is read by whoever is on
+/// the other end of the radio, who has a different locale and no way to ask —
+/// so it uses the 24-hour convention every other station on the band is already
+/// using, and never emits an AM/PM marker that costs bytes and means nothing to
+/// half the mesh.
+func formatMeshTime(_ date: Date) -> String {
+    Self_meshTimeFormatter.string(from: date)
+}
+
+/// Held once: `DateFormatter` is expensive to build and this one never varies.
+private let Self_meshTimeFormatter: DateFormatter = {
+    let fmt = DateFormatter()
+    fmt.locale = Locale(identifier: "en_US_POSIX")
+    fmt.dateFormat = "HH:mm"
+    return fmt
+}()
+
 /// Format a coordinate (latitude or longitude) to 6 decimal places.
 func formatCoordinate(_ value: Double) -> String {
     String(format: "%.6f", value)

@@ -51,6 +51,12 @@ struct SettingsView: View {
     #endif
     @AppStorage("staleCleanupScope") var staleCleanupScope = "off"
     @AppStorage("staleCleanupDays") var staleCleanupDays = 30
+    @AppStorage(QuickReply.locationKey) var quickReplyLocation = ""
+    @AppStorage(QuickReply.includeHopsKey) var quickReplyIncludeHops = true
+    @AppStorage(QuickReply.includeLocationKey) var quickReplyIncludeLocation = true
+    @AppStorage(QuickReply.includeTimeKey) var quickReplyIncludeTime = true
+    @AppStorage(QuickReply.includeSNRKey) var quickReplyIncludeSNR = false
+    @State var isResolvingQuickReplyLocation = false
     @State var showDebugLog = false
     @State var showSupportersSheet = false
     @State var supporterName = ""
@@ -175,6 +181,7 @@ struct SettingsView: View {
             #endif
 
             messageSettingsSection
+            quickReplySection
 
             // 7. Privacy & Security
             privacySection

@@ -3,9 +3,9 @@ Packages/MeshCoreKit/Sources/MeshCoreKit/Models/DeviceInfo.swift:14  # rule 1/2:
 Shared/App/PommeCoreApp.swift:280  # rule 18: lastErrorMessage
 Shared/App/PommeCoreApp.swift:547  # rule 18: lastErrorMessage
 Shared/Models/CommunityPreset.swift:11  # rule 1/2: CommunityPresetManifest
-Shared/Views/ChatView+Channels.swift:349  # rule 18: loginStatusText
-Shared/Views/ChatView.swift:161  # rule 18: routeLabel
-Shared/Views/ChatView.swift:201  # rule 18: routeLabel
+Shared/Views/ChatView+Channels.swift:356  # rule 18: loginStatusText
+Shared/Views/ChatView.swift:165  # rule 18: routeLabel
+Shared/Views/ChatView.swift:205  # rule 18: routeLabel
 Shared/Views/ContactListView+ChannelsUI.swift:43  # rule 18: connectionLabel
 Shared/Views/ContactRowView.swift:198  # rule 18: seenText
 Shared/Views/LineOfSight/LineOfSightView.swift:217  # rule 18: headerTitle
@@ -22,9 +22,9 @@ Shared/Views/NetworkToolsView.swift:195  # rule 18: errorMessage
 Shared/Views/RemoteManagementView.swift:399  # rule 18: statusLabel
 Shared/Views/RemoteManagementView.swift:674  # rule 18: neighborsText
 Shared/Views/SettingsView+RadioPrivacy.swift:349  # rule 18: rangeText
-Shared/Views/SettingsView+Sections.swift:295  # rule 18: gpsStatusLabel
-Shared/Views/SettingsView+Sections.swift:472  # rule 18: regionMessage
-Shared/Views/SettingsView+Sections.swift:730  # rule 18: connectionLabel
+Shared/Views/SettingsView+Sections.swift:381  # rule 18: gpsStatusLabel
+Shared/Views/SettingsView+Sections.swift:558  # rule 18: regionMessage
+Shared/Views/SettingsView+Sections.swift:816  # rule 18: connectionLabel
 Shared/Views/SettingsView+TipJar.swift:558  # rule 18: errorMessage
 Shared/Views/SettingsView+TipJar.swift:580  # rule 18: thankYouTitle
 Shared/Views/SettingsView+TipJar.swift:583  # rule 18: thankYouMessage
