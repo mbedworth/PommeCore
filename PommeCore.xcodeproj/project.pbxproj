@@ -207,7 +207,9 @@
 		SVT10000000100000000003 /* SettingsView+TipJar.swift in Sources */ = {isa = PBXBuildFile; fileRef = SVT10000000000000000000 /* SettingsView+TipJar.swift */; };
 		CBV10000000100000000003 /* ContactBackupsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBV10000000000000000000 /* ContactBackupsView.swift */; };
 		CLF0000000000000000000A1 /* ContactListFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLF0000000000000000000A0 /* ContactListFilter.swift */; };
+		QRP0000000000000000000A1 /* QuickReply.swift in Sources */ = {isa = PBXBuildFile; fileRef = QRP0000000000000000000A0 /* QuickReply.swift */; };
 		CLF0000000000000000000A2 /* ContactListFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLF0000000000000000000A0 /* ContactListFilter.swift */; };
+		QRP0000000000000000000A2 /* QuickReply.swift in Sources */ = {isa = PBXBuildFile; fileRef = QRP0000000000000000000A0 /* QuickReply.swift */; };
 		D0C0000000000000000000A1 /* HelpTopic.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C0000000000000000000A0 /* HelpTopic.swift */; };
 		D0C0000000000000000000A2 /* HelpTopic.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C0000000000000000000A0 /* HelpTopic.swift */; };
 		D0C0000000000000000000B1 /* HelpCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C0000000000000000000B0 /* HelpCatalog.swift */; };
@@ -389,6 +391,7 @@
 		SVT10000000000000000000 /* SettingsView+TipJar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SettingsView+TipJar.swift"; sourceTree = "<group>"; };
 		CBV10000000000000000000 /* ContactBackupsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactBackupsView.swift; sourceTree = "<group>"; };
 		CLF0000000000000000000A0 /* ContactListFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactListFilter.swift; sourceTree = "<group>"; };
+		QRP0000000000000000000A0 /* QuickReply.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickReply.swift; sourceTree = "<group>"; };
 		D0C0000000000000000000A0 /* HelpTopic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpTopic.swift; sourceTree = "<group>"; };
 		D0C0000000000000000000B0 /* HelpCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpCatalog.swift; sourceTree = "<group>"; };
 		D0C0000000000000000000C0 /* ManualView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualView.swift; sourceTree = "<group>"; };
@@ -657,6 +660,7 @@
 				0FFEA57F2F9FEC2B0078A117 /* RadioProfile.swift */,
 				5E616344CEDCD1ADC41548B7 /* RadioPreset.swift */,
 				CLF0000000000000000000A0 /* ContactListFilter.swift */,
+				QRP0000000000000000000A0 /* QuickReply.swift */,
 				D0C0000000000000000000A0 /* HelpTopic.swift */,
 				D0C0000000000000000000B0 /* HelpCatalog.swift */,
 			);
@@ -1006,6 +1010,7 @@
 				SVT10000000100000000002 /* SettingsView+TipJar.swift in Sources */,
 				CBV10000000100000000002 /* ContactBackupsView.swift in Sources */,
 				CLF0000000000000000000A2 /* ContactListFilter.swift in Sources */,
+				QRP0000000000000000000A2 /* QuickReply.swift in Sources */,
 				D0C0000000000000000000A2 /* HelpTopic.swift in Sources */,
 				D0C0000000000000000000B2 /* HelpCatalog.swift in Sources */,
 				D0C0000000000000000000C2 /* ManualView.swift in Sources */,
@@ -1105,6 +1110,7 @@
 				SVT10000000100000000003 /* SettingsView+TipJar.swift in Sources */,
 				CBV10000000100000000003 /* ContactBackupsView.swift in Sources */,
 				CLF0000000000000000000A1 /* ContactListFilter.swift in Sources */,
+				QRP0000000000000000000A1 /* QuickReply.swift in Sources */,
 				D0C0000000000000000000A1 /* HelpTopic.swift in Sources */,
 				D0C0000000000000000000B1 /* HelpCatalog.swift in Sources */,
 				D0C0000000000000000000C1 /* ManualView.swift in Sources */,

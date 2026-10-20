@@ -20,6 +20,10 @@ import AppKit
 
 extension Notification.Name {
     static let insertMention = Notification.Name("insertMention")
+    /// Carries a prepared acknowledgement (a `String`) for the channel
+    /// composer. The channel bubble is several levels below the field it needs
+    /// to write to, and the mention button already crosses that gap this way.
+    static let insertQuickReply = Notification.Name("insertQuickReply")
 }
 
 struct ChatView: View {
@@ -367,7 +371,9 @@ struct ChatView: View {
                             onForward: { msg in
                                 forwardMessage = msg
                                 showForwardPicker = true
-                            }
+                            },
+                            onQuickReply: { messageText = $0 },
+                            contactDisplayName: contactStore.displayName(for: contact)
                         )
                             .id(message.id)
                     }

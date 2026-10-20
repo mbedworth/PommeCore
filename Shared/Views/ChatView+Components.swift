@@ -18,6 +18,12 @@ struct MessageBubble: View {
     var onQuote: ((Message) -> Void)?
     var onReact: ((Message, String) -> Void)?
     var onForward: ((Message) -> Void)?
+    /// Hands the caller a prepared acknowledgement to put in the composer. The
+    /// caller fills the field rather than sending, so it can still be edited —
+    /// see `QuickReply`.
+    var onQuickReply: ((String) -> Void)?
+    /// The name to address the acknowledgement to.
+    var contactDisplayName: String = ""
     @Environment(MessageStoreManager.self) private var messageStoreManager
     @State private var linkMetadata: LinkPreviewService.LinkMetadata?
 
@@ -206,6 +212,18 @@ struct MessageBubble: View {
             }
             .contentShape(Rectangle())
             .contextMenu {
+                if !message.isOutgoing, let onQuickReply {
+                    Button {
+                        onQuickReply(QuickReply.text(
+                            replyingTo: message,
+                            address: QuickReply.address(senderName: message.senderName,
+                                                        displayName: contactDisplayName,
+                                                        isChannel: false)
+                        ))
+                    } label: {
+                        Label("Quick Reply", systemImage: "checkmark.bubble")
+                    }
+                }
                 Button {
                     onQuote?(message)
                 } label: {
@@ -449,6 +467,19 @@ struct ChannelMessageBubble: View {
                     Label("Copy Text", systemImage: "doc.on.doc")
                 }
                 if !message.isOutgoing, let sender = message.senderName, !sender.isEmpty {
+                    Button {
+                        NotificationCenter.default.post(
+                            name: .insertQuickReply,
+                            object: QuickReply.text(
+                                replyingTo: message,
+                                address: QuickReply.address(senderName: sender,
+                                                            displayName: sender,
+                                                            isChannel: true)
+                            )
+                        )
+                    } label: {
+                        Label("Quick Reply", systemImage: "checkmark.bubble")
+                    }
                     // Channel reactions (MeshCore One format: emoji@[senderName]\nhash)
                     Menu {
                         ForEach(["👍", "❤️", "😂", "😮", "😢", "🙏"], id: \.self) { emoji in

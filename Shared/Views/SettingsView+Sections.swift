@@ -122,6 +122,92 @@ extension SettingsView {
         }
     }
 
+    /// Quick Reply — the acknowledgement long-press on a received message.
+    ///
+    /// Nothing here sends anything by itself. The settings only decide what the
+    /// prepared reply says before it lands in the composer for editing.
+    var quickReplySection: some View {
+        Section {
+            HStack {
+                Image(systemName: "mappin.and.ellipse")
+                    .foregroundStyle(MeshTheme.accent)
+                    .frame(width: 24)
+                TextField("e.g. Ft Pierce, FL", text: $quickReplyLocation)
+                    .foregroundStyle(MeshTheme.textPrimary)
+                    .textFieldStyle(.plain)
+                Button {
+                    resolveQuickReplyLocation()
+                } label: {
+                    if isResolvingQuickReplyLocation {
+                        ProgressView().controlSize(.small)
+                    } else {
+                        Image(systemName: "location")
+                            .accessibilityLabel("Fill from my location")
+                            .foregroundStyle(MeshTheme.accent)
+                    }
+                }
+                .buttonStyle(.plain)
+                .disabled(isResolvingQuickReplyLocation)
+            }
+            .listRowBackground(MeshTheme.surface)
+
+            Toggle(isOn: $quickReplyIncludeHops) {
+                Label("Include Hops", systemImage: "arrow.triangle.branch")
+                    .foregroundStyle(MeshTheme.accent)
+            }
+            .tint(MeshTheme.accent)
+            .listRowBackground(MeshTheme.surface)
+
+            Toggle(isOn: $quickReplyIncludeLocation) {
+                Label("Include Location", systemImage: "mappin")
+                    .foregroundStyle(MeshTheme.accent)
+            }
+            .tint(MeshTheme.accent)
+            .listRowBackground(MeshTheme.surface)
+
+            Toggle(isOn: $quickReplyIncludeSNR) {
+                Label("Include Signal", systemImage: "waveform")
+                    .foregroundStyle(MeshTheme.accent)
+            }
+            .tint(MeshTheme.accent)
+            .listRowBackground(MeshTheme.surface)
+
+            Toggle(isOn: $quickReplyIncludeTime) {
+                Label("Include Time", systemImage: "clock")
+                    .foregroundStyle(MeshTheme.accent)
+            }
+            .tint(MeshTheme.accent)
+            .listRowBackground(MeshTheme.surface)
+
+        } header: {
+            SectionInfoHeader(title: "Quick Reply", info: "Long-press a received message to prepare an acknowledgement — \"Copy, @[Name]! 8 hops to Ft Pierce, FL @ 21:50\". It lands in the message field for you to edit; nothing is sent until you send it. Location is text you type, so it works with no internet; the arrow fills it in from GPS when you do have a connection. Hops, signal and time come from the message you are answering, not from now.")
+        }
+    }
+
+    /// Fill the location label from GPS.
+    ///
+    /// Reverse geocoding needs the internet, which is exactly what this app is
+    /// built to work without — so this is a convenience that fills a text field,
+    /// never the source the reply reads from. Offline it fails and leaves
+    /// whatever the operator typed alone.
+    private func resolveQuickReplyLocation() {
+        #if !os(watchOS)
+        guard let location = SharedLocation.manager.location else { return }
+        isResolvingQuickReplyLocation = true
+        Task { @MainActor in
+            defer { isResolvingQuickReplyLocation = false }
+            guard let place = try? await CLGeocoder().reverseGeocodeLocation(location).first else { return }
+            // Locality plus the state/region abbreviation is how operators on
+            // the band write it. Either half may be missing — a rural fix often
+            // has no locality — so whatever came back is joined, and a result
+            // with neither is discarded rather than written as an empty string.
+            let parts = [place.locality, place.administrativeArea].compactMap { $0 }
+            guard !parts.isEmpty else { return }
+            quickReplyLocation = parts.joined(separator: ", ")
+        }
+        #endif
+    }
+
     private var autoRetryBinding: Binding<Bool> {
         Binding(
             get: { UserDefaults.standard.bool(forKey: "autoRetry") },
