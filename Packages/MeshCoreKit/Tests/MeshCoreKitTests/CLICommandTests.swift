@@ -126,3 +126,51 @@ final class CLICommandTests: XCTestCase {
         XCTAssertEqual(MeshCoreResponseCode.cliReply.rawValue, 29)
     }
 }
+
+// MARK: - Unsupported-setting detection
+
+/// `supportedValue(for:)` is what every firmware-gated control asks, and the
+/// companion CLI reports an unknown command differently from the serial CLI.
+@MainActor
+final class SupportedValueTests: XCTestCase {
+
+    private func session(settings: [String: String]) -> RemoteDeviceSession {
+        let contact = Contact(
+            publicKey: Data(repeating: 0xFD, count: 32), name: "radio", type: .repeater,
+            flags: 0, outPathLen: 0, outPath: Data(), lastAdvert: 0, latitude: 0, longitude: 0
+        )
+        let s = RemoteDeviceSession(contact: contact)
+        for (k, v) in settings { s.settings[k] = v }
+        return s
+    }
+
+    /// Firmware 1.18's `CMD_RUN_CLI_COMMAND` appends this literal string rather
+    /// than the serial CLI's `??:` prefix. Without it, every setting a companion
+    /// does not implement reads back as having the *value* "Unknown command" and
+    /// its control renders as supported.
+    func testUnknownCommandIsNotAValue() {
+        let s = session(settings: ["advert.interval": "Unknown command"])
+        XCTAssertNil(s.supportedValue(for: "advert.interval"))
+    }
+
+    func testSerialCLIUnknownFormStillDetected() {
+        XCTAssertNil(session(settings: ["cad": "??: get cad"]).supportedValue(for: "cad"))
+    }
+
+    func testUnsupportedHardwareDetected() {
+        XCTAssertNil(session(settings: ["gps": "Error: unsupported"]).supportedValue(for: "gps"))
+    }
+
+    func testRealValuesSurvive() {
+        let s = session(settings: ["tx": "22", "name": "MPB-CB-9ae81", "dutycycle": "0"])
+        XCTAssertEqual(s.supportedValue(for: "tx"), "22")
+        XCTAssertEqual(s.supportedValue(for: "name"), "MPB-CB-9ae81")
+        XCTAssertEqual(s.supportedValue(for: "dutycycle"), "0", "a legitimate \"0\" is a value, not an absence")
+    }
+
+    func testMissingAndEmptyAreNil() {
+        let s = session(settings: ["blank": "   "])
+        XCTAssertNil(s.supportedValue(for: "blank"))
+        XCTAssertNil(s.supportedValue(for: "never-fetched"))
+    }
+}

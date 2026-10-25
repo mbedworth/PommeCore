@@ -57,6 +57,38 @@ final class RemoteSessionManager {
     /// be in flight — a second would take the first one's answer.
     private var companionCLIPending: CheckedContinuation<String, Never>?
 
+    /// Sends a `CMD_RUN_CLI_COMMAND` frame to the connected radio.
+    var sendCompanionCLI: ((String) -> Void)?
+
+    /// Whether the connected radio answers `CMD_RUN_CLI_COMMAND`.
+    ///
+    /// `nil` until probed. Determined by **asking**, never by reading
+    /// `FIRMWARE_VER_CODE`: that byte sat at 13 across two feature releases, so
+    /// it detects nothing reliably. A radio older than 1.18.0 answers
+    /// `ERR_CODE_UNSUPPORTED_CMD`; a 1.18 radio handed a command it does not
+    /// recognise answers with the literal text `Unknown command` instead, so the
+    /// two cases are distinguishable.
+    private(set) var companionCLISupported: Bool?
+
+    /// Synthetic contact for the connected radio's own CLI.
+    ///
+    /// The settings screens, the fetch sequencing and the permission checks are
+    /// all written against a `RemoteDeviceSession`, and USB CLI already fakes
+    /// one for the same reason. Giving the companion one too means the whole of
+    /// that machinery works over BLE without being rewritten — which is the
+    /// point of the exercise, since none of it could run on iOS before.
+    var companionDeviceContact: Contact?
+    var companionDeviceSession: RemoteDeviceSession?
+    private var companionSessionCancellable = Set<AnyCancellable>()
+
+    /// `0xFD`, where USB CLI uses `0xFE` — neither can collide with a real key.
+    static let companionCLIPubKey = Data(repeating: 0xFD, count: 32)
+
+    /// Whether `contact` is the connected radio's own CLI session.
+    func isCompanionCLI(_ contact: Contact) -> Bool {
+        contact.publicKey == Self.companionCLIPubKey
+    }
+
     /// A reply to `CMD_RUN_CLI_COMMAND` from the connected radio (firmware 1.18.0+).
     ///
     /// The frame carries no correlation id, so this is strictly request/response:
@@ -73,6 +105,119 @@ final class RemoteSessionManager {
         }
         companionCLIPending?.resume(returning: text)
         companionCLIPending = nil
+
+        // A reply at all proves the radio understood the command frame.
+        if companionCLISupported != true {
+            companionCLISupported = true
+            Self.logger.info("Companion CLI: supported (firmware 1.18.0+)")
+            DebugLogger.shared.log("CLI: companion CLI available over the binary link", level: .info)
+        }
+        companionDeviceSession?.responseReceived(text.hasPrefix("> ") ? String(text.dropFirst(2)) : text)
+    }
+
+    /// The radio answered `ERR_CODE_UNSUPPORTED_CMD` while a companion CLI
+    /// command was outstanding — the firmware predates 1.18.0.
+    ///
+    /// Returns whether it claimed the error, so the rest of the error handling
+    /// only runs when this did not.
+    func handleCompanionCLIUnsupported() -> Bool {
+        guard companionCLIPending != nil || companionCLISupported == nil else { return false }
+        companionCLISupported = false
+        companionCLIPending?.resume(returning: "")
+        companionCLIPending = nil
+        teardownCompanionCLISession()
+        Self.logger.info("Companion CLI: not supported by this firmware")
+        DebugLogger.shared.log("CLI: radio predates 1.18.0 — companion CLI unavailable", level: .info)
+        return true
+    }
+
+    /// Ask the radio whether it speaks `CMD_RUN_CLI_COMMAND`, and set up the
+    /// session if it does.
+    ///
+    /// `ver` is the probe because it is read-only, present on every build, and
+    /// its answer is wanted anyway. Called once per connection.
+    func probeCompanionCLI(radioName: String) {
+        guard companionCLISupported == nil, sendCompanionCLI != nil else { return }
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            let reply = await self.runCompanionCLI("ver", echoToTranscript: false)
+            guard self.companionCLISupported == true, reply != nil else { return }
+            self.onCompanionCLIReady(radioName: radioName)
+        }
+    }
+
+    /// Run one command on the connected radio's own CLI and wait for the reply.
+    ///
+    /// Serialised: `RESP_CODE_CLI_REPLY` has no correlation id, so a second
+    /// command in flight would take the first one's answer. Returns `nil` when
+    /// the radio does not answer, rather than hanging — a request/response with
+    /// no response has to end somewhere.
+    @discardableResult
+    func runCompanionCLI(_ command: String, echoToTranscript: Bool = true) async -> String? {
+        guard let sendCompanionCLI else { return nil }
+        guard companionCLIPending == nil else {
+            Self.logger.warning("Companion CLI: dropped '\(command)' — one already in flight")
+            DebugLogger.shared.log("CLI: dropped '\(command)' — previous command still pending", level: .warning)
+            return nil
+        }
+        if echoToTranscript {
+            cliOutput.append(CLITerminalLine(text: "> \(command)", isCommand: true))
+        }
+        DebugLogger.shared.log("CLI TX: \(command)", level: .tx)
+
+        let timeout = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .seconds(5))
+            guard !Task.isCancelled, let self, let pending = self.companionCLIPending else { return }
+            self.companionCLIPending = nil
+            Self.logger.warning("Companion CLI: no reply to '\(command)'")
+            pending.resume(returning: "")
+        }
+        let reply: String = await withCheckedContinuation { continuation in
+            companionCLIPending = continuation
+            sendCompanionCLI(command)
+        }
+        timeout.cancel()
+        return companionCLISupported == false ? nil : reply
+    }
+
+    /// Give the connected radio a CLI session, so the existing settings screens
+    /// work against it unchanged.
+    func onCompanionCLIReady(radioName: String) {
+        guard companionDeviceSession == nil else { return }
+        let contact = Contact(
+            publicKey: Self.companionCLIPubKey,
+            name: radioName,
+            type: .repeater,
+            flags: 0,
+            outPathLen: 0,
+            outPath: Data(),
+            lastAdvert: Date().epochUInt32,
+            latitude: 0,
+            longitude: 0
+        )
+        companionDeviceContact = contact
+
+        let session = RemoteDeviceSession(contact: contact)
+        // Admin without a login: this is the radio in your hand, reached over a
+        // link you already hold. There is no password to present and no remote
+        // party to authenticate — the same reasoning USB CLI uses.
+        session.loginState = .loggedIn(permission: .admin)
+        companionDeviceSession = session
+        session.objectWillChange
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                DispatchQueue.main.async { self?.onStateChanged?() }
+            }
+            .store(in: &companionSessionCancellable)
+
+        Self.logger.info("Companion CLI: session created for '\(radioName)'")
+        DebugLogger.shared.log("CLI: companion session ready", level: .info)
+    }
+
+    func teardownCompanionCLISession() {
+        companionSessionCancellable.removeAll()
+        companionDeviceSession = nil
+        companionDeviceContact = nil
     }
 
     // MARK: - Public State: USB CLI (macOS)
@@ -191,6 +336,15 @@ final class RemoteSessionManager {
     // MARK: - Reset
 
     func reset() {
+        // The radio is gone, so a pending CLI reply is never coming and the
+        // next radio may be running different firmware — the probe has to run
+        // again rather than inherit this one's answer.
+        companionCLIPending?.resume(returning: "")
+        companionCLIPending = nil
+        companionCLISupported = nil
+        teardownCompanionCLISession()
+        cliOutput.removeAll()
+
         fetchTask?.cancel()
         fetchTask = nil
         loginTimeoutTask?.cancel()
@@ -317,6 +471,15 @@ final class RemoteSessionManager {
     func sendCLICommand(_ command: String, to contact: Contact) {
         let trimmed = command.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
+
+        // The connected radio's own CLI (firmware 1.18.0+). Checked before the
+        // USB branch because it is the one that exists on every platform.
+        if isCompanionCLI(contact) {
+            Task { @MainActor [weak self] in
+                await self?.runCompanionCLI(trimmed)
+            }
+            return
+        }
 
         #if os(macOS) || targetEnvironment(macCatalyst)
         if let usbContact = usbDeviceContact, contact.publicKey == usbContact.publicKey,
@@ -609,6 +772,16 @@ final class RemoteSessionManager {
 
     /// Send a single CLI command and wait for its response.
     private func fetchRemoteSetting(command: String, contact: Contact, session: RemoteDeviceSession) async {
+        // The connected radio answers directly, so there is nothing to correlate
+        // and nothing to pace: `runCompanionCLI` already serialises on the reply
+        // rather than on a 500ms timer, which is both faster and safer than the
+        // guess the USB queue has to make.
+        if isCompanionCLI(contact) {
+            _ = session.commandSent(command)
+            await runCompanionCLI(command)
+            return
+        }
+
         let cmdIndex: Int
 
         #if os(macOS) || targetEnvironment(macCatalyst)

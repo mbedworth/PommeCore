@@ -52,6 +52,11 @@ extension PommeCoreViewModel {
             handleErrorResponse(code: code, description: description)
 
         case .selfInfo(let info):
+            // Firmware 1.18.0+ can run its own CLI over the binary link. Asked
+            // for here because SELF_INFO is the first point the radio has named
+            // itself, and because capability is established by asking rather
+            // than by reading FIRMWARE_VER_CODE.
+            remoteSessionManager.probeCompanionCLI(radioName: info.name)
             Self.logger.info("PARSED SelfInfo: name='\(info.name)' txPwr=\(info.txPower)/\(info.maxTXPower) freq=\(info.radioFreq) bw=\(info.radioBW) sf=\(info.radioSF) cr=\(info.radioCR) lat=\(info.latitude) lon=\(info.longitude)")
             let freqStr = formatFrequency(Double(info.radioFreq))
             let bwKHz = String(format: "%.1f", Double(info.radioBW) / 1000.0)
@@ -408,6 +413,10 @@ extension PommeCoreViewModel {
         }
         switch MeshCoreErrorCode(rawValue: code) {
         case .unsupportedCmd:
+            // A radio older than 1.18.0 answers this to CMD_RUN_CLI_COMMAND.
+            // That is the capability probe's negative result, not an error worth
+            // reporting, so the session is torn down quietly.
+            if remoteSessionManager.handleCompanionCLIUnsupported() { return }
             Self.logger.warning("ERR_CODE_UNSUPPORTED_CMD — firmware does not support this command (older firmware version), not user-actionable")
         case .illegalArg:
             Self.logger.warning("ERR_CODE_ILLEGAL_ARG received — likely protocol/firmware mismatch, not user-actionable")
