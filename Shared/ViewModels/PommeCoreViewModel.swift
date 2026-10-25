@@ -261,7 +261,7 @@ final class PommeCoreViewModel: ObservableObject {
         messageStoreManager.radioPublicKeyHexProvider = { [weak self] in self?.deviceConfig.publicKeyHex ?? "" }
         messageStoreManager.contactProvider = { [weak self] key in self?.contactStore.contacts.first(where: { $0.publicKeyPrefix == key }) }
         messageStoreManager.channelProvider = { [weak self] idx in self?.channelStore.channels.first(where: { $0.index == idx }) }
-        messageStoreManager.channelNotifyModeProvider = { [weak self] name in self?.channelStore.channelNotifyMode(for: name) ?? .all }
+        messageStoreManager.channelNotifyModeProvider = { [weak self] idx in self?.channelStore.channelNotifyMode(forIndex: idx) ?? .all }
         messageStoreManager.allChannelsProvider = { [weak self] in self?.channelStore.channels ?? [] }
         messageStoreManager.contactNotifyModeProvider = { [weak self] contact in self?.contactStore.effectiveNotifyMode(for: contact) ?? .all }
         messageStoreManager.contactSoundProvider = { [weak self] contact in self?.contactStore.effectiveSound(for: contact) ?? .default }

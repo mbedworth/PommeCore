@@ -408,7 +408,7 @@ final class PhoneWatchRelay: NSObject {
                 let channelIndex = key[0]
                 if let channel = channelStore?.channels.first(where: { $0.index == channelIndex }),
                    let channelStore,
-                   channelStore.channelNotifyMode(for: channel.name) != .muted {
+                   channelStore.channelNotifyMode(forIndex: channel.index, legacyName: channel.name) != .muted {
                     channelCount += count
                 }
             }

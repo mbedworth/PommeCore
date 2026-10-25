@@ -742,7 +742,7 @@ struct ChannelDetailSheet: View {
                     .pickerStyle(.segmented)
                     .onChange(of: notifyMode) { _, mode in
                         if let notifyMode = ChannelStore.ChannelNotifyMode(rawValue: mode) {
-                            channelStore.setChannelNotifyMode(notifyMode, for: channelName)
+                            channelStore.setChannelNotifyMode(notifyMode, forIndex: channelIndex)
                         }
                     }
                 }
