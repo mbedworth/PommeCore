@@ -25,7 +25,7 @@ struct USBTerminalView: View {
             ScrollViewReader { proxy in
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 2) {
-                        ForEach(remoteSessionManager.usbCLIOutput) { line in
+                        ForEach(remoteSessionManager.cliOutput) { line in
                             Text(line.text)
                                 .font(.system(.body, design: .monospaced))
                                 .foregroundStyle(line.isCommand ? MeshTheme.accent : MeshTheme.textPrimary)
@@ -36,8 +36,8 @@ struct USBTerminalView: View {
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
                 }
-                .onChange(of: remoteSessionManager.usbCLIOutput.count) {
-                    if let last = remoteSessionManager.usbCLIOutput.last {
+                .onChange(of: remoteSessionManager.cliOutput.count) {
+                    if let last = remoteSessionManager.cliOutput.last {
                         withMeshAnimation(.easeOut(duration: 0.2)) {
                             proxy.scrollTo(last.id, anchor: .bottom)
                         }
@@ -80,7 +80,7 @@ struct USBTerminalView: View {
 
     private func sendCommand() {
         connectionManager.sendUSBCLI(commandText)
-        remoteSessionManager.usbCLIOutput.append(USBTerminalLine(text: "> \(commandText)", isCommand: true))
+        remoteSessionManager.cliOutput.append(CLITerminalLine(text: "> \(commandText)", isCommand: true))
         commandText = ""
     }
 }

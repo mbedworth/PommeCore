@@ -40,10 +40,44 @@ final class RemoteSessionManager {
         }
     }
 
+    // MARK: - Public State: CLI terminal
+
+    /// The CLI transcript, shared by every CLI transport.
+    ///
+    /// **Not behind a platform guard, and no longer named for USB.** It was both
+    /// until firmware 1.18.0 added `CMD_RUN_CLI_COMMAND`, which runs the radio's
+    /// own CLI over the binary link — so the same conversation with the same CLI
+    /// now reaches iOS, where `USBSerialManager` can never run. The transport
+    /// differs; the transcript does not.
+    var cliOutput: [CLITerminalLine] = []
+
+    /// The one outstanding `CMD_RUN_CLI_COMMAND`, waiting for its reply.
+    ///
+    /// `RESP_CODE_CLI_REPLY` carries no correlation id, so only one command may
+    /// be in flight — a second would take the first one's answer.
+    private var companionCLIPending: CheckedContinuation<String, Never>?
+
+    /// A reply to `CMD_RUN_CLI_COMMAND` from the connected radio (firmware 1.18.0+).
+    ///
+    /// The frame carries no correlation id, so this is strictly request/response:
+    /// one command outstanding at a time, and the reply belongs to it. The
+    /// transcript is the same `cliOutput` the USB terminal already shows,
+    /// because this *is* the same conversation with the same CLI — only the
+    /// transport differs, and that difference is what makes it work on iOS.
+    func handleCompanionCLIReply(_ text: String) {
+        // An empty reply is a legal answer from several `set` commands. Showing
+        // a blank line is better than showing nothing, which reads as a hang.
+        let lines = text.isEmpty ? [""] : text.components(separatedBy: "\n")
+        for line in lines {
+            cliOutput.append(CLITerminalLine(text: line, isCommand: false))
+        }
+        companionCLIPending?.resume(returning: text)
+        companionCLIPending = nil
+    }
+
     // MARK: - Public State: USB CLI (macOS)
 
     #if os(macOS) || targetEnvironment(macCatalyst)
-    var usbCLIOutput: [USBTerminalLine] = []
     /// Session for managing a USB CLI-connected device (repeater/room/sensor).
     var usbDeviceSession: RemoteDeviceSession?
     /// Synthetic contact for the USB-connected CLI device.
@@ -182,7 +216,7 @@ final class RemoteSessionManager {
         usbKeepaliveTask = nil
         usbDeviceSession = nil
         usbDeviceContact = nil
-        usbCLIOutput.removeAll()
+        cliOutput.removeAll()
         usbSessionCancellable.removeAll()
         #endif
     }
@@ -296,7 +330,7 @@ final class RemoteSessionManager {
             }
             session.commandSent(trimmed)
             sendUSBCLI(trimmed)
-            usbCLIOutput.append(USBTerminalLine(text: "> \(trimmed)", isCommand: true))
+            cliOutput.append(CLITerminalLine(text: "> \(trimmed)", isCommand: true))
             DebugLogger.shared.log("USB CLI TX: \(trimmed)", level: .tx)
             return
         }
@@ -584,7 +618,7 @@ final class RemoteSessionManager {
             // which the firmware requires to avoid lockup.
             cmdIndex = session.commandSent(command)
             sendUSBCLI(command)
-            usbCLIOutput.append(USBTerminalLine(text: "> \(command)", isCommand: true))
+            cliOutput.append(CLITerminalLine(text: "> \(command)", isCommand: true))
         } else {
             cmdIndex = session.commandSent(command)
             let frame = MeshCoreProtocol.buildSendCLICommand(
@@ -634,11 +668,12 @@ final class RemoteSessionManager {
 
     /// Handle USB CLI line received.
     func handleUSBCLILine(_ line: String) {
-        usbCLIOutput.append(USBTerminalLine(text: line, isCommand: false))
+        cliOutput.append(CLITerminalLine(text: line, isCommand: false))
         if let session = usbDeviceSession {
             session.responseReceived(line)
         }
     }
+
 
     /// Called when USB CLI mode is detected — sets up management session.
     func onUSBCLIReady(portName: String, sendCLI: @escaping (String) -> Void) {
@@ -684,7 +719,7 @@ final class RemoteSessionManager {
     /// Send a raw CLI command and add to output log.
     func sendUSBCLICommand(_ command: String, via sendCLI: (String) -> Void) {
         sendCLI(command)
-        usbCLIOutput.append(USBTerminalLine(text: "> \(command)", isCommand: true))
+        cliOutput.append(CLITerminalLine(text: "> \(command)", isCommand: true))
     }
     #endif
 

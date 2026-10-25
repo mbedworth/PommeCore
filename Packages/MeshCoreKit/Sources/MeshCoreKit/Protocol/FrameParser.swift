@@ -60,6 +60,7 @@ public enum FrameParser {
         case signStartResp(maxLength: UInt32)              // RESP_CODE_SIGN_START (0x13)
         case signatureResp(signature: Data)                // RESP_CODE_SIGNATURE (0x14)
         case defaultFloodScope(name: String)               // RESP_CODE_DEFAULT_FLOOD_SCOPE (0x1C, firmware 1.15.0+)
+        case cliReply(text: String)                        // RESP_CODE_CLI_REPLY (0x1D, firmware 1.18.0+)
         case unknown(type: UInt8, payload: Data)
     }
 
@@ -240,6 +241,9 @@ public enum FrameParser {
 
         case .defaultFloodScope:
             return parseDefaultFloodScope(payload)
+
+        case .cliReply:
+            return parseCLIReply(payload)
         }
     }
 
@@ -1157,6 +1161,28 @@ public enum FrameParser {
         let name = readFixedString(data, offset: &offset, maxLen: 31)
         logger.info("DefaultFloodScope: '\(name)'")
         return .defaultFloodScope(name: name)
+    }
+
+    // MARK: - CLI Reply (code 29, firmware 1.18.0+)
+
+    /// RESP_CODE_CLI_REPLY (0x1D) — the text the radio's own CLI printed.
+    ///
+    /// The payload is the reply and nothing else. The firmware writes
+    /// `strlen(reply_buf)` bytes with no null terminator and no length prefix,
+    /// so the text runs to the end of the frame and an empty payload is a real,
+    /// legal answer — several `set` commands reply with nothing at all.
+    ///
+    /// A command the radio does not recognise answers with the literal string
+    /// `Unknown command`, *not* an error frame. Only an older radio that has
+    /// never heard of `CMD_RUN_CLI_COMMAND` answers `ERR_CODE_UNSUPPORTED_CMD`,
+    /// which is what makes probing a sound capability test.
+    private static func parseCLIReply(_ data: Data) -> ParsedResponse {
+        // Trailing nulls are not expected, but a radio that pads would otherwise
+        // put them in text handed straight to the UI.
+        let trimmed = data.prefix(while: { $0 != 0 })
+        let text = String(data: Data(trimmed), encoding: .utf8) ?? ""
+        logger.info("CLIReply: [\(data.count) bytes] '\(text)'")
+        return .cliReply(text: text)
     }
 
     // MARK: - Binary Read Helpers

@@ -142,6 +142,25 @@ public enum MeshCoreProtocol {
         return frame
     }
 
+    /// CMD_RUN_CLI_COMMAND (code 66) — run a command on the connected radio's own
+    /// CLI over the binary link. Firmware 1.18.0+.
+    ///
+    /// Frame: `code(1)` + command text (no null terminator — the firmware reads
+    /// to the end of the frame and terminates it itself).
+    ///
+    /// Returns `nil` for a command the firmware would reject out of hand: it
+    /// requires `len >= 3`, so the command text must be at least two bytes.
+    /// Building an under-length frame only to have the radio answer with an
+    /// error wastes a round trip and reads, at the call site, exactly like an
+    /// unsupported-firmware answer.
+    public static func buildRunCLICommand(_ command: String) -> Data? {
+        let trimmed = command.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let textData = trimmed.data(using: .utf8), textData.count >= 2 else { return nil }
+        var frame = Data([MeshCoreCommand.runCLICommand.rawValue])
+        frame.append(textData)
+        return frame
+    }
+
     // MARK: - Remote Management
 
     /// CMD_SEND_LOGIN (code 26) — login to a remote device (repeater/room server).

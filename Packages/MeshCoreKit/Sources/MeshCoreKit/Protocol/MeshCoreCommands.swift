@@ -58,6 +58,18 @@ public enum MeshCoreCommand: UInt8, Sendable {
     case setDefaultFloodScope = 0x3F  // 63 — set default flood scope region name (firmware 1.15.0+)
     case getDefaultFloodScope = 0x40  // 64 — get default flood scope region name (firmware 1.15.0+)
 
+    /// Run a command through the radio's own CLI over the binary link (firmware 1.18.0+).
+    ///
+    /// Frame: `code(1)` + command text. Firmware requires the whole frame to be
+    /// at least 3 bytes, so a one-character command is rejected.
+    ///
+    /// **This is the first time CLI access does not require USB**, which matters
+    /// because `USBSerialManager` is macOS-only and can never run on iOS. An
+    /// older radio answers `ERR_CODE_UNSUPPORTED_CMD`, so support is detected by
+    /// asking rather than by reading `FIRMWARE_VER_CODE` — the version byte sat
+    /// at 13 across two feature releases and detects nothing reliably.
+    case runCLICommand        = 0x42  // 66 — firmware 1.18.0+
+
     // Signing commands (device-side Ed25519)
     case signStart            = 0x21  // 33 — initialize signing session
     case signData             = 0x22  // 34 — stream data chunk to sign
@@ -95,6 +107,42 @@ public enum MeshCoreResponseCode: UInt8, Sendable {
     case autoAddConfig        = 0x19  // 25 — RESP_CODE_AUTOADD_CONFIG
     case allowedRepeatFreq    = 0x1A  // 26 — RESP_ALLOWED_REPEAT_FREQ
     case defaultFloodScope    = 0x1C  // 28 — RESP_CODE_DEFAULT_FLOOD_SCOPE (firmware 1.15.0+)
+
+    /// Reply to `CMD_RUN_CLI_COMMAND` (firmware 1.18.0+).
+    ///
+    /// Frame: `code(1)` + reply text, not null-terminated — the firmware writes
+    /// `strlen(reply_buf)` bytes and no more, so the text runs to the end of the
+    /// frame. A command the radio does not recognise comes back as the literal
+    /// string `Unknown command` rather than an error frame, so an empty or
+    /// unexpected reply is not how an unknown command presents itself.
+    case cliReply             = 0x1D  // 29 — RESP_CODE_CLI_REPLY (firmware 1.18.0+)
+}
+
+/// Text types carried by `CMD_SEND_TXT_MSG` and the message-received frames.
+///
+/// The full set lives in `src/helpers/TxtDataHelpers.h`. It is an enum here
+/// because the app used to test `txtType == 2` for signed and treat everything
+/// else as plain chat, which silently turned firmware 1.18's new type 3 into a
+/// chat bubble.
+public enum MeshCoreTextType: UInt8, Sendable {
+    case plain       = 0  // TXT_TYPE_PLAIN
+    case cliData     = 1  // TXT_TYPE_CLI_DATA — a CLI *reply* from a remote node
+    case signedPlain = 2  // TXT_TYPE_SIGNED_PLAIN
+    /// A CLI *command* sent to another companion over the mesh (firmware 1.18.0+),
+    /// gated by a Remote CLI permission on the receiving node.
+    ///
+    /// One of these arriving here means a contact tried to run a command on this
+    /// radio and the firmware declined, queueing it as an ordinary message. It is
+    /// not chat and must never be rendered as chat.
+    case cliCommand  = 3  // TXT_TYPE_CLI_COMMAND — firmware 1.18.0+
+
+    /// Whether a message of this type belongs in a conversation thread.
+    public var isConversational: Bool {
+        switch self {
+        case .plain, .signedPlain: true
+        case .cliData, .cliCommand: false
+        }
+    }
 }
 
 /// MeshCore error codes returned with RESP_CODE_ERR.
