@@ -166,6 +166,13 @@ extension PommeCoreViewModel {
             Self.logger.info("PARSED DefaultFloodScope: '\(name)'")
             deviceConfig.defaultFloodScope = name
 
+        case .cliReply(let text):
+            // Firmware 1.18.0+. Routed to whatever asked, so an unsolicited
+            // reply — or one arriving after the asker gave up — is logged and
+            // dropped rather than surfacing somewhere it was never requested.
+            Self.logger.info("PARSED CLIReply: '\(text)'")
+            remoteSessionManager.handleCompanionCLIReply(text)
+
         case .contactsStart(let count):
             contactStore.handleContactsStart(count: count)
 
@@ -413,6 +420,25 @@ extension PommeCoreViewModel {
 
     func handleIncomingMessage(_ message: Message) {
         if remoteSessionManager.routeIncomingMessage(message) { return }
+
+        // A CLI command sent to *this* radio by another node (firmware 1.18.0+).
+        //
+        // The firmware gates these behind a Remote CLI permission, and when the
+        // sender does not have it the command is queued as an ordinary message
+        // of type 3 rather than being dropped. `routeIncomingMessage` only
+        // claims a message when there is a logged-in remote session for that
+        // contact, so without this a command from anyone else fell through and
+        // was rendered as a chat bubble — the app tested `txtType == 2` for
+        // signed and treated everything else as conversation.
+        //
+        // Logged rather than shown: someone attempting to run commands on your
+        // node is worth a record, and a chat thread is the wrong place for it.
+        if let textType = MeshCoreTextType(rawValue: message.txtType), !textType.isConversational {
+            Self.logger.warning("Incoming txtType=\(message.txtType) from \(message.contactKeyHash.hexCompact) — not conversation, not stored")
+            DebugLogger.shared.log("RX CLI command from \(message.contactKeyHash.hexCompact) — refused by firmware, not shown", level: .error)
+            return
+        }
+
         // Suppress messages from blocked contacts
         if contactStore.isBlocked(publicKeyPrefix: message.contactKeyHash) { return }
         // Suppress stray messages from infrastructure nodes (late CLI responses after navigating away)

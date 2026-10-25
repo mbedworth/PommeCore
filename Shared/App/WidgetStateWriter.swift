@@ -40,7 +40,7 @@ func syncWidgetState(
         } else if key.count == 1 {
             let channelIndex = key[0]
             let channel = channelStore.channels.first(where: { $0.index == channelIndex })
-            let isMuted = channel.map { channelStore.channelNotifyMode(for: $0.name) == .muted } ?? false
+            let isMuted = channel.map { channelStore.channelNotifyMode(forIndex: $0.index, legacyName: $0.name) == .muted } ?? false
             if !isMuted { channelCount += count }
         }
     }

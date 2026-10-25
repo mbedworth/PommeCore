@@ -65,7 +65,9 @@ final class MessageStoreManager {
     var channelProvider: ((UInt8) -> MeshChannel?)?
 
     /// Closure to get channel notification mode.
-    var channelNotifyModeProvider: ((String) -> ChannelStore.ChannelNotifyMode)?
+    /// Keyed by channel *index* — see `ChannelStore.channelNotifyMode(forIndex:)`
+    /// for why the name was the wrong key.
+    var channelNotifyModeProvider: ((UInt8) -> ChannelStore.ChannelNotifyMode)?
 
     /// Closure to get all channels (for notification context).
     var allChannelsProvider: (() -> [MeshChannel])?
@@ -1030,6 +1032,26 @@ final class MessageStoreManager {
 
     // MARK: - Notifications
 
+    /// Whether this radio's own name is mentioned in `text`.
+    ///
+    /// Checks both forms other clients send: a bare `@name`, and the MeshCore
+    /// One bracketed `@[name]`, which is the only form that works for a name
+    /// containing spaces or emoji — and most names on the mesh have one or the
+    /// other. Only the bare form was checked before, so "mentions only" stayed
+    /// silent for anyone addressed the usual way.
+    ///
+    /// Fails closed: with no device name there is no way to recognise a mention,
+    /// and "mentions only" asks not to be interrupted otherwise.
+    private func isMentioned(in text: String) -> Bool {
+        let myName = (deviceNameProvider?() ?? "").trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard !myName.isEmpty else {
+            Self.logger.warning("Mentions-only channel: no device name known, cannot match a mention")
+            return false
+        }
+        let haystack = text.lowercased()
+        return haystack.contains("@\(myName)") || haystack.contains("@[\(myName)]")
+    }
+
     func postLocalNotification(for message: Message) {
 
         let prefs = NotificationPreferences.shared
@@ -1039,13 +1061,17 @@ final class MessageStoreManager {
 
         if isChannel {
             guard prefs.notifyChannel else { return }
-            if let chIdx = message.channelIndex,
-               let channel = channelProvider?(chIdx) {
-                let mode = channelNotifyModeProvider?(channel.name) ?? .all
+            if let chIdx = message.channelIndex {
+                // Looked up by index, not by resolving the channel first. The
+                // old form was `if let channel = channelProvider?(chIdx)` with
+                // no `else`, so a channel that could not be resolved — one not
+                // yet synced — skipped every check below and notified anyway.
+                // A mode that only applies when a lookup happens to succeed is
+                // not a setting.
+                let mode = channelNotifyModeProvider?(chIdx) ?? .all
                 if mode == .muted { return }
                 if mode == .mentionsOnly {
-                    let myName = (deviceNameProvider?() ?? "").lowercased()
-                    guard !myName.isEmpty, message.text.lowercased().contains("@\(myName)") else { return }
+                    guard isMentioned(in: message.text) else { return }
                 }
             }
         } else if isRoom {

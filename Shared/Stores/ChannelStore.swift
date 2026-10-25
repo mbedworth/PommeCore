@@ -84,16 +84,59 @@ final class ChannelStore {
         case muted = "muted"
     }
 
-    func channelNotifyMode(for channelName: String) -> ChannelNotifyMode {
-        let raw = iCloudStore.scopedString(base: "channel.notify", contactHex: channelName, radioPrefix: radioPrefix12) ?? "all"
-        return ChannelNotifyMode(rawValue: raw) ?? .all
+    /// Notification mode for a channel, keyed by **index**.
+    ///
+    /// It was keyed by name until 2026-10-24, and the two ends disagreed about
+    /// what the name was. The pickers pass a *display* string built in the view
+    /// — `"Public Channel"` for index 0, `"Channel 3"` for a slot that has not
+    /// synced — while the notification gate looked the mode up under
+    /// `channel.name`, which is the firmware's own name from
+    /// `RESP_CODE_CHANNEL_INFO`. The two never matched for index 0, so the mode
+    /// always read back as `.all` and **the public channel notified however it
+    /// was set** — which is where nearly all traffic is, and is why it presented
+    /// as "the notification settings don't work at all".
+    ///
+    /// The index is the right key regardless: it is what the incoming message
+    /// carries, it does not change when a channel is renamed, and reading it
+    /// needs no lookup that can fail.
+    func channelNotifyMode(forIndex index: UInt8, legacyName: String? = nil) -> ChannelNotifyMode {
+        if let raw = iCloudStore.scopedString(base: Self.notifyKeyBase,
+                                              contactHex: Self.notifyKey(forIndex: index),
+                                              radioPrefix: radioPrefix12),
+           let mode = ChannelNotifyMode(rawValue: raw) {
+            return mode
+        }
+        // Carry forward a setting stored under the old name key. Only the
+        // non-public channels can have one that was ever readable, but a muted
+        // channel silently un-muting on upgrade would be its own bug.
+        if let legacyName,
+           let raw = iCloudStore.scopedString(base: Self.notifyKeyBase,
+                                              contactHex: legacyName,
+                                              radioPrefix: radioPrefix12),
+           let mode = ChannelNotifyMode(rawValue: raw) {
+            setChannelNotifyMode(mode, forIndex: index)
+            return mode
+        }
+        return .all
     }
 
-    func setChannelNotifyMode(_ mode: ChannelNotifyMode, for channelName: String) {
-        guard let prefix = radioPrefix12 else { return }
-        let key = iCloudStore.scopedKey("channel.notify", contactHex: channelName, radioPrefix: prefix)
+    func setChannelNotifyMode(_ mode: ChannelNotifyMode, forIndex index: UInt8) {
+        // Writes under the legacy key when no radio prefix is known yet, rather
+        // than dropping the write. It used to `guard let prefix … else { return }`,
+        // so choosing "Muted" before the radio identified itself did nothing at
+        // all and said so to no one. `scopedKey` already falls back, and
+        // `scopedString` reads the fallback, so the pair stays symmetric.
+        let key = iCloudStore.scopedKey(Self.notifyKeyBase,
+                                        contactHex: Self.notifyKey(forIndex: index),
+                                        radioPrefix: radioPrefix12)
         iCloudStore.setAndSync(mode.rawValue, forKey: key)
     }
+
+    private static let notifyKeyBase = "channel.notify"
+
+    /// `idx.N` rather than a bare number, so a key can never collide with a
+    /// channel that was once stored under a numeric name.
+    private static func notifyKey(forIndex index: UInt8) -> String { "idx.\(index)" }
 
     // MARK: - Channel Sync
 

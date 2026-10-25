@@ -82,7 +82,7 @@ struct ChannelChatView: View {
                         }
                         notifyMode = next
                         if let mode = ChannelStore.ChannelNotifyMode(rawValue: next) {
-                            channelStore.setChannelNotifyMode(mode, for: channelName)
+                            channelStore.setChannelNotifyMode(mode, forIndex: channelIndex)
                         }
                     } label: {
                         Image(systemName: notifyMode == "muted" ? "bell.slash" : notifyMode == "mentions" ? "at" : "bell.fill")
@@ -96,7 +96,7 @@ struct ChannelChatView: View {
         }
         #endif
         .onAppear {
-            notifyMode = channelStore.channelNotifyMode(for: channelName).rawValue
+            notifyMode = channelStore.channelNotifyMode(forIndex: channelIndex, legacyName: channelName).rawValue
             // The draft is loaded and saved by MessageComposer, not here.
             DispatchQueue.main.async {
                 messageStoreManager.markAsRead(contactKey: channelKey)

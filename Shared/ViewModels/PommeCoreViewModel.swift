@@ -23,14 +23,16 @@ import MeshCoreKit
 import CoreSpotlight
 #endif
 
-#if os(macOS) || targetEnvironment(macCatalyst)
-/// A line of output in the USB serial terminal.
-struct USBTerminalLine: Identifiable {
+/// A line of output in the CLI terminal.
+///
+/// Was macOS-only along with the USB serial transport it was written for.
+/// Firmware 1.18.0's `CMD_RUN_CLI_COMMAND` carries the same CLI over the binary
+/// link, so the terminal — and this — now exist on every platform.
+struct CLITerminalLine: Identifiable {
     let id = UUID()
     let text: String
     let isCommand: Bool
 }
-#endif
 
 /// Whether iCloud sync is enabled (stored locally per device, defaults to true).
 var iCloudSyncEnabled: Bool {
@@ -259,7 +261,7 @@ final class PommeCoreViewModel: ObservableObject {
         messageStoreManager.radioPublicKeyHexProvider = { [weak self] in self?.deviceConfig.publicKeyHex ?? "" }
         messageStoreManager.contactProvider = { [weak self] key in self?.contactStore.contacts.first(where: { $0.publicKeyPrefix == key }) }
         messageStoreManager.channelProvider = { [weak self] idx in self?.channelStore.channels.first(where: { $0.index == idx }) }
-        messageStoreManager.channelNotifyModeProvider = { [weak self] name in self?.channelStore.channelNotifyMode(for: name) ?? .all }
+        messageStoreManager.channelNotifyModeProvider = { [weak self] idx in self?.channelStore.channelNotifyMode(forIndex: idx) ?? .all }
         messageStoreManager.allChannelsProvider = { [weak self] in self?.channelStore.channels ?? [] }
         messageStoreManager.contactNotifyModeProvider = { [weak self] contact in self?.contactStore.effectiveNotifyMode(for: contact) ?? .all }
         messageStoreManager.contactSoundProvider = { [weak self] contact in self?.contactStore.effectiveSound(for: contact) ?? .default }
