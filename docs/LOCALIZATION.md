@@ -137,6 +137,32 @@ wrong text simply appears. 120 such entries shipped before validation existed:
   languages.
 - **Echoed source.** The model answered `source - translation` and both halves
   were stored, so a picker row read `15 min - Quinze minutes`.
+- **Answered twice (found 2026-10-28).** Two variants of the model's own
+  translation, joined with `" - "`, so neither half is the English source and
+  the echo check above cannot see it. Fifteen shipped: `Respuesta rápida -
+  Respuesta rápida`, `Incluir Hops - Incluir Pulos`, and four Dutch help
+  strings carrying both of their own paragraphs end to end. Caught now by word
+  overlap between the halves — a real alternatives pair shares 33% or more of
+  its words, while prose that merely uses a dash as punctuation tops out at
+  11%, measured across the whole catalog.
+
+### Release notes are translated separately
+
+`scripts/translate_release_notes.py` handles the App Store "What's New" text,
+reading `docs/release_notes/en.txt` and writing one plain-text file per locale
+beside it. It imports `PRESERVE_TERMS` and `GLOSSARY` from
+`translate_strings.py`, so a term of art fixed in one place is fixed in both,
+and it sends **one paragraph per request** — given all six at once, an 8B model
+returns three.
+
+**It is a checker more than a translator.** On the 26.10.28 notes the model's
+prose reversed the meaning of the first sentence, invented "doesn't answer
+*calls*", rendered "message status" as `Der Statusnachricht`, and translated
+VoiceOver. Those are not structural faults, so nothing rejected them. The
+twelve files that shipped were written by hand and then put through
+`--verify`, which is the division of labour that works here: the script
+enforces paragraph count, preserved terms, the glossary and the 4000-character
+App Store limit; the prose is a human's.
 
 A translation failing any of those checks is **not written**, so the key falls
 back to English: visibly incomplete, but correct. Multi-line keys are
@@ -273,19 +299,30 @@ This catalog localizes the NSUsageDescription strings shown in system permission
 
 ---
 
-## Current Status (2026-10-03)
+## Current Status (2026-10-28)
 
-`Shared/Localizable.xcstrings` holds **977 keys**, of which 65 are
-`shouldTranslate: false` (symbols, numeric ranges, unit abbreviations), leaving
-**912 translatable**. All twelve shipped languages are complete:
+`Shared/Localizable.xcstrings` holds **1311 keys**, of which 73 are
+`shouldTranslate: false` (symbols, numeric ranges, unit abbreviations, device
+paths and the `meshcore://` scheme), leaving **1238 translatable**. All twelve
+shipped languages are complete:
 
 | Language | Localizable | InfoPlist |
 |---|---|---|
 | English (`en`) | source | source |
-| German (`de`) | 912 / 912 | complete |
-| French (`fr`), Spanish (`es`), Italian (`it`), Dutch (`nl`), Portuguese (`pt`) | 912 / 912 | complete |
-| Czech (`cs`), Polish (`pl`), Ukrainian (`uk`) | 912 / 912 | complete |
-| Japanese (`ja`), Simplified Chinese (`zh-Hans`) | 912 / 912 | complete |
+| German (`de`) | 1238 / 1238 | complete |
+| French (`fr`), Spanish (`es`), Italian (`it`), Dutch (`nl`), Portuguese (`pt`) | 1238 / 1238 | complete |
+| Czech (`cs`), Polish (`pl`), Ukrainian (`uk`) | 1238 / 1238 | complete |
+| Japanese (`ja`), Simplified Chinese (`zh-Hans`) | 1238 / 1238 | complete |
+
+**"Complete" now means every pair is filled, not that the machine was asked.**
+Twenty-four pairs were English because the glossary kept rejecting the model's
+answer — nine Japanese help strings where it would not stop saying ラジオ, and
+fifteen flood/advert sentences across `de`, `it`, `nl` and `uk`. A rejection
+leaves the key in English by design, which is correct but silent: the audit
+below counts specifier and structure problems, so a key that was never
+translated at all reports as clean. Those twenty-four were written by hand.
+The gap worth remembering is that **`--verify` passing is not the same as the
+catalog being translated** — count the missing pairs separately.
 
 `InfoPlist.xcstrings` omits `CFBundleDisplayName`, `CFBundleName` and
 `NSHumanReadableCopyright` in some locales. That is correct — the app name must

@@ -1,0 +1,11 @@
+Kanaalmeldingen respecteren nu „Menties” en „Gedempt”. Beide instellingen werden op het openbare kanaal genegeerd, zodat er een melding kwam wat u ook had gekozen.
+
+De status van een bericht geeft nu weer wat er werkelijk is gebeurd. Een kanaalbericht staat pas als verzonden wanneer de radio bevestigt dat het weg is, en het beweert nooit een aflevering die het mesh helemaal niet kan melden.
+
+Nieuw: een handleiding in de app die offline werkt, een sensordashboard dat knooppunten naast elkaar vergelijkt in plaats van ze op te sommen, ontdekte routes getekend op de mesh-kaart, mededelingen van kamerservers, en Snel antwoord — houd een bericht ingedrukt om te antwoorden met het aantal hops, het signaal, de tijd en een locatielabel dat u zelf instelt.
+
+De contactenlijst is nu één lijst met een typekiezer in plaats van vaste secties. Sorteren en meervoudige selectie zijn overal beschikbaar, en PommeCore kan aanbieden contacten te verwijderen die niet meer antwoorden.
+
+Ondersteuning voor MeshCore-firmware 1.18, inclusief de eigen opdrachtregel van de radio via Bluetooth, die daarmee voor het eerst op iPhone en iPad beschikbaar is. Het aantal hops en de lengte van berichten worden nu weergegeven in de eenheden die de radio zelf gebruikt.
+
+VoiceOver spreekt geen Engels meer op de watch, en 51 teksten die nooit in de vertaalcatalogus terechtkwamen, zijn nu in alle twaalf talen vertaald.

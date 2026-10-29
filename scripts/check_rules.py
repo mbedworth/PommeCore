@@ -429,8 +429,18 @@ def check_no_tool_references() -> None:
 
 CATALOG_PATH = ROOT / "Shared" / "Localizable.xcstrings"
 
+# `LabeledContent`, `Toggle`, `Picker` and `TextField` take a
+# `LocalizedStringKey` first argument exactly as `Text` does, so a literal
+# there is a translatable key — and was invisible to this check until
+# 2026-10-28, when 26 of them turned out to have no catalog entry: every row
+# of the Device Info panel (`Version`, `Model`, `Max Contacts`, `Device
+# Clock`…), the channel-details rows, the geofence name and coordinate
+# placeholders, and `Type RESET to confirm`. The original list stopped at the
+# containers that look like text; these look like controls, which is why they
+# were missed rather than excluded.
 UI_LITERAL = re.compile(
-    r'(?:Text|Label|navigationTitle|Button|confirmationDialog|alert)\(\s*"((?:[^"\\]|\\.)+)"'
+    r'(?:Text|Label|navigationTitle|Button|confirmationDialog|alert'
+    r'|LabeledContent|Toggle|Picker|TextField)\(\s*"((?:[^"\\]|\\.)+)"'
 )
 
 

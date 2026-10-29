@@ -1,0 +1,11 @@
+Oznámení kanálů nyní respektují „Zmínky“ a „Ztišeno“. Obě nastavení byla na veřejném kanálu ignorována, takže oznámení přišlo bez ohledu na vaši volbu.
+
+Stav zprávy nyní odpovídá tomu, co se skutečně stalo. Zpráva v kanálu je označena jako odeslaná teprve tehdy, když rádio potvrdí, že odešla, a nikdy netvrdí doručení, které mesh nemá jak oznámit.
+
+Nové: příručka v aplikaci, která funguje offline, přehled senzorů, který porovnává uzly vedle sebe místo jejich vypisování, objevené cesty vykreslené na mapě mesh, oznámení serverů místností a Rychlá odpověď – dlouhým stiskem zprávy odpovíte počtem hopů, signálem, časem a vlastním popiskem místa.
+
+Seznam kontaktů je nyní jediný seznam s voličem typu místo pevných sekcí. Řazení a vícenásobný výběr jsou dostupné všude a PommeCore může nabídnout odebrání kontaktů, které přestaly odpovídat.
+
+Podpora firmwaru MeshCore 1.18 včetně vlastní příkazové řádky rádia přes Bluetooth, která se tak poprvé dostává na iPhone a iPad. Počty hopů a délky zpráv se nyní uvádějí v jednotkách, které používá samo rádio.
+
+VoiceOver už na hodinkách nemluví anglicky a 51 textů, které se nikdy nedostaly do překladového katalogu, je nyní přeloženo do všech dvanácti jazyků.

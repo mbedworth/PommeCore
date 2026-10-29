@@ -1,0 +1,11 @@
+As notificações de canal passam a respeitar «Menções» e «Silenciado». Ambas as opções eram ignoradas no canal público, pelo que chegava uma notificação independentemente da escolha.
+
+O estado de uma mensagem passa a refletir o que realmente aconteceu. Uma mensagem de canal só aparece como enviada quando o rádio confirma que saiu, e nunca afirma uma entrega que o mesh não tem como comunicar.
+
+Novo: um manual na app que funciona offline, um painel de sensores que compara nós lado a lado em vez de os listar, as rotas descobertas desenhadas no mapa do mesh, anúncios de servidores de sala e a Resposta rápida — toque e mantenha numa mensagem para responder com o número de hops, o sinal, a hora e uma etiqueta de localização definida por si.
+
+A lista de contactos é agora uma única lista com um seletor de tipo em vez de secções fixas. A ordenação e a seleção múltipla estão disponíveis em qualquer lugar, e o PommeCore pode propor remover os contactos que deixaram de responder.
+
+Suporte para o firmware MeshCore 1.18, incluindo a linha de comandos do próprio rádio por Bluetooth, que chega assim pela primeira vez ao iPhone e ao iPad. O número de hops e o comprimento das mensagens passam a ser indicados nas unidades que o próprio rádio usa.
+
+O VoiceOver já não fala inglês no relógio e 51 textos que nunca chegaram ao catálogo de tradução estão agora traduzidos nas doze línguas.
