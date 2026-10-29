@@ -728,8 +728,21 @@ struct ChannelDetailSheet: View {
                     LabeledContent("Name", value: channelName)
                     LabeledContent("Index", value: "\(channelIndex)")
                     if let ch = channel {
-                        LabeledContent("Type", value: ch.channelType == .publicChannel ? "Public" : ch.channelType == .hashChannel ? "Hashtag" : "Private")
-                        LabeledContent("Secret", value: ch.secret != nil ? "Set (\(ch.secret!.count) bytes)" : "None")
+                        // `LabeledContent(_:value:)` takes a plain `String`, so
+                        // these have to be resolved through the catalog here —
+                        // a bare literal in a `value:` is never localized.
+                        // The keys are spelled out because `Type`, `Public` and
+                        // `Private` generate Swift symbols too close to
+                        // reserved words, which the archive step rejects. The
+                        // English the user sees is the catalog's `en` value.
+                        LabeledContent("Channel type", value: ch.channelType == .publicChannel
+                                       ? String(localized: "Channel type: public")
+                                       : ch.channelType == .hashChannel
+                                       ? String(localized: "Channel type: hashtag")
+                                       : String(localized: "Channel type: private"))
+                        LabeledContent("Secret", value: ch.secret.map {
+                            String(localized: "Set (\($0.count) bytes)")
+                        } ?? String(localized: "None"))
                     }
                 }
 

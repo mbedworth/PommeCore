@@ -1,0 +1,11 @@
+Channel notifications now respect Mentions and Muted. Both settings were being ignored on the public channel, so a notification arrived whatever you had chosen.
+
+Message status now reflects what really happened. A channel message reads as sent only once the radio confirms it left, and it never claims a delivery the mesh has no way to report.
+
+New: an in-app manual that works offline, a sensor dashboard that compares nodes side by side instead of listing them, discovered routes drawn on the mesh map, room server announcements, and Quick Reply — long-press a message to answer with hop count, signal, time and a location label you set.
+
+The contact list is now one list with a type selector rather than fixed sections. Sorting and multi-select are available everywhere, and PommeCore can offer to remove contacts that have stopped answering.
+
+Support for MeshCore firmware 1.18, including the radio's own command line over Bluetooth, which reaches iPhone and iPad for the first time. Hop counts and message lengths are now reported in the units the radio itself uses.
+
+VoiceOver no longer speaks English on the watch, and 51 strings that had never reached the translation catalog are now translated in all twelve languages.

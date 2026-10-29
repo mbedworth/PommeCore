@@ -52,7 +52,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "$9.99 supporters ontvangen automatisch Watch Companion. (Ondersteuners voor $9,99 krijgen Watch Companion automatisch.)"
+            "value": "Ondersteuners van $9,99 ontvangen Watch Companion automatisch."
           }
         },
         "pl": {
@@ -537,44 +537,8 @@
     },
     "%@ dB": {
       "extractionState": "manual",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ dB"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ dB"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ dB"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ дБ"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ デシベル"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ dB"
-          }
-        }
-      }
+      "localizations": {},
+      "shouldTranslate": false
     },
     "%@ dBm": {
       "shouldTranslate": false
@@ -1779,7 +1743,8 @@
       }
     },
     "-100–-120": {
-      "shouldTranslate": false
+      "shouldTranslate": false,
+      "localizations": {}
     },
     "-10–0": {
       "shouldTranslate": false
@@ -1854,6 +1819,11 @@
         }
       }
     },
+    "/dev/cu.usbmodem...": {
+      "extractionState": "manual",
+      "localizations": {},
+      "shouldTranslate": false
+    },
     "1 hour": {
       "localizations": {
         "cs": {
@@ -1895,7 +1865,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "1 uur (1 uur)"
+            "value": "1 uur"
           }
         },
         "pl": {
@@ -1977,7 +1947,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "1. Open nRF DFU app (1. Open nRF DFU-app)"
+            "value": "1. Open de nRF DFU-app"
           }
         },
         "pl": {
@@ -3825,77 +3795,12 @@
       "shouldTranslate": false
     },
     "< -10": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pod -10"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "< -10"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Menos de -10"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Moins de -10"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ヨーロッパ (< -10)"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "poniżej -10"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Менше -10"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "低于 -10"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "< -10"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "< -10"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Menos que -10"
-          }
-        }
-      }
+      "localizations": {},
+      "shouldTranslate": false
     },
     "< -120": {
-      "shouldTranslate": false
+      "shouldTranslate": false,
+      "localizations": {}
     },
     ">": {
       "comment": "A prompt for entering a command in the CLI Terminal.",
@@ -3906,7 +3811,8 @@
       "shouldTranslate": false
     },
     "> -100": {
-      "shouldTranslate": false
+      "shouldTranslate": false,
+      "localizations": {}
     },
     "> 0 dB": {
       "localizations": {
@@ -4039,6 +3945,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ein Mac trennt sich sauber vor dem Schlafen ab. Ohne diesen Schritt hält das Funkgerät die alte Verbindung aufrecht und lehnt die nächste ab, daher ist es besser, den Abgang zuzulassen, anstatt ihn zu erzwingen."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A Mac disconnects cleanly before sleeping. Without that the radio keeps holding the old connection and refuses the next one, so let the disconnection happen rather than forcing it."
           }
         }
       }
@@ -4530,6 +4442,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ein grauer Kontakt ist nicht erreichbar. Es bedeutet, dass in letzter Zeit nichts gehört wurde, was für ein Funkgerät, das nur spricht, wenn es angesprochen wird, unauffällig ist."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A grey contact is not unreachable. It means nothing has been heard recently, which for a radio that only speaks when spoken to is unremarkable."
           }
         }
       }
@@ -5234,6 +5152,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ein einziger falscher Wert macht ein Funkgerät taub, während es sonst gesund aussieht, daher ist ein vordefinierter Wert, der von Ihrem lokalen Mesh geteilt wird, wertvoller als manuell zusammengestellte Einstellungen."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A single wrong value makes a radio deaf while looking perfectly healthy, which is why a preset shared by your local mesh is worth more than settings assembled by hand."
           }
         }
       }
@@ -8470,7 +8394,7 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wysokość (na wysokości)"
+            "value": "Wysokość"
           }
         },
         "uk": {
@@ -8548,6 +8472,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "一个空的联系人列表通常意味着无线电设置错误，或者还没有人发送过通告。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "連絡先リストが空の場合、通常は無線機の設定が間違っているか、まだ誰もアドバタイズを送っていないことを意味します。"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine leere Kontaktliste bedeutet meist falsche Funkeinstellungen – oder dass noch niemand eine Ankündigung gesendet hat."
           }
         }
       }
@@ -12707,6 +12643,12 @@
             "state": "translated",
             "value": "Bluetooth ist die übliche Wahl und funktioniert auf jeder Plattform. Die App verbindet sich automatisch mit einem Funkgerät, das sie bereits kennt, einschließlich nach dem Funkgerät aus dem Bereich war oder ausgeschaltet wurde, sodass eine unerwartete Trennung keine Aktion von Ihnen erfordert."
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bluetooth is the usual choice and works on every platform. The app reconnects to a radio it already knows by itself, including after the radio has been out of range or switched off, so an unexpected disconnection does not need any action from you."
+          }
         }
       }
     },
@@ -12923,6 +12865,77 @@
         }
       }
     },
+    "Build Date": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Build-Datum"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Date de construction"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fecha de compilación"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Build Date"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Build Date"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data de Construção"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datum sestavení"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data kompilacji"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Build Date"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ビルド日時"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Build Date"
+          }
+        }
+      }
+    },
     "CLI command": {
       "localizations": {
         "cs": {
@@ -12992,6 +13005,11 @@
           }
         }
       }
+    },
+    "CRC": {
+      "extractionState": "manual",
+      "localizations": {},
+      "shouldTranslate": false
     },
     "Can't Connect to Radio?": {
       "localizations": {
@@ -14046,6 +14064,308 @@
           "stringUnit": {
             "state": "translated",
             "value": "频道工具"
+          }
+        }
+      }
+    },
+    "Channel type": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kanaltyp"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type de canal"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tipo de canal"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tipo di canale"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kanaaltype"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tipo de canal"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Typ kanálu"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Typ kanału"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Тип каналу"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "チャンネルの種類"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "频道类型"
+          }
+        }
+      }
+    },
+    "Channel type: hashtag": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hashtag"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "# [hashtag]"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hashtag"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hashtag"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hashtag"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hashtag"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ハッシュタグ"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hashtag"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hashtag"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hashtag"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hashtag"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hashtag"
+          }
+        }
+      }
+    },
+    "Channel type: private": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privat"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privé"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privado"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privato"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privé"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privado"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soukromé"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prywatne"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Приватний"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プライベート"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "私密"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Private"
+          }
+        }
+      }
+    },
+    "Channel type: public": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffentlich"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Public"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Público"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pubblico"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Openbaar"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Público"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Veřejné"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publiczne"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Публічний"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公開"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公开"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Public"
           }
         }
       }
@@ -15887,6 +16207,77 @@
         }
       }
     },
+    "Clock Status": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status der Uhr"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "État de l'horloge"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estado del reloj"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clock Status"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clock Status"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status do Relógio"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stav hodin"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stan zegara"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clock Status"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "時計の状態"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clock Status"
+          }
+        }
+      }
+    },
     "Clock Synced": {
       "localizations": {
         "de": {
@@ -16515,6 +16906,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "将你的无线电设置与本地网格使用的预设进行比较。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compare your radio settings against the preset your local mesh uses."
           }
         }
       }
@@ -18566,6 +18963,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "联系人会在听到它们的通告后出现。在网格中，如果没有听到任何信号，则问题可能不在于无线电设置，而是频率、带宽、传播因子和编码率完全不匹配。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "連絡先は、そのアドバタイズを受信したときに表示されます。まったく何も受信できない場合は、メッシュではなく無線機の設定を疑ってください。無線機どうしは、周波数、帯域幅、スプレッディングファクター、コーディングレートがすべて完全に一致したときにのみ、互いを受信できます。"
           }
         }
       }
@@ -22518,6 +22921,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "设备"
+          }
+        }
+      }
+    },
+    "Device Clock": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Device Clock"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Horloge de l'appareil"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reloj del Dispositivo"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Device Clock"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Device Clock"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Relógio do Dispositivo"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hodiny zařízení"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zegar urządzenia"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Device Clock"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "デバイス時計"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Device Clock"
           }
         }
       }
@@ -28554,7 +29028,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Llenar desde mi ubicación - Completar desde mi ubicación"
+            "value": "Rellenar con mi ubicación"
           }
         },
         "it": {
@@ -28569,16 +29043,10 @@
             "value": "Vul vanuit mijn locatie"
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Preencher a partir da minha localização - Preencher a partir da minha localização"
-          }
-        },
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Naplnit z mé polohy - Naplnit z mého umístění"
+            "value": "Vyplnit z mé polohy"
           }
         },
         "pl": {
@@ -28603,6 +29071,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "填写我的位置"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preencher com a minha localização"
           }
         }
       }
@@ -29661,6 +30135,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "泛洪和直接路由"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flooding en directe routering"
           }
         }
       }
@@ -32923,6 +33403,77 @@
         }
       }
     },
+    "Home, Work, Camp...": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Home, Work, Camp..."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accueil, Travail, Camp..."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hogar, Trabajo, Campamento..."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Home, Work, Camp..."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Home, Work, Camp..."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Casa, Trabalho, Acampamento..."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Domov, Práce, Tábor..."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dom, Praca, Obóz..."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Home, Work, Camp..."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "家、仕事、キャンプ..."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Home, Work, Camp..."
+          }
+        }
+      }
+    },
     "Hop not on map": {
       "comment": "A map legend label for a route drawn dashed because one of its hops has no known location.",
       "extractionState": "manual",
@@ -33609,7 +34160,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ikona (Icon)"
+            "value": "Ikona"
           }
         },
         "pl": {
@@ -34354,12 +34905,6 @@
             "value": "Inclure les sauts"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Incluir saltos - Incluir saltos"
-          }
-        },
         "it": {
           "stringUnit": {
             "state": "translated",
@@ -34375,13 +34920,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Incluir Hops - Incluir Pulos"
-          }
-        },
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zahrnout skoky - Zahrnout skoky"
+            "value": "Incluir hops"
           }
         },
         "pl": {
@@ -34406,6 +34945,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "包含跳数"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Incluir hops"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zahrnout hopy"
           }
         }
       }
@@ -34495,12 +35046,6 @@
             "value": "Inclure Signal"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Incluir señal - Incluir señal"
-          }
-        },
         "it": {
           "stringUnit": {
             "state": "translated",
@@ -34511,18 +35056,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Inclusief signaal"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Incluir Sinal - Incluir Sinal"
-          }
-        },
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zahrnout signál - Zahrnout signál"
           }
         },
         "pl": {
@@ -34548,6 +35081,24 @@
             "state": "translated",
             "value": "包含信号"
           }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Incluir señal"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Incluir sinal"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zahrnout signál"
+          }
         }
       }
     },
@@ -34569,7 +35120,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Incluir tiempo - Incluir hora"
+            "value": "Incluir hora"
           }
         },
         "it": {
@@ -34582,18 +35133,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Inclusief tijd"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Incluir Tempo - Incluir Tempo"
-          }
-        },
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zahrnout čas - Zahrnout čas"
           }
         },
         "pl": {
@@ -34618,6 +35157,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "包含时间"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Incluir hora"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zahrnout čas"
           }
         }
       }
@@ -34690,6 +35241,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "包括无线电名称、频率、扩展因子、带宽、发射功率、通道和路由设置。存储在 iCloud 中。最多 10 个配置文件。"
+          }
+        }
+      }
+    },
+    "Index": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Index"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Index"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Índice"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Index"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Index"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Índice"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Index"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wskaźnik"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Index"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "インデックス"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Index"
           }
         }
       }
@@ -39439,6 +40061,11 @@
         }
       }
     },
+    "MHz": {
+      "extractionState": "manual",
+      "localizations": {},
+      "shouldTranslate": false
+    },
     "Mac only. iOS provides no API for it.": {
       "extractionState": "manual",
       "localizations": {
@@ -40567,6 +41194,148 @@
         }
       }
     },
+    "Max Channels": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maximale Kanäle"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Canaux max"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Canales máximos"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Max Channels"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maximale kanalen"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Canais Máximos"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maximální kanály"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maksymalna liczba kanałów"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Max Channels"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最大チャンネル数"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Max Channels"
+          }
+        }
+      }
+    },
+    "Max Contacts": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maximale Kontakte"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contacts max"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contactos máximos"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contatti massimi"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maximale contacten"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contatos Máximos"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maximální kontakty"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maksymalna liczba kontaktów"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Максимум контактів"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最大連絡先数"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最大联系人"
+          }
+        }
+      }
+    },
     "Max Range (FSPL only)": {
       "localizations": {
         "de": {
@@ -40644,7 +41413,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zmiňování"
+            "value": "Zmínky"
           }
         },
         "de": {
@@ -40674,19 +41443,19 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wspomnienia"
+            "value": "Wzmianki"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mencões"
+            "value": "Menções"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Спомінки"
+            "value": "Згадки"
           }
         },
         "zh-Hans": {
@@ -42056,6 +42825,77 @@
         }
       }
     },
+    "Model": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modell"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modèle"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modelo"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modello"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Model"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modelo"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Model"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Model"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Модель"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "モデル"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模型"
+          }
+        }
+      }
+    },
     "Monitoring": {
       "comment": "A section title for the RF Monitor tool.",
       "isCommentAutoGenerated": true,
@@ -42332,6 +43172,12 @@
             "state": "translated",
             "value": "无线电通常仍保持着之前的连接。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "たいていの場合、無線機が以前の接続を保持したままになっています。"
+          }
         }
       }
     },
@@ -42396,6 +43242,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "大多数地区也限制了每个小时内发射器可以活跃的次数，无线电会自行执行这一限制。如果你非常快地发送了大量消息，无线电可能会拒绝在预算恢复前发送消息。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ほとんどの地域では、送信機が 1 時間のうちに送信できる時間の上限も定められており、無線機自身がそれを守ります。短時間に大量に送信した場合、無線機は割り当てが回復するまで送信を見送ることがあります。"
           }
         }
       }
@@ -42759,7 +43611,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Umlčen"
+            "value": "Ztišeno"
           }
         },
         "de": {
@@ -42772,12 +43624,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Silenciado"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Surris"
           }
         },
         "it": {
@@ -42795,7 +43641,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Stil"
+            "value": "Gedempt"
           }
         },
         "pl": {
@@ -42813,13 +43659,19 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Вимкнено"
+            "value": "Без звуку"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
             "value": "已静音"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Muet"
           }
         }
       }
@@ -44092,6 +44944,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "发现新联系人"
+          }
+        }
+      }
+    },
+    "New password": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neues Passwort"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouveau mot de passe"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nueva contraseña"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuova password"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nieuw wachtwoord"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nova senha"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nové heslo"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nowa hasło"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Новий пароль"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新しいパスワード"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新密码"
           }
         }
       }
@@ -46133,6 +47056,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "没有存储的路径。下一条消息泛洪以找到一条路径。"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nessun percorso memorizzato. Il prossimo messaggio usa il flooding per scoprirne uno."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geen opgeslagen pad. Het volgende bericht gebruikt flooding om er een te vinden."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Збереженого шляху немає. Наступне повідомлення піде лавинною розсилкою, щоб його знайти."
           }
         }
       }
@@ -50645,6 +51586,36 @@
             "state": "translated",
             "value": "路径会过期。人们搬家了，无线电被关掉，电池耗尽了。当已知路径停止工作时，路径会被重置，下一条消息会再次泛洪以发现一条新路径。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "経路は古くなります。人は移動し、無線機の電源は切られ、バッテリーは尽きます。既知の経路が使えなくなると、経路はリセットされ、次のメッセージは新しい経路を見つけるために再びフラッディングされます。"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pfade veralten. Menschen ziehen um, Funkgeräte werden ausgeschaltet, Akkus sind leer. Wenn ein bekannter Pfad nicht mehr funktioniert, wird er zurückgesetzt und die nächste Nachricht sucht per Flooding einen neuen."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I percorsi invecchiano. Le persone si spostano, le radio vengono spente, le batterie si esauriscono. Quando un percorso noto smette di funzionare, viene azzerato e il messaggio successivo usa di nuovo il flooding per trovarne uno nuovo."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paden verouderen. Mensen verhuizen, radio’s gaan uit, accu’s raken leeg. Werkt een bekend pad niet meer, dan wordt het gewist en zoekt het volgende bericht via flooding een nieuw pad."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Шляхи втрачають актуальність. Люди переїжджають, радіо вимикають, акумулятори сідають. Коли відомий шлях перестає працювати, його скидають, і наступне повідомлення знову йде лавинною розсилкою, щоб знайти новий."
+          }
         }
       }
     },
@@ -53688,6 +54659,77 @@
         }
       }
     },
+    "Profile Name": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profilname"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nom de profil"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nombre de perfil"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nome profilo"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profielnaam"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nome do Perfil"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Název profilu"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nazwa profilu"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Назва профілю"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プロファイル名"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "个人资料名称"
+          }
+        }
+      }
+    },
     "Protocol operations will appear here": {
       "comment": "A description of what will be displayed in the log view.",
       "isCommentAutoGenerated": true,
@@ -53826,6 +54868,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "公钥十六进制"
+          }
+        }
+      }
+    },
+    "Pubkey hex prefix (manual)": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hex-Präfix für Pubkey (manuell)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Préfixe hexadécimal de la clé publique (manuel)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prefijo hexadecimal de Pubkey (manual)"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prefisso esadecimale Pubkey (manuale)"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hex-prefix van Pubkey (manueel)"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prefixo hexadecimal da chave pública (manual)"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hexový prefix veřejného klíče (ruční)"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prefiks hex klucza publicznego (ręczne)"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hex-префікс публічного ключа (ручне введення)"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公開鍵のヘックス接頭辞 (マニュアル)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公钥十六进制前缀（手动）"
           }
         }
       }
@@ -54129,12 +55242,6 @@
             "value": "Réponse rapide"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Respuesta rápida - Respuesta rápida"
-          }
-        },
         "it": {
           "stringUnit": {
             "state": "translated",
@@ -54144,19 +55251,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Snel antwoorden"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Resposta Rápida - Resposta Rápida"
-          }
-        },
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Rychlá odpověď - Rychlá odpověď"
+            "value": "Snel antwoord"
           }
         },
         "pl": {
@@ -54181,6 +55276,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "快速回复"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Respuesta rápida"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resposta rápida"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rychlá odpověď"
           }
         }
       }
@@ -54246,6 +55359,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Beende alle anderen MeshCore-Tools, bevor du dich verbindest. Ein Kommandozeilen-Client hält das Funkgerät genauso fest wie die App."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接続する前に、ほかの MeshCore ツールをすべて終了してください。コマンドラインクライアントも、アプリと同じように無線機を占有します。"
           }
         }
       }
@@ -54375,7 +55494,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ (変更なし)"
+            "value": "引用: %@"
           }
         },
         "zh-Hans": {
@@ -54930,7 +56049,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "無線機 %@... (変更なし)"
+            "value": "無線機 %@..."
           }
         },
         "nl": {
@@ -55572,12 +56691,6 @@
             "value": "Radio Terminal"
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Terminal de Rádio - Terminal de Rádio"
-          }
-        },
         "cs": {
           "stringUnit": {
             "state": "translated",
@@ -55606,6 +56719,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "无线电终端"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terminal do rádio"
           }
         }
       }
@@ -56023,7 +57142,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Заплутати (з випадковістю)"
+            "value": "Випадкове значення"
           }
         },
         "zh-Hans": {
@@ -58011,6 +59130,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "刷新统计数据"
+          }
+        }
+      }
+    },
+    "Region": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Region"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Région"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Región"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Regione"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Regio"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Região"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Region"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Region"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Регіон"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地域"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "区域"
           }
         }
       }
@@ -60330,6 +61520,12 @@
             "state": "translated",
             "value": "Wiederholer und Raumserver senden Ankündigungen nach einem Timer, da ihre Aufgabe darin besteht, auffindbar zu sein. Ein Begleitfunkgerät wie deines sendet eine Ankündigung nur, wenn du es darum bittest."
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "リピーターやルームサーバーは、見つけてもらうことが役目なので、タイマーでアドバタイズを送ります。お使いのようなコンパニオン無線機はそうではなく、アドバタイズは指示したときにだけ送信されます。あなたの無線機の情報が、ひとりでに電波に出ることはありません。"
+          }
         }
       }
     },
@@ -62229,6 +63425,12 @@
             "state": "translated",
             "value": "Die Wiederherstellung fügt diese Kontakte wieder zum Funkgerät hinzu. Kontakte, die es bereits hat, werden aktualisiert, nie entfernt, daher ist die Wiederherstellung sicher erneut zu versuchen."
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "復元すると、これらの連絡先が無線機に戻されます。すでにある連絡先は更新されるだけで削除されることはないため、復元は何度でも安全にやり直せます。"
+          }
         }
       }
     },
@@ -63510,6 +64712,11 @@
           }
         }
       }
+    },
+    "SF / CR": {
+      "extractionState": "manual",
+      "localizations": {},
+      "shouldTranslate": false
     },
     "SF%@": {
       "shouldTranslate": false
@@ -65632,6 +66839,77 @@
         }
       }
     },
+    "Secret": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geheimnis"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Secret"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Secreto"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Segreto"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geheim"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Secreto"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tajné"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tajne"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Таємний"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "秘密"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "秘密"
+          }
+        }
+      }
+    },
     "Secret (hex)": {
       "localizations": {
         "cs": {
@@ -67532,6 +68810,12 @@
             "state": "translated",
             "value": "自分のアドバタイズを送信する。コンパニオン無線機は自分でアドバタイズを送信しないので、誰もあなたを見つけることができないまで、あなたは見つからない。"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Senden Sie Ihre eigene Ankündigung. Begleitgeräte kündigen sich nie von selbst an – bis dahin kann Sie niemand sehen."
+          }
         }
       }
     },
@@ -68534,6 +69818,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "设置"
+          }
+        }
+      }
+    },
+    "Set (%lld bytes)": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setzen (%lld Bytes)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Définir (%lld octets)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Establecer (%lld bytes)"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imposta (%lld byte)"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instellen (%lld bytes)"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Definir (%lld bytes)"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nastavit (%lld bajtů)"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ustaw (%lld bajtów)"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Налаштувати (%lld байтів)"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定 (%lld バイト)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设置 (%lld 字节)"
           }
         }
       }
@@ -74542,6 +75897,77 @@
         }
       }
     },
+    "Telemetry Requests": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Telemetrieanforderungen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demandes de télémétrie"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solicitudes de telemetría"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Richieste di telemetria"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Telemetrieverzoeken"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solicitações de Telemetria"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Telemetrické požadavky"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Żądania telemetrii"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Запити телеметрії"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "テレメトリー要求"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "遥测请求"
+          }
+        }
+      }
+    },
     "Telemetry and Sensors": {
       "extractionState": "manual",
       "localizations": {
@@ -75090,6 +76516,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Diese Asymmetrie ist wichtig, wenn du darauf wartest, entdeckt zu werden. Wenn jemand dich nicht sehen kann, liegt die Ursache normalerweise darin, dass du keine Ankündigung gesendet hast, nicht dass etwas kaputt ist."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "見つけてもらうためにその非対称性は重要です。誰もあなたが見えない場合、解決策は通常、あなたがアドバタイズしていないのであって、何かが壊れているのではありません。"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die asymmetrie is belangrijk wanneer u wacht tot u gevonden wordt. Ziet iemand u niet, dan is de oplossing meestal dat u nog geen aankondiging hebt verstuurd, niet dat er iets stuk is."
           }
         }
       }
@@ -75711,6 +77149,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "路径重置，消息泛洪。"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Pfad wird zurückgesetzt und die Nachricht geht per Flooding hinaus."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il percorso viene azzerato e il messaggio usa il flooding."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Het pad wordt gewist en het bericht gaat via flooding verder."
           }
         }
       }
@@ -77057,6 +78513,12 @@
             "state": "translated",
             "value": "Dies entfernt das Snapshot von diesem Gerät. Die Kontakte im Funkgerät werden nicht beeinflusst."
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この操作では、このデバイスからスナップショットが削除されます。無線機側の連絡先は影響を受けません。"
+          }
         }
       }
     },
@@ -78013,7 +79475,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Trace Route vers %@ (non traduit, format spécificateur conservé)"
+            "value": "Tracer la route vers %@"
           }
         },
         "it": {
@@ -78552,6 +80014,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "两种始终在线节点：一种扩展范围，另一种存储消息。"
+          }
+        }
+      }
+    },
+    "Type RESET to confirm": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "RESET eingeben zum Bestätigen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type RESET pour confirmer"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tipo RESET para confirmar"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Digita RESET per confermare"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Typ RESET om te bevestigen"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Digite RESET para confirmar"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zadejte RESET pro potvrzení"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wpisz \"RESET\" aby potwierdzić"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Введіть RESET для підтвердження"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認のため RESET と入力"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "输入 RESET 确认"
           }
         }
       }
@@ -80532,6 +82065,148 @@
         }
       }
     },
+    "Version": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versión"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versione"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versie"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versão"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verze"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wersja"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Версія"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "バージョン"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "版本"
+          }
+        }
+      }
+    },
+    "View": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anzeigen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afficher"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ver"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visualizza"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bekijk"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visualizar"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zobrazit"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wyświetl"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перегляд"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "表示"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看"
+          }
+        }
+      }
+    },
     "View MeshCore Frequency Guide": {
       "localizations": {
         "cs": {
@@ -80740,6 +82415,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "查看支持者墙"
+          }
+        }
+      }
+    },
+    "Voltage": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spannung"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tension"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voltaje"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tensione"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spanning"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tensão"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Napětí"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Napięcie"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Напруга"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "電圧"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "电压"
           }
         }
       }
@@ -81508,6 +83254,18 @@
             "state": "translated",
             "value": "無線機が誰にどう到達すべきかまだ知らないとき、それはフラッディングします：メッセージは耳の届く範囲内のすべての無線機に送信され、それぞれがそれを転送します。これにより、誰も何も設定しなくても宛先が見つかりますが、その過程で触れたすべての無線機の電波を使用します。"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wenn Ihr Funkgerät noch nicht weiß, wie es jemanden erreicht, nutzt es Flooding: die Nachricht geht an jedes Funkgerät in Hörweite, und jedes gibt sie weiter. So wird das Ziel ohne jede Konfiguration gefunden – es verbraucht aber die Sendezeit jedes beteiligten Funkgeräts."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weet uw radio nog niet hoe iemand te bereiken is, dan gebruikt hij flooding: het bericht gaat naar elke radio binnen gehoorsafstand, en elk daarvan geeft het door. Zo wordt de bestemming gevonden zonder dat iemand iets instelt, maar het kost zendtijd van elke radio die het aanraakt."
+          }
         }
       }
     },
@@ -82152,7 +83910,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Váš klíčový předpona"
+            "value": "Předpona vašeho klíče"
           }
         },
         "de": {
@@ -82170,7 +83928,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Votre préfixe clé"
+            "value": "Votre préfixe de clé"
           }
         },
         "it": {
@@ -82183,12 +83941,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "あなたのキープレフィックス"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Uw sleutelvoorkeur - Uw sleutelvoorkeur"
           }
         },
         "pl": {
@@ -82213,6 +83965,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "您的密钥前缀"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uw sleutelprefix"
           }
         }
       }
@@ -82753,7 +84511,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Uw radio is via USB verbonden. Tik op de knop hieronder om het commando te verzenden. - Uw radio is via USB aangesloten. Druk op de knop hieronder om het commando te sturen."
+            "value": "Uw radio is via USB verbonden. Tik op de knop hieronder om het commando te verzenden."
           }
         },
         "pl": {
@@ -82895,7 +84653,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Uw radio is op afstand beheerd ingelogd. Tik op de knop hieronder om het commando te verzenden. - Uw radio is op afstand toegang verstrekt en ingelogd. Tik op de knop hieronder om het commando te sturen."
+            "value": "Uw radio is aangemeld via beheer op afstand. Tik op de knop hieronder om het commando te verzenden."
           }
         },
         "pl": {
@@ -82967,7 +84725,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Uw radio moet het juiste frequentiegebied voor uw land gebruiken. Het gebruik van een verkeerd frequentiegebied kan in strijd zijn met lokale voorschriften. - Uw radio moet het juiste frequentiebereik voor uw land gebruiken. Het gebruik van een onjuist frequentiegebied kan in strijd zijn met de lokale wetgeving."
+            "value": "Uw radio moet de juiste frequentie voor uw land gebruiken. Een verkeerde frequentie kan in strijd zijn met de lokale regelgeving."
           }
         },
         "pl": {
@@ -83039,7 +84797,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "De frequentie van uw radio wordt ingesteld tijdens het flitsen. Als u deze wilt wijzigen, gaat u naar Instellingen → Radio na de verbinding. Alle radios in uw mesh moeten hetzelfde frequentiegebied, bandbreedte, spreidingsfactor en coderingssnelheid gebruiken. - De frequentie van uw radio wordt ingesteld tijdens het flashen. Als u deze nodig wijzigt, gaat u naar Instellingen → Radio nadat u bent verbonden. Alle radios in uw meshnetwerk moeten dezelfde frequentie, bandbreedte, spreiding, en coderingssnelheid gebruiken."
+            "value": "De frequentie van uw radio wordt tijdens het flashen ingesteld. Wilt u deze wijzigen, ga dan na het verbinden naar Instellingen → Radio. Alle radio’s in uw mesh moeten dezelfde frequentie, bandbreedte, spreading factor en coding rate gebruiken."
           }
         },
         "pl": {
@@ -84414,6 +86172,148 @@
         }
       }
     },
+    "e.g. -122.03118": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "z.B. -122.03118"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "par exemple -122.03118"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g. -122.03118"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "es. -122.03118"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bijv. -122.03118"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g. -122.03118"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Příklad -122.03118"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "np. -122.03118"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "напр. -122.03118"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例: -122.03118"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如 -122.03118"
+          }
+        }
+      }
+    },
+    "e.g. 37.33182": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "z.B. 37.33182"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "par exemple 37.33182"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g. 37.33182"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "es. 37.33182"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bijv. 37.33182"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g. 37.33182"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Příklad 37.33182"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "np. 37.33182"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "напр. 37.33182"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例: 37.33182"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如 37.33182"
+          }
+        }
+      }
+    },
     "e.g. Ft Pierce, FL": {
       "extractionState": "manual",
       "localizations": {
@@ -84426,13 +86326,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Fort Pierce, Floride"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ej. Ft Pierce, FL - ej. Ft Pierce, FL"
+            "value": "p. ex. Ft Pierce, FL"
           }
         },
         "it": {
@@ -84447,16 +86341,10 @@
             "value": "Bijv. Ft Pierce, FL"
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Exemplo: Ft Pierce, FL - Exemplo: Ft Pierce, FL"
-          }
-        },
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Příklad - Ft Pierce, FL"
+            "value": "např. Ft Pierce, FL"
           }
         },
         "pl": {
@@ -84481,6 +86369,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "例如，佛罗里达州皮埃尔斯市"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "p. ej. Ft Pierce, FL"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "p. ex. Ft Pierce, FL"
           }
         }
       }
@@ -84771,6 +86671,11 @@
           }
         }
       }
+    },
+    "meshcore:// URL": {
+      "extractionState": "manual",
+      "localizations": {},
+      "shouldTranslate": false
     },
     "offline": {
       "extractionState": "manual",
@@ -86045,7 +87950,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "💚 Ik wil helpen! Donateurs kunnen hun naam toevoegen aan de Supportersmuur. (Donateurs kunnen hun naam toevoegen aan de muur van ondersteuners.)"
+            "value": "💚 Wie “Ik wil helpen!” kiest, kan zijn naam toevoegen aan de Supportersmuur."
           }
         },
         "pl": {

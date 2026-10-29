@@ -37,25 +37,6 @@ TARGET_LANGUAGES = {
     "zh-Hans": "Simplified Chinese",
 }
 
-# Terms that must never be translated
-PRESERVE_TERMS = [
-    "PommeCore", "MeshCore", "MeshCoreKit", "LoRa", "BLE", "RSSI", "SNR",
-    "dBm", "MHz", "kHz", "SF", "BW", "CR", "WiFi", "USB", "GPS", "LPP",
-    "iCloud", "Siri", "Shortcuts", "TestFlight", "App Store", "iOS", "macOS",
-    "watchOS", "SwiftUI", "Meshtastic", "Bluetooth", "JSON", "API", "URL",
-    "SHA256", "PSK", "DFU", "OTA", "LPP", "Fresnel", "Cayenne", "ESP32",
-    "nRF52", "GitHub", "CloudKit", "KeyValueStore", "Spotlight",
-    # Mesh-routing jargon. These have everyday meanings that models reach for
-    # first, and the result is confidently wrong rather than awkward: "flood"
-    # (flood routing) came back as water flooding in German, Spanish, Czech and
-    # Chinese — "Überschwemmungsbereich", "alcance de inundación", "rozsah
-    # záplavy", "淹没范围". Treating them as technical terms is the fix; it is
-    # also consistent with how LoRa, SNR and PSK are already handled.
-    "flood", "flooding", "advert", "repeater", "mesh", "hop", "traceroute",
-    # Feature name, not a phrase to translate. Left to the model it produced
-    # "Jarro de Dicas" (a jar of *hints*), "Poteau de don" and "Tippotje".
-    "Tip Jar",
-]
 
 # --------------------------------------------------------------------------
 # Per-language glossary for the two terms the model gets confidently wrong
@@ -133,6 +114,10 @@ PRESERVE_TERMS = [
     # Feature name, not a phrase to translate. Left to the model it produced
     # "Jarro de Dicas" (a jar of *hints*), "Poteau de don" and "Tippotje".
     "Tip Jar",
+    # Typed to confirm a destructive action. A translated word would be
+    # rejected by the field that compares against the literal, so a
+    # localized "Type RESET to confirm" must still say RESET.
+    "RESET",
 ]
 
 # --------------------------------------------------------------------------
@@ -224,8 +209,20 @@ def save_xcstrings(path, data):
         f.write("\n")
 
 def get_source_text(key, value):
-    """Return the English source string to translate (prefer the key, which is plain English)."""
-    return key
+    """The English a translator is actually working from.
+
+    Normally that is the key, which is written as plain English. It is *not*
+    the key when the entry carries its own `en` localization, which is how a
+    key gets a descriptive name while still displaying something shorter —
+    `Channel type: public` shows "Public", because `Type`, `Public` and
+    `Private` generate Swift symbols the archive step refuses. Every length and
+    structure comparison has to use this value rather than the key, or those
+    entries are measured against text no translator ever saw: the first four
+    of them made `--verify` report 23 correct translations as implausible
+    contractions.
+    """
+    en = ((value.get("localizations") or {}).get("en") or {}).get("stringUnit") or {}
+    return en.get("value") or key
 
 def get_translatable_keys(data, lang):
     """Return list of (key, source_text) for keys that need translation in this lang."""
@@ -362,6 +359,19 @@ def _has_cjk(text):
                for c in text)
 
 
+def _word_set(text):
+    return set(re.findall(r"\w+", text.lower()))
+
+
+def _carries_words(text):
+    """True when anything is left after the format specifiers come out.
+
+    A value made only of specifiers and punctuation cannot be an echo, a
+    repeat or two alternatives — there is nothing in it to say twice.
+    """
+    return bool(re.search(r"\w", SPECIFIER_RE.sub("", text)))
+
+
 def translation_problem(key, value, lang=None):
     """Why `value` is not a usable translation of `key`, or None if it is.
 
@@ -400,6 +410,37 @@ def translation_problem(key, value, lang=None):
         head, _, tail = stripped.partition(sep)
         if tail and head.strip().casefold() == key.strip().casefold():
             return f"echoes the English source before the translation ({sep.strip()!r})"
+        # The same fault with the *translation* on both sides, which the check
+        # above cannot see because neither half is the English source:
+        # "Respuesta rápida - Respuesta rápida", "Zahrnout skoky - Zahrnout
+        # skoky". Fifteen strings shipped this way in es, pt, cs and nl —
+        # thirteen of them from one feature's batch — and they render in the UI
+        # with the separator intact. A translation that repeats itself verbatim
+        # around a separator is never correct, in any language — *unless* there
+        # are no words in it to repeat. `%@ — %@` has two equal halves by
+        # construction and translates to itself in all eleven languages. Its
+        # own `en` entry spells the specifiers positionally (`%1$@ — %2$@`), so
+        # comparing the value against the source does not exempt it; having no
+        # words at all does.
+        if (tail and head.strip() and _carries_words(stripped)
+                and head.strip().casefold() == tail.strip().casefold()):
+            return f"repeats itself around {sep.strip()!r}"
+
+    # Two alternatives, both kept. The nastier version of the check above: the
+    # model answers twice in slightly different words and joins them with
+    # " - ", so neither half equals the other and nothing above objects.
+    # "Incluir Hops - Incluir Pulos", and four Dutch help strings that shipped
+    # both of their own paragraphs end to end. Measured across the whole
+    # catalog: a real alternatives pair shares 33% or more of its words between
+    # the halves, and the densest legitimate case — prose that merely uses a
+    # dash as punctuation — reaches 11%. The source is required to contain no
+    # dash at all, which excludes every string that is simply rendering its own
+    # em dash as a hyphen.
+    if " - " in stripped and not any(c in key for c in "-–—"):
+        head, _, tail = stripped.partition(" - ")
+        a, b = _word_set(head), _word_set(tail)
+        if a and b and len(a & b) / len(a | b) >= 0.3:
+            return "offers two alternatives joined by ' - '"
 
     # Trailing commentary. "60 min [soixante minutes]" — the source kept intact
     # with a gloss bolted on, which renders literally.
@@ -408,6 +449,24 @@ def translation_problem(key, value, lang=None):
             head = stripped[:stripped.rindex(open_)].strip()
             if head.casefold() == key.strip().casefold():
                 return f"appends a {open_}{close} gloss to the untranslated source"
+
+    # A parenthetical the source never had. The check above only fires when
+    # everything before the bracket is the English source, which the worst
+    # cases are not: the model keeps a fragment, or translates correctly, and
+    # then annotates. Measured across the catalog, every legitimate case is a
+    # short morphological suffix — French inclusive forms `connecté(e)`,
+    # `Bon(ne)`, and `Öffentlicher Schlüssel (Hex)` — and all of them hold 3
+    # characters or fewer inside the brackets. At four and above the catalog
+    # held nothing but damage: `Ikona (Icon)`, `Wysokość (na wysokości)`,
+    # `# (nezměněno)`, `%@ (変更なし)` on an accessibility label, `1 uur (1
+    # uur)`, `ヨーロッパ (< -10)` — which invented *Europe* for an SNR
+    # threshold — a French "(non traduit, format spécificateur conservé)", and
+    # two long Dutch strings carrying their own second attempt in brackets.
+    if (stripped.endswith(")") and "(" in stripped
+            and "(" not in key and ")" not in key):
+        inner = stripped[stripped.rindex("(") + 1:-1].strip()
+        if len(inner) >= 4:
+            return f"appends a parenthetical the source does not have ({inner[:30]!r})"
 
     # Romanization gloss. The check above only fires when the head is the
     # English source. The nastier version translates correctly and then
@@ -620,7 +679,8 @@ def main():
                 value = (loc.get("stringUnit") or {}).get("value")
                 if value is None:
                     continue
-                why = translation_problem(key, value, lang)
+                why = translation_problem(
+                    get_source_text(key, entry), value, lang)
                 if why is not None:
                     bad.append((lang, key, value, why))
 

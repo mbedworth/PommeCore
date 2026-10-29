@@ -1,0 +1,11 @@
+Les notifications de canal respectent désormais « Mentions » et « Muet ». Les deux réglages étaient ignorés sur le canal public : une notification arrivait quel que soit votre choix.
+
+L'état d'un message reflète désormais ce qui s'est réellement passé. Un message de canal n'est indiqué comme envoyé qu'une fois que la radio confirme son départ, et il ne prétend jamais à une remise que le mesh n'a aucun moyen de signaler.
+
+Nouveau : un manuel intégré qui fonctionne hors ligne, un tableau de bord des capteurs qui compare les nœuds côte à côte au lieu de les énumérer, les routes découvertes tracées sur la carte du mesh, les annonces des serveurs de salle, et la Réponse rapide — appuyez longuement sur un message pour répondre avec le nombre de hops, le signal, l'heure et un libellé de lieu que vous définissez.
+
+La liste de contacts est désormais une seule liste avec un sélecteur de type, au lieu de sections fixes. Le tri et la sélection multiple sont disponibles partout, et PommeCore peut proposer de supprimer les contacts qui ne répondent plus.
+
+Prise en charge du firmware MeshCore 1.18, y compris la ligne de commande de la radio elle-même via Bluetooth, qui arrive ainsi pour la première fois sur iPhone et iPad. Le nombre de hops et la longueur des messages sont désormais indiqués dans les unités utilisées par la radio.
+
+VoiceOver ne parle plus anglais sur la montre, et 51 textes qui n'avaient jamais atteint le catalogue de traduction sont désormais traduits dans les douze langues.

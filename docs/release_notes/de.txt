@@ -1,0 +1,11 @@
+Kanal-Benachrichtigungen berücksichtigen jetzt „Erwähnungen“ und „Stummgeschaltet“. Beide Einstellungen wurden im öffentlichen Kanal ignoriert, sodass eine Benachrichtigung ankam, egal was eingestellt war.
+
+Der Nachrichtenstatus spiegelt jetzt wider, was tatsächlich passiert ist. Eine Kanalnachricht gilt erst dann als gesendet, wenn das Funkgerät bestätigt, dass sie es verlassen hat, und sie behauptet nie eine Zustellung, die das Mesh gar nicht melden kann.
+
+Neu: ein Handbuch in der App, das offline funktioniert, ein Sensor-Dashboard, das Knoten nebeneinander vergleicht statt sie aufzulisten, entdeckte Routen auf der Mesh-Karte, Ankündigungen von Raumservern und die Schnellantwort – lange auf eine Nachricht drücken, um mit Hop-Zahl, Signal, Uhrzeit und einer von Ihnen festgelegten Ortsangabe zu antworten.
+
+Die Kontaktliste ist jetzt eine einzige Liste mit einer Typ-Auswahl statt fester Abschnitte. Sortieren und Mehrfachauswahl sind überall verfügbar, und PommeCore kann anbieten, Kontakte zu entfernen, die nicht mehr antworten.
+
+Unterstützung für MeshCore-Firmware 1.18, einschließlich der eigenen Kommandozeile des Funkgeräts über Bluetooth, die damit erstmals auf iPhone und iPad verfügbar ist. Hop-Zahlen und Nachrichtenlängen werden jetzt in den Einheiten angegeben, die das Funkgerät selbst verwendet.
+
+VoiceOver spricht auf der Uhr nicht mehr Englisch, und 51 Texte, die nie in den Übersetzungskatalog gelangt waren, sind jetzt in allen zwölf Sprachen übersetzt.
