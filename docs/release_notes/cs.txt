@@ -8,4 +8,4 @@ Seznam kontaktů je nyní jediný seznam s voličem typu místo pevných sekcí.
 
 Podpora firmwaru MeshCore 1.18 včetně vlastní příkazové řádky rádia přes Bluetooth, která se tak poprvé dostává na iPhone a iPad. Počty hopů a délky zpráv se nyní uvádějí v jednotkách, které používá samo rádio.
 
-VoiceOver už na hodinkách nemluví anglicky a 51 textů, které se nikdy nedostaly do překladového katalogu, je nyní přeloženo do všech dvanácti jazyků.
+VoiceOver už na hodinkách nemluví anglicky, 77 textů, které se nikdy nedostaly do překladového katalogu, je nyní přeloženo a kontrola zbývajících jedenácti jazyků opravila překlady, které nechyběly, ale byly chybné.

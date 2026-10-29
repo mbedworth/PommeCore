@@ -8,4 +8,4 @@ Die Kontaktliste ist jetzt eine einzige Liste mit einer Typ-Auswahl statt fester
 
 Unterstützung für MeshCore-Firmware 1.18, einschließlich der eigenen Kommandozeile des Funkgeräts über Bluetooth, die damit erstmals auf iPhone und iPad verfügbar ist. Hop-Zahlen und Nachrichtenlängen werden jetzt in den Einheiten angegeben, die das Funkgerät selbst verwendet.
 
-VoiceOver spricht auf der Uhr nicht mehr Englisch, und 51 Texte, die nie in den Übersetzungskatalog gelangt waren, sind jetzt in allen zwölf Sprachen übersetzt.
+VoiceOver spricht auf der Uhr nicht mehr Englisch, 77 Texte, die nie in den Übersetzungskatalog gelangt waren, sind jetzt übersetzt, und ein Durchgang durch die elf anderen Sprachen hat Übersetzungen korrigiert, die nicht fehlten, sondern falsch waren.
