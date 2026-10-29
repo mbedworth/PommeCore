@@ -8,4 +8,4 @@ La lista de contactos ahora es una sola lista con un selector de tipo en lugar d
 
 Compatibilidad con el firmware MeshCore 1.18, incluida la propia línea de comandos de la radio por Bluetooth, que llega por primera vez a iPhone y iPad. El número de hops y la longitud de los mensajes se indican ahora en las unidades que usa la propia radio.
 
-VoiceOver ya no habla inglés en el reloj, y 51 textos que nunca llegaron al catálogo de traducción están ahora traducidos en los doce idiomas.
+VoiceOver ya no habla inglés en el reloj, 77 textos que nunca llegaron al catálogo de traducción están ahora traducidos, y una revisión de los otros once idiomas ha corregido traducciones que estaban mal, no ausentes.

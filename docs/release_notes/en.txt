@@ -8,4 +8,4 @@ The contact list is now one list with a type selector rather than fixed sections
 
 Support for MeshCore firmware 1.18, including the radio's own command line over Bluetooth, which reaches iPhone and iPad for the first time. Hop counts and message lengths are now reported in the units the radio itself uses.
 
-VoiceOver no longer speaks English on the watch, and 51 strings that had never reached the translation catalog are now translated in all twelve languages.
+VoiceOver no longer speaks English on the watch, 77 strings that had never reached the translation catalog are now translated, and a pass over the other eleven languages corrected translations that were wrong rather than missing.

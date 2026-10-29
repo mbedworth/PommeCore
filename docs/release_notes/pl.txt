@@ -8,4 +8,4 @@ Lista kontaktów to teraz jedna lista z selektorem typu zamiast stałych sekcji.
 
 Obsługa oprogramowania MeshCore 1.18, w tym własnej linii poleceń radia przez Bluetooth, która trafia w ten sposób po raz pierwszy na iPhone'a i iPada. Liczba hopów i długość wiadomości są teraz podawane w jednostkach, których używa samo radio.
 
-VoiceOver nie mówi już po angielsku na zegarku, a 51 tekstów, które nigdy nie trafiły do katalogu tłumaczeń, jest teraz przetłumaczonych na wszystkie dwanaście języków.
+VoiceOver nie mówi już po angielsku na zegarku, 77 tekstów, które nigdy nie trafiły do katalogu tłumaczeń, jest teraz przetłumaczonych, a przegląd pozostałych jedenastu języków poprawił tłumaczenia, które nie brakowały, lecz były błędne.

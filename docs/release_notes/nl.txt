@@ -8,4 +8,4 @@ De contactenlijst is nu één lijst met een typekiezer in plaats van vaste secti
 
 Ondersteuning voor MeshCore-firmware 1.18, inclusief de eigen opdrachtregel van de radio via Bluetooth, die daarmee voor het eerst op iPhone en iPad beschikbaar is. Het aantal hops en de lengte van berichten worden nu weergegeven in de eenheden die de radio zelf gebruikt.
 
-VoiceOver spreekt geen Engels meer op de watch, en 51 teksten die nooit in de vertaalcatalogus terechtkwamen, zijn nu in alle twaalf talen vertaald.
+VoiceOver spreekt geen Engels meer op de watch, 77 teksten die nooit in de vertaalcatalogus terechtkwamen zijn nu vertaald, en een ronde door de elf andere talen heeft vertalingen gecorrigeerd die niet ontbraken maar fout waren.
