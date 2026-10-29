@@ -220,8 +220,8 @@
 		SYN60000000100000000003 /* SyncedSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = SYN60000000000000000001 /* SyncedSettings.swift */; };
 		TCK70000000100000000002 /* TelemetryCloudSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = TCK70000000000000000001 /* TelemetryCloudSync.swift */; };
 		TCK70000000100000000003 /* TelemetryCloudSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = TCK70000000000000000001 /* TelemetryCloudSync.swift */; };
-		USB10000000000000000002 /* USBSerialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = USB10000000000000000000 /* USBSerialView.swift */; };
-		USB10000000000000000003 /* USBSerialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = USB10000000000000000000 /* USBSerialView.swift */; };
+		USB10000000000000000002 /* CLITerminalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = USB10000000000000000000 /* CLITerminalView.swift */; };
+		USB10000000000000000003 /* CLITerminalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = USB10000000000000000000 /* CLITerminalView.swift */; };
 		WGS10000000100000000002 /* WidgetState.swift in Sources */ = {isa = PBXBuildFile; fileRef = WGS10000000000000000000 /* WidgetState.swift */; };
 		WGS10000000100000000003 /* WidgetState.swift in Sources */ = {isa = PBXBuildFile; fileRef = WGS10000000000000000000 /* WidgetState.swift */; };
 		WSW10000000100000000002 /* WidgetStateWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = WSW10000000000000000000 /* WidgetStateWriter.swift */; };
@@ -397,7 +397,7 @@
 		D0C0000000000000000000C0 /* ManualView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualView.swift; sourceTree = "<group>"; };
 		SYN60000000000000000001 /* SyncedSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncedSettings.swift; sourceTree = "<group>"; };
 		TCK70000000000000000001 /* TelemetryCloudSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetryCloudSync.swift; sourceTree = "<group>"; };
-		USB10000000000000000000 /* USBSerialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = USBSerialView.swift; sourceTree = "<group>"; };
+		USB10000000000000000000 /* CLITerminalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLITerminalView.swift; sourceTree = "<group>"; };
 		WGS10000000000000000000 /* WidgetState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WidgetState.swift; path = "PommeCore Widgets/WidgetState.swift"; sourceTree = SOURCE_ROOT; };
 		WSW10000000000000000000 /* WidgetStateWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WidgetStateWriter.swift; path = Shared/App/WidgetStateWriter.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
@@ -556,7 +556,7 @@
 				RMM10000000000000000000 /* RemoteManagementView+ManagementSections.swift */,
 				A1B2C3D4E5F60718293A4B5C /* ShareView.swift */,
 				OBV10000000000000000000 /* OnboardingView.swift */,
-				USB10000000000000000000 /* USBSerialView.swift */,
+				USB10000000000000000000 /* CLITerminalView.swift */,
 				MAP10000000000000000000 /* MeshMapView.swift */,
 				OTAVIEW0000000000000000 /* FirmwareUpdateView.swift */,
 				DBG10000000000000000000 /* DebugLogView.swift */,
@@ -1032,7 +1032,7 @@
 				TCK70000000100000000002 /* TelemetryCloudSync.swift in Sources */,
 				C3D4E5F60718293AB4C5D6E7 /* ShareView.swift in Sources */,
 				OBV10000000000000000002 /* OnboardingView.swift in Sources */,
-				USB10000000000000000002 /* USBSerialView.swift in Sources */,
+				USB10000000000000000002 /* CLITerminalView.swift in Sources */,
 				0F29C3CA2F8485BD0007BF08 /* LineOfSightStore.swift in Sources */,
 				MAP10000000000000000002 /* MeshMapView.swift in Sources */,
 				OTAVIEW00000001000000002 /* FirmwareUpdateView.swift in Sources */,
@@ -1132,7 +1132,7 @@
 				TCK70000000100000000003 /* TelemetryCloudSync.swift in Sources */,
 				B2C3D4E5F6071829A3B4C5D6 /* ShareView.swift in Sources */,
 				OBV10000000000000000003 /* OnboardingView.swift in Sources */,
-				USB10000000000000000003 /* USBSerialView.swift in Sources */,
+				USB10000000000000000003 /* CLITerminalView.swift in Sources */,
 				0F29C3C92F8485BD0007BF08 /* LineOfSightStore.swift in Sources */,
 				MAP10000000000000000003 /* MeshMapView.swift in Sources */,
 				OTAVIEW00000001000000003 /* FirmwareUpdateView.swift in Sources */,

@@ -16,8 +16,8 @@ this is the source of truth for firmware review state, not the local development
 | **Reference firmware** | Companion v1.17.1 (Heltec Mesh Pocket) |
 | **Also compatible with** | v1.15.0 – v1.16.0 |
 | **Protocol version sent** | `app_target_ver = 3` in `CMD_DEVICE_QUERY` — must stay ≥ 3 (see the critical rules in the local development guide) |
-| **Last review** | 2026-10-17, covering v1.18.0 (reviewed, not adopted). v1.17.0/v1.17.1 reviewed 2026-08-24 |
-| **Smoke test** | 2026-10-03 on Heltec Mesh Pocket `v1.17.1-d929643` — 9/9 passed (release gate for v26.10.03); also 2026-10-02, see below |
+| **Last review** | 2026-10-17, covering v1.18.0 (adopted 2026-10-24). v1.17.0/v1.17.1 reviewed 2026-08-24 |
+| **Smoke test** | 2026-10-28 on Heltec Mesh Pocket `v1.18.0-81dbae5` — **12/12 passed**, including the three companion-CLI assertions. Previously 2026-10-03 on `v1.17.1-d929643` — 9/9 |
 | **Bulk-delete test** | 2026-10-03, same radio — 17/17 passed; unpaced removals drop ~half their writes, see below |
 | **Restore test** | 2026-10-03, end to end through the macOS app UI — snapshot, delete and restore all verified, see below |
 | **Profile round trip** | 2026-10-03, app UI — passed after fixing lost contact adds on a mid-burst BLE drop, see below |
@@ -40,7 +40,7 @@ Tag SHAs are recorded so a re-pointed tag is detectable. Verify with:
 | v1.16.0 | 2026-06-06 | `24fe7d4b2d17` | 13 | 2026-06-06 | No protocol change; adopted `flood.max.unscoped` + region tree management (shipped build 18) | **Passed** 2026-06-08 — DM delivery ACK + round trip |
 | v1.17.0 | 2026-08-09 | `2af6126cfba7` | 13 | 2026-08-24 | No protocol change; three behaviour changes adopted (below) | 2026-10-02 ✅ |
 | v1.17.1 | 2026-08-14 | `8fe15c89ed5a` | 13 | 2026-08-24 | Bug-fix release; nothing further to adopt | 2026-10-02 ✅ |
-| v1.18.0 | 2026-10-15 | `7d6d255104ea` | **14** | 2026-10-17 | **Protocol surface changed** — companion CLI (`CMD_RUN_CLI_COMMAND` / `RESP_CODE_CLI_REPLY` / `TXT_TYPE_CLI_COMMAND`). Reviewed, nothing adopted yet | Not yet |
+| v1.18.0 | 2026-10-15 | `7d6d255104ea` | **14** | 2026-10-17 | **Protocol surface changed** — companion CLI (`CMD_RUN_CLI_COMMAND` / `RESP_CODE_CLI_REPLY` / `TXT_TYPE_CLI_COMMAND`). Adopted 2026-10-24 | **2026-10-28 ✅ 12/12** |
 
 Repeater and room-server tags for the same version are published within a minute of the companion tag
 and share the version number. The companion tag is the one that matters for protocol review; the other
@@ -106,8 +106,22 @@ first check and fails the second with `ERR_CODE_TABLE_FULL` — a code that norm
 later" but here is permanent; and an all-zero channel secret is not a private channel but a
 well-known one, since `SHA256` of 16 zero bytes is globally fixed.
 
-**Nothing adopted yet.** What the companion CLI is worth to this app, and what it would cost, is a
-design question rather than a mechanical port — see the open item in the development guide.
+**Adopted 2026-10-24, hardware-verified 2026-10-28** on `v1.18.0-81dbae5`, 12/12 via
+`./scripts/meshctl.sh smoke`. Three assertions were added for this release:
+
+1. **`CMD_RUN_CLI_COMMAND` answers** — returned `v1.18.0-81dbae5 (Build: 15-Oct-2026)`, confirming
+   the frame shape (`code(1)` + command text, no null terminator) against real firmware.
+2. **An unknown command answers with the literal string `Unknown command`**, not an error frame.
+   **This one earns its place.** `RemoteDeviceSession.supportedValue(for:)` knew the serial CLI's
+   `??: <command>` form but not this one, and was taught it from *reading the firmware source*. Had
+   that reading been wrong, every setting a companion does not implement would read back as having
+   the value "Unknown command" and its control would render as supported and working. The assertion
+   is what turns that inference into a fact, and what will catch it if a later firmware changes the
+   wording.
+3. **A real getter returns a value** — `get name` returned `> 🦊MPB-CB-9ae81`, proving replies carry
+   values and the `> ` prefix the app strips is really there.
+
+`FIRMWARE_VER_CODE` reported 14, as expected — recorded, not gated on.
 
 ### v1.17.0 / v1.17.1 — reviewed 2026-08-24, adopted
 

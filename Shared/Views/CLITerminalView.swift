@@ -2,19 +2,23 @@
 //  USBSerialView.swift
 //  PommeCore
 //
-//  USB terminal view for raw CLI interaction with infrastructure devices.
+//  Terminal view for raw CLI interaction with a radio.
+//
+//  Was macOS-only, because the only CLI transport was USB serial and
+//  `USBSerialManager` needs IOKit. Firmware 1.18.0 added `CMD_RUN_CLI_COMMAND`,
+//  which carries the same CLI over the binary link — so this works on iOS now,
+//  against the radio in your hand.
 //
 //  Created by Michael P. Bedworth on 3/16/26.
 //  Copyright © 2026 Michael P. Bedworth. All rights reserved.
 //
 
-#if os(macOS) || targetEnvironment(macCatalyst)
 import SwiftUI
 import MeshCoreKit
 
-// MARK: - USB Terminal View (CLI Mode)
+// MARK: - CLI Terminal View
 
-struct USBTerminalView: View {
+struct CLITerminalView: View {
     @Environment(RemoteSessionManager.self) private var remoteSessionManager
     @Environment(ConnectionManager.self) private var connectionManager
     @State private var commandText = ""
@@ -75,13 +79,28 @@ struct USBTerminalView: View {
             .background(MeshTheme.surface)
         }
         .background(MeshTheme.background)
-        .navigationTitle("USB Terminal")
+        .navigationTitle("Radio Terminal")
     }
 
+    /// Route to whichever CLI transport is live.
+    ///
+    /// The companion path is preferred when the radio supports it: it is
+    /// request/response, so it is serialised by the reply rather than by the
+    /// USB queue's 500ms guess, and it echoes its own command into the
+    /// transcript. The USB branch keeps appending here because its send is
+    /// fire-and-forget.
     private func sendCommand() {
-        connectionManager.sendUSBCLI(commandText)
-        remoteSessionManager.cliOutput.append(CLITerminalLine(text: "> \(commandText)", isCommand: true))
+        let command = commandText
         commandText = ""
+        if remoteSessionManager.companionCLISupported == true {
+            Task { @MainActor in
+                await remoteSessionManager.runCompanionCLI(command)
+            }
+            return
+        }
+        #if os(macOS) || targetEnvironment(macCatalyst)
+        connectionManager.sendUSBCLI(command)
+        remoteSessionManager.cliOutput.append(CLITerminalLine(text: "> \(command)", isCommand: true))
+        #endif
     }
 }
-#endif

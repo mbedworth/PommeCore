@@ -204,6 +204,20 @@ struct SettingsView: View {
                     // editor appeared only once something else had populated it.
                     customVarsSection
                     statsSection
+                    // Firmware 1.18.0+ only, and detected by asking the radio
+                    // rather than by reading a version byte. Hidden rather than
+                    // disabled on older firmware: there is nothing the user can
+                    // do about it from here except update the radio, and a dead
+                    // row invites tapping.
+                    if remoteSessionManager.companionCLISupported == true {
+                        NavigationLink {
+                            CLITerminalView()
+                        } label: {
+                            Label("Radio Terminal", systemImage: "terminal")
+                                .foregroundStyle(MeshTheme.accent)
+                        }
+                        .listRowBackground(MeshTheme.surface)
+                    }
                 }
                 troubleshootingSection
             } header: {

@@ -337,6 +337,35 @@ func cmdSmoke(_ opts: Options) async throws {
         assertTelemetryShape(selfReadings, label: "self")
     }
 
+    // --- Companion CLI over the binary link (firmware 1.18.0+)
+    //
+    // Probed, never gated on verCode: the app does not read that byte and this
+    // must exercise the same path the app takes.
+    let cliProbe = await cliReply(link, "ver")
+    if let version = cliProbe {
+        check(!version.isEmpty, "CMD_RUN_CLI_COMMAND answered", detail: version)
+        info("VER_CODE", "\(verCode) (14 at v1.18.0)")
+
+        // The premise the app's unsupported-setting detection now rests on.
+        // The serial CLI answers an unknown command with "??: <command>"; the
+        // companion CLI appends the literal string "Unknown command" instead,
+        // and `supportedValue(for:)` was taught that only from reading the
+        // firmware source. If this ever stops holding, every setting a
+        // companion does not implement reads back as *having* that value and
+        // its control renders as supported and working.
+        let nonsense = await cliReply(link, "zzznotarealcommand")
+        check(nonsense?.lowercased().contains("unknown command") == true,
+              "unknown command answers \"Unknown command\", not an error frame",
+              detail: nonsense ?? "no reply")
+
+        // A real getter, to prove replies carry values and not just status.
+        let name = await cliReply(link, "get name")
+        check(name?.isEmpty == false && name?.lowercased().contains("unknown command") == false,
+              "a real CLI getter returns a value", detail: name ?? "no reply")
+    } else {
+        out("  SKIP  companion CLI — radio predates firmware 1.18.0 (VER_CODE \(verCode))")
+    }
+
     // --- Remote telemetry, only when a target is given: most public repeaters
     // will not answer a non-admin, so a failure here is not necessarily ours.
     guard opts.target != nil else {
@@ -381,6 +410,21 @@ func cmdSmoke(_ opts: Options) async throws {
 }
 
 /// Assertions that must hold for any telemetry response, from any node.
+/// Run one command through `CMD_RUN_CLI_COMMAND` and return the reply text.
+///
+/// `nil` means the radio did not answer with `RESP_CODE_CLI_REPLY` — either it
+/// predates firmware 1.18.0 and sent `ERR_CODE_UNSUPPORTED_CMD`, or it said
+/// nothing at all. An *empty string* is different: several `set` commands reply
+/// with nothing, and that is a legal answer.
+func cliReply(_ link: BLELink, _ command: String) async -> String? {
+    guard let frame = MeshCoreProtocol.buildRunCLICommand(command) else { return nil }
+    let frames = await link.request(frame, window: 3)
+    for f in frames {
+        if case .cliReply(let text) = FrameParser.parse(f) { return text }
+    }
+    return nil
+}
+
 func assertTelemetryShape(_ readings: [TelemetryReading], label: String) {
     // 1.17.0 appends board.getMCUTemperature() on TELEM_CHANNEL_SELF.
     let temps = readings.filter { $0.name == "Temperature" }

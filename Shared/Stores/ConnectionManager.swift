@@ -643,6 +643,19 @@ final class ConnectionManager {
         DebugLogger.shared.log("USB: sent reboot", level: .tx)
     }
 
+    /// Run a command on the connected radio's own CLI (firmware 1.18.0+).
+    ///
+    /// Goes out as `CMD_RUN_CLI_COMMAND` over whichever transport is connected,
+    /// so this is the one CLI path that works on iOS — `USBSerialManager` is
+    /// macOS-only and always will be, there being no CDC ACM API on iOS.
+    func sendCompanionCLI(_ command: String) {
+        guard let frame = MeshCoreProtocol.buildRunCLICommand(command) else {
+            Self.logger.warning("Companion CLI: '\(command)' is too short for the firmware to accept")
+            return
+        }
+        sendCommand(frame, label: "RUN_CLI_COMMAND")
+    }
+
     /// Send a USB CLI command directly, bypassing the command queue.
     /// Use only for settings fetch which has its own sequential pacing.
     func sendUSBCLIDirect(_ command: String) {

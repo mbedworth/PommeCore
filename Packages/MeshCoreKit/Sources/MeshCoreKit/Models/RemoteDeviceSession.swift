@@ -155,10 +155,20 @@ public final class RemoteDeviceSession: ObservableObject {
     /// a board lacks reply "Error: unsupported". Both are stored like any other response,
     /// so callers that gate UI on firmware support must ask for the value this way rather
     /// than reading `settings` directly.
+    ///
+    /// **"Unknown command" is a third form, and it is the one the companion CLI
+    /// uses.** `CMD_RUN_CLI_COMMAND` (firmware 1.18.0+) runs the command through
+    /// `handleCommand` and, when that returns false, appends the literal string
+    /// `Unknown command` rather than the `??:` prefix the serial CLI produces
+    /// (`examples/companion_radio/MyMesh.cpp`). Without this case every setting
+    /// a companion does not implement would read back as *having the value*
+    /// "Unknown command", and any UI gated on `supportedValue` would show the
+    /// control as supported and working.
     public func supportedValue(for key: String) -> String? {
         guard let raw = settings[key]?.trimmingCharacters(in: .whitespaces), !raw.isEmpty else { return nil }
         let lower = raw.lowercased()
-        if lower.hasPrefix("??") || lower.hasPrefix("error") || lower.contains("unsupported") {
+        if lower.hasPrefix("??") || lower.hasPrefix("error")
+            || lower.contains("unsupported") || lower.contains("unknown command") {
             return nil
         }
         return raw

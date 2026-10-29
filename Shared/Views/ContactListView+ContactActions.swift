@@ -240,7 +240,7 @@ extension ContactListView {
             ToolsView()
         #if os(macOS) || targetEnvironment(macCatalyst)
         case .usbTerminal:
-            USBTerminalView()
+            CLITerminalView()
         case .usbDevice:
             if let contact = remoteSessionManager.usbDeviceContact, let session = remoteSessionManager.usbDeviceSession {
                 RemoteManagementView(contact: contact, session: session)

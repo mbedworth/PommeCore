@@ -281,6 +281,7 @@ final class PommeCoreViewModel: ObservableObject {
 #if os(macOS) || targetEnvironment(macCatalyst)
         remoteSessionManager.sendUSBCLI = { [weak self] cmd in self?.connectionManager.sendUSBCLI(cmd) }
         remoteSessionManager.sendUSBCLIDirect = { [weak self] cmd in self?.connectionManager.sendUSBCLIDirect(cmd) }
+        remoteSessionManager.sendCompanionCLI = { [weak self] cmd in self?.connectionManager.sendCompanionCLI(cmd) }
         remoteSessionManager.sendUSBKeepalive = { [weak self] in self?.connectionManager.sendUSBKeepalive() }
 #endif
 
