@@ -148,3 +148,37 @@ here is a regression in something people bought.
 nobody has tested. To submit the artifact that passed this list, create the App
 Store version record matching that build's own marketing version and attach the
 build to it. Rebuild only if code changed, and then test again.
+
+---
+
+## Hardware pass record
+
+Recorded because this list asks you to submit the build you tested, not a
+rebuild — and because a pass nobody wrote down is a pass nobody can check.
+
+### v26.10.31 — iOS build `20261031.001130`, macOS `20261031.001220`
+
+Tested 2026-10-30/31 on an iPhone 16 Pro against a `v1.18.0-81dbae5` radio.
+Six defects had been found by hand in `26.10.28`/`26.10.30`; five were
+confirmed fixed here and one was withdrawn as not reachable.
+
+| Check | Result |
+|---|---|
+| §3 Radio terminal over BLE on iPhone | ✅ `ver` returns version + build date; `get name` answers; `nonsense` returns the literal `Unknown command` |
+| §3 Pacing, six commands in a row | ✅ each reply matched its own command; the last two were honest `Unknown command` answers for `clock` and `get role`, which a companion does not implement |
+| §2 Channel message, radio away | ✅ reads **Not delivered** immediately — never "Sent" |
+| §2 Failed message offers retry | ✅ **Tap to retry** capsule and **Retry Send** in the long-press menu |
+| §2 Retry while still away | ✅ returns to **Not delivered** — no stopwatch left hanging |
+| §2 Retry once reconnected | ✅ goes to **Sent** when the radio answers |
+| §1 Muted channel | ✅ silent, **including while a reconnect drains the radio's backlog** — the half that made the old bug feel like the setting did nothing |
+
+**Not verifiable on this hardware:** the `supportedValue` fix for CLI settings
+screens. A companion radio has no settings screen — `companionDeviceSession` is
+created but no view resolves it, and 1.18 exposes only the terminal. That fix
+covers the repeater, room-server and sensor screens, and the pre-1.15
+`set dutycycle` bug. It needs a repeater over BLE admin to exercise.
+
+**Still outstanding for this build:** Critical Rule 12. Install from TestFlight
+**over** the existing app. This branch changed `DeliveryStatus` and the message
+store's write path, which is exactly the shape of change where a fresh install
+passes and an upgrade does not.
