@@ -174,6 +174,120 @@ public final class RemoteDeviceSession: ObservableObject {
         return raw
     }
 
+    /// The first supported value among several keys.
+    ///
+    /// For a setting the firmware renamed: `dutycycle` replaced `af` in 1.15.0 and
+    /// the app fetches both, so the reading is "whichever one answered". Written as
+    /// `settings["dutycycle"] ?? settings["af"]` at the call site this silently
+    /// prefers an *unsupported* reply from the newer key over a working value from
+    /// the older one, because `??` only falls through on `nil` and an
+    /// `Unknown command` reply is not nil.
+    public func supportedValue(forAny keys: [String]) -> String? {
+        for key in keys {
+            if let value = supportedValue(for: key) { return value }
+        }
+        return nil
+    }
+
+    /// Whether the device answered this command with a usable value.
+    public func isSupported(_ key: String) -> Bool {
+        supportedValue(for: key) != nil
+    }
+
+    /// A setting's value for display, or a placeholder when the device does not
+    /// support the command.
+    ///
+    /// **This is what a view should call.** `settings[key] ?? "—"` puts the literal
+    /// text `Unknown command` on screen as though it were the setting's value: the
+    /// `??` never fires, because the key *exists* and holds the refusal. A companion
+    /// radio reached over the 1.18 CLI answers that way for most of the repeater
+    /// command set, so the Device Clock row read "Unknown command" and the device
+    /// role did too. Seen on hardware 2026-10-30.
+    public func displayValue(for key: String, placeholder: String = "\u{2014}") -> String {
+        supportedValue(for: key) ?? placeholder
+    }
+
+    /// Same, for a setting that may answer under one of several names.
+    public func displayValue(forAny keys: [String], placeholder: String = "\u{2014}") -> String {
+        supportedValue(forAny: keys) ?? placeholder
+    }
+
+    /// `get radio` parsed into its four components, or nil when unsupported or
+    /// malformed.
+    ///
+    /// Frequency is returned in kHz, matching `RadioPreset` comparison. Parsing
+    /// lived in a view and began `guard let radio = session.settings["radio"]`,
+    /// which succeeds on an `Unknown command` reply and then falls through to
+    /// `(0, 0, 0, 0)` — a radio apparently tuned to 0 MHz, indistinguishable from
+    /// a genuine parse failure and fed straight into preset detection.
+    public var radioParameters: (freqKHz: Double, bw: Double, sf: UInt8, cr: UInt8)? {
+        guard let radio = supportedValue(for: "radio") else { return nil }
+        let parts = radio.replacingOccurrences(of: " ", with: "").split(separator: ",")
+        guard parts.count >= 4,
+              let freqMHz = Double(parts[0]),
+              let bw = Double(parts[1]),
+              let sf = UInt8(parts[2]),
+              let cr = UInt8(parts[3]) else { return nil }
+        return (freqMHz * 1000, bw, sf, cr)
+    }
+
+    /// The device clock for display: a formatted date when the reply is a raw
+    /// epoch, the reply verbatim when it is already human-readable, and the
+    /// placeholder when the device has no `clock` command at all.
+    ///
+    /// A companion radio does not implement `clock` — its time is set over the
+    /// binary link with `CMD_SET_DEVICE_TIME`, not the CLI — so this is the row
+    /// that displayed `Unknown command` on an iPhone.
+    public func clockDisplay(placeholder: String = "\u{2014}",
+                             formatter: (Date) -> String = { $0.formatted(date: .abbreviated, time: .shortened) }) -> String {
+        guard let raw = supportedValue(for: "clock") else { return placeholder }
+        if let epoch = Double(raw), epoch > 1_000_000_000 {
+            return formatter(Date(timeIntervalSince1970: epoch))
+        }
+        return raw
+    }
+
+    /// Whether the device clock looks wrong, judged against `now`.
+    ///
+    /// False when there is no clock to judge. An unsupported reply must not read
+    /// as stale: offering to fix a clock the device does not expose is a prompt
+    /// the user can never satisfy.
+    ///
+    /// `now` is a parameter so this is testable without waiting for a year to
+    /// turn over.
+    public func isClockStale(now: Date = Date()) -> Bool {
+        guard let raw = supportedValue(for: "clock") else { return false }
+        let currentYear = Calendar.current.component(.year, from: now)
+        if let pattern = try? NSRegularExpression(pattern: "\\b(20\\d{2})\\b"),
+           let match = pattern.firstMatch(in: raw, range: NSRange(raw.startIndex..., in: raw)),
+           let range = Range(match.range(at: 1), in: raw),
+           let year = Int(raw[range]) {
+            return abs(year - currentYear) >= 1
+        }
+        if let epoch = Double(raw) {
+            return abs(epoch - now.timeIntervalSince1970) > 60
+        }
+        return false
+    }
+
+    /// The device's role for display, falling back to the contact's own type.
+    ///
+    /// The fallback is the point: `settings["role"] ?? typeName` never reached the
+    /// fallback on a companion, because `role` held `Unknown command`.
+    public func roleLabel(fallback: String) -> String {
+        supportedValue(for: "role") ?? fallback
+    }
+
+    /// Whether any key in a section came back with a usable value.
+    ///
+    /// Distinct from `hasCachedSettings(for:)`, which asks only whether a reply
+    /// was ever stored — and an `Unknown command` reply is a stored reply, so a
+    /// section of entirely unsupported commands reports as populated.
+    public func hasSupportedSettings(for section: String) -> Bool {
+        guard let keys = Self.sectionSettingKeys[section] else { return false }
+        return keys.contains { isSupported($0) }
+    }
+
     /// The remote device's firmware version, as reported by `get ver`.
     ///
     /// Nil until the info section has been fetched, or if the reply is not

@@ -674,7 +674,7 @@ final class RemoteSessionManager {
             // settings). Must happen after fetch, not during, to avoid response interleaving.
             #if os(macOS) || targetEnvironment(macCatalyst)
             if let self, self.usbDeviceContact != nil, contact.publicKey == self.usbDeviceContact?.publicKey {
-                if let clockResponse = session.settings["clock"] {
+                if let clockResponse = session.supportedValue(for: "clock") {
                     let todayFmt = DateFormatter()
                     todayFmt.dateFormat = "d/M/yyyy"
                     todayFmt.timeZone = TimeZone(identifier: "UTC")

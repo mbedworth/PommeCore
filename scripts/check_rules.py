@@ -899,6 +899,51 @@ def check_single_send_gate() -> None:
                        "prediction of it")
 
 
+def check_raw_settings_reads() -> None:
+    """A CLI reply is not a value until `supportedValue(for:)` has said so.
+
+    Three refusal forms reach the app: the serial CLI answers an unknown command
+    with `??: <command>`, a getter for absent hardware replies
+    `Error: unsupported`, and the companion CLI added in 1.18.0 appends the
+    literal `Unknown command`. All three are stored like any other response, so
+    `settings[key] ?? "—"` renders a refusal *as the setting's value* — the `??`
+    never fires, because the key exists and holds the refusal.
+
+    That shipped. `onCompanionCLIReady` gives a companion radio a session typed
+    `.repeater` so the existing settings screens work against it unchanged, and a
+    companion implements far fewer commands than the repeater those screens were
+    written for. On an iPhone the Device Clock row read "Unknown command" and so
+    did the device role. Found 2026-10-30 by typing `clock` into the Radio
+    Terminal — not by any check, and not by the 50 app tests, because a
+    `settings[...]` read inside a SwiftUI body is unreachable from a test.
+
+    There were 43 such reads in the app and two uses of `supportedValue`. The
+    mechanism was understood and documented in `supportedValue`'s own doc
+    comment, which said callers "must ask for the value this way rather than
+    reading `settings` directly". Documentation is not a mechanism; this is.
+
+    Writes are fine — the fetch path is what populates the dictionary.
+    """
+    read = re.compile(r'(?<!\w)(?:session|self\.session|\w*[Ss]ession)\.settings\s*\[')
+    write = re.compile(r'\.settings\s*\[[^\]]*\]\s*=')
+    for path in swift_files(["Shared", "watchOS"]):
+        for i, line in enumerate(lines_of(path), 1):
+            stripped = line.strip()
+            if stripped.startswith("//") or stripped.startswith("///"):
+                continue
+            if write.search(line):
+                continue
+            if read.search(line):
+                report("FAIL", "DP4", path, i,
+                       "a CLI setting is read straight out of `settings[...]`. A "
+                       "device that does not support the command answers "
+                       "`Unknown command` / `??:` / `Error: unsupported`, and "
+                       "that reply is stored like any other — so `?? \"—\"` puts "
+                       "the refusal on screen as the value. Use "
+                       "`supportedValue(for:)`, `displayValue(for:)` or one of "
+                       "the typed accessors on RemoteDeviceSession")
+
+
 CHECKS = [
     check_sheet_frames,
     check_text_takes_string,
@@ -919,6 +964,7 @@ CHECKS = [
     check_status_switch_exhaustive,
     check_cross_platform_symbols,
     check_single_send_gate,
+    check_raw_settings_reads,
     check_help_catalog,
     check_path_len_decoding,
     check_hand_built_icloud_keys,

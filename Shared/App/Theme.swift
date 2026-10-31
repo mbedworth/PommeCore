@@ -1263,8 +1263,16 @@ struct CLIToggleRow: View {
     let sendCLI: (String) -> Void
     var canEdit: Bool = true
 
+    /// `nil` means "cannot say", which covers both a device that has not
+    /// answered yet and one that has no such command.
+    ///
+    /// Reading `settings[key]` directly happened to return nil for a refusal
+    /// here, because none of "unknown command", "??: …" or "error: unsupported"
+    /// contains the substring `on` or `off` — correct by luck rather than by
+    /// decision, and one differently-worded firmware reply away from a toggle
+    /// that renders a refusal as a position.
     private var isOn: Bool? {
-        guard let value = session.settings[settingKey]?.lowercased() else { return nil }
+        guard let value = session.supportedValue(for: settingKey)?.lowercased() else { return nil }
         if value == "on" || value == "1" || value == "true" || value == "enabled" || value.contains("on") { return true }
         if value == "off" || value == "0" || value == "false" || value == "disabled" || value.contains("off") { return false }
         return nil

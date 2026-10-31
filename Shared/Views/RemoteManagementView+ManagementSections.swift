@@ -66,7 +66,7 @@ struct RemoteRoomSection: View {
                 Text("Guest Password")
                     .foregroundStyle(MeshTheme.accent)
                 Spacer()
-                if let pw = session.settings["guest.password"], !pw.isEmpty {
+                if let pw = session.supportedValue(for: "guest.password") {
                     Text(pw)
                         .foregroundStyle(MeshTheme.textSecondary)
                         .font(.system(.body, design: .monospaced))
@@ -276,7 +276,7 @@ struct RemoteSensorSection: View {
                 sendCLI("io")
             }
 
-            if let ioResult = session.settings["io"], !ioResult.isEmpty {
+            if let ioResult = session.supportedValue(for: "io") {
                 Text(ioResult)
                     .font(.system(.caption, design: .monospaced))
                     .foregroundStyle(MeshTheme.textPrimary)
@@ -337,7 +337,7 @@ struct RemoteMaintenanceSection: View {
             }
 
             if permission.canEdit {
-                cliEditRow(icon: "bolt.batteryblock", label: "ADC Multiplier", text: $adcMultiplier, current: session.settings["adc.multiplier"])
+                cliEditRow(icon: "bolt.batteryblock", label: "ADC Multiplier", text: $adcMultiplier, current: session.supportedValue(for: "adc.multiplier"))
 
                 if !adcMultiplier.isEmpty {
                     CLICommandButton(icon: "checkmark.circle", label: "Apply ADC Multiplier") {

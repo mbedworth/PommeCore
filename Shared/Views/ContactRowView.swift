@@ -184,7 +184,7 @@ struct ContactRowView: View {
         if (contact.type == .repeater || contact.type == .room),
            case .loggedIn(let permission) = remoteSessionManager.remoteSession(for: contact).loginState {
             let session = remoteSessionManager.remoteSession(for: contact)
-            if let ver = session.settings["ver"], !ver.isEmpty {
+            if let ver = session.supportedValue(for: "ver") {
                 Text("Connected \u{2014} \(permission.displayName) \u{00B7} \(ver)")
                     .font(.caption)
                     .foregroundStyle(MeshTheme.connected)

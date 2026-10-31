@@ -182,16 +182,13 @@ struct RemoteManagementView: View {
             NavigationStack {
                 NodeSetupWizardView(remoteContext: RemoteWizardContext(
                     contact: contact,
-                    publicKeyHex: session.settings["public.key"] ?? "",
+                    publicKeyHex: session.supportedValue(for: "public.key") ?? "",
                     sendCLI: { command in sendCLI(command) },
-                    currentName: session.settings["name"],
+                    currentName: session.supportedValue(for: "name"),
                     onNameApplied: { newName in session.settings["name"] = newName },
                     currentFrequencyKHz: {
                         // Parse frequency from "radio" setting (e.g. "906.875,62.5,7,5")
-                        guard let radio = session.settings["radio"],
-                              let freqStr = radio.split(separator: ",").first,
-                              let freqMHz = Double(freqStr) else { return nil }
-                        return freqMHz * 1000  // MHz → kHz
+                        session.radioParameters?.freqKHz
                     }()
                 ))
                 .toolbar {
@@ -352,7 +349,7 @@ struct RemoteManagementView: View {
     }
 
     private func getValue(_ key: String) -> String {
-        session.settings[key] ?? "\u{2014}"
+        session.displayValue(for: key)
     }
 
     private func commitNameEdit() {
@@ -562,7 +559,7 @@ private extension RemoteManagementView {
                         }
                     }
                     Spacer()
-                    Text(session.settings["role"] ?? (contact.type == .repeater ? "Repeater" : contact.type == .room ? "Room" : "Sensor"))
+                    Text(session.roleLabel(fallback: contact.type == .repeater ? "Repeater" : contact.type == .room ? "Room" : "Sensor"))
                         .font(.caption)
                         .foregroundStyle(MeshTheme.textSecondary)
                     if !isAdmin {
@@ -616,14 +613,14 @@ private extension RemoteManagementView {
                 .foregroundStyle(MeshTheme.textSecondary)
                 .id(remoteSessionManager.statusUpdateCounter)
 
-                if let radio = session.settings["radio"], !radio.isEmpty {
-                    let tx = session.settings["tx"] ?? ""
+                if let radio = session.supportedValue(for: "radio") {
+                    let tx = session.supportedValue(for: "tx") ?? ""
                     Text("\(radio)\(!tx.isEmpty ? " \u{2022} \(tx)dBm" : "")")
                         .font(.caption2)
                         .foregroundStyle(MeshTheme.textSecondary)
                 }
 
-                if let pubkey = session.settings["public.key"], !pubkey.isEmpty {
+                if let pubkey = session.supportedValue(for: "public.key") {
                     HStack(spacing: 4) {
                         Image(systemName: showPubkeyCopied ? "checkmark" : "key")
                             .font(.caption2)
@@ -670,8 +667,12 @@ private extension RemoteManagementView {
                     sendCLI("neighbors")
                 }
 
-                if let neighborsText = session.settings["neighbors"], !neighborsText.isEmpty {
-                    Text(neighborsText)
+                if let neighborsText = session.supportedValue(for: "neighbors") {
+                    // `verbatim:` because this is the radio's own output. Plain
+                    // `Text(someString)` performs a catalog lookup that will
+                    // always miss, and rule 18 flags it for exactly that reason;
+                    // device output is the case where not localizing is correct.
+                    Text(verbatim: neighborsText)
                         .font(.system(.caption, design: .monospaced))
                     .foregroundStyle(MeshTheme.textPrimary)
                     .listRowBackground(MeshTheme.surface)
