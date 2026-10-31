@@ -6966,7 +6966,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "高級"
+            "value": "詳細"
           }
         },
         "nl": {
@@ -51018,7 +51018,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "連絡先リンクを貼り付けてください"
+            "value": "連絡先リンクを貼り付け"
           }
         },
         "nl": {
@@ -55340,7 +55340,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "クイックレスポンス"
+            "value": "クイック返信"
           }
         },
         "zh-Hans": {
@@ -56777,7 +56777,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Радіостанція"
+            "value": "Термінал радіостанції"
           }
         },
         "ja": {
