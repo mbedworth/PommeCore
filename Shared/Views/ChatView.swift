@@ -95,7 +95,7 @@ struct ChatView: View {
         if c.outPathLen < 0 { return c.outPath.isEmpty ? "Auto" : "Flood" }
         // Lower 6 bits = hop count (upper 2 bits = hash_mode)
         let hops = Int(c.outPathLen) & 0x3F
-        return String(localized: "^[\(hops) hop](inflect: true)")
+        return formatHopCount(hops)
     }
 
     private var routeColor: Color {

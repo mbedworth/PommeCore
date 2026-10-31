@@ -589,6 +589,28 @@ final class ConnectionManager {
     }
 
 
+    /// Run a command on the connected radio's own CLI (firmware 1.18.0+).
+    ///
+    /// Goes out as `CMD_RUN_CLI_COMMAND` over whichever transport is connected,
+    /// so this is the one CLI path that works on iOS — `USBSerialManager` is
+    /// macOS-only and always will be, there being no CDC ACM API on iOS.
+    ///
+    /// **Deliberately above the USB section**, not inside it. It was written
+    /// below the `#if os(macOS)` that guards the USB transport, purely because
+    /// the other CLI functions live there, which compiled it out of the iOS
+    /// build entirely — and the closure that calls it was wired inside the same
+    /// guard in `PommeCoreViewModel`. The probe therefore never ran on iPhone,
+    /// support was never detected, and the Radio Terminal row never appeared,
+    /// while this very comment claimed the opposite. Found on hardware
+    /// 2026-10-30. Proximity is not a reason to share a platform guard.
+    func sendCompanionCLI(_ command: String) {
+        guard let frame = MeshCoreProtocol.buildRunCLICommand(command) else {
+            Self.logger.warning("Companion CLI: '\(command)' is too short for the firmware to accept")
+            return
+        }
+        sendCommand(frame, label: "RUN_CLI_COMMAND")
+    }
+
     #if os(macOS) || targetEnvironment(macCatalyst)
     func connectUSB(port: String) {
         stopScanning()
@@ -641,19 +663,6 @@ final class ConnectionManager {
             sendCommand(MeshCoreProtocol.buildReboot(), label: "REBOOT")
         }
         DebugLogger.shared.log("USB: sent reboot", level: .tx)
-    }
-
-    /// Run a command on the connected radio's own CLI (firmware 1.18.0+).
-    ///
-    /// Goes out as `CMD_RUN_CLI_COMMAND` over whichever transport is connected,
-    /// so this is the one CLI path that works on iOS — `USBSerialManager` is
-    /// macOS-only and always will be, there being no CDC ACM API on iOS.
-    func sendCompanionCLI(_ command: String) {
-        guard let frame = MeshCoreProtocol.buildRunCLICommand(command) else {
-            Self.logger.warning("Companion CLI: '\(command)' is too short for the firmware to accept")
-            return
-        }
-        sendCommand(frame, label: "RUN_CLI_COMMAND")
     }
 
     /// Send a USB CLI command directly, bypassing the command queue.

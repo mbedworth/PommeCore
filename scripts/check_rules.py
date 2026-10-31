@@ -403,6 +403,100 @@ def check_deployment_targets() -> None:
 # --------------------------------------------------------------------------
 # Standing rule — no AI tool references anywhere
 # --------------------------------------------------------------------------
+# Automatic grammar agreement markup, e.g. `^[\(n) hop](inflect: true)`.
+INFLECT_MARKUP = re.compile(r'\^\[[^\]]*\]\(inflect:')
+# The same markup inside a String(localized:) — where it is never applied.
+INFLECT_IN_STRING = re.compile(r'String\(localized:\s*"\^\[[^"]*\]\(inflect:')
+
+
+def check_inflection_markup() -> None:
+    """Inflection markup belongs to `Text`, and a hop count belongs to Theme.
+
+    Two faults, both found on hardware 2026-10-30 and neither visible to a
+    build:
+
+    **`String(localized:)` does not inflect.** `Text` applies
+    `^[…](inflect: true)` when it draws; `String(localized:)` hands the markup
+    straight back. Two call sites did the latter, so the markup rendered
+    literally — one of them into a Quick Reply *transmitted over the air*, and
+    a recipient on another client read `^[3 hop](inflect: true)`. A string that
+    leaves the device is the worst possible place to discover this.
+
+    **Ten call sites wrote the hop markup themselves.** Fixing one fixed a
+    tenth of the bug. `hopCountLabel(_:)` and `formatHopCount(_:)` in
+    `Theme.swift` are now the only places that decide how a hop count reads,
+    per design principle 4 and the "new formatting helper" rule in CLAUDE.md.
+    Other inflected nouns appear once each and are left alone — this forbids
+    duplication, not inflection.
+    """
+    theme = ROOT / "Shared" / "App" / "Theme.swift"
+    for path in swift_files(["Shared", "watchOS"]):
+        for i, line in enumerate(lines_of(path), 1):
+            if line.lstrip().startswith("//"):
+                continue
+            if INFLECT_IN_STRING.search(line):
+                report("FAIL", "18", path, i,
+                       "inflection markup inside String(localized:) — it is "
+                       "applied by Text when drawing, never here, so this "
+                       "renders the markup literally. Use formatHopCount() or "
+                       "an explicitly pluralised key")
+            if (INFLECT_MARKUP.search(line) and " hop]" in line
+                    and path.resolve() != theme.resolve()):
+                report("FAIL", "DP4", path, i,
+                       "a hop count is spelled out here — Theme.swift's "
+                       "hopCountLabel()/formatHopCount() are the one place "
+                       "that decides how it reads")
+
+
+# A UI literal with its interpolations flattened, so `\(hopCount)` and
+# `\(hops.count)` are recognised as the same shape.
+REPEATED_LIT = re.compile(r'(?:Text|String)\(\s*(?:localized:\s*)?"((?:[^"\\]|\\.)+)"')
+INTERPOLATION = re.compile(r'\\\([^)]*\)')
+
+
+def check_repeated_ui_literals() -> None:
+    """The same built string, written out in three or more files.
+
+    `check_duplicate_formatters` looks for a duplicated *function*. Duplication
+    rarely announces itself that way: it is far more often one expression
+    inlined at every call site, which is invisible to a check that only reads
+    declarations. `^[\\(n) hop](inflect: true)` was written at **ten** sites
+    across five files, and the copies had already diverged — two resolved it
+    through `String(localized:)`, where the inflection is never applied, so
+    those rendered the markup literally and one transmitted it over the air.
+    Nothing objected, because no function had been duplicated.
+
+    Only literals that carry interpolation are reported, and only from three
+    files up. Short shared words — `Status`, `Connected`, a bullet — are
+    repeated legitimately all over a UI and are not what this is for; a literal
+    with a value substituted into a structure is a formatting decision, and a
+    formatting decision belongs in one place (design principle 4, and the "new
+    formatting helper" rule in CLAUDE.md).
+
+    `WARN`, not `FAIL`: whether two identical strings are one concept or a
+    coincidence is a judgement a script should inform, not make.
+    """
+    where: dict[str, set[pathlib.Path]] = {}
+    for path in swift_files(["Shared", "watchOS"]):
+        for line in lines_of(path):
+            if line.lstrip().startswith("//"):
+                continue
+            for m in REPEATED_LIT.finditer(line):
+                norm = INTERPOLATION.sub("{}", m.group(1))
+                if "{}" not in norm or len(norm) < 10:
+                    continue
+                where.setdefault(norm, set()).add(path)
+
+    for norm, paths in sorted(where.items()):
+        if len(paths) < 3:
+            continue
+        first = sorted(paths)[0]
+        report("WARN", "DP4", first, 1,
+               f'"{norm[:50]}" is written out in {len(paths)} files — a value '
+               "substituted into a structure is a formatting decision, and it "
+               "belongs in one helper in Theme.swift")
+
+
 def check_no_tool_references() -> None:
     needle = re.compile(r"co-authored-by:\s*claude|claude\.ai/code|generated with \[claude|"
                         r"\bcopilot\b|\bchatgpt\b", re.I)
@@ -683,6 +777,8 @@ CHECKS = [
     check_deployment_targets,
     check_no_tool_references,
     check_literals_in_catalog,
+    check_inflection_markup,
+    check_repeated_ui_literals,
     check_help_catalog,
     check_path_len_decoding,
     check_hand_built_icloud_keys,

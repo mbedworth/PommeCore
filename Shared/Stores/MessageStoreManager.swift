@@ -682,7 +682,9 @@ final class MessageStoreManager {
         messagesByContact[contactKey, default: []].append(message)
         persistMessages(for: contactKey)
 
-        if !isInBackground {
+        // Gated by the same decision as the notification. A haptic is an alert;
+        // it does not get its own rules. See `alertIsAllowed(for:)`.
+        if !isInBackground, alertIsAllowed(for: message) {
             playReceiveHaptic()
         }
 
@@ -1052,42 +1054,58 @@ final class MessageStoreManager {
         return haystack.contains("@\(myName)") || haystack.contains("@[\(myName)]")
     }
 
-    func postLocalNotification(for message: Message) {
-
+    /// Whether this message may alert the user at all, by any means.
+    ///
+    /// **Every** alerting path has to ask this — not just the notification.
+    /// It used to live inline in `postLocalNotification`, while the receive
+    /// haptic fired from `store(_:)` with no checks whatsoever, so a Muted
+    /// channel still buzzed once per message. Reconnecting after the app had
+    /// been away drained the radio's backlog and buzzed once for *each* of
+    /// them, which is indistinguishable from "the setting does nothing" —
+    /// the very complaint this release set out to fix. Found on hardware
+    /// 2026-10-30, after the notification half had already been fixed.
+    ///
+    /// A setting that governs one of the two ways the app taps you on the
+    /// shoulder is not a setting.
+    func alertIsAllowed(for message: Message) -> Bool {
         let prefs = NotificationPreferences.shared
-        let isChannel = message.channelIndex != nil
         let contact = contactProvider?(message.contactKeyHash)
-        let isRoom = contact?.type == .room
 
-        if isChannel {
-            guard prefs.notifyChannel else { return }
-            if let chIdx = message.channelIndex {
-                // Looked up by index, not by resolving the channel first. The
-                // old form was `if let channel = channelProvider?(chIdx)` with
-                // no `else`, so a channel that could not be resolved — one not
-                // yet synced — skipped every check below and notified anyway.
-                // A mode that only applies when a lookup happens to succeed is
-                // not a setting.
-                let mode = channelNotifyModeProvider?(chIdx) ?? .all
-                if mode == .muted { return }
-                if mode == .mentionsOnly {
-                    guard isMentioned(in: message.text) else { return }
-                }
+        if let chIdx = message.channelIndex {
+            guard prefs.notifyChannel else { return false }
+            // Looked up by index, not by resolving the channel first. The
+            // old form was `if let channel = channelProvider?(chIdx)` with
+            // no `else`, so a channel that could not be resolved — one not
+            // yet synced — skipped every check below and notified anyway.
+            // A mode that only applies when a lookup happens to succeed is
+            // not a setting.
+            let mode = channelNotifyModeProvider?(chIdx) ?? .all
+            if mode == .muted { return false }
+            if mode == .mentionsOnly {
+                guard isMentioned(in: message.text) else { return false }
             }
-        } else if isRoom {
-            guard prefs.notifyRoom else { return }
+        } else if contact?.type == .room {
+            guard prefs.notifyRoom else { return false }
         } else {
             // Suppress notifications from infrastructure nodes (repeaters, sensors)
             if let contact, contact.type == .repeater || contact.type == .sensor {
-                return
+                return false
             }
-            guard prefs.notifyDirect else { return }
+            guard prefs.notifyDirect else { return false }
 
             // Check per-contact / group mute
             if let contact, let mode = contactNotifyModeProvider?(contact) {
-                if mode == .muted { return }
+                if mode == .muted { return false }
             }
         }
+        return true
+    }
+
+    func postLocalNotification(for message: Message) {
+        guard alertIsAllowed(for: message) else { return }
+
+        let isChannel = message.channelIndex != nil
+        let contact = contactProvider?(message.contactKeyHash)
 
         let content = UNMutableNotificationContent()
 

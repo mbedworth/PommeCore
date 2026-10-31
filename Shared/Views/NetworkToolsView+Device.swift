@@ -165,7 +165,7 @@ struct PathViewer: View {
                     }
                 }
 
-                Text("^[\(hops.count) hop](inflect: true)")
+                Text(hopCountLabel(hops.count))
                     .font(.caption)
                     .foregroundStyle(MeshTheme.textSecondary)
             }
@@ -414,7 +414,7 @@ struct PingResultsView: View {
                             .font(.caption.monospaced().weight(.medium))
                             .foregroundStyle(ms < 5000 ? MeshTheme.statusGood : ms < 15000 ? MeshTheme.statusWarn : MeshTheme.statusBad)
                         if result.hops > 0 {
-                            Text("^[\(result.hops) hop](inflect: true)")
+                            Text(hopCountLabel(result.hops))
                                 .font(.caption2)
                                 .foregroundStyle(MeshTheme.textSecondary)
                         }
@@ -527,7 +527,7 @@ struct PathDiscoveryResultView: View {
                         pathNode(toLabel, color: MeshTheme.incomingBubble)
                     }
                 }
-                Text("^[\(hopCount) hop](inflect: true)")
+                Text(hopCountLabel(hopCount))
                     .font(.caption)
                     .foregroundStyle(MeshTheme.textSecondary)
             }

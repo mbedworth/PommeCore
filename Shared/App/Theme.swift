@@ -1011,6 +1011,37 @@ private let Self_meshTimeFormatter: DateFormatter = {
     return fmt
 }()
 
+/// A hop count as words, for display — `1 hop`, `8 hops`.
+///
+/// **The only place the inflection markup may be written.** It was written at
+/// ten call sites, and the copies had already diverged in the way duplication
+/// always eventually does: two of them resolved the key through
+/// `String(localized:)`, which does *not* apply automatic grammar agreement, so
+/// those two rendered the markup literally — one of them into a message
+/// transmitted over the air, where a recipient on another client read
+/// `Copy, @[Z-max]! ^[3 hop](inflect: true) @ 21:44`. Fixing one copy fixed one
+/// tenth of the bug, which is the argument for this function existing.
+///
+/// Both forms resolve the **same two catalog keys**, so the wording is decided
+/// once and cannot drift between what is shown and what is sent. No automatic
+/// grammar agreement: the markup only works where `Text` draws it, and 46 of
+/// its translations across the catalog had already been broken by the
+/// translator — carets dropped, `inflect: true` rendered as `inflex:
+/// verdadero`, `zmień: prawdziwe`, `可变性：true`. Structure inside a translated
+/// string is a hazard this project has been bitten by before, with Markdown in
+/// the help catalog.
+///
+/// The cost is the few/many distinction Czech, Polish and Ukrainian make, which
+/// one word in a status line can bear.
+func hopCountLabel(_ hops: Int) -> LocalizedStringKey {
+    hops == 1 ? "1 hop" : "\(hops) hops"
+}
+
+/// A hop count as words, for a `String` — a wire payload, or a computed `var`.
+func formatHopCount(_ hops: Int) -> String {
+    hops == 1 ? String(localized: "1 hop") : String(localized: "\(hops) hops")
+}
+
 /// Format a coordinate (latitude or longitude) to 6 decimal places.
 func formatCoordinate(_ value: Double) -> String {
     String(format: "%.6f", value)
