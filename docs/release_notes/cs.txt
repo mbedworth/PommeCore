@@ -1,11 +1,51 @@
-Oznámení kanálů nyní respektují „Zmínky“ a „Ztišeno“. Obě nastavení byla na veřejném kanálu ignorována, takže oznámení přišlo bez ohledu na vaši volbu.
+Happy Halloween!
 
-Stav zprávy nyní odpovídá tomu, co se skutečně stalo. Zpráva v kanálu je označena jako odeslaná teprve tehdy, když rádio potvrdí, že odešla, a nikdy netvrdí doručení, které mesh nemá jak oznámit.
+Rozmázli jsme několik chyb a zahnali pár strašidel.
 
-Nové: příručka v aplikaci, která funguje offline, přehled senzorů, který porovnává uzly vedle sebe místo jejich vypisování, objevené cesty vykreslené na mapě mesh, oznámení serverů místností a Rychlá odpověď – dlouhým stiskem zprávy odpovíte počtem hopů, signálem, časem a vlastním popiskem místa.
+- Oznámení kanálů nyní respektují „Zmínky“ a „Ztišeno“. Obě nastavení byla na veřejném kanálu ignorována, takže oznámení přišlo bez ohledu na to, co jste zvolili.
 
-Seznam kontaktů je nyní jediný seznam s voličem typu místo pevných sekcí. Řazení a vícenásobný výběr jsou dostupné všude a PommeCore může nabídnout odebrání kontaktů, které přestaly odpovídat.
+- Ztišený kanál už nevibruje. Dříve zavibroval u každé zprávy, včetně celé nahromaděné historie, jakmile se vaše rádio znovu připojilo.
 
-Podpora firmwaru MeshCore 1.18 včetně vlastní příkazové řádky rádia přes Bluetooth, která se tak poprvé dostává na iPhone a iPad. Počty hopů a délky zpráv se nyní uvádějí v jednotkách, které používá samo rádio.
+- Zvuk oznámení, který jste vypnuli, se už nepřehrává.
 
-VoiceOver už na hodinkách nemluví anglicky, 77 textů, které se nikdy nedostaly do překladového katalogu, je nyní přeloženo a kontrola zbývajících jedenácti jazyků opravila překlady, které nechyběly, ale byly chybné.
+- Stav zprávy nyní odpovídá tomu, co se opravdu stalo. Zpráva v kanálu je označena jako odeslaná teprve tehdy, když rádio potvrdí, že ji odeslalo, a nikdy netvrdí doručení, které mesh nemá jak oznámit.
+
+- Zpráva, kterou nebylo možné odeslat, to nyní říká jasně, místo aby zobrazila zaškrtnutí, a lze ji jedním klepnutím odeslat znovu.
+
+- Počet hop a délka zpráv se uvádějí v jednotkách, které používá samo rádio. Mesh, který nemůže přesáhnout 63 hop, už netvrdí 70.
+
+- Koncept se nyní z pole pro psaní smaže, jakmile je zpráva na cestě.
+
+- Editor vlastních proměnných se otevře i na rádiu, které žádné nemá, takže první z nich lze konečně vytvořit.
+
+- VoiceOver už na hodinkách nemluví anglicky.
+
+A přidali jsme nové koledy a sladkosti.
+
+- Terminál rádia: vlastní příkazová řádka vašeho rádia, nyní přes Bluetooth, a nejen přes kabel, čímž se poprvé dostává na iPhone a iPad. V „Nastavení“, „Pokročilé“, od firmwaru 1.18.
+
+- Vestavěná příručka, která funguje bez připojení, protože příručka, jež potřebuje síť, chybí právě tehdy, kdy je potřeba.
+
+- Přehled senzorů, který porovnává uzly vedle sebe, místo aby je vypisoval jeden po druhém.
+
+- Objevené trasy se kreslí na mapu mesh, každý hop obarvený podle kvality signálu.
+
+- Serverové místnosti mohou zveřejňovat vlastní oznámení.
+
+- Jediný seznam kontaktů s voličem typu místo pevných sekcí, a řazení i hromadný výběr jsou nyní ve všech, nikoli jen ve dvou.
+
+- Podpora firmwaru MeshCore 1.18.
+
+- 77 textů, které se nikdy nedostaly do překladového katalogu, je nyní přeloženo, a průchod ostatními jedenácti jazyky opravil překlady, které byly chybné, nikoli jen chybějící.
+
+Dlouhé stisknutí na iPhonu a iPadu nebo kliknutí pravým tlačítkem na Macu: tam najdete nové možnosti.
+
+- „Rychlá odpověď“ u zprávy: odpovědět s počtem hop, signálem, časem a popisem místa, který si určíte, každé zvlášť vypnutelné.
+
+- „Znovu odeslat“ u zprávy, která neprošla.
+
+- „Zachovat“ u kontaktu, abyste jej ochránili před úklidem, a „Najít zastaralé kontakty“, abyste dohledali ty, které přestaly odpovídat.
+
+- „Vložit odkaz kontaktu“, pro přidání někoho z odkazu ve schránce.
+
+- „Odeslat záplavové oznámení“, abyste se dali poznat v celém mesh, a nejen nejbližším sousedům.

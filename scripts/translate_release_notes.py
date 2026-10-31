@@ -52,6 +52,30 @@ def paragraphs(text):
     return [p.strip() for p in text.strip().split("\n\n") if p.strip()]
 
 
+# A bullet is its own paragraph, and its marker never reaches the model.
+#
+# Two separate reasons, both load-bearing:
+#
+#   * **A list inside one paragraph loses every bullet but the first.**
+#     `translate_paragraph` flattens a multi-line reply, keeping only line one
+#     when it is long enough to look like prose — a deliberate guard against the
+#     model appending commentary, and fatal to a list. So a list has to arrive
+#     here as separate paragraphs, which also means the paragraph-count check in
+#     `--verify` covers each bullet individually.
+#   * **The marker is structure, not prose.** Handed `- Channel notifications…`
+#     the model may return the dash, a `•`, a `*`, `1.`, or nothing, and it
+#     varies by language — so twelve files would disagree about their own
+#     formatting. This is the same rule the help catalog follows: structure stays
+#     in code, only prose is translated.
+MARKER = re.compile(r"^([-*•]\s+|\d+[.)]\s+)")
+
+
+def split_marker(para):
+    """Return (marker, prose). The marker is restored verbatim afterwards."""
+    found = MARKER.match(para)
+    return (found.group(1), para[found.end():]) if found else ("", para)
+
+
 def translate_paragraph(para, lang, lang_name):
     """One paragraph, one request. See the module docstring for why."""
     preserve = ", ".join(PRESERVE_TERMS)
@@ -100,12 +124,26 @@ def translate_paragraph(para, lang, lang_name):
     return out, None
 
 
+# How short a translation may be, as a fraction of the English, before it looks
+# truncated. The default catches a model that answered with a fragment.
+#
+# **Chinese and Japanese need their own floor, because the count is characters,
+# not words.** "A notification sound you had switched off no longer plays." is
+# 58 characters; the complete, correct Chinese is 14 — a ratio of 0.24, which no
+# correct zh translation can lift above the 0.3 default. The flat threshold
+# failed all four short bullets in zh-Hans while the text was right, and the
+# tempting fix — padding the prose until the number goes green — would have made
+# the release note worse to satisfy a bad check. 0.15 still catches a genuine
+# truncation, since a fragment of a CJK sentence lands well below it.
+SHORT_RATIO = {"zh-Hans": 0.15, "ja": 0.15}
+
+
 def problems(original, translated, lang):
     """Structural and glossary checks. Mirrors translate_strings.py's rules."""
     issues = []
     if not translated:
         return ["empty"]
-    if len(translated) < len(original) * 0.3:
+    if len(translated) < len(original) * SHORT_RATIO.get(lang, 0.3):
         issues.append(f"suspiciously short ({len(translated)} vs {len(original)})")
 
     low = translated.lower()
@@ -188,8 +226,15 @@ def main():
                 failures += 1
                 continue
             issues = []
-            for src, tr in zip(source_paras, got):
-                issues += problems(src, tr, lang)
+            for n, (src, tr) in enumerate(zip(source_paras, got), 1):
+                src_marker, src_prose = split_marker(src)
+                tr_marker, tr_prose = split_marker(tr)
+                # A bullet that lost its marker, or prose that gained one,
+                # is a formatting defect even when the words are right.
+                if src_marker != tr_marker:
+                    issues.append(
+                        f"para {n}: marker {tr_marker!r}, expected {src_marker!r}")
+                issues += problems(src_prose, tr_prose, lang)
             if issues:
                 print(f"  {lang}: FAIL {'; '.join(issues)}")
                 failures += 1
@@ -200,13 +245,17 @@ def main():
         out = []
         bad = []
         for i, para in enumerate(source_paras, 1):
-            tr, err = translate_paragraph(para, lang, name)
+            marker, prose = split_marker(para)
+            tr, err = translate_paragraph(prose, lang, name)
             if err:
                 sys.exit(f"{lang} paragraph {i}: {err}")
-            issues = problems(para, tr, lang)
+            # Strip a marker the model added back anyway, so restoring ours
+            # cannot produce "- - text".
+            tr = split_marker(tr.strip())[1]
+            issues = problems(prose, tr, lang)
             if issues:
                 bad.append(f"para {i}: {'; '.join(issues)}")
-            out.append(tr)
+            out.append(marker + tr)
 
         text = "\n\n".join(out) + "\n"
         if len(text) > MAX_CHARS:

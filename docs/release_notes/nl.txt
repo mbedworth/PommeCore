@@ -1,11 +1,51 @@
-Kanaalmeldingen respecteren nu „Menties” en „Gedempt”. Beide instellingen werden op het openbare kanaal genegeerd, zodat er een melding kwam wat u ook had gekozen.
+Happy Halloween!
 
-De status van een bericht geeft nu weer wat er werkelijk is gebeurd. Een kanaalbericht staat pas als verzonden wanneer de radio bevestigt dat het weg is, en het beweert nooit een aflevering die het mesh helemaal niet kan melden.
+We hebben een aantal bugs geplet en een paar monsters weggejaagd.
 
-Nieuw: een handleiding in de app die offline werkt, een sensordashboard dat knooppunten naast elkaar vergelijkt in plaats van ze op te sommen, ontdekte routes getekend op de mesh-kaart, mededelingen van kamerservers, en Snel antwoord — houd een bericht ingedrukt om te antwoorden met het aantal hops, het signaal, de tijd en een locatielabel dat u zelf instelt.
+- Kanaalmeldingen respecteren nu «Menties» en «Gedempt». Beide instellingen werden op het openbare kanaal genegeerd, zodat er een melding kwam wat je ook had gekozen.
 
-De contactenlijst is nu één lijst met een typekiezer in plaats van vaste secties. Sorteren en meervoudige selectie zijn overal beschikbaar, en PommeCore kan aanbieden contacten te verwijderen die niet meer antwoorden.
+- Een gedempt kanaal trilt niet meer. Eerder trilde het één keer per bericht, inclusief de hele achterstand zodra je radio opnieuw verbinding maakte.
 
-Ondersteuning voor MeshCore-firmware 1.18, inclusief de eigen opdrachtregel van de radio via Bluetooth, die daarmee voor het eerst op iPhone en iPad beschikbaar is. Het aantal hops en de lengte van berichten worden nu weergegeven in de eenheden die de radio zelf gebruikt.
+- Een meldingsgeluid dat je had uitgezet, klinkt niet meer.
 
-VoiceOver spreekt geen Engels meer op de watch, 77 teksten die nooit in de vertaalcatalogus terechtkwamen zijn nu vertaald, en een ronde door de elf andere talen heeft vertalingen gecorrigeerd die niet ontbraken maar fout waren.
+- De status van een bericht geeft nu weer wat er werkelijk is gebeurd. Een kanaalbericht staat pas als verzonden wanneer de radio bevestigt dat het weg is, en het claimt nooit een bezorging die het mesh helemaal niet kan melden.
+
+- Een bericht dat niet verzonden kon worden, zegt dat nu duidelijk in plaats van een vinkje te tonen, en kan met één tik opnieuw worden verzonden.
+
+- Het aantal hop en de lengte van berichten worden weergegeven in de eenheden die de radio zelf gebruikt. Een mesh dat niet verder kan dan 63 hop beweert niet langer 70.
+
+- Een concept verdwijnt nu uit het invoerveld zodra het bericht onderweg is.
+
+- De editor voor eigen variabelen opent ook op een radio die er geen heeft, zodat de eerste eindelijk aangemaakt kan worden.
+
+- VoiceOver spreekt op de horloge geen Engels meer.
+
+En er zijn een paar nieuwe trucs en traktaties.
+
+- De Radio Terminal: de eigen opdrachtregel van je radio, nu via Bluetooth in plaats van alleen via een kabel, waardoor die voor het eerst op iPhone en iPad beschikbaar is. Onder «Instellingen», «Geavanceerd», vanaf firmware 1.18.
+
+- Een ingebouwde handleiding die offline werkt, want een handleiding die een netwerk nodig heeft, ontbreekt juist wanneer je hem nodig hebt.
+
+- Een sensordashboard dat knooppunten naast elkaar vergelijkt in plaats van ze één voor één op te sommen.
+
+- Ontdekte routes worden op de mesh-kaart getekend, met elke hop gekleurd naar signaalkwaliteit.
+
+- Roomservers kunnen hun eigen mededelingen plaatsen.
+
+- Eén contactenlijst met een typekiezer in plaats van vaste secties, en sorteren en meervoudige selectie zijn nu overal beschikbaar, niet alleen in twee lijsten.
+
+- Ondersteuning voor MeshCore-firmware 1.18.
+
+- 77 teksten die het vertaalcatalogus nooit hadden bereikt zijn nu vertaald, en een ronde door de andere elf talen heeft vertalingen gecorrigeerd die verkeerd waren en niet alleen ontbraken.
+
+Lang indrukken op iPhone en iPad, of rechtsklikken op een Mac: daar staan de nieuwe opties.
+
+- «Snel antwoord» op een bericht: antwoorden met aantal hop, signaal, tijd en een locatieaanduiding die je zelf instelt, elk afzonderlijk uit te zetten.
+
+- «Verzend opnieuw» voor een bericht dat niet is aangekomen.
+
+- «Behouden» bij een contact, om het tegen opruimen te beschermen, en «Oude contacten vinden» om de contacten op te sporen die niet meer antwoorden.
+
+- «Plak Contactlink», om iemand toe te voegen vanuit een link op het klembord.
+
+- «Flooding-aankondiging verzenden», om je in het hele mesh bekend te maken en niet alleen bij je directe buren.

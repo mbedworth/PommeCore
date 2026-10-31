@@ -1,11 +1,51 @@
-Kanal-Benachrichtigungen berücksichtigen jetzt „Erwähnungen“ und „Stummgeschaltet“. Beide Einstellungen wurden im öffentlichen Kanal ignoriert, sodass eine Benachrichtigung ankam, egal was eingestellt war.
+Happy Halloween!
 
-Der Nachrichtenstatus spiegelt jetzt wider, was tatsächlich passiert ist. Eine Kanalnachricht gilt erst dann als gesendet, wenn das Funkgerät bestätigt, dass sie es verlassen hat, und sie behauptet nie eine Zustellung, die das Mesh gar nicht melden kann.
+Wir haben einige Fehler zerquetscht und ein paar Monster verjagt.
 
-Neu: ein Handbuch in der App, das offline funktioniert, ein Sensor-Dashboard, das Knoten nebeneinander vergleicht statt sie aufzulisten, entdeckte Routen auf der Mesh-Karte, Ankündigungen von Raumservern und die Schnellantwort – lange auf eine Nachricht drücken, um mit Hop-Zahl, Signal, Uhrzeit und einer von Ihnen festgelegten Ortsangabe zu antworten.
+- Kanalbenachrichtigungen berücksichtigen jetzt „Erwähnungen“ und „Stummgeschaltet“. Beide Einstellungen wurden im öffentlichen Kanal ignoriert, sodass eine Benachrichtigung ankam, was auch immer Sie eingestellt hatten.
 
-Die Kontaktliste ist jetzt eine einzige Liste mit einer Typ-Auswahl statt fester Abschnitte. Sortieren und Mehrfachauswahl sind überall verfügbar, und PommeCore kann anbieten, Kontakte zu entfernen, die nicht mehr antworten.
+- Ein stummgeschalteter Kanal vibriert nicht mehr. Vorher summte er bei jeder Nachricht einmal, auch beim gesamten Rückstau, sobald sich Ihr Funkgerät wieder verband.
 
-Unterstützung für MeshCore-Firmware 1.18, einschließlich der eigenen Kommandozeile des Funkgeräts über Bluetooth, die damit erstmals auf iPhone und iPad verfügbar ist. Hop-Zahlen und Nachrichtenlängen werden jetzt in den Einheiten angegeben, die das Funkgerät selbst verwendet.
+- Ein Benachrichtigungston, den Sie abgeschaltet hatten, wird nicht mehr abgespielt.
 
-VoiceOver spricht auf der Uhr nicht mehr Englisch, 77 Texte, die nie in den Übersetzungskatalog gelangt waren, sind jetzt übersetzt, und ein Durchgang durch die elf anderen Sprachen hat Übersetzungen korrigiert, die nicht fehlten, sondern falsch waren.
+- Der Nachrichtenstatus spiegelt jetzt wider, was wirklich geschehen ist. Eine Kanalnachricht gilt erst als gesendet, wenn das Funkgerät bestätigt, dass sie es verlassen hat, und sie behauptet niemals eine Zustellung, die das Mesh gar nicht melden kann.
+
+- Eine Nachricht, die nicht gesendet werden konnte, sagt das jetzt klar, statt ein Häkchen zu zeigen, und lässt sich mit einem Tippen erneut senden.
+
+- Hop-Zahlen und Nachrichtenlängen werden in den Einheiten angegeben, die das Funkgerät selbst verwendet. Ein Mesh, das 63 Hops nicht überschreiten kann, behauptet nicht mehr 70.
+
+- Ein Entwurf wird jetzt aus dem Eingabefeld entfernt, sobald die Nachricht unterwegs ist.
+
+- Der Editor für eigene Variablen öffnet sich auch auf einem Funkgerät, das keine hat, sodass die erste überhaupt angelegt werden kann.
+
+- VoiceOver spricht auf der Uhr nicht mehr Englisch.
+
+Und es gibt ein paar neue Tricks und Leckereien.
+
+- Das Funkgerät-Terminal: die eigene Befehlszeile Ihres Funkgeräts, jetzt über Bluetooth statt nur über Kabel, womit sie erstmals iPhone und iPad erreicht. Unter „Einstellungen“, „Erweitert“, ab Firmware 1.18.
+
+- Ein eingebautes Handbuch, das offline funktioniert, denn ein Handbuch, das ein Netz braucht, fehlt genau dann, wenn man es braucht.
+
+- Ein Sensor-Dashboard, das Knoten nebeneinander vergleicht, statt sie einzeln aufzulisten.
+
+- Entdeckte Routen werden auf der Mesh-Karte gezeichnet, jeder Hop nach Signalqualität gefärbt.
+
+- Room-Server können eigene Mitteilungen veröffentlichen.
+
+- Eine einzige Kontaktliste mit Typ-Auswahl statt fester Abschnitte, und Sortierung und Mehrfachauswahl gibt es jetzt in allen, nicht nur in zwei.
+
+- Unterstützung für MeshCore-Firmware 1.18.
+
+- 77 Zeichenketten, die den Übersetzungskatalog nie erreicht hatten, sind jetzt übersetzt, und ein Durchgang durch die anderen elf Sprachen hat Übersetzungen korrigiert, die falsch waren und nicht bloß fehlten.
+
+Lange drücken auf iPhone und iPad oder Rechtsklick auf dem Mac: dort finden Sie die neuen Optionen.
+
+- „Schnellantwort“ auf eine Nachricht: antworten mit Hop-Zahl, Signal, Zeit und einer Ortsangabe, die Sie selbst festlegen, jede einzeln abschaltbar.
+
+- „Erneut senden“ bei einer Nachricht, die nicht durchkam.
+
+- „Behalten“ bei einem Kontakt, um ihn vor dem Aufräumen zu schützen, und „Veraltete Kontakte finden“, um die aufzuspüren, die nicht mehr antworten.
+
+- „Kontaktlink einfügen“, um jemanden aus einem Link in der Zwischenablage hinzuzufügen.
+
+- „Flooding-Ankündigung senden“, um sich im gesamten Mesh bekannt zu machen statt nur bei den direkten Nachbarn.

@@ -1,11 +1,51 @@
-As notificações de canal passam a respeitar «Menções» e «Silenciado». Ambas as opções eram ignoradas no canal público, pelo que chegava uma notificação independentemente da escolha.
+Happy Halloween!
 
-O estado de uma mensagem passa a refletir o que realmente aconteceu. Uma mensagem de canal só aparece como enviada quando o rádio confirma que saiu, e nunca afirma uma entrega que o mesh não tem como comunicar.
+Esmagámos alguns erros e afugentámos alguns monstros.
 
-Novo: um manual na app que funciona offline, um painel de sensores que compara nós lado a lado em vez de os listar, as rotas descobertas desenhadas no mapa do mesh, anúncios de servidores de sala e a Resposta rápida — toque e mantenha numa mensagem para responder com o número de hops, o sinal, a hora e uma etiqueta de localização definida por si.
+- As notificações de canal passam a respeitar «Menções» e «Silenciado». Ambas as definições eram ignoradas no canal público, pelo que chegava uma notificação independentemente do que tivesse escolhido.
 
-A lista de contactos é agora uma única lista com um seletor de tipo em vez de secções fixas. A ordenação e a seleção múltipla estão disponíveis em qualquer lugar, e o PommeCore pode propor remover os contactos que deixaram de responder.
+- Um canal silenciado já não vibra. Antes vibrava uma vez por cada mensagem, incluindo todo o atraso acumulado quando o seu rádio se voltava a ligar.
 
-Suporte para o firmware MeshCore 1.18, incluindo a linha de comandos do próprio rádio por Bluetooth, que chega assim pela primeira vez ao iPhone e ao iPad. O número de hops e o comprimento das mensagens passam a ser indicados nas unidades que o próprio rádio usa.
+- Um som de notificação que tinha desligado já não toca.
 
-O VoiceOver já não fala inglês no relógio, 77 textos que nunca chegaram ao catálogo de tradução estão agora traduzidos e uma revisão das outras onze línguas corrigiu traduções que estavam erradas, não em falta.
+- O estado de uma mensagem reflete agora o que realmente aconteceu. Uma mensagem de canal só aparece como enviada quando o rádio confirma que saiu, e nunca afirma uma entrega que o mesh não tem forma de comunicar.
+
+- Uma mensagem que não pôde ser enviada di-lo agora com clareza em vez de mostrar um visto, e pode ser enviada de novo com um toque.
+
+- O número de hop e o comprimento das mensagens são indicados nas unidades que o próprio rádio usa. Um mesh que não pode exceder 63 hop já não declara 70.
+
+- Um rascunho desaparece agora do campo de escrita assim que a mensagem segue caminho.
+
+- O editor de variáveis personalizadas abre também num rádio que não tem nenhuma, para que a primeira possa finalmente ser criada.
+
+- O VoiceOver já não fala inglês no relógio.
+
+E há algumas travessuras e gulosices novas.
+
+- O Terminal do rádio: a linha de comandos do próprio rádio, agora por Bluetooth e não apenas por cabo, o que a traz pela primeira vez para iPhone e iPad. Em «Configurações», «Avançado», a partir do firmware 1.18.
+
+- Um manual integrado que funciona sem ligação, porque um manual que precisa de rede falta exatamente quando é preciso.
+
+- Um painel de sensores que compara nós lado a lado em vez de os listar um a um.
+
+- As rotas descobertas são desenhadas no mapa do mesh, com cada hop colorido segundo a qualidade do sinal.
+
+- Os servidores de sala podem publicar comunicados próprios.
+
+- Uma única lista de contactos com um seletor de tipo em vez de secções fixas, e a ordenação e a seleção múltipla estão agora disponíveis em todas, e não só em duas.
+
+- Suporte para o firmware MeshCore 1.18.
+
+- 77 textos que nunca tinham chegado ao catálogo de tradução estão agora traduzidos, e uma revisão das outras onze línguas corrigiu traduções que estavam erradas e não apenas ausentes.
+
+Toque longo no iPhone e no iPad, ou clique direito num Mac: é aí que estão as novas opções.
+
+- «Resposta rápida» numa mensagem: responder com número de hop, sinal, hora e uma etiqueta de localização definida por si, cada uma podendo ser desativada.
+
+- «Enviar novamente» para uma mensagem que não passou.
+
+- «Manter» num contacto, para o proteger da limpeza, e «Encontrar contatos desatualizados» para localizar os que deixaram de responder.
+
+- «Colar Link de Contato», para adicionar alguém a partir de um link na área de transferência.
+
+- «Enviar Anúncio de Inundação», para se dar a conhecer em todo o mesh e não apenas aos vizinhos imediatos.
