@@ -1,11 +1,51 @@
-Les notifications de canal respectent désormais « Mentions » et « Muet ». Les deux réglages étaient ignorés sur le canal public : une notification arrivait quel que soit votre choix.
+Happy Halloween !
 
-L'état d'un message reflète désormais ce qui s'est réellement passé. Un message de canal n'est indiqué comme envoyé qu'une fois que la radio confirme son départ, et il ne prétend jamais à une remise que le mesh n'a aucun moyen de signaler.
+Nous avons écrasé quelques bogues et fait fuir quelques monstres.
 
-Nouveau : un manuel intégré qui fonctionne hors ligne, un tableau de bord des capteurs qui compare les nœuds côte à côte au lieu de les énumérer, les routes découvertes tracées sur la carte du mesh, les annonces des serveurs de salle, et la Réponse rapide — appuyez longuement sur un message pour répondre avec le nombre de hops, le signal, l'heure et un libellé de lieu que vous définissez.
+- Les notifications de canal respectent désormais « Mentions » et « Muet ». Les deux réglages étaient ignorés sur le canal public, et une notification arrivait donc quel que soit votre choix.
 
-La liste de contacts est désormais une seule liste avec un sélecteur de type, au lieu de sections fixes. Le tri et la sélection multiple sont disponibles partout, et PommeCore peut proposer de supprimer les contacts qui ne répondent plus.
+- Un canal muet ne vibre plus. Il vibrait auparavant une fois par message, y compris pour tout l'arriéré lorsque votre radio se reconnectait.
 
-Prise en charge du firmware MeshCore 1.18, y compris la ligne de commande de la radio elle-même via Bluetooth, qui arrive ainsi pour la première fois sur iPhone et iPad. Le nombre de hops et la longueur des messages sont désormais indiqués dans les unités utilisées par la radio.
+- Un son de notification que vous aviez désactivé ne se joue plus.
 
-VoiceOver ne parle plus anglais sur la montre, 77 textes qui n’avaient jamais atteint le catalogue de traduction sont désormais traduits, et une relecture des onze autres langues a corrigé des traductions qui étaient fausses et non manquantes.
+- Le statut d'un message reflète désormais ce qui s'est réellement passé. Un message de canal n'est indiqué comme envoyé qu'une fois que la radio confirme son départ, et il ne prétend jamais à une remise que le mesh n'a aucun moyen de signaler.
+
+- Un message qui n'a pas pu être envoyé l'indique maintenant clairement au lieu d'afficher une coche, et peut être renvoyé d'une seule touche.
+
+- Le nombre de hop et la longueur des messages sont indiqués dans les unités que la radio emploie elle-même. Un mesh qui ne peut dépasser 63 hop n'en annonce plus 70.
+
+- Un brouillon disparaît maintenant du champ de saisie dès que le message est parti.
+
+- L'éditeur de variables personnalisées s'ouvre aussi sur une radio qui n'en a aucune, ce qui permet enfin de créer la première.
+
+- VoiceOver ne parle plus anglais sur la montre.
+
+Et il y a quelques nouveaux tours et friandises.
+
+- Le Terminal Radio : la ligne de commande de votre propre radio, désormais par Bluetooth et non plus seulement par câble, ce qui l'amène pour la première fois sur iPhone et iPad. Dans « Paramètres », « Avancé », à partir du micrologiciel 1.18.
+
+- Un manuel intégré qui fonctionne hors ligne, car un manuel qui exige un réseau manque précisément quand on en a besoin.
+
+- Un tableau de bord des capteurs qui compare les nœuds côte à côte au lieu de les énumérer un par un.
+
+- Les routes découvertes sont tracées sur la carte du mesh, chaque hop coloré selon la qualité du signal.
+
+- Les serveurs de salon peuvent publier leurs propres communiqués.
+
+- Une seule liste de contacts avec un sélecteur de type au lieu de sections figées, et le tri et la sélection multiple sont désormais disponibles partout, et non dans deux listes seulement.
+
+- Prise en charge du micrologiciel MeshCore 1.18.
+
+- 77 chaînes qui n'étaient jamais parvenues au catalogue de traduction sont maintenant traduites, et une relecture des onze autres langues a corrigé des traductions qui étaient fausses et non simplement absentes.
+
+Appui long sur iPhone et iPad, ou clic droit sur un Mac : c'est là que se trouvent les nouvelles options.
+
+- « Réponse rapide » sur un message : répondre avec le nombre de hop, le signal, l'heure et un libellé de lieu que vous définissez, chacun pouvant être désactivé.
+
+- « Réenvoyer » pour un message qui n'est pas passé.
+
+- « Garder » sur un contact, pour le protéger du nettoyage, et « Trouver les contacts obsolètes » pour repérer ceux qui ne répondent plus.
+
+- « Coller le lien du contact », pour ajouter quelqu'un depuis un lien présent dans le presse-papiers.
+
+- « Envoyer une annonce d'inondation », pour vous faire connaître dans tout le mesh et non seulement auprès de vos voisins immédiats.

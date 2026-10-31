@@ -1,11 +1,51 @@
-Powiadomienia kanałów respektują teraz „Wzmianki” i „Wyciszony”. Oba ustawienia były ignorowane na kanale publicznym, więc powiadomienie przychodziło niezależnie od wyboru.
+Happy Halloween!
 
-Status wiadomości odzwierciedla teraz to, co naprawdę się stało. Wiadomość na kanale jest oznaczana jako wysłana dopiero wtedy, gdy radio potwierdzi, że ją wysłało, i nigdy nie twierdzi, że nastąpiło dostarczenie, którego mesh nie ma jak zgłosić.
+Rozprawiliśmy się z kilkoma błędami i przepłoszyliśmy kilka potworów.
 
-Nowe: podręcznik w aplikacji działający offline, panel czujników porównujący węzły obok siebie zamiast ich wyliczania, odkryte trasy rysowane na mapie mesh, ogłoszenia serwerów pokoi oraz Szybka odpowiedź — przytrzymaj wiadomość, aby odpowiedzieć liczbą hopów, siłą sygnału, godziną i własną etykietą miejsca.
+- Powiadomienia kanałów respektują teraz „Wzmianki” i „Wyciszony”. Oba ustawienia były ignorowane na kanale publicznym, więc powiadomienie przychodziło niezależnie od tego, co wybrałeś.
 
-Lista kontaktów to teraz jedna lista z selektorem typu zamiast stałych sekcji. Sortowanie i wybór wielu pozycji są dostępne wszędzie, a PommeCore może zaproponować usunięcie kontaktów, które przestały odpowiadać.
+- Wyciszony kanał już nie wibruje. Wcześniej wibrował przy każdej wiadomości, w tym przy całej zaległej historii, gdy radio ponownie się połączyło.
 
-Obsługa oprogramowania MeshCore 1.18, w tym własnej linii poleceń radia przez Bluetooth, która trafia w ten sposób po raz pierwszy na iPhone'a i iPada. Liczba hopów i długość wiadomości są teraz podawane w jednostkach, których używa samo radio.
+- Dźwięk powiadomienia, który wyłączyłeś, już się nie odtwarza.
 
-VoiceOver nie mówi już po angielsku na zegarku, 77 tekstów, które nigdy nie trafiły do katalogu tłumaczeń, jest teraz przetłumaczonych, a przegląd pozostałych jedenastu języków poprawił tłumaczenia, które nie brakowały, lecz były błędne.
+- Status wiadomości odzwierciedla teraz to, co naprawdę się stało. Wiadomość na kanale jest oznaczona jako wysłana tylko wtedy, gdy radio potwierdzi, że ją wysłało, i nigdy nie twierdzi, że nastąpiło dostarczenie, o którym mesh nie ma jak poinformować.
+
+- Wiadomość, której nie udało się wysłać, mówi o tym teraz wprost, zamiast pokazywać znacznik, i można ją wysłać ponownie jednym dotknięciem.
+
+- Liczba hop i długość wiadomości są podawane w jednostkach, których używa samo radio. Mesh, który nie może przekroczyć 63 hop, nie twierdzi już, że ma 70.
+
+- Wersja robocza znika teraz z pola pisania, gdy wiadomość jest już w drodze.
+
+- Edytor zmiennych własnych otwiera się także na radiu, które nie ma żadnych, więc pierwszą można wreszcie utworzyć.
+
+- VoiceOver nie mówi już po angielsku na zegarku.
+
+Są też nowe psikusy i słodycze.
+
+- Terminal radiowy: własna linia poleceń twojego radia, teraz przez Bluetooth, a nie tylko przez kabel, co po raz pierwszy udostępnia ją na iPhonie i iPadzie. W „Ustawienia”, „Zaawansowane”, od firmware'u 1.18.
+
+- Wbudowany podręcznik, który działa bez połączenia, bo podręcznik wymagający sieci brakuje dokładnie wtedy, gdy jest potrzebny.
+
+- Panel czujników, który porównuje węzły obok siebie, zamiast wypisywać je po kolei.
+
+- Odkryte trasy są rysowane na mapie mesh, a każdy hop pokolorowany według jakości sygnału.
+
+- Serwery pokojów mogą publikować własne komunikaty.
+
+- Jedna lista kontaktów z wyborem typu zamiast stałych sekcji, a sortowanie i wybór wielu pozycji są teraz dostępne we wszystkich, nie tylko w dwóch.
+
+- Obsługa firmware'u MeshCore 1.18.
+
+- 77 tekstów, które nigdy nie dotarły do katalogu tłumaczeń, jest już przetłumaczonych, a przegląd pozostałych jedenastu języków poprawił tłumaczenia błędne, a nie tylko brakujące.
+
+Długie przytrzymanie na iPhonie i iPadzie albo prawy przycisk myszy na Macu: tam znajdują się nowe opcje.
+
+- „Szybka odpowiedź” na wiadomość: odpowiedz, podając liczbę hop, sygnał, godzinę i opis miejsca, który sam ustalasz, każde z nich można wyłączyć osobno.
+
+- „Wyślij ponownie” dla wiadomości, która nie przeszła.
+
+- „Zachowaj” przy kontakcie, by ochronić go przed porządkowaniem, oraz „Znajdź stare kontakty”, by wytropić te, które przestały odpowiadać.
+
+- „Wklej link kontaktu”, aby dodać kogoś z linku ze schowka.
+
+- „Wyślij rozgłoszenie zalewające”, aby dać się poznać w całym mesh, a nie tylko najbliższym sąsiadom.
