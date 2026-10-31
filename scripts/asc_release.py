@@ -126,8 +126,12 @@ def attach_build(version_id, platform, build_number):
     `20261031.1130`.
     """
     wanted = normalise(build_number)
-    url = (f"/builds?filter[app]={APP_ID}&limit=200"
-           "&include=preReleaseVersion&fields[builds]=version,processingState")
+    # `preReleaseVersion` has to be named in fields[builds] as well as in
+    # include: narrowing the fields without it drops the `relationships` object
+    # from every row, so the platform cannot be read and the lookup dies on a
+    # KeyError rather than simply not matching.
+    url = (f"/builds?filter[app]={APP_ID}&limit=200&include=preReleaseVersion"
+           "&fields[builds]=version,processingState,preReleaseVersion")
     build_id, state = None, None
     while url and not build_id:
         page = get(url)
