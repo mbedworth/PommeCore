@@ -431,16 +431,41 @@ final class MessageStoreManager {
         // transport, so nothing was written. The `?? true` this replaced
         // reported an unwired store as sending successfully, which is the
         // optimistic default the rule exists to forbid.
-        guard transmit(frame, "SEND_CHANNEL_TXT") else {
-            Self.logger.warning("CHANNEL TX: frame not written — marking \(outgoing.id) failed")
+        putChannelFrameOnAir(frame, messageID: outgoing.id, channelKey: channelKey,
+                             label: "SEND_CHANNEL_TXT")
+    }
+
+    /// Put a channel frame on the air and track what happens to it.
+    ///
+    /// **Every channel send goes through here**, first attempt or retry. It was
+    /// written inline in `sendChannelMessage` and the retry path had its own
+    /// shorter version that set `.sending`, called the transport, and did
+    /// nothing else — so a retry with no transport sat at `.sending` for the
+    /// rest of the session, showing a stopwatch that could never resolve. Found
+    /// on hardware 2026-10-31 by tapping Retry with Bluetooth still off.
+    ///
+    /// It survived the `transmit` conversion because the justification for
+    /// discarding a write result — "the message is already `.sending` and the
+    /// timeout resolves it" — is true here and was simply assumed to be true
+    /// there. The retry path armed no timeout. A shared justification applied to
+    /// an unshared code path is how two call sites that look alike behave
+    /// differently.
+    ///
+    /// Three things have to happen together, which is why they live together:
+    /// act on the write, arm the pending send and echo, and arm the timeout that
+    /// catches a radio which never answers.
+    private func putChannelFrameOnAir(_ frame: Data, messageID: UUID,
+                                      channelKey: Data, label: String) {
+        guard transmit(frame, label) else {
+            Self.logger.warning("CHANNEL TX: frame not written — marking \(messageID) failed")
             DebugLogger.shared.log("CH TX: frame not written, marked failed", level: .error)
-            markChannelMessage(outgoing.id, in: channelKey, as: .failed)
+            markChannelMessage(messageID, in: channelKey, as: .failed)
             return
         }
 
-        pendingChannelSend = (id: outgoing.id, channelKey: channelKey, sent: Date())
-        pendingChannelEcho = (id: outgoing.id, channelKey: channelKey, sent: Date())
-        DebugLogger.shared.log("ECHO: armed pending echo for ch=\(channelIndex)", level: .info)
+        pendingChannelSend = (id: messageID, channelKey: channelKey, sent: Date())
+        pendingChannelEcho = (id: messageID, channelKey: channelKey, sent: Date())
+        DebugLogger.shared.log("ECHO: armed pending echo for \(label)", level: .info)
 
         // A radio that never answers must not leave the message claiming to be
         // in flight for the rest of the session.
@@ -448,7 +473,7 @@ final class MessageStoreManager {
         channelSendTimeoutTask = Task { @MainActor [weak self] in
             try? await Task.sleep(for: self?.channelSendTimeout ?? .seconds(10))
             guard !Task.isCancelled, let self, let pending = self.pendingChannelSend,
-                  pending.id == outgoing.id else { return }
+                  pending.id == messageID else { return }
             Self.logger.warning("CHANNEL TX: no response from radio — marking \(pending.id) failed")
             DebugLogger.shared.log("CH TX: no radio response, marked failed", level: .error)
             self.markChannelMessage(pending.id, in: pending.channelKey, as: .failed)
@@ -485,6 +510,20 @@ final class MessageStoreManager {
     }
 
     /// Set a channel message's status by id, leaving a later one alone.
+    /// Mark a direct message failed by id.
+    ///
+    /// The channel equivalent of this is `markChannelMessage`; a direct message
+    /// had no such helper, so the retry path set `.sending` and had no way to
+    /// take it back when the write did not happen.
+    private func markMessageFailed(_ id: UUID, in contactKey: Data) {
+        guard var messages = messagesByContact[contactKey],
+              let idx = messages.firstIndex(where: { $0.id == id }),
+              messages[idx].status == .sending else { return }
+        messages[idx].status = .failed
+        messagesByContact[contactKey] = messages
+        persistMessages(for: contactKey)
+    }
+
     private func markChannelMessage(_ id: UUID, in channelKey: Data, as status: DeliveryStatus) {
         guard var messages = messagesByContact[channelKey],
               let idx = messages.firstIndex(where: { $0.id == id }) else { return }
@@ -607,7 +646,8 @@ final class MessageStoreManager {
 
                 if let channelIdx = message.channelIndex {
                     let frame = MeshCoreProtocol.buildSendChannelMessage(text: message.text, channelIndex: channelIdx)
-                    transmit(frame, "AUTO_RETRY_CHANNEL(\(attempt))")
+                    putChannelFrameOnAir(frame, messageID: message.id, channelKey: contactKey,
+                                         label: "AUTO_RETRY_CHANNEL(\(attempt))")
                 } else {
                     let frame = MeshCoreProtocol.buildSendTextMessage(text: message.text, recipientKeyHash: contactKey, attempt: attempt)
                     transmit(frame, "AUTO_RETRY_TXT(\(attempt))")
@@ -966,7 +1006,11 @@ final class MessageStoreManager {
                     guard let self else { return }
                     Self.logger.info("RETRY: sending flood for \(msgID) with attempt=2")
                     let frame = MeshCoreProtocol.buildSendTextMessage(text: message.text, recipientKeyHash: contactKey, attempt: 2)
-                    self.transmit(frame, "MANUAL_RETRY_FLOOD")
+                    guard self.transmit(frame, "MANUAL_RETRY_FLOOD") else {
+                        Self.logger.warning("RETRY: flood frame not written — marking \(msgID) failed")
+                        self.markMessageFailed(msgID, in: contactKey)
+                        return
+                    }
                 }
             } else {
                 guard let channelIndex = message.channelIndex else { return }
@@ -974,7 +1018,11 @@ final class MessageStoreManager {
                 messages[idx].attempt = 0
                 messagesByContact[contactKey] = messages
                 let frame = MeshCoreProtocol.buildSendChannelMessage(text: message.text, channelIndex: channelIndex)
-                transmit(frame, "MANUAL_RETRY_CHANNEL")
+                // Through the same path as a first attempt, so a retry that is
+                // not written goes back to `.failed` instead of showing a
+                // stopwatch nothing will ever clear.
+                putChannelFrameOnAir(frame, messageID: message.id, channelKey: contactKey,
+                                     label: "MANUAL_RETRY_CHANNEL")
             }
             persistMessages(for: contactKey)
         }

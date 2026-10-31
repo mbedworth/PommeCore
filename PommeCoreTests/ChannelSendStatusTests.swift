@@ -144,6 +144,58 @@ final class ChannelSendStatusTests: XCTestCase {
         XCTAssertNil(store.messagesByContact[channelKey])
     }
 
+    // MARK: - Retry must be as honest as a first attempt
+
+    private func failedMessage(in store: MessageStoreManager) -> Message? {
+        store.messagesByContact[channelKey]?.last
+    }
+
+    /// Tapping Retry with the radio still away showed a stopwatch that could
+    /// never resolve: the retry path set `.sending`, called the transport,
+    /// discarded the result, and — unlike a first attempt — armed no pending
+    /// send and no timeout. Nothing in the app would ever take that status back.
+    /// Found on hardware 2026-10-31.
+    func testRetryWithNoTransportGoesBackToFailed() {
+        let (store, _) = makeStore(writeSucceeds: false)
+        store.sendChannelMessage("radio check", channelIndex: channelIndex)
+        guard let failed = failedMessage(in: store) else { return XCTFail("No message stored") }
+        XCTAssertEqual(failed.status, .failed, "Precondition")
+
+        store.retryMessage(failed)
+
+        XCTAssertEqual(status(in: store), .failed,
+                       "A retry that was not written must not sit at .sending forever")
+        XCTAssertNotEqual(status(in: store), .sending)
+    }
+
+    /// And a retry that *is* written behaves like a first attempt: in flight,
+    /// waiting on the radio, not claimed as sent.
+    func testRetryThatIsWrittenStaysSending() {
+        let (store, log) = makeStore(writeSucceeds: false)
+        store.sendChannelMessage("radio check", channelIndex: channelIndex)
+        guard let failed = failedMessage(in: store) else { return XCTFail("No message stored") }
+
+        // The radio comes back.
+        store.sendCommand = { _, _ in true }
+        store.retryMessage(failed)
+
+        XCTAssertEqual(status(in: store), .sending)
+        XCTAssertEqual(log.count, 1, "The failed first attempt was the only write through the old stub")
+    }
+
+    /// Retry only applies to a failed message. Re-entering it on something in
+    /// flight would arm a second pending send for the same text.
+    func testRetryIgnoresAMessageThatIsNotFailed() {
+        let (store, log) = makeStore(writeSucceeds: true)
+        store.sendChannelMessage("radio check", channelIndex: channelIndex)
+        guard let inFlight = failedMessage(in: store) else { return XCTFail("No message stored") }
+        XCTAssertEqual(inFlight.status, .sending, "Precondition")
+
+        store.retryMessage(inFlight)
+
+        XCTAssertEqual(log.count, 1, "No second frame for a message already in flight")
+    }
+
     // MARK: - Repeated is a stronger claim than either outcome
 
     /// `.repeated` means a repeater echoed the frame — direct evidence it was
