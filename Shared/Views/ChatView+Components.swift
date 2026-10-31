@@ -50,18 +50,7 @@ struct MessageBubble: View {
         parts.append(quotedText != nil ? replyText : message.text)
         let fmt = DateFormatter(); fmt.timeStyle = .short; fmt.dateStyle = .none
         parts.append(fmt.string(from: message.timestamp))
-        switch message.status {
-        case .sending: parts.append("Sending")
-        case .sent: parts.append("Sent")
-        case .repeated: parts.append("Sent, repeated by mesh")
-        case .retrying: parts.append("Retrying, attempt \(message.attempt + 1) of 3")
-        case .flooding: parts.append("Flooding mesh network")
-        case .delivered:
-            if let rtt = message.roundTripMs, rtt > 0 {
-                parts.append("Delivered, round trip \(String(format: "%.1f", Double(rtt) / 1000.0)) seconds")
-            } else { parts.append("Delivered") }
-        case .failed: parts.append("Not delivered")
-        }
+        parts.append(messageStatusPhrase(message))
         if !message.reactions.isEmpty { parts.append("Reactions: \(message.reactions.joined(separator: ", "))") }
         if message.isSigned { parts.append("Verified") }
         if !message.isOutgoing {
@@ -285,17 +274,63 @@ struct MessageBubble: View {
 
     @ViewBuilder
     private var deliveryIndicator: some View {
+        MessageStatusIndicator(message: message)
+    }
+}
+
+/// The one place a message status becomes words.
+///
+/// Used by `MessageStatusIndicator` for its accessibility label and by the
+/// bubble's spoken summary, so what VoiceOver says can never disagree with
+/// what the icon claims — they are the same sentence.
+func messageStatusPhrase(_ message: Message) -> String {
+    switch message.status {
+    case .sending: return String(localized: "Sending")
+    case .sent: return String(localized: "Sent")
+    case .repeated: return String(localized: "Sent, repeated by mesh")
+    case .retrying: return String(localized: "Retrying, attempt \(message.attempt + 1) of 3")
+    case .flooding: return String(localized: "Flooding mesh network")
+    case .delivered:
+        if let rtt = message.roundTripMs, rtt > 0 {
+            return String(localized: "Delivered, round trip \(String(format: "%.1f", Double(rtt) / 1000.0)) seconds")
+        }
+        return String(localized: "Delivered")
+    case .failed: return String(localized: "Not delivered")
+    }
+}
+
+/// The one place a message status becomes an icon.
+///
+/// There were two. This one was exhaustive and correct; the channel bubble had
+/// its own three-case copy ending in `default:`, which drew a plain checkmark
+/// for everything it had not thought about — including `.failed`. So a channel
+/// message sent with Bluetooth off was marked failed by the model, exactly as
+/// Critical Rule 6 requires, and then displayed a confident tick. The rule was
+/// honoured in the data and broken in the view, which is the only place the
+/// user can see it.
+///
+/// **No `default:`.** The switch is exhaustive so that adding a status breaks
+/// the build here rather than silently rendering as something else.
+struct MessageStatusIndicator: View {
+    let message: Message
+
+    var body: some View {
+        indicator
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(messageStatusPhrase(message))
+    }
+
+    @ViewBuilder
+    private var indicator: some View {
         switch message.status {
         case .sending:
             Image(systemName: "clock")
                 .font(.caption2)
                 .foregroundStyle(MeshTheme.textSecondary)
-                .accessibilityLabel("Sending")
         case .sent, .repeated:
             Image(systemName: "checkmark")
                 .font(.caption2)
                 .foregroundStyle(MeshTheme.textSecondary)
-                .accessibilityLabel(message.status == .repeated ? Text("Sent, repeated by mesh") : Text("Sent"))
         case .retrying:
             HStack(spacing: 2) {
                 Image(systemName: "arrow.clockwise")
@@ -306,7 +341,6 @@ struct MessageBubble: View {
                     .foregroundStyle(MeshTheme.statusWarn)
             }
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel(String(localized: "Retrying, attempt \(message.attempt + 1) of 3"))
         case .flooding:
             HStack(spacing: 2) {
                 Image(systemName: "dot.radiowaves.left.and.right")
@@ -317,13 +351,11 @@ struct MessageBubble: View {
                     .foregroundStyle(MeshTheme.statusWarn)
             }
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel("Flooding mesh network")
         case .delivered:
             HStack(spacing: 2) {
                 Image(systemName: "checkmark.circle.fill")
                     .font(.caption2)
                     .foregroundStyle(MeshTheme.accent)
-                    .accessibilityLabel("Delivered")
                 if let rtt = message.roundTripMs, rtt > 0 {
                     Text("\u{2022}")
                         .font(.caption2)
@@ -332,7 +364,6 @@ struct MessageBubble: View {
                     Text(String(format: "%.1fs", Double(rtt) / 1000.0))
                         .font(.caption2)
                         .foregroundStyle(MeshTheme.accent)
-                        .accessibilityLabel(String(localized: "Round trip \(String(format: "%.1f", Double(rtt) / 1000.0)) seconds"))
                 }
             }
         case .failed:
@@ -344,7 +375,6 @@ struct MessageBubble: View {
                     .font(.caption2)
                     .foregroundStyle(MeshTheme.disconnected)
             }
-            .accessibilityLabel("Not delivered")
         }
     }
 }
@@ -396,25 +426,7 @@ struct ChannelMessageBubble: View {
                         .foregroundStyle(MeshTheme.textSecondary)
 
                     if message.isOutgoing {
-                        switch message.status {
-                        case .sending:
-                            Image(systemName: "clock")
-                                .font(.caption2)
-                                .foregroundStyle(MeshTheme.textSecondary)
-                        case .repeated:
-                            HStack(spacing: 2) {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .font(.caption2)
-                                    .foregroundStyle(MeshTheme.accent)
-                                Text("Repeated")
-                                    .font(.caption2)
-                                    .foregroundStyle(MeshTheme.accent)
-                            }
-                        default:
-                            Image(systemName: "checkmark")
-                                .font(.caption2)
-                                .foregroundStyle(MeshTheme.textSecondary)
-                        }
+                        MessageStatusIndicator(message: message)
                     }
 
                     if !message.isOutgoing {

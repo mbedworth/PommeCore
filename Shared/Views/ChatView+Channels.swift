@@ -705,45 +705,7 @@ struct RoomMessageBubble: View {
                         .foregroundStyle(MeshTheme.textSecondary)
 
                     if message.isOutgoing {
-                        switch message.status {
-                        case .failed:
-                            HStack(spacing: 2) {
-                                Image(systemName: "exclamationmark.circle")
-                                    .font(.caption2)
-                                    .foregroundStyle(MeshTheme.disconnected)
-                                Text("Not delivered")
-                                    .font(.caption2)
-                                    .foregroundStyle(MeshTheme.disconnected)
-                            }
-                        case .retrying:
-                            HStack(spacing: 2) {
-                                Image(systemName: "arrow.clockwise")
-                                    .font(.caption2)
-                                    .foregroundStyle(MeshTheme.statusWarn)
-                                Text("Retrying (attempt \(message.attempt + 1))...")
-                                    .font(.caption2)
-                                    .foregroundStyle(MeshTheme.statusWarn)
-                            }
-                        case .flooding:
-                            HStack(spacing: 2) {
-                                Image(systemName: "dot.radiowaves.left.and.right")
-                                    .font(.caption2)
-                                    .foregroundStyle(MeshTheme.statusWarn)
-                                Text("Flooding...")
-                                    .font(.caption2)
-                                    .foregroundStyle(MeshTheme.statusWarn)
-                            }
-                        case .delivered:
-                            HStack(spacing: 2) {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .font(.caption2)
-                                    .foregroundStyle(MeshTheme.accent)
-                            }
-                        default:
-                            Image(systemName: message.status == .sending ? "clock" : "checkmark")
-                                .font(.caption2)
-                                .foregroundStyle(MeshTheme.textSecondary)
-                        }
+                        MessageStatusIndicator(message: message)
                     }
 
                     if !message.isOutgoing {

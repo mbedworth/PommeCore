@@ -40,14 +40,27 @@ final class MessageStoreManager {
     // MARK: - Dependencies (set by coordinator)
 
     /// Closure to send a command frame to the device.
-    var sendCommand: ((Data, String) -> Void)?
+    var sendCommand: ((Data, String) -> Bool)?
 
-    /// Whether `sendCommand` would actually reach a transport.
+    /// Hand a frame to the transport where the outcome is settled by the radio's
+    /// reply or by a timeout, not by the write.
     ///
-    /// `sendCommand` returns `Void` and silently drops the frame when nothing is
-    /// connected, so asking first is the only way to avoid recording a send that
-    /// never left the phone.
-    var canSend: (() -> Bool)?
+    /// `sendCommand` returns `Bool` precisely so a caller cannot ignore a dropped
+    /// frame by accident. These callers ignore it **on purpose**: the message is
+    /// already `.sending`, and a frame that never left the phone is resolved by
+    /// the same timeout that already covers a radio which never answers. Writing
+    /// `_ =` at each of thirteen call sites would make that deliberate choice
+    /// look like an oversight, and would have to be re-justified at every new
+    /// one; stating it once here is the difference between a decision and a
+    /// habit.
+    ///
+    /// A path that would otherwise *claim* an outcome must still branch on the
+    /// write — see `sendChannelMessage`, which marks the message `.failed` when
+    /// the frame is not written, because it has nothing else that would.
+    @discardableResult
+    private func transmit(_ frame: Data, _ label: String) -> Bool {
+        sendCommand?(frame, label) ?? false
+    }
 
     /// Closure to get the display name for a contact key prefix.
     var displayNameProvider: ((Data) -> String)?
@@ -330,7 +343,7 @@ final class MessageStoreManager {
         if contact.outPathLen > 0 {
             pendingPathCheck = (contact: contact, frame: frame)
             let query = MeshCoreProtocol.buildGetAdvertPath(publicKey: contact.publicKey)
-            sendCommand?(query, "PRE_SEND_PATH_CHECK")
+            transmit(query, "PRE_SEND_PATH_CHECK")
             pathCheckTimeoutTask?.cancel()
             pathCheckTimeoutTask = Task { @MainActor [weak self] in
                 try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
@@ -338,7 +351,7 @@ final class MessageStoreManager {
                 self.flushPendingPathCheck(reason: "timeout")
             }
         } else {
-            sendCommand?(frame, "SEND_TXT")
+            transmit(frame, "SEND_TXT")
         }
     }
 
@@ -356,12 +369,12 @@ final class MessageStoreManager {
             resetPathForContact?(pending.contact)
             Task { @MainActor [weak self] in
                 try? await Task.sleep(nanoseconds: 500_000_000)
-                self?.sendCommand?(pending.frame, "SEND_TXT(path_refreshed)")
+                self?.transmit(pending.frame, "SEND_TXT(path_refreshed)")
             }
         } else {
             // Contact still reached via repeater(s) — send on the cached routed path.
             Self.logger.info("PRE-SEND PATH CHECK: \(pending.contact.name) still routed (\(info.pathLen) hops)")
-            sendCommand?(pending.frame, "SEND_TXT")
+            transmit(pending.frame, "SEND_TXT")
         }
     }
 
@@ -370,7 +383,7 @@ final class MessageStoreManager {
         pendingPathCheck = nil
         pathCheckTimeoutTask?.cancel()
         Self.logger.info("PRE-SEND PATH CHECK: flushing (\(reason)) — sending on cached path for \(pending.contact.name)")
-        sendCommand?(pending.frame, "SEND_TXT")
+        transmit(pending.frame, "SEND_TXT")
     }
 
     func sendChannelMessage(_ text: String, channelIndex: UInt8 = 0, signed: Bool = false) {
@@ -406,14 +419,25 @@ final class MessageStoreManager {
         messagesByContact[channelKey, default: []].append(outgoing)
         persistMessages(for: channelKey)
 
-        guard canSend?() ?? true else {
-            Self.logger.warning("CHANNEL TX: no transport — marking \(outgoing.id) failed")
-            DebugLogger.shared.log("CH TX: no transport, marked failed", level: .error)
+        // Act on the write, not on a prediction of it.
+        //
+        // This asked `canSend?()` first and then discarded what `sendCommand`
+        // returned, so the two could disagree and the prediction won. That is
+        // the same two-copies-of-one-answer problem the return value was added
+        // to end: a transport that drops the frame between the question and the
+        // write leaves the message armed as though it had gone out.
+        //
+        // `transmit` resolves an unwired store to `false`: no closure means no
+        // transport, so nothing was written. The `?? true` this replaced
+        // reported an unwired store as sending successfully, which is the
+        // optimistic default the rule exists to forbid.
+        guard transmit(frame, "SEND_CHANNEL_TXT") else {
+            Self.logger.warning("CHANNEL TX: frame not written — marking \(outgoing.id) failed")
+            DebugLogger.shared.log("CH TX: frame not written, marked failed", level: .error)
             markChannelMessage(outgoing.id, in: channelKey, as: .failed)
             return
         }
 
-        sendCommand?(frame, "SEND_CHANNEL_TXT")
         pendingChannelSend = (id: outgoing.id, channelKey: channelKey, sent: Date())
         pendingChannelEcho = (id: outgoing.id, channelKey: channelKey, sent: Date())
         DebugLogger.shared.log("ECHO: armed pending echo for ch=\(channelIndex)", level: .info)
@@ -491,12 +515,12 @@ final class MessageStoreManager {
             recipientKeyHash: contact.publicKeyPrefix,
             txtType: 0
         )
-        sendCommand?(frame, "SEND_ROOM_TXT")
+        transmit(frame, "SEND_ROOM_TXT")
     }
 
     func syncNextMessage() {
         isSyncingMessages = true
-        sendCommand?(MeshCoreProtocol.buildSyncNextMessage(), "SYNC_NEXT_MSG")
+        transmit(MeshCoreProtocol.buildSyncNextMessage(), "SYNC_NEXT_MSG")
     }
 
     private let maxDirectRetries: UInt8 = 2  // 1 initial send + 1 retry before flooding
@@ -583,10 +607,10 @@ final class MessageStoreManager {
 
                 if let channelIdx = message.channelIndex {
                     let frame = MeshCoreProtocol.buildSendChannelMessage(text: message.text, channelIndex: channelIdx)
-                    sendCommand?(frame, "AUTO_RETRY_CHANNEL(\(attempt))")
+                    transmit(frame, "AUTO_RETRY_CHANNEL(\(attempt))")
                 } else {
                     let frame = MeshCoreProtocol.buildSendTextMessage(text: message.text, recipientKeyHash: contactKey, attempt: attempt)
-                    sendCommand?(frame, "AUTO_RETRY_TXT(\(attempt))")
+                    transmit(frame, "AUTO_RETRY_TXT(\(attempt))")
                 }
                 return
             }
@@ -610,7 +634,7 @@ final class MessageStoreManager {
                 try? await Task.sleep(nanoseconds: 500_000_000)
                 guard let self else { return }
                 let frame = MeshCoreProtocol.buildSendTextMessage(text: message.text, recipientKeyHash: contactKey, attempt: 0)
-                self.sendCommand?(frame, "FLOOD_RETRY_TXT")
+                self.transmit(frame, "FLOOD_RETRY_TXT")
             }
             return
         }
@@ -627,7 +651,7 @@ final class MessageStoreManager {
                 persistMessages(for: contactKey)
 
                 let frame = MeshCoreProtocol.buildSendTextMessage(text: message.text, recipientKeyHash: contactKey, attempt: attempt)
-                sendCommand?(frame, "FLOOD_RETRY_TXT(\(attempt))")
+                transmit(frame, "FLOOD_RETRY_TXT(\(attempt))")
                 return
             }
         }
@@ -942,7 +966,7 @@ final class MessageStoreManager {
                     guard let self else { return }
                     Self.logger.info("RETRY: sending flood for \(msgID) with attempt=2")
                     let frame = MeshCoreProtocol.buildSendTextMessage(text: message.text, recipientKeyHash: contactKey, attempt: 2)
-                    self.sendCommand?(frame, "MANUAL_RETRY_FLOOD")
+                    self.transmit(frame, "MANUAL_RETRY_FLOOD")
                 }
             } else {
                 guard let channelIndex = message.channelIndex else { return }
@@ -950,7 +974,7 @@ final class MessageStoreManager {
                 messages[idx].attempt = 0
                 messagesByContact[contactKey] = messages
                 let frame = MeshCoreProtocol.buildSendChannelMessage(text: message.text, channelIndex: channelIndex)
-                sendCommand?(frame, "MANUAL_RETRY_CHANNEL")
+                transmit(frame, "MANUAL_RETRY_CHANNEL")
             }
             persistMessages(for: contactKey)
         }

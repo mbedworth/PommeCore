@@ -11,7 +11,13 @@
 import Foundation
 
 /// Delivery status for outgoing messages.
-public enum DeliveryStatus: String, Codable, Sendable {
+///
+/// `CaseIterable` is load-bearing, not convenience: it is what lets a test walk
+/// every status and assert each one renders as its own distinct phrase. A new
+/// case then fails that test on the day it is added, rather than reaching a
+/// view that quietly draws it as something else — which is how `.failed` came
+/// to display a checkmark.
+public enum DeliveryStatus: String, Codable, Sendable, CaseIterable {
     case sending    // queued, not yet confirmed by device
     case sent       // device accepted it (RESP_CODE_SENT received)
     case delivered  // ACK received from recipient (PUSH_CODE_SEND_CONFIRMED)
