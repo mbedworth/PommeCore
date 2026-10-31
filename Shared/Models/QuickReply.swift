@@ -146,11 +146,22 @@ enum QuickReply {
 
     // MARK: - Phrases
 
-    /// `direct`, `1 hop`, `8 hops` — inflected by the catalog, not by an `== 1`
-    /// here, because not every language pluralises on one.
+    /// `direct`, `1 hop`, `8 hops`.
+    ///
+    /// **Automatic grammar agreement must not be used here.** `Text` applies
+    /// `^[…](inflect: true)` when it draws; `String(localized:)` does not — it
+    /// hands back the markup verbatim. This line is not drawn, it is
+    /// *transmitted*, so the markup went out over the air: a real message read
+    /// `Copy, @[Z-max]! ^[3 hop](inflect: true) @ 21:44` on the recipient's
+    /// client. Seen on hardware 2026-10-30.
+    ///
+    /// Picking the form here loses the few/many distinction that Czech, Polish
+    /// and Ukrainian make. That is a real cost, and it is still far better than
+    /// sending markup: it is one word in a 160-byte acknowledgement, and the
+    /// alternative is wrong in every language including English.
     private static func hopsPhrase(_ hops: Int) -> String {
         guard hops > 0 else { return String(localized: "direct") }
-        return String(localized: "^[\(hops) hop](inflect: true)")
+        return formatHopCount(hops)
     }
 
     /// One decimal place, matching how SNR is shown on the message row.

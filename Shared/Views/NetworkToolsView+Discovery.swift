@@ -187,7 +187,7 @@ struct DiscoverView: View {
                     // PathLen.hopCount, never the raw byte: path_len also
                     // carries the hash size and is not a count.
                     if let hopCount = PathLen.hopCount(node.pathLen), hopCount > 0 {
-                        Text("^[\(hopCount) hop](inflect: true)")
+                        Text(hopCountLabel(hopCount))
                             .font(.caption2)
                             .foregroundStyle(MeshTheme.textSecondary)
                     } else {

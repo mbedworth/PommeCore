@@ -156,7 +156,7 @@ struct MessageBubble: View {
                             // hopCount decodes path_len; the raw byte also
                             // carries the hash size and is not a count.
                             if let hopCount = message.hopCount, hopCount > 0 {
-                                Text("^[\(hopCount) hop](inflect: true)")
+                                Text(hopCountLabel(hopCount))
                                     .font(.caption2)
                                     .foregroundStyle(MeshTheme.textSecondary)
                             } else {
@@ -426,7 +426,7 @@ struct ChannelMessageBubble: View {
                             // hopCount decodes path_len; the raw byte also
                             // carries the hash size and is not a count.
                             if let hopCount = message.hopCount, hopCount > 0 {
-                                Text("^[\(hopCount) hop](inflect: true)")
+                                Text(hopCountLabel(hopCount))
                                     .font(.caption2)
                                     .foregroundStyle(MeshTheme.textSecondary)
                             } else {

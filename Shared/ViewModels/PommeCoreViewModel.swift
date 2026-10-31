@@ -278,10 +278,18 @@ final class PommeCoreViewModel: ObservableObject {
         remoteSessionManager.touchContact = { [weak self] key in self?.contactStore.touchContact(publicKeyPrefix: key) }
         remoteSessionManager.showError = { [weak self] msg in self?.connectionManager.lastErrorMessage = msg }
         remoteSessionManager.onStateChanged = { [weak self] in self?.objectWillChange.send() }
+        // Deliberately outside the macOS guard below. `CMD_RUN_CLI_COMMAND`
+        // goes over whichever transport is connected, so this is the one CLI
+        // path that works on iOS — and `probeCompanionCLI` refuses to run when
+        // the closure is nil, so wiring it next to the USB closures (which are
+        // macOS-only and always will be) silently disabled the whole feature on
+        // iPhone and iPad: the probe never ran, support was never detected, and
+        // the Radio Terminal row never appeared. Caught on hardware 2026-10-30,
+        // after a release note had already claimed the CLI reaches iOS.
+        remoteSessionManager.sendCompanionCLI = { [weak self] cmd in self?.connectionManager.sendCompanionCLI(cmd) }
 #if os(macOS) || targetEnvironment(macCatalyst)
         remoteSessionManager.sendUSBCLI = { [weak self] cmd in self?.connectionManager.sendUSBCLI(cmd) }
         remoteSessionManager.sendUSBCLIDirect = { [weak self] cmd in self?.connectionManager.sendUSBCLIDirect(cmd) }
-        remoteSessionManager.sendCompanionCLI = { [weak self] cmd in self?.connectionManager.sendCompanionCLI(cmd) }
         remoteSessionManager.sendUSBKeepalive = { [weak self] in self?.connectionManager.sendUSBKeepalive() }
 #endif
 

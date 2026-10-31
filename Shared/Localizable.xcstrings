@@ -1677,55 +1677,55 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld Sprünge"
+            "value": "%lld Hops"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld sauts"
+            "value": "%lld hops"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld saltos"
+            "value": "%lld hops"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld salti"
+            "value": "%lld hops"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld sprongen"
+            "value": "%lld hops"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld saltos"
+            "value": "%lld hops"
           }
         },
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld skoků"
+            "value": "%lld hopů"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld skoków"
+            "value": "%lld hopów"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld стрибків"
+            "value": "%lld hop-ів"
           }
         },
         "ja": {
@@ -1737,7 +1737,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld 跳跃"
+            "value": "%lld 跳"
           }
         }
       }
@@ -1823,6 +1823,77 @@
       "extractionState": "manual",
       "localizations": {},
       "shouldTranslate": false
+    },
+    "1 hop": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 Hop"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 hop"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 hop"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 hop"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 hop"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 hop"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 hop"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 hop"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 hop"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 ホップ"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 跳"
+          }
+        }
+      }
     },
     "1 hour": {
       "localizations": {
@@ -10541,25 +10612,25 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Automatické opakování znovu odesílá selhání přímých zpráv až třikrát. Automatické resetování cesty vyčistí uloženou trasu a odešle jako záplavu. Multi-ACK odesílá potvrzení o doručení všem uzlům v trase."
+            "value": "Automatické opakování znovu odešle neúspěšné přímé zprávy až třikrát. Automatické resetování cesty vymaže uloženou trasu a odešle zprávu znovu zaplavováním. Multi-ACK posílá potvrzení o doručení všem hopům na trase."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Auto Retry vuelve a enviar mensajes directos fallidos hasta 3 veces. Auto Reset Path limpia la ruta almacenada en caché y vuelve a enviar como inundación. Multi-ACK envía confirmaciones de entrega a todos los saltos de la ruta."
+            "value": "Auto Retry vuelve a enviar mensajes directos fallidos hasta 3 veces. Auto Reset Path limpia la ruta almacenada en caché y vuelve a enviar como inundación. Multi-ACK envía confirmaciones de entrega a todos los hops de la ruta."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Automatyczne ponowne wysyłanie nieudanych wiadomości bezpośrednich do 3 razy. Automatyczne wyczyszczenie ścieżki i ponowne wysłanie jako zalew. Wielokrotne potwierdzenie dostawy wysyła potwierdzenia do wszystkich węzłów w trasie."
+            "value": "Automatyczne ponawianie wysyła nieudane wiadomości bezpośrednie do 3 razy. Automatyczny reset ścieżki czyści zapisaną trasę i wysyła ponownie przez zalewanie. Multi-ACK wysyła potwierdzenia doręczenia do wszystkich hopów na trasie."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reenvia automaticamente mensagens diretas falhadas até 3 vezes. Limpa o caminho em cache e reenvia como inundação. Envia confirmações de entrega para todos os saltos na rota."
+            "value": "Reenvia automaticamente mensagens diretas falhadas até 3 vezes. Limpa o caminho em cache e reenvia como inundação. Envia confirmações de entrega para todos os hops na rota."
           }
         },
         "de": {
@@ -10571,13 +10642,13 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Réessai automatique : les messages directs échoués sont relayés jusqu'à 3 fois. Réinitialisation automatique du chemin : efface la route mise en cache et relaye comme une inondation. Multi-ACK envoie des confirmations de livraison à tous les nœuds du chemin."
+            "value": "Le réessai automatique renvoie jusqu’à 3 fois les messages directs échoués. La réinitialisation automatique du chemin efface la route mise en cache et renvoie en inondation. Le multi-ACK envoie les confirmations de remise à tous les hops de la route."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Автоматична повторна відправка невдалих прямих повідомлень до 3 разів. Автоматичне очищення шляху видаляє кешований маршрут і пересилає як лавинну розсилку. Багатократне підтвердження доставки надсилає підтвердження доставки всім вузлам на маршруті."
+            "value": "Автоматичне повторення надсилає невдалі прямі повідомлення до 3 разів. Автоматичне скидання шляху очищає збережений маршрут і надсилає повідомлення лавинною розсилкою. Multi-ACK надсилає підтвердження доставки всім hop-ам на маршруті."
           }
         },
         "ja": {
@@ -10589,7 +10660,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "自动重试重新发送失败的直接消息，最多重试3次。自动重置路径清除缓存路由并重新发送为泛洪。多ACK向路由中的所有节点发送交付确认。"
+            "value": "自动重试最多重新发送失败的直接消息 3 次。自动重置路径会清除缓存的路由并以泛洪方式重新发送。Multi-ACK 会向路由中的每一跳发送送达确认。"
           }
         },
         "it": {
@@ -23777,7 +23848,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Přímá připojení (bez přeskočení)"
+            "value": "Přímá připojení (bez hopů)"
           }
         },
         "de": {
@@ -23789,19 +23860,19 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Conexión directa (sin saltos)"
+            "value": "Conexión directa (sin hops)"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connexion directe (sans relais)"
+            "value": "Connexion directe (aucun hop)"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connessione diretta (senza salti)"
+            "value": "Connessione diretta (senza hops)"
           }
         },
         "ja": {
@@ -23819,19 +23890,19 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bezpośrednia łączność (bez przeskoków)"
+            "value": "Bezpośrednia łączność (bez przehopów)"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Conexão Direta (sem saltos)"
+            "value": "Conexão Direta (sem hops)"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Пряма підключення (без перепрохідів)"
+            "value": "Пряме з’єднання (без hop-ів)"
           }
         },
         "zh-Hans": {
@@ -24060,7 +24131,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Přímý soused (0 skoků)"
+            "value": "Přímý soused (0 hopů)"
           }
         },
         "de": {
@@ -24072,19 +24143,19 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vecino directo (0 saltos)"
+            "value": "Vecino directo (0 hops)"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Voisin direct (0 sauts)"
+            "value": "Voisin direct (0 hops)"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vicino diretto (0 salti)"
+            "value": "Vicino diretto (0 hops)"
           }
         },
         "ja": {
@@ -24096,25 +24167,25 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Directe buur (0 sprongen)"
+            "value": "Directe buur (0 hops)"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bezpośredni sąsiad (0 skoków)"
+            "value": "Bezpośredni sąsiad (0 hopów)"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vizinho direto (0 saltos)"
+            "value": "Vizinho direto (0 hops)"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Пряме сусіднє з'єднання (0 стрибків)"
+            "value": "Пряме сусіднє з'єднання (0 hop-ів)"
           }
         },
         "zh-Hans": {
@@ -33057,7 +33128,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hex skoky (např. A3,B7,4F)"
+            "value": "Hex hopy (např. A3,B7,4F)"
           }
         },
         "de": {
@@ -33069,13 +33140,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Saltos hexadecimales (por ejemplo, A3,B7,4F)"
+            "value": "Hops hexadecimales (por ejemplo, A3,B7,4F)"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sauts Hexadécimaux (par ex., A3,B7,4F)"
+            "value": "Hops Hexadécimaux (par ex., A3,B7,4F)"
           }
         },
         "it": {
@@ -33099,19 +33170,19 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Skoki hex (np. A3,B7,4F)"
+            "value": "Hopi hex (np. A3,B7,4F)"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pulos Hex (por exemplo, A3,B7,4F)"
+            "value": "Hops em hex (por exemplo, A3,B7,4F)"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Шестнадцяткові стрибки (наприклад, A3, B7, 4F)"
+            "value": "Шестнадцяткові hop-и (наприклад, A3, B7, 4F)"
           }
         },
         "zh-Hans": {
@@ -33481,55 +33552,55 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nicht auf der Karte hüpfen"
+            "value": "Hop nicht auf der Karte"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ne pas sauter sur la carte"
+            "value": "Ne pas hoper sur la carte"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "No saltar en el mapa"
+            "value": "Hop no está en el mapa"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Non saltare sulla mappa"
+            "value": "Hop non sulla mappa"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Spring niet op de kaart"
+            "value": "Hop niet op de kaart"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Não pular no mapa"
+            "value": "Não hop no mapa"
           }
         },
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Neskoč na mapu"
+            "value": "Hop není na mapě"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nie na mapie"
+            "value": "Hop nie jest na mapie"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Перехід не на карті"
+            "value": "Hop не на карті"
           }
         },
         "ja": {
@@ -33541,7 +33612,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "不是地图上的跳跃"
+            "value": "不是地图上的跳"
           }
         }
       }
@@ -33553,7 +33624,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Skoky"
+            "value": "Hopy"
           }
         },
         "de": {
@@ -33565,13 +33636,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Saltos"
+            "value": "Hops"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sauts"
+            "value": "Hops"
           }
         },
         "it": {
@@ -33595,19 +33666,19 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Skoki"
+            "value": "Hopi"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pulos"
+            "value": "Hops"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Стрибки"
+            "value": "Hop-и"
           }
         },
         "zh-Hans": {
@@ -34902,13 +34973,13 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Inclure les sauts"
+            "value": "Inclure les hops"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Includi salti"
+            "value": "Includi hops"
           }
         },
         "nl": {
@@ -34932,7 +35003,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Включити стрибки"
+            "value": "Включити hop-и"
           }
         },
         "ja": {
@@ -39441,19 +39512,19 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Appuyez longuement sur un message reçu pour préparer une reconnaissance — \"Copier, @[Nom] ! 8 sauts vers Ft Pierce, FL @ 21:50\". Il apparaît dans le champ message pour que vous puissiez l'éditer ; rien n'est envoyé tant que vous ne l'envoiez pas. La localisation est du texte que vous tapez, donc cela fonctionne sans internet ; la flèche la remplit depuis le GPS lorsque vous avez une connexion. Les sauts, le signal et l'heure proviennent du message auquel vous répondez, pas de l'instant présent."
+            "value": "Appuyez longuement sur un message reçu pour préparer une reconnaissance — \"Copier, @[Nom] ! 8 hops vers Ft Pierce, FL @ 21:50\". Il apparaît dans le champ message pour que vous puissiez l'éditer ; rien n'est envoyé tant que vous ne l'envoiez pas. La localisation est du texte que vous tapez, donc cela fonctionne sans internet ; la flèche la remplit depuis le GPS lorsque vous avez une connexion. Les hops, le signal et l'heure proviennent du message auquel vous répondez, pas de l'instant présent."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mantener presionado un mensaje recibido para preparar un reconocimiento - \"Copiar, @[Nombre]! 8 saltos a Ft Pierce, FL @ 21:50\". Se insertará en el campo de mensaje para que lo edites; nada se enviará hasta que lo hagas. La ubicación es texto que escribes, por lo que funciona sin conexión a internet; la flecha la completará con GPS cuando tengas conexión. Los saltos, la señal y la hora provienen del mensaje al que respondes, no del momento actual."
+            "value": "Mantener presionado un mensaje recibido para preparar un reconocimiento - \"Copiar, @[Nombre]! 8 hops a Ft Pierce, FL @ 21:50\". Se insertará en el campo de mensaje para que lo edites; nada se enviará hasta que lo hagas. La ubicación es texto que escribes, por lo que funciona sin conexión a internet; la flecha la completará con GPS cuando tengas conexión. Los hops, la señal y la hora provienen del mensaje al que respondes, no del momento actual."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Premi a lungo un messaggio ricevuto per preparare un riconoscimento — \"Copia, @[Nome]! 8 salti verso Ft Pierce, FL @ 21:50\". Si inserisce nel campo messaggio per la modifica; nulla viene inviato fino a quando non lo invii. La posizione è un testo che inserisci, quindi funziona senza internet; la freccia la riempie con il GPS quando hai una connessione. Salti, segnale e tempo provengono dal messaggio a cui rispondi, non dal momento attuale."
+            "value": "Premi a lungo un messaggio ricevuto per preparare un riconoscimento — \"Copia, @[Nome]! 8 hops verso Ft Pierce, FL @ 21:50\". Si inserisce nel campo messaggio per la modifica; nulla viene inviato fino a quando non lo invii. La posizione è un testo che inserisci, quindi funziona senza internet; la freccia la riempie con il GPS quando hai una connessione. Hops, segnale e tempo provengono dal messaggio a cui rispondi, non dal momento attuale."
           }
         },
         "nl": {
@@ -39465,25 +39536,25 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pressione e segure uma mensagem recebida para preparar um reconhecimento - \"Copiar, @[Nome]! 8 pulos para Ft Pierce, FL @ 21:50\". Ele aparece no campo de mensagem para você editar; nada é enviado até que você envie. A localização é um texto que você digita, então funciona sem internet; a seta preenche automaticamente com o GPS quando você tiver uma conexão. Pulos, sinal e tempo vêm da mensagem que você está respondendo, não do momento atual."
+            "value": "Pressione e segure uma mensagem recebida para preparar um reconhecimento - \"Copiar, @[Nome]! 8 hops para Ft Pierce, FL @ 21:50\". Ele aparece no campo de mensagem para você editar; nada é enviado até que você envie. A localização é um texto que você digita, então funciona sem internet; a seta preenche automaticamente com o GPS quando você tiver uma conexão. Pulos, sinal e tempo vêm da mensagem que você está respondendo, não do momento atual."
           }
         },
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dlouze stiskněte přijatý zprávu k přípravě potvrzení - \"Kopírovat, @[Jméno]! 8 skoků do Ft Pierce, FL @ 21:50\". Zpráva se objeví v poli zprávy, kterou můžete upravit; nic není odesláno, dokud to neodeslatíte. Umístění je text, který zadáte, takže to funguje i bez internetu; šipka ho vyplní z GPS, když máte připojení. Skoky, signál a čas pocházejí ze zprávy, na kterou odpovídáte, ne z aktuálního okamžiku."
+            "value": "Dlouze stiskněte přijatý zprávu k přípravě potvrzení - \"Kopírovat, @[Jméno]! 8 hopů do Ft Pierce, FL @ 21:50\". Zpráva se objeví v poli zprávy, kterou můžete upravit; nic není odesláno, dokud to neodeslatíte. Umístění je text, který zadáte, takže to funguje i bez internetu; šipka ho vyplní z GPS, když máte připojení. Hopy, signál a čas pocházejí ze zprávy, na kterou odpovídáte, ne z aktuálního okamžiku."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Naciśnij i przytrzymaj wiadomość, aby przygotować potwierdzenie — \"Kopiuj, @[Nazwa]! 8 skoków do Ft Pierce, FL o 21:50\". Ląduje w polu wiadomości, którą możesz edytować; nic nie jest wysyłane, dopóki nie wyślesz jej. Lokalizacja to tekst, który wpisujesz, więc działa bez dostępu do Internetu; strzałka wypełnia ją na podstawie GPS, gdy masz połączenie. Skoki, sygnał i czas pochodzą z wiadomości, na którą odpowiadasz, a nie z teraźniejszości."
+            "value": "Naciśnij i przytrzymaj wiadomość, aby przygotować potwierdzenie — \"Kopiuj, @[Nazwa]! 8 hopów do Ft Pierce, FL o 21:50\". Ląduje w polu wiadomości, którą możesz edytować; nic nie jest wysyłane, dopóki nie wyślesz jej. Lokalizacja to tekst, który wpisujesz, więc działa bez dostępu do Internetu; strzałka wypełnia ją na podstawie GPS, gdy masz połączenie. Hopi, sygnał i czas pochodzą z wiadomości, na którą odpowiadasz, a nie z teraźniejszości."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Довго натисніть отримане повідомлення, щоб підготувати підтвердження — \"Копіювати, @[Ім'я]! 8 стрибків до Форт-Пірс, Флорида @ 21:50\". Він потрапляє у поле повідомлення для редагування; нічого не надсилається, доки ви не надішлете його. Місцезнаходження — це текст, який ви вводите, тому це працює без інтернету; стрілка заповнює його за допомогою GPS, коли у вас є з'єднання. Стрибки, сигнал і час беруться з повідомлення, на яке ви відповідаєте, а не з поточного моменту."
+            "value": "Довго натисніть отримане повідомлення, щоб підготувати підтвердження — «Copy, @[Name]! 8 hops to Ft Pierce, FL @ 21:50». Воно потрапляє в поле повідомлення для редагування; нічого не надсилається, доки ви не надішлете. Місце — це текст, який ви вводите, тож воно працює без інтернету; стрілка заповнює його з GPS, коли зв’язок є. Hop-и, сигнал і час беруться з повідомлення, на яке ви відповідаєте, а не з поточного моменту."
           }
         },
         "ja": {
@@ -68116,7 +68187,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Posílejte potvrzení doručení zpět přes každý skok v trase zprávy."
+            "value": "Posílejte potvrzení doručení zpět přes každý hop v trase zprávy."
           }
         },
         "de": {
@@ -68128,19 +68199,19 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Enviar confirmaciones de entrega a través de cada salto en la ruta del mensaje."
+            "value": "Enviar confirmaciones de entrega a través de cada hop en la ruta del mensaje."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Envoyer des confirmations de livraison en passant par chaque saut dans l'itinéraire du message."
+            "value": "Envoyer des confirmations de livraison en passant par chaque hop dans l'itinéraire du message."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invia conferme di consegna indietro attraverso ogni salto nella rotta del messaggio."
+            "value": "Invia conferme di consegna indietro attraverso ogni hop nella rotta del messaggio."
           }
         },
         "ja": {
@@ -68158,19 +68229,19 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wysyłaj potwierdzenia dostarczenia wstecz przez każdy skok w trasie wiadomości."
+            "value": "Wysyłaj potwierdzenia dostarczenia wstecz przez każdy hop w trasie wiadomości."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Enviar confirmações de entrega de volta por cada salto na rota da mensagem."
+            "value": "Enviar confirmações de entrega de volta por cada hop na rota da mensagem."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Надсилайте підтвердження доставки назад через кожен стрибок маршруту повідомлення."
+            "value": "Надсилайте підтвердження доставки назад через кожен hop маршруту повідомлення."
           }
         },
         "zh-Hans": {
@@ -72856,7 +72927,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Standard-Ankündigungen sind lokal (0-Sprung, 60-240 min). Flood-Ankündigungen werden von allen Wiederholern weitergeleitet (mindestens 3 Stunden). Mindestintervalle werden durch das Firmware erzwungen."
+            "value": "Standard-Ankündigungen sind lokal (0-Hop, 60-240 min). Flood-Ankündigungen werden von allen Wiederholern weitergeleitet (mindestens 3 Stunden). Mindestintervalle werden durch das Firmware erzwungen."
           }
         },
         "fr": {
@@ -72868,7 +72939,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Anuncios estándar son locales (0-salto, 60-240 min). Anuncios de inundación son transmitidos por todos los repetidores (mínimo 3 horas). Intervalos mínimos impuestos por el firmware."
+            "value": "Anuncios estándar son locales (0-hop, 60-240 min). Anuncios de inundación son transmitidos por todos los repetidores (mínimo 3 horas). Intervalos mínimos impuestos por el firmware."
           }
         },
         "pt": {
@@ -72892,7 +72963,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Стандартні оголошення локальні (0-перехоплення, 60-240 хв). Оголошення лавинної розсилки передаються всіма повторювачами (мінімум 3 години). Мінімальні інтервали забезпечуються фірмовим програмним забезпеченням."
+            "value": "Стандартні оголошення локальні (0-hop, 60–240 хв). Flood-оголошення ретранслюються всіма repeater-ами (мін. 3 години). Мінімальні інтервали задає прошивка."
           }
         },
         "ja": {
@@ -72926,25 +72997,25 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Anuncios estándar son locales (0-salto, 60–240 min). Anuncios de inundación son reenviados por todos los repetidores (mínimo 3 horas). Intervalos mínimos impuestos por el firmware."
+            "value": "Anuncios estándar son locales (0-hop, 60–240 min). Anuncios de inundación son reenviados por todos los repetidores (mínimo 3 horas). Intervalos mínimos impuestos por el firmware."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Annonces standard locales (0-saut, 60–240 min). Annonces de type \"inondations\" relayées par tous les répéteurs (minimum 3 heures). Intervalles minimaux imposés par le firmware."
+            "value": "Annonces standard locales (0-hop, 60–240 min). Annonces de type \"inondations\" relayées par tous les répéteurs (minimum 3 heures). Intervalles minimaux imposés par le firmware."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Anúncios padrão são locais (0-salto, 60–240 min). Anúncios de inundação são retransmitidos por todos os repetidores (mínimo 3 horas). Intervalos mínimos impostos pelo firmware."
+            "value": "Anúncios padrão são locais (0-hop, 60–240 min). Anúncios de inundação são retransmitidos por todos os repetidores (mínimo 3 horas). Intervalos mínimos impostos pelo firmware."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Standard-Ankündigungen sind lokal (0-Sprung, 60–240 Min.). Flood-Ankündigungen werden von allen Wiederholern weitergeleitet (mindestens 3 Stunden). Mindestintervalle werden durch das Firmware erzwungen."
+            "value": "Standard-Ankündigungen sind lokal (0-Hop, 60–240 Min.). Flood-Ankündigungen werden von allen Wiederholern weitergeleitet (mindestens 3 Stunden). Mindestintervalle werden durch das Firmware erzwungen."
           }
         },
         "cs": {
@@ -72962,7 +73033,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Стандартні оголошення локальні (0-перехоплення, 60-240 хв). Оголошення лавинної розсилки передаються всіма повторювачами (мінімум 3 години). Мінімальні інтервали накладаються фірмовим програмним забезпеченням."
+            "value": "Стандартні оголошення локальні (0-hop, 60–240 хв). Flood-оголошення ретранслюються всіма repeater-ами (мін. 3 години). Мінімальні інтервали задає прошивка."
           }
         },
         "zh-Hans": {
@@ -84901,7 +84972,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nulový skok (pouze sousední)"
+            "value": "Nulový hop (pouze sousední)"
           }
         },
         "de": {
@@ -84913,13 +84984,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cero-salto (solo cercano)"
+            "value": "Cero-hop (solo cercano)"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zéro-saut (seulement à proximité)"
+            "value": "Zéro-hop (seulement à proximité)"
           }
         },
         "it": {
@@ -84955,7 +85026,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Безперешкодний доступ (тільки поруч)"
+            "value": "Zero-hop (лише поруч)"
           }
         },
         "zh-Hans": {
@@ -84971,7 +85042,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "El cero-salto solo alcanza nodos cercanos. La inundación es relayada por repetidores a través de toda la red mesh."
+            "value": "El cero-hop solo alcanza nodos cercanos. La inundación es relayada por repetidores a través de toda la red mesh."
           }
         },
         "pt": {
@@ -85019,7 +85090,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Доступ лише до сусідніх вузлів без пересилання. Лавинна розсилка передається повторювачами через всю мережу."
+            "value": "Zero-hop досягає лише сусідніх вузлів. Лавинна розсилка передається repeater-ами через усю mesh-мережу."
           }
         },
         "ja": {
@@ -85111,7 +85182,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "^[%@ kontakt](inflect: true) může požádat o vaše telemetrická data."
+            "value": "%@ kontakt může požádat o vaše telemetrická data."
           }
         },
         "de": {
@@ -85123,43 +85194,43 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "el contacto %@ (inflex: verdadero) puede solicitar tus datos de telemetría."
+            "value": "el contacto %@ puede solicitar tus datos de telemetría."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "[%@ de contact](inflect: true) peut demander vos données télémétriques."
+            "value": "%@ de contact peut demander vos données télémétriques."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "[%@ contatto](inflect: true) può richiedere i tuoi dati di telemetria."
+            "value": "%@ contatto può richiedere i tuoi dati di telemetria."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "^[%@ コンタクト](inflect: true) は、テレメトリー データをリクエストできます。"
+            "value": "%@ コンタクト は、テレメトリー データをリクエストできます。"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "[%@ contact](inflect: true) kan uw telemetriegegevens aanvragen."
+            "value": "%@ contact kan uw telemetriegegevens aanvragen."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ kontakt(y) (zmień: prawdziwe) może poprosić o dane telemetryczne."
+            "value": "%@ kontakt(y) może poprosić o dane telemetryczne."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "[%@ контакт](inflect: true) може запитати ваші дані телеметрії."
+            "value": "%@ контакт може запитати ваші дані телеметрії."
           }
         },
         "zh-Hans": {
@@ -85181,7 +85252,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "^[%@ kontakt](inflect: true) obdrží vaši polohu v telemetrii."
+            "value": "%@ kontakt obdrží vaši polohu v telemetrii."
           }
         },
         "de": {
@@ -85193,43 +85264,43 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "el contacto %@ (inflex: verdadero) recibirá tu ubicación en la telemetría."
+            "value": "el contacto %@ recibirá tu ubicación en la telemetría."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "[%@ de contact](inflect: true) recevra votre position dans les données télémétriques."
+            "value": "%@ de contact recevra votre position dans les données télémétriques."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "[%@ contatto](inflect: true) riceverà la tua posizione nei dati di telemetria."
+            "value": "%@ contatto riceverà la tua posizione nei dati di telemetria."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "^[%@ コンタクト](inflect: true) は、テレメトリーに位置情報を受け取ります。"
+            "value": "%@ コンタクト は、テレメトリーに位置情報を受け取ります。"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "[%@ contact](inflect: true) zal uw locatie in de telemetrie ontvangen."
+            "value": "%@ contact zal uw locatie in de telemetrie ontvangen."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ kontakt(y) (zmień: prawdziwe) otrzyma Twoją lokalizację w danych telemetrycznych."
+            "value": "%@ kontakt(y) otrzyma Twoją lokalizację w danych telemetrycznych."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "[%@ контакт](inflect: true) отримає ваше місцезнаходження в телеметрії."
+            "value": "%@ контакт отримає ваше місцезнаходження в телеметрії."
           }
         },
         "zh-Hans": {
@@ -85246,82 +85317,12 @@
         }
       }
     },
-    "^[%@ hop](inflect: true)": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "^[%@ skok](inflect: true)"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "^[%@ Hop](inflect: true)"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "el salto %@ (inflex: verdadero)"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "[%@ de saut](inflect: true)"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "[%@ salto](inflect: true)"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "^[%@ ホップ](inflect: true)"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "[%@ hop](inflect: true)"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ skocz (zmień: prawdziwe)"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "[%@ стрибок](inflect: true)"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ 跳跃（可变性：true）"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "pular (%@)"
-          }
-        }
-      }
-    },
     "^[%@ node](inflect: true) Found": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "^[%@ uzel](inflect: true) Nalezen"
+            "value": "%@ uzel Nalezen"
           }
         },
         "de": {
@@ -85339,37 +85340,37 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "[%@ de nœud](inflect: true) Trouvé"
+            "value": "%@ de nœud Trouvé"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "[%@ nodo](inflect: true) Trovato"
+            "value": "%@ nodo Trovato"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "^[%@ ノード](inflect: true) が見つかりました"
+            "value": "%@ ノード が見つかりました"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "[%@ knooppunt](inflect: true) Gevonden"
+            "value": "%@ knooppunt Gevonden"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ węzeł (zmień: prawdziwe) Znaleziony"
+            "value": "%@ węzeł Znaleziony"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "[%@ вузол](inflect: true) Знайдено"
+            "value": "%@ вузол Знайдено"
           }
         },
         "zh-Hans": {
@@ -85391,7 +85392,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "^[%@ výsledek](inflect: true)"
+            "value": "%@ výsledek"
           }
         },
         "de": {
@@ -85409,37 +85410,37 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "[%@ de résultat](inflect: true)"
+            "value": "%@ de résultat"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "[%@ risultato](inflect: true)"
+            "value": "%@ risultato"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "^[%@ 結果](inflect: true)"
+            "value": "%@ 結果"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "[%@ resultaat](inflect: true)"
+            "value": "%@ resultaat"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ wynik (zmień: prawdziwe)"
+            "value": "%@ wynik"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "[%@ результат](inflect: true)"
+            "value": "%@ результат"
           }
         },
         "zh-Hans": {
@@ -85452,77 +85453,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "O resultado %@"
-          }
-        }
-      }
-    },
-    "^[%lld hop](inflect: true)": {
-      "extractionState": "manual",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "^[%lld Hop](inflect: true)"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "[%lld saut](inflect: true)"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "saltos de %lld"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "^[%lld salto](inflect: vero)"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "^[%lld hop](inflect: true)"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "[%lld salto](inflect: true)"
-          }
-        },
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "[%lld skoků](inflect: true)"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "[%lld skoków](inflect: true)"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "^[%lldホップ](inflect: true)"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "^[%lld 跳](inflect: true)"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "^[%lld стрибків](inflect: true)"
           }
         }
       }
@@ -85557,7 +85487,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "^[%lld onderwerp](inflect: true)"
+            "value": "%lld onderwerp"
           }
         },
         "pt": {
@@ -85569,31 +85499,31 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "^[%lld téma](inflect: true)"
+            "value": "%lld téma"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "^[%lld temat](inflect: true)"
+            "value": "%lld temat"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "^[%lld тема](inflect: true)"
+            "value": "%lld тема"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "^[%lld 話題](inflect: true)"
+            "value": "%lld 話題"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "^[%lld 话题](inflect: true)"
+            "value": "%lld 话题"
           }
         }
       }
@@ -85623,7 +85553,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "^[%lld ongelezen bericht](inflect: true)"
+            "value": "%lld ongelezen bericht"
           }
         },
         "pt": {
@@ -85635,31 +85565,31 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "^[%lld nečtených zpráv](inflect: true)"
+            "value": "%lld nečtených zpráv"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "^[%lld nieodczytanych wiadomości](inflect: true)"
+            "value": "%lld nieodczytanych wiadomości"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "^[%lld непрочитаних повідомлень](inflect: true)"
+            "value": "%lld непрочитаних повідомлень"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "^[%lld 件の未読メッセージ](inflect: true)"
+            "value": "%lld 件の未読メッセージ"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "^[%lld未读消息](inflect: true)"
+            "value": "%lld未读消息"
           }
         },
         "es": {

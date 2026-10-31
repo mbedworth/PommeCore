@@ -167,7 +167,7 @@ struct ContactRowView: View {
                 hopCount: hopCount,
                 bytesPerHop: PathLen.hashSize(UInt8(bitPattern: contact.outPathLen)))
             if pathStr.isEmpty {
-                Text("^[\(hopCount) hop](inflect: true)")
+                Text(hopCountLabel(hopCount))
                     .font(.caption2)
                     .foregroundStyle(MeshTheme.textSecondary)
             } else {

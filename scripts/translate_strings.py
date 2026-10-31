@@ -63,36 +63,58 @@ TARGET_LANGUAGES = {
 GLOSSARY = {
     # (required, forbidden). required[0] is a natural form, shown to the model
     # in the prompt; the rest are stems so the check still matches inflections.
+    #
+    # `hop` joined this list on 2026-10-30, having sat in PRESERVE_TERMS — which
+    # is only a request to the model — since the beginning. It was ignored
+    # exactly as "flood" and "advert" were: 85 translations across 11 languages
+    # had rendered a mesh hop as a *jump* (`Sprünge`, `sauts`, `skoků`,
+    # `стрибків`, `跳跃`), and two read "Hop not on map" as an imperative and
+    # told the user not to hop on the map. A term that looks like an ordinary
+    # word has to be enforced, not requested.
     "de":      {"advert": (["Ankündigung", "ankündig", "advert"],
                            ["werb", "reklame", "anzeige"]),
                 "flood":  (["Flooding", "flood"],
                            ["übertragung", "überflutung", "flut", "überlastung"]),
+                "hop":    (["Hop"], ["sprung", "sprünge"]),
                 # A MeshCore radio is a transceiver. German "Radio" is the
                 # broadcast receiver, and the app already says Funkgerät
                 # everywhere else — the manual's first draft said "von Radio zu
                 # Radio", which reads as "from stereo to stereo".
                 "radio":  (["Funkgerät", "funkgerät"], ["radio"])},
     "fr":      {"advert": (["annonce", "annonc"], ["publicité"]),
-                "flood":  (["inondation", "inond"], [])},
+                "flood":  (["inondation", "inond"], []),
+                "hop":    (["hop"], ["saut"])},
     "es":      {"advert": (["anuncio", "anunci"], ["publicidad"]),
-                "flood":  (["inundación", "inund"], [])},
+                "flood":  (["inundación", "inund"], []),
+                "hop":    (["hop"], ["salto"])},
     "it":      {"advert": (["annuncio", "annunc"], ["pubblicità"]),
-                "flood":  (["flooding", "inond"], ["allarme", "allagamento"])},
+                "flood":  (["flooding", "inond"], ["allarme", "allagamento"]),
+                "hop":    (["hop"], ["salto", "salti"])},
     "pt":      {"advert": (["anúncio", "anunci"], ["publicidade"]),
-                "flood":  (["inundação", "inund"], [])},
+                "flood":  (["inundação", "inund"], []),
+                "hop":    (["hop"], ["salto", "pular"])},
     "nl":      {"advert": (["aankondiging", "aankondigen"], ["advertentie", "reclame"]),
-                "flood":  (["flooding"], ["overstroming"])},
+                "flood":  (["flooding"], ["overstroming"]),
+                "hop":    (["hop"], ["sprong"])},
     "cs":      {"advert": (["oznámení", "oznám", "oznam"], ["reklam"]),
-                "flood":  (["zaplavování", "zaplav", "záplav"], [])},
+                "flood":  (["zaplavování", "zaplav", "záplav"], []),
+                "hop":    (["hop"], ["skok", "skoků"])},
     "pl":      {"advert": (["rozgłoszenie", "rozgłosz", "rozgłas"], ["reklam"]),
-                "flood":  (["zalewanie", "zalewani", "zalew"], ["powód", "powodzi"])},
+                "flood":  (["zalewanie", "zalewani", "zalew"], ["powód", "powodzi"]),
+                "hop":    (["hop"], ["skok", "skoków"])},
     "uk":      {"advert": (["оголошення", "оголош"], ["реклам"]),
-                "flood":  (["лавинна розсилка", "лавинн", "флудинг"], ["повін", "повень"])},
+                "flood":  (["лавинна розсилка", "лавинн", "флудинг", "flood"],
+                           ["повін", "повень"]),
+                "hop":    (["hop"], ["стрибк"])},
     "ja":      {"advert": (["アドバタイズ"], ["広告"]),
                 "flood":  (["フラッディング"], ["洪水", "フロード"]),
+                "hop":    (["ホップ"], ["ジャンプ"]),
                 "radio":  (["無線機"], ["ラジオ"])},
+    # Chinese writes the loanword verbatim in several strings ("0-hop"), so
+    # either form is accepted.
     "zh-Hans": {"advert": (["通告"], ["广告"]),
                 "flood":  (["泛洪"], ["洪水", "淹没"]),
+                "hop":    (["跳", "hop"], ["跳跃"]),
                 "radio":  (["无线电"], ["收音机"])},
 }
 
@@ -154,6 +176,15 @@ PRESERVE_TERMS = [
 FORBIDDEN_ONLY = {"radio"}
 
 
+# How to recognise a term in the *English source*. The default is a prefix
+# match, `\bflood`, so that "flooding" and "floods" count — which is right for
+# every term of art here except the one that is also the start of an ordinary
+# English word. `\bhop` matches "hope" and "hopefully", and did: it demanded the
+# mesh term of eleven translations of a sentence about automatic retries, which
+# contains no hops at all. Same prefix trap that made "BLE" match "available".
+SOURCE_PATTERN = {"hop": r"\bhops?\b"}
+
+
 def glossary_problem(key, translated, lang):
     """Reject a translation that mistranslates a term of art.
 
@@ -164,7 +195,7 @@ def glossary_problem(key, translated, lang):
         return None
     low = translated.lower()
     for term, (required, forbidden) in rules.items():
-        if not re.search(r"\b" + term, key, re.I):
+        if not re.search(SOURCE_PATTERN.get(term, r"\b" + term), key, re.I):
             continue
         for bad in forbidden:
             if bad.lower() in low:
@@ -319,6 +350,10 @@ def parse_numbered_response(raw, expected, originals):
             print(f"    WARNING: no translation for item {i+1}, using original")
             result.append(orig)
     return result
+
+# `^[text](inflect: true)` -> `text`, for comparing against what a
+# translator actually works from rather than against the markup.
+INFLECT_MARKUP = re.compile(r"\^\[([^\]]*)\]\(inflect: [^)]*\)")
 
 SPECIFIER_RE = re.compile(r"%(?:\d+\$)?(?:lld|[@dsflu])")
 
@@ -505,13 +540,19 @@ def translation_problem(key, value, lang=None):
     # deleting synced messages was answered with the RESET confirmation line in
     # three languages. Chinese and Japanese are genuinely far denser than
     # English, so they get their own floor.
-    if len(key) >= 18:
+    #
+    # Measured against the source *as a translator sees it*, which is not the
+    # key when the key carries structure. `^[%lld hop](inflect: true)` is 26
+    # characters of which 18 are markup, so a correct `%lld hopů` looked like a
+    # 65% contraction and sixteen good translations were reported as damaged.
+    bare_key = INFLECT_MARKUP.sub(r"\1", key)
+    if len(bare_key) >= 18:
         # 0.15 for CJK, not 0.22: Chinese really is that dense. "Communicate
         # Off-Grid" → 无网通信 is four characters and a good translation, so a
         # tighter floor would reject correct work.
         floor = 0.15 if lang in ("ja", "zh-Hans") else 0.40
-        if len(stripped) < floor * len(key):
-            return (f"implausible contraction ({len(key)} chars in, {len(stripped)} out) — "
+        if len(stripped) < floor * len(bare_key):
+            return (f"implausible contraction ({len(bare_key)} chars in, {len(stripped)} out) — "
                     "misaligned reply or a summarised answer")
 
     # Mesh jargon the model translates into its everyday sense. Unlike the
