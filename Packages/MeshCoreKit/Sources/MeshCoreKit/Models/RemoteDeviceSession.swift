@@ -197,12 +197,11 @@ public final class RemoteDeviceSession: ObservableObject {
     /// A setting's value for display, or a placeholder when the device does not
     /// support the command.
     ///
-    /// **This is what a view should call.** `settings[key] ?? "—"` puts the literal
-    /// text `Unknown command` on screen as though it were the setting's value: the
-    /// `??` never fires, because the key *exists* and holds the refusal. A companion
-    /// radio reached over the 1.18 CLI answers that way for most of the repeater
-    /// command set, so the Device Clock row read "Unknown command" and the device
-    /// role did too. Seen on hardware 2026-10-30.
+    /// **This is what a view should call.** `settings[key] ?? "—"` puts a refusal
+    /// on screen as though it were the setting's value: the `??` never fires,
+    /// because the key *exists* and holds the refusal. The screens at risk are the
+    /// repeater, room-server and sensor ones, where a board lacking a capability
+    /// answers `Error: unsupported`.
     public func displayValue(for key: String, placeholder: String = "\u{2014}") -> String {
         supportedValue(for: key) ?? placeholder
     }

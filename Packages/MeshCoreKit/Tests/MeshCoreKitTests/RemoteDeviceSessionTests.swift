@@ -12,11 +12,18 @@
 //  response, so `settings[key] ?? "—"` renders a refusal as the setting's value —
 //  the `??` never fires, because the key exists and holds the refusal.
 //
-//  That shipped. A companion radio reached over the 1.18 CLI is given a settings
-//  screen for the first time, and a companion implements far fewer commands than
-//  the repeater the screen was written for: on an iPhone the Device Clock row
-//  read "Unknown command", and so did the device role. Found 2026-10-30 by
-//  typing `clock` into the Radio Terminal.
+//  That shipped, and the screens it affects are the repeater, room-server and
+//  sensor ones reached over BLE admin or USB CLI. A board without a given
+//  capability answers `Error: unsupported`, and that refusal was rendered as the
+//  setting's value.
+//
+//  **Not a companion-radio symptom.** It was found on 2026-10-30 by typing
+//  `clock` into the Radio Terminal on an iPhone and getting `Unknown command`,
+//  which prompted an audit — but the terminal was right to print that, and
+//  `companionDeviceSession` is never surfaced by any view, so a companion has no
+//  settings screen to get this wrong on. An earlier version of this comment
+//  claimed the Device Clock row read "Unknown command" on an iPhone; that was
+//  inferred from the code and never observed.
 //
 //  There were ~45 direct `settings[...]` reads in the views and two uses of
 //  `supportedValue(for:)`. The mechanism was understood and documented; the call

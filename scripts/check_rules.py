@@ -909,13 +909,19 @@ def check_raw_settings_reads() -> None:
     `settings[key] ?? "—"` renders a refusal *as the setting's value* — the `??`
     never fires, because the key exists and holds the refusal.
 
-    That shipped. `onCompanionCLIReady` gives a companion radio a session typed
-    `.repeater` so the existing settings screens work against it unchanged, and a
-    companion implements far fewer commands than the repeater those screens were
-    written for. On an iPhone the Device Clock row read "Unknown command" and so
-    did the device role. Found 2026-10-30 by typing `clock` into the Radio
-    Terminal — not by any check, and not by the 50 app tests, because a
-    `settings[...]` read inside a SwiftUI body is unreachable from a test.
+    That shipped, on the repeater, room-server and sensor screens reached over
+    BLE admin or USB CLI — a board lacking a capability answers `Error:
+    unsupported`, and the refusal was rendered as the value. The clearest case
+    needs no unsupported command at all: `settings["dutycycle"] != nil` is true
+    for a refusal, so the app sent `set dutycycle` to pre-1.15 radios that do not
+    have the command, and misread the row on them.
+
+    Found 2026-10-30 by typing `clock` into the Radio Terminal and getting
+    `Unknown command` — which prompted this audit, though the terminal was right
+    to print it verbatim. A companion radio has no settings screen:
+    `companionDeviceSession` is created but no view resolves it, and 1.18 exposes
+    only the terminal. Not found by any check, and not by the app tests, because
+    a `settings[...]` read inside a SwiftUI body is unreachable from a test.
 
     There were 43 such reads in the app and two uses of `supportedValue`. The
     mechanism was understood and documented in `supportedValue`'s own doc
