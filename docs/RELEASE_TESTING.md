@@ -1,9 +1,17 @@
 # Hardware release test
 
 What a simulator and `meshctl` cannot answer. Everything else is already gated
-by `check_rules.py`, `check_contrast.py`, `translate_strings.py --verify`, the
-151 package tests, `test_build.sh` and `./scripts/meshctl.sh smoke` — run those
-first and do not use this list as a substitute for them.
+by `./scripts/test_all.sh` — rule checks, catalog verification, the 151 package
+tests and the app tests — plus `check_contrast.py`, `test_build.sh` and
+`./scripts/meshctl.sh smoke`. Run those first and do not use this list as a
+substitute for them.
+
+**This list got shorter on 2026-10-30, and that is the point.** Items 2 and 5
+below exist because four defects reached hardware that nothing automated was
+looking for. The message-status claims, the channel notification gate and the
+Quick Reply line are now unit-tested (`docs/TESTING.md`), so the hardware pass
+is confirming them rather than discovering them. Keep the manual checks anyway —
+a test proves the logic, a radio proves the feature.
 
 **Install over the existing app, from TestFlight.** Do not delete it first.
 Critical Rule 12 is tested only by an install that already has persisted data,

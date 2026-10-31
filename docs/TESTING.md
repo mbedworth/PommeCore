@@ -29,6 +29,16 @@ one is caught by the test target *existing* — see below.
 ./scripts/test_all.sh            # package tests + app tests + rule checks
 ```
 
+It prints the number of tests that ran, and **fails when that number is zero.**
+That is not belt-and-braces: `xcodebuild`'s exit status says nothing about
+whether any test executed, and with `-quiet` it prints nothing either. The first
+version of this gate reported "All gates passed" against a scheme whose test
+action was not configured at all — exit 0, no test output, nothing run. The
+count is read back out of the result bundle with
+`xcresulttool get test-results summary`, because that is the only answer that
+cannot be vacuous. The gate also fails on any warning in app sources, so the
+zero-warning release requirement is enforced here rather than during an archive.
+
 Individually:
 
 ```bash
@@ -62,6 +72,27 @@ correctly in about a minute, and a hand-edit mid-release is a bad trade.
    to **iOS 18.0**.
 6. Build Phases → Link Binary With Libraries → **+** → add `MeshCoreKit`.
 7. Product → Scheme → Edit Scheme → Test → confirm `PommeCoreTests` is listed.
+
+### If the app tests fail to launch
+
+```
+Simulator device failed to launch com.mbedworth.meshcore.
+… Busy ("Application failed preflight checks")
+```
+
+The simulator was not ready. Left to itself `xcodebuild` boots the device and
+then installs and launches the host app while SpringBoard is still starting; it
+fails reproducibly when the app stage follows the package tests, and not at all
+when the device happens to be warm from a previous run. `test_all.sh` boots the
+device and blocks on `simctl bootstatus -b` before testing, and targets it by
+UDID rather than by name.
+
+**Do not "fix" this by rerunning until it goes green.** It was diagnosed as
+transient state and declared fixed once, wrongly, because an uninstall happened
+to be followed by a warm-device pass. A gate that fails for reasons unrelated to
+the code trains you to rerun it, which is how a real failure gets waved through.
+If it recurs, `xcrun simctl shutdown all` and run the gate — a cold device is
+the condition that reproduces it.
 
 ### Step 5 is not optional
 
