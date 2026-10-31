@@ -177,27 +177,7 @@ struct MessageBubble: View {
                 .padding(.horizontal, 4)
                 .accessibilityHidden(true)
 
-                if message.status == .failed {
-                    Button {
-                        messageStoreManager.retryMessage(message)
-                    } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: "arrow.clockwise")
-                            Text("Tap to retry")
-                        }
-                        .font(.caption2.weight(.medium))
-                        .foregroundStyle(MeshTheme.accent)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 4)
-                        .background(MeshTheme.surfaceLight)
-                        .clipShape(Capsule())
-                    }
-                    .buttonStyle(.plain)
-                    .frame(minHeight: 44)
-                    .contentShape(Rectangle())
-                    .accessibilityLabel("Message not delivered")
-                    .accessibilityHint("Tap to resend")
-                }
+                MessageRetryButton(message: message)
             }
             .contentShape(Rectangle())
             .contextMenu {
@@ -296,6 +276,51 @@ func messageStatusPhrase(_ message: Message) -> String {
         }
         return String(localized: "Delivered")
     case .failed: return String(localized: "Not delivered")
+    }
+}
+
+/// The one place a failed message offers to be sent again.
+///
+/// There were two copies and one absence. The direct-message bubble had this
+/// button *and* a "Retry Send" context-menu item; the room bubble had the button
+/// only; `ChannelMessageBubble` had neither, so a failed channel message could
+/// not be retried at all — the text had to be typed again.
+///
+/// It stayed invisible because a channel message with no transport used to claim
+/// `.sent`. `.failed` was unreachable from a dropped frame, so the missing retry
+/// never appeared. Fixing the status (Critical Rule 6) is what exposed it: an
+/// honest failure state is only useful if there is something the user can do
+/// about it. Found on hardware 2026-10-30, by turning Bluetooth off and
+/// long-pressing the message that failed.
+///
+/// Renders nothing unless the message actually failed, so a caller can place it
+/// unconditionally and no bubble can forget the `.failed` case again.
+struct MessageRetryButton: View {
+    let message: Message
+    @Environment(MessageStoreManager.self) private var messageStoreManager
+
+    var body: some View {
+        if message.status == .failed {
+            Button {
+                messageStoreManager.retryMessage(message)
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "arrow.clockwise")
+                    Text("Tap to retry")
+                }
+                .font(.caption2.weight(.medium))
+                .foregroundStyle(MeshTheme.accent)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
+                .background(MeshTheme.surfaceLight)
+                .clipShape(Capsule())
+            }
+            .buttonStyle(.plain)
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
+            .accessibilityLabel("Message not delivered")
+            .accessibilityHint("Tap to resend")
+        }
     }
 }
 
@@ -469,6 +494,12 @@ struct ChannelMessageBubble: View {
                     }
                 }
                 .padding(.horizontal, 4)
+
+                // This bubble had no retry at all — not a button, not a menu
+                // item — while the direct-message bubble had both and the room
+                // bubble had the button. A failed channel message could only be
+                // recovered by retyping it.
+                MessageRetryButton(message: message)
             }
             .accessibilityElement(children: .combine)
             .contentShape(Rectangle())
@@ -477,6 +508,15 @@ struct ChannelMessageBubble: View {
                     copyToClipboard(message.text)
                 } label: {
                     Label("Copy Text", systemImage: "doc.on.doc")
+                }
+                // Long-press is where all the options live (design principle 1),
+                // and the direct-message bubble has offered this for some time.
+                if message.isOutgoing && message.status == .failed {
+                    Button {
+                        messageStoreManager.retryMessage(message)
+                    } label: {
+                        Label("Retry Send", systemImage: "arrow.clockwise")
+                    }
                 }
                 if !message.isOutgoing, let sender = message.senderName, !sender.isEmpty {
                     Button {

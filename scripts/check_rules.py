@@ -944,6 +944,43 @@ def check_raw_settings_reads() -> None:
                        "the typed accessors on RemoteDeviceSession")
 
 
+def check_failed_message_offers_retry() -> None:
+    """A view that can show a message as failed must offer to send it again.
+
+    `.failed` is an honest status, and honesty is only useful if the user can act
+    on it. `ChannelMessageBubble` rendered the status and offered no retry — not
+    a button, not a context-menu item — so a failed channel message could only
+    be recovered by retyping the text. The direct-message bubble had both
+    affordances and the room bubble had one, which is how a missing third went
+    unnoticed.
+
+    It hid behind the status bug. A channel message with no transport used to
+    claim `.sent`, so `.failed` was unreachable from a dropped frame and the
+    absent retry never rendered. Fixing Critical Rule 6 is what surfaced it —
+    found on hardware 2026-10-30 by turning Bluetooth off and long-pressing the
+    message that failed.
+
+    Checked per file rather than per view, because a bubble and its retry sit in
+    the same file and anything finer would need a Swift parser. `MessageRetryButton`
+    renders nothing unless the message failed, so a caller can place it
+    unconditionally and the pairing costs nothing.
+    """
+    indicator = re.compile(r"\bMessageStatusIndicator\s*\(")
+    retry = re.compile(r"\bMessageRetryButton\s*\(")
+    for path in swift_files(["Shared", "watchOS"]):
+        src = lines_of(path)
+        body = [l for l in src if not l.strip().startswith("//")]
+        text = "\n".join(body)
+        if not indicator.search(text) or retry.search(text):
+            continue
+        line = next((i for i, l in enumerate(src, 1) if indicator.search(l)), 1)
+        report("FAIL", "6", path, line,
+               "this view renders a message status but never places "
+               "`MessageRetryButton`, so a message it shows as failed cannot be "
+               "sent again — the text has to be retyped. The channel bubble "
+               "shipped that way, hidden behind a status that claimed `.sent`")
+
+
 CHECKS = [
     check_sheet_frames,
     check_text_takes_string,
@@ -965,6 +1002,7 @@ CHECKS = [
     check_cross_platform_symbols,
     check_single_send_gate,
     check_raw_settings_reads,
+    check_failed_message_offers_retry,
     check_help_catalog,
     check_path_len_decoding,
     check_hand_built_icloud_keys,
