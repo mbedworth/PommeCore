@@ -705,45 +705,7 @@ struct RoomMessageBubble: View {
                         .foregroundStyle(MeshTheme.textSecondary)
 
                     if message.isOutgoing {
-                        switch message.status {
-                        case .failed:
-                            HStack(spacing: 2) {
-                                Image(systemName: "exclamationmark.circle")
-                                    .font(.caption2)
-                                    .foregroundStyle(MeshTheme.disconnected)
-                                Text("Not delivered")
-                                    .font(.caption2)
-                                    .foregroundStyle(MeshTheme.disconnected)
-                            }
-                        case .retrying:
-                            HStack(spacing: 2) {
-                                Image(systemName: "arrow.clockwise")
-                                    .font(.caption2)
-                                    .foregroundStyle(MeshTheme.statusWarn)
-                                Text("Retrying (attempt \(message.attempt + 1))...")
-                                    .font(.caption2)
-                                    .foregroundStyle(MeshTheme.statusWarn)
-                            }
-                        case .flooding:
-                            HStack(spacing: 2) {
-                                Image(systemName: "dot.radiowaves.left.and.right")
-                                    .font(.caption2)
-                                    .foregroundStyle(MeshTheme.statusWarn)
-                                Text("Flooding...")
-                                    .font(.caption2)
-                                    .foregroundStyle(MeshTheme.statusWarn)
-                            }
-                        case .delivered:
-                            HStack(spacing: 2) {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .font(.caption2)
-                                    .foregroundStyle(MeshTheme.accent)
-                            }
-                        default:
-                            Image(systemName: message.status == .sending ? "clock" : "checkmark")
-                                .font(.caption2)
-                                .foregroundStyle(MeshTheme.textSecondary)
-                        }
+                        MessageStatusIndicator(message: message)
                     }
 
                     if !message.isOutgoing {
@@ -775,23 +737,7 @@ struct RoomMessageBubble: View {
                 }
                 .padding(.horizontal, 4)
 
-                if message.status == .failed {
-                    Button {
-                        messageStoreManager.retryMessage(message)
-                    } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: "arrow.clockwise")
-                            Text("Tap to retry")
-                        }
-                        .font(.caption2.weight(.medium))
-                        .foregroundStyle(MeshTheme.accent)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 4)
-                        .background(MeshTheme.surfaceLight)
-                        .clipShape(Capsule())
-                    }
-                    .buttonStyle(.plain)
-                }
+                MessageRetryButton(message: message)
             }
             .contentShape(Rectangle())
             .contextMenu {
@@ -799,6 +745,16 @@ struct RoomMessageBubble: View {
                     copyToClipboard(parsed.text)
                 } label: {
                     Label("Copy", systemImage: "doc.on.doc")
+                }
+                // All three bubbles now offer retry in both places. This one had
+                // the button but not the menu item, the channel bubble had
+                // neither, and the direct-message bubble had both.
+                if message.isOutgoing && message.status == .failed {
+                    Button {
+                        messageStoreManager.retryMessage(message)
+                    } label: {
+                        Label("Retry Send", systemImage: "arrow.clockwise")
+                    }
                 }
                 Divider()
                 Button(role: .destructive) {

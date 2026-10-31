@@ -19,8 +19,7 @@ Shared/Views/NetworkToolsView+Device.swift:178  # rule 18: label: String
 Shared/Views/NetworkToolsView+Device.swift:500  # rule 18: label: String
 Shared/Views/NetworkToolsView+Device.swift:537  # rule 18: label: String
 Shared/Views/NetworkToolsView.swift:195  # rule 18: errorMessage
-Shared/Views/RemoteManagementView.swift:399  # rule 18: statusLabel
-Shared/Views/RemoteManagementView.swift:674  # rule 18: neighborsText
+Shared/Views/RemoteManagementView.swift:396  # rule 18: statusLabel — already String(localized:) throughout, incl. permission.displayName; rule 18 cannot tell the fix from the defect
 Shared/Views/SettingsView+RadioPrivacy.swift:349  # rule 18: rangeText
 Shared/Views/SettingsView+Sections.swift:381  # rule 18: gpsStatusLabel
 Shared/Views/SettingsView+Sections.swift:558  # rule 18: regionMessage

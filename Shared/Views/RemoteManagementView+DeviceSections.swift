@@ -159,7 +159,7 @@ struct RemoteGPSSection: View {
         Binding(
             get: {
                 if !gpsAdvertMode.isEmpty { return gpsAdvertMode }
-                return session.settings["gps advert"] ?? session.settings["gps.advert"] ?? "none"
+                return session.supportedValue(forAny: ["gps advert", "gps.advert"]) ?? "none"
             },
             set: { newValue in
                 gpsAdvertMode = newValue
@@ -175,35 +175,21 @@ struct RemoteClockRow: View {
     @ObservedObject var session: RemoteDeviceSession
     let sendCLI: (String) -> Void
 
-    private var clockValue: String {
-        guard let raw = session.settings["clock"], !raw.isEmpty else { return "\u{2014}" }
-        // If the response looks like a raw epoch number, format it as a date
-        if let epoch = Double(raw.trimmingCharacters(in: .whitespaces)), epoch > 1_000_000_000 {
-            let date = Date(timeIntervalSince1970: epoch)
-            return date.formatted(date: .abbreviated, time: .shortened)
-        }
-        return raw
-    }
+    /// Both of these read `session.settings["clock"]` directly, so a device with
+    /// no `clock` command displayed the literal text "Unknown command" as its
+    /// clock — every companion radio, whose time is set over the binary link
+    /// with `CMD_SET_DEVICE_TIME` rather than the CLI. Seen on an iPhone
+    /// 2026-10-30.
+    ///
+    /// The logic now lives on `RemoteDeviceSession`, where it is unit-tested and
+    /// takes `now` as a parameter. It was unreachable from any test while it sat
+    /// in a view, which is the reason it shipped wrong.
+    private var clockValue: String { session.clockDisplay() }
 
-    /// Check if the clock text indicates a stale date (more than 60 seconds from now).
-    private var isClockStale: Bool {
-        guard let clockStr = session.settings["clock"], !clockStr.isEmpty else { return false }
-        // Try to extract epoch from the response — firmware returns "HH:MM - DD/MM/YYYY" or epoch
-        // Check for year mismatch (robust heuristic for date-formatted responses)
-        let calendar = Calendar.current
-        let currentYear = calendar.component(.year, from: Date())
-        let yearPattern = try? NSRegularExpression(pattern: "\\b(20\\d{2})\\b")
-        if let match = yearPattern?.firstMatch(in: clockStr, range: NSRange(clockStr.startIndex..., in: clockStr)),
-           let range = Range(match.range(at: 1), in: clockStr),
-           let year = Int(clockStr[range]) {
-            return abs(year - currentYear) >= 1
-        }
-        // If response is just an epoch number, compare with 60-second tolerance
-        if let epoch = Double(clockStr.trimmingCharacters(in: .whitespaces)) {
-            return abs(epoch - Date().timeIntervalSince1970) > 60
-        }
-        return false
-    }
+    /// Whether the clock looks more than a minute out. An unsupported clock is
+    /// not stale: offering to fix a clock the device does not expose is a prompt
+    /// the user can never satisfy.
+    private var isClockStale: Bool { session.isClockStale() }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {

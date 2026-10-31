@@ -28,14 +28,7 @@ struct RemoteRadioSection: View {
 
     /// Parse "freq_MHz,bw_kHz,sf,cr" from session settings into components for preset detection.
     private var parsedRadio: (freqKHz: Double, bw: Double, sf: UInt8, cr: UInt8) {
-        guard let radio = session.settings["radio"] else { return (0, 0, 0, 0) }
-        let parts = radio.replacingOccurrences(of: " ", with: "").split(separator: ",")
-        guard parts.count >= 4,
-              let freqMHz = Double(parts[0]),
-              let bw = Double(parts[1]),
-              let sf = UInt8(parts[2]),
-              let cr = UInt8(parts[3]) else { return (0, 0, 0, 0) }
-        return (freqMHz * 1000, bw, sf, cr) // Convert MHz → kHz for preset comparison
+        session.radioParameters ?? (0, 0, 0, 0)
     }
 
     var body: some View {
@@ -65,11 +58,11 @@ struct RemoteRadioSection: View {
 
         Section {
             if canEdit {
-                cliEditRow(icon: "antenna.radiowaves.left.and.right", label: "Radio (freq,bw,sf,cr)", text: $radioParams, current: session.settings["radio"])
-                cliEditRow(icon: "bolt", label: "TX Power", text: $txPower, current: session.settings["tx"])
+                cliEditRow(icon: "antenna.radiowaves.left.and.right", label: "Radio (freq,bw,sf,cr)", text: $radioParams, current: session.supportedValue(for: "radio"))
+                cliEditRow(icon: "bolt", label: "TX Power", text: $txPower, current: session.supportedValue(for: "tx"))
             } else {
-                cliInfoRow(icon: "antenna.radiowaves.left.and.right", label: "Radio", value: session.settings["radio"] ?? "\u{2014}")
-                cliInfoRow(icon: "bolt", label: "TX Power", value: session.settings["tx"] ?? "\u{2014}")
+                cliInfoRow(icon: "antenna.radiowaves.left.and.right", label: "Radio", value: session.displayValue(for: "radio"))
+                cliInfoRow(icon: "bolt", label: "TX Power", value: session.displayValue(for: "tx"))
             }
             CLIToggleRow(icon: "repeat", label: "Repeat Mode", settingKey: "repeat", onCommand: "set repeat on", offCommand: "set repeat off", session: session, sendCLI: sendCLI, canEdit: canEdit)
 
@@ -106,14 +99,14 @@ struct RemoteTimingSection: View {
 
     var body: some View {
         Group {
-            cliEditRow(icon: "clock.arrow.2.circlepath", label: "Duty Cycle", text: $airtimeFactor, current: session.settings["dutycycle"] ?? session.settings["af"])
-            cliEditRow(icon: "timer", label: "RX Delay", text: $rxDelay, current: session.settings["rxdelay"])
-            cliEditRow(icon: "arrow.up.circle", label: "TX Delay", text: $txDelay, current: session.settings["txdelay"])
-            cliEditRow(icon: "arrow.right.circle", label: "Direct TX Delay", text: $directTxDelay, current: session.settings["direct.txdelay"])
-            cliEditRow(icon: "arrow.triangle.branch", label: "Flood Max Hops", text: $floodMax, current: session.settings["flood.max"])
-            cliEditRow(icon: "arrow.triangle.branch", label: "Flood Max (Unscoped)", text: $floodMaxUnscoped, current: session.settings["flood.max.unscoped"])
-            cliEditRow(icon: "waveform.badge.exclamationmark", label: "Interference Thresh", text: $intThresh, current: session.settings["int.thresh"])
-            cliEditRow(icon: "dial.low", label: "AGC Reset Interval", text: $agcReset, current: session.settings["agc.reset.interval"])
+            cliEditRow(icon: "clock.arrow.2.circlepath", label: "Duty Cycle", text: $airtimeFactor, current: session.supportedValue(forAny: ["dutycycle", "af"]))
+            cliEditRow(icon: "timer", label: "RX Delay", text: $rxDelay, current: session.supportedValue(for: "rxdelay"))
+            cliEditRow(icon: "arrow.up.circle", label: "TX Delay", text: $txDelay, current: session.supportedValue(for: "txdelay"))
+            cliEditRow(icon: "arrow.right.circle", label: "Direct TX Delay", text: $directTxDelay, current: session.supportedValue(for: "direct.txdelay"))
+            cliEditRow(icon: "arrow.triangle.branch", label: "Flood Max Hops", text: $floodMax, current: session.supportedValue(for: "flood.max"))
+            cliEditRow(icon: "arrow.triangle.branch", label: "Flood Max (Unscoped)", text: $floodMaxUnscoped, current: session.supportedValue(for: "flood.max.unscoped"))
+            cliEditRow(icon: "waveform.badge.exclamationmark", label: "Interference Thresh", text: $intThresh, current: session.supportedValue(for: "int.thresh"))
+            cliEditRow(icon: "dial.low", label: "AGC Reset Interval", text: $agcReset, current: session.supportedValue(for: "agc.reset.interval"))
 
             // Firmware 1.17.0+, and only meaningful on nodes that forward traffic —
             // companion radios accept the setting but never act on it. Hidden entirely
@@ -127,7 +120,7 @@ struct RemoteTimingSection: View {
 
             if canEdit {
                 SaveButton(state: saveState, label: "Apply Settings") {
-                    let dutycycleCmd = session.settings["dutycycle"] != nil ? "set dutycycle" : "set af"
+                    let dutycycleCmd = session.isSupported("dutycycle") ? "set dutycycle" : "set af"
                     if !airtimeFactor.isEmpty { sendCLI("\(dutycycleCmd) \(airtimeFactor)") }
                     if !rxDelay.isEmpty { sendCLI("set rxdelay \(rxDelay)") }
                     if !txDelay.isEmpty { sendCLI("set txdelay \(txDelay)") }
@@ -198,7 +191,7 @@ struct RemoteRoutingSection: View {
                 sendCLI("discover.neighbors")
             }
 
-            if let neighborsResult = session.settings["discover.neighbors"], !neighborsResult.isEmpty {
+            if let neighborsResult = session.supportedValue(for: "discover.neighbors") {
                 Text(neighborsResult)
                     .font(.system(.caption, design: .monospaced))
                     .foregroundStyle(MeshTheme.textPrimary)
@@ -206,7 +199,7 @@ struct RemoteRoutingSection: View {
             }
 
             if contact.type == .repeater {
-                cliEditRow(icon: "globe.americas", label: "Default Flood Scope", text: $floodScope, current: session.settings["region default"])
+                cliEditRow(icon: "globe.americas", label: "Default Flood Scope", text: $floodScope, current: session.supportedValue(for: "region default"))
                 if canEdit {
                     let scopeName = floodScope.trimmingCharacters(in: .whitespaces)
                     SaveButton(state: floodScopeSaveState, label: "Set Flood Scope") {
@@ -215,7 +208,7 @@ struct RemoteRoutingSection: View {
                         showSaved($floodScopeSaveState)
                     }
                     .disabled(scopeName.isEmpty)
-                    if session.settings["region default"] != nil && scopeName.isEmpty {
+                    if session.isSupported("region default") && scopeName.isEmpty {
                         HStack(spacing: 6) {
                             Image(systemName: "info.circle")
                                 .foregroundStyle(MeshTheme.statusWarn)
@@ -231,7 +224,7 @@ struct RemoteRoutingSection: View {
                 CLICommandButton(icon: "list.bullet.indent", label: "View Region Tree") {
                     sendCLI("region")
                 }
-                if let tree = session.settings["region"], !tree.isEmpty {
+                if let tree = session.supportedValue(for: "region") {
                     Text(tree)
                         .font(.system(.caption, design: .monospaced))
                         .foregroundStyle(MeshTheme.textPrimary)
@@ -336,7 +329,7 @@ struct RemoteRoutingSection: View {
         Binding(
             get: {
                 if !loopDetect.isEmpty { return loopDetect }
-                return session.settings["loop.detect"] ?? "off"
+                return session.supportedValue(for: "loop.detect") ?? "off"
             },
             set: { newValue in
                 loopDetect = newValue
@@ -349,7 +342,7 @@ struct RemoteRoutingSection: View {
         Binding(
             get: {
                 if !pathHashMode.isEmpty { return pathHashMode }
-                return session.settings["path.hash.mode"] ?? "1"
+                return session.supportedValue(for: "path.hash.mode") ?? "1"
             },
             set: { newValue in
                 pathHashMode = newValue
@@ -382,14 +375,14 @@ struct RemoteAdvertSection: View {
 
     var body: some View {
         Section {
-            cliEditRow(icon: "person.text.rectangle", label: "Name", text: $name, current: session.settings["name"])
-            cliEditRow(icon: "location", label: "Latitude", text: $lat, current: session.settings["lat"])
-            cliEditRow(icon: "location", label: "Longitude", text: $lon, current: session.settings["lon"])
+            cliEditRow(icon: "person.text.rectangle", label: "Name", text: $name, current: session.supportedValue(for: "name"))
+            cliEditRow(icon: "location", label: "Latitude", text: $lat, current: session.supportedValue(for: "lat"))
+            cliEditRow(icon: "location", label: "Longitude", text: $lon, current: session.supportedValue(for: "lon"))
 
             if canEdit {
                 Button {
                     // Pre-populate with current lat/lon if available
-                    if let latStr = session.settings["lat"], let lonStr = session.settings["lon"],
+                    if let latStr = session.supportedValue(for: "lat"), let lonStr = session.supportedValue(for: "lon"),
                        let latVal = Double(latStr), let lonVal = Double(lonStr), latVal != 0 || lonVal != 0 {
                         mapPickedCoordinate = CLLocationCoordinate2D(latitude: latVal, longitude: lonVal)
                     }
@@ -402,7 +395,7 @@ struct RemoteAdvertSection: View {
                 .listRowBackground(MeshTheme.surface)
             }
 
-            cliEditRow(icon: "person.crop.rectangle", label: "Owner Info", text: $ownerInfo, current: session.settings["owner.info"])
+            cliEditRow(icon: "person.crop.rectangle", label: "Owner Info", text: $ownerInfo, current: session.supportedValue(for: "owner.info"))
             HStack {
                 Image(systemName: "clock.arrow.circlepath")
                     .foregroundStyle(MeshTheme.accent)
@@ -504,7 +497,7 @@ struct RemoteAdvertSection: View {
         Binding(
             get: {
                 if !advertInterval.isEmpty { return advertInterval }
-                return session.settings["advert.interval"] ?? "120"
+                return session.supportedValue(for: "advert.interval") ?? "120"
             },
             set: { newValue in
                 advertInterval = newValue
@@ -517,7 +510,7 @@ struct RemoteAdvertSection: View {
         Binding(
             get: {
                 if !floodAdvertInterval.isEmpty { return floodAdvertInterval }
-                return session.settings["flood.advert.interval"] ?? "3"
+                return session.supportedValue(for: "flood.advert.interval") ?? "3"
             },
             set: { newValue in
                 floodAdvertInterval = newValue

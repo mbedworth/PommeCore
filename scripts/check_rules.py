@@ -497,6 +497,44 @@ def check_repeated_ui_literals() -> None:
                "belongs in one helper in Theme.swift")
 
 
+STATUS_SWITCH = re.compile(r"\bswitch\s+[A-Za-z_][\w.]*\.status\s*\{")
+
+
+def check_status_switch_exhaustive() -> None:
+    """A switch on a message status must not fall back to `default:`.
+
+    Critical Rule 6 says a status is a claim about reality. The model obeyed it:
+    a channel message sent with no transport is marked `.failed`. The channel
+    bubble then drew it as a plain tick, because its status switch handled
+    `.sending` and `.repeated` and sent **everything else** — `.failed`,
+    `.retrying`, `.flooding` — to a `default:` that rendered a checkmark. The
+    rule was honoured in the data and broken in the one place the user can see,
+    and a tester with Bluetooth switched off watched a message claim it had been
+    sent. Found on hardware 2026-10-30, by turning Bluetooth off.
+
+    Exhaustiveness is what makes this class of bug a build error instead of a
+    screenshot: add a status, and every site that renders one stops compiling
+    until it has decided what the new one looks like.
+    """
+    for path in swift_files(["Shared", "watchOS"]):
+        src = lines_of(path)
+        for i, line in enumerate(src):
+            if not STATUS_SWITCH.search(line) or line.lstrip().startswith("//"):
+                continue
+            depth = 0
+            for j in range(i, len(src)):
+                depth += src[j].count("{") - src[j].count("}")
+                if j > i and src[j].strip().startswith("default:"):
+                    report("FAIL", "6", path, j + 1,
+                           "a message status switch falls back to `default:` — "
+                           "every status it has not thought about renders as "
+                           "whatever that branch draws, which is how `.failed` "
+                           "came to display a checkmark. Handle every case")
+                    break
+                if depth <= 0 and j > i:
+                    break
+
+
 def check_no_tool_references() -> None:
     needle = re.compile(r"co-authored-by:\s*claude|claude\.ai/code|generated with \[claude|"
                         r"\bcopilot\b|\bchatgpt\b", re.I)
@@ -762,6 +800,193 @@ def check_hand_built_icloud_keys() -> None:
                        "scopedKey/legacyKey or the setScoped* helpers")
 
 
+def check_cross_platform_symbols() -> None:
+    """A symbol the iOS build needs must not sit inside a macOS-only guard.
+
+    `sendCompanionCLI` runs a command on the radio's own CLI over whichever
+    transport is connected, which is the whole reason firmware 1.18.0 matters:
+    it is the first CLI path that does not need USB, so it is the one that works
+    on iOS, where `USBSerialManager` can never run. It was written *below* the
+    `#if os(macOS)` guarding the USB transport — purely because the other CLI
+    functions live there — and the closure calling it was wired inside the same
+    guard in `PommeCoreViewModel`. Both vanished from the iOS build. The probe
+    never ran on iPhone, support was never detected, the Radio Terminal row
+    never appeared, and the release notes announced the feature anyway. Found on
+    hardware 2026-10-30.
+
+    Nothing else could have caught it. It compiled for both platforms with zero
+    warnings, because code that has been compiled away is not an error. The 151
+    package tests passed, because the frame builder was fine. `meshctl smoke`
+    passed, because it proves the *firmware* answers — and it runs on the Mac.
+    Proximity is not a reason to share a platform guard, and a doc comment
+    saying "this is the one that works on iOS" is not a mechanism.
+
+    Deliberately a name list rather than a heuristic. There is no way to infer
+    which symbols the iOS build needs, and a check that guesses would either
+    miss this or drown the real USB-only code in noise. A cross-platform
+    feature added behind this kind of guard belongs on the list the day it is
+    written.
+    """
+    cross_platform = [
+        "sendCompanionCLI",
+        "probeCompanionCLI",
+        "runCompanionCLI",
+        "onCompanionCLIReady",
+        "handleCompanionCLIUnsupported",
+        "buildRunCLICommand",
+    ]
+    needle = re.compile(r"\b(" + "|".join(cross_platform) + r")\b")
+    mac_guard = re.compile(r"#if\s+os\(macOS\)|#if\s+targetEnvironment\(macCatalyst\)")
+
+    for path in swift_files(["Shared", "watchOS"]):
+        depth = 0           # nesting of #if blocks
+        guarded_at = None   # depth at which a macOS guard opened
+        for i, line in enumerate(lines_of(path), 1):
+            stripped = line.strip()
+            if stripped.startswith("#if"):
+                depth += 1
+                if guarded_at is None and mac_guard.search(stripped):
+                    guarded_at = depth
+                continue
+            if stripped.startswith("#endif"):
+                if guarded_at == depth:
+                    guarded_at = None
+                depth = max(0, depth - 1)
+                continue
+            if stripped.startswith("#else") and guarded_at == depth:
+                # The !macOS side of a macOS guard is where iOS code belongs.
+                guarded_at = None
+                continue
+            if guarded_at is None or stripped.startswith("//"):
+                continue
+            m = needle.search(line)
+            if m:
+                report("FAIL", "DP4", path, i,
+                       f"`{m.group(1)}` is inside a macOS-only guard, so it is "
+                       "absent from the iOS build. This is the companion-CLI "
+                       "defect: the feature that exists to reach iPhone was "
+                       "compiled out of it, with no warning and no test failure")
+
+
+def check_single_send_gate() -> None:
+    """"Did the frame go out" has one answer: what `sendCommand` returned.
+
+    A channel message composed with Bluetooth off displayed a confident "Sent".
+    `sendCommand` returned `Void` and dropped the frame when nothing was
+    connected, so the caller could not tell. The first fix gave it a `Bool`
+    return — and left the caller asking a separate `canSend` predicate first and
+    then discarding that return value. Two evaluations of one question at two
+    different moments: the prediction decided the status, the write was never
+    consulted, and a transport that dropped out in between left the message
+    armed as though it had gone out. The doc comment claimed the duplication was
+    gone while the code kept both halves.
+
+    So: no second predicate, and no call site that throws the answer away when
+    it is deciding what to tell the user.
+    """
+    predicate = re.compile(r"\b(canSend|canSendCommand|isAbleToSend|couldSend)\b")
+    for path in swift_files(["Shared", "watchOS"]):
+        for i, line in enumerate(lines_of(path), 1):
+            if line.lstrip().startswith("//") or line.lstrip().startswith("///"):
+                continue
+            m = predicate.search(line)
+            if m:
+                report("FAIL", "6", path, i,
+                       f"`{m.group(1)}` is a second answer to a question "
+                       "`sendCommand`'s return value already answers, evaluated "
+                       "at a different moment. That gap is how a dropped frame "
+                       "came to display \"Sent\" — act on the write, not on a "
+                       "prediction of it")
+
+
+def check_raw_settings_reads() -> None:
+    """A CLI reply is not a value until `supportedValue(for:)` has said so.
+
+    Three refusal forms reach the app: the serial CLI answers an unknown command
+    with `??: <command>`, a getter for absent hardware replies
+    `Error: unsupported`, and the companion CLI added in 1.18.0 appends the
+    literal `Unknown command`. All three are stored like any other response, so
+    `settings[key] ?? "—"` renders a refusal *as the setting's value* — the `??`
+    never fires, because the key exists and holds the refusal.
+
+    That shipped, on the repeater, room-server and sensor screens reached over
+    BLE admin or USB CLI — a board lacking a capability answers `Error:
+    unsupported`, and the refusal was rendered as the value. The clearest case
+    needs no unsupported command at all: `settings["dutycycle"] != nil` is true
+    for a refusal, so the app sent `set dutycycle` to pre-1.15 radios that do not
+    have the command, and misread the row on them.
+
+    Found 2026-10-30 by typing `clock` into the Radio Terminal and getting
+    `Unknown command` — which prompted this audit, though the terminal was right
+    to print it verbatim. A companion radio has no settings screen:
+    `companionDeviceSession` is created but no view resolves it, and 1.18 exposes
+    only the terminal. Not found by any check, and not by the app tests, because
+    a `settings[...]` read inside a SwiftUI body is unreachable from a test.
+
+    There were 43 such reads in the app and two uses of `supportedValue`. The
+    mechanism was understood and documented in `supportedValue`'s own doc
+    comment, which said callers "must ask for the value this way rather than
+    reading `settings` directly". Documentation is not a mechanism; this is.
+
+    Writes are fine — the fetch path is what populates the dictionary.
+    """
+    read = re.compile(r'(?<!\w)(?:session|self\.session|\w*[Ss]ession)\.settings\s*\[')
+    write = re.compile(r'\.settings\s*\[[^\]]*\]\s*=')
+    for path in swift_files(["Shared", "watchOS"]):
+        for i, line in enumerate(lines_of(path), 1):
+            stripped = line.strip()
+            if stripped.startswith("//") or stripped.startswith("///"):
+                continue
+            if write.search(line):
+                continue
+            if read.search(line):
+                report("FAIL", "DP4", path, i,
+                       "a CLI setting is read straight out of `settings[...]`. A "
+                       "device that does not support the command answers "
+                       "`Unknown command` / `??:` / `Error: unsupported`, and "
+                       "that reply is stored like any other — so `?? \"—\"` puts "
+                       "the refusal on screen as the value. Use "
+                       "`supportedValue(for:)`, `displayValue(for:)` or one of "
+                       "the typed accessors on RemoteDeviceSession")
+
+
+def check_failed_message_offers_retry() -> None:
+    """A view that can show a message as failed must offer to send it again.
+
+    `.failed` is an honest status, and honesty is only useful if the user can act
+    on it. `ChannelMessageBubble` rendered the status and offered no retry — not
+    a button, not a context-menu item — so a failed channel message could only
+    be recovered by retyping the text. The direct-message bubble had both
+    affordances and the room bubble had one, which is how a missing third went
+    unnoticed.
+
+    It hid behind the status bug. A channel message with no transport used to
+    claim `.sent`, so `.failed` was unreachable from a dropped frame and the
+    absent retry never rendered. Fixing Critical Rule 6 is what surfaced it —
+    found on hardware 2026-10-30 by turning Bluetooth off and long-pressing the
+    message that failed.
+
+    Checked per file rather than per view, because a bubble and its retry sit in
+    the same file and anything finer would need a Swift parser. `MessageRetryButton`
+    renders nothing unless the message failed, so a caller can place it
+    unconditionally and the pairing costs nothing.
+    """
+    indicator = re.compile(r"\bMessageStatusIndicator\s*\(")
+    retry = re.compile(r"\bMessageRetryButton\s*\(")
+    for path in swift_files(["Shared", "watchOS"]):
+        src = lines_of(path)
+        body = [l for l in src if not l.strip().startswith("//")]
+        text = "\n".join(body)
+        if not indicator.search(text) or retry.search(text):
+            continue
+        line = next((i for i, l in enumerate(src, 1) if indicator.search(l)), 1)
+        report("FAIL", "6", path, line,
+               "this view renders a message status but never places "
+               "`MessageRetryButton`, so a message it shows as failed cannot be "
+               "sent again — the text has to be retyped. The channel bubble "
+               "shipped that way, hidden behind a status that claimed `.sent`")
+
+
 CHECKS = [
     check_sheet_frames,
     check_text_takes_string,
@@ -779,6 +1004,11 @@ CHECKS = [
     check_literals_in_catalog,
     check_inflection_markup,
     check_repeated_ui_literals,
+    check_status_switch_exhaustive,
+    check_cross_platform_symbols,
+    check_single_send_gate,
+    check_raw_settings_reads,
+    check_failed_message_offers_retry,
     check_help_catalog,
     check_path_len_decoding,
     check_hand_built_icloud_keys,

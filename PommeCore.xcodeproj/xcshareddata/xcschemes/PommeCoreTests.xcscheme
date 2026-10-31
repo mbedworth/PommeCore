@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  A scheme that exists only to run the app's unit tests.
+
+  Deliberately NOT a shared "PommeCore" scheme. Every scheme in this project is
+  autocreated by Xcode — there are no other .xcscheme files, and xcuserdata/ is
+  gitignored — so a shared scheme named PommeCore would *replace* the
+  autocreated one for `-scheme PommeCore`, which is what both test_build.sh and
+  build-and-distribute.sh archive with. A hand-written archive action that got
+  the watch app or the widget extension's embedding subtly wrong would produce a
+  shippable-looking archive with a piece missing, and this project has already
+  shipped widgets nobody could see once.
+
+  **It references the test target only, and that is load-bearing.** The first
+  version of this file also listed PommeCore.app as a build entry and launch
+  runnable, which is what Xcode itself writes for a test scheme — and the
+  `PommeCore` scheme promptly disappeared from `xcodebuild -list`. Xcode stops
+  autocreating a scheme for a target once an existing scheme references it as a
+  runnable, so merely naming the app here deleted the scheme the release
+  pipeline archives with. The app is still built: buildImplicitDependencies is
+  YES and the test target depends on it through TEST_HOST.
+
+  Shared rather than per-user so the test action is checked in. Scheme data
+  living only in gitignored xcuserdata is why `xcodebuild test -scheme PommeCore`
+  answered "not currently configured for the test action" even though the target
+  itself was correct.
+-->
+<Scheme
+   LastUpgradeVersion = "2720"
+   version = "1.7">
+   <BuildAction
+      parallelizeBuildables = "YES"
+      buildImplicitDependencies = "YES">
+      <BuildActionEntries>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "0F4476403095907B0048DA85"
+               BuildableName = "PommeCoreTests.xctest"
+               BlueprintName = "PommeCoreTests"
+               ReferencedContainer = "container:PommeCore.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+      </BuildActionEntries>
+   </BuildAction>
+   <TestAction
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      shouldUseLaunchSchemeArgsEnv = "YES">
+      <Testables>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "0F4476403095907B0048DA85"
+               BuildableName = "PommeCoreTests.xctest"
+               BlueprintName = "PommeCoreTests"
+               ReferencedContainer = "container:PommeCore.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+      </Testables>
+   </TestAction>
+   <AnalyzeAction
+      buildConfiguration = "Debug">
+   </AnalyzeAction>
+</Scheme>

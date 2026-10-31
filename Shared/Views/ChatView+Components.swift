@@ -50,18 +50,7 @@ struct MessageBubble: View {
         parts.append(quotedText != nil ? replyText : message.text)
         let fmt = DateFormatter(); fmt.timeStyle = .short; fmt.dateStyle = .none
         parts.append(fmt.string(from: message.timestamp))
-        switch message.status {
-        case .sending: parts.append("Sending")
-        case .sent: parts.append("Sent")
-        case .repeated: parts.append("Sent, repeated by mesh")
-        case .retrying: parts.append("Retrying, attempt \(message.attempt + 1) of 3")
-        case .flooding: parts.append("Flooding mesh network")
-        case .delivered:
-            if let rtt = message.roundTripMs, rtt > 0 {
-                parts.append("Delivered, round trip \(String(format: "%.1f", Double(rtt) / 1000.0)) seconds")
-            } else { parts.append("Delivered") }
-        case .failed: parts.append("Not delivered")
-        }
+        parts.append(messageStatusPhrase(message))
         if !message.reactions.isEmpty { parts.append("Reactions: \(message.reactions.joined(separator: ", "))") }
         if message.isSigned { parts.append("Verified") }
         if !message.isOutgoing {
@@ -188,27 +177,7 @@ struct MessageBubble: View {
                 .padding(.horizontal, 4)
                 .accessibilityHidden(true)
 
-                if message.status == .failed {
-                    Button {
-                        messageStoreManager.retryMessage(message)
-                    } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: "arrow.clockwise")
-                            Text("Tap to retry")
-                        }
-                        .font(.caption2.weight(.medium))
-                        .foregroundStyle(MeshTheme.accent)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 4)
-                        .background(MeshTheme.surfaceLight)
-                        .clipShape(Capsule())
-                    }
-                    .buttonStyle(.plain)
-                    .frame(minHeight: 44)
-                    .contentShape(Rectangle())
-                    .accessibilityLabel("Message not delivered")
-                    .accessibilityHint("Tap to resend")
-                }
+                MessageRetryButton(message: message)
             }
             .contentShape(Rectangle())
             .contextMenu {
@@ -285,17 +254,108 @@ struct MessageBubble: View {
 
     @ViewBuilder
     private var deliveryIndicator: some View {
+        MessageStatusIndicator(message: message)
+    }
+}
+
+/// The one place a message status becomes words.
+///
+/// Used by `MessageStatusIndicator` for its accessibility label and by the
+/// bubble's spoken summary, so what VoiceOver says can never disagree with
+/// what the icon claims — they are the same sentence.
+func messageStatusPhrase(_ message: Message) -> String {
+    switch message.status {
+    case .sending: return String(localized: "Sending")
+    case .sent: return String(localized: "Sent")
+    case .repeated: return String(localized: "Sent, repeated by mesh")
+    case .retrying: return String(localized: "Retrying, attempt \(message.attempt + 1) of 3")
+    case .flooding: return String(localized: "Flooding mesh network")
+    case .delivered:
+        if let rtt = message.roundTripMs, rtt > 0 {
+            return String(localized: "Delivered, round trip \(String(format: "%.1f", Double(rtt) / 1000.0)) seconds")
+        }
+        return String(localized: "Delivered")
+    case .failed: return String(localized: "Not delivered")
+    }
+}
+
+/// The one place a failed message offers to be sent again.
+///
+/// There were two copies and one absence. The direct-message bubble had this
+/// button *and* a "Retry Send" context-menu item; the room bubble had the button
+/// only; `ChannelMessageBubble` had neither, so a failed channel message could
+/// not be retried at all — the text had to be typed again.
+///
+/// It stayed invisible because a channel message with no transport used to claim
+/// `.sent`. `.failed` was unreachable from a dropped frame, so the missing retry
+/// never appeared. Fixing the status (Critical Rule 6) is what exposed it: an
+/// honest failure state is only useful if there is something the user can do
+/// about it. Found on hardware 2026-10-30, by turning Bluetooth off and
+/// long-pressing the message that failed.
+///
+/// Renders nothing unless the message actually failed, so a caller can place it
+/// unconditionally and no bubble can forget the `.failed` case again.
+struct MessageRetryButton: View {
+    let message: Message
+    @Environment(MessageStoreManager.self) private var messageStoreManager
+
+    var body: some View {
+        if message.status == .failed {
+            Button {
+                messageStoreManager.retryMessage(message)
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "arrow.clockwise")
+                    Text("Tap to retry")
+                }
+                .font(.caption2.weight(.medium))
+                .foregroundStyle(MeshTheme.accent)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
+                .background(MeshTheme.surfaceLight)
+                .clipShape(Capsule())
+            }
+            .buttonStyle(.plain)
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
+            .accessibilityLabel("Message not delivered")
+            .accessibilityHint("Tap to resend")
+        }
+    }
+}
+
+/// The one place a message status becomes an icon.
+///
+/// There were two. This one was exhaustive and correct; the channel bubble had
+/// its own three-case copy ending in `default:`, which drew a plain checkmark
+/// for everything it had not thought about — including `.failed`. So a channel
+/// message sent with Bluetooth off was marked failed by the model, exactly as
+/// Critical Rule 6 requires, and then displayed a confident tick. The rule was
+/// honoured in the data and broken in the view, which is the only place the
+/// user can see it.
+///
+/// **No `default:`.** The switch is exhaustive so that adding a status breaks
+/// the build here rather than silently rendering as something else.
+struct MessageStatusIndicator: View {
+    let message: Message
+
+    var body: some View {
+        indicator
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(messageStatusPhrase(message))
+    }
+
+    @ViewBuilder
+    private var indicator: some View {
         switch message.status {
         case .sending:
             Image(systemName: "clock")
                 .font(.caption2)
                 .foregroundStyle(MeshTheme.textSecondary)
-                .accessibilityLabel("Sending")
         case .sent, .repeated:
             Image(systemName: "checkmark")
                 .font(.caption2)
                 .foregroundStyle(MeshTheme.textSecondary)
-                .accessibilityLabel(message.status == .repeated ? Text("Sent, repeated by mesh") : Text("Sent"))
         case .retrying:
             HStack(spacing: 2) {
                 Image(systemName: "arrow.clockwise")
@@ -306,7 +366,6 @@ struct MessageBubble: View {
                     .foregroundStyle(MeshTheme.statusWarn)
             }
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel(String(localized: "Retrying, attempt \(message.attempt + 1) of 3"))
         case .flooding:
             HStack(spacing: 2) {
                 Image(systemName: "dot.radiowaves.left.and.right")
@@ -317,13 +376,11 @@ struct MessageBubble: View {
                     .foregroundStyle(MeshTheme.statusWarn)
             }
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel("Flooding mesh network")
         case .delivered:
             HStack(spacing: 2) {
                 Image(systemName: "checkmark.circle.fill")
                     .font(.caption2)
                     .foregroundStyle(MeshTheme.accent)
-                    .accessibilityLabel("Delivered")
                 if let rtt = message.roundTripMs, rtt > 0 {
                     Text("\u{2022}")
                         .font(.caption2)
@@ -332,7 +389,6 @@ struct MessageBubble: View {
                     Text(String(format: "%.1fs", Double(rtt) / 1000.0))
                         .font(.caption2)
                         .foregroundStyle(MeshTheme.accent)
-                        .accessibilityLabel(String(localized: "Round trip \(String(format: "%.1f", Double(rtt) / 1000.0)) seconds"))
                 }
             }
         case .failed:
@@ -344,7 +400,6 @@ struct MessageBubble: View {
                     .font(.caption2)
                     .foregroundStyle(MeshTheme.disconnected)
             }
-            .accessibilityLabel("Not delivered")
         }
     }
 }
@@ -396,25 +451,7 @@ struct ChannelMessageBubble: View {
                         .foregroundStyle(MeshTheme.textSecondary)
 
                     if message.isOutgoing {
-                        switch message.status {
-                        case .sending:
-                            Image(systemName: "clock")
-                                .font(.caption2)
-                                .foregroundStyle(MeshTheme.textSecondary)
-                        case .repeated:
-                            HStack(spacing: 2) {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .font(.caption2)
-                                    .foregroundStyle(MeshTheme.accent)
-                                Text("Repeated")
-                                    .font(.caption2)
-                                    .foregroundStyle(MeshTheme.accent)
-                            }
-                        default:
-                            Image(systemName: "checkmark")
-                                .font(.caption2)
-                                .foregroundStyle(MeshTheme.textSecondary)
-                        }
+                        MessageStatusIndicator(message: message)
                     }
 
                     if !message.isOutgoing {
@@ -457,6 +494,12 @@ struct ChannelMessageBubble: View {
                     }
                 }
                 .padding(.horizontal, 4)
+
+                // This bubble had no retry at all — not a button, not a menu
+                // item — while the direct-message bubble had both and the room
+                // bubble had the button. A failed channel message could only be
+                // recovered by retyping it.
+                MessageRetryButton(message: message)
             }
             .accessibilityElement(children: .combine)
             .contentShape(Rectangle())
@@ -465,6 +508,15 @@ struct ChannelMessageBubble: View {
                     copyToClipboard(message.text)
                 } label: {
                     Label("Copy Text", systemImage: "doc.on.doc")
+                }
+                // Long-press is where all the options live (design principle 1),
+                // and the direct-message bubble has offered this for some time.
+                if message.isOutgoing && message.status == .failed {
+                    Button {
+                        messageStoreManager.retryMessage(message)
+                    } label: {
+                        Label("Retry Send", systemImage: "arrow.clockwise")
+                    }
                 }
                 if !message.isOutgoing, let sender = message.senderName, !sender.isEmpty {
                     Button {

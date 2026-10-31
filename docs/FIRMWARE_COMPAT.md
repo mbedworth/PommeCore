@@ -58,7 +58,7 @@ two matter only for CLI commands used by Remote Management.
 
 ## What each version changed for the app
 
-### v1.18.0 — reviewed 2026-10-17, nothing adopted yet
+### v1.18.0 — reviewed 2026-10-17, adopted 2026-10-24
 
 **The first protocol surface change since 1.15.0, and the first `FIRMWARE_VER_CODE` bump since
 1.16.0: 13 → 14.** The app does not gate on that byte and must not start — see the baseline note
@@ -122,6 +122,26 @@ well-known one, since `SHA256` of 16 zero bytes is globally fixed.
    values and the `> ` prefix the app strips is really there.
 
 `FIRMWARE_VER_CODE` reported 14, as expected — recorded, not gated on.
+
+**Confirmed on iOS hardware 2026-10-30**, in the app's own Radio Terminal on an
+iPhone against `v1.18.0-81dbae5`: `ver` returned the version string, and
+`nonsense` returned `Unknown command`.
+
+**This is a different fact from the 12/12 above, and the difference is the whole
+lesson of this release.** `meshctl smoke` runs on the Mac. It proves the
+*firmware* answers; it cannot prove the *iOS path* works, and on 26.10.28 the
+iOS path did not exist — `sendCompanionCLI` was compiled out by a `#if
+os(macOS)` it had been written next to, so the probe never ran and the Radio
+Terminal row never appeared on any iPhone. Every gate passed: clean builds for
+both platforms, 151 package tests, and these very three assertions, green, from
+the wrong machine. Assertions 1 and 2 are now confirmed from the platform the
+feature exists for.
+
+The remaining 1.18 CLI behaviour not yet confirmed on iOS is **pacing**:
+`RESP_CODE_CLI_REPLY` carries no correlation id, so a second command in flight
+would take the first one's answer, and `runCompanionCLI` serialises to prevent
+it. The failure mode is a plausible reply to the wrong command rather than an
+error, which is why it needs a human watching several commands in a row.
 
 ### v1.17.0 / v1.17.1 — reviewed 2026-08-24, adopted
 

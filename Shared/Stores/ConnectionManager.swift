@@ -144,22 +144,29 @@ final class ConnectionManager {
     // MARK: - Send Command
 
     /// Route a command frame to the active transport (WiFi > USB binary > BLE).
-    /// Whether a frame handed to `sendCommand` would actually reach a transport.
     ///
-    /// `sendCommand` itself reads this, so a caller asking first is asking the
-    /// same question rather than keeping a second copy of the answer. It exists
-    /// because `sendCommand` returns `Void` and drops the frame when nothing is
-    /// connected: a caller that assumed the frame left the phone was recording
-    /// something that never happened.
-    var canSendCommand: Bool {
-        if wifiManager.isConnected { return true }
-        #if os(macOS) || targetEnvironment(macCatalyst)
-        if usbManager.isConnected && usbManager.detectedMode == .binary { return true }
-        #endif
-        return connectionState == .ready || connectionState == .connected
-    }
-
-    func sendCommand(_ data: Data, label: String) {
+    /// There is deliberately no `canSendCommand` companion. One existed, with
+    /// the same three transport conditions written out a second time, and
+    /// `MessageStoreManager` consulted it and then threw away what this
+    /// function returned — so the answer that decided the message status was a
+    /// prediction made a moment earlier rather than the result of the write.
+    /// Reintroducing a predicate here means reintroducing that gap; a caller
+    /// that needs to know whether a frame went out calls this and reads the
+    /// return value.
+    ///
+    /// **Returns whether the frame was actually written.** It used to return
+    /// `Void` and drop the frame silently, which is how a channel message sent
+    /// with Bluetooth off came to display a confident "Sent": the caller asked
+    /// `canSendCommand` first, that answer was stale by the time this ran, the
+    /// frame was dropped here, and the caller armed a pending send as though it
+    /// had gone out. The next `PACKET_OK` to arrive — from the reconnect
+    /// handshake, answering a completely different command — promoted it.
+    ///
+    /// Two evaluations of "can we send?" at two different moments is the same
+    /// duplication problem as any other: there is now one, it happens at the
+    /// point of writing, and it is reported to the caller.
+    @discardableResult
+    func sendCommand(_ data: Data, label: String) -> Bool {
         let verbose = !Self.routineLabels.contains(label)
 
         if wifiManager.isConnected {
@@ -167,7 +174,7 @@ final class ConnectionManager {
             Self.logger.info("TX(WiFi) \(label) [\(data.count) bytes]: \(hex)")
             if verbose { DebugLogger.shared.log("TX(WiFi) \(label) [\(data.count)B] \(hex)", level: .tx) }
             wifiManager.sendFrame(data)
-            return
+            return true
         }
         #if os(macOS) || targetEnvironment(macCatalyst)
         if usbManager.isConnected && usbManager.detectedMode == .binary {
@@ -175,18 +182,19 @@ final class ConnectionManager {
             Self.logger.info("TX(USB) \(label) [\(data.count) bytes]: \(hex)")
             if verbose { DebugLogger.shared.log("TX(USB) \(label) [\(data.count)B] \(hex)", level: .tx) }
             usbManager.sendFrame(data)
-            return
+            return true
         }
         #endif
         guard connectionState == .ready || connectionState == .connected else {
             Self.logger.warning("Cannot send \(label) — not connected (state: \(String(describing: self.connectionState)))")
             DebugLogger.shared.log("TX FAIL \(label) — not connected", level: .error)
-            return
+            return false
         }
         let hex = data.hexFormatted()
         Self.logger.info("TX \(label) [\(data.count) bytes]: \(hex)")
         if verbose { DebugLogger.shared.log("TX \(label) [\(data.count)B] \(hex)", level: .tx) }
         bleManager.send(data: data)
+        return true
     }
 
     // MARK: - Protocol Convenience Commands
