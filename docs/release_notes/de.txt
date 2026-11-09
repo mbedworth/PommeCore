@@ -5,3 +5,7 @@ Diese Version behebt zwei Fehler, die uns Rezensenten gemeldet haben, und einen 
 - Die automatische Kontaktbereinigung unterbricht dich nicht mehr. Jedes Mal, wenn das Funkgerät Platz für einen neuen Kontakt schuf, öffnete die App einen Dialog „Gerätefehler“ — einen pro Kontakt — für einen völlig normalen Vorgang, um den du selbst gebeten hattest. Die Bereinigung erscheint nun in einem kurzen Hinweis, der von selbst verschwindet, und unter „Einstellungen“, „Benachrichtigungen“, „Kontaktverwaltung“ lässt sie sich abschalten.
 
 - Fünfzehn Fehler- und Statusmeldungen waren bisher nur auf Englisch verfasst, darunter die Warnung über den vollen Kontaktspeicher und alle Fehler beim Kanalimport. Sie sind jetzt in alle zwölf Sprachen übersetzt, und eine neue Prüfung läuft bei jedem Build, damit die nächste nicht unbemerkt durchrutscht.
+
+- Unter „Einstellungen“, „Geräteinformationen“ wird jetzt angezeigt, wie viel von deinem Funkgerät belegt ist: Kontakte und Kanäle als Anzahl im Verhältnis zur Obergrenze, nicht mehr nur die Obergrenze allein. Daran lässt sich auch ablesen, wie nah das Funkgerät daran ist, seinen ältesten Kontakt zu löschen, um Platz zu schaffen.
+
+- Sechzehn Hilfetexte in der App gab es nur auf Englisch. Beim Nachtragen fielen Übersetzungen auf, die nicht fehlten, sondern falsch waren — darunter eine Apple-Watch-Funktion, die zehn Sprachen in die Aufforderung verwandelt hatten, etwas anzuschauen. Das ist ebenfalls behoben.

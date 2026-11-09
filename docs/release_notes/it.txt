@@ -5,3 +5,7 @@ Questa versione corregge due bug segnalati nelle recensioni e un terzo trovato m
 - La pulizia automatica dei contatti non ti interrompe più. Ogni volta che la radio faceva spazio per un nuovo contatto, l'app apriva una finestra «Errore dispositivo» — una per contatto — per un'operazione del tutto normale che avevi chiesto tu stesso. La pulizia viene ora segnalata da un breve banner che scompare da sé, e puoi disattivarla in «Impostazioni», «Notifiche», «Gestione contatti».
 
 - Quindici messaggi di errore e di stato esistevano solo in inglese, fra cui l'avviso di memoria contatti piena e tutti gli errori di importazione dei canali. Ora sono tradotti in tutte e dodici le lingue, e un nuovo controllo viene eseguito a ogni build perché il prossimo non passi inosservato.
+
+- In «Impostazioni», «Informazioni dispositivo» ora si vede quanto della radio è occupato: contatti e canali come conteggio rispetto al limite, invece del solo limite. Serve anche a capire quanto manca perché la radio elimini il contatto più vecchio per fare spazio.
+
+- Sedici testi di aiuto nell'app esistevano solo in inglese. Aggiungendoli sono emerse traduzioni non mancanti ma sbagliate — fra cui una funzione per Apple Watch che dieci lingue avevano trasformato nell'invito a guardare qualcosa. Anche quelle sono corrette.

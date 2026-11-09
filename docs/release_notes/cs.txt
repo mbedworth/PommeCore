@@ -5,3 +5,7 @@ Tato verze opravuje dvě chyby, na které nás upozornily recenze, a třetí, kt
 - Automatický úklid kontaktů vás už nepřerušuje. Kdykoli rádio uvolnilo místo pro nový kontakt, aplikace otevřela dialog „Chyba zařízení“ — jeden na každý kontakt — kvůli zcela běžné činnosti, o kterou jste sami požádali. Úklid se teď hlásí jedním krátkým oznámením, které samo zmizí, a vypnout jej lze v „Nastavení“, „Oznámení“, „Údržba kontaktů“.
 
 - Patnáct chybových a stavových zpráv existovalo pouze v angličtině, mezi nimi upozornění na zaplněné úložiště kontaktů a všechna selhání importu kanálů. Nyní jsou přeloženy do všech dvanácti jazyků a při každém buildu běží nová kontrola, aby příští nepronikla bez povšimnutí.
+
+- V „Nastavení“, „Informace o zařízení“ se nyní ukazuje, kolik z rádia je zaplněno: kontakty a kanály jako počet vůči limitu, místo samotného limitu. Zároveň je z toho vidět, jak blízko je rádio k odstranění nejstaršího kontaktu, aby uvolnilo místo.
+
+- Šestnáct textů nápovědy v aplikaci existovalo pouze v angličtině. Při jejich doplňování se našly překlady, které nechyběly, ale byly chybné — mezi nimi funkce pro Apple Watch, kterou deset jazyků změnilo na pokyn se na něco podívat. I ty jsou opravené.
