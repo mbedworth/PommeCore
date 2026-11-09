@@ -1,51 +1,7 @@
-Happy Halloween!
+Esta versão corrige dois erros apontados nas avaliações e um terceiro que encontrámos ao corrigi-los. Obrigado pelos relatos: ambos foram localizados apenas com as vossas descrições.
 
-Esmagámos alguns erros e afugentámos alguns monstros.
+- A frequência do seu rádio já não é sobrescrita. Depois de uma desconexão Bluetooth, a app recorria a um valor interno de 906 MHz e não conseguia distingui-lo de um valor que o rádio tivesse de facto comunicado. Abrir as definições do rádio e tocar em «Aplicar» reprogramava então o aparelho: frequência, largura de banda, fator de espalhamento e taxa de codificação de uma só vez. As definições que a app ainda não leu passam a ser marcadas como desconhecidas, e «Aplicar» permanece desativado até chegar a configuração real do rádio.
 
-- As notificações de canal passam a respeitar «Menções» e «Silenciado». Ambas as definições eram ignoradas no canal público, pelo que chegava uma notificação independentemente do que tivesse escolhido.
+- A limpeza automática de contactos já não o interrompe. Sempre que o rádio abria espaço para um novo contacto, a app mostrava uma caixa «Erro do Dispositivo» — uma por contacto — para algo perfeitamente normal que você próprio pediu. A limpeza é agora anunciada num aviso breve que desaparece sozinho, e pode desligá-lo em «Configurações», «Notificações», «Limpeza de contatos».
 
-- Um canal silenciado já não vibra. Antes vibrava uma vez por cada mensagem, incluindo todo o atraso acumulado quando o seu rádio se voltava a ligar.
-
-- Um som de notificação que tinha desligado já não toca.
-
-- O estado de uma mensagem reflete agora o que realmente aconteceu. Uma mensagem de canal só aparece como enviada quando o rádio confirma que saiu, e nunca afirma uma entrega que o mesh não tem forma de comunicar.
-
-- Uma mensagem que não pôde ser enviada di-lo agora com clareza em vez de mostrar um visto, e pode ser enviada de novo com um toque.
-
-- O número de hop e o comprimento das mensagens são indicados nas unidades que o próprio rádio usa. Um mesh que não pode exceder 63 hop já não declara 70.
-
-- Um rascunho desaparece agora do campo de escrita assim que a mensagem segue caminho.
-
-- O editor de variáveis personalizadas abre também num rádio que não tem nenhuma, para que a primeira possa finalmente ser criada.
-
-- O VoiceOver já não fala inglês no relógio.
-
-E há algumas travessuras e gulosices novas.
-
-- O Terminal do rádio: a linha de comandos do próprio rádio, agora por Bluetooth e não apenas por cabo, o que a traz pela primeira vez para iPhone e iPad. Em «Configurações», «Avançado», a partir do firmware 1.18.
-
-- Um manual integrado que funciona sem ligação, porque um manual que precisa de rede falta exatamente quando é preciso.
-
-- Um painel de sensores que compara nós lado a lado em vez de os listar um a um.
-
-- As rotas descobertas são desenhadas no mapa do mesh, com cada hop colorido segundo a qualidade do sinal.
-
-- Os servidores de sala podem publicar comunicados próprios.
-
-- Uma única lista de contactos com um seletor de tipo em vez de secções fixas, e a ordenação e a seleção múltipla estão agora disponíveis em todas, e não só em duas.
-
-- Suporte para o firmware MeshCore 1.18.
-
-- 77 textos que nunca tinham chegado ao catálogo de tradução estão agora traduzidos, e uma revisão das outras onze línguas corrigiu traduções que estavam erradas e não apenas ausentes.
-
-Toque longo no iPhone e no iPad, ou clique direito num Mac: é aí que estão as novas opções.
-
-- «Resposta rápida» numa mensagem: responder com número de hop, sinal, hora e uma etiqueta de localização definida por si, cada uma podendo ser desativada.
-
-- «Enviar novamente» para uma mensagem que não passou.
-
-- «Manter» num contacto, para o proteger da limpeza, e «Encontrar contatos desatualizados» para localizar os que deixaram de responder.
-
-- «Colar Link de Contato», para adicionar alguém a partir de um link na área de transferência.
-
-- «Enviar Anúncio de Inundação», para se dar a conhecer em todo o mesh e não apenas aos vizinhos imediatos.
+- Quinze mensagens de erro e de estado existiam apenas em inglês, incluindo o aviso de armazenamento de contactos cheio e todas as falhas de importação de canais. Estão agora traduzidas nas doze línguas, e uma nova verificação corre em cada compilação para que a próxima não passe despercebida.

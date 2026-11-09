@@ -1,51 +1,7 @@
-Happy Halloween!
+Deze versie verhelpt twee bugs die reviewers ons meldden, en een derde die we tijdens het oplossen vonden. Bedankt voor de meldingen: beide waren alleen al uit jullie beschrijvingen te vinden.
 
-We hebben een aantal bugs geplet en een paar monsters weggejaagd.
+- De frequentie van je radio wordt niet meer overschreven. Na een Bluetooth-verbreking viel de app terug op een ingebouwde standaardwaarde van 906 MHz en kon die niet onderscheiden van een waarde die de radio echt had doorgegeven. Wie daarna de radio-instellingen opende en op «Toepassen» tikte, programmeerde het apparaat opnieuw: frequentie, bandbreedte, spreidingsfactor en codeersnelheid in één keer. Instellingen die de app nog niet heeft gelezen worden nu als onbekend aangeduid, en «Toepassen» blijft uitgeschakeld totdat de echte configuratie van je radio binnen is.
 
-- Kanaalmeldingen respecteren nu «Menties» en «Gedempt». Beide instellingen werden op het openbare kanaal genegeerd, zodat er een melding kwam wat je ook had gekozen.
+- Het automatisch opruimen van contacten onderbreekt je niet meer. Telkens als de radio ruimte maakte voor een nieuw contact, opende de app een dialoogvenster «Apparaatfout» — één per contact — voor iets volkomen normaals waar je zelf om had gevraagd. Het opruimen wordt nu gemeld met een korte banner die zichzelf sluit, en je kunt het uitzetten bij «Instellingen», «Meldingen», «Contactbeheer».
 
-- Een gedempt kanaal trilt niet meer. Eerder trilde het één keer per bericht, inclusief de hele achterstand zodra je radio opnieuw verbinding maakte.
-
-- Een meldingsgeluid dat je had uitgezet, klinkt niet meer.
-
-- De status van een bericht geeft nu weer wat er werkelijk is gebeurd. Een kanaalbericht staat pas als verzonden wanneer de radio bevestigt dat het weg is, en het claimt nooit een bezorging die het mesh helemaal niet kan melden.
-
-- Een bericht dat niet verzonden kon worden, zegt dat nu duidelijk in plaats van een vinkje te tonen, en kan met één tik opnieuw worden verzonden.
-
-- Het aantal hop en de lengte van berichten worden weergegeven in de eenheden die de radio zelf gebruikt. Een mesh dat niet verder kan dan 63 hop beweert niet langer 70.
-
-- Een concept verdwijnt nu uit het invoerveld zodra het bericht onderweg is.
-
-- De editor voor eigen variabelen opent ook op een radio die er geen heeft, zodat de eerste eindelijk aangemaakt kan worden.
-
-- VoiceOver spreekt op de horloge geen Engels meer.
-
-En er zijn een paar nieuwe trucs en traktaties.
-
-- De Radio Terminal: de eigen opdrachtregel van je radio, nu via Bluetooth in plaats van alleen via een kabel, waardoor die voor het eerst op iPhone en iPad beschikbaar is. Onder «Instellingen», «Geavanceerd», vanaf firmware 1.18.
-
-- Een ingebouwde handleiding die offline werkt, want een handleiding die een netwerk nodig heeft, ontbreekt juist wanneer je hem nodig hebt.
-
-- Een sensordashboard dat knooppunten naast elkaar vergelijkt in plaats van ze één voor één op te sommen.
-
-- Ontdekte routes worden op de mesh-kaart getekend, met elke hop gekleurd naar signaalkwaliteit.
-
-- Roomservers kunnen hun eigen mededelingen plaatsen.
-
-- Eén contactenlijst met een typekiezer in plaats van vaste secties, en sorteren en meervoudige selectie zijn nu overal beschikbaar, niet alleen in twee lijsten.
-
-- Ondersteuning voor MeshCore-firmware 1.18.
-
-- 77 teksten die het vertaalcatalogus nooit hadden bereikt zijn nu vertaald, en een ronde door de andere elf talen heeft vertalingen gecorrigeerd die verkeerd waren en niet alleen ontbraken.
-
-Lang indrukken op iPhone en iPad, of rechtsklikken op een Mac: daar staan de nieuwe opties.
-
-- «Snel antwoord» op een bericht: antwoorden met aantal hop, signaal, tijd en een locatieaanduiding die je zelf instelt, elk afzonderlijk uit te zetten.
-
-- «Verzend opnieuw» voor een bericht dat niet is aangekomen.
-
-- «Behouden» bij een contact, om het tegen opruimen te beschermen, en «Oude contacten vinden» om de contacten op te sporen die niet meer antwoorden.
-
-- «Plak Contactlink», om iemand toe te voegen vanuit een link op het klembord.
-
-- «Flooding-aankondiging verzenden», om je in het hele mesh bekend te maken en niet alleen bij je directe buren.
+- Vijftien fout- en statusmeldingen bestonden alleen in het Engels, waaronder de waarschuwing dat de contactopslag vol is en alle fouten bij het importeren van kanalen. Ze zijn nu in alle twaalf talen vertaald, en een nieuwe controle loopt bij elke build zodat de volgende niet onopgemerkt doorglipt.
