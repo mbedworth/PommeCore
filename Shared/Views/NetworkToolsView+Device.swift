@@ -2,7 +2,7 @@
 //  NetworkToolsView+Device.swift
 //  PommeCore
 //
-//  Device info, activity overlay, path viewer, manual path editor, and ping results.
+//  Activity overlay, path viewer, manual path editor, and ping results.
 //
 //  Created by Michael P. Bedworth on 3/14/26.
 //  Copyright © 2026 Michael P. Bedworth. All rights reserved.
@@ -11,85 +11,6 @@
 import SwiftUI
 import Combine
 import MeshCoreKit
-
-// MARK: - Device Info Popover
-
-/// Shows basic info about the currently connected device.
-struct DeviceInfoPopover: View {
-    @Environment(DeviceConfig.self) private var config
-    @Environment(ContactStore.self) private var contactStore
-    @Environment(ChannelStore.self) private var channelStore
-    @Environment(ConnectionManager.self) private var connectionManager
-
-    var body: some View {
-        List {
-            Section {
-                infoRow("Device", value: connectionManager.connectedDeviceName ?? "Unknown")
-                if !config.deviceName.isEmpty {
-                    infoRow("Advert Name", value: config.deviceName)
-                }
-                if !config.semanticVersion.isEmpty {
-                    infoRow("Firmware", value: config.semanticVersion)
-                } else if !config.firmwareVersion.isEmpty {
-                    infoRow("Firmware", value: config.firmwareVersion)
-                }
-                if !config.manufacturer.isEmpty {
-                    infoRow("Model", value: config.manufacturer)
-                }
-            } header: {
-                Text("Device").foregroundStyle(MeshTheme.textSecondary)
-            }
-
-            Section {
-                if config.batteryMillivolts > 0 {
-                    infoRow("Battery", value: String(format: "%.2fV (%d%%)", config.batteryVoltage, config.batteryPercent()))
-                }
-                if config.statsUptime > 0 {
-                    infoRow("Uptime", value: formatUptime(config.statsUptime))
-                }
-                if config.statsLastRSSI != 0 {
-                    infoRow("Last RSSI", value: "\(config.statsLastRSSI) dBm")
-                }
-                if config.statsLastSNR != 0 {
-                    infoRow("Last SNR", value: formatSNR(config.statsLastSNR))
-                }
-            } header: {
-                Text("Status").foregroundStyle(MeshTheme.textSecondary)
-            }
-
-            Section {
-                infoRow("Frequency", value: String(format: "%.3f MHz", config.frequencyMHz))
-                infoRow("TX Power", value: "\(config.radioTXPower) dBm")
-                infoRow("SF/BW", value: "SF\(config.radioSpreadingFactor) / \(Int(config.bandwidthKHz)) kHz")
-                infoRow("Contacts", value: "\(contactStore.contacts.count) / \(config.maxContacts)")
-                infoRow("Channels", value: "\(channelStore.channels.count) / \(config.maxChannels)")
-            } header: {
-                Text("Radio").foregroundStyle(MeshTheme.textSecondary)
-            }
-
-            Section {
-                Button(role: .destructive) {
-                    connectionManager.bleManager.disconnect()
-                } label: {
-                    HStack {
-                        Image(systemName: "wifi.slash")
-                        Text("Disconnect")
-                        Spacer()
-                    }
-                    .foregroundStyle(MeshTheme.statusBad)
-                }
-                .listRowBackground(MeshTheme.surface)
-            }
-        }
-        .meshListStyle()
-        .navigationTitle("Device Info")
-    }
-
-    private func infoRow(_ label: LocalizedStringKey, value: String) -> some View {
-        LabelValueRow(label: label, value: value, valueColor: MeshTheme.textPrimary)
-    }
-
-}
 
 // MARK: - Activity Overlay
 

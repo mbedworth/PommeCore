@@ -575,6 +575,30 @@ UI_LITERAL = re.compile(
     r'|LabeledContent|Toggle|Picker|TextField)\(\s*"((?:[^"\\]|\\.)+)"'
 )
 
+# `SectionInfoHeader` is the project's own container, and it takes its key
+# through a *labelled* argument — `info:`, optionally after `title:` — so the
+# pattern above, which anchors on `(` immediately followed by a literal, could
+# never match it. **Nothing was looking at the in-app help prose**, and 12 of
+# the 62 call sites had no catalog entry: Community Presets, the whole Profile
+# Export screen, two Remote Management footers, Region Filter, Emergency Safety
+# and the custom-variables footer — paragraphs of English shipped to all eleven
+# other languages. Found 2026-11-08 by a new 13th site tripping nothing.
+#
+# That is the fourth time a whole category of user-visible string turned out to
+# be invisible here: 51 via `Text("literal")`, 26 via `LabeledContent`/`Toggle`/
+# `Picker`/`TextField`, 15 via the error channel, now this. The lesson has not
+# changed — a check looks at a *shape*, and the string arrives in another one.
+# **A new way of getting words on screen needs a check the day it is written.**
+#
+# Matched against the whole file rather than line by line, because a labelled
+# argument is exactly the kind that gets wrapped onto its own line, and a check
+# defeated by a line break is worse than no check: it reports clean.
+UI_LITERAL_LABELLED = re.compile(
+    r'SectionInfoHeader\(\s*(?:title:\s*"((?:[^"\\]|\\.)+)"\s*,\s*)?'
+    r'info:\s*"((?:[^"\\]|\\.)+)"',
+    re.DOTALL,
+)
+
 
 def _unescape_swift(s: str) -> str:
     s = re.sub(r"\\u\{([0-9a-fA-F]+)\}", lambda m: chr(int(m.group(1), 16)), s)
@@ -613,6 +637,20 @@ def check_literals_in_catalog() -> None:
                 key = _unescape_swift(raw)
                 if key not in keys:
                     report("FAIL", "18", path, i,
+                           f'"{key[:60]}" is not in the string catalog — it will '
+                           "render in English in every other language")
+
+        # The labelled-argument containers, over the whole file — see
+        # `UI_LITERAL_LABELLED` for why this pass is not line-based.
+        text = path.read_text(encoding="utf-8", errors="replace")
+        for m in UI_LITERAL_LABELLED.finditer(text):
+            line_no = text.count("\n", 0, m.start()) + 1
+            for raw in m.groups():
+                if not raw or "\\(" in raw:
+                    continue
+                key = _unescape_swift(raw)
+                if key not in keys:
+                    report("FAIL", "18", path, line_no,
                            f'"{key[:60]}" is not in the string catalog — it will '
                            "render in English in every other language")
 

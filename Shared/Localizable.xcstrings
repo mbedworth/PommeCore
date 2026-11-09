@@ -4163,7 +4163,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "A Mac disconnects cleanly before sleeping. Without that the radio keeps holding the old connection and refuses the next one, so let the disconnection happen rather than forcing it."
+            "value": "Mac はスリープに入る前に正しく切断します。これを行わないと無線機が古い接続を保持したままになり、次の接続を拒否します。切断は強制せず、自然に完了させてください。"
           }
         }
       }
@@ -4660,7 +4660,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "A grey contact is not unreachable. It means nothing has been heard recently, which for a radio that only speaks when spoken to is unremarkable."
+            "value": "グレーの連絡先は到達不能という意味ではありません。最近何も受信していないことを示すだけで、話しかけられたときにのみ応答する無線機にとっては珍しいことではありません。"
           }
         }
       }
@@ -5370,7 +5370,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "A single wrong value makes a radio deaf while looking perfectly healthy, which is why a preset shared by your local mesh is worth more than settings assembled by hand."
+            "value": "値が一つ間違っているだけで、無線機は一見正常なまま受信できなくなります。そのため、手作業で組み立てた設定よりも、地域のメッシュで共有されているプリセットのほうが確実です。"
           }
         }
       }
@@ -7820,12 +7820,6 @@
             "value": "送信時間係数"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Airtime Factor"
-          }
-        },
         "pl": {
           "stringUnit": {
             "state": "translated",
@@ -7848,6 +7842,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "传输时间系数"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zendtijdfactor"
           }
         }
       }
@@ -8486,6 +8486,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "允许清理"
+          }
+        }
+      }
+    },
+    "Allow Read-Only lets guests read messages without a password. Set a guest password to require authentication for guest access.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erlaube Lesezugriff, damit Gäste Nachrichten ohne Passwort lesen können. Setze ein Gastpasswort, um die Authentifizierung für den Gastzugriff zu erfordern."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autoriser la lecture seule permet aux invités de lire les messages sans mot de passe. Définissez un mot de passe invité pour exiger une authentification pour l'accès invité."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permitir solo lectura permite a los invitados leer mensajes sin contraseña. Establecer una contraseña de invitado para requerir autenticación para el acceso de invitado."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Consenti la sola lettura consente agli ospiti di leggere i messaggi senza password. Imposta una password ospite per richiedere l'autenticazione per l'accesso ospite."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toestaan alleen-lezen stelt gasten in staat berichten te lezen zonder wachtwoord. Stel een gastwachtwoord in om authenticatie voor gasttoegang te vereisen."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permitir Leitura Somente permite que convidados leiam mensagens sem senha. Defina uma senha de convidado para exigir autenticação para acesso de convidado."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Povolit pouze čtení umožňuje hostům číst zprávy bez hesla. Nastavte heslo hosta pro ověření přístupu hostů."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pozwól na tylko odczyt, aby goście mogli czytać wiadomości bez hasła. Ustaw hasło gościa, aby wymagano uwierzytelnienia dla dostępu gościa."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Дозволити лише читання дозволяє гостям читати повідомлення без пароля. Встановіть пароль гостя для автентифікації доступу гостя."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "読み取り専用を許可すると、ゲストはパスワードなしでメッセージを読むことができます。ゲストアクセスに認証を必要させるために、ゲストパスワードを設定してください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "允许只读模式让访客在不输入密码的情况下阅读消息。设置访客密码以要求访客访问身份验证。"
           }
         }
       }
@@ -10039,6 +10110,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "应用区域定义"
+          }
+        }
+      }
+    },
+    "Apply a .meshprofile to the connected radio. All matching settings will be overwritten. A reboot is required after import.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wende ein .meshprofile auf das verbundene Funkgerät an. Alle passenden Einstellungen werden überschrieben. Ein Neustart ist nach der Importierung erforderlich."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appliquer un profil .meshprofile à la radio connectée. Toutes les paramètres correspondants seront écrasés. Un redémarrage est requis après l'importation."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aplicar un .meshprofile a la radio conectada. Todos los ajustes coincidentes serán sobrescritos. Se requiere un reinicio después de la importación."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Applica un profilo .meshprofile alla radio connessa. Tutte le impostazioni corrispondenti verranno sovrascritte. È richiesto un riavvio dopo l'importazione."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pas een .meshprofile toe op de verbonden radio. Alle bijbehorende instellingen zullen worden overschreven. Een herstart is vereist na het importeren."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aplicar um .meshprofile ao rádio conectado. Todas as configurações correspondentes serão substituídas. Reinicialização necessária após a importação."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Použijte profil .meshprofile pro připojené rádio. Všechny odpovídající nastavení budou přepsána. Restart je vyžadován po importu."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zastosuj profil .meshprofile do podłączonego radia. Wszystkie dopasowane ustawienia zostaną zastąpione. Wymagany jest restart po imporcie."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Застосувати профіль .meshprofile до підключеного радіоприймача. Усі відповідні налаштування будуть перезаписані. Перезавантаження необхідне після імпорту."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接続された無線機に .meshprofile を適用します。すべての対応する設定が上書きされます。インポート後、再起動が必要です。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将 .meshprofile 应用到连接的无线电。所有匹配设置将被覆盖。导入后需要重启。"
           }
         }
       }
@@ -12860,7 +13002,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bluetooth is the usual choice and works on every platform. The app reconnects to a radio it already knows by itself, including after the radio has been out of range or switched off, so an unexpected disconnection does not need any action from you."
+            "value": "Bluetooth は一般的な選択肢で、すべてのプラットフォームで利用できます。アプリは一度接続した無線機には自動で再接続します。電波が届かなくなったあとや電源を切ったあとでも再接続するため、予期しない切断に対して操作は必要ありません。"
           }
         }
       }
@@ -13099,18 +13241,6 @@
             "value": "Fecha de compilación"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Build Date"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Build Date"
-          }
-        },
         "pt": {
           "stringUnit": {
             "state": "translated",
@@ -13129,22 +13259,34 @@
             "value": "Data kompilacji"
           }
         },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Build Date"
-          }
-        },
         "ja": {
           "stringUnit": {
             "state": "translated",
             "value": "ビルド日時"
           }
         },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data di compilazione"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bouwdatum"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Дата збірки"
+          }
+        },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Build Date"
+            "value": "构建日期"
           }
         }
       }
@@ -13704,16 +13846,16 @@
             "value": "Змінити паролі за замовчуванням після входу через віддалене керування → Безпека."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Change default passwords after login via Remote Management → Security."
-          }
-        },
         "nl": {
           "stringUnit": {
             "state": "translated",
             "value": "Wijzig standaardwachtwoorden na inloggen via Afstandsbeheer → Beveiliging."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后通过远程管理 → 安全性更改默认密码"
           }
         }
       }
@@ -15052,7 +15194,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kanaalen"
+            "value": "Kanalen"
           }
         },
         "pl": {
@@ -16867,18 +17009,6 @@
             "value": "Estado del reloj"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Clock Status"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Clock Status"
-          }
-        },
         "pt": {
           "stringUnit": {
             "state": "translated",
@@ -16897,22 +17027,34 @@
             "value": "Stan zegara"
           }
         },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Clock Status"
-          }
-        },
         "ja": {
           "stringUnit": {
             "state": "translated",
             "value": "時計の状態"
           }
         },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stato dell'orologio"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klokstatus"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Статус годинника"
+          }
+        },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Clock Status"
+            "value": "时钟状态"
           }
         }
       }
@@ -17413,6 +17555,77 @@
         }
       }
     },
+    "Community Presets": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Community-Presets"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Présets communautaires"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Presets de comunidad"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preset della comunità"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gemeenschapsinstellingen"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Presets da Comunidade"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Společenské přednastavení"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Presety społeczności"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Спільнотні налаштування"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "コミュニティプリセット"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "社区预设"
+          }
+        }
+      }
+    },
     "Companion radios only advertise when their owner asks them to, so a quiet contact is not necessarily gone. Repeaters and sensors advertise on a timer, which is why they are the safer choice here. Nothing is ever removed without showing you the list first, and contacts marked Keep are never listed.": {
       "extractionState": "manual",
       "localizations": {
@@ -17550,7 +17763,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Compare your radio settings against the preset your local mesh uses."
+            "value": "お使いの無線機の設定を、地域のメッシュが使用しているプリセットと比較します。"
           }
         }
       }
@@ -23780,12 +23993,6 @@
     "Device Clock": {
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Device Clock"
-          }
-        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -23796,18 +24003,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Reloj del Dispositivo"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Device Clock"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Device Clock"
           }
         },
         "pt": {
@@ -23828,22 +24023,40 @@
             "value": "Zegar urządzenia"
           }
         },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Device Clock"
-          }
-        },
         "ja": {
           "stringUnit": {
             "state": "translated",
             "value": "デバイス時計"
           }
         },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geräteuhr"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Orologio del dispositivo"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apparaatklok"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Годинник пристрою"
+          }
+        },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Device Clock"
+            "value": "设备时钟"
           }
         }
       }
@@ -27177,6 +27390,77 @@
         }
       }
     },
+    "Emergency Safety": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notfall-Sicherheit"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sécurité d'urgence"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seguridad de emergencia"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sicurezza di emergenza"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noodveiligheid"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Segurança de Emergência"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouzová bezpečnost"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bezpieczeństwo awaryjne"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Безпека надзвичайних ситуацій"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "緊急安全"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "紧急安全"
+          }
+        }
+      }
+    },
     "Emoji": {
       "localizations": {
         "cs": {
@@ -28945,6 +29229,77 @@
         }
       }
     },
+    "Export": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportieren"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportation"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportar"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esporta"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exporteren"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportar"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eksport"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Експорт"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "輸出"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导出"
+          }
+        }
+      }
+    },
     "Export (%@)": {
       "localizations": {
         "cs": {
@@ -30000,6 +30355,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "Preencher com a minha localização"
+          }
+        }
+      }
+    },
+    "Filter presets to your local frequency band. GPS detection is not available on Mac — select your region manually.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filtere Presets nach deinem lokalen Frequenzband. GPS-Erkennung ist auf Mac nicht verfügbar — wähle deine Region manuell."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filtrer les présets pour votre bande de fréquences locale. La détection GPS n'est pas disponible sur Mac — sélectionnez votre région manuellement."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filtrar presets a su banda de frecuencia local. La detección GPS no está disponible en Mac — seleccione su región manualmente."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filtra i preset per la tua banda di frequenze locale. La rilevazione GPS non è disponibile su Mac — seleziona manualmente la tua regione."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filter instellingen naar je lokale frequentieband. GPS-detectie is niet beschikbaar op Mac — selecteer je regio handmatig."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filtre os presets para a sua faixa de frequência local. Detecção GPS não disponível no Mac — selecione sua região manualmente."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filtrujte přednastavení do vaší místní frekvenční pásma. GPS detekce není k dispozici na Macu - vyberte svou oblast manuálně."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filtruj presety do lokalnego pasma częstotliwości. Detekcja GPS nie jest dostępna na Mac — wybierz ręcznie swój region."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Фільтрувати налаштування за вашою місцевою частотною смугою. GPS-виявлення недоступне на Mac — виберіть свій регіон вручну."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ローカル周波数帯にフィルターを適用したプリセット。Mac では GPS 検出が利用できないため、手動で地域を選択してください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "过滤到本地频率带的预设。Mac 无法使用 GPS 检测 - 手动选择您的地区。"
           }
         }
       }
@@ -34329,12 +34755,6 @@
     "Home, Work, Camp...": {
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Home, Work, Camp..."
-          }
-        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -34345,18 +34765,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Hogar, Trabajo, Campamento..."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Home, Work, Camp..."
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Home, Work, Camp..."
           }
         },
         "pt": {
@@ -34377,22 +34785,40 @@
             "value": "Dom, Praca, Obóz..."
           }
         },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Home, Work, Camp..."
-          }
-        },
         "ja": {
           "stringUnit": {
             "state": "translated",
             "value": "家、仕事、キャンプ..."
           }
         },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zuhause, Arbeit, Lager..."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Casa, Lavoro, Campeggio..."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thuis, werk, kamp..."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Дім, робота, табір..."
+          }
+        },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Home, Work, Camp..."
+            "value": "家、工作、露营..."
           }
         }
       }
@@ -34608,6 +35034,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "联系人显示方式"
+          }
+        }
+      }
+    },
+    "How much of your radio's storage is used. The radio drops its oldest contact to make room when this is full.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wie viel Speicher dein Funkgerät belegt. Ist er voll, löscht das Funkgerät seinen ältesten Kontakt, um Platz zu schaffen."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quelle part du stockage de votre radio est utilisée. Lorsqu'il est plein, la radio supprime son contact le plus ancien pour faire de la place."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuánto de almacenamiento de su radio se está utilizando. La radio elimina su contacto más antiguo para hacer espacio cuando esto está lleno."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quanto spazio di archiviazione della tua radio è utilizzato. La radio elimina il contatto più vecchio per liberare spazio quando è pieno."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoeveel van de opslag van je radio wordt gebruikt. De radio verwijdert zijn oudste contact om ruimte te maken wanneer dit vol is."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quanto do armazenamento do seu rádio está sendo usado. O rádio exclui o contato mais antigo para liberar espaço quando este estiver cheio."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kolik úložiště vašeho rádia je používáno. Rádio smaže své nejstarší kontakt, aby uvolnilo místo, když je toto plné."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ile z pamięci radia jest używane. Radio usuwa najstarszy kontakt, aby zwolnić miejsce, gdy jest pełne."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скільки місця на сховищі вашого радіоприймача використовується. Радіоприймач видаляє найстаріший контакт, щоб звільнити місце, коли сховище заповнене."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無線機のストレージ使用量。この容量がいっぱいになると、無線機は最も古い連絡先を削除してスペースを確保します。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "您的无线电存储空间使用情况。当此空间满时，无线电会删除最旧的联系人以腾出空间。"
           }
         }
       }
@@ -35710,12 +36207,6 @@
             "value": "インナーアプリバナー"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "In-App Banners"
-          }
-        },
         "pl": {
           "stringUnit": {
             "state": "translated",
@@ -35738,6 +36229,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "在应用横幅"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In-app banners"
           }
         }
       }
@@ -37580,6 +38077,77 @@
         }
       }
     },
+    "Key-value pairs stored on the radio. Used for advanced configuration and firmware development. Long-press a row to edit or delete.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schlüssel-Wert-Paare, die auf dem Funkgerät gespeichert sind. Für erweiterte Konfiguration und Firmware-Entwicklung verwendet. Drücke lang auf eine Zeile, um sie zu bearbeiten oder zu löschen."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paires clé-valeur stockées sur la radio. Utilisées pour la configuration avancée et le développement de firmware. Appuyez longuement sur une ligne pour l'éditer ou la supprimer."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parejas clave-valor almacenadas en la radio. Utilizadas para configuración avanzada y desarrollo de firmware. Mantener presionado una fila para editar o eliminar."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coppie chiave-valore memorizzate sulla radio. Utilizzate per la configurazione avanzata e lo sviluppo del firmware. Premi a lungo una riga per modificare o eliminare."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sleutel-waarde paren opgeslagen op de radio. Gebruikt voor geavanceerde configuratie en firmwareontwikkeling. Lang drukken op een rij om te bewerken of te verwijderen."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pares chave-valor armazenados no rádio. Usado para configuração avançada e desenvolvimento de firmware. Pressione e segure uma linha para editar ou excluir."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klíč-hodnota páry uložené na rádiu. Používá se pro pokročilou konfiguraci a vývoj firmwaru. Dlouze stiskněte řádek pro úpravu nebo smazání."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pary klucz-wartość przechowywane na radiu. Używane do zaawansowanej konfiguracji i rozwoju oprogramowania. Długie naciśnięcie wiersza, aby edytować lub usunąć."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Параметри ключ-значення, збережені на радіоприймачі. Використовується для розширеної конфігурації та розробки прошивки. Довго натисніть рядок, щоб редагувати або видалити."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無線機に保存されているキー値ペア。高度な設定とファームウェア開発に使用されます。行を長押しして編集または削除してください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "存储在无线电上的键值对。用于高级配置和固件开发。长按一行以编辑或删除。"
+          }
+        }
+      }
+    },
     "Knowing a Message Arrived": {
       "extractionState": "manual",
       "localizations": {
@@ -38820,12 +39388,6 @@
             "value": "Gráfico en vivo de SNR y RSSI de los paquetes LoRa recibidos"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Live SNR and RSSI chart from received LoRa packets"
-          }
-        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -38866,6 +39428,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "从接收到的 LoRa 包实时 SNR 和 RSSI 图表"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grafico SNR e RSSI in tempo reale dai pacchetti LoRa ricevuti"
           }
         }
       }
@@ -42280,12 +42848,6 @@
             "value": "Canales máximos"
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Max Channels"
-          }
-        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -42310,22 +42872,28 @@
             "value": "Maksymalna liczba kanałów"
           }
         },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Max Channels"
-          }
-        },
         "ja": {
           "stringUnit": {
             "state": "translated",
             "value": "最大チャンネル数"
           }
         },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Canali massimi"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Максимальна кількість каналів"
+          }
+        },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Max Channels"
+            "value": "最大频道"
           }
         }
       }
@@ -51090,12 +51658,6 @@
             "value": "ノード名開く"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Open Node Namer"
-          }
-        },
         "pl": {
           "stringUnit": {
             "state": "translated",
@@ -51118,6 +51680,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "打开节点命名器"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Node Namer openen"
           }
         }
       }
@@ -51220,12 +51788,6 @@
             "value": "Apri nRF Device Firmware Update"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Open nRF Device Firmware Update"
-          }
-        },
         "pt": {
           "stringUnit": {
             "state": "translated",
@@ -51260,6 +51822,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "打开 nRF 设备固件更新"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "nRF Device Firmware Update openen"
           }
         }
       }
@@ -55581,6 +56149,77 @@
         }
       }
     },
+    "Presets contributed by regional mesh communities. Submit additions via pull request to the PommeCore repository.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Presets, die von regionalen Mesh-Gemeinschaften beigetragen wurden. Füge Zusätze über einen Pull-Request zum PommeCore-Repository hinzu."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Présets contribués par les communautés de maillage régionales. Soumettez des ajouts via une demande de tirage vers le dépôt PommeCore."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Presets contribuidos por comunidades de mesh regionales. Enviar adiciones mediante solicitud de extracción al repositorio PommeCore."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preset contribuiti dalle comunità mesh regionali. Invia le aggiunte tramite pull request al repository PommeCore."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instellingen bijgedragen door regionale mesh-gemeenschappen. Voeg toevoegingen toe via pull request naar de PommeCore-opslagplaats."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Presets contribuídos por comunidades de mesh regionais. Envie adições via pull request para o repositório PommeCore."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přednastavení přispěchá regionálními mesh komunitami. Poskytněte doplňky prostřednictvím pull requestu do repozitáře PommeCore."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Presety przyczynione przez lokalne społeczności mesh. Prześlij dodania za pomocą żądania ściągnięcia do repozytorium PommeCore."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Налаштування, внесені регіональними спільнотами Mesh. Надсилайте доповнення через запити на злиття до репозиторію PommeCore."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地域メッシュコミュニティによって貢献されたプリセット。PommeCore リポジトリへのプルリクエストを通じて追加を提出してください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "区域 Mesh 社区贡献的预设。通过向 PommeCore 仓库提交拉取请求来提交添加项。"
+          }
+        }
+      }
+    },
     "Press the physical OTA button on your hardware, or connect via USB serial and run:": {
       "comment": "A description of how to send the start ota command.",
       "isCommentAutoGenerated": true,
@@ -56146,6 +56785,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "个人资料名称"
+          }
+        }
+      }
+    },
+    "Profiles": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profile"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profils"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Perfiles"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profili"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profielen"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Perfis"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profily"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profile"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Профілі"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プロファイル"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配置文件"
           }
         }
       }
@@ -57557,7 +58267,7 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Radio Calculator"
+            "value": "Kalkulator radiowy"
           }
         },
         "pt": {
@@ -57627,7 +58337,7 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Radio Configuration"
+            "value": "Konfiguracja radia"
           }
         },
         "pt": {
@@ -57688,16 +58398,10 @@
             "value": "無線機パラメータ"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Radio Parameters"
-          }
-        },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Radio Parameters"
+            "value": "Parametry radia"
           }
         },
         "pt": {
@@ -57722,6 +58426,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Paramètres de la radio"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Radio-parameters"
           }
         }
       }
@@ -57767,7 +58477,7 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Radio Preset"
+            "value": "Preset radia"
           }
         },
         "pt": {
@@ -57837,7 +58547,7 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Radio Presets"
+            "value": "Presety radia"
           }
         },
         "pt": {
@@ -57978,7 +58688,7 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Radio Settings"
+            "value": "Ustawienia radia"
           }
         },
         "pt": {
@@ -58105,12 +58815,6 @@
             "value": "Terminale Radio"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Radio Terminal"
-          }
-        },
         "cs": {
           "stringUnit": {
             "state": "translated",
@@ -58145,6 +58849,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Terminal do rádio"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Radioterminaal"
           }
         }
       }
@@ -58190,7 +58900,7 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Radio format: freq_MHz,bw_kHz,sf,cr (e.g. 910.525,62.5,7,5)"
+            "value": "Format radia: freq_MHz,bw_kHz,sf,cr (np. 910.525,62.5,7,5)"
           }
         },
         "pt": {
@@ -58333,7 +59043,7 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Radio identity (private key) is not included. To back up your radio's identity, use the PommeCore Mac app: Settings → Device → Identity Backup while connected via USB."
+            "value": "Tożsamość radia (klucz prywatny) nie jest dołączana. Aby utworzyć kopię zapasową tożsamości radia, użyj aplikacji PommeCore na Maca: Ustawienia → Urządzenie → Kopia tożsamości, przy połączeniu przez USB."
           }
         },
         "pt": {
@@ -60762,6 +61472,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "区域定义令牌"
+          }
+        }
+      }
+    },
+    "Region Filter": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Regionfilter"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filtre par région"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filtro de región"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filtro per regione"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Regiofilter"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filtro de Região"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Regionový filtr"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filtr regionu"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Фільтр регіону"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地域フィルター"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "区域过滤"
           }
         }
       }
@@ -66568,6 +67349,77 @@
         }
       }
     },
+    "Safe zones send an automatic SOS beacon if you leave the defined area. Requires “Always” location permission.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sichere Zonen senden automatisch ein SOS-Signal, wenn Sie das definierte Gebiet verlassen. Erfordert die \"Immer\"-Standortberechtigung."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les zones sûres envoient automatiquement un signal SOS si vous quittez la zone définie. Nécessite l'autorisation de localisation « Toujours »."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las zonas seguras envían automáticamente un baliza SOS si sale del área definida. Requiere permiso de ubicación \"Siempre\"."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le zone sicure inviano automaticamente un segnale SOS se lasci l'area definita. Richiede il permesso di localizzazione \"Sempre\"."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Veilige zones zenden automatisch een SOS-baken als je het gedefinieerde gebied verlaat. Vereist \"Altijd\" locatie-machtiging."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zonas seguras enviam um sinal de SOS automático se você sair da área definida. Requer permissão de localização \"Sempre\"."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bezpečné zóny posílají automatické SOS oznámení, pokud opustíte definovanou oblast. Vyžaduje oprávnění pro polohu \"Vždy\"."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bezpieczne strefy wysyłają automatyczne sygnał SOS, jeśli opuszczysz zdefiniowaną obszar. Wymaga uprawnienia do lokalizacji \"Zawsze\"."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Безпекові зони надсилають автоматичний сигнал SOS, якщо ви залишите визначену територію. Вимагає дозволу на розташування \"Завжди\"."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安全ゾーンは定義されたエリアから離れると自動的にSOSビーコンを送信します。\"常に\"位置情報許可が必要です。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安全区域会自动发送SOS信标，如果你离开了定义的区域。需要“始终”位置权限。"
+          }
+        }
+      }
+    },
     "Save": {
       "localizations": {
         "cs": {
@@ -67060,6 +67912,148 @@
           "stringUnit": {
             "state": "translated",
             "value": "保存固件文件"
+          }
+        }
+      }
+    },
+    "Save your current radio settings and channels as a named profile. Switch profiles when moving between mesh networks or regions.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speichern Sie Ihre aktuellen Funkeinstellungen und -kanäle als benannten Profil. Wechseln Sie zwischen Profilen, wenn Sie zwischen Mesh-Netzwerken oder Regionen wechseln."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistrez les paramètres actuels de votre radio et les canaux sous un profil nommé. Changez de profils lorsque vous déplacez entre réseaux maillés ou régions."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guarde la configuración actual de su radio y canales como un perfil nombrado. Cambie de perfiles al moverse entre redes mesh o regiones."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salva le impostazioni e i canali radio attuali come profilo nominato. Cambia i profili quando ti sposti tra reti mesh o regioni."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sla je huidige radio-instellingen en kanalen op als een naamprofiel. Schakel profielen wanneer je tussen mesh-netwerken of regio's beweegt."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salve as configurações atuais do seu rádio e canais como um perfil nomeado. Mude de perfil ao se mover entre redes mesh ou regiões."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uložte aktuální nastavení a kanály rádia jako pojmenovaný profil. Přepněte profily při pohybu mezi mřížkovými sítí nebo regiony."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisz bieżące ustawienia i kanały radia jako profil o nazwie. Przełącz profile podczas przemieszczania się między sieciami mesh lub regionami."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Збережіть поточні налаштування та канали вашого радіопристрою як профіль з назвою. Перехід між профілями при переміщенні між мережами або регіонами."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現在の無線設定とチャンネルを名前付きプロファイルとして保存します。メッシュネットワーク間や地域間でプロファイルを切り替えてください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存你当前的无线电设置和频道作为一个带有名称的配置文件。在移动到不同的网格网络或区域时切换配置文件。"
+          }
+        }
+      }
+    },
+    "Save your radio's configuration to a .meshprofile file. Share it to clone settings to another radio or keep as a backup.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speichern Sie die Konfiguration Ihres Funkgeräts in einer .meshprofile-Datei. Teilen Sie es, um Einstellungen auf ein anderes Funkgerät zu klonen, oder behalten Sie es als Backup."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistrez la configuration de votre radio dans un fichier .meshprofile. Partagez-le pour cloner les paramètres vers une autre radio ou conservez-le en sauvegarde."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guarde la configuración de su radio en un archivo .meshprofile. Comparta para clonar ajustes a otra radio o guárdelo como respaldo."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salva la configurazione del tuo radio in un file .meshprofile. Condividi per clonare le impostazioni su un altro radio o conservalo come backup."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sla de configuratie van je radio op in een .meshprofile-bestand. Deel het om instellingen te klonen naar een andere radio of bewaar het als back-up."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salve a configuração do seu rádio em um arquivo .meshprofile. Compartilhe-o para clonar as configurações para outro rádio ou mantenha-o como backup."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uložte konfiguraci rádia do souboru .meshprofile. Sdílejte jej pro klonování nastavení na jiné rádio nebo jej uchovávejte jako zálohu."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisz konfigurację radia do pliku .meshprofile. Udostępnij go, aby sklonować ustawienia do innego radia lub zachowaj jako kopię zapasową."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Збережіть конфігурацію вашого радіопристрою у файлі .meshprofile. Поділіться ним, щоб скопіювати налаштування на інший радіопристрій або зберігати як резервну копію."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無線設定を.meshprofileファイルに保存します。他の無線機に設定をクローンしたり、バックアップとして保存するために共有できます。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存你的无线电配置到一个.meshprofile文件。分享它来克隆设置到另一台无线电或作为备份保留。"
           }
         }
       }
@@ -70775,12 +71769,6 @@
             "value": "Dashboard del sensore"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sensor Dashboard"
-          }
-        },
         "pt": {
           "stringUnit": {
             "state": "translated",
@@ -70815,6 +71803,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "传感器仪表板"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sensordashboard"
           }
         }
       }
@@ -70857,12 +71851,6 @@
             "value": "センサーGPIO"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sensor GPIO"
-          }
-        },
         "pl": {
           "stringUnit": {
             "state": "translated",
@@ -70885,6 +71873,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "传感器GPIO"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sensor-GPIO"
           }
         }
       }
@@ -71662,6 +72656,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "为 %@ 设置本地昵称。仅你可见。"
+          }
+        }
+      }
+    },
+    "Set access level for a connected client. Pick from known contacts or enter a pubkey hex prefix manually. Guest = read-only, Read-Write = can post, Admin = full control.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Legen Sie den Zugriffsbereich für einen verbundenen Client fest. Wählen Sie aus bekannten Kontakten oder geben Sie manuell ein Pubkey-Hex-Präfix ein. Gast = nur Lesen, Lesen/Schreiben = Posten dürfen, Admin = vollständige Kontrolle."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Définissez le niveau d'accès pour un client connecté. Choisissez parmi les contacts connus ou entrez manuellement un préfixe hexadécimal de clé publique. Invité = lecture seule, Lecture-écriture = peut poster, Administrateur = contrôle total."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Establezca el nivel de acceso para un cliente conectado. Elija de contactos conocidos o ingrese manualmente un prefijo hexadécimo de clave pública. Invitado = solo lectura, Lectura-Escritura = puede publicar, Administrador = control total."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imposta il livello di accesso per un client connesso. Scegli tra contatti noti o inserisci manualmente un prefisso esadecimale pubkey. Ospite = solo lettura, Lettura-Scrittura = può postare, Amministratore = controllo completo."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stel het toegangsniveau in voor een verbonden client. Kies uit bekende contacten of voer handmatig een pubkey hex-vooraanwijzing in. Gast = alleen-lezen, Lees-schrijf = kan posten, Beheerder = volledige controle."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Defina o nível de acesso para um cliente conectado. Escolha entre contatos conhecidos ou insira manualmente um prefixo hexadecimal de chave pública. Convidado = somente leitura, Leitura-Escrita = pode postar, Administrador = controle total."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nastavte úroveň přístupu pro připojeného klienta. Vyberte z známých kontaktů nebo zadejte manuálně hex předponu veřejného klíče. Hosté = pouze čtení, Čtení/zápis = mohou posílat, Správce = plná kontrola."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ustaw poziom dostępu dla połączonego klienta. Wybierz z znanych kontaktów lub wprowadź ręcznie prefiks heksowy klucza publicznego. Gość = tylko do odczytu, Odczyt-Zapis = może publikować, Administrator = pełna kontrola."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Встановіть рівень доступу для підключеного клієнта. Виберіть з відомих контактів або введіть вручну префікс гексадецимального публічного ключа. Гість = лише для читання, Читання-запис = може публікувати, Адміністратор = повний контроль."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接続されたクライアントにアクセスレベルを設定します。既知の連絡先から選択するか、手動で公開鍵ヘックスプレフィックスを入力します。ゲスト = 読み取り専用、読み書き = 投稿可能、管理者 = 完全制御。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "为连接的客户端设置访问级别。从已知联系人中选择或手动输入公钥十六进制前缀。客人 = 只读，读写 = 可以发布，管理员 = 完全控制。"
           }
         }
       }
@@ -80661,7 +81726,75 @@
       }
     },
     "Toggle": {
-      "shouldTranslate": false
+      "shouldTranslate": false,
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přepnout"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Umschalten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alternar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Basculer"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Commuta"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "切り替え"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Omschakelen"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przełącz"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alternar"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перемкнути"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "切换"
+          }
+        }
+      }
     },
     "Too long — %1$d of %2$d bytes used": {
       "localizations": {
@@ -82045,12 +83178,6 @@
             "value": "USBターミナル"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "USB Terminal"
-          }
-        },
         "pl": {
           "stringUnit": {
             "state": "translated",
@@ -82073,6 +83200,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "USB终端"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "USB-terminal"
           }
         }
       }
@@ -82814,12 +83947,6 @@
             "value": "Upload via nRF DFU-app"
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Upload via nRF DFU App"
-          }
-        },
         "cs": {
           "stringUnit": {
             "state": "translated",
@@ -82848,6 +83975,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "通过 nRF DFU 应用上传"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Carregar via nRF DFU App"
           }
         }
       }
@@ -84268,7 +85401,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sledovat společníka"
+            "value": "Společník hodinek"
           }
         },
         "de": {
@@ -84280,55 +85413,55 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ver Compañero"
+            "value": "Compañero de Reloj"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Regardez le compagnon"
+            "value": "Accompagnement Watch"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Guarda Companion"
+            "value": "Accompagnamento orologio"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "コンパニオンを視聴"
+            "value": "ウォッチコンパニオン"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bekijk Begeleider"
+            "value": "Watch Companion"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Obserwuj Kompaniona"
+            "value": "Towarzysz zegarka"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Assistente em Tempo Real"
+            "value": "Companheiro Watch"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Спостерігач"
+            "value": "Супутник годинника"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "观看伴侣"
+            "value": "手表伴侣"
           }
         }
       }
@@ -84831,6 +85964,77 @@
         }
       }
     },
+    "When you leave an enabled zone, PommeCore sends a flood advert and SOS message to the public channel. Requires “Always” location permission for background monitoring.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wenn Sie ein aktiviertes Gebiet verlassen, sendet PommeCore ein Flood-Ankündigungssignal und ein SOS-Nachricht an den öffentlichen Kanal. Erfordert die \"Immer\"-Standortberechtigung für die Hintergrundüberwachung."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lorsque vous quittez une zone activée, PommeCore envoie une inondation « annonce » et un message SOS sur le canal public. Nécessite l'autorisation de localisation « Toujours » pour la surveillance en arrière-plan."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuando sale de una zona habilitada, PommeCore envía una inundación \"anuncio\" y mensaje SOS al canal público. Requiere permiso de ubicación \"Siempre\" para monitoreo en segundo plano."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quando você sair de uma zona habilitada, o PommeCore envia uma inundação de anúncios e uma mensagem SOS para o canal público. Requer permissão de localização \"Sempre\" para monitoramento em segundo plano."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Při opuštění aktivované zóny PommeCore posílá zaplavovací oznámení a SOS zprávu na veřejný kanál. Vyžaduje oprávnění pro polohu \"Vždy\" pro pozadí monitorování."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Коли ви залишаєте активовану зону, PommeCore надсилає лавинну розсилку оголошення та повідомлення SOS на публічний канал. Вимагає дозволу на розташування \"Завжди\" для моніторингу в фоновому режимі."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有効なゾーンから離れると、PommeCoreはパブリックチャンネルにフラッディングアドバタイズとSOSメッセージを送信します。バックグラウンドモニタリングのために\"常に\"位置情報許可が必要です。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当你离开一个启用区域时，PommeCore会向公共频道发送泛洪通告和SOS消息。需要“始终”位置权限进行后台监控。"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quando esci da una zona abilitata, PommeCore invia un annuncio flooding e un messaggio SOS sul canale pubblico. Richiede l'autorizzazione alla posizione «Sempre» per il monitoraggio in background."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wanneer je een geactiveerde zone verlaat, stuurt PommeCore een flooding-aankondiging en een SOS-bericht naar het openbare kanaal. Vereist locatietoegang ‘Altijd’ voor monitoring op de achtergrond."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gdy opuszczasz włączoną strefę, PommeCore wysyła rozgłoszenie zalewające i wiadomość SOS na kanał publiczny. Wymaga uprawnienia do lokalizacji „Zawsze” do monitorowania w tle."
+          }
+        }
+      }
+    },
     "When your radio does not yet know how to reach someone, it floods: the message goes out to every radio in earshot, each of which passes it on. That finds the destination without anyone configuring anything, but it uses the airtime of every radio it touches.": {
       "extractionState": "manual",
       "localizations": {
@@ -85108,7 +86312,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "WiFi Radio"
+            "value": "WiFi-radio"
           }
         }
       }

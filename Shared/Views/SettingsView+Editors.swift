@@ -368,6 +368,8 @@ struct NameEditorSheet: View {
 
 struct FirmwareDetailSheet: View {
     @Environment(DeviceConfig.self) private var deviceConfig
+    @Environment(ContactStore.self) private var contactStore
+    @Environment(ChannelStore.self) private var channelStore
     @Environment(\.dismiss) private var dismiss
     @State private var version = ""
     @State private var buildDate = ""
@@ -387,8 +389,18 @@ struct FirmwareDetailSheet: View {
                 SectionInfoHeader(info: "Hardware and firmware details from your radio.")
             }
             Section {
-                LabeledContent("Max Contacts", value: "\(maxContacts)")
-                LabeledContent("Max Channels", value: "\(maxChannels)")
+                // Counts come live from the stores; the limits are read once in
+                // `onAppear` like the rest of this panel. A limit the radio has
+                // not reported yet is left off rather than shown as 0 — see
+                // `formatCountAgainstLimit`.
+                LabeledContent("Contacts",
+                               value: formatCountAgainstLimit(contactStore.contacts.count,
+                                                              limit: maxContacts))
+                LabeledContent("Channels",
+                               value: formatCountAgainstLimit(channelStore.channels.count,
+                                                              limit: maxChannels))
+            } header: {
+                SectionInfoHeader(info: "How much of your radio's storage is used. The radio drops its oldest contact to make room when this is full.")
             }
             if !publicKeyHex.isEmpty {
                 Section {
