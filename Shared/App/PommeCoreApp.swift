@@ -546,6 +546,10 @@ struct ContentView: View {
         } message: {
             Text(connectionManager.lastErrorMessage ?? "Unknown error")
         }
+        // Notices are deliberately NOT an alert: they report something that
+        // happened and is fine, so they must not block or demand a tap. See
+        // ConnectionManager.lastNotice.
+        .overlay(alignment: .bottom) { noticeBanner }
         .alert("Advertisement Sent", isPresented: $showAdvertSent) {
             Button("OK", role: .cancel) { }
         } message: {
@@ -597,6 +601,34 @@ struct ContentView: View {
             get: { connectionManager.lastErrorMessage != nil },
             set: { if !$0 { connectionManager.lastErrorMessage = nil } }
         )
+    }
+
+    /// Transient, non-blocking banner for `ConnectionManager.lastNotice`.
+    ///
+    /// Dismisses itself, and can also be dismissed by tapping it. Nothing here
+    /// takes a modal presentation or a required acknowledgement — that is the
+    /// whole point of the channel.
+    @ViewBuilder
+    private var noticeBanner: some View {
+        if let notice = connectionManager.lastNotice {
+            Text(notice)
+                .font(.callout)
+                .foregroundStyle(MeshTheme.textOnDarkPanel)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .background(MeshTheme.shade(0.85), in: RoundedRectangle(cornerRadius: 12))
+                .padding(.horizontal, 24)
+                .padding(.bottom, 32)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .onTapGesture { withMeshAnimation { connectionManager.lastNotice = nil } }
+                .accessibilityAddTraits(.isStaticText)
+                .task(id: notice) {
+                    try? await Task.sleep(for: .seconds(4))
+                    guard !Task.isCancelled else { return }
+                    withMeshAnimation { connectionManager.lastNotice = nil }
+                }
+        }
     }
 
     private func handleConnectionStateChange(_ newState: BLEConnectionState) {

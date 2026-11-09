@@ -1,0 +1,66 @@
+[
+  {
+    "nickname": "puma1409",
+    "rating": 5,
+    "reviewId": "00000192-f6f8-2303-6e65-819200000000",
+    "responseId": "40000192-f6f8-2303-6e65-81920408aa28",
+    "state": "PUBLISHED",
+    "responseBody": "Vielen Dank für Dein ausführliches Feedback und das Update zur Akkuspannung! Gut zu hören, dass die Anzeige bei uns stimmt.\n\nZu den Benachrichtigungen: Wir glauben, den Fehler gefunden zu haben, der dafür sorgt, dass die Einstellungen „Nur bei Erwähnungen“ und „Stumm“ ignoriert werden. Die Korrektur ist im nächsten Build enthalten, der in Kürze erscheint.\n\nDeinen Wunsch, auf der Karte nur bereits entdeckte Repeater anzuzeigen, haben wir ebenfalls notiert. Wir freuen uns schon auf die 6 Sterne 😉👍"
+  },
+  {
+    "nickname": "Ritejert01",
+    "rating": 3,
+    "reviewId": "00000192-f6f8-2303-6bf3-8dc200000000",
+    "responseId": "40000192-f6f8-2303-6bf3-8dc20410ff7e",
+    "state": "PENDING_PUBLISH",
+    "responseBody": "You were right, and it was worse than cosmetic: that message was being sent through the error channel, so every routine purge opened a modal dialog titled “Device Error” — for behaviour that is completely normal and that you had every reason to want.\n\nThe next update changes it. Purges are now coalesced into a single, brief banner that dismisses itself and never blocks the window, and there is a Contact Housekeeping switch under Settings → Notifications to silence it entirely. The radio keeps making room either way.\n\nThank you for describing it precisely enough to find — “pops up in the middle of the screen” is what identified it as the modal path rather than a notification setting."
+  },
+  {
+    "nickname": "Muy animado con PommeCore",
+    "rating": 5,
+    "reviewId": "00000192-f6f8-2303-623b-c6dd00000000",
+    "responseId": "40000192-f6f8-2303-623b-c6dd03acfb6d",
+    "state": "PUBLISHED",
+    "responseBody": " ¡Buenas noticias — la localización en español ya está incluida en la última actualización (v26.04.28)!                                                        \n                                                                                                                                                                \n  Tengo dos preguntas sobre los errores que mencionaste:\n                                                                                                                                                                \n  1. Porcentaje de batería del nodo — ¿El problema es con la batería de tu propio radio conectado, o con la batería de nodos remotos (repetidores u otros       \n  contactos)? ¿El porcentaje muestra un valor incorrecto, no aparece, o hace algo distinto?\n  2. Sincronización entre Apple Watch e iPhone — ¿Los mensajes no aparecen en el Apple Watch, los contactos no se sincronizan, o el Watch no se actualiza       \n  después de que el iPhone se vuelve a conectar al radio?                                                                                                       \n   \n  ¡Gracias por tu ayuda!                                     "
+  },
+  {
+    "nickname": "Flaschengeier",
+    "rating": 5,
+    "reviewId": "00000192-f6f8-2303-4717-ac7c00000000",
+    "responseId": "40000192-f6f8-2303-4717-ac7c03bf1f92",
+    "state": "PUBLISHED",
+    "responseBody": "Thank you for the kind words."
+  },
+  {
+    "nickname": "Cmckay2",
+    "rating": 2,
+    "reviewId": "00000192-f6f8-2303-45ac-f55400000000",
+    "responseId": "40000192-f6f8-2303-45ac-f55403b34f3e",
+    "state": "PUBLISHED",
+    "responseBody": "This sounds like an issue with the device possibly, can you please provide the details of what device you are using and what settings, I will trace the code to see if I find a bug."
+  },
+  {
+    "nickname": "Tazmadman ",
+    "rating": 5,
+    "reviewId": "00000192-f6f8-2303-4507-7f6300000000",
+    "responseId": "40000192-f6f8-2303-4507-7f6303b34f55",
+    "state": "PUBLISHED",
+    "responseBody": "Much appreciated!"
+  },
+  {
+    "nickname": "umushs",
+    "rating": 5,
+    "reviewId": "00000192-f6f8-2303-3f5e-bbd500000000",
+    "responseId": "40000192-f6f8-2303-3f5e-bbd503acfb6e",
+    "state": "PUBLISHED",
+    "responseBody": "Thank you for the very kind words."
+  },
+  {
+    "nickname": "Blackdogreview",
+    "rating": 5,
+    "reviewId": "00000192-f6f8-2303-3f1e-b6f000000000",
+    "responseId": "40000192-f6f8-2303-3f1e-b6f003acfb73",
+    "state": "PUBLISHED",
+    "responseBody": "thank you for the kind words. I am trying to get the macOS native client into the store.\n"
+  }
+]

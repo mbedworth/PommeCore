@@ -284,17 +284,34 @@ struct RadioSection: View {
             #if targetEnvironment(macCatalyst)
             ToolbarItem(placement: .topBarTrailing) {
                 Button("Apply & Reboot") { applyRadioAndReboot() }
+                    .disabled(!canApply)
             }
             #elseif os(macOS)
             ToolbarItem(placement: .primaryAction) {
                 Button("Apply & Reboot") { applyRadioAndReboot() }
+                    .disabled(!canApply)
             }
             #else
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button("Apply & Reboot") { applyRadioAndReboot() }
+                    .disabled(!canApply)
             }
             #endif
         }
+    }
+
+    /// Whether the loaded values describe a radio we have actually heard from.
+    ///
+    /// `DeviceConfig.reset()` runs on every disconnect, so between a drop and
+    /// the next SELF_INFO the bandwidth, spreading factor and coding rate hold
+    /// defaults rather than this radio's settings. Applying then writes those
+    /// defaults to the radio and reboots it. The frequency is the one field
+    /// with an honest "unknown" sentinel, so it stands in for the whole set:
+    /// no frequency means nothing here came from the radio, and none of it may
+    /// be written back.
+    private var canApply: Bool {
+        guard let entered = Double(freqMHz), entered > 0 else { return false }
+        return deviceConfig.radioFrequency > 0
     }
 
     private func loadFromConfig() {
@@ -314,6 +331,9 @@ struct RadioSection: View {
     }
 
     private func applyRadioAndReboot() {
+        // The disabled button is presentation; this is the rule. Writing a
+        // frequency we never read back is how a radio ended up on 906 MHz.
+        guard canApply else { return }
         let freq = UInt32((Double(freqMHz) ?? 0) * 1000)
         let bw = UInt32(selectedBW * 1000)
         connectionManager.setRadioParams(frequency: freq, bandwidth: bw,

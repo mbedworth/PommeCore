@@ -236,7 +236,7 @@ struct DangerZoneSection: View {
                 Button("Reset", role: .destructive) {
                     if resetConfirmText == "RESET" {
                         connectionManager.sendCommand(MeshCoreProtocol.buildFactoryReset(), label: "FACTORY_RESET")
-                        connectionManager.lastErrorMessage = "Radio has been factory reset. Power cycle the radio, then go to Settings \u{2192} Bluetooth and tap \"Forget This Device\" before pairing again."
+                        connectionManager.lastErrorMessage = String(localized: "Radio has been factory reset. Power cycle the radio, then go to Settings \u{2192} Bluetooth and tap \"Forget This Device\" before pairing again.")
                         // Delay disconnect to let the BLE write complete
                         Task { @MainActor in
                             try? await Task.sleep(nanoseconds: 1_000_000_000)

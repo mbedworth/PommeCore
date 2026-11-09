@@ -1045,6 +1045,77 @@
         }
       }
     },
+    "%@ was removed to make room for new contacts.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Kontaktliste wurde um %@ Kontakte reduziert, um Platz für neue Kontakte zu schaffen."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les contacts %@ ont été supprimés pour faire de la place pour de nouveaux contacts."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se eliminó %@ para hacer espacio para nuevos contactos."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I contatti %@ sono stati rimossi per fare spazio ai nuovi contatti."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De contacten %@ zijn verwijderd om ruimte te maken voor nieuwe contacten."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Removido %@ para fazer espaço para novos contatos."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontakt %@ byl odstraněn, aby se uvolnilo místo pro nové kontakty."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usunięto %@, aby zrobić miejsce na nowe kontakty."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Контакт %@ був видалений для створення місця для нових контактів."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新しい連絡先のためのスペースを確保するために、%@ が削除されました。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "联系人空间不足，%@已被移除。"
+          }
+        }
+      }
+    },
     "%@ | Clr: %@ | F1: %@": {
       "localizations": {
         "en": {
@@ -1668,6 +1739,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "%d 项已保存的名称、备注、轨迹和设置"
+          }
+        }
+      }
+    },
+    "%lld contacts were removed to make room for new contacts.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld Kontakte wurden gelöscht, um Platz für neue Kontakte zu schaffen."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld contacts ont été supprimés pour faire de la place pour de nouveaux contacts."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se eliminaron %lld contactos para hacer espacio para nuevos contactos."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sono stati rimossi %lld contatti per fare spazio ai nuovi contatti."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld contacten zijn verwijderd om ruimte te maken voor nieuwe contacten."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Removidos %lld contatos para fazer espaço para novos contatos."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bylo odstraněno %lld kontaktů, aby se uvolnilo místo pro nové kontakty."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usunięto %lld kontaktów, aby zrobić miejsce na nowe kontakty."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Було видалено %lld контактів для створення місця для нових контактів."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 件の連絡先が新しい連絡先のために削除されました。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已删除 %lld 个联系人以腾出空间。"
           }
         }
       }
@@ -13082,6 +13224,77 @@
       "localizations": {},
       "shouldTranslate": false
     },
+    "Camera not available": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kamera nicht verfügbar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Caméra indisponible"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cámara no disponible"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Camera non disponibile"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Camera niet beschikbaar"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Câmera indisponível"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kamera není k dispozici"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kamera niedostępna"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Камера недоступна"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "カメラが利用できません"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "摄像头不可用"
+          }
+        }
+      }
+    },
     "Can't Connect to Radio?": {
       "localizations": {
         "cs": {
@@ -13218,6 +13431,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "Annuleren"
+          }
+        }
+      }
+    },
+    "Cannot ping — no route known. Try a direct neighbor with Status Request instead.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kann keinen Ping senden — keine Route bekannt. Versuchen Sie stattdessen eine direkte Nachbarnode mit Statusanfrage."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible de pinger — aucune route connue. Essayez un voisin direct avec une demande de statut au lieu de cela."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se puede ping — no se conoce ruta. Prueba con una vecina directa solicitando Estado en su lugar."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non può ping — nessuna rotta nota. Prova un vicino diretto con Richiesta Status invece."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kan geen ping sturen - geen route bekend. Probeer een directe buur met Status Verzoek in plaats daarvan."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não pode pingar — nenhuma rota conhecida. Tente um vizinho direto com Solicitação de Status em vez disso."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nemohu pingovat — není známá trasa. Zkuste přímého souseda s požadavkem stavu."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie można pingować — brak znanej trasy. Spróbuj użyć żądania statusu u bezpośredniego sąsiada."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не можна пінгувати — невідомо маршрут. Спробуйте звернутися безпосередньо до сусіднього пристрою з запитом статусу."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "pingができない — ルートが不明です。代わりにステータスリクエストで直接隣のノードを試してください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法ping — 未知路由。 尝试直接邻居的状态请求。"
           }
         }
       }
@@ -13857,6 +14141,219 @@
         }
       }
     },
+    "Channel link contains an invalid key.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Kanallink enthält einen ungültigen Schlüssel."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le lien de canal contient une clé invalide."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El enlace de canal contiene una clave inválida."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il link del canale contiene una chiave non valida."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Channel link bevat een ongeldige sleutel."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O link de canal contém uma chave inválida."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odkaz na kanál obsahuje neplatný klíč."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link kanałowy zawiera nieprawidłowy klucz."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Посилання на канал містить недійсний ключ."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "チャネルリンクに無効なキーが含まれています。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "频道链接包含无效密钥。"
+          }
+        }
+      }
+    },
+    "Channel link is missing a channel name.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Kanallink fehlt ein Kanalnamen."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le lien de canal manque d'un nom de canal."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El enlace de canal falta con nombre de canal."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il link del canale manca di un nome canale."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Channel link mist een kanaalnaam."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O link de canal está faltando um nome de canal."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odkaz na kanál postrádá název kanálu."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link kanałowy nie zawiera nazwy kanału."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Посилання на канал не містить назви каналу."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "チャネルリンクにチャネル名が欠落しています。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "频道链接缺少频道名称。"
+          }
+        }
+      }
+    },
+    "Channel link key is the wrong length — it cannot decrypt messages.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Kanallink-Schlüssel ist zu kurz — er kann Nachrichten nicht entschlüsseln."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La clé du lien de canal est de longueur incorrecte — elle ne peut pas décrypter les messages."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La clave del enlace de canal tiene la longitud incorrecta — no puede descifrar mensajes."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La chiave del link del canale ha la lunghezza sbagliata — non può decifrare i messaggi."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Channel link sleutel is de verkeerde lengte - het kan berichten niet versleutelen."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A chave do link de canal está no comprimento errado — não consegue descriptografar mensagens."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klíč odkazu na kanál je nesprávné délky — nemůže dešifrovat zprávy."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klucz linku kanałowego ma nieprawidłową długość — nie może odszyfrować wiadomości."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ключ посилання на канал неправильної довжини — не може розшифрувати повідомлення."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "チャネルリンクキーが正しい長さをしていません — メッセージを復号化できません。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "频道链接密钥长度错误 — 无法解密消息。"
+          }
+        }
+      }
+    },
     "Channel messages are never acknowledged. This is how the protocol works and not something that can be switched on.": {
       "extractionState": "manual",
       "localizations": {
@@ -13994,6 +14491,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "频道名称"
+          }
+        }
+      }
+    },
+    "Channel name is too long to import (limit %lld characters).": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Kanalnamen ist zu lang zum Importieren (Begrenzung auf %lld Zeichen)."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le nom de canal est trop long pour l'importer (limite de %lld caractères)."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El nombre del canal es demasiado largo para importar (límite de %lld caracteres)."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il nome del canale è troppo lungo per l'importazione (limite %lld caratteri)."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kanaalnaam te lang om te importeren (beperking %lld tekens)."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O nome do canal é muito longo para importar (limite de %lld caracteres)."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Název kanálu je příliš dlouhý na import (omezení %lld znaků)."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nazwa kanału jest zbyt długa do importowania (ograniczenie %lld znaków)."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Назва каналу занадто довга для імпорту (обмеження %lld символів)."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "チャネル名がインポートしすぎて長すぎます (制限 %lld 文字)。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "频道名称过长，无法导入（限制 %lld 个字符）。"
           }
         }
       }
@@ -18621,6 +19189,77 @@
         }
       }
     },
+    "Contact Housekeeping": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontaktverwaltung"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maintenance des contacts"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mantenimiento de contactos"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gestione contatti"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contactbeheer"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limpeza de contatos"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Údržba kontaktů"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprzątanie kontaktów"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Облік контактів"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "連絡先管理"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "联系人整理"
+          }
+        }
+      }
+    },
     "Contact Info": {
       "localizations": {
         "cs": {
@@ -18761,6 +19400,77 @@
         }
       }
     },
+    "Contact Storage Full": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontaktspeicher voll"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le stockage de contact est plein"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Almacenamiento de contactos lleno"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archiviazione contatti piena"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contactopslag vol"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Armazenamento de contatos cheio"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Úložiště kontaktů je plné"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pamięć kontaktowa jest pełna."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Зберігач контактів повний"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "連絡先ストレージがいっぱいです。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "联系人存储满了"
+          }
+        }
+      }
+    },
     "Contact not found": {
       "localizations": {
         "cs": {
@@ -18897,6 +19607,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "在网格上与联系人共享"
+          }
+        }
+      }
+    },
+    "Contact storage is full (%lld contacts). New contacts cannot be added.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Gerätespeicher hat %lld Kontakte erreicht. Neue Kontakte können nicht hinzugefügt werden."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le stockage des contacts est plein ( %lld contacts ). De nouveaux contacts ne peuvent pas être ajoutés."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El almacenamiento de contactos está lleno (%lld contactos). No se pueden agregar nuevos contactos."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'archiviazione dei contatti è piena (%lld contatti). Non è possibile aggiungere nuovi contatti."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contactopslag is vol (%lld contacten). Nieuwe contacten kunnen niet worden toegevoegd."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O armazenamento de contatos está cheio (%lld contatos). Não é possível adicionar novos contatos."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zařízení dosáhlo limitu %lld kontaktů. Nové kontakty nelze přidat."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pamięć kontaktowa jest pełna (%lld kontaktów). Nie można dodawać nowych kontaktów."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Зберігач контактів повний (%lld контактів). Нові контакти не можуть бути додані."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "連絡先ストレージが %lld 件の連絡先でいっぱいです。新しい連絡先を追加できません。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设备已达到 %lld 个联系人限制。无法添加新联系人。"
           }
         }
       }
@@ -23413,6 +24194,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "设备时钟在每次连接时自动从您的手机同步。"
+          }
+        }
+      }
+    },
+    "Device has reached %lld contacts. New contacts cannot be added.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Gerät hat %lld Kontakte erreicht. Neue Kontakte können nicht hinzugefügt werden."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'appareil a atteint %lld contacts. De nouveaux contacts ne peuvent pas être ajoutés."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El dispositivo ha alcanzado %lld contactos. No se pueden agregar nuevos contactos."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il dispositivo ha raggiunto %lld contatti. Non è possibile aggiungere nuovi contatti."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Het apparaat heeft %lld contacten bereikt. Nieuwe contacten kunnen niet worden toegevoegd."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dispositivo atingiu %lld contatos. Não é possível adicionar novos contatos."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zařízení dosáhlo %lld kontaktů. Nové kontakty nelze přidat."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Urządzenie osiągnęło %lld kontaktów. Nie można dodawać nowych kontaktów."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пристрій досяг %lld контактів. Нові контакти не можуть бути додані."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "デバイスは %lld 件の連絡先に到達しました。新しい連絡先を追加できません。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设备已达到 %lld 个联系人。无法添加新联系人。"
           }
         }
       }
@@ -35882,6 +36734,148 @@
         }
       }
     },
+    "Invalid contact link data.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ungültige Kontaktlink-Daten."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Données de lien de contact invalides."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datos inválidos del enlace de contacto."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dati del link di contatto non validi."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ongeldige contact link data."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dados do link de contato inválidos."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neplatná data odkazu na kontakt."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nieprawidłowe dane linku kontaktu."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Недійсні дані посилання на контакт."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無効なコンタクトリンクデータ。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无效的联系链接数据。"
+          }
+        }
+      }
+    },
+    "Invalid contact link format.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ungültiges Kontaktlink-Format."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Format de lien de contact invalide."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Formato inválido del enlace de contacto."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Formato del link di contatto non valido."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ongeldig contact link formaat."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Formato inválido do link de contato."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neplatný formát odkazu na kontakt."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nieprawidłowy format linku kontaktu."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Неправильний формат посилання на контакт."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無効なコンタクトリンク形式。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无效的联系链接格式。"
+          }
+        }
+      }
+    },
     "Join": {
       "localizations": {
         "cs": {
@@ -41477,6 +42471,77 @@
         }
       }
     },
+    "Mention it briefly when the radio drops its oldest contact to make room. The radio does this either way.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wenn das Funkgerät seinen ältesten Kontakt verliert, um Platz zu schaffen, wird dies kurz erwähnt. Das Funkgerät tut dies auf jeden Fall."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mentionnez-le brièvement lorsque la radio supprime son plus ancien contact pour faire de la place. La radio le fait de toute façon."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mencionarlo brevemente cuando el radio elimine su contacto más antiguo para hacer espacio. El radio hace esto de todas formas."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menzionarlo brevemente quando la radio elimina il suo contatto più vecchio per fare spazio. La radio fa questo in ogni caso."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vermeld het kort wanneer de radio zijn oudste contact laat vallen om ruimte te maken. De radio doet dit hoe dan ook."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mencione brevemente quando o rádio desativa o contato mais antigo para abrir espaço. O rádio faz isso de qualquer maneira."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stručně upozornit, když rádio odstraní nejstarší kontakt, aby uvolnilo místo. Rádio to dělá tak jako tak."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Krótko wspomnij, gdy radio zrzuca najstarszy kontakt, aby zrobić miejsce. Radio robi to w każdym razie."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Згадайте про це коротко, коли радіопристрій втрачає найстаріший контакт, щоб звільнити місце. Радіопристрій робить це в будь-якому випадку."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無線機が古い連絡先を削除してスペースを確保することを簡潔に言及してください。無線機はどちらの場合もこれを行います。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当无线电断开最旧的联系以腾出空间时，请简要提及。无论如何，无线电都会这样做。"
+          }
+        }
+      }
+    },
     "Mentions": {
       "comment": "A notification mode option for a channel.",
       "isCommentAutoGenerated": true,
@@ -46653,6 +47718,77 @@
         }
       }
     },
+    "No path data available for this contact.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Pfaddaten für diesen Kontakt verfügbar."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune donnée de chemin disponible pour ce contact."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay datos de ruta disponibles para este contacto."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nessun dato di percorso disponibile per questo contatto."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geen padgegevens beschikbaar voor deze contact."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não há dados de caminho disponíveis para este contato."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Není k dispozici data cesty pro tento kontakt."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak danych trasy dla tego kontaktu."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Немає даних маршруту для цього контакту."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このコンタクトに対してパスデータが利用できません。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此联系人没有路径数据。"
+          }
+        }
+      }
+    },
     "No readings": {
       "localizations": {
         "de": {
@@ -47431,6 +48567,219 @@
           "stringUnit": {
             "state": "translated",
             "value": "此期间无传感器数据"
+          }
+        }
+      }
+    },
+    "No telemetry response — room servers don't typically support telemetry.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Telemetrie-Antwort — Raumserver unterstützen Telemetrie typischerweise nicht."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune réponse de télémétrie — les serveurs de la pièce ne prennent généralement pas en charge la télémétrie."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay respuesta de telemetría — los servidores de la sala normalmente no apoyan la telemetría."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nessuna risposta di telemetria — i server della stanza non supportano tipicamente la telemetria."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geen telemetrie respons - kamer servers ondersteunen telemetrie meestal niet."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nenhuma resposta de telemetria — os servidores da sala normalmente não suportam telemetria."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Žádná odpověď telemetrie — servery místnosti obvykle nepodporují telemetrii."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak odpowiedzi telemetrii — serwery pokoju zazwyczaj nie obsługują telemetrii."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Немає відповіді телеметрії — сервери кімнати зазвичай не підтримують телеметрію."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "テレメトリ応答なし — 部屋サーバーは通常テレメトリをサポートしません。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有传感器响应 — 房间服务器通常不支持传感器。"
+          }
+        }
+      }
+    },
+    "No telemetry response — telemetry is typically only available from sensor nodes.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Telemetrie-Antwort — Telemetrie ist typischerweise nur von Sensornoden verfügbar."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune réponse de télémétrie — la télémétrie n'est généralement disponible que depuis les nœuds capteurs."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay respuesta de telemetría — la telemetría normalmente solo está disponible desde nodos de sensor."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nessuna risposta di telemetria — la telemetria è tipicamente disponibile solo dai nodi sensori."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geen telemetrie respons - telemetrie is meestal alleen beschikbaar vanaf sensornoden."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nenhuma resposta de telemetria — a telemetria normalmente só está disponível de nós sensores."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Žádná odpověď telemetrie — telemetrie je obvykle k dispozici pouze z uzlů senzorů."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak odpowiedzi telemetrii — telemetria jest zazwyczaj dostępna tylko z węzłów czujników."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Немає відповіді телеметрії — телеметрія зазвичай доступна лише від вузлів сенсорів."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "テレメトリ応答なし — テレメトリは通常センサーノードからのみ利用可能です。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有传感器响应 — 传感器响应通常仅来自传感器节点。"
+          }
+        }
+      }
+    },
+    "No telemetry response — the node may not support telemetry or is out of range.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Telemetrie-Antwort — das Knotenmodul unterstützt möglicherweise keine Telemetrie oder ist außerhalb des Bereichs."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun retour de télémétrie — le nœud n'est peut-être pas compatible avec la télémétrie ou est hors de portée."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se recibió respuesta de telemetría — el nodo puede no admitir telemetría o estar fuera de alcance."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nessuna risposta di telemetria — il nodo potrebbe non supportare la telemetria o essere fuori portata."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geen telemetrie-antwoord — het knooppunt ondersteunt mogelijk geen telemetrie of is buiten bereik."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não há resposta de telemetria — o nó pode não suportar telemetria ou estar fora do alcance."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Žádná telemetrická odezva — uzel nemusí podporovat telemetrii nebo je mimo dosah."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak odpowiedzi telemetrycznej — węzeł może nie wspierać telemetrycznej lub być poza zasięgiem."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Немає відповіді телеметрії — вузол може не підтримувати телеметрію або бути поза зоною дії."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "テレメトリー応答なし — ノードがテレメトリーをサポートしていないか、範囲外の可能性があります。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有传感器响应 — 节点可能不支持传感器或超出范围。"
           }
         }
       }
@@ -56866,6 +58215,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "Format de la radio : freq_MHz, bw_kHz, sf, cr (par exemple 910.525, 62.5, 7, 5)"
+          }
+        }
+      }
+    },
+    "Radio has been factory reset. Power cycle the radio, then go to Settings → Bluetooth and tap \"Forget This Device\" before pairing again.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Funkgerät wurde auf Werksreset zurückgesetzt. Schalten Sie das Funkgerät neu ein und gehen Sie dann zu Einstellungen → Bluetooth und tippen Sie \"Dieses Gerät vergessen\", bevor Sie es erneut paaren."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La radio a été réinitialisée en usine. Redémarrez la radio, puis allez dans Paramètres → Bluetooth et appuyez sur \"Oublier cet appareil\" avant de le reconnecter."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El radio ha sido restablecido a fábrica. Reinicie el radio, luego vaya a Ajustes → Bluetooth y toque \"Olvidar este dispositivo\" antes de emparejar nuevamente."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La radio è stata resettata alle impostazioni di fabbrica. Riavvia la radio, quindi vai alle Impostazioni → Bluetooth e tocca \"Dimentica questo dispositivo\" prima di abbinarlo nuovamente."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De radio is teruggezet naar de fabrieksinstellingen. Start de radio opnieuw op, ga dan naar Instellingen → Bluetooth en tik op \"Dit apparaat vergeten\" voordat u het opnieuw koppelt."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O rádio foi redefinido para as configurações de fábrica. Reinicie o rádio, depois vá para Configurações → Bluetooth e toque \"Esquecer este Dispositivo\" antes de parear novamente."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rádio bylo v továrním nastavení. Znovu napájte rádio a pak přejděte do Nastavení → Bluetooth a klepněte na \"Zapomenout toto zařízení\" před opětovným párováním."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Radio zostało zresetowane do ustawień fabrycznych. Przełącz radio, a następnie przejdź do Ustawień → Bluetooth i naciśnij \"Zapomnij o tym urządzeniu\" przed ponownym parowaniem."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Радіоприймач скидено до заводських налаштувань. Перезавантажте радіоприймач, а потім перейдіть до Налаштувань → Bluetooth і натисніть \"Забути це пристрій\", перш ніж знову підключити."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無線機が工場出荷時状態に戻りました。無線機を再起動し、設定 → Bluetooth に移動して、「このデバイスを忘れる」をタップしてから、再度ペアリングしてください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无线电已恢复出厂设置。重启无线电，然后转到设置 → Bluetooth，点击“忘记此设备”，再配对。"
           }
         }
       }
@@ -79593,6 +81013,77 @@
         }
       }
     },
+    "Trace route timed out — the path may not be reachable.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Traceroute-Zeitüberschreitung — der Pfad ist möglicherweise nicht erreichbar."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'itinéraire de traçage a expiré — le chemin n'est peut-être pas accessible."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se agotó el tiempo de ruta de trazado — la ruta puede no ser accesible."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il traceroute è scaduto — il percorso potrebbe non essere raggiungibile."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De traceroute is mislukt — de route is mogelijk niet bereikbaar."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O tempo de roteamento expirou — o caminho pode não ser alcançável."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Časový limit trasování vypršel — cesta nemusí být dosažitelná."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Czas oczekiwania trasy śledzenia wygasł — ścieżka może nie być dostępna."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Час очікування трассування закінчився — шлях може бути недоступним."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "トレースルートのタイムアウト — パスが到達不可能の可能性があります。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跟踪路由超时 — 路径可能无法访问。"
+          }
+        }
+      }
+    },
     "Troubleshooting": {
       "localizations": {
         "cs": {
@@ -80722,6 +82213,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "解锁"
+          }
+        }
+      }
+    },
+    "Unknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unbekannt"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inconnu"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desconocido"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sconosciuto"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Onbekend"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desconhecido"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neznámé"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nieznane"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Невідомо"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不明"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未知"
           }
         }
       }
@@ -84821,6 +86383,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "您的无线电必须使用您所在国家/地区的正确频率。使用错误的频率可能违反当地法规。"
+          }
+        }
+      }
+    },
+    "Your radio's channel list is full. Remove a channel before importing another.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Liste der Kanäle Ihres Funkgeräts ist voll. Entfernen Sie einen Kanal, bevor Sie einen anderen importieren."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La liste des canaux de votre radio est pleine. Supprimez un canal avant d'en importer un autre."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La lista de canales de su radio está completa. Elimine un canal antes de importar otro."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'elenco dei canali della tua radio è completo. Rimuovi un canale prima di importarne un altro."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De lijst met kanalen van uw radio is vol. Verwijder een kanaal voordat u er een ander importeert."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A lista de canais do seu rádio está cheia. Remova um canal antes de importar outro."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seznam kanálů vašeho rádia je plný. Odstraňte kanál před importem dalšího."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lista kanałów Twojego radia jest pełna. Usuń kanał przed importowaniem kolejnego."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Список каналів вашого радіоприймача повний. Видаліть канал, перш ніж імпортувати інший."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無線機のチャネルリストがいっぱいです。別のチャネルをインポートする前に、チャネルを削除してください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "您的无线电频道列表已满。在导入另一个之前，删除一个频道。"
           }
         }
       }

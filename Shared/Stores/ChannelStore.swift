@@ -314,7 +314,7 @@ final class ChannelStore {
         guard let components = URLComponents(string: urlString),
               let nameItem = components.queryItems?.first(where: { $0.name == "name" }),
               let name = nameItem.value, !name.isEmpty else {
-            reportError?("Channel link is missing a channel name.")
+            reportError?(String(localized: "Channel link is missing a channel name."))
             return nil
         }
         guard let validated = validate(name: name, secretHex: components.queryItems?
@@ -332,7 +332,7 @@ final class ChannelStore {
     /// malformed link.
     private func validate(name: String, secretHex: String?) -> PendingChannelImport? {
         guard name.utf8.count <= Self.maxChannelNameBytes else {
-            reportError?("Channel name is too long to import (limit \(Self.maxChannelNameBytes) characters).")
+            reportError?(String(localized: "Channel name is too long to import (limit \(Self.maxChannelNameBytes) characters)."))
             return nil
         }
 
@@ -340,11 +340,11 @@ final class ChannelStore {
             return PendingChannelImport(name: name, secret: nil)
         }
         guard let secret = Data(hexString: secretHex) else {
-            reportError?("Channel link contains an invalid key.")
+            reportError?(String(localized: "Channel link contains an invalid key."))
             return nil
         }
         guard secret.count == MeshCoreProtocol.channelSecretLength else {
-            reportError?("Channel link key is the wrong length — it cannot decrypt messages.")
+            reportError?(String(localized: "Channel link key is the wrong length — it cannot decrypt messages."))
             return nil
         }
         return PendingChannelImport(name: name, secret: secret)
@@ -380,7 +380,7 @@ final class ChannelStore {
         // exist, silently doing nothing. importMultiChannelsAdd already
         // guarded; this path did not.
         guard nextSlot < maxChannels else {
-            reportError?("Your radio's channel list is full. Remove a channel before importing another.")
+            reportError?(String(localized: "Your radio's channel list is full. Remove a channel before importing another."))
             return
         }
         setChannel(index: nextSlot, name: data.name, secret: data.secret)

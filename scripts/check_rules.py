@@ -987,11 +987,54 @@ def check_failed_message_offers_retry() -> None:
                "shipped that way, hidden behind a status that claimed `.sent`")
 
 
+def check_user_message_channel_localized() -> None:
+    """A literal handed to the user-message channel must go through `String(localized:)`.
+
+    `lastErrorMessage`, `lastNotice`, `reportError` and `showError` all end up in
+    a `Text(...)` in `PommeCoreApp`, but the literal is written far from that
+    `Text` — in a store, a view model, a response handler. So neither half of
+    rule 18 sees it: `check_text_takes_string` finds the `Text(someString)` and
+    can only say "it is a String", and `check_literals_in_catalog` scans the
+    *containers* (`Text`, `Label`, `Button`, `Toggle`…) and this literal is not
+    in one. The strings were therefore English in all twelve languages, and
+    every gate reported clean.
+
+    Found on 2026-11-08 while reading App Store reviews: 14 sites, including
+    "Contact storage is full", "Invalid contact link format." and the whole
+    channel-import failure set — each of them a modal alert shown to someone who
+    is, by definition, already having a bad time.
+
+    This is the third time a *whole category* of user-visible string turned out
+    to be invisible to every tool here (51 via `Text("literal")`, then 26 via
+    `LabeledContent`/`Toggle`/`Picker`/`TextField`). The pattern is always the
+    same: a check looks at a shape, and the string arrives in a different shape.
+    **When a new way of getting words onto the screen is introduced, it needs a
+    check on the day it is introduced** — the build is clean either way.
+    """
+    assignment = re.compile(
+        r"""(?:lastErrorMessage|lastNotice)\s*=\s*"      # property = "literal"
+          | (?:reportError|showError)\??\(\s*"           # closure?("literal")
+        """,
+        re.VERBOSE)
+    for path in swift_files(["Shared", "watchOS"]):
+        for n, line in enumerate(lines_of(path), 1):
+            if line.strip().startswith("//"):
+                continue
+            if not assignment.search(line):
+                continue
+            report("FAIL", "18", path, n,
+                   "a literal goes to the user-message channel without "
+                   "`String(localized:)`, so it renders English in all 11 other "
+                   "languages — it reaches Text() too far from here for rule 18 "
+                   "or the catalog check to see it")
+
+
 CHECKS = [
     check_sheet_frames,
     check_text_takes_string,
     check_localized_params,
     check_lsk_isempty,
+    check_user_message_channel_localized,
     check_ble_disconnect,
     check_store_before_send,
     check_endianness,

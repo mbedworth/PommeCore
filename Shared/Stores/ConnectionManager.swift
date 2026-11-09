@@ -60,8 +60,30 @@ final class ConnectionManager {
     var scanRetryCount: Int = 0
     var requestShowScanner = false
     var isInBackground = false
-    /// Last error message from device — displayed as an alert in ContentView.
+    /// Last error message from device — displayed as a **modal alert** in ContentView.
+    ///
+    /// Modal means every message written here stops the user and demands a tap,
+    /// under the title "Device Error". Only write something that is genuinely
+    /// wrong and genuinely needs acknowledging. Routine things that merely
+    /// *happened* go to `lastNotice`.
     var lastErrorMessage: String?
+
+    /// A transient, non-blocking notice: something happened, nothing is wrong,
+    /// and the user does not have to do anything about it.
+    ///
+    /// This exists because the radio purging its oldest contact to make room —
+    /// normal housekeeping, and exactly what the user wants it to do — was
+    /// written to `lastErrorMessage`, so each purge raised a modal alert titled
+    /// "Device Error" in the middle of the screen. On a busy mesh contacts
+    /// churn continuously, so it was one modal after another. A 3★ App Store
+    /// review on 2026-10-21 put it plainly: *"I want that, and I don't need to
+    /// know every time it happens… I cannot use the app because the
+    /// notification keeps popping up in the middle of the screen."*
+    ///
+    /// **The severity of a message is a claim about reality too** (rule 6's
+    /// habit, applied to presentation): calling an expected success an error,
+    /// and blocking on it, is a false claim whatever the words say.
+    var lastNotice: String?
 
     /// Legal frequency ranges for this device's region (from CMD_GET_ALLOWED_REPEAT_FREQ).
     var allowedFreqRanges: [FrequencyRange] = []
@@ -224,13 +246,13 @@ final class ConnectionManager {
     func importContact(url: String) {
         guard url.lowercased().hasPrefix("meshcore://") else {
             Self.logger.warning("IMPORT: rejected — not a meshcore:// URL")
-            lastErrorMessage = "Invalid contact link format."
+            lastErrorMessage = String(localized: "Invalid contact link format.")
             return
         }
         let hex = String(url.dropFirst("meshcore://".count))
         guard !hex.isEmpty, hex.count <= 512, hex.allSatisfy({ $0.isHexDigit }) else {
             Self.logger.warning("IMPORT: rejected — invalid hex payload (len=\(hex.count))")
-            lastErrorMessage = "Invalid contact link data."
+            lastErrorMessage = String(localized: "Invalid contact link data.")
             return
         }
         let frame = MeshCoreProtocol.buildImportContact(url: url)
