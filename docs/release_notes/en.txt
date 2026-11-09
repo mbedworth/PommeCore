@@ -5,3 +5,7 @@ This release fixes two bugs our reviewers reported, and a third we found while f
 - Automatic contact cleanup no longer interrupts you. Every time the radio made room for a new contact, the app opened a Device Error dialog — one per contact — for something entirely normal that you had asked it to do. Cleanup is now reported in a single short banner that dismisses itself, and you can switch it off under Settings, Notifications, Contact Housekeeping.
 
 - Fifteen error and status messages had only ever been written in English, including the full-contact-storage warning and every channel import failure. They are now translated into all twelve languages, and a new check runs on each build so the next one cannot slip through unnoticed.
+
+- Settings, Device Info now shows how much of your radio is in use: contacts and channels as a count against the limit, rather than the limit on its own. That is also how to see how close the radio is to dropping its oldest contact to make room.
+
+- Sixteen passages of in-app help existed only in English, and correcting them turned up translations that were wrong rather than missing — among them an Apple Watch feature that ten languages had turned into an instruction to watch something. Those are fixed too.

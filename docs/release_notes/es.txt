@@ -5,3 +5,7 @@ Esta versión corrige dos errores que nos señalaron en las reseñas, y un terce
 - La limpieza automática de contactos ya no te interrumpe. Cada vez que la radio hacía sitio para un contacto nuevo, la app abría un diálogo «Error del dispositivo» —uno por contacto— por algo completamente normal que tú mismo habías pedido. La limpieza se anuncia ahora en un aviso breve que desaparece solo, y puedes desactivarlo en «Ajustes», «Notificaciones», «Mantenimiento de contactos».
 
 - Quince mensajes de error y de estado estaban escritos únicamente en inglés, entre ellos el aviso de almacenamiento de contactos lleno y todos los fallos de importación de canales. Ya están traducidos a los doce idiomas, y una comprobación nueva se ejecuta en cada compilación para que el próximo no pase desapercibido.
+
+- En «Ajustes», «Información del dispositivo» ahora se ve cuánto de tu radio está ocupado: contactos y canales como recuento frente al límite, en lugar del límite por sí solo. También sirve para ver lo cerca que está la radio de eliminar su contacto más antiguo para hacer sitio.
+
+- Dieciséis textos de ayuda de la app solo existían en inglés. Al añadirlos aparecieron traducciones que no faltaban, sino que estaban mal — entre ellas una función de Apple Watch que diez idiomas habían convertido en la orden de mirar algo. También quedan corregidas.

@@ -5,3 +5,7 @@ Deze versie verhelpt twee bugs die reviewers ons meldden, en een derde die we ti
 - Het automatisch opruimen van contacten onderbreekt je niet meer. Telkens als de radio ruimte maakte voor een nieuw contact, opende de app een dialoogvenster «Apparaatfout» — één per contact — voor iets volkomen normaals waar je zelf om had gevraagd. Het opruimen wordt nu gemeld met een korte banner die zichzelf sluit, en je kunt het uitzetten bij «Instellingen», «Meldingen», «Contactbeheer».
 
 - Vijftien fout- en statusmeldingen bestonden alleen in het Engels, waaronder de waarschuwing dat de contactopslag vol is en alle fouten bij het importeren van kanalen. Ze zijn nu in alle twaalf talen vertaald, en een nieuwe controle loopt bij elke build zodat de volgende niet onopgemerkt doorglipt.
+
+- Bij «Instellingen», «Apparaatinformatie» zie je nu hoeveel van je radio in gebruik is: contacten en kanalen als aantal tegenover de limiet, in plaats van alleen de limiet. Zo zie je ook hoe dicht de radio erbij is om zijn oudste contact te verwijderen om ruimte te maken.
+
+- Zestien hulpteksten in de app bestonden alleen in het Engels. Bij het aanvullen bleken er vertalingen niet te ontbreken maar onjuist te zijn — waaronder een Apple Watch-functie die tien talen hadden veranderd in de opdracht om iets te bekijken. Die zijn ook hersteld.

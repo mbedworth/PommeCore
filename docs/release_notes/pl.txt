@@ -5,3 +5,7 @@ Ta wersja naprawia dwa błędy wskazane w recenzjach oraz trzeci, który znaleź
 - Automatyczne porządkowanie kontaktów już cię nie przerywa. Za każdym razem, gdy radio robiło miejsce na nowy kontakt, aplikacja otwierała okno „Błąd urządzenia” — jedno na każdy kontakt — dla całkowicie normalnej czynności, o którą sam poprosiłeś. Porządkowanie jest teraz zgłaszane jednym krótkim komunikatem, który znika sam, i można je wyłączyć w „Ustawienia”, „Powiadomienia”, „Sprzątanie kontaktów”.
 
 - Piętnaście komunikatów o błędach i stanie istniało tylko po angielsku, w tym ostrzeżenie o zapełnionej pamięci kontaktów i wszystkie błędy importu kanałów. Są już przetłumaczone na wszystkie dwanaście języków, a przy każdej kompilacji działa nowa kontrola, aby następny nie przeszedł niezauważony.
+
+- W „Ustawieniach”, „Informacje o urządzeniu” widać teraz, ile radia jest zajęte: kontakty i kanały jako liczba względem limitu, a nie sam limit. Po tym poznasz też, jak blisko jest radio do usunięcia najstarszego kontaktu, aby zwolnić miejsce.
+
+- Szesnaście tekstów pomocy w aplikacji istniało tylko po angielsku. Przy ich uzupełnianiu wyszły tłumaczenia, które nie brakowały, lecz były błędne — wśród nich funkcja Apple Watch, którą dziesięć języków zmieniło w polecenie, by na coś popatrzeć. Te także poprawiono.
