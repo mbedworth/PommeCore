@@ -1,51 +1,7 @@
-Happy Halloween!
+Diese Version behebt zwei Fehler, die uns Rezensenten gemeldet haben, und einen dritten, den wir beim Beheben gefunden haben. Vielen Dank für die Meldungen — beide ließen sich allein anhand der Beschreibungen finden.
 
-Wir haben einige Fehler zerquetscht und ein paar Monster verjagt.
+- Die Frequenz deines Funkgeräts wird nicht mehr überschrieben. Nach einer Bluetooth-Trennung griff die App auf einen eingebauten Standardwert von 906 MHz zurück und konnte ihn nicht von einem Wert unterscheiden, den das Funkgerät tatsächlich gemeldet hatte. Wer danach die Einstellungen für das Funkgerät öffnete und auf „Anwenden“ tippte, programmierte das Gerät neu — Frequenz, Bandbreite, Spreizfaktor und Coderate zugleich. Werte, die die App noch nicht gelesen hat, werden jetzt als unbekannt gekennzeichnet, und „Anwenden“ bleibt deaktiviert, bis die echte Konfiguration eingetroffen ist.
 
-- Kanalbenachrichtigungen berücksichtigen jetzt „Erwähnungen“ und „Stummgeschaltet“. Beide Einstellungen wurden im öffentlichen Kanal ignoriert, sodass eine Benachrichtigung ankam, was auch immer Sie eingestellt hatten.
+- Die automatische Kontaktbereinigung unterbricht dich nicht mehr. Jedes Mal, wenn das Funkgerät Platz für einen neuen Kontakt schuf, öffnete die App einen Dialog „Gerätefehler“ — einen pro Kontakt — für einen völlig normalen Vorgang, um den du selbst gebeten hattest. Die Bereinigung erscheint nun in einem kurzen Hinweis, der von selbst verschwindet, und unter „Einstellungen“, „Benachrichtigungen“, „Kontaktverwaltung“ lässt sie sich abschalten.
 
-- Ein stummgeschalteter Kanal vibriert nicht mehr. Vorher summte er bei jeder Nachricht einmal, auch beim gesamten Rückstau, sobald sich Ihr Funkgerät wieder verband.
-
-- Ein Benachrichtigungston, den Sie abgeschaltet hatten, wird nicht mehr abgespielt.
-
-- Der Nachrichtenstatus spiegelt jetzt wider, was wirklich geschehen ist. Eine Kanalnachricht gilt erst als gesendet, wenn das Funkgerät bestätigt, dass sie es verlassen hat, und sie behauptet niemals eine Zustellung, die das Mesh gar nicht melden kann.
-
-- Eine Nachricht, die nicht gesendet werden konnte, sagt das jetzt klar, statt ein Häkchen zu zeigen, und lässt sich mit einem Tippen erneut senden.
-
-- Hop-Zahlen und Nachrichtenlängen werden in den Einheiten angegeben, die das Funkgerät selbst verwendet. Ein Mesh, das 63 Hops nicht überschreiten kann, behauptet nicht mehr 70.
-
-- Ein Entwurf wird jetzt aus dem Eingabefeld entfernt, sobald die Nachricht unterwegs ist.
-
-- Der Editor für eigene Variablen öffnet sich auch auf einem Funkgerät, das keine hat, sodass die erste überhaupt angelegt werden kann.
-
-- VoiceOver spricht auf der Uhr nicht mehr Englisch.
-
-Und es gibt ein paar neue Tricks und Leckereien.
-
-- Das Funkgerät-Terminal: die eigene Befehlszeile Ihres Funkgeräts, jetzt über Bluetooth statt nur über Kabel, womit sie erstmals iPhone und iPad erreicht. Unter „Einstellungen“, „Erweitert“, ab Firmware 1.18.
-
-- Ein eingebautes Handbuch, das offline funktioniert, denn ein Handbuch, das ein Netz braucht, fehlt genau dann, wenn man es braucht.
-
-- Ein Sensor-Dashboard, das Knoten nebeneinander vergleicht, statt sie einzeln aufzulisten.
-
-- Entdeckte Routen werden auf der Mesh-Karte gezeichnet, jeder Hop nach Signalqualität gefärbt.
-
-- Room-Server können eigene Mitteilungen veröffentlichen.
-
-- Eine einzige Kontaktliste mit Typ-Auswahl statt fester Abschnitte, und Sortierung und Mehrfachauswahl gibt es jetzt in allen, nicht nur in zwei.
-
-- Unterstützung für MeshCore-Firmware 1.18.
-
-- 77 Zeichenketten, die den Übersetzungskatalog nie erreicht hatten, sind jetzt übersetzt, und ein Durchgang durch die anderen elf Sprachen hat Übersetzungen korrigiert, die falsch waren und nicht bloß fehlten.
-
-Lange drücken auf iPhone und iPad oder Rechtsklick auf dem Mac: dort finden Sie die neuen Optionen.
-
-- „Schnellantwort“ auf eine Nachricht: antworten mit Hop-Zahl, Signal, Zeit und einer Ortsangabe, die Sie selbst festlegen, jede einzeln abschaltbar.
-
-- „Erneut senden“ bei einer Nachricht, die nicht durchkam.
-
-- „Behalten“ bei einem Kontakt, um ihn vor dem Aufräumen zu schützen, und „Veraltete Kontakte finden“, um die aufzuspüren, die nicht mehr antworten.
-
-- „Kontaktlink einfügen“, um jemanden aus einem Link in der Zwischenablage hinzuzufügen.
-
-- „Flooding-Ankündigung senden“, um sich im gesamten Mesh bekannt zu machen statt nur bei den direkten Nachbarn.
+- Fünfzehn Fehler- und Statusmeldungen waren bisher nur auf Englisch verfasst, darunter die Warnung über den vollen Kontaktspeicher und alle Fehler beim Kanalimport. Sie sind jetzt in alle zwölf Sprachen übersetzt, und eine neue Prüfung läuft bei jedem Build, damit die nächste nicht unbemerkt durchrutscht.

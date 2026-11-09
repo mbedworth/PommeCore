@@ -1,51 +1,7 @@
-Happy Halloween!
+Tato verze opravuje dvě chyby, na které nás upozornily recenze, a třetí, kterou jsme našli při jejich opravě. Děkujeme za hlášení: obě se daly najít jen podle vašich popisů.
 
-Rozmázli jsme několik chyb a zahnali pár strašidel.
+- Frekvence vašeho rádia se už nepřepisuje. Po odpojení Bluetooth se aplikace vracela k vestavěné výchozí hodnotě 906 MHz a nedokázala ji odlišit od hodnoty, kterou rádio skutečně nahlásilo. Kdo potom otevřel nastavení rádia a klepl na „Použít“, přeprogramoval zařízení — frekvenci, šířku pásma, rozprostírací faktor i kódový poměr naráz. Hodnoty, které aplikace ještě nepřečetla, jsou nyní označeny jako neznámé a „Použít“ zůstává nedostupné, dokud nepřijde skutečná konfigurace z rádia.
 
-- Oznámení kanálů nyní respektují „Zmínky“ a „Ztišeno“. Obě nastavení byla na veřejném kanálu ignorována, takže oznámení přišlo bez ohledu na to, co jste zvolili.
+- Automatický úklid kontaktů vás už nepřerušuje. Kdykoli rádio uvolnilo místo pro nový kontakt, aplikace otevřela dialog „Chyba zařízení“ — jeden na každý kontakt — kvůli zcela běžné činnosti, o kterou jste sami požádali. Úklid se teď hlásí jedním krátkým oznámením, které samo zmizí, a vypnout jej lze v „Nastavení“, „Oznámení“, „Údržba kontaktů“.
 
-- Ztišený kanál už nevibruje. Dříve zavibroval u každé zprávy, včetně celé nahromaděné historie, jakmile se vaše rádio znovu připojilo.
-
-- Zvuk oznámení, který jste vypnuli, se už nepřehrává.
-
-- Stav zprávy nyní odpovídá tomu, co se opravdu stalo. Zpráva v kanálu je označena jako odeslaná teprve tehdy, když rádio potvrdí, že ji odeslalo, a nikdy netvrdí doručení, které mesh nemá jak oznámit.
-
-- Zpráva, kterou nebylo možné odeslat, to nyní říká jasně, místo aby zobrazila zaškrtnutí, a lze ji jedním klepnutím odeslat znovu.
-
-- Počet hop a délka zpráv se uvádějí v jednotkách, které používá samo rádio. Mesh, který nemůže přesáhnout 63 hop, už netvrdí 70.
-
-- Koncept se nyní z pole pro psaní smaže, jakmile je zpráva na cestě.
-
-- Editor vlastních proměnných se otevře i na rádiu, které žádné nemá, takže první z nich lze konečně vytvořit.
-
-- VoiceOver už na hodinkách nemluví anglicky.
-
-A přidali jsme nové koledy a sladkosti.
-
-- Terminál rádia: vlastní příkazová řádka vašeho rádia, nyní přes Bluetooth, a nejen přes kabel, čímž se poprvé dostává na iPhone a iPad. V „Nastavení“, „Pokročilé“, od firmwaru 1.18.
-
-- Vestavěná příručka, která funguje bez připojení, protože příručka, jež potřebuje síť, chybí právě tehdy, kdy je potřeba.
-
-- Přehled senzorů, který porovnává uzly vedle sebe, místo aby je vypisoval jeden po druhém.
-
-- Objevené trasy se kreslí na mapu mesh, každý hop obarvený podle kvality signálu.
-
-- Serverové místnosti mohou zveřejňovat vlastní oznámení.
-
-- Jediný seznam kontaktů s voličem typu místo pevných sekcí, a řazení i hromadný výběr jsou nyní ve všech, nikoli jen ve dvou.
-
-- Podpora firmwaru MeshCore 1.18.
-
-- 77 textů, které se nikdy nedostaly do překladového katalogu, je nyní přeloženo, a průchod ostatními jedenácti jazyky opravil překlady, které byly chybné, nikoli jen chybějící.
-
-Dlouhé stisknutí na iPhonu a iPadu nebo kliknutí pravým tlačítkem na Macu: tam najdete nové možnosti.
-
-- „Rychlá odpověď“ u zprávy: odpovědět s počtem hop, signálem, časem a popisem místa, který si určíte, každé zvlášť vypnutelné.
-
-- „Znovu odeslat“ u zprávy, která neprošla.
-
-- „Zachovat“ u kontaktu, abyste jej ochránili před úklidem, a „Najít zastaralé kontakty“, abyste dohledali ty, které přestaly odpovídat.
-
-- „Vložit odkaz kontaktu“, pro přidání někoho z odkazu ve schránce.
-
-- „Odeslat záplavové oznámení“, abyste se dali poznat v celém mesh, a nejen nejbližším sousedům.
+- Patnáct chybových a stavových zpráv existovalo pouze v angličtině, mezi nimi upozornění na zaplněné úložiště kontaktů a všechna selhání importu kanálů. Nyní jsou přeloženy do všech dvanácti jazyků a při každém buildu běží nová kontrola, aby příští nepronikla bez povšimnutí.
