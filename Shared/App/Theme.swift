@@ -1042,6 +1042,18 @@ func formatHopCount(_ hops: Int) -> String {
     hops == 1 ? String(localized: "1 hop") : String(localized: "\(hops) hops")
 }
 
+/// A stored count against the radio's capacity, as `"12 / 200"`.
+///
+/// **A limit of 0 means the radio has not told us yet**, not a radio that can
+/// hold nothing — `DeviceConfig.maxContacts` and `maxChannels` both start at 0
+/// and are filled in from DEVICE_INFO. Rendering that as `"12 / 0"` would state
+/// a capacity the radio never reported, and claim the user is impossibly over
+/// it, so the limit is simply omitted until it arrives. Same discipline as
+/// `radioFrequency`: a value we do not have is never dressed up as one we do.
+func formatCountAgainstLimit<T: BinaryInteger>(_ count: Int, limit: T) -> String {
+    limit > 0 ? "\(count) / \(limit)" : "\(count)"
+}
+
 /// Format a coordinate (latitude or longitude) to 6 decimal places.
 func formatCoordinate(_ value: Double) -> String {
     String(format: "%.6f", value)
