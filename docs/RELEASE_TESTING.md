@@ -182,3 +182,63 @@ covers the repeater, room-server and sensor screens, and the pre-1.15
 **over** the existing app. This branch changed `DeliveryStatus` and the message
 store's write path, which is exactly the shape of change where a fresh install
 passes and an upgrade does not.
+
+---
+
+## v26.11.08 — the two defects App Store reviewers reported
+
+Both came from reviews rather than from any gate here, and **neither is
+reachable without a radio**. The settings body is gated on a live connection —
+disconnected, the whole screen reads "No Device Connected" — so a simulator
+cannot exercise either fix. Confirmed on the simulator 2026-11-08 before
+writing this plan, rather than assumed.
+
+What *is* covered automatically: `DeviceConfigResetTests` pins the frequency
+sentinel (4 tests, proven failing against the old value), and
+`check_user_message_channel_localized` fails the build on a bare literal in the
+user-message channel. Everything below needs hardware.
+
+### §4 Radio config must not be writable before it is known (the 2★ bug)
+
+The failure being prevented: the app reprogrammed radios to **906 MHz** because
+`reset()` restored a plausible default on every disconnect and the editor could
+not tell it from a value the radio had reported.
+
+1. Connect the radio. Note the real frequency in Settings → Radio Configuration.
+2. **Apply & Reboot must be enabled** and the frequency field populated.
+3. Turn Bluetooth off, or walk the radio out of range, and wait for the drop.
+4. Reconnect, and open Settings → Radio Configuration **immediately**, before
+   the radio's SELF_INFO lands.
+   - ✅ Frequency field is **empty**, not `906.000`.
+   - ✅ **Apply & Reboot is greyed out.**
+   - ❌ Any pre-filled `906.000` is the original bug.
+5. Wait for the connection to settle, reopen.
+   - ✅ The real frequency is back and Apply is enabled again.
+6. **The one that matters:** repeat steps 3–4 a few times, tapping Apply each
+   time it is available, then check `get radio` in the Radio Terminal.
+   - ✅ Frequency, bandwidth, SF and CR are unchanged from step 1.
+
+### §5 Contact housekeeping must not interrupt (the 3★ bug, macOS)
+
+The failure being prevented: every automatic purge opened a modal dialog
+titled "Device Error", one per contact — app-modal on the Mac.
+
+Needs a radio whose contact storage is **full**, so it evicts to make room.
+Easiest on a busy mesh, or by filling contacts deliberately.
+
+1. With storage full, let adverts arrive so the radio purges.
+   - ✅ At most **one** banner, at the bottom, which **dismisses itself**.
+   - ✅ Nothing is modal; the window stays usable throughout.
+   - ✅ A burst of purges produces **one** notice naming a count, not one each.
+   - ❌ Any "Device Error" dialog for a purge is the original bug.
+2. Settings → Notifications → **Contact Housekeeping**, switch off. Repeat.
+   - ✅ No banner at all; purging still happens.
+3. Fill storage completely so adds start failing.
+   - ✅ "Contact Storage Full" appears **once**, not once per failed add.
+   - ✅ After a reconnect it may appear once more — it is once per connection.
+4. On a non-English device, check both the banner and the full-storage alert.
+   - ✅ Both are translated. These strings were English for everyone until this
+     build, and no gate could see them.
+
+**Test this one on the Mac**, since that is where it was reported and where the
+modal was worst.
