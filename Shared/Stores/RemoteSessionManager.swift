@@ -1241,7 +1241,7 @@ final class RemoteSessionManager {
             guard !Task.isCancelled, let self, self.pendingTraceTag == tag else { return }
             self.pendingTraceTag = nil
             if self.lastTraceResult == nil {
-                self.showError?("Trace route timed out — the path may not be reachable.")
+                self.showError?(String(localized: "Trace route timed out — the path may not be reachable."))
             }
         }
     }
@@ -1284,7 +1284,7 @@ final class RemoteSessionManager {
 
     private func startPing(contact: Contact, count: Int) {
         guard contact.outPathLen > 0, !contact.outPath.isEmpty else {
-            showError?("Cannot ping — no route known. Try a direct neighbor with Status Request instead.")
+            showError?(String(localized: "Cannot ping — no route known. Try a direct neighbor with Status Request instead."))
             return
         }
         pingResults = []
@@ -1385,11 +1385,11 @@ final class RemoteSessionManager {
             if self.telemetryByContact[key] == nil {
                 switch contact.type {
                 case .chat:
-                    self.showError?("No telemetry response — telemetry is typically only available from sensor nodes.")
+                    self.showError?(String(localized: "No telemetry response — telemetry is typically only available from sensor nodes."))
                 case .room:
-                    self.showError?("No telemetry response — room servers don't typically support telemetry.")
+                    self.showError?(String(localized: "No telemetry response — room servers don't typically support telemetry."))
                 default:
-                    self.showError?("No telemetry response — the node may not support telemetry or is out of range.")
+                    self.showError?(String(localized: "No telemetry response — the node may not support telemetry or is out of range."))
                 }
             }
         }
@@ -1449,7 +1449,7 @@ final class RemoteSessionManager {
             let info = AdvertPathInfo(recvTimestamp: contact.lastAdvert, pathLen: 0, pathHashes: [])
             advertPathByContact[key] = info
         } else {
-            showError?("No path data available for this contact.")
+            showError?(String(localized: "No path data available for this contact."))
         }
     }
 

@@ -93,7 +93,26 @@ public final class DeviceConfig {
 
     // MARK: - Radio Configuration
 
-    public var radioFrequency: UInt32 = 906000  // freq * 1000, kHz
+    /// Zero means **not known yet** — no radio has reported its frequency on
+    /// this connection. It is not a frequency, and nothing may write it to a
+    /// radio.
+    ///
+    /// This used to default to `906000`, and `reset()` restored that on every
+    /// disconnect. Seven call sites across the app test `== 0` / `> 0` for
+    /// "unknown", so the guard in the radio editor
+    /// (`SettingsView+RadioPrivacy.loadFromConfig`) never fired: after a
+    /// disconnect it loaded a perfectly plausible 906.000 as though the radio
+    /// had reported it, and `applyRadioAndReboot()` wrote that straight back.
+    /// The user's radio was reprogrammed to 906 MHz — along with the bandwidth,
+    /// spreading factor and coding rate below, which `reset()` also restored to
+    /// defaults — by doing nothing but opening Settings after a reconnect and
+    /// tapping Apply. Reported in a 2★ App Store review on 2026-05-11 as
+    /// "after a few Bluetooth disconnects it resets back to 906"; root-caused
+    /// 2026-11-08.
+    ///
+    /// **A sentinel that is indistinguishable from a real value is not a
+    /// sentinel.** Keep this 0, and keep it in step with the `== 0` checks.
+    public var radioFrequency: UInt32 = 0  // freq * 1000, kHz; 0 = unknown
     public var radioBandwidth: UInt32 = 250000   // BW * 1000
     public var radioSpreadingFactor: UInt8 = 12
     public var radioCodingRate: UInt8 = 5  // 5=4/5, 6=4/6, 7=4/7, 8=4/8
@@ -181,7 +200,7 @@ public final class DeviceConfig {
         latitude = 0.0
         longitude = 0.0
         advertLocPolicy = 0
-        radioFrequency = 906000
+        radioFrequency = 0   // unknown until SELF_INFO arrives — see the property
         radioBandwidth = 250000
         radioSpreadingFactor = 12
         radioCodingRate = 5

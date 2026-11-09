@@ -31,6 +31,10 @@ struct SyncedSettingsPayload: Codable {
     /// failing the whole payload (rules 1 and 2).
     var staleCleanupScope: String
     var staleCleanupDays: Int
+    /// Whether to show the transient notice when the radio drops its oldest
+    /// contact to make room. The purge itself always happens; this is only
+    /// whether we mention it.
+    var notifyContactPurge: Bool
     var lastModified: Date
 }
 
@@ -52,6 +56,10 @@ extension SyncedSettingsPayload {
         // is the user's call to switch on, not ours to assume.
         staleCleanupScope = try c.decodeIfPresent(String.self, forKey: .staleCleanupScope) ?? "off"
         staleCleanupDays = try c.decodeIfPresent(Int.self, forKey: .staleCleanupDays) ?? 30
+        // On by default: a contact disappearing without explanation is worse
+        // than a brief banner. It is coalesced and non-blocking, and anyone who
+        // finds it noise can switch it off.
+        notifyContactPurge = try c.decodeIfPresent(Bool.self, forKey: .notifyContactPurge) ?? true
         lastModified = try c.decodeIfPresent(Date.self, forKey: .lastModified) ?? Date()
     }
 }
@@ -70,7 +78,7 @@ final class SyncedSettings {
         "locationPrivacyRadius", "shareOnMeshMap", "autoUpdateLocation",
         "locationUpdateInterval", "contactSortByLastSeen", "channelsFirst",
         "autoRetry", "autoResetPath",
-        "staleCleanupScope", "staleCleanupDays"
+        "staleCleanupScope", "staleCleanupDays", "notifyContactPurge"
     ]
 
     private var isApplyingCloud = false
@@ -152,6 +160,7 @@ final class SyncedSettings {
         setBoolIfDifferent("autoResetPath", payload.autoResetPath)
         setIfDifferent("staleCleanupScope", payload.staleCleanupScope)
         setIntIfDifferent("staleCleanupDays", payload.staleCleanupDays)
+        setBoolIfDifferent("notifyContactPurge", payload.notifyContactPurge)
     }
 
     // MARK: - Local → Cloud
@@ -176,6 +185,11 @@ final class SyncedSettings {
             staleCleanupScope: defaults.string(forKey: "staleCleanupScope") ?? "off",
             staleCleanupDays: defaults.object(forKey: "staleCleanupDays") != nil
                 ? defaults.integer(forKey: "staleCleanupDays") : 30,
+            // Absent means never set, which is on — matching the decoder's
+            // default. `bool(forKey:)` alone would read a missing key as false
+            // and silently switch the notice off for everyone on first sync.
+            notifyContactPurge: defaults.object(forKey: "notifyContactPurge") != nil
+                ? defaults.bool(forKey: "notifyContactPurge") : true,
             lastModified: Date()
         )
         iCloudStore.saveCodable(payload, forKey: Self.kvsKey)

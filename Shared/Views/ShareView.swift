@@ -134,7 +134,7 @@ class QRScannerViewController: UIViewController, AVCaptureMetadataOutputObjectsD
         guard let device = AVCaptureDevice.default(for: .video),
               let input = try? AVCaptureDeviceInput(device: device),
               captureSession.canAddInput(input) else {
-            showError("Camera not available")
+            showError(String(localized: "Camera not available"))
             return
         }
 

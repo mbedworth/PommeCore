@@ -27,6 +27,9 @@ extension SettingsView {
 
 struct NotificationsSection: View {
     @ObservedObject private var prefs = NotificationPreferences.shared
+    /// Synced to iCloud via `SyncedSettings`; defaults to on, so a contact
+    /// never vanishes without a word.
+    @AppStorage("notifyContactPurge") private var notifyContactPurge = true
 
     var body: some View {
         Section {
@@ -75,6 +78,14 @@ struct NotificationsSection: View {
                     .foregroundStyle(MeshTheme.accent)
             }
             .help("Show notification banners even while the app is open.")
+            .tint(MeshTheme.accent)
+            .listRowBackground(MeshTheme.surface)
+
+            Toggle(isOn: $notifyContactPurge) {
+                Label("Contact Housekeeping", systemImage: "person.crop.circle.badge.minus")
+                    .foregroundStyle(MeshTheme.accent)
+            }
+            .help("Mention it briefly when the radio drops its oldest contact to make room. The radio does this either way.")
             .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
         } header: {

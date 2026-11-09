@@ -80,6 +80,9 @@ extension PommeCoreViewModel {
             telemetryCloudSync.migrateIfNeeded(telemetryHistory: rfMonitorStore.telemetryHistory)
             telemetryCloudSync.fetchFromCloud()
             #endif
+            // A new connection: per-connection notices may fire again, and any
+            // purge burst collected against the previous link is stale.
+            resetPurgeNotices()
             deviceConfig.latitude = info.latitude
             deviceConfig.longitude = info.longitude
             deviceConfig.radioFrequency = info.radioFreq
@@ -354,14 +357,31 @@ extension PommeCoreViewModel {
             remoteSessionManager.handleBinaryResponse(tag: tag, payload: data)
 
         case .contactDeleted(let publicKey):
-            let name = contactStore.contacts.first(where: { $0.publicKeyPrefix == publicKey.prefix(6) })?.name ?? "Unknown"
+            let name = contactStore.contacts.first(where: { $0.publicKeyPrefix == publicKey.prefix(6) })?.name
+                ?? String(localized: "Unknown")
             contactStore.handleContactDeleted(publicKey: publicKey)
-            connectionManager.lastErrorMessage = "Contact \"\(name)\" was removed from device to make room for new contacts."
+            Self.logger.info("Contact purged to make room: \(name, privacy: .public)")
+            noteContactPurged(name: name)
 
         case .contactsFull(let maxContacts):
             Self.logger.warning("Contact storage full: \(maxContacts)")
-            connectionManager.lastErrorMessage = "Contact storage is full (\(maxContacts) contacts). New contacts cannot be added."
-            postEventNotification(title: "Contact Storage Full", body: "Device has reached \(maxContacts) contacts. New contacts cannot be added.", threadId: "system")
+            // Storage being full *is* worth interrupting for — new contacts will
+            // silently not arrive until something is removed — but only once per
+            // connection. The radio re-sends this on every failed add, which is
+            // how a single full radio produced an unbroken wall of alerts.
+            if !hasReportedContactsFull {
+                hasReportedContactsFull = true
+                // Int, not the wire type: the catalog key's format specifier is
+                // generated from the interpolated type, so a UInt16 here would
+                // produce a different key from every other count in the catalog.
+                let limit = Int(maxContacts)
+                connectionManager.lastErrorMessage = String(
+                    localized: "Contact storage is full (\(limit) contacts). New contacts cannot be added.")
+                postEventNotification(
+                    title: String(localized: "Contact Storage Full"),
+                    body: String(localized: "Device has reached \(limit) contacts. New contacts cannot be added."),
+                    threadId: "system")
+            }
 
         #if !os(watchOS)
         case .signStartResp(let maxLength):

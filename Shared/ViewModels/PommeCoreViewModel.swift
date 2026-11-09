@@ -145,7 +145,58 @@ final class PommeCoreViewModel: ObservableObject {
     /// Not @Published: the observeStores bridge tracks changes via @Observable.
     /// Reference is replaced (= DeviceConfig()) on disconnect to reset all state.
     var deviceConfig = DeviceConfig()
-    
+
+    // MARK: - Contact purge notices (coalesced)
+
+    /// Names purged since the pending notice was scheduled.
+    private var purgedContactNames: [String] = []
+    private var purgeNoticeTask: Task<Void, Never>?
+    /// "Contact storage is full" repeats on every failed add; report it once
+    /// per connection, not once per attempt. Cleared in `resetPurgeNotices()`.
+    var hasReportedContactsFull = false
+
+    /// Record that the radio dropped a contact to make room, and surface it
+    /// once for a burst rather than once per contact.
+    ///
+    /// The radio evicts its oldest contact whenever a new advert arrives and
+    /// storage is full, so on a busy mesh this fires repeatedly and in bursts.
+    /// It used to write `lastErrorMessage`, which is modal — a stream of
+    /// "Device Error" dialogs for routine housekeeping the user wants. Now it
+    /// collects names for a moment and emits a single non-blocking notice.
+    ///
+    /// Silenced entirely by Settings → Notifications → Contact Housekeeping;
+    /// the debug log keeps the per-contact detail either way.
+    func noteContactPurged(name: String) {
+        guard UserDefaults.standard.object(forKey: "notifyContactPurge") == nil
+                || UserDefaults.standard.bool(forKey: "notifyContactPurge") else { return }
+
+        purgedContactNames.append(name)
+        purgeNoticeTask?.cancel()
+        purgeNoticeTask = Task { @MainActor [weak self] in
+            // Long enough that a sync burst lands in one notice, short enough
+            // that it still feels like a response to what just happened.
+            try? await Task.sleep(for: .seconds(3))
+            guard !Task.isCancelled, let self, !self.purgedContactNames.isEmpty else { return }
+            let names = self.purgedContactNames
+            self.purgedContactNames = []
+            // Explicit singular/plural branch with two keys, as `formatHopCount`
+            // does. Inflection markup cannot be used here: `Text` applies it when
+            // drawing, so inside `String(localized:)` it would reach the screen
+            // verbatim — the same defect that once put markup on the air.
+            self.connectionManager.lastNotice = names.count == 1
+                ? String(localized: "\(names[0]) was removed to make room for new contacts.")
+                : String(localized: "\(names.count) contacts were removed to make room for new contacts.")
+        }
+    }
+
+    /// Called when a radio connects, so per-connection notices can fire again.
+    func resetPurgeNotices() {
+        purgeNoticeTask?.cancel()
+        purgedContactNames = []
+        hasReportedContactsFull = false
+    }
+
+
     private let iCloudStore = NSUbiquitousKeyValueStore.default
     
     private func registerTerminationHandler() {
