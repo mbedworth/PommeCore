@@ -216,3 +216,115 @@ final class NotificationGateTests: XCTestCase {
         XCTAssertTrue(store.alertIsAllowed(for: directMessage(from: room)))
     }
 }
+
+// MARK: - Retired and renamed defaults keys
+
+/// A stand-in for the iCloud key-value store, so a test can say "the new
+/// location is empty" or "the new location already holds the user's choice"
+/// without touching the real one.
+private final class FakeCloudStore: NSUbiquitousKeyValueStore {
+    var values: [String: Any] = [:]
+    override func object(forKey key: String) -> Any? { values[key] }
+    override func set(_ value: Bool, forKey key: String) { values[key] = value }
+    override func bool(forKey key: String) -> Bool { values[key] as? Bool ?? false }
+    override func synchronize() -> Bool { true }
+}
+
+/// `RetiredDefaults.sweepIfNeeded` — the recovery for the settings that
+/// `9cf94d7` lost, and the retirement of the keys `#94` left behind.
+///
+/// The case that matters most is `testCurrentValueIsNeverOverwritten`: this
+/// runs eight months after the rename, so anyone who re-set a notification
+/// since then has a deliberate choice in the new location, and a migration
+/// that stamped the March value over it would be a second silent reset — the
+/// same defect it exists to repair, pointed the other way.
+final class RetiredDefaultsTests: XCTestCase {
+
+    private var suiteName: String!
+    private var defaults: UserDefaults!
+    private var cloud: FakeCloudStore!
+
+    override func setUp() {
+        super.setUp()
+        suiteName = "RetiredDefaultsTests.\(UUID().uuidString)"
+        defaults = UserDefaults(suiteName: suiteName)
+        cloud = FakeCloudStore()
+    }
+
+    override func tearDown() {
+        defaults.removePersistentDomain(forName: suiteName)
+        super.tearDown()
+    }
+
+    func testLegacyValueIsAdoptedWhenTheNewLocationIsEmpty() {
+        defaults.set(false, forKey: "notifyDirectMessages")
+
+        RetiredDefaults.sweepIfNeeded(defaults: defaults, cloud: cloud)
+
+        // The whole point: a preference switched off before March 2026 comes
+        // back off, instead of being read as "never set" and so as on.
+        XCTAssertEqual(cloud.values["notify.direct"] as? Bool, false)
+    }
+
+    func testCurrentValueIsNeverOverwritten() {
+        defaults.set(false, forKey: "notifyDirectMessages")
+        cloud.values["notify.direct"] = true   // the user set it since
+
+        RetiredDefaults.sweepIfNeeded(defaults: defaults, cloud: cloud)
+
+        XCTAssertEqual(cloud.values["notify.direct"] as? Bool, true)
+    }
+
+    func testLegacyKeysAreClearedWhetherOrNotTheyWereAdopted() {
+        defaults.set(false, forKey: "notifyDirectMessages")   // adopted
+        defaults.set(false, forKey: "notifyChannelMessages")  // not adopted
+        cloud.values["notify.channel"] = true
+
+        RetiredDefaults.sweepIfNeeded(defaults: defaults, cloud: cloud)
+
+        // A value left behind is a value a future key of the same name inherits.
+        for (legacy, _) in RetiredDefaults.renamedToCloud {
+            XCTAssertNil(defaults.object(forKey: legacy), "\(legacy) survived")
+        }
+    }
+
+    func testRetiredKeysAreRemoved() {
+        for key in RetiredDefaults.retired {
+            defaults.set(true, forKey: key)
+        }
+
+        RetiredDefaults.sweepIfNeeded(defaults: defaults, cloud: cloud)
+
+        for key in RetiredDefaults.retired {
+            XCTAssertNil(defaults.object(forKey: key), "\(key) survived")
+        }
+    }
+
+    func testSweepRunsOnlyOnce() {
+        defaults.set(false, forKey: "notifyDirectMessages")
+        RetiredDefaults.sweepIfNeeded(defaults: defaults, cloud: cloud)
+        XCTAssertEqual(cloud.values["notify.direct"] as? Bool, false)
+
+        // A legacy key that reappears later — a restored backup, an old value
+        // syncing down from another device — must not be adopted a second
+        // time. The new location is deliberately left *empty* here, so the
+        // no-overwrite guard cannot be what stops it: only the once-only flag
+        // can. Written the obvious way round, with a value in the new
+        // location, this test passed with the flag deleted entirely.
+        defaults.set(false, forKey: "notifyDirectMessages")
+        cloud.values.removeValue(forKey: "notify.direct")
+        RetiredDefaults.sweepIfNeeded(defaults: defaults, cloud: cloud)
+
+        XCTAssertNil(cloud.values["notify.direct"],
+                     "the sweep ran a second time")
+    }
+
+    func testALiveSettingIsNotRetiredByMistake() {
+        // `notifyContactPurge` is shaped exactly like the five legacy names and
+        // is a working setting. If it ever appears in the registry, the sweep
+        // would delete a preference the user still sets.
+        let names = RetiredDefaults.retired
+            + RetiredDefaults.renamedToCloud.map(\.legacy)
+        XCTAssertFalse(names.contains("notifyContactPurge"))
+    }
+}

@@ -1213,6 +1213,71 @@ def check_settings_have_readers() -> None:
                    "nothing happens. Wire it up or remove the control")
 
 
+def check_retired_defaults_not_reused() -> None:
+    """A retired settings key must not come back to life under new meaning.
+
+    `RetiredDefaults` (in `SyncedSettings.swift`) lists every `UserDefaults`
+    key this app has stopped using. The sweeper removes each one once per
+    install, and the *point* of removing them is that the name becomes safe to
+    reuse. This is the other half of that promise: it fails if a retired name
+    is read or written anywhere again.
+
+    **Why it has to be mechanical.** The hazard is invisible on the machine
+    that introduces it. A developer's install has been swept, so a key reused
+    for a new purpose reads clean there; an upgrading user who skipped the
+    release with the sweep still carries the old value and gets different
+    behaviour from a fresh install. `UserDefaults` coerces `Bool`, `Int` and
+    `Double` through `NSNumber` without complaining, so a reused name with a
+    different type does not even crash — it just reads a plausible wrong
+    value. That is the retype case `RetiredDefaults` warns about, arriving by
+    the back door.
+
+    The same applies to the legacy halves of `renamedToCloud`: those names
+    were abandoned in `9cf94d7`, carry stale values on long-lived installs,
+    and must stay abandoned. Only `SyncedSettings.swift` itself may name any
+    of them, because that is where the registry lives.
+    """
+    registry = ROOT / "Shared" / "Stores" / "SyncedSettings.swift"
+    if not registry.exists():
+        return
+    text = registry.read_text(errors="replace")
+
+    # The registry is the single source: parse the names out of it rather than
+    # restating them here, so the list cannot drift from the code that sweeps.
+    retired: set[str] = set()
+    block = re.search(r"static let retired:[^=]*=\s*\[(.*?)\]", text, re.DOTALL)
+    if block:
+        retired |= set(re.findall(r'"([^"]+)"', block.group(1)))
+    block = re.search(r"static let renamedToCloud:[^=]*=\s*\[(.*?)\n\s*\]",
+                      text, re.DOTALL)
+    if block:
+        # Only the legacy name of each pair; the current one is very much live.
+        retired |= {m[0] for m in re.findall(r'\(\s*"([^"]+)"\s*,\s*"([^"]+)"\s*\)',
+                                             block.group(1))}
+    if not retired:
+        report("FAIL", "DP1", registry, 1,
+               "RetiredDefaults holds no keys — either the registry was "
+               "emptied or this check's parser no longer matches it, and a "
+               "silent parser is worse than no check")
+        return
+
+    for path in swift_files(["Shared", "watchOS", "iOS", "macOS",
+                             "PommeCore Widgets", "PommeCore Watch Complications"]):
+        if path == registry:
+            continue
+        for n, line in enumerate(lines_of(path), 1):
+            if line.strip().startswith("//"):
+                continue
+            for literal in STRING_LITERAL.findall(line):
+                if literal[1:-1] in retired:
+                    report("FAIL", "DP1", path, n,
+                           f'`{literal[1:-1]}` is a retired settings key — it '
+                           "was swept from UserDefaults and must not be used "
+                           "again. An upgrading install may still carry its "
+                           "old value, so a reused name behaves differently "
+                           "there than on a fresh install. Pick a new name")
+
+
 CHECKS = [
     check_sheet_frames,
     check_text_takes_string,
@@ -1241,6 +1306,7 @@ CHECKS = [
     check_hand_built_icloud_keys,
     check_idiom_layout,
     check_settings_have_readers,
+    check_retired_defaults_not_reused,
 ]
 
 
