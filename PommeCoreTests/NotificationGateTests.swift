@@ -224,8 +224,20 @@ final class NotificationGateTests: XCTestCase {
 /// without touching the real one.
 private final class FakeCloudStore: NSUbiquitousKeyValueStore {
     var values: [String: Any] = [:]
+    /// Writes, not just final state: seeding the local copy from the cloud
+    /// must not write back to the cloud, and only a count can show that.
+    var writeCount = 0
     override func object(forKey key: String) -> Any? { values[key] }
-    override func set(_ value: Bool, forKey key: String) { values[key] = value }
+    override func set(_ value: Bool, forKey key: String) {
+        values[key] = value
+        writeCount += 1
+    }
+    // `setAndSync` takes `Any?`, so this is the overload the app actually
+    // reaches. Without it the writes vanished and a passing test meant nothing.
+    override func set(_ value: Any?, forKey key: String) {
+        values[key] = value
+        writeCount += 1
+    }
     override func bool(forKey key: String) -> Bool { values[key] as? Bool ?? false }
     override func synchronize() -> Bool { true }
 }
@@ -326,5 +338,105 @@ final class RetiredDefaultsTests: XCTestCase {
         let names = RetiredDefaults.retired
             + RetiredDefaults.renamedToCloud.map(\.legacy)
         XCTAssertFalse(names.contains("notifyContactPurge"))
+    }
+}
+
+// MARK: - Where notification preferences are actually stored
+
+/// `NotificationPreferences` persistence.
+///
+/// Until 2026-11-19 the only store was the iCloud key-value store and the only
+/// write was inside `if iCloudSyncEnabled`, so **with iCloud sync switched off
+/// these toggles persisted nowhere** — they held for the session and reverted
+/// at the next launch. The reads were unconditional, which is exactly why it
+/// looked like it worked. Nothing in the app could observe a write that was
+/// not happening, so the stores are injectable now and these tests watch them.
+@MainActor
+final class NotificationPersistenceTests: XCTestCase {
+
+    private var suiteName: String!
+    private var defaults: UserDefaults!
+    private var cloud: FakeCloudStore!
+
+    override func setUp() {
+        super.setUp()
+        suiteName = "NotificationPersistenceTests.\(UUID().uuidString)"
+        defaults = UserDefaults(suiteName: suiteName)
+        cloud = FakeCloudStore()
+    }
+
+    override func tearDown() {
+        defaults.removePersistentDomain(forName: suiteName)
+        super.tearDown()
+    }
+
+    private func makePrefs() -> NotificationPreferences {
+        NotificationPreferences(defaults: defaults, cloud: cloud)
+    }
+
+    func testPreferenceSurvivesRelaunchWithSyncOff() {
+        defaults.set(false, forKey: "iCloudSyncEnabled")
+
+        let first = makePrefs()
+        first.notifyDirect = false
+
+        // The defect: this came back `true`, because nothing had been written.
+        XCTAssertFalse(makePrefs().notifyDirect)
+    }
+
+    func testNothingIsWrittenToTheCloudWithSyncOff() {
+        defaults.set(false, forKey: "iCloudSyncEnabled")
+
+        makePrefs().notifyChannel = false
+
+        XCTAssertTrue(cloud.values.isEmpty,
+                      "sync is off — nothing belongs in the cloud store")
+    }
+
+    func testPreferenceGoesToBothStoresWithSyncOn() {
+        let prefs = makePrefs()
+        prefs.notifyRoom = false
+
+        XCTAssertEqual(defaults.object(forKey: "notify.room") as? Bool, false)
+        XCTAssertEqual(cloud.values["notify.room"] as? Bool, false)
+    }
+
+    func testAnExistingCloudValueSeedsTheLocalCopy() {
+        // Every value written before this change lives only in the cloud
+        // store. First launch after the update has to find it.
+        cloud.values["notify.direct"] = false
+
+        XCTAssertFalse(makePrefs().notifyDirect)
+        XCTAssertEqual(defaults.object(forKey: "notify.direct") as? Bool, false)
+    }
+
+    func testSeedingFromTheCloudDoesNotEchoBackToIt() {
+        cloud.values["notify.direct"] = false
+        let before = cloud.writeCount
+
+        _ = makePrefs()
+
+        XCTAssertEqual(cloud.writeCount, before,
+                       "a value read from the cloud was written straight back")
+    }
+
+    func testAnUnsetPreferenceIsLeftUnset() {
+        _ = makePrefs()
+
+        // An absent key is how a preference that was never set stays
+        // distinguishable from one deliberately set to its default — which is
+        // what `RetiredDefaults` relies on when it decides whether to adopt.
+        XCTAssertNil(defaults.object(forKey: "notify.direct"))
+        XCTAssertTrue(cloud.values.isEmpty)
+    }
+
+    func testDefaultsMatchTheDocumentedIntent() {
+        let prefs = makePrefs()
+        XCTAssertTrue(prefs.notifyDirect)
+        XCTAssertTrue(prefs.notifyChannel)
+        XCTAssertTrue(prefs.notifyRoom)
+        XCTAssertTrue(prefs.notifyConnection)
+        XCTAssertTrue(prefs.notifyForeground)
+        XCTAssertFalse(prefs.notifyNewContacts)
     }
 }
