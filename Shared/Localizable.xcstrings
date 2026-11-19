@@ -15999,6 +15999,77 @@
         }
       }
     },
+    "Choose how PommeCore looks. System follows your device’s Dark Mode setting. Channels First puts your channels above your contacts, and applies when the list is showing All rather than a single type.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wähle, wie PommeCore aussieht. „System“ folgt der Dunkelmodus-Einstellung deines Geräts. „Kanäle zuerst“ stellt deine Kanäle über die Kontakte und wirkt nur, wenn die Liste „Alle“ zeigt und nicht einen einzelnen Typ."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choisissez l’apparence de PommeCore. « Système » suit le réglage de mode sombre de votre appareil. « Chaînes en premier » place vos chaînes au-dessus de vos contacts, et n’agit que lorsque la liste affiche « Tout » plutôt qu’un seul type."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elige cómo se ve PommeCore. «Sistema» sigue la configuración de Modo Oscuro de tu dispositivo. «Canales Primero» coloca tus canales por encima de los contactos, y solo actúa cuando la lista muestra «Todo» en lugar de un único tipo."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scegli l’aspetto di PommeCore. «Sistema» segue l’impostazione Dark Mode del tuo dispositivo. «Prima i canali» mette i tuoi canali sopra i contatti, e ha effetto solo quando l’elenco mostra «Tutto» invece di un singolo tipo."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kies hoe PommeCore eruitziet. ‘Systeem’ volgt de donkeremodusinstelling van je apparaat. ‘Kanalen Eerst’ zet je kanalen boven je contacten, en werkt alleen wanneer de lijst ‘Alle’ toont in plaats van één type."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escolha o aspeto do PommeCore. «Sistema» segue a configuração de Modo Escuro do seu dispositivo. «Canais Primeiro» coloca os seus canais acima dos contactos, e só se aplica quando a lista mostra «Todos» em vez de um único tipo."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zvolte vzhled PommeCore. „Systém“ sleduje nastavení tmavého režimu vašeho zařízení. „Nejprve kanály“ umístí vaše kanály nad kontakty a funguje jen tehdy, když seznam zobrazuje „Všechny“, a ne jediný typ."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wybierz wygląd PommeCore. „System” dostosowuje się do ustawienia trybu ciemnego Twojego urządzenia. „Najpierw kanały” umieszcza kanały nad kontaktami i działa tylko wtedy, gdy lista pokazuje „Wszystkie”, a nie jeden typ."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Виберіть, як виглядатиме PommeCore. «Система» дотримується налаштування темного режиму вашого пристрою. «Спочатку канали» розміщує ваші канали над контактами й діє лише тоді, коли список показує «Всі», а не окремий тип."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PommeCore の外観を選びます。「システム」はデバイスのダークモード設定に従います。「チャネルを先に表示」は、チャネルを連絡先より上に並べます。これが効くのは、リストが単一の種類ではなく「すべて」を表示しているときだけです。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择 PommeCore 的外观。「系统」会遵循您设备的深色模式设置。「频道优先」会把频道排在联系人上方，并且仅在列表显示「所有」而非单一类型时生效。"
+          }
+        }
+      }
+    },
     "Choose which events trigger notifications. In-App Banners shows alerts even when the app is open.": {
       "localizations": {
         "cs": {
@@ -43039,6 +43110,77 @@
         }
       }
     },
+    "Maximum messages stored on this device per contact. Oldest are pruned automatically. iCloud syncs the last 50 per contact separately.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maximale Nachrichten, die auf diesem Gerät pro Kontakt gespeichert werden können. Älteste werden automatisch entfernt. iCloud synchronisiert die letzten 50 pro Kontakt separat."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nombre maximum de messages stockés sur cet appareil par contact. Les plus anciens sont supprimés automatiquement. iCloud synchronise les 50 derniers par contact séparément."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Máximo de mensajes almacenados en este dispositivo por contacto. Los más antiguos se eliminan automáticamente. iCloud sincroniza los últimos 50 por contacto por separado."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Massimo numero di messaggi memorizzati su questo dispositivo per contatto. I più vecchi sono eliminati automaticamente. iCloud sincronizza gli ultimi 50 per contatto separatamente."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maximum berichten opgeslagen op dit apparaat per contact. Oudste berichten worden automatisch verwijderd. iCloud synchroniseert de laatste 50 per contact afzonderlijk."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Máximo de mensagens armazenadas neste dispositivo por contato. As mais antigas são podadas automaticamente. O iCloud sincroniza as últimas 50 por contato separadamente."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maximální počet zpráv uložených na tomto zařízení pro kontakt. Nejstarší jsou automaticky odstraňovány. iCloud synchronizuje posledních 50 zpráv pro kontakt samostatně."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maksymalna liczba wiadomości przechowywanych na tym urządzeniu na kontakt. Najstarsze są usuwane automatycznie. iCloud synchronizuje ostatnie 50 na kontakt osobno."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Максимальна кількість повідомлень, збережених на цьому пристрої за контакт. Найстаріші видаляються автоматично. iCloud синхронізує останні 50 за контакт окремо."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この端末に連絡先ごとに保存するメッセージの上限です。古いものから自動的に削除されます。iCloud は連絡先ごとに直近 50 件を別途同期します。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本设备每位联系人可存储的最大消息数。最旧的消息会被自动删除。iCloud会单独同步每位联系人后50条消息。"
+          }
+        }
+      }
+    },
     "Mention it briefly when the radio drops its oldest contact to make room. The radio does this either way.": {
       "extractionState": "manual",
       "localizations": {
@@ -55231,6 +55373,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "PommeCore 免费提供所有功能。建议帮助资助开发。💚 捐赠者加入支持者墙！"
+          }
+        }
+      }
+    },
+    "PommeCore supports Bluetooth, WiFi, and USB Serial connections to your radio.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PommeCore unterstützt Bluetooth, WiFi und USB-Serial-Verbindungen zu Ihrem Funkgerät."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PommeCore prend en charge les connexions Bluetooth, WiFi et USB Série à votre radio."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PommeCore admite conexiones Bluetooth, WiFi y USB Serial a tu radio."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PommeCore supporta connessioni Bluetooth, WiFi e USB Serial alla tua radio."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PommeCore ondersteunt Bluetooth, WiFi en USB Serial verbindingen met je radio."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O PommeCore suporta conexões Bluetooth, WiFi e USB Serial ao seu rádio."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PommeCore podporuje Bluetooth, WiFi a USB Serial připojení k vašemu rádiu."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PommeCore obsługuje połączenia Bluetooth, WiFi i USB Serial z Twoim radiem."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PommeCore підтримує Bluetooth, WiFi та USB Serial з'єднання з вашим радіом."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PommeCore支持通过蓝牙、WiFi和USB串行连接到您的无线电。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PommeCore は Bluetooth、WiFi、USB シリアルによる無線機との接続に対応しています。"
           }
         }
       }
@@ -79795,6 +80008,77 @@
           "stringUnit": {
             "state": "translated",
             "value": "无线电将断开连接并重启。您需要通过蓝牙重新连接。"
+          }
+        }
+      }
+    },
+    "The reading the radio sent, before correction. PommeCore learns this correction from your battery over time — reset it if the percentage looks wrong or you have changed the battery.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Wert, den das Funkgerät gesendet hat, vor der Korrektur. PommeCore lernt diese Korrektur im Laufe der Zeit von deiner Batterie — setze sie zurück, wenn der Prozentwert falsch aussieht oder du die Batterie gewechselt hast."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La lecture envoyée par la radio, avant correction. PommeCore apprend cette correction de votre batterie au fil du temps — réinitialisez-la si le pourcentage semble incorrect ou si vous avez changé la batterie."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La lectura que envió la radio, antes de la corrección. PommeCore aprende esta corrección de tu batería con el tiempo — resétala si el porcentaje parece incorrecto o has cambiado la batería."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La lettura inviata dalla radio, prima della correzione. PommeCore impara questa correzione dalla tua batteria col tempo — reimpostala se la percentuale sembra sbagliata o hai cambiato la batteria."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De lezing die de radio heeft gestuurd, voor correctie. PommeCore leert deze correctie van je batterij in de loop van de tijd — reset het als het percentage er onjuist uitziet of als je de batterij hebt vervangen."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A leitura que o rádio enviou, antes da correção. O PommeCore aprende essa correção da sua bateria ao longo do tempo — redefina-o se o percentual parecer errado ou você tiver trocado a bateria."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Čtení, které rádio odeslalo, před korekcí. PommeCore se učí tuto korekci z vaší baterie v průběhu času - resetujte ji, pokud procentuální hodnota vypadá špatně nebo jste změnili baterii."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odczyt radiowy wysłany, przed korektą. PommeCore uczy się tej korekty z Twojej baterii w czasie - zresetuj ją, jeśli procent wygląda nieprawidłowo lub zmieniłeś baterię."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Показник, який надіслало радіо, до корекції. PommeCore з часом вивчає цю корекцію з вашої батареї — скиньте її, якщо відсоток виглядає неправильно або ви замінили батарею."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收到的无线电读数，在纠正前。PommeCore会随着时间的推移从您的电池中学习这种纠正——如果百分比看起来不正确或您更换了电池，请重置它。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無線機が送ってきた補正前の値です。PommeCore は時間をかけてバッテリーからこの補正を学習します。パーセント表示がおかしいときや、バッテリーを交換したときはリセットしてください。"
           }
         }
       }

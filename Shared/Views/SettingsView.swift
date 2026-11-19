@@ -654,7 +654,14 @@ private extension SettingsView {
             .tint(MeshTheme.accent)
             .listRowBackground(MeshTheme.surface)
         } header: {
-            sectionInfoHeader("Appearance", info: "Choose how PommeCore looks. System follows your device\u{2019}s Dark Mode setting.")
+            // Channels First had no help text of its own for as long as it
+            // existed, which is design principle 3 unmet — and worse than it
+            // sounds, because the setting only does anything under the All
+            // filter. Someone viewing a single type sees nothing change and
+            // has nothing telling them why, which reads as the switch being
+            // broken. It genuinely was broken for three releases; the least we
+            // can do now is say where it applies.
+            sectionInfoHeader("Appearance", info: "Choose how PommeCore looks. System follows your device\u{2019}s Dark Mode setting. Channels First puts your channels above your contacts, and applies when the list is showing All rather than a single type.")
         }
     }
 }

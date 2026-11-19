@@ -667,25 +667,6 @@ struct DeviceInfoSection: View {
 }
 
 extension SettingsView {
-    var batteryChemistryPicker: some View {
-        HStack {
-            Image(systemName: "bolt.batteryblock")
-                .foregroundStyle(MeshTheme.accent)
-                .frame(width: 24)
-            Picker("Battery Type", selection: $batteryChemistryRaw) {
-                ForEach(BatteryChemistry.allCases) { chem in
-                    Text(chem.displayName).tag(chem.rawValue)
-                }
-            }
-            .foregroundStyle(MeshTheme.accent)
-            .tint(MeshTheme.textPrimary)
-            .onChange(of: batteryChemistryRaw) {
-                deviceConfig.resetBatteryCalibration()
-            }
-        }
-        .listRowBackground(MeshTheme.surface)
-    }
-
     var statsBatteryDisplay: String {
         guard config.statsBatteryMV != 0 else { return "\u{2014}" }
         let mv = Int(config.statsBatteryMV)
@@ -698,32 +679,6 @@ extension SettingsView {
         let v = Double(mv) / 1000.0
         let pct = batteryChemistry.profile.percentage(forMillivolts: mv)
         return "\(String(format: "%.2fV", v)) (\(pct)%)"
-    }
-
-    // Fix #11: Public key with Copy button
-    var publicKeyRow: some View {
-        HStack {
-            Image(systemName: "key")
-                .foregroundStyle(MeshTheme.accent)
-                .frame(width: 24)
-            Text("Public Key")
-                .foregroundStyle(MeshTheme.accent)
-            Spacer()
-            Text(String(config.publicKeyHex.prefix(16)) + "...")
-                .foregroundStyle(MeshTheme.textPrimary)
-                .font(.caption)
-            Button {
-                copyToClipboard(config.publicKeyHex)
-            } label: {
-                Image(systemName: "doc.on.doc")
-                    .accessibilityLabel("Copy public key")
-                    .font(.caption)
-                    .foregroundStyle(MeshTheme.accent)
-            }
-            .buttonStyle(.plain)
-            .contentShape(Rectangle())
-        }
-        .listRowBackground(MeshTheme.surface)
     }
 
     var correctedBatteryPercent: Int {
@@ -758,43 +713,6 @@ extension SettingsView {
             }
         }
         .listRowBackground(MeshTheme.surface)
-    }
-
-    var batteryCalibrationsRows: some View {
-        Group {
-            if let cal = deviceConfig.batteryCalibration, config.batteryMillivolts > 0 {
-                HStack {
-                    Image(systemName: "tuningfork")
-                        .foregroundStyle(MeshTheme.accent)
-                        .frame(width: 24)
-                    Text("Raw Voltage")
-                        .foregroundStyle(MeshTheme.accent)
-                    Spacer()
-                    Text(String(format: "%.2fV", config.batteryVoltage))
-                        .foregroundStyle(MeshTheme.textSecondary)
-                    Text(String(format: "(\u{00D7}%.3f)", cal.correctionFactor))
-                        .font(.caption)
-                        .foregroundStyle(MeshTheme.textSecondary)
-                }
-                .listRowBackground(MeshTheme.surface)
-
-                Button {
-                    deviceConfig.resetBatteryCalibration()
-                } label: {
-                    HStack {
-                        Image(systemName: "arrow.counterclockwise")
-                            .foregroundStyle(MeshTheme.accent)
-                            .frame(width: 24)
-                        Text("Reset Calibration")
-                            .foregroundStyle(MeshTheme.accent)
-                        Spacer()
-                    }
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .listRowBackground(MeshTheme.surface)
-            }
-        }
     }
 
     var batteryIconName: String {

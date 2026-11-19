@@ -84,18 +84,6 @@ extension ContactListView {
         }
     }
 
-    @ViewBuilder
-    var groupsSection: some View {
-        Section {
-            groupRows
-        } header: {
-            SectionHeader("Groups") {
-                Spacer()
-                groupsHeaderButton
-            }
-        }
-    }
-
     /// The group rows on their own, so the unified section can show them.
     @ViewBuilder
     var groupRows: some View {
@@ -426,13 +414,6 @@ extension ContactListView {
             .reduce(0) { $0 + unreadCount(for: $1) }
     }
 
-    var contactsSectionHeader: some View {
-        SectionHeader("Contacts") {
-            Spacer()
-            contactsHeaderButtons
-        }
-    }
-
     /// The contacts section's own buttons: sort, and the add menu.
     @ViewBuilder
     var contactsHeaderButtons: some View {
@@ -482,14 +463,6 @@ extension ContactListView {
         }
         .accessibilityLabel("Add contact")
         .menuIndicator(.hidden)
-    }
-
-    var contactsSection: some View {
-        Section(isExpanded: $contactsExpanded) {
-            contactRows(ungroupedContacts)
-        } header: {
-            contactsSectionHeader
-        }
     }
 
     /// The rows for a set of contacts, with everything a contact row carries:
@@ -727,98 +700,6 @@ extension ContactListView {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("Zero-hop reaches nearby nodes only. Flood is relayed by repeaters across the entire mesh network.")
-        }
-    }
-}
-
-// MARK: - Infrastructure Sections
-
-extension ContactListView {
-
-    /// Repeaters, sensors and room servers, each in their own section,
-    /// collapsed by default.
-    ///
-    /// They are split out because they are what multiplies: a busy mesh turns
-    /// a contact list into a list of repeaters with the people buried in it.
-    /// Collapsed is the default for the same reason — but a collapsed section
-    /// must never hide something that wants attention, so the header carries
-    /// the unread count. That matters most for rooms, which are a conversation
-    /// rather than plumbing and are only here because a per-type split was
-    /// asked for.
-    @ViewBuilder
-    var infrastructureSections: some View {
-        // Asking for a type is asking to see it, so a section the filter
-        // selects is open whatever its remembered collapsed state says.
-        if listFilter == .all || listFilter == .repeaters {
-            infrastructureSection(.repeater, title: "Repeaters",
-                                  systemImage: "antenna.radiowaves.left.and.right",
-                                  isExpanded: expansion(for: .repeaters, remembered: $repeatersExpanded))
-        }
-        if listFilter == .all || listFilter == .sensors {
-            infrastructureSection(.sensor, title: "Sensors",
-                                  systemImage: "sensor",
-                                  isExpanded: expansion(for: .sensors, remembered: $sensorsExpanded))
-        }
-        if listFilter == .all || listFilter == .rooms {
-            infrastructureSection(.room, title: "Rooms",
-                                  systemImage: "bubble.left.and.bubble.right",
-                                  isExpanded: expansion(for: .rooms, remembered: $roomsExpanded))
-        }
-    }
-
-    /// Collapsed state only has meaning in the grouped list. When the filter
-    /// has picked this type, the section is the whole screen, so it is open —
-    /// and writes still go to the remembered value, so nothing is forgotten.
-    func expansion(for filter: ContactListFilter,
-                   remembered: Binding<Bool>) -> Binding<Bool> {
-        guard listFilter == filter else { return remembered }
-        return Binding(get: { true }, set: { remembered.wrappedValue = $0 })
-    }
-
-    @ViewBuilder
-    func infrastructureSection(_ type: ContactType,
-                               title: LocalizedStringKey,
-                               systemImage: String,
-                               isExpanded: Binding<Bool>) -> some View {
-        let members = infrastructureContacts(type)
-        if !members.isEmpty {
-            let unread = members.reduce(0) { $0 + messageStoreManager.unreadCount(for: $1) }
-            Section(isExpanded: isExpanded) {
-                ForEach(members) { contact in
-                    #if os(watchOS)
-                    NavigationLink {
-                        contactDestination(contact)
-                    } label: {
-                        contactRow(contact)
-                    }
-                    .listRowBackground(MeshTheme.surface)
-                    #else
-                    NavigationLink(value: SidebarSelection.contact(contact.publicKeyPrefix)) {
-                        contactRow(contact)
-                    }
-                    .listRowBackground(MeshTheme.surface)
-                    #endif
-                }
-            } header: {
-                SectionHeader(title, systemImage: systemImage) {
-                    Spacer()
-                    if unread > 0 {
-                        // The whole point of collapsing is that you stop
-                        // looking in here, so an unread message has to come out
-                        // to the header or it is simply lost.
-                        Text("\(unread)")
-                            .font(.caption2)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(Capsule().fill(MeshTheme.accent))
-                            .foregroundStyle(MeshTheme.textOnFill)
-                    }
-                    Text("\(members.count)")
-                        .font(.caption)
-                        .foregroundStyle(MeshTheme.textSecondary)
-                }
-                .accessibilityElement(children: .combine)
-            }
         }
     }
 }

@@ -285,11 +285,6 @@ extension SettingsView {
         .listRowBackground(MeshTheme.surface)
     }
 
-    func sectionHeader(_ title: LocalizedStringKey) -> some View {
-        Text(title)
-            .foregroundStyle(MeshTheme.textSecondary)
-    }
-
     func sectionInfoHeader(_ title: LocalizedStringKey, info: LocalizedStringKey) -> some View {
         SectionInfoHeader(title: title, info: info)
     }
@@ -776,6 +771,38 @@ struct BatteryEditorSheet: View {
                 .tint(MeshTheme.textPrimary)
             } header: {
                 SectionInfoHeader(info: "Select battery chemistry for accurate percentage calculation.")
+            }
+
+            // Calibration is learned, not entered: `updateBatteryCalibration`
+            // runs on every battery reading and keeps a correction factor per
+            // radio in iCloud. So the only thing a user can do about a factor
+            // learned from a bad reading — or one carried over after swapping
+            // to a different cell — is clear it and let it relearn.
+            //
+            // That escape hatch existed, in `batteryCalibrationsRows`, and both
+            // calls to `resetBatteryCalibration()` were inside view members
+            // nothing rendered. A learned-wrong percentage was therefore
+            // permanent, which is the shape of the battery complaint we had
+            // from a reviewer. It belongs here, beside the chemistry that feeds
+            // it, rather than back in the Device Info rows it was orphaned in.
+            if let cal = deviceConfig.batteryCalibration, deviceConfig.batteryMillivolts > 0 {
+                Section {
+                    LabeledContent("Raw Voltage",
+                                   value: String(format: "%.2fV (\u{00D7}%.3f)",
+                                                 Double(deviceConfig.batteryMillivolts) / 1000.0,
+                                                 cal.correctionFactor))
+                    Button(role: .destructive) {
+                        deviceConfig.resetBatteryCalibration()
+                        percentText = {
+                            let pct = deviceConfig.batteryPercent()
+                            return pct > 0 ? String(format: "%d%%", pct) : "\u{2014}"
+                        }()
+                    } label: {
+                        Label("Reset Calibration", systemImage: "arrow.counterclockwise")
+                    }
+                } header: {
+                    SectionInfoHeader(info: "The reading the radio sent, before correction. PommeCore learns this correction from your battery over time \u{2014} reset it if the percentage looks wrong or you have changed the battery.")
+                }
             }
         }
         .navigationTitle("Battery")

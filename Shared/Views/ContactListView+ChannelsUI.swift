@@ -204,17 +204,6 @@ extension ContactListView {
         }
     }
 
-    @ViewBuilder
-    var channelsSection: some View {
-        Section(isExpanded: $channelsExpanded) {
-            channelRows
-        } header: {
-            SectionHeader("Channels") {
-                channelsHeaderButtons
-            }
-        }
-    }
-
     /// The channel rows on their own, so one section can show them beside
     /// contacts.
     @ViewBuilder
