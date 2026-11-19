@@ -161,9 +161,24 @@ def problems(original, translated, lang):
         # failing nine languages at once while passing French and Spanish by
         # accident ("disponible"). Translations stay a substring test so an
         # inflection still counts — German "Hop-Zahl" contains "hop".
-        if not re.search(rf"\b{re.escape(term)}\b", original, re.IGNORECASE):
+        #
+        # An ALL-CAPS term is matched case-sensitively, on both sides. Those
+        # terms are preserved precisely because the user types them verbatim —
+        # "RESET" exists here so that a localized "Type RESET to confirm" still
+        # says RESET. Matched case-insensitively it also fires on the ordinary
+        # English word "reset", and then demands that token of every language,
+        # which rejected eight correct translations at once: German
+        # "Kalibrierung zurücksetzen" and French "Réinitialiser la calibration"
+        # are exactly right and contain no "reset". The three that passed —
+        # Dutch, Czech, Polish — passed by accident, because their own word for
+        # it happens to be a loan. Same shape as the "BLE"/"available" bug the
+        # paragraph above records: a case-blind match on a term whose case *is*
+        # the point.
+        caps = term.isupper()
+        flags = 0 if caps else re.IGNORECASE
+        if not re.search(rf"\b{re.escape(term)}\b", original, flags):
             continue
-        if term.lower() not in low:
+        if (term not in translated) if caps else (term.lower() not in low):
             issues.append(f'preserved term "{term}" missing')
 
     for term, (req, forbidden) in GLOSSARY.get(lang, {}).items():

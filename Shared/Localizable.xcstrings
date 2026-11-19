@@ -9397,7 +9397,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "В зовнішньому вигляді"
+            "value": "Вигляд"
           }
         },
         "zh-Hans": {
@@ -59717,7 +59717,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Surový napětí"
+            "value": "Napětí před korekcí"
           }
         },
         "de": {
@@ -59729,7 +59729,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Voltaje crudo"
+            "value": "Voltaje sin corregir"
           }
         },
         "fr": {
@@ -59741,25 +59741,25 @@
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tensione grezza"
+            "value": "Tensione prima della correzione"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "電圧（原形）"
+            "value": "補正前の電圧"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ruwe spanning"
+            "value": "Ongecorrigeerde spanning"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Napięcie surowe"
+            "value": "Napięcie przed korektą"
           }
         },
         "pt": {
@@ -59771,7 +59771,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Нерафіноване напруження"
+            "value": "Напруга до корекції"
           }
         },
         "zh-Hans": {
@@ -65319,7 +65319,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "カリブラーションをリセット"
+            "value": "校正をリセット"
           }
         },
         "nl": {
@@ -65343,7 +65343,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Скидання калібрування"
+            "value": "Скинути калібрування"
           }
         },
         "zh-Hans": {
