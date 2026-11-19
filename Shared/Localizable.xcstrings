@@ -15228,7 +15228,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "První kanály"
+            "value": "Nejprve kanály"
           }
         },
         "de": {
@@ -15246,19 +15246,19 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chaînes Premièrement"
+            "value": "Chaînes en premier"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Canali Prima"
+            "value": "Prima i canali"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "チャネルファースト"
+            "value": "チャネルを先に表示"
           }
         },
         "nl": {
@@ -15270,7 +15270,7 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kanały pierwsze"
+            "value": "Najpierw kanały"
           }
         },
         "pt": {
@@ -15282,13 +15282,13 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Канали Перші"
+            "value": "Спочатку канали"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "优先考虑频道"
+            "value": "频道优先"
           }
         }
       }
