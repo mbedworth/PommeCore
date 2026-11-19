@@ -76,11 +76,12 @@ struct ContactListView: View {
     /// plain `let` it was reallocated — and a run-loop timer rescheduled —
     /// on every re-init of this struct.
     @State var refreshTimer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
-    // The per-type collapsed state (`contactsExpanded`, `channelsExpanded` and
-    // the three `expand.*` keys) went with the sections it belonged to: one
-    // section cannot be folded away, so there is nothing to remember. The
-    // UserDefaults keys are simply left behind — nothing reads them, and an
-    // install that carries them is not harmed by them.
+    // The per-type collapsed state went with the sections it belonged to: one
+    // section cannot be folded away, so there is nothing to remember.
+    // `contactsExpanded` and `channelsExpanded` were `@State` and persisted
+    // nothing; the three `expand.*` keys were real, and are retired properly
+    // rather than abandoned — `RetiredDefaults` in `SyncedSettings.swift`
+    // sweeps them and `check_rules.py` fails if either name comes back.
     @AppStorage("contactSortByLastSeen") var sortByLastSeen = true
     @AppStorage("channelsFirst") var channelsFirst = false
 

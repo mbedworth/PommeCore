@@ -67,6 +67,13 @@ final class NotificationPreferences: ObservableObject {
     }
 
     private init() {
+        // Before the first read, not after: this is what carries a preference
+        // set under the pre-`9cf94d7` names into the keys read just below, and
+        // a value adopted after the read would not be seen until relaunch.
+        // It is a no-op on any install that has no legacy keys, which is every
+        // install since March 2026. See `RetiredDefaults`.
+        RetiredDefaults.sweepIfNeeded()
+
         // Load with defaults (true for messages, false for new contacts)
         notifyDirect = store.object(forKey: "notify.direct") == nil ? true : store.bool(forKey: "notify.direct")
         notifyChannel = store.object(forKey: "notify.channel") == nil ? true : store.bool(forKey: "notify.channel")
