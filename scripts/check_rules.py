@@ -1113,38 +1113,68 @@ def check_settings_have_readers() -> None:
     with the file excluded the dead toggle is caught and the repaired one is
     silent; without it, the defect that prompted the check walks straight
     through.
+
+    **What it still cannot see: a reader that is itself dead.** This counts
+    occurrences, not reachability, so a setting read only from a view builder
+    nothing calls looks perfectly alive. That is live right now —
+    `repeatersExpanded`, `sensorsExpanded` and `roomsExpanded` are read only
+    inside `infrastructureSections`, and #60 orphaned that builder along with
+    `contactsSection`, `channelsSection` and `groupsSection`. Each of those
+    three settings has exactly two occurrences in `Shared`: its declaration
+    and one dead use. The same rewrite that stranded the `Channels First`
+    Toggle stranded these one level further down, and closing this needs a
+    call graph rather than a grep — so if the dead builders are deleted, these
+    three will start reporting, and that is the check working, not a new bug.
+
+    One more shape is invisible by construction: a key used inline at a
+    control, `AppStorage(wrappedValue: false, "someKey")`, declares no
+    property for this to look up. The original defect was caught only because
+    `ContactListView` *also* declared `channelsFirst` as a property. A Toggle
+    written inline against a key nothing else declares can be dead and
+    unflagged.
     """
     sync_home = ROOT / "Shared" / "Stores" / "SyncedSettings.swift"
-    declaration = re.compile(r'@AppStorage\(\s*"[^"]+"\s*\)\s*(?:private\s+)?var\s+(\w+)')
-    declared: dict[str, tuple[pathlib.Path, int]] = {}
+    # The key may be a literal or a constant — `@AppStorage(QuickReply.locationKey)`
+    # is five of the settings in SettingsView, and a pattern that insisted on a
+    # quoted key skipped every one of them unchecked.
+    declaration = re.compile(
+        r'@AppStorage\(\s*(?:"[^"]+"|[A-Za-z_][\w.]*)\s*(?:,[^)]*)?\)\s*'
+        r'(?:(?:private|fileprivate|internal|public)(?:\(set\))?\s+)?'
+        r'(?:static\s+)?var\s+(\w+)')
+    declared: dict[str, list[tuple[pathlib.Path, int]]] = {}
     bodies: list[tuple[pathlib.Path, str]] = []
 
-    for path in swift_files(["Shared", "watchOS"]):
+    for path in swift_files(["Shared", "watchOS", "iOS", "macOS",
+                             "PommeCore Widgets", "PommeCore Watch Complications"]):
         text = path.read_text(errors="replace")
         bodies.append((path, text))
         for n, line in enumerate(lines_of(path), 1):
             if line.strip().startswith("//"):
                 continue
             m = declaration.search(line)
-            # First declaration wins: the same key is legitimately declared in
-            # several views, and each of those is its own property.
-            if m and m.group(1) not in declared:
-                declared[m.group(1)] = (path, n)
+            # *Every* declaration site is collected, not just the first. The
+            # same setting is legitimately declared in several views, and when
+            # only the first was recorded the others counted as readers of it —
+            # so two dead copies of one setting cancelled each other out and
+            # neither was reported. Four names are declared twice today.
+            if m:
+                declared.setdefault(m.group(1), []).append((path, n))
 
-    for name, (path, line_no) in sorted(declared.items()):
+    for name, sites in sorted(declared.items()):
         uses = 0
         word = re.compile(rf"\b{re.escape(name)}\b")
         for other, text in bodies:
             if other == sync_home:
                 continue              # mirroring a key is not reading it
             for n, line in enumerate(text.splitlines(), 1):
-                if other == path and n == line_no:
-                    continue          # its own declaration is not a use
+                if (other, n) in sites:
+                    continue          # a declaration is not a use
                 if line.strip().startswith("//"):
                     continue          # nor is a mention in a comment
                 # A quoted key is the storage location, not a consumer.
                 uses += len(word.findall(STRING_LITERAL.sub('""', line)))
         if uses == 0:
+            path, line_no = sites[0]
             report("FAIL", "DP1", path, line_no,
                    f"`{name}` is a setting nothing reads — the control writes "
                    "it and no code acts on it, so the user changes it and "
