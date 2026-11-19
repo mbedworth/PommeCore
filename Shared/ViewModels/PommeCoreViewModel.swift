@@ -41,65 +41,135 @@ var iCloudSyncEnabled: Bool {
 
 // RadioConfigVerification, RegionCheck, RadioRegion moved to ConnectionManager
 
-/// Notification preferences synced via iCloud key-value store (when enabled).
+/// Notification preferences. Stored locally, and mirrored through the iCloud
+/// key-value store when sync is on.
+///
+/// **Local is the truth; the cloud is a mirror.** Until 2026-11-19 the only
+/// store was the key-value store and the only write was inside
+/// `if iCloudSyncEnabled`, so with iCloud sync switched off these toggles
+/// persisted *nowhere*: they held for the session, and every one of them
+/// reverted to its default at the next launch. The reads were unconditional,
+/// which is why it looked like it worked — the value came back from the
+/// key-value store on a synced device, and from nothing at all on a device
+/// where the user had opted out of sync. Switching sync off is not asking for
+/// your settings to be forgotten.
+///
+/// Reads prefer `UserDefaults` and fall back to the key-value store, which is
+/// what carries an existing install across: every value written before this
+/// change lives in the cloud store, and the first launch seeds the local copy
+/// from it. That fallback is a migration read rather than a sync, so it
+/// applies even with sync off — the value was on this device already.
 @MainActor
 final class NotificationPreferences: ObservableObject {
     static let shared = NotificationPreferences()
-    private let store = NSUbiquitousKeyValueStore.default
+    private let cloud: NSUbiquitousKeyValueStore
+    private let defaults: UserDefaults
 
-    @Published var notifyDirect: Bool {
-        didSet { if iCloudSyncEnabled { store.setAndSync(notifyDirect, forKey: "notify.direct") } }
+    /// Set while a cloud value is being applied, so `persist` records it
+    /// locally without echoing it straight back to the cloud it came from.
+    private var isApplyingCloud = false
+
+    @Published var notifyDirect = true {
+        didSet { persist(notifyDirect, forKey: "notify.direct") }
     }
-    @Published var notifyChannel: Bool {
-        didSet { if iCloudSyncEnabled { store.setAndSync(notifyChannel, forKey: "notify.channel") } }
+    @Published var notifyChannel = true {
+        didSet { persist(notifyChannel, forKey: "notify.channel") }
     }
-    @Published var notifyRoom: Bool {
-        didSet { if iCloudSyncEnabled { store.setAndSync(notifyRoom, forKey: "notify.room") } }
+    @Published var notifyRoom = true {
+        didSet { persist(notifyRoom, forKey: "notify.room") }
     }
-    @Published var notifyNewContacts: Bool {
-        didSet { if iCloudSyncEnabled { store.setAndSync(notifyNewContacts, forKey: "notify.newContacts") } }
+    @Published var notifyNewContacts = false {
+        didSet { persist(notifyNewContacts, forKey: "notify.newContacts") }
     }
-    @Published var notifyConnection: Bool {
-        didSet { if iCloudSyncEnabled { store.setAndSync(notifyConnection, forKey: "notify.connection") } }
+    @Published var notifyConnection = true {
+        didSet { persist(notifyConnection, forKey: "notify.connection") }
     }
-    @Published var notifyForeground: Bool {
-        didSet { if iCloudSyncEnabled { store.setAndSync(notifyForeground, forKey: "notify.foreground") } }
+    @Published var notifyForeground = true {
+        didSet { persist(notifyForeground, forKey: "notify.foreground") }
     }
 
-    private init() {
+    /// Key and property, in one place. The declaration defaults above are the
+    /// fallbacks — messages and connection notices on, new contacts off — so
+    /// there is no second list of defaults to drift out of step with them.
+    private static let bindings:
+        [(key: String, path: ReferenceWritableKeyPath<NotificationPreferences, Bool>)] = [
+            ("notify.direct", \.notifyDirect),
+            ("notify.channel", \.notifyChannel),
+            ("notify.room", \.notifyRoom),
+            ("notify.newContacts", \.notifyNewContacts),
+            ("notify.connection", \.notifyConnection),
+            ("notify.foreground", \.notifyForeground),
+        ]
+
+    /// The app uses `shared`. The stores are parameters so a test can watch
+    /// what this actually writes and where — the defect being fixed here is
+    /// precisely that nobody could see that the writes were not happening.
+    init(defaults: UserDefaults = .standard,
+         cloud: NSUbiquitousKeyValueStore = .default) {
+        self.defaults = defaults
+        self.cloud = cloud
+
         // Before the first read, not after: this is what carries a preference
         // set under the pre-`9cf94d7` names into the keys read just below, and
         // a value adopted after the read would not be seen until relaunch.
         // It is a no-op on any install that has no legacy keys, which is every
         // install since March 2026. See `RetiredDefaults`.
-        RetiredDefaults.sweepIfNeeded()
+        RetiredDefaults.sweepIfNeeded(defaults: defaults, cloud: cloud)
 
-        // Load with defaults (true for messages, false for new contacts)
-        notifyDirect = store.object(forKey: "notify.direct") == nil ? true : store.bool(forKey: "notify.direct")
-        notifyChannel = store.object(forKey: "notify.channel") == nil ? true : store.bool(forKey: "notify.channel")
-        notifyRoom = store.object(forKey: "notify.room") == nil ? true : store.bool(forKey: "notify.room")
-        notifyNewContacts = store.bool(forKey: "notify.newContacts")
-        notifyConnection = store.object(forKey: "notify.connection") == nil ? true : store.bool(forKey: "notify.connection")
-        notifyForeground = store.object(forKey: "notify.foreground") == nil ? true : store.bool(forKey: "notify.foreground")
+        load(preferLocal: true)
 
         NotificationCenter.default.addObserver(
             forName: NSUbiquitousKeyValueStore.didChangeExternallyNotification,
-            object: store, queue: .main
+            object: cloud, queue: .main
         ) { [weak self] _ in
             Task { @MainActor in
                 guard iCloudSyncEnabled else { return }
-                self?.loadAll()
+                // News from another device, so the cloud wins here. Preferring
+                // the local copy — right at launch — would mean that once a
+                // device had seeded its own `UserDefaults`, no change made on
+                // any other device could ever reach it again.
+                self?.load(preferLocal: false)
             }
         }
     }
 
-    private func loadAll() {
-        notifyDirect = store.object(forKey: "notify.direct") == nil ? true : store.bool(forKey: "notify.direct")
-        notifyChannel = store.object(forKey: "notify.channel") == nil ? true : store.bool(forKey: "notify.channel")
-        notifyRoom = store.object(forKey: "notify.room") == nil ? true : store.bool(forKey: "notify.room")
-        notifyNewContacts = store.bool(forKey: "notify.newContacts")
-        notifyConnection = store.object(forKey: "notify.connection") == nil ? true : store.bool(forKey: "notify.connection")
-        notifyForeground = store.object(forKey: "notify.foreground") == nil ? true : store.bool(forKey: "notify.foreground")
+    /// At launch, local first and the cloud as a fallback; on an external
+    /// change, only the cloud.
+    ///
+    /// Runs with `isApplyingCloud` set, so a value read from the cloud is
+    /// written to `UserDefaults` — making the local copy authoritative from
+    /// here on — without being pushed straight back to the cloud it came from.
+    private func load(preferLocal: Bool) {
+        isApplyingCloud = true
+        defer { isApplyingCloud = false }
+
+        for (key, path) in Self.bindings {
+            let local = defaults.object(forKey: key) as? Bool
+            let synced = cloud.object(forKey: key) as? Bool
+            // Neither store holds it: keep the declared default and write
+            // nothing. An absent key is how a preference that was never set
+            // stays distinguishable from one deliberately set to its default.
+            if let value = preferLocal ? (local ?? synced) : synced {
+                self[keyPath: path] = value
+            }
+        }
+    }
+
+    /// `iCloudSyncEnabled` read from this instance's store rather than the
+    /// global one, so the switch and the settings it governs cannot come from
+    /// two different places.
+    private var syncEnabled: Bool {
+        defaults.object(forKey: "iCloudSyncEnabled") == nil
+            ? true : defaults.bool(forKey: "iCloudSyncEnabled")
+    }
+
+    /// **The local write is unconditional.** That one line is the fix: it used
+    /// to be the cloud write and nothing else, so switching iCloud sync off
+    /// meant these toggles were never stored anywhere.
+    private func persist(_ value: Bool, forKey key: String) {
+        defaults.set(value, forKey: key)
+        guard !isApplyingCloud, syncEnabled else { return }
+        cloud.setAndSync(value, forKey: key)
     }
 }
 
