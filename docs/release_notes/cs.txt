@@ -1,11 +1,7 @@
-Tato verze opravuje dvě chyby, na které nás upozornily recenze, a třetí, kterou jsme našli při jejich opravě. Děkujeme za hlášení: obě se daly najít jen podle vašich popisů.
+Tato verze opravuje tři věci, které tiše nefungovaly. Jednu nahlásil uživatel a při jejím zkoumání se objevily další dvě.
 
-- Frekvence vašeho rádia se už nepřepisuje. Po odpojení Bluetooth se aplikace vracela k vestavěné výchozí hodnotě 906 MHz a nedokázala ji odlišit od hodnoty, kterou rádio skutečně nahlásilo. Kdo potom otevřel nastavení rádia a klepl na „Použít“, přeprogramoval zařízení — frekvenci, šířku pásma, rozprostírací faktor i kódový poměr naráz. Hodnoty, které aplikace ještě nepřečetla, jsou nyní označeny jako neznámé a „Použít“ zůstává nedostupné, dokud nepřijde skutečná konfigurace z rádia.
+- „Nejprve kanály“ opět funguje. Přepínač v Nastavení, Vzhled vaši volbu ukládal, ale nic ji nečetlo — zapnutí tedy nedělalo vůbec nic. Vaše kanály jsou zpátky nad kontakty a nově je vysvětleno, že se nastavení uplatní, když seznam zobrazuje „Všechny“, a ne jediný typ. Díky tomu, kdo to nahlásil: zvenčí nebylo poznat, že rozbitou částí je samo nastavení. Jeho název byl navíc v sedmi jazycích nejasný nebo prostě špatný a byl přepsán.
 
-- Automatický úklid kontaktů vás už nepřerušuje. Kdykoli rádio uvolnilo místo pro nový kontakt, aplikace otevřela dialog „Chyba zařízení“ — jeden na každý kontakt — kvůli zcela běžné činnosti, o kterou jste sami požádali. Úklid se teď hlásí jedním krátkým oznámením, které samo zmizí, a vypnout jej lze v „Nastavení“, „Oznámení“, „Údržba kontaktů“.
+- Kalibraci baterie lze resetovat. PommeCore se v průběhu času učí korekci pro vaši baterii, aby procenta na vašem článku něco znamenala. Pokud se tato korekce naučila ze špatného měření, nebo jste baterii vyměnili, nebyl žádný způsob, jak ji smazat, a nesprávná procenta zůstala natrvalo. Nastavení, Informace o zařízení, Baterie nyní ukazuje hodnotu, kterou rádio skutečně poslalo, vedle „Reset kalibrace“.
 
-- Patnáct chybových a stavových zpráv existovalo pouze v angličtině, mezi nimi upozornění na zaplněné úložiště kontaktů a všechna selhání importu kanálů. Nyní jsou přeloženy do všech dvanácti jazyků a při každém buildu běží nová kontrola, aby příští nepronikla bez povšimnutí.
-
-- V „Nastavení“, „Informace o zařízení“ se nyní ukazuje, kolik z rádia je zaplněno: kontakty a kanály jako počet vůči limitu, místo samotného limitu. Zároveň je z toho vidět, jak blízko je rádio k odstranění nejstaršího kontaktu, aby uvolnilo místo.
-
-- Šestnáct textů nápovědy v aplikaci existovalo pouze v angličtině. Při jejich doplňování se našly překlady, které nechyběly, ale byly chybné — mezi nimi funkce pro Apple Watch, kterou deset jazyků změnilo na pokyn se na něco podívat. I ty jsou opravené.
+- Několik vysvětlení konečně existuje ve vašem jazyce. Dva texty nápovědy byly napsané jen anglicky a přepínač „Nejprve kanály“ neměl vysvětlení žádné. Jsou přeložené do všech dvanácti jazyků a kontrola, která hledá nepřeložené obrazovky, vynechávala celou jejich třídu — proto vydržely tak dlouho.
