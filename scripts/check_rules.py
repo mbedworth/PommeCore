@@ -1067,6 +1067,90 @@ def check_user_message_channel_localized() -> None:
                    "or the catalog check to see it")
 
 
+STRING_LITERAL = re.compile(r'"(?:[^"\\]|\\.)*"')
+
+
+def check_settings_have_readers() -> None:
+    """A setting the user can change that no code reads is a lie on screen.
+
+    `Channels First` shipped in Settings → Appearance, wrote `channelsFirst`,
+    synced it through iCloud, and was read by nothing for three releases. The
+    one-section rewrite (#60) replaced an `if channelsFirst { channelsSection }`
+    / `if !channelsFirst` pair with a fixed order and left the Toggle behind,
+    so flipping it did nothing at all. A reviewer found it, in the storefront,
+    four weeks after it stopped working.
+
+    **Nothing could have found it here.** An `@AppStorage` property that is
+    declared and never read raises no Swift warning — it is a property, and
+    declaring one is a use — so the build was clean in every release that
+    carried the defect. The design principles already forbid this twice (1,
+    everything visible is interactive; 3, every setting tells you what it
+    does), and both were silent for exactly the same reason every other
+    invisible-string class was: no one was looking.
+
+    So: a declared `@AppStorage` property whose name appears nowhere but its
+    own declaration. That is mechanically decidable, which is the bar for
+    living in this script. A `$binding` counts as a read — `$name` matches on
+    a word boundary — and so does a write *through the property*, because a
+    switch wired to something is the thing being checked, not which direction
+    the data flows.
+
+    **String literals are stripped before matching, and that is the second
+    half of the check.** `Channels First` is declared inline at its control as
+    `AppStorage(wrappedValue: false, "channelsFirst")`, so the bare key name
+    appears in quotes at the very Toggle whose deadness is the defect — and a
+    word-boundary match reads straight through quotes, counting the broken
+    control as its own reader. A quoted key names the storage location; only
+    an identifier can consume it.
+
+    **`SyncedSettings.swift` does not count as a reader, and that exclusion is
+    the whole check.** Written without it, this fired on nothing: that file
+    mirrors every settings key by name — a payload field, a decoder line, a
+    name in the observed-keys list, a write-through — so `channelsFirst` had
+    five "uses" there while no view read it. A key is *supposed* to appear in
+    the sync layer, which is exactly why its appearing there says nothing
+    about whether any feature consumes it. Checked both ways on 2026-11-18:
+    with the file excluded the dead toggle is caught and the repaired one is
+    silent; without it, the defect that prompted the check walks straight
+    through.
+    """
+    sync_home = ROOT / "Shared" / "Stores" / "SyncedSettings.swift"
+    declaration = re.compile(r'@AppStorage\(\s*"[^"]+"\s*\)\s*(?:private\s+)?var\s+(\w+)')
+    declared: dict[str, tuple[pathlib.Path, int]] = {}
+    bodies: list[tuple[pathlib.Path, str]] = []
+
+    for path in swift_files(["Shared", "watchOS"]):
+        text = path.read_text(errors="replace")
+        bodies.append((path, text))
+        for n, line in enumerate(lines_of(path), 1):
+            if line.strip().startswith("//"):
+                continue
+            m = declaration.search(line)
+            # First declaration wins: the same key is legitimately declared in
+            # several views, and each of those is its own property.
+            if m and m.group(1) not in declared:
+                declared[m.group(1)] = (path, n)
+
+    for name, (path, line_no) in sorted(declared.items()):
+        uses = 0
+        word = re.compile(rf"\b{re.escape(name)}\b")
+        for other, text in bodies:
+            if other == sync_home:
+                continue              # mirroring a key is not reading it
+            for n, line in enumerate(text.splitlines(), 1):
+                if other == path and n == line_no:
+                    continue          # its own declaration is not a use
+                if line.strip().startswith("//"):
+                    continue          # nor is a mention in a comment
+                # A quoted key is the storage location, not a consumer.
+                uses += len(word.findall(STRING_LITERAL.sub('""', line)))
+        if uses == 0:
+            report("FAIL", "DP1", path, line_no,
+                   f"`{name}` is a setting nothing reads — the control writes "
+                   "it and no code acts on it, so the user changes it and "
+                   "nothing happens. Wire it up or remove the control")
+
+
 CHECKS = [
     check_sheet_frames,
     check_text_takes_string,
@@ -1094,6 +1178,7 @@ CHECKS = [
     check_path_len_decoding,
     check_hand_built_icloud_keys,
     check_idiom_layout,
+    check_settings_have_readers,
 ]
 
 

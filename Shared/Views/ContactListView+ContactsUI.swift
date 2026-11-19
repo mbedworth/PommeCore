@@ -256,8 +256,24 @@ extension ContactListView {
         Section {
             switch listFilter {
             case .all:
-                contactRows(contactStore.sortedContacts(byLastSeen: sortByLastSeen))
-                channelRows
+                // `channelsFirst` is a user setting, and the only filter it can
+                // mean anything in is `.all` — every other case shows one type.
+                //
+                // Read it here because the one-section rewrite (#60) replaced an
+                // `if channelsFirst { channelsSection }` / `if !channelsFirst`
+                // pair with a fixed order and left the Toggle in Settings behind.
+                // The switch kept writing the key, iCloud kept syncing it, and
+                // nothing read it for three releases, so flipping it did nothing
+                // at all — reported by a reviewer, not by any gate. An unread
+                // `@AppStorage` property raises no warning, so the build stayed
+                // clean throughout: a setting with no reader is invisible.
+                if channelsFirst {
+                    channelRows
+                    contactRows(contactStore.sortedContacts(byLastSeen: sortByLastSeen))
+                } else {
+                    contactRows(contactStore.sortedContacts(byLastSeen: sortByLastSeen))
+                    channelRows
+                }
             case .contacts, .repeaters, .sensors, .rooms:
                 contactRows(contacts(for: listFilter))
             case .channels:
