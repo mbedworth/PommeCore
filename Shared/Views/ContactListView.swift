@@ -76,13 +76,11 @@ struct ContactListView: View {
     /// plain `let` it was reallocated — and a run-loop timer rescheduled —
     /// on every re-init of this struct.
     @State var refreshTimer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
-    @State var contactsExpanded = true
-    // Collapsed by default and remembered per type: these are the rows that
-    // multiply on a busy mesh, which is the whole reason they are folded away.
-    @AppStorage("expand.repeaters") var repeatersExpanded = false
-    @AppStorage("expand.sensors") var sensorsExpanded = false
-    @AppStorage("expand.rooms") var roomsExpanded = false
-    @State var channelsExpanded = true
+    // The per-type collapsed state (`contactsExpanded`, `channelsExpanded` and
+    // the three `expand.*` keys) went with the sections it belonged to: one
+    // section cannot be folded away, so there is nothing to remember. The
+    // UserDefaults keys are simply left behind — nothing reads them, and an
+    // install that carries them is not harmed by them.
     @AppStorage("contactSortByLastSeen") var sortByLastSeen = true
     @AppStorage("channelsFirst") var channelsFirst = false
 
@@ -495,11 +493,17 @@ private extension ContactListView {
 
     /// The list's contents under the current filter.
     ///
-    /// `.all` renders exactly the list that was here before; a specific type
-    /// renders only its own section. Gating the existing sections rather than
-    /// rebuilding rows keeps selection mode, swipe actions and the platform
-    /// variants in one place — extracted from `mainList` because inlining it
-    /// put the body past what the type-checker will do in reasonable time.
+    /// Pending contacts, then one section whose header picks the type.
+    ///
+    /// This used to say that `.all` "renders exactly the list that was here
+    /// before" by *gating* the old per-type sections. It has not done that
+    /// since #60, which rebuilt the rows into `unifiedSection` and left the
+    /// sections — and the `Channels First` toggle that ordered two of them —
+    /// stranded. Selection mode, swipe actions and the platform variants live
+    /// in `contactRows`, which is what every filter now goes through.
+    ///
+    /// Extracted from `mainList` because inlining it put the body past what
+    /// the type-checker will do in reasonable time.
     @ViewBuilder
     var filteredSections: some View {
         // Pending contacts are not a type — they are an inbox, and they are

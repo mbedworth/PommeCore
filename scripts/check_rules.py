@@ -593,10 +593,37 @@ UI_LITERAL = re.compile(
 # Matched against the whole file rather than line by line, because a labelled
 # argument is exactly the kind that gets wrapped onto its own line, and a check
 # defeated by a line break is worse than no check: it reports clean.
+# Both spellings of the same thing, and the helper is the one that mattered:
+# the struct is `SectionInfoHeader(title:info:)`, but eight call sites go
+# through the lowercase `sectionInfoHeader(_:info:)` helper, whose *first*
+# argument carries no label at all. A pattern anchored on `title:` matched none
+# of them, so every one of those eight strings was unchecked — and three had
+# never reached the catalog: the Appearance prose, the per-contact message cap
+# in SettingsView+TipJar, and the connection-types paragraph in
+# SettingsView+Sections. Two of those three shipped English-only in eleven
+# languages, found on 2026-11-18 only because adding help text to the dead
+# Channels First toggle made the new string pass a check that should have
+# failed it. A check that silently covers less than you believe is worse than
+# no check, because it also stops you looking.
+# The leading argument is optional *as a whole* — `SectionInfoHeader(info:)`
+# with no title at all is the commonest form in the editors. Making it
+# mandatory while adding the helper spelling silently stopped matching every
+# info-only call, which is the same mistake in the opposite direction: the
+# check kept reporting 0 FAIL while two new uncatalogued strings sat in front
+# of it. Both shapes are tested in `tests_for_labelled_literal` below.
 UI_LITERAL_LABELLED = re.compile(
-    r'SectionInfoHeader\(\s*(?:title:\s*"((?:[^"\\]|\\.)+)"\s*,\s*)?'
+    r'\b[Ss]ectionInfoHeader\(\s*(?:(?:title:\s*)?"((?:[^"\\]|\\.)+)"\s*,\s*)?'
     r'info:\s*"((?:[^"\\]|\\.)+)"',
     re.DOTALL,
+)
+
+# Shapes this pattern must match, kept next to it because it has now been
+# wrong in both directions — anchored on `title:` it missed the eight helper
+# call sites; with a mandatory first argument it missed every info-only one.
+tests_for_labelled_literal = (
+    ('SectionInfoHeader(title: "T", info: "I")', ("T", "I")),
+    ('SectionInfoHeader(info: "I")', (None, "I")),
+    ('sectionInfoHeader("T", info: "I")', ("T", "I")),
 )
 
 
@@ -1116,15 +1143,20 @@ def check_settings_have_readers() -> None:
 
     **What it still cannot see: a reader that is itself dead.** This counts
     occurrences, not reachability, so a setting read only from a view builder
-    nothing calls looks perfectly alive. That is live right now —
-    `repeatersExpanded`, `sensorsExpanded` and `roomsExpanded` are read only
-    inside `infrastructureSections`, and #60 orphaned that builder along with
-    `contactsSection`, `channelsSection` and `groupsSection`. Each of those
-    three settings has exactly two occurrences in `Shared`: its declaration
-    and one dead use. The same rewrite that stranded the `Channels First`
-    Toggle stranded these one level further down, and closing this needs a
-    call graph rather than a grep — so if the dead builders are deleted, these
-    three will start reporting, and that is the check working, not a new bug.
+    nothing calls looks perfectly alive. That was live when the check was
+    written: `repeatersExpanded`, `sensorsExpanded` and `roomsExpanded` were
+    read only inside `infrastructureSections`, which #60 had orphaned along
+    with `contactsSection`, `channelsSection` and `groupsSection` — the same
+    rewrite that stranded the `Channels First` Toggle, one level further down.
+    Each had exactly two occurrences: a declaration and one dead use, so this
+    check was silent on all three.
+
+    Those six builders and the five collapsed-state properties were deleted on
+    2026-11-18, so no instance of the blind spot remains in the tree. **The
+    blind spot does.** Closing it needs a call graph rather than a grep, so
+    until something does that, a dead setting can still hide behind a dead
+    reader — and the audit that found these six was a reachability sweep run by
+    hand, which is the only tool here that would find the next one.
 
     One more shape is invisible by construction: a key used inline at a
     control, `AppStorage(wrappedValue: false, "someKey")`, declares no
