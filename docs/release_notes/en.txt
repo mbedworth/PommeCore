@@ -1,6 +1,8 @@
-This release is about three things that were quietly not working. One was reported by a user, and looking into it turned up the other two.
+This release is about four things that were quietly not working. One was reported by a user, and looking into it turned up the other three.
 
 - Channels First works again. The switch under Settings, Appearance had been writing your preference and nothing had been reading it, so turning it on did nothing at all. Your channels go back above your contacts, and it now explains that it applies when the list is showing All rather than a single type. Thank you to the person who reported this — it was not obvious from the outside that the setting was the broken part. Its name was also unclear or simply wrong in seven languages, and has been rewritten.
+
+- Your notification settings are kept again, and the ones that went missing are back. An update in March renamed where these switches were stored without carrying the old values across, so anyone who had turned a notification off had it quietly switch itself back on. PommeCore now restores that original choice, unless you have set it again since — what you chose most recently always wins. Separately, with iCloud sync switched off the switches were not being saved at all and reverted every time the app started. Settings, Notifications holds them properly now, with or without iCloud.
 
 - Battery calibration can be reset. PommeCore learns a correction for your battery over time, so that the percentage means something on your particular cell. If that correction was learned from a bad reading, or you changed the battery, there was no way to clear it and the wrong percentage was permanent. Settings, Device Info, Battery now shows the reading your radio actually sent alongside Reset Calibration.
 

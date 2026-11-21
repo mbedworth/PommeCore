@@ -1,6 +1,8 @@
-Ta wersja naprawia trzy rzeczy, które po cichu nie działały. Jedną zgłosił użytkownik, a przy jej badaniu wyszły pozostałe dwie.
+Ta wersja naprawia cztery rzeczy, które po cichu nie działały. Jedną zgłosił użytkownik, a przy jej badaniu wyszły pozostałe trzy.
 
 - „Najpierw kanały” znów działa. Przełącznik w Ustawienia, Wygląd zapisywał Twoje ustawienie, ale nic go nie czytało — włączenie nie dawało więc zupełnie nic. Twoje kanały wracają nad kontakty, a teraz jest też wyjaśnione, że ustawienie działa, gdy lista pokazuje „Wszystkie”, a nie jeden typ. Dzięki osobie, która to zgłosiła: z zewnątrz nie było widać, że zepsutą częścią jest samo ustawienie. Jego nazwa była ponadto niejasna lub po prostu błędna w siedmiu językach i została napisana od nowa.
+
+- Twoje ustawienia powiadomień znów są zapamiętywane, a te, które zniknęły, wróciły. Aktualizacja z marca zmieniła nazwę miejsca, w którym te przełączniki były zapisywane, i nie przeniosła starych wartości — komu powiadomienie było wyłączone, temu po cichu włączyło się z powrotem. PommeCore przywraca teraz ten pierwotny wybór, chyba że od tego czasu ustawiłeś go ponownie: zawsze liczy się twój najnowszy wybór. Poza tym przy wyłączonej synchronizacji z iCloud te przełączniki wcale nie były zapisywane i wracały przy każdym uruchomieniu. W Ustawienia, Powiadomienia trzymają się teraz jak należy, z iCloud i bez niego.
 
 - Kalibrację baterii można zresetować. PommeCore z czasem uczy się korekty dla Twojej baterii, żeby procenty znaczyły coś na Twoim ogniwie. Jeśli ta korekta została wyuczona ze złego odczytu albo wymieniłeś baterię, nie było sposobu, by ją usunąć, i błędne procenty zostawały na stałe. Ustawienia, Informacje o urządzeniu, Bateria pokazuje teraz odczyt, który radio naprawdę wysłało, obok „Reset kalibracji”.
 

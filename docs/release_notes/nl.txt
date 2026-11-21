@@ -1,6 +1,8 @@
-Deze versie repareert drie dingen die stil niet werkten. Eén werd door een gebruiker gemeld, en bij het uitzoeken kwamen de andere twee boven.
+Deze versie repareert vier dingen die stil niet werkten. Eén werd door een gebruiker gemeld, en bij het uitzoeken kwamen de andere drie boven.
 
 - ‘Kanalen Eerst’ werkt weer. De schakelaar onder Instellingen, Uiterlijk bewaarde je voorkeur wel, maar niets las die uit — hem aanzetten deed dus helemaal niets. Je kanalen staan weer boven je contacten, en er staat nu bij dat de instelling geldt wanneer de lijst ‘Alle’ toont in plaats van één type. Dank aan degene die dit meldde: van buitenaf was niet te zien dat juist de instelling het kapotte deel was. De naam was daarnaast in zeven talen onduidelijk of simpelweg verkeerd, en is herschreven.
+
+- Je meldingsinstellingen blijven weer bewaard, en de instellingen die verdwenen waren zijn terug. Een update van maart gaf de plek waar deze schakelaars werden opgeslagen een nieuwe naam zonder de oude waarden mee te nemen, dus wie een melding had uitgezet, zag die zichzelf stil weer aanzetten. PommeCore herstelt die oorspronkelijke keuze nu, tenzij je hem sindsdien opnieuw hebt ingesteld — je meest recente keuze gaat altijd voor. Daarnaast werden deze schakelaars met iCloud-synchronisatie uit helemaal niet opgeslagen en vielen ze bij elke start terug. Onder Instellingen, Meldingen blijven ze nu netjes staan, met of zonder iCloud.
 
 - De batterijkalibratie kan worden gereset. PommeCore leert in de loop van de tijd een correctie voor je batterij, zodat het percentage iets betekent voor jouw cel. Was die correctie geleerd uit een slechte meting, of heb je de batterij vervangen, dan was er geen manier om haar te wissen en bleef het verkeerde percentage voorgoed staan. Instellingen, Apparaatinformatie, Batterij toont nu de meting die je radio werkelijk verstuurde, naast ‘Kalibratie resetten’.
 
