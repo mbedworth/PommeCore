@@ -1,6 +1,8 @@
-Esta versão corrige três coisas que, em silêncio, não funcionavam. Uma foi comunicada por um utilizador, e ao investigá-la apareceram as outras duas.
+Esta versão corrige quatro coisas que, em silêncio, não funcionavam. Uma foi comunicada por um utilizador, e ao investigá-la apareceram as outras três.
 
 - «Canais Primeiro» volta a funcionar. O interruptor em Configurações, Aparência guardava a sua preferência e nada a lia, pelo que ligá-lo não fazia absolutamente nada. Os seus canais voltam a ficar acima dos contactos, e agora explica-se que se aplica quando a lista mostra «Todos» em vez de um único tipo. Obrigado a quem comunicou isto: de fora não havia como ver que a parte avariada era a própria opção. O seu nome era também pouco claro ou simplesmente errado em sete idiomas, e foi reescrito.
+
+- As suas definições de notificações voltam a ser guardadas, e as que se tinham perdido estão de volta. Uma atualização de março mudou o nome do lugar onde estes interruptores eram guardados sem levar os valores antigos, pelo que quem tivesse desligado uma notificação via-a ligar-se outra vez, em silêncio. O PommeCore repõe agora essa escolha original, a não ser que a tenha definido de novo desde então — a sua escolha mais recente prevalece sempre. Além disso, com a sincronização do iCloud desligada, estes interruptores não eram guardados de forma alguma e revertiam a cada arranque. Em Configurações, Notificações ficam agora guardadas como devem ser, com ou sem iCloud.
 
 - A calibração da bateria pode ser reposta. O PommeCore aprende ao longo do tempo uma correção para a sua bateria, para que a percentagem signifique algo na sua célula. Se essa correção tivesse sido aprendida a partir de uma leitura má, ou se trocou de bateria, não havia forma de a apagar e a percentagem errada ficava permanente. Configurações, Informações do Dispositivo, Bateria mostra agora a leitura que a sua radio enviou de facto, ao lado de «Redefinir Calibração».
 

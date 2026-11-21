@@ -1,6 +1,8 @@
-Tato verze opravuje tři věci, které tiše nefungovaly. Jednu nahlásil uživatel a při jejím zkoumání se objevily další dvě.
+Tato verze opravuje čtyři věci, které tiše nefungovaly. Jednu nahlásil uživatel a při jejím zkoumání se objevily další tři.
 
 - „Nejprve kanály“ opět funguje. Přepínač v Nastavení, Vzhled vaši volbu ukládal, ale nic ji nečetlo — zapnutí tedy nedělalo vůbec nic. Vaše kanály jsou zpátky nad kontakty a nově je vysvětleno, že se nastavení uplatní, když seznam zobrazuje „Všechny“, a ne jediný typ. Díky tomu, kdo to nahlásil: zvenčí nebylo poznat, že rozbitou částí je samo nastavení. Jeho název byl navíc v sedmi jazycích nejasný nebo prostě špatný a byl přepsán.
+
+- Vaše nastavení oznámení se opět ukládá a to, co se ztratilo, je zpět. Aktualizace z března přejmenovala místo, kam se tyto přepínače ukládaly, a staré hodnoty s sebou nevzala — komu bylo oznámení vypnuté, tomu se tiše zapnulo zpátky. PommeCore nyní tuto původní volbu obnoví, pokud jste ji mezitím nenastavili znovu: vždy platí vaše poslední volba. Navíc se tyto přepínače při vypnuté synchronizaci s iCloud vůbec neukládaly a při každém spuštění se vracely. V Nastavení, Oznámení teď zůstávají správně, s iCloud i bez něj.
 
 - Kalibraci baterie lze resetovat. PommeCore se v průběhu času učí korekci pro vaši baterii, aby procenta na vašem článku něco znamenala. Pokud se tato korekce naučila ze špatného měření, nebo jste baterii vyměnili, nebyl žádný způsob, jak ji smazat, a nesprávná procenta zůstala natrvalo. Nastavení, Informace o zařízení, Baterie nyní ukazuje hodnotu, kterou rádio skutečně poslalo, vedle „Reset kalibrace“.
 
